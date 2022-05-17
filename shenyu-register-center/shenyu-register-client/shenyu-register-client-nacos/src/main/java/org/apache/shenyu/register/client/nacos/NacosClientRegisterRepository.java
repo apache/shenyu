@@ -60,8 +60,6 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
 
     private final ConcurrentLinkedQueue<String> metadataCache = new ConcurrentLinkedQueue<>();
 
-    private boolean registerService;
-
     public NacosClientRegisterRepository() { }
 
     public NacosClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
@@ -128,10 +126,6 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
                                               final String host,
                                               final int port,
                                               final URIRegisterDTO registerDTO) {
-        if (registerService) {
-            return;
-        }
-        registerService = true;
         Instance instance = new Instance();
         instance.setEphemeral(true);
         instance.setIp(host);
@@ -157,10 +151,13 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         String configName = RegisterPathConstants.buildServiceConfigPath(rpcType, contextPath);
         try {
             final String defaultGroup = NacosPathConstants.GROUP;
-            configService.publishConfig(configName, defaultGroup, GsonUtils.getInstance().toJson(metadataCache));
+            if (configService.publishConfig(configName, defaultGroup, GsonUtils.getInstance().toJson(metadataCache))) {
+                LOGGER.info("register metadata success: {}", metadata.getRuleName());
+            } else {
+                throw new ShenyuException("register metadata fail , please check ");
+            }
         } catch (NacosException e) {
             throw new ShenyuException(e);
         }
-        LOGGER.info("register metadata success: {}", metadata.getRuleName());
     }
 }

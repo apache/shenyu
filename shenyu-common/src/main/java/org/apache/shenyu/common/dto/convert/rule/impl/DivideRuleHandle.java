@@ -20,6 +20,7 @@ package org.apache.shenyu.common.dto.convert.rule.impl;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
+import org.apache.shenyu.common.enums.RetryEnum;
 
 import java.util.Objects;
 
@@ -35,6 +36,12 @@ public class DivideRuleHandle implements RuleHandle {
     private String loadBalance = LoadBalanceEnum.RANDOM.getName();
 
     /**
+     * retryStrategy.
+     * {@linkplain RetryEnum}
+     */
+    private String retryStrategy = RetryEnum.CURRENT.getName();
+
+    /**
      * http retry.
      */
     private int retry = 3;
@@ -47,12 +54,12 @@ public class DivideRuleHandle implements RuleHandle {
     /**
      * headerMaxSize.
      */
-    private long headerMaxSize = Constants.HEADER_MAX_SIZE;
+    private long headerMaxSize;
 
     /**
      * requestMaxSize.
      */
-    private long requestMaxSize = Constants.REQUEST_MAX_SIZE;
+    private long requestMaxSize;
 
     /**
      * get loadBalance.
@@ -70,6 +77,24 @@ public class DivideRuleHandle implements RuleHandle {
      */
     public void setLoadBalance(final String loadBalance) {
         this.loadBalance = loadBalance;
+    }
+
+    /**
+     * get retryStrategy.
+     *
+     * @return retryStrategy
+     */
+    public String getRetryStrategy() {
+        return retryStrategy;
+    }
+
+    /**
+     * set retryStrategy.
+     *
+     * @param retryStrategy retryStrategy
+     */
+    public void setRetryStrategy(final String retryStrategy) {
+        this.retryStrategy = retryStrategy;
     }
 
     /**
@@ -154,12 +179,13 @@ public class DivideRuleHandle implements RuleHandle {
         }
         DivideRuleHandle that = (DivideRuleHandle) o;
         return retry == that.retry && timeout == that.timeout && headerMaxSize == that.headerMaxSize
-                && requestMaxSize == that.requestMaxSize && Objects.equals(loadBalance, that.loadBalance);
+                && requestMaxSize == that.requestMaxSize && Objects.equals(loadBalance, that.loadBalance)
+                && Objects.equals(retryStrategy, that.retryStrategy);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadBalance, retry, timeout, headerMaxSize, requestMaxSize);
+        return Objects.hash(loadBalance, retryStrategy, retry, timeout, headerMaxSize, requestMaxSize);
     }
 
     @Override
@@ -167,6 +193,9 @@ public class DivideRuleHandle implements RuleHandle {
         return "DivideRuleHandle{"
                 + "loadBalance='"
                 + loadBalance
+                + '\''
+                + "retryStrategy='"
+                + retryStrategy
                 + '\''
                 + ", retry="
                 + retry

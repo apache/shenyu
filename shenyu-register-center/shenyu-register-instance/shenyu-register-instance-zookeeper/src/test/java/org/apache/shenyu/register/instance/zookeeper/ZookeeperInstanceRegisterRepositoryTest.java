@@ -17,40 +17,37 @@
 
 package org.apache.shenyu.register.instance.zookeeper;
 
-import org.I0Itec.zkclient.ZkClient;
+import org.apache.curator.test.TestingServer;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ZookeeperInstanceRegisterRepositoryTest {
-
-    private final List<String> registerPath = new ArrayList<>();
-
-    private final Map<String, String> registerInstanceMap
-            = new HashMap<>();
 
     private final ZookeeperInstanceRegisterRepository repository
             = new ZookeeperInstanceRegisterRepository();
 
-    @Before
+    private ZookeeperClient client;
+
+    @BeforeEach
     public void setup() throws Exception {
-        final ZkClient zkClient = mockZkClient();
-        final Field field = repository.getClass().getDeclaredField("zkClient");
+        TestingServer server = new TestingServer();
+        ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+        config.setServerLists(server.getConnectString());
+        this.repository.init(config);
+
+        Class<? extends ZookeeperInstanceRegisterRepository> clazz = this.repository.getClass();
+
+        String fieldString = "client";
+        Field field = clazz.getDeclaredField(fieldString);
         field.setAccessible(true);
-        field.set(repository, zkClient);
+        this.client = (ZookeeperClient) field.get(repository);
     }
 
     @Test
@@ -61,23 +58,7 @@ public class ZookeeperInstanceRegisterRepositoryTest {
                 .port(9195)
                 .build();
         repository.persistInstance(data);
-        assertTrue(registerPath.contains("/shenyu/register/instance"));
-        assertEquals(registerInstanceMap.get("/shenyu/register/instance/shenyu-host:9195"), "{\"appName\":\"shenyu-test\",\"host\":\"shenyu-host\",\"port\":9195}");
-    }
-
-    private ZkClient mockZkClient() {
-        final ZkClient zkClient = mock(ZkClient.class);
-        doAnswer(invocation -> {
-            final String path = invocation.getArgument(0);
-            registerPath.add(path);
-            return null;
-        }).when(zkClient).createPersistent(anyString(), anyBoolean());
-        doAnswer(invocation -> {
-            final String path = invocation.getArgument(0);
-            final String nodeValue = invocation.getArgument(1);
-            registerInstanceMap.put(path, nodeValue);
-            return null;
-        }).when(zkClient).createEphemeral(anyString(), anyString());
-        return zkClient;
+        String value = client.get("/shenyu/register/instance/shenyu-host:9195");
+        assertEquals(value, GsonUtils.getInstance().toJson(data));
     }
 }

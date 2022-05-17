@@ -86,11 +86,14 @@ public class HierarchicalWheelTimer implements Timer {
     
     @Override
     public void add(final TimerTask timerTask) {
+        if (timerTask == null) {
+            throw new NullPointerException("timer task null");
+        }
         this.readLock.lock();
         try {
             start();
             long millis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
-            this.addTimerTaskEntry(new TimerTaskList.TimerTaskEntry(timerTask, timerTask.getDelayMs() + millis));
+            this.addTimerTaskEntry(new TimerTaskList.TimerTaskEntry(this, timerTask, timerTask.getDelayMs() + millis));
         } finally {
             this.readLock.unlock();
         }
@@ -100,7 +103,7 @@ public class HierarchicalWheelTimer implements Timer {
     private void addTimerTaskEntry(final TimerTaskList.TimerTaskEntry timerTaskEntry) {
         if (!timingWheel.add(timerTaskEntry)) {
             if (!timerTaskEntry.cancelled()) {
-                taskExecutor.submit(timerTaskEntry.getTimerTask());
+                taskExecutor.submit(() -> timerTaskEntry.getTimerTask().run(timerTaskEntry));
             }
         }
     }

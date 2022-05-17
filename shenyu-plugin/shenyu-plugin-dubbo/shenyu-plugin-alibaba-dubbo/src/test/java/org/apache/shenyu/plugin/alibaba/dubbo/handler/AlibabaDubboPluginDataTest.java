@@ -17,31 +17,38 @@
 
 package org.apache.shenyu.plugin.alibaba.dubbo.handler;
 
-import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.Singleton;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-import org.mockito.junit.MockitoJUnitRunner;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * AlibabaDubboPluginDataTest.
  */
-@RunWith(MockitoJUnitRunner.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+@TestMethodOrder(MethodOrderer.Alphanumeric.class)
 public final class AlibabaDubboPluginDataTest {
 
     private AlibabaDubboPluginDataHandler alibabaDubboPluginDataHandler;
 
     private final String registryConfig = "{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}";
 
-    @Before
+    @BeforeEach
     public void setUp() {
         alibabaDubboPluginDataHandler = new AlibabaDubboPluginDataHandler();
         MetaData metaData = new MetaData();
@@ -50,25 +57,25 @@ public final class AlibabaDubboPluginDataTest {
         metaData.setPath("/dubbo/findAll");
         metaData.setServiceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService");
         metaData.setMethodName("findAll");
-        Assert.assertNotNull(metaData);
+        assertNotNull(metaData);
     }
 
     @Test
     public void testPluginEnable() {
         PluginData pluginData = new PluginData("", "", registryConfig, "1", true);
         alibabaDubboPluginDataHandler.handlerPlugin(pluginData);
-        Assert.assertEquals(Singleton.INST.get(DubboRegisterConfig.class).getRegister(), "127.0.0.1:2181");
+        assertEquals(Singleton.INST.get(DubboRegisterConfig.class).getRegister(), "127.0.0.1:2181");
     }
 
     @Test
     public void testPluginDisable() {
         PluginData pluginData = new PluginData("", "", registryConfig, "1", false);
         alibabaDubboPluginDataHandler.handlerPlugin(pluginData);
-        Assert.assertNull(Singleton.INST.get(DubboRegisterConfig.class));
+        assertNull(Singleton.INST.get(DubboRegisterConfig.class));
     }
 
     @Test
     public void testPluginNamed() {
-        Assert.assertEquals(alibabaDubboPluginDataHandler.pluginNamed(), PluginEnum.DUBBO.getName());
+        assertEquals(alibabaDubboPluginDataHandler.pluginNamed(), PluginEnum.DUBBO.getName());
     }
 }

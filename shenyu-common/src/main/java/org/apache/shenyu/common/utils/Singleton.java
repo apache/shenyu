@@ -41,7 +41,7 @@ public enum Singleton {
      * @param clazz the clazz
      * @param o     the o
      */
-    public void single(final Class clazz, final Object o) {
+    public void single(final Class<?> clazz, final Object o) {
         SINGLES.put(clazz.getName(), o);
     }
 

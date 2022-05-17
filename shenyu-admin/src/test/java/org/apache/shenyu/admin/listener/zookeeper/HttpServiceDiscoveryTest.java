@@ -17,23 +17,22 @@
 
 package org.apache.shenyu.admin.listener.zookeeper;
 
-import org.I0Itec.zkclient.ZkClient;
+import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.assertj.core.util.Lists;
-import org.junit.Test;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
+import org.apache.zookeeper.CreateMode;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 
-import java.util.List;
+import java.lang.reflect.Field;
 
 import static org.apache.shenyu.admin.listener.zookeeper.HttpServiceDiscovery.ROOT;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,7 +42,7 @@ import static org.mockito.Mockito.when;
 public final class HttpServiceDiscoveryTest {
 
     @Test
-    public void testAfterPropertiesSet() {
+    public void testAfterPropertiesSet() throws Exception {
         SelectorService selectorService = mock(SelectorService.class);
         SelectorMapper selectorMapper = mock(SelectorMapper.class);
         ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
@@ -52,24 +51,26 @@ public final class HttpServiceDiscoveryTest {
         SelectorData selectorData = mock(SelectorData.class);
         when(selectorService.findByName(anyString())).thenReturn(selector);
         when(selectorService.buildByName(anyString())).thenReturn(selectorData);
-        when(env.getProperty("shenyu.http.register", Boolean.class, false)).thenReturn(false, true);
+        when(env.getProperty("shenyu.http.register", Boolean.class, false)).thenReturn(true);
+
+        TestingServer server = new TestingServer();
+        when(env.getProperty("shenyu.http.zookeeperUrl", "")).thenReturn(server.getConnectString());
+
         HttpServiceDiscovery discovery = new HttpServiceDiscovery(selectorService, selectorMapper, eventPublisher, env);
-        HttpServiceDiscovery spy = spy(discovery);
-        spy.afterPropertiesSet();
-        verify(env).getProperty("shenyu.http.register", Boolean.class, false);
-        String zookeeperUrl = "192.168.0.10:2181";
-        when(env.getProperty("shenyu.http.zookeeperUrl", "")).thenReturn(zookeeperUrl);
-        ZkClient zkClient = mock(ZkClient.class);
-        doReturn(zkClient).when(spy).createZkClient(zookeeperUrl);
-        when(zkClient.exists(ROOT)).thenReturn(false);
+
+        Class<? extends HttpServiceDiscovery> clazz = discovery.getClass();
+
         String server1 = "server1";
-        List<String> contextPathList = Lists.newArrayList(server1);
-        when(zkClient.getChildren(ROOT)).thenReturn(contextPathList);
-        when(zkClient.getChildren(ROOT + "/" + server1)).thenReturn(contextPathList);
-        when(zkClient.readData(anyString())).thenReturn("192.169.0.9");
-        spy.afterPropertiesSet();
-        verify(zkClient).createPersistent(ROOT, true);
-        verify(zkClient).getChildren(ROOT);
+        discovery.afterPropertiesSet();
+
+        String fieldString = "zkClient";
+        Field field = clazz.getDeclaredField(fieldString);
+        field.setAccessible(true);
+        ZookeeperClient zkClient = (ZookeeperClient) field.get(discovery);
+        zkClient.createOrUpdate(ROOT + "/" + server1 + "/hello", "", CreateMode.PERSISTENT);
+
+        // wait for take effect
+        Thread.sleep(500);
         verify(selectorMapper).updateSelective(selector);
     }
 }

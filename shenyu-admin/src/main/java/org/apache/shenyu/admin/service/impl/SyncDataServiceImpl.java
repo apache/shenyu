@@ -111,7 +111,7 @@ public class SyncDataServiceImpl implements SyncDataService {
 
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
 
-        List<String> selectorIdList = selectorDataList.stream().map(selectorData -> selectorData.getId())
+        List<String> selectorIdList = selectorDataList.stream().map(SelectorData::getId)
                 .collect(Collectors.toList());
         List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
 

@@ -18,22 +18,25 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ResourceQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.service.ResourceService;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
+import org.apache.shenyu.admin.service.ResourceService;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -44,12 +47,13 @@ import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 /**
  * test for {@linkplain ResourceController}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ResourceControllerTest {
 
     private MockMvc mockMvc;
@@ -59,8 +63,11 @@ public class ResourceControllerTest {
 
     @Mock
     private ResourceService resourceService;
+    
+    @Mock
+    private ResourceMapper resourceMapper;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(resourceController)
                 .setControllerAdvice(new ExceptionHandlers())
@@ -165,11 +172,7 @@ public class ResourceControllerTest {
     @Test
     public void testCreateResource() throws Exception {
         final ResourceDTO resourceDTO = new ResourceDTO();
-        resourceDTO.setTitle("test");
-        resourceDTO.setName("test");
-        resourceDTO.setResourceType(1);
-        resourceDTO.setStatus(1);
-        resourceDTO.setSort(1);
+        fill(resourceDTO);
         given(resourceService.createOrUpdate(resourceDTO)).willReturn(1);
 
         this.mockMvc.perform(MockMvcRequestBuilders.post("/resource")
@@ -184,11 +187,8 @@ public class ResourceControllerTest {
         final String mockId = "mock-id";
         final ResourceDTO resourceDTO = new ResourceDTO();
         resourceDTO.setId(mockId);
-        resourceDTO.setTitle("test");
-        resourceDTO.setName("test");
-        resourceDTO.setResourceType(1);
-        resourceDTO.setStatus(1);
-        resourceDTO.setSort(1);
+        fill(resourceDTO);
+        SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         given(resourceService.createOrUpdate(resourceDTO)).willReturn(1);
 
         this.mockMvc.perform(MockMvcRequestBuilders.put("/resource/" + mockId)
@@ -197,7 +197,7 @@ public class ResourceControllerTest {
                 .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, 1))))
                 .andReturn();
     }
-
+    
     @Test
     public void testDeleteResource() throws Exception {
         final List<String> mockParameter = newArrayList("mock-id");
@@ -208,5 +208,20 @@ public class ResourceControllerTest {
                 .content(GsonUtils.getInstance().toJson(mockParameter)))
                 .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, 1))))
                 .andReturn();
+    }
+    
+    private void fill(final ResourceDTO resourceDTO) {
+        resourceDTO.setTitle("test");
+        resourceDTO.setName("test");
+        resourceDTO.setParentId("test");
+        resourceDTO.setUrl("test");
+        resourceDTO.setComponent("test");
+        resourceDTO.setIcon("test");
+        resourceDTO.setPerms("test");
+        resourceDTO.setIsLeaf(true);
+        resourceDTO.setIsRoute(1);
+        resourceDTO.setResourceType(1);
+        resourceDTO.setStatus(1);
+        resourceDTO.setSort(1);
     }
 }

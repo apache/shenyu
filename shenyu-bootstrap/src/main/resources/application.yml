@@ -22,6 +22,8 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
+  codec:
+    max-in-memory-size: 2MB
   cloud:
     loadbalancer:
       ribbon:
@@ -32,6 +34,15 @@ spring:
       discovery:
         server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
         enabled: false
+        namespace: ShenyuRegisterCenter
+
+eureka:
+  client:
+    enabled: false
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
 
 #  security:
 #    oauth2:
@@ -84,6 +95,46 @@ shenyu:
         writeSpinCount: 16
         autoRead: true
         allocType: "pooled"
+#  httpclient:
+#    strategy: webClient
+#    connectTimeout: 45000
+#    responseTimeout: 3000
+#    readerIdleTime: 3000
+#    writerIdleTime: 3000
+#    allIdleTime: 3000
+#    readTimeout: 3000
+#    writeTimeout: 3000
+#    wiretap: false
+#    keepAlive: false
+#    pool:
+#      type: ELASTIC
+#      name: proxy
+#      maxConnections: 16
+#      acquireTimeout: 45000
+#      maxIdleTime: 3000
+#    proxy:
+#      host:
+#      port:
+#      username:
+#      password:
+#      nonProxyHostsPattern:
+#    ssl:
+#      useInsecureTrustManager: true
+#      keyStoreType: PKCS12
+#      keyStorePath: classpath:keystore.p12
+#      keyStorePassword: 123456
+#      keyStoreProvider:
+#      keyPassword: 123456
+#      trustedX509Certificates:
+#      handshakeTimeout:
+#      closeNotifyFlushTimeout:
+#      closeNotifyReadTimeout:
+#      defaultConfigurationType:
+#    threadPool:
+#      prefix: shenyu
+#      selectCount: 1
+#      workerCount: 8
+#      daemon: true
   instance:
     enabled: false
     registerType: zookeeper #etcd #consul
@@ -105,35 +156,43 @@ shenyu:
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
-  #    zookeeper:
-  #      url: localhost:2181
-  #      sessionTimeout: 5000
-  #      connectionTimeout: 2000
-  #    http:
-  #      url: http://localhost:9095
-  #    nacos:
-  #      url: localhost:8848
-  #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-  #      username:
-  #      password:
-  #      acm:
-  #        enabled: false
-  #        endpoint: acm.aliyun.com
-  #        namespace:
-  #        accessKey:
-  #        secretKey:
-  #    etcd:
-  #      url: http://localhost:2379
-  #    consul:
-  #      url: http://localhost:8500
-  #      waitTime: 1000
-  #      watchDelay: 1000
+#    zookeeper:
+#      url: localhost:2181
+#      sessionTimeout: 5000
+#      connectionTimeout: 2000
+#    http:
+#      url: http://localhost:9095
+#    nacos:
+#      url: localhost:8848
+#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#      username:
+#      password:
+#      acm:
+#        enabled: false
+#        endpoint: acm.aliyun.com
+#        namespace:
+#        accessKey:
+#        secretKey:
+#    etcd:
+#      url: http://localhost:2379
+#    consul:
+#      url: http://localhost:8500
+#      waitTime: 1000
+#      watchDelay: 1000
   exclude:
     enabled: false
     paths:
       - /favicon.ico
   fallback:
-    enabled: true
+    enabled: false
+    paths:
+      - /fallback/hystrix
+      - /fallback/resilience4j
+  health:
+    enabled: false
+    paths:
+      - /actuator/health
+      - /health_check
   extPlugin:
     path:
     enabled: true
@@ -152,15 +211,31 @@ shenyu:
     interval: 5000
     printEnabled: true
     printInterval: 60000
-
-eureka:
-  client:
+  ribbon:
+    serverListRefreshInterval: 10000
+  metrics:
     enabled: false
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-
+    name : prometheus
+    host: 127.0.0.1
+    port: 8090
+    jmxConfig:
+    props:
+      jvm_enabled: true
+#  plugins:
+#    rate-limiter.enabled: false
+  local:
+    enabled: false
+    sha512Key: "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548BAEAE6956DF346EC8C17F5EA10F35EE3CBC514797ED7DDD3145464E2A0BAB413"
+#  sharedPool:
+#    enable: true
+#    prefix: "shenyu-shared"
+#    corePoolSize: 200
+#    maximumPoolSize: 2000
+#    keepAliveTime: 60000
+#    # 1GB
+#    maxWorkQueueMemory: 1073741824
+#    # 256MB
+#    maxFreeMemory: 268435456
 
 logging:
   level:

@@ -20,9 +20,7 @@ package org.apache.shenyu.common.utils;
 import org.apache.shenyu.common.constant.Constants;
 import org.springframework.util.DigestUtils;
 
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -55,11 +53,8 @@ public final class SignUtils {
      * @return sign
      */
     public static String generateSign(final String signKey, final Map<String, String> params) {
-        List<String> storedKeys = Arrays.stream(params.keySet()
-                .toArray(new String[]{}))
+        final String sign = params.keySet().stream()
                 .sorted(Comparator.naturalOrder())
-                .collect(Collectors.toList());
-        final String sign = storedKeys.stream()
                 .filter(key -> !Objects.equals(key, Constants.SIGN))
                 .map(key -> String.join("", key, params.get(key)))
                 .collect(Collectors.joining()).trim()

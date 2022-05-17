@@ -22,13 +22,15 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-examples</artifactId>
-        <version>2.4.2-SNAPSHOT</version>
+        <version>2.5.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-examples-springcloud</artifactId>
 
     <properties>
         <spring-cloud.version>2.2.0.RELEASE</spring-cloud.version>
+        <nacos-discovery.version>2.2.6.RELEASE</nacos-discovery.version>
+        <eureka-client.version>2.1.2.RELEASE</eureka-client.version>
     </properties>
 
     <dependencies>
@@ -49,15 +51,21 @@
         </dependency>
 
         <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+            <version>${nacos-discovery.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <version>${eureka-client.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-
- <!--       <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-            <version>2.4.2-SNAPSHOT.RELEASE</version>
-        </dependency>-->
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -69,11 +77,6 @@
                     <artifactId>lombok</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-            <version>${spring-cloud.version}</version>
         </dependency>
     </dependencies>
     <build>

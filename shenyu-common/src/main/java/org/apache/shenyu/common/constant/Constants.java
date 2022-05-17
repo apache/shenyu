@@ -103,6 +103,21 @@ public interface Constants {
     String HTTP_RETRY = "httpRetry";
 
     /**
+     * The constant RETRY_STRATEGY.
+     */
+    String RETRY_STRATEGY = "retryStrategy";
+
+    /**
+     * The constant LOAD_BALANCE.
+     */
+    String LOAD_BALANCE = "loadBalance";
+
+    /**
+     * divide online selector id.
+     */
+    String DIVIDE_SELECTOR_ID = "divideSelectorId";
+
+    /**
      * Original response Content-Type attribute name.
      */
     String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
@@ -280,7 +295,12 @@ public interface Constants {
     /**
      * circuitBreaker circuitEnable.
      */
-    int CIRCUIT_ENABLE = 0;
+    int CIRCUIT_DISABLE = 0;
+
+    /**
+     * circuitBreaker enable.
+     */
+    int CIRCUIT_ENABLE = 1;
 
     /**
      * circuitBreaker timeoutDuration.
@@ -326,6 +346,11 @@ public interface Constants {
      * jwt handle key for secretKey.
      */
     String SECRET_KEY = "secretKey";
+
+    /**
+     * local key.
+     */
+    String LOCAL_KEY = "localKey";
 
     /**
      * jwt handle key for filterPath.
@@ -561,6 +586,46 @@ public interface Constants {
      * shenyu admin path configs listener.
      */
     String SHENYU_ADMIN_PATH_CONFIGS_LISTENER = "/configs/listener";
+
+    /**
+     * zombie removal times.
+     */
+    String ZOMBIE_REMOVAL_TIMES = "zombieRemovalTimes";
+
+    /**
+     * The default zombie removal time value, unit is second.
+     */
+    String ZOMBIE_REMOVAL_TIMES_VALUE = "60";
+
+    /**
+     * shared thread pool type.
+     */
+    String SHARED = "shared";
+
+    /**
+     * fixed thread pool type.
+     */
+    String FIXED = "fixed";
+
+    /**
+     * eager thread pool type.
+     */
+    String EAGER = "eager";
+
+    /**
+     * limited thread pool type.
+     */
+    String LIMITED = "limited";
+
+    /**
+     * cached thread pool type.
+     */
+    String CACHED = "cached";
+
+    /**
+     * The maximum free memory reserved by the blocking queue for the JVM.
+     */
+    int THE_256_MB = 256 * 1024 * 1024;
 
     /**
      * String q.

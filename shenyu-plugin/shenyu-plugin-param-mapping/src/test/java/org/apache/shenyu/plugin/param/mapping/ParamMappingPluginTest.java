@@ -27,11 +27,11 @@ import org.apache.shenyu.plugin.param.mapping.strategy.DefaultOperator;
 import org.apache.shenyu.plugin.param.mapping.strategy.FormDataOperator;
 import org.apache.shenyu.plugin.param.mapping.strategy.JsonOperator;
 import org.apache.shenyu.plugin.param.mapping.strategy.Operator;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -44,7 +44,7 @@ import reactor.test.StepVerifier;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test case for {@link ParamMappingPlugin}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ParamMappingPluginTest {
 
     private RuleData ruleData;
@@ -66,7 +66,7 @@ public class ParamMappingPluginTest {
 
     private ParamMappingPluginDataHandler paramMappingPluginDataHandler;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.ruleData = new RuleData();
         this.ruleData.setSelectorId("test");

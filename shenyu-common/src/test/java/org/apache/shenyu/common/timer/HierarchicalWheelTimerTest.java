@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.common.timer;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * HierarchicalWheelTimerTest .
@@ -48,7 +49,7 @@ public class HierarchicalWheelTimerTest {
     /**
      * Sets up.
      */
-    @Before
+    @BeforeEach
     public void setUp() {
         timer = WheelTimerFactory.newWheelTimer();
         timerTaskList = new TimerTaskList(taskCount);
@@ -56,19 +57,18 @@ public class HierarchicalWheelTimerTest {
     
     /**
      * Test timer.
-     *
-     * @throws InterruptedException the interrupted exception
      */
     @Test
-    public void testTimer() throws InterruptedException {
+    public void testTimer() {
         for (int i = 0; i < 100; i++) {
             timer.add(new TimerTask(1 + i, TimeUnit.SECONDS) {
                 @Override
-                public void run() {
+                public void run(final TaskEntity taskEntity) {
+                
                 }
             });
         }
-        Assert.assertEquals(timer.size(), 100);
+        assertEquals(timer.size(), 100);
     }
     
     /**
@@ -78,13 +78,13 @@ public class HierarchicalWheelTimerTest {
     public void testTimerCancel() {
         TimerTask timerTask = new TimerTask(100000) {
             @Override
-            public void run() {
+            public void run(final TaskEntity taskEntity) {
             }
         };
         timer.add(timerTask);
-        Assert.assertEquals(timer.size(), 1);
+        assertEquals(timer.size(), 1);
         timerTask.cancel();
-        Assert.assertEquals(timer.size(), 0);
+        assertEquals(timer.size(), 0);
     }
     
     /**
@@ -94,17 +94,13 @@ public class HierarchicalWheelTimerTest {
     public void testListForeach() {
         TimerTask timerTask = new TimerTask(100000) {
             @Override
-            public void run() {
+            public void run(final TaskEntity taskEntity) {
+            
             }
         };
-        timerTaskList.add(new TimerTaskList.TimerTaskEntry(timerTask, -1L));
-        Assert.assertEquals(taskCount.get(), 1);
-        timerTaskList.foreach(new Consumer<TimerTask>() {
-            @Override
-            public void accept(final TimerTask timerTask) {
-                Assert.assertSame(timerTask, timerTask);
-            }
-        });
+        timerTaskList.add(new TimerTaskList.TimerTaskEntry(timer, timerTask, -1L));
+        assertEquals(taskCount.get(), 1);
+        timerTaskList.foreach(timerTask1 -> assertSame(timerTask1, timerTask1));
     }
     
     /**
@@ -114,13 +110,13 @@ public class HierarchicalWheelTimerTest {
     public void testListIterator() {
         TimerTask timerTask = new TimerTask(100000) {
             @Override
-            public void run() {
+            public void run(final TaskEntity taskEntity) {
             }
         };
-        timerTaskList.add(new TimerTaskList.TimerTaskEntry(timerTask, -1L));
-        Assert.assertEquals(taskCount.get(), 1);
+        timerTaskList.add(new TimerTaskList.TimerTaskEntry(timer, timerTask, -1L));
+        assertEquals(taskCount.get(), 1);
         for (final TimerTask task : timerTaskList) {
-            Assert.assertSame(timerTask, timerTask);
+            assertSame(timerTask, timerTask);
         }
     }
 }

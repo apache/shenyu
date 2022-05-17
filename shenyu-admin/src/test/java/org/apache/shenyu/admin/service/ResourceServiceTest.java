@@ -27,14 +27,17 @@ import org.apache.shenyu.admin.model.query.ResourceQuery;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.impl.ResourceServiceImpl;
+import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 import org.assertj.core.util.Lists;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -42,18 +45,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 /**
  * test for {@linkplain ResourceService}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ResourceServiceTest {
 
     @InjectMocks
@@ -212,7 +216,7 @@ public class ResourceServiceTest {
         reset(resourceMapper);
         when(resourceMapper.selectAll()).thenReturn(mockSelectAllResult);
 
-        List<PermissionMenuVO.MenuInfo> menuInfoList = resourceService.getMenuInfo(mockSelectAllResult.stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()));
+        List<PermissionMenuVO.MenuInfo> menuInfoList = ResourceUtil.buildMenu(mockSelectAllResult.stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()));
         assertThat(resourceService.getMenuTree(), equalTo(menuInfoList));
     }
 
@@ -241,7 +245,7 @@ public class ResourceServiceTest {
 
     @Test
     public void testGetMenuInfoWithGivingEmptyOrJustContainsNullResourceVoListItShouldNotAppendMenuInfoIntoResult() {
-        final List<PermissionMenuVO.MenuInfo> expect = resourceService.getMenuInfo(Collections.emptyList());
+        final List<PermissionMenuVO.MenuInfo> expect = ResourceUtil.buildMenu(Collections.emptyList());
         assertThat(expect, equalTo(newArrayList()));
     }
 
@@ -269,7 +273,7 @@ public class ResourceServiceTest {
         mockThirdLevelResource.setIsLeaf(true);
 
         final List<ResourceVO> resourceParam = newArrayList(nullMenuInfoResource, mockParentResource, mockSecondLevelResource, mockThirdLevelResource);
-        final List<PermissionMenuVO.MenuInfo> actual = resourceService.getMenuInfo(resourceParam);
+        final List<PermissionMenuVO.MenuInfo> actual = ResourceUtil.buildMenu(resourceParam);
 
         PermissionMenuVO.MenuInfo parentMenuInfo = PermissionMenuVO.MenuInfo.buildMenuInfo(mockParentResource);
         PermissionMenuVO.MenuInfo secondMenuInfo = PermissionMenuVO.MenuInfo.buildMenuInfo(mockSecondLevelResource);

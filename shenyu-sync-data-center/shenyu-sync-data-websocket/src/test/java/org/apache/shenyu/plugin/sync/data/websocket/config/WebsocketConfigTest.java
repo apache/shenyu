@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.config;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * add test case for {@link WebsocketConfig}.
@@ -34,7 +34,7 @@ public class WebsocketConfigTest {
 
     private WebsocketConfig websocketConfig;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         websocketConfig = new WebsocketConfig();
         websocketConfig.setUrls(URLS);

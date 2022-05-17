@@ -15,11 +15,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+function check_sed() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        if ! which gsed >/dev/null 2>&1; then
+            echo "Please install gsed, you can run 'brew install gnu-sed'"
+            exit 1
+        fi
+    elif [[ "$OSTYPE" == "linux"* ]]; then
+        if ! which sed >/dev/null 2>&1; then
+            echo "Please install sed, you can run 'apt-get install sed'"
+            exit 1
+        fi
+    else
+        echo "Unknown operating system: $OSTYPE"
+        exit 1
+    fi
+}
+
 version=${1}
-storage=${2}
+
+if [[ $version == '' || $version == 'latest' ]]; then
+  echo "The version will be set to latest."
+  version='master'
+fi
+
+if [[ $version != v* && $version != 'master' ]]; then
+  echo "The version should start with 'v', such as 'v2.4.2' or 'latest'."
+  exit 1
+fi
 
 echo "current version: ${version}"
-echo "current storage: ${storage}"
 
 mkdir shenyu-${version}
 
@@ -27,28 +52,34 @@ cd shenyu-${version}
 
 mkdir -p {shenyu-bootstrap,shenyu-admin}/{conf,logs}
 
-echo "download docker-compose configuration"
-curl -sSl https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-docker-compose-dist/src/main/resources/stand-alone-${storage}/docker-compose.yaml > docker-compose.yaml
-
-if [ ! -f "./docker-compose.yaml" ];then
-    # shellcheck disable=SC2016
-    exit 0
-fi
+echo "Downloading docker-compose configuration ..."
+curl -sSl https://raw.githubusercontent.com/apache/incubator-shenyu/master/shenyu-dist/shenyu-docker-compose-dist/src/main/resources/docker-compose.yaml > docker-compose.yaml
 
 if [ "$version" != "master" ];then
-    # shellcheck disable=SC2016
-    sed -ir 's/latest/'"${version}"'/g' docker-compose.yaml
+    check_sed
+    newVersion=${version#"v"}
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        gsed -i 's/latest/'"${newVersion}"'/g' docker-compose.yaml
+    elif [[ "$OSTYPE" == "linux"* ]]; then
+        sed -i 's/latest/'"${newVersion}"'/g' docker-compose.yaml
+    fi
 fi
 
-if [ "$storage" = "mysql" ];then
-  mkdir -p shenyu-admin/ext-lib
-  echo "download mysql-connector.jar"
-  (cd shenyu-admin/ext-lib && curl -o mysql-connector.jar https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.18/mysql-connector-java-8.0.18.jar)
-fi
+mkdir -p shenyu-admin/ext-lib
+echo "Downloading mysql-connector.jar ..."
+(cd shenyu-admin/ext-lib && curl -o mysql-connector.jar https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.18/mysql-connector-java-8.0.18.jar)
 
-echo "download shenyu-admin of configuration"
-(cd shenyu-admin/conf/ && curl -OOO https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-admin/src/main/resources/{application-mysql.yml,logback.xml,application.yml})
-echo "download shenyu-bootstrap of configuration"
-(cd shenyu-bootstrap/conf/ && curl -OOO https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-bootstrap/src/main/resources/{application-local.yml,logback.xml,application.yml})
+printf '\n'
+echo "Downloading shenyu-admin configuration ..."
+(cd shenyu-admin/conf/ && curl -OOOO https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-admin/src/main/resources/{application-mysql.yml,application.yml,application-h2.yml,application-pg.yml})
+(cd shenyu-admin/conf/ && curl -O https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-admin-dist/src/main/resources/logback.xml)
 
-docker-compose up -d
+printf '\n'
+echo "Downloading shenyu-bootstrap configuration ..."
+(cd shenyu-bootstrap/conf/ && curl -O https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-bootstrap/src/main/resources/application.yml)
+(cd shenyu-bootstrap/conf/ && curl -O https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-bootstrap-dist/src/main/resources/logback.xml)
+
+printf '\n'
+echo "Next steps? Please modify the configuration in ./shenyu-${version}"
+echo "And then, you can run docker-compose"
+echo "For more detail, see https://shenyu.apache.org/docs/index"

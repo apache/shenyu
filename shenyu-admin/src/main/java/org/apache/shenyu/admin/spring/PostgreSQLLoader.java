@@ -21,6 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.shenyu.admin.config.properties.DataBaseProperties;
+import org.apache.shenyu.admin.utils.SQLInitUtils;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,8 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * for execute schema sql file. initialize the database.
@@ -50,6 +54,8 @@ import java.sql.SQLException;
 public class PostgreSQLLoader implements InstantiationAwareBeanPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(PostgreSQLLoader.class);
+
+    private static final String SQL_COMMAND = "INSERT INTO";
 
     @Resource
     private DataBaseProperties dataBaseProperties;
@@ -86,7 +92,9 @@ public class PostgreSQLLoader implements InstantiationAwareBeanPostProcessor {
             runner.setAutoCommit(false);
             runner.setSendFullScript(true);
             Resources.setCharset(StandardCharsets.UTF_8);
-            Reader read = this.fillInfoToSqlFile(properties.getUsername(), properties.getPassword());
+            Reader read = this.fillInfoToSqlFile(properties.getUsername(), properties.getPassword(),
+                    Stream.of(AdminConstants.REGX_SHENYU_DICT, AdminConstants.REGX_PLUGIN_HANDLE).toArray(String[]::new),
+                    "id");
             runner.runScript(read);
             conn.commit();
         } finally {
@@ -95,14 +103,26 @@ public class PostgreSQLLoader implements InstantiationAwareBeanPostProcessor {
         }
     }
 
-    private Reader fillInfoToSqlFile(final String userName, final String password) throws IOException {
+    private Reader fillInfoToSqlFile(final String userName, final String password, final String[] regxNames,
+                                     final String regxValue) throws IOException {
         final BufferedReader reader = new BufferedReader(Resources.getResourceAsReader(dataBaseProperties.getInitScript()));
         final StringBuilder builder = new StringBuilder();
         String str;
-        while ((str = reader.readLine()) != null) {
-            builder.append(str.replace("_user TEXT := 'userName'", "_user TEXT := '" + userName + "'")
-                    .replace("_password TEXT := 'password'", "_password TEXT := '" + password + "'"))
-                    .append(System.lineSeparator());
+        while (Objects.nonNull(str = reader.readLine())) {
+            str = str.trim().replaceAll(AdminConstants.SQL_INSERT_REGEX, " ");
+            str = str.replace("_user TEXT := 'userName'", "_user TEXT := '" + userName + "'")
+                    .replace("_password TEXT := 'password'", "_password TEXT := '" + password + "'");
+            if (!str.toUpperCase().contains(SQL_COMMAND)) {
+                builder.append(str).append(System.lineSeparator());
+                continue;
+            }
+            for (String regxName : regxNames) {
+                if (str.contains(regxName)) {
+                    str = SQLInitUtils.concatCharacter(str, regxValue, AdminConstants.SQL_TYPE_PG);
+                    break;
+                }
+            }
+            builder.append(str).append(System.lineSeparator());
         }
         reader.close();
         return new StringReader(builder.toString());

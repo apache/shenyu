@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
-import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
@@ -34,20 +33,18 @@ import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
-import org.apache.shenyu.admin.utils.AesUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.apache.shenyu.common.utils.ShaUtils;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -64,7 +61,7 @@ import static org.mockito.Mockito.when;
 /**
  * test cases for DashboardUserService.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class DashboardUserServiceTest {
 
     public static final String TEST_ID = "testId";
@@ -87,9 +84,6 @@ public final class DashboardUserServiceTest {
 
     @Mock
     private DataPermissionMapper dataPermissionMapper;
-
-    @Mock
-    private SecretProperties secretProperties;
 
     @Mock
     private JwtProperties jwtProperties;
@@ -115,10 +109,9 @@ public final class DashboardUserServiceTest {
     @Test
     public void testDelete() {
         List<String> deleteIds = Stream.of("1", "2").collect(Collectors.toList());
-        Set<String> idSet = new HashSet<>(deleteIds);
-        given(userRoleMapper.deleteByUserIdSet(idSet)).willReturn(deleteIds.size());
-        given(dataPermissionMapper.deleteByUserIdSet(idSet)).willReturn(deleteIds.size());
-        given(dashboardUserMapper.deleteByIdSet(idSet)).willReturn(deleteIds.size());
+        given(userRoleMapper.deleteByUserIdList(deleteIds)).willReturn(deleteIds.size());
+        given(dataPermissionMapper.deleteByUserIdList(deleteIds)).willReturn(deleteIds.size());
+        given(dashboardUserMapper.deleteByIdList(deleteIds)).willReturn(deleteIds.size());
         assertEquals(deleteIds.size(), dashboardUserService.delete(deleteIds));
     }
 
@@ -177,13 +170,9 @@ public final class DashboardUserServiceTest {
 
     @Test
     public void testLogin() {
-        ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretProperties);
         ReflectionTestUtils.setField(dashboardUserService, "jwtProperties", jwtProperties);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
-        String key = "2095132720951327";
-        String iv = "6075877187097700";
-        when(secretProperties.getKey()).thenReturn(key, key);
-        when(secretProperties.getIv()).thenReturn(iv, iv);
+
         when(dashboardUserMapper.findByQuery(eq(TEST_USER_NAME), anyString())).thenReturn(dashboardUserDO);
         given(ldapTemplate.authenticate(anyString(), anyString(), anyString())).willReturn(true);
         given(roleMapper.findByRoleName("default")).willReturn(RoleDO.buildRoleDO(new RoleDTO("1", "test", null, null)));
@@ -195,7 +184,7 @@ public final class DashboardUserServiceTest {
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", ldapTemplate);
         LoginDashboardUserVO loginDashboardUserVO = dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD);
         assertEquals(TEST_USER_NAME, loginDashboardUserVO.getUserName());
-        assertEquals(AesUtils.aesEncryption(TEST_PASSWORD, secretProperties.getKey(), secretProperties.getIv()), loginDashboardUserVO.getPassword());
+        assertEquals(ShaUtils.shaEncryption(TEST_PASSWORD), loginDashboardUserVO.getPassword());
 
         // test loginByDatabase
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);

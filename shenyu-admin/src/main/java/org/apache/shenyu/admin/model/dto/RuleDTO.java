@@ -17,7 +17,12 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
+
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -27,63 +32,67 @@ import java.util.Objects;
  * this is rule from by web front.
  */
 public final class RuleDTO implements Serializable {
-
+    
     private static final long serialVersionUID = 995629439944393704L;
-
+    
     /**
      * primary key.
      */
+    @Existed(provider = RuleMapper.class, nullOfIgnore = true, message = "rule is not existed")
     private String id;
-
+    
     /**
      * selector id.
      */
     @NotNull
+    @Existed(provider = SelectorMapper.class, message = "selector is not existed")
     private String selectorId;
-
+    
     /**
      * match mode.
      */
     @NotNull
     private Integer matchMode;
-
+    
     /**
      * rule name.
      */
     @NotNull
     private String name;
-
+    
     /**
      * whether enabled.
      */
     @NotNull
     private Boolean enabled;
-
+    
     /**
      * whether loged.
      */
+    @NotNull
     private Boolean loged;
-
+    
     /**
      * sort type.
      */
     @NotNull
     private Integer sort;
-
+    
     /**
      * process logic.
      */
     private String handle;
-
+    
     /**
      * rule conditions.
      */
     @Valid
-    private List<RuleConditionDTO> ruleConditions;
-
+    @NotEmpty
+    private List<@Valid RuleConditionDTO> ruleConditions;
+    
     public RuleDTO() {
     }
-
+    
     public RuleDTO(final String id,
                    @NotNull final String selectorId,
                    @NotNull final Integer matchMode,
@@ -103,7 +112,7 @@ public final class RuleDTO implements Serializable {
         this.handle = handle;
         this.ruleConditions = ruleConditions;
     }
-
+    
     /**
      * Gets the value of id.
      *
@@ -112,7 +121,7 @@ public final class RuleDTO implements Serializable {
     public String getId() {
         return id;
     }
-
+    
     /**
      * Sets the id.
      *
@@ -121,7 +130,7 @@ public final class RuleDTO implements Serializable {
     public void setId(final String id) {
         this.id = id;
     }
-
+    
     /**
      * Gets the value of selectorId.
      *
@@ -130,7 +139,7 @@ public final class RuleDTO implements Serializable {
     public String getSelectorId() {
         return selectorId;
     }
-
+    
     /**
      * Sets the selectorId.
      *
@@ -139,7 +148,7 @@ public final class RuleDTO implements Serializable {
     public void setSelectorId(final String selectorId) {
         this.selectorId = selectorId;
     }
-
+    
     /**
      * Gets the value of matchMode.
      *
@@ -148,7 +157,7 @@ public final class RuleDTO implements Serializable {
     public Integer getMatchMode() {
         return matchMode;
     }
-
+    
     /**
      * Sets the matchMode.
      *
@@ -157,7 +166,7 @@ public final class RuleDTO implements Serializable {
     public void setMatchMode(final Integer matchMode) {
         this.matchMode = matchMode;
     }
-
+    
     /**
      * Gets the value of name.
      *
@@ -166,7 +175,7 @@ public final class RuleDTO implements Serializable {
     public String getName() {
         return name;
     }
-
+    
     /**
      * Sets the name.
      *
@@ -175,7 +184,7 @@ public final class RuleDTO implements Serializable {
     public void setName(final String name) {
         this.name = name;
     }
-
+    
     /**
      * Gets the value of enabled.
      *
@@ -184,7 +193,7 @@ public final class RuleDTO implements Serializable {
     public Boolean getEnabled() {
         return enabled;
     }
-
+    
     /**
      * Sets the enabled.
      *
@@ -193,7 +202,7 @@ public final class RuleDTO implements Serializable {
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
     }
-
+    
     /**
      * Gets the value of loged.
      *
@@ -202,7 +211,7 @@ public final class RuleDTO implements Serializable {
     public Boolean getLoged() {
         return loged;
     }
-
+    
     /**
      * Sets the loged.
      *
@@ -211,7 +220,7 @@ public final class RuleDTO implements Serializable {
     public void setLoged(final Boolean loged) {
         this.loged = loged;
     }
-
+    
     /**
      * Gets the value of sort.
      *
@@ -220,7 +229,7 @@ public final class RuleDTO implements Serializable {
     public Integer getSort() {
         return sort;
     }
-
+    
     /**
      * Sets the sort.
      *
@@ -229,7 +238,7 @@ public final class RuleDTO implements Serializable {
     public void setSort(final Integer sort) {
         this.sort = sort;
     }
-
+    
     /**
      * Gets the value of handle.
      *
@@ -238,7 +247,7 @@ public final class RuleDTO implements Serializable {
     public String getHandle() {
         return handle;
     }
-
+    
     /**
      * Sets the handle.
      *
@@ -247,7 +256,7 @@ public final class RuleDTO implements Serializable {
     public void setHandle(final String handle) {
         this.handle = handle;
     }
-
+    
     /**
      * Gets the value of ruleConditions.
      *
@@ -256,7 +265,7 @@ public final class RuleDTO implements Serializable {
     public List<RuleConditionDTO> getRuleConditions() {
         return ruleConditions;
     }
-
+    
     /**
      * Sets the ruleConditions.
      *
@@ -265,7 +274,7 @@ public final class RuleDTO implements Serializable {
     public void setRuleConditions(final List<RuleConditionDTO> ruleConditions) {
         this.ruleConditions = ruleConditions;
     }
-
+    
     /**
      * builder method.
      *
@@ -274,7 +283,7 @@ public final class RuleDTO implements Serializable {
     public static RuleDTO.RuleDTOBuilder builder() {
         return new RuleDTO.RuleDTOBuilder();
     }
-
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -294,35 +303,35 @@ public final class RuleDTO implements Serializable {
                 && Objects.equals(handle, ruleDTO.handle)
                 && Objects.equals(ruleConditions, ruleDTO.ruleConditions);
     }
-
+    
     @Override
     public int hashCode() {
         return Objects.hash(id, selectorId, matchMode, name, enabled, loged, sort, handle, ruleConditions);
     }
-
+    
     public static final class RuleDTOBuilder {
-
+        
         private String id;
-
+        
         private String selectorId;
-
+        
         private Integer matchMode;
-
+        
         private String name;
-
+        
         private Boolean enabled;
-
+        
         private Boolean loged;
-
+        
         private Integer sort;
-
+        
         private String handle;
-
+        
         private List<RuleConditionDTO> ruleConditions;
-
+        
         private RuleDTOBuilder() {
         }
-
+        
         /**
          * id.
          *
@@ -333,7 +342,7 @@ public final class RuleDTO implements Serializable {
             this.id = id;
             return this;
         }
-
+        
         /**
          * selectorId.
          *
@@ -344,7 +353,7 @@ public final class RuleDTO implements Serializable {
             this.selectorId = selectorId;
             return this;
         }
-
+        
         /**
          * matchMode.
          *
@@ -355,7 +364,7 @@ public final class RuleDTO implements Serializable {
             this.matchMode = matchMode;
             return this;
         }
-
+        
         /**
          * name.
          *
@@ -366,7 +375,7 @@ public final class RuleDTO implements Serializable {
             this.name = name;
             return this;
         }
-
+        
         /**
          * enabled.
          *
@@ -377,7 +386,7 @@ public final class RuleDTO implements Serializable {
             this.enabled = enabled;
             return this;
         }
-
+        
         /**
          * loged.
          *
@@ -388,7 +397,7 @@ public final class RuleDTO implements Serializable {
             this.loged = loged;
             return this;
         }
-
+        
         /**
          * sort.
          *
@@ -399,7 +408,7 @@ public final class RuleDTO implements Serializable {
             this.sort = sort;
             return this;
         }
-
+        
         /**
          * handle.
          *
@@ -410,7 +419,7 @@ public final class RuleDTO implements Serializable {
             this.handle = handle;
             return this;
         }
-
+        
         /**
          * ruleConditions.
          *
@@ -421,7 +430,7 @@ public final class RuleDTO implements Serializable {
             this.ruleConditions = ruleConditions;
             return this;
         }
-
+        
         /**
          * build method.
          *

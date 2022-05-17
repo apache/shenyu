@@ -17,31 +17,31 @@
 
 package org.apache.shenyu.admin.listener.zookeeper;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link ZookeeperDataInit}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class ZookeeperDataInitTest {
 
     @Mock
-    private ZkClient zkClient;
+    private ZookeeperClient zkClient;
 
     @Mock
     private SyncDataService syncDataService;
@@ -50,23 +50,23 @@ public final class ZookeeperDataInitTest {
     public void testRun() {
         ZookeeperDataInit zookeeperDataInit = new ZookeeperDataInit(zkClient, syncDataService);
 
-        when(zkClient.exists(Mockito.anyString())).thenReturn(false);
+        when(zkClient.isExist(Mockito.anyString())).thenReturn(false);
         zookeeperDataInit.run();
 
-        when(zkClient.exists(Mockito.anyString()))
+        when(zkClient.isExist(Mockito.anyString()))
                 .then(invocation -> pathExist(invocation, Collections.singletonList(
                         DefaultPathConstants.APP_AUTH_PARENT
                 )));
         zookeeperDataInit.run();
 
-        when(zkClient.exists(Mockito.anyString()))
+        when(zkClient.isExist(Mockito.anyString()))
                 .thenAnswer(invocation -> pathExist(invocation, Arrays.asList(
                         DefaultPathConstants.PLUGIN_PARENT,
                         DefaultPathConstants.APP_AUTH_PARENT
                 )));
         zookeeperDataInit.run();
 
-        Assert.assertNotNull(zookeeperDataInit);
+        assertNotNull(zookeeperDataInit);
     }
 
     private boolean pathExist(final InvocationOnMock invocation, final List<String> pathList) {

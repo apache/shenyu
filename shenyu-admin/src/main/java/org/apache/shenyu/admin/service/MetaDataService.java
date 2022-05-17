@@ -32,15 +32,16 @@ import java.util.Map;
  * this is application authority service.
  */
 public interface MetaDataService {
-
+    
     /**
      * save or update mate data.
      * {@link org.apache.shenyu.admin.service.register.AbstractShenyuClientRegisterServiceImpl}
+     *
      * @param exist       has been exist meta data {@link MetaDataDO}
      * @param metaDataDTO meta data dto {@link MetaDataRegisterDTO}
      */
     void saveOrUpdateMetaData(MetaDataDO exist, MetaDataRegisterDTO metaDataDTO);
-
+    
     /**
      * Create or update int.
      *
@@ -48,7 +49,7 @@ public interface MetaDataService {
      * @return the String
      */
     String createOrUpdate(MetaDataDTO metaDataDTO);
-
+    
     /**
      * delete application authorities.
      *
@@ -56,7 +57,7 @@ public interface MetaDataService {
      * @return rows int
      */
     int delete(List<String> ids);
-
+    
     /**
      * Find by id meta data vo.
      *
@@ -64,7 +65,7 @@ public interface MetaDataService {
      * @return the meta data vo
      */
     MetaDataVO findById(String id);
-
+    
     /**
      * List by page common pager.
      *
@@ -72,28 +73,28 @@ public interface MetaDataService {
      * @return the common pager
      */
     CommonPager<MetaDataVO> listByPage(MetaDataQuery metaDataQuery);
-
+    
     /**
      * Find all list.
      *
      * @return the list
      */
     List<MetaDataVO> findAll();
-
+    
     /**
      * Find all group map.
      *
      * @return the map
      */
     Map<String, List<MetaDataVO>> findAllGroup();
-
+    
     /**
      * List all list.
      *
      * @return the list
      */
     List<MetaData> listAll();
-
+    
     /**
      * Enabled string.
      *
@@ -102,12 +103,12 @@ public interface MetaDataService {
      * @return the string
      */
     String enabled(List<String> ids, Boolean enabled);
-
+    
     /**
      * Sync data.
      */
     void syncData();
-
+    
     /**
      * find meta data by path.
      *
@@ -115,7 +116,7 @@ public interface MetaDataService {
      * @return {@link MetaDataDO}
      */
     MetaDataDO findByPath(String path);
-
+    
     /**
      * find meta data by service's name and method's name.
      *
@@ -124,7 +125,7 @@ public interface MetaDataService {
      * @return {@link MetaDataDO}
      */
     MetaDataDO findByServiceNameAndMethodName(String serviceName, String methodName);
-
+    
     /**
      * insert MetaDataDO.
      *

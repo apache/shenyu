@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.grpc.GrpcPlugin;
 import org.apache.shenyu.plugin.grpc.context.GrpcShenyuContextDecorator;
 import org.apache.shenyu.plugin.grpc.handler.GrpcPluginDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,6 +32,7 @@ import org.springframework.context.annotation.Configuration;
  * The type grpc plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.grpc.enabled"}, havingValue = "true", matchIfMissing = true)
 public class GrpcPluginConfiguration {
 
     /**

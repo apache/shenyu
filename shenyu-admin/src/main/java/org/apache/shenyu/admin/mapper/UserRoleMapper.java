@@ -22,7 +22,6 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.UserRoleDO;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * this is User Role Mapper.
@@ -87,8 +86,8 @@ public interface UserRoleMapper {
 
     /**
      * delete role by ids of users.
-     * @param userIdSet set of user ids
+     * @param userIdList set of user ids
      * @return the count of deleted
      */
-    int deleteByUserIdSet(@Param("userIdSet") Set<String> userIdSet);
+    int deleteByUserIdList(@Param("userIdList") List<String> userIdList);
 }

@@ -57,6 +57,31 @@ public final class IpUtils {
      */
     private static final String LOCALHOST = "127.0.0.1";
 
+    /**
+     * priority of networkInterface when generating client ip.
+     */
+    private static final String PROPERTY = System.getProperty("networkInterface.priority", "enp<eth<bond");
+
+    private static final List<String> PREFER_LIST = new ArrayList<>(Arrays.asList(PROPERTY.split("<")));
+
+    private static final Comparator<NetCard> BY_NAME = (card1, card2) -> {
+        int card1Score = -1;
+        int card2Score = -1;
+        for (String pre : PREFER_LIST) {
+            if (card1.getName().contains(pre)) {
+                card1Score = PREFER_LIST.indexOf(pre);
+                break;
+            }
+        }
+        for (String pre : PREFER_LIST) {
+            if (card2.getName().contains(pre)) {
+                card2Score = PREFER_LIST.indexOf(pre);
+                break;
+            }
+        }
+        return card2Score - card1Score;
+    };
+
     private IpUtils() {
     }
 
@@ -120,31 +145,11 @@ public final class IpUtils {
                 }
             }
 
-            // priority of networkInterface when generating client ip
-            String priority = System.getProperty("networkInterface.priority", "enp<eth<bond");
-            List<String> preferList = new ArrayList<>(Arrays.asList(priority.split("<")));
             // sort ip
-            Comparator<NetCard> byName = (card1, card2) -> {
-                int card1Score = -1;
-                int card2Score = -1;
-                for (String pre : preferList) {
-                    if (card1.getName().contains(pre)) {
-                        card1Score = preferList.indexOf(pre);
-                        break;
-                    }
-                }
-                for (String pre : preferList) {
-                    if (card2.getName().contains(pre)) {
-                        card2Score = preferList.indexOf(pre);
-                        break;
-                    }
-                }
-                return card2Score - card1Score;
-            };
             Comparator<NetCard> byNamePostfix = Comparator.comparing(NetCard::getNamePostfix);
             Comparator<NetCard> byIpv4Postfix = (card1, card2) -> card2.getIpv4Postfix() - card1.getIpv4Postfix();
-            ipv4Result.sort(byName.thenComparing(byNamePostfix).thenComparing(byIpv4Postfix));
-            ipv6Result.sort(byName.thenComparing(byNamePostfix));
+            ipv4Result.sort(BY_NAME.thenComparing(byNamePostfix).thenComparing(byIpv4Postfix));
+            ipv6Result.sort(BY_NAME.thenComparing(byNamePostfix));
             // prefer ipv4
             if (!ipv4Result.isEmpty()) {
                 if (pattern != null) {

@@ -22,6 +22,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.ratelimiter.RateLimiterPlugin;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
 import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
  * The type RateLimiter plugin configuration.
  */
 @Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.rate-limiter.enabled"}, havingValue = "true", matchIfMissing = true)
 public class RateLimiterPluginConfiguration {
     
     /**

@@ -21,16 +21,26 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
 
+import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * DashboardUserMapper.
  */
 @Mapper
-public interface DashboardUserMapper {
-
+public interface DashboardUserMapper extends ExistProvider {
+    
+    /**
+     * exiated.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
+    
     /**
      * select dashboard user by id.
      *
@@ -38,7 +48,7 @@ public interface DashboardUserMapper {
      * @return {@linkplain DashboardUserDO}
      */
     DashboardUserDO selectById(String id);
-
+    
     /**
      * select dashboard user by user name.
      *
@@ -46,7 +56,7 @@ public interface DashboardUserMapper {
      * @return {@linkplain DashboardUserDO}
      */
     DashboardUserDO selectByUserName(String userName);
-
+    
     /**
      * find dashboard user by query.
      *
@@ -55,7 +65,7 @@ public interface DashboardUserMapper {
      * @return {@linkplain DashboardUserDO}
      */
     DashboardUserDO findByQuery(@Param("userName") String userName, @Param("password") String password);
-
+    
     /**
      * select dashboard user by query.
      *
@@ -63,7 +73,7 @@ public interface DashboardUserMapper {
      * @return {@linkplain List}
      */
     List<DashboardUserDO> selectByQuery(DashboardUserQuery dashboardUserQuery);
-
+    
     /**
      * count dashboard user by query.
      *
@@ -71,7 +81,7 @@ public interface DashboardUserMapper {
      * @return {@linkplain Integer}
      */
     Integer countByQuery(DashboardUserQuery dashboardUserQuery);
-
+    
     /**
      * insert dashboard user.
      *
@@ -79,7 +89,7 @@ public interface DashboardUserMapper {
      * @return rows
      */
     int insert(DashboardUserDO dashboardUserDO);
-
+    
     /**
      * insert selective dashboard user.
      *
@@ -87,7 +97,7 @@ public interface DashboardUserMapper {
      * @return rows
      */
     int insertSelective(DashboardUserDO dashboardUserDO);
-
+    
     /**
      * update dashboard user.
      *
@@ -95,7 +105,7 @@ public interface DashboardUserMapper {
      * @return rows
      */
     int update(DashboardUserDO dashboardUserDO);
-
+    
     /**
      * update selective dashboard user.
      *
@@ -103,7 +113,7 @@ public interface DashboardUserMapper {
      * @return rows
      */
     int updateSelective(DashboardUserDO dashboardUserDO);
-
+    
     /**
      * delete dashboard user.
      *
@@ -111,11 +121,12 @@ public interface DashboardUserMapper {
      * @return rows
      */
     int delete(String id);
-
+    
     /**
      * delete the specified dashboard users.
-     * @param idSet primary key of dashboard_user
+     *
+     * @param idList primary key of dashboard_user
      * @return the count of deleted
      */
-    int deleteByIdSet(@Param("idSet") Set<String> idSet);
+    int deleteByIdList(@Param("idList") List<String> idList);
 }

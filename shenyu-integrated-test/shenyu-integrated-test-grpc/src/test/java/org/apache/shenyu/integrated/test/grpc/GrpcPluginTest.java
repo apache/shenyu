@@ -23,19 +23,19 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class GrpcPluginTest extends AbstractPluginDataInit {
     
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.GRPC.getName(), "");
         assertThat(pluginResult, is("success"));
@@ -45,7 +45,7 @@ public class GrpcPluginTest extends AbstractPluginDataInit {
     public void testHelloWorld() throws Exception {
         JsonObject request = buildGrpcRequest();
         JsonArray response = HttpHelper.INSTANCE.postGateway("/grpc/echo", request, JsonArray.class);
-        Map<String, Object> result = GsonUtils.getInstance().toObjectMap(response.get(0).getAsString(), Object.class);
+        Map<String, Object> result = GsonUtils.getInstance().toObjectMap(response.get(0).toString(), Object.class);
         assertEquals("ReceivedHELLO", result.get("message"));
     }
 

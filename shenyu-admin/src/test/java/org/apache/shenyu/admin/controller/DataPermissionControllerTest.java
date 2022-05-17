@@ -26,12 +26,12 @@ import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * add test case for {@link DataPermissionController}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DataPermissionControllerTest {
 
     private MockMvc mockMvc;
@@ -58,7 +58,7 @@ public class DataPermissionControllerTest {
     @Mock
     private DataPermissionService dataPermissionService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(dataPermissionController).build();
     }
@@ -116,6 +116,8 @@ public class DataPermissionControllerTest {
     @Test
     public void saveSelector() throws Exception {
         DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
+        dataPermissionDTO.setDataId("testDataId");
+        dataPermissionDTO.setUserId("testUserId");
         given(this.dataPermissionService.createSelector(dataPermissionDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/data-permission/selector")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -144,6 +146,8 @@ public class DataPermissionControllerTest {
     @Test
     public void saveRule() throws Exception {
         DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
+        dataPermissionDTO.setDataId("testDataId");
+        dataPermissionDTO.setUserId("testUserId");
         given(this.dataPermissionService.createRule(dataPermissionDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/data-permission/rule")
                 .contentType(MediaType.APPLICATION_JSON)

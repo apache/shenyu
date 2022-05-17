@@ -18,8 +18,8 @@
 package org.apache.shenyu.client.apache.dubbo.validation;
 
 import org.apache.dubbo.common.URL;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test case for {@link ApacheDubboClientValidation}.
@@ -28,7 +28,7 @@ public final class ApacheDubboClientValidationTest {
 
     private ApacheDubboClientValidation apacheDubboClientValidationUnderTest;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         apacheDubboClientValidationUnderTest = new ApacheDubboClientValidation();
     }

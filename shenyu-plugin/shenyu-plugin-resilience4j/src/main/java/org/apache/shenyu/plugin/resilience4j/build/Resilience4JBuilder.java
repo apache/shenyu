@@ -56,15 +56,15 @@ public final class Resilience4JBuilder {
                             handle.getSlidingWindowType() == 0
                                     ? CircuitBreakerConfig.SlidingWindowType.COUNT_BASED
                                     : CircuitBreakerConfig.SlidingWindowType.TIME_BASED).waitIntervalFunctionInOpenState(IntervalFunction
-                            .of(Duration.ofSeconds(handle.getWaitIntervalFunctionInOpenState() / 1000)))
+                            .of(Duration.ofMillis(handle.getWaitIntervalFunctionInOpenState())))
                     .permittedNumberOfCallsInHalfOpenState(handle.getPermittedNumberOfCallsInHalfOpenState()).build();
         }
         TimeLimiterConfig timeLimiterConfig = TimeLimiterConfig.custom()
-                .timeoutDuration(Duration.ofSeconds(handle.getTimeoutDuration() / 1000)).build();
+                .timeoutDuration(Duration.ofMillis(handle.getTimeoutDuration())).build();
         RateLimiterConfig rateLimiterConfig = RateLimiterConfig.custom()
                 .limitForPeriod(handle.getLimitForPeriod())
-                .timeoutDuration(Duration.ofSeconds(handle.getTimeoutDurationRate() / 1000))
-                .limitRefreshPeriod(Duration.ofNanos(handle.getLimitRefreshPeriod() * 1000000L)).build();
+                .timeoutDuration(Duration.ofMillis(handle.getTimeoutDurationRate()))
+                .limitRefreshPeriod(Duration.ofMillis(handle.getLimitRefreshPeriod())).build();
         return new Resilience4JConf(CacheKeyUtils.INST.getKey(ruleData), handle.getFallbackUri(), rateLimiterConfig, timeLimiterConfig, circuitBreakerConfig);
     }
 }

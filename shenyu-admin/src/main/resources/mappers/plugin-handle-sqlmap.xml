@@ -32,55 +32,79 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, plugin_id, field, label, data_type,type,sort, ext_obj, date_created, date_updated
+        id,
+        plugin_id,
+        field,
+        label,
+        data_type,
+        type,
+        sort,
+        ext_obj,
+        date_created,
+        date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from plugin_handle
-        where id = #{id,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin_handle
+         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
     <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from plugin_handle where plugin_id = #{pluginId,jdbcType=VARCHAR}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin_handle
+         WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
     </select>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from plugin_handle
-        where id = #{id,jdbcType=VARCHAR}
+        DELETE FROM plugin_handle
+              WHERE id = #{id, jdbcType=VARCHAR}
     </delete>
 
-    <delete id="deleteByIdSet">
-        delete from plugin_handle
-        where id in
-        <foreach collection="idSet" item="id"
-                 open="(" separator="," close=")">
-            #{id,jdbcType=VARCHAR}
-        </foreach>
+    <delete id="deleteByIdList">
+        DELETE FROM plugin_handle
+              WHERE id IN
+                    <foreach collection="idList" item="id" open="(" separator="," close=")">
+                        #{id, jdbcType=VARCHAR}
+                    </foreach>
     </delete>
 
     <delete id="deleteByPluginIds" parameterType="java.util.List">
-        delete from plugin_handle
-        where plugin_id in
-        <foreach item="pluginId" collection="list" open="(" separator="," close=")">
-            #{pluginId,jdbcType=VARCHAR}
-        </foreach>
+        DELETE FROM plugin_handle
+              WHERE plugin_id IN
+                    <foreach item="pluginId" collection="list" open="(" separator="," close=")">
+                        #{pluginId,jdbcType=VARCHAR}
+                    </foreach>
     </delete>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
-        insert into plugin_handle (id, plugin_id, field, label,data_type,type,sort,ext_obj, date_created, date_updated
-        )
-        values (#{id,jdbcType=VARCHAR}, #{pluginId,jdbcType=VARCHAR}, #{field,jdbcType=VARCHAR},
-        #{label,jdbcType=VARCHAR},#{dataType,jdbcType=INTEGER},#{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER},
-        #{extObj,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
-        )
+        INSERT INTO plugin_handle
+                    (id,
+                    plugin_id,
+                    field,
+                    label,
+                    data_type,
+                    type,
+                    sort,
+                    ext_obj,
+                    date_created,
+                    date_updated)
+            VALUES (#{id, jdbcType=VARCHAR},
+                    #{pluginId, jdbcType=VARCHAR},
+                    #{field, jdbcType=VARCHAR},
+                    #{label, jdbcType=VARCHAR},
+                    #{dataType, jdbcType=INTEGER},
+                    #{type, jdbcType=INTEGER},
+                    #{sort, jdbcType=INTEGER},
+                    #{extObj, jdbcType=VARCHAR},
+                    #{dateCreated, jdbcType=TIMESTAMP},
+                    #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
-        insert into plugin_handle
+        INSERT INTO plugin_handle
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
@@ -115,117 +139,144 @@
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="id != null">
-                #{id,jdbcType=VARCHAR},
+                #{id, jdbcType=VARCHAR},
             </if>
             <if test="pluginId != null">
-                #{pluginId,jdbcType=VARCHAR},
+                #{pluginId, jdbcType=VARCHAR},
             </if>
             <if test="field != null">
-                #{field,jdbcType=VARCHAR},
+                #{field, jdbcType=VARCHAR},
             </if>
             <if test="label != null">
-                #{label,jdbcType=VARCHAR},
+                #{label, jdbcType=VARCHAR},
             </if>
             <if test="dataType != null">
-                #{dataType,jdbcType=INTEGER},
+                #{dataType, jdbcType=INTEGER},
             </if>
             <if test="type != null">
-                #{type,jdbcType=INTEGER},
+                #{type, jdbcType=INTEGER},
             </if>
             <if test="sort != null">
-                #{sort,jdbcType=INTEGER},
+                #{sort, jdbcType=INTEGER},
             </if>
             <if test="extObj != null">
-                #{extObj,jdbcType=VARCHAR},
+                #{extObj, jdbcType=VARCHAR},
             </if>
             <if test="dateCreated != null">
-                #{dateCreated,jdbcType=TIMESTAMP},
+                #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                #{dateUpdated,jdbcType=TIMESTAMP},
+                #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
         </trim>
     </insert>
     <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
-        update plugin_handle
+        UPDATE plugin_handle
         <set>
             <if test="pluginId != null">
-                plugin_id = #{pluginId,jdbcType=VARCHAR},
+                plugin_id = #{pluginId, jdbcType=VARCHAR},
             </if>
             <if test="field != null">
-                field = #{field,jdbcType=VARCHAR},
+                field = #{field, jdbcType=VARCHAR},
             </if>
             <if test="label != null">
-                label = #{label,jdbcType=VARCHAR},
+                label = #{label, jdbcType=VARCHAR},
             </if>
             <if test="dataType != null">
-                data_type= #{dataType,jdbcType=INTEGER},
+                data_type= #{dataType, jdbcType=INTEGER},
             </if>
             <if test="type != null">
-                type= #{type,jdbcType=INTEGER},
+                type= #{type, jdbcType=INTEGER},
             </if>
             <if test="sort != null">
-                sort= #{sort,jdbcType=INTEGER},
+                sort= #{sort, jdbcType=INTEGER},
             </if>
             <if test="extObj != null">
-                ext_obj= #{extObj,jdbcType=VARCHAR},
+                ext_obj= #{extObj, jdbcType=VARCHAR},
             </if>
             <if test="dateCreated != null">
-                date_created = #{dateCreated,jdbcType=TIMESTAMP},
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
         </set>
-        where id = #{id,jdbcType=VARCHAR}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
     <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
-        update plugin_handle
-        set plugin_id = #{pluginId,jdbcType=VARCHAR},
-        field = #{field,jdbcType=VARCHAR},
-        label = #{label,jdbcType=VARCHAR},
-        data_type = #{dataType,jdbcType=INTEGER},
-        type = #{type,jdbcType=INTEGER},
-        sort = #{sort,jdbcType=INTEGER},
-        ext_obj = #{extObj,jdbcType=VARCHAR},
-        date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
-        where id = #{id,jdbcType=VARCHAR}
+         UPDATE plugin_handle
+            SET plugin_id = #{pluginId, jdbcType=VARCHAR},
+                field = #{field, jdbcType=VARCHAR},
+                label = #{label, jdbcType=VARCHAR},
+                data_type = #{dataType, jdbcType=INTEGER},
+                type = #{type, jdbcType=INTEGER},
+                sort = #{sort, jdbcType=INTEGER},
+                ext_obj = #{extObj, jdbcType=VARCHAR},
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP}
+          WHERE id = #{id, jdbcType=VARCHAR}
     </update>
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginHandleQuery"
             resultType="java.lang.Integer">
-        select count(1)
-        from plugin_handle
+        SELECT count(1)
+         FROM plugin_handle
         <where>
             <if test="pluginId != null and pluginId != ''">
-                and plugin_id = #{pluginId,jdbcType=VARCHAR}
+                AND plugin_id = #{pluginId, jdbcType=VARCHAR}
             </if>
             <if test="field != null and field != ''">
-                and field = #{field,jdbcType=VARCHAR}
+                AND field = #{field, jdbcType=VARCHAR}
             </if>
             <if test="type != null">
-                and type = #{type,jdbcType=INTEGER}
+                AND type = #{type, jdbcType=INTEGER}
             </if>
         </where>
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginHandleQuery"
             resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from plugin_handle
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin_handle
         <where>
             <if test="pluginId != null and pluginId != ''">
-                and plugin_id = #{pluginId,jdbcType=VARCHAR}
+                AND plugin_id = #{pluginId, jdbcType=VARCHAR}
             </if>
             <if test="field != null and field != ''">
                 <bind name="fieldLike" value="('%' + field + '%')"/>
-                and field like #{fieldLike,jdbcType=VARCHAR}
+                AND field like #{fieldLike, jdbcType=VARCHAR}
             </if>
             <if test="type != null">
-                and type = #{type,jdbcType=INTEGER}
+                AND type = #{type, jdbcType=INTEGER}
             </if>
         </where>
-        order by plugin_id,sort
+      ORDER BY plugin_id,sort
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+       SELECT true
+         FROM plugin_handle
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="selectByPluginIdList" resultType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin_handle
+        where plugin_id in
+        <foreach item="pluginId" collection="pluginIds" open="(" separator="," close=")">
+            #{pluginId,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <select id="selectByIdList" resultType="org.apache.shenyu.admin.model.entity.PluginHandleDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin_handle
+        where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
     </select>
 </mapper>

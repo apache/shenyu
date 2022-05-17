@@ -22,19 +22,36 @@ import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.examples.http.dto.UserDTO;
 import org.apache.shenyu.examples.http.result.ResultBean;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +62,8 @@ import java.util.Map;
 @RequestMapping("/test")
 @ShenyuSpringMvcClient(path = "/test/**")
 public class HttpTestController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpTestController.class);
 
     /**
      * Post user dto.
@@ -72,6 +91,7 @@ public class HttpTestController {
      * Find by user id string.
      *
      * @param userId the user id
+     * @param name name
      * @return the string
      */
     @GetMapping("/findByUserIdName")
@@ -82,8 +102,8 @@ public class HttpTestController {
     /**
      * Find by page user dto.
      *
-     * @param keyword the keyword
-     * @param page the page
+     * @param keyword  the keyword
+     * @param page     the page
      * @param pageSize the page size
      * @return the user dto
      */
@@ -95,7 +115,7 @@ public class HttpTestController {
     /**
      * Gets path variable.
      *
-     * @param id the id
+     * @param id   the id
      * @param name the name
      * @return the path variable
      */
@@ -120,7 +140,7 @@ public class HttpTestController {
     /**
      * Put path variable and body string.
      *
-     * @param id the id
+     * @param id      the id
      * @param userDTO the user dto
      * @return the string
      */
@@ -240,10 +260,151 @@ public class HttpTestController {
         return Mono.just(GsonUtils.getInstance().toJson(body));
     }
 
+
+    /**
+     * modify request.
+     *
+     * @param userDTO          request body
+     * @param cookie           cookie
+     * @param requestHeader    header
+     * @param requestParameter parameter
+     * @return result
+     */
+    @PostMapping(path = "/modifyRequest")
+    public Map<String, Object> modifyRequest(@RequestBody final UserDTO userDTO,
+                                             @CookieValue(value = "cookie", defaultValue = "") final String cookie,
+                                             @RequestHeader(value = "requestHeader", defaultValue = "") final String requestHeader,
+                                             @RequestParam(value = "requestParameter", defaultValue = "") final String requestParameter) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("body", userDTO);
+        result.put("cookie", cookie);
+        result.put("header", requestHeader);
+        result.put("parameter", requestParameter);
+        return result;
+    }
+
+    /**
+     * download file.
+     *
+     * @param body file content
+     * @return file
+     * @throws IOException io exception
+     */
+    @GetMapping(path = "/download")
+    public ResponseEntity<byte[]> downloadFile(@RequestParam(value = "body", defaultValue = "") final String body) throws IOException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        String downloadFileName = URLEncoder.encode("downloadFile.txt", "UTF-8");
+        headers.setContentDispositionFormData("attachment", downloadFileName);
+
+        return new ResponseEntity<>(body.getBytes(StandardCharsets.UTF_8), headers, HttpStatus.CREATED);
+    }
+
+
+    /**
+     * upload file and print.
+     *
+     * @param filePart upload file
+     * @return OK
+     * @throws IOException io exception
+     */
+    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String downloadFile(@RequestPart("file") final FilePart filePart) throws IOException {
+        LOGGER.info("file name: {}", filePart.filename());
+        Path tempFile = Files.createTempFile(String.valueOf(System.currentTimeMillis()), filePart.filename());
+        filePart.transferTo(tempFile.toFile());
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(tempFile.toFile()))) {
+            String line = bufferedReader.readLine();
+            while (line != null) {
+                LOGGER.info(line);
+                line = bufferedReader.readLine();
+            }
+        }
+        return "OK";
+    }
+
+    /**
+     * Return bad request code.
+     *
+     * @return response. result bean
+     */
+    @GetMapping("/request/badrequest")
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResultBean badRequest() {
+        ResultBean response = new ResultBean();
+        response.setCode(400);
+        return response;
+    }
+
+    /**
+     * Return bad request code.
+     *
+     * @return response. result bean
+     */
+    @GetMapping("/request/accepted")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ResultBean accepted() {
+        ResultBean response = new ResultBean();
+        response.setCode(202);
+        return response;
+    }
+
+    /**
+     * Return bad request code.
+     *
+     * @return response. result bean
+     */
+    @GetMapping("/success")
+    public ResultBean success() {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        return response;
+    }
+
     private UserDTO buildUser(final String id, final String name) {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(id);
         userDTO.setUserName(name);
         return userDTO;
+    }
+
+    /**
+     * pass endpoint for hystrix plugin.
+     *
+     * @return response. result bean
+     */
+    @GetMapping ("/hystrix/pass")
+    public ResultBean hystrixPass() {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg("pass");
+        return response;
+    }
+
+    /**
+     * fallback endpoint for hystrix plugin.
+     *
+     * @return response. result bean
+     */
+    @GetMapping("/hystrix/fallback")
+    public ResultBean hystrixFallback() {
+        ResultBean response = new ResultBean();
+        response.setCode(429);
+        response.setMsg("fallback");
+        return response;
+    }
+
+    /**
+     * test pass for cache plugin.
+     *
+     * @return response. result bean
+     */
+    @GetMapping("/cache")
+    public ResultBean testCache() {
+        ResultBean response = new ResultBean();
+        response.setCode(200);
+        response.setMsg(new Date().toString());
+        return response;
     }
 }

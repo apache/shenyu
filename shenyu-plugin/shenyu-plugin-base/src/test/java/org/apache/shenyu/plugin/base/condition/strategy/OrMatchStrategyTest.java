@@ -19,21 +19,22 @@ package org.apache.shenyu.plugin.base.condition.strategy;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
  * Test cases for OrMatchStrategy.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class OrMatchStrategyTest {
 
     private ServerWebExchange exchange;
@@ -42,7 +43,7 @@ public final class OrMatchStrategyTest {
 
     private MatchStrategy matchStrategy;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.conditionDataList = Lists.newArrayListWithCapacity(2);
         ConditionData matchConditionData = new ConditionData();
@@ -64,6 +65,6 @@ public final class OrMatchStrategyTest {
 
     @Test
     public void testMatch() {
-        Assert.assertTrue(matchStrategy.match(conditionDataList, exchange));
+        assertTrue(matchStrategy.match(conditionDataList, exchange));
     }
 }

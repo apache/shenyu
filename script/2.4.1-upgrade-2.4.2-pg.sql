@@ -62,7 +62,7 @@ UPDATE resource SET perms = REPLACE(perms, 'modifyResponse', 'modifyResponse') W
 UPDATE resource SET perms = REPLACE(perms, 'param_mapping', 'paramMapping') WHERE perms LIKE 'plugin:param_mapping%';
 
 -- add dubbo multiSelectorHandle
-INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('123', '6', 'multiSelectorHandle', 'multiSelectorHandle', '3', '3', '0', NULL, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
+INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj, date_created, date_updated) VALUES ('1509837592619499556', '6', 'multiSelectorHandle', 'multiSelectorHandle', '3', '3', '0', NULL, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
 -- update the dubbo loadbalance data_type to 3
 UPDATE plugin_handle SET data_type = '3' WHERE plugin_id = '6' AND field = 'loadbalance';
 

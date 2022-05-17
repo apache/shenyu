@@ -19,22 +19,22 @@ package org.apache.shenyu.plugin.base.utils;
 
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.utils.Singleton;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * The Singleton test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class SingletonTest {
 
     private SingletonTest singletonTest;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         singletonTest = new SingletonTest();
         Singleton.INST.single(SingletonTest.class, singletonTest);
@@ -47,7 +47,7 @@ public final class SingletonTest {
     public void singleTest() {
         ConditionData conditionData = new ConditionData();
         Singleton.INST.single(ConditionData.class, conditionData);
-        Assert.assertEquals(conditionData, Singleton.INST.get(ConditionData.class));
+        assertEquals(conditionData, Singleton.INST.get(ConditionData.class));
     }
 
     /**
@@ -55,6 +55,6 @@ public final class SingletonTest {
      */
     @Test
     public void getTest() {
-        Assert.assertEquals(singletonTest, Singleton.INST.get(SingletonTest.class));
+        assertEquals(singletonTest, Singleton.INST.get(SingletonTest.class));
     }
 }

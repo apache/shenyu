@@ -28,87 +28,114 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, user_id, data_id, data_type
+        id, 
+        date_created, 
+        date_updated, 
+        user_id, 
+        data_id, 
+        data_type
     </sql>
 
     <delete id="deleteByUniqueKey">
-        delete from data_permission where data_id = #{dataId, jdbcType=VARCHAR}
-        and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        DELETE FROM data_permission
+              WHERE data_id = #{dataId, jdbcType=VARCHAR}
+                AND user_id = #{userId,jdbcType=VARCHAR}
+                AND data_type = #{dataType,jdbcType=INTEGER}
     </delete>
 
     <delete id="deleteByDataIdsAndUserId" parameterType="java.util.List">
-        delete from data_permission where data_id in
-        <foreach item="id" collection="list" open="(" separator="," close=")">
-            #{id,jdbcType=VARCHAR}
-        </foreach>
-        and user_id = #{userId, jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=VARCHAR}
+        DELETE FROM data_permission
+              WHERE data_id
+                 IN <foreach item="id" collection="list" open="(" separator="," close=")">
+                      #{id,jdbcType=VARCHAR}
+                    </foreach>
+                AND user_id = #{userId, jdbcType=VARCHAR}
+                AND data_type = #{dataType,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByUserId">
-        delete from data_permission where user_id = #{userId,jdbcType=VARCHAR}
+        DELETE FROM data_permission
+              WHERE user_id = #{userId,jdbcType=VARCHAR}
     </delete>
 
-    <delete id="deleteByUserIdSet">
-        delete from data_permission
-        where user_id in
-        <foreach collection="userIdSet" index="index" item="userId"
-                 open="(" separator="," close=")">
-            #{userId,jdbcType=VARCHAR}
-        </foreach>
+    <delete id="deleteByUserIdList">
+        DELETE FROM data_permission
+              WHERE user_id
+                IN  <foreach collection="userIdList" index="index" item="userId" open="(" separator="," close=")">
+                      #{userId,jdbcType=VARCHAR}
+                    </foreach>
 
     </delete>
 
     <delete id="deleteByDataId">
-        delete from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
+        DELETE FROM data_permission
+              WHERE data_id = #{dataId,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByDataIdList">
-        delete from data_permission where data_id in
-        <foreach item="dataId" collection="dataIdList" open="(" separator="," close=")">
-            #{dataId,jdbcType=VARCHAR}
-        </foreach>
+        DELETE FROM data_permission
+              WHERE data_id
+                 IN <foreach item="dataId" collection="dataIdList" open="(" separator="," close=")">
+                      #{dataId,jdbcType=VARCHAR}
+                    </foreach>
     </delete>
 
     <select id="listByUserId" resultMap="BaseResultMap">
-        select id, user_id, data_type, data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR}
+        SELECT id, 
+               user_id, 
+               data_type, 
+               data_id 
+          FROM data_permission 
+         WHERE user_id = #{userId,jdbcType=VARCHAR}
     </select>
 
     <select id="selectDataIds" resultType="java.lang.String">
-        select data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR} and data_type =
-        #{dataType,jdbcType=INTEGER}
-        and data_id in
-        <foreach item="id" collection="list" open="(" separator="," close=")">
-            #{id,jdbcType=VARCHAR}
-        </foreach>
+        SELECT data_id 
+          FROM data_permission 
+         WHERE user_id = #{userId,jdbcType=VARCHAR} 
+           AND data_type = #{dataType,jdbcType=INTEGER}
+           AND data_id IN
+               <foreach item="id" collection="list" open="(" separator="," close=")">
+                 #{id,jdbcType=VARCHAR}
+               </foreach>
     </select>
 
     <select id="findOneByUniqueKey" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
-        and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM data_permission 
+         WHERE data_id = #{dataId,jdbcType=VARCHAR}
+           AND user_id = #{userId,jdbcType=VARCHAR} 
+           AND data_type = #{dataType,jdbcType=INTEGER}
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true 
+          FROM data_permission 
+         WHERE user_id = #{userId,jdbcType=VARCHAR} 
+         LIMIT 1
     </select>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DataPermissionDO">
-        insert into data_permission
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            id,
-            <if test="dateCreated != null">
-                date_created,
-            </if>
-            <if test="dateUpdated != null">
-                date_updated,
-            </if>
-            <if test="userId != null">
-                user_id,
-            </if>
-            <if test="dataId != null">
-                data_id,
-            </if>
-            <if test="dataType != null">
-                data_type,
-            </if>
-        </trim>
+        INSERT INTO data_permission
+                    <trim prefix="(" suffix=")" suffixOverrides=",">
+                      id,
+                      <if test="dateCreated != null">
+                        date_created,
+                      </if>
+                      <if test="dateUpdated != null">
+                        date_updated,
+                      </if>
+                      <if test="userId != null">
+                        user_id,
+                      </if>
+                      <if test="dataId != null">
+                        data_id,
+                      </if>
+                      <if test="dataType != null">
+                        data_type,
+                      </if>
+                    </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id,jdbcType=VARCHAR},
             <if test="dateCreated != null">
@@ -130,16 +157,19 @@
     </insert>
 
     <insert id="insertBatch">
-        insert into data_permission (id, user_id, data_id, data_type)
-        values
-        <foreach collection="dataPermissionList" item="dataPermission" separator=",">
-            (
-            #{dataPermission.id,jdbcType=VARCHAR},
-            #{dataPermission.userId,jdbcType=VARCHAR},
-            #{dataPermission.dataId,jdbcType=VARCHAR},
-            #{dataPermission.dataType,jdbcType=INTEGER}
-            )
-        </foreach>
+        INSERT INTO data_permission (id,
+                                     user_id,
+                                     data_id,
+                                     data_type)
+             VALUES
+                    <foreach collection="dataPermissionList" item="dataPermission" separator=",">
+                    (
+                    #{dataPermission.id,jdbcType=VARCHAR},
+                    #{dataPermission.userId,jdbcType=VARCHAR},
+                    #{dataPermission.dataId,jdbcType=VARCHAR},
+                    #{dataPermission.dataType,jdbcType=INTEGER}
+                    )
+                    </foreach>
     </insert>
 
 </mapper>

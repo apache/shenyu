@@ -39,6 +39,10 @@
         <property name="format" value="System\.out\.println"/>
         <property name="message" value="Prohibit invoking System.out.println in source code !"/>
     </module>
+    <module name="RegexpSingleline">
+        <property name="format" value="@author"/>
+        <property name="message" value="Please remove @author tag in javadoc!"/>
+    </module>
 
     <module name="TreeWalker">
 
@@ -49,9 +53,15 @@
         <module name="TypeName"/>
         <module name="MethodName"/>
         <module name="InterfaceTypeParameterName"/>
-        <module name="ClassTypeParameterName"/>
-        <module name="MethodTypeParameterName"/>
-        <module name="ConstantName"/>
+        <module name="ClassTypeParameterName">
+            <property name="format" value="^[A-Z0-9]*$"/>
+        </module>
+        <module name="MethodTypeParameterName">
+            <property name="format" value="^[A-Z0-9]*$"/>
+        </module>
+        <module name="ConstantName">
+            <property name="format" value="(^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$)|(^log$)"/>
+        </module>
         <module name="StaticVariableName"/>
         <module name="MemberName"/>
         <module name="LocalVariableName"/>
@@ -64,7 +74,10 @@
 
         <!-- Size Violations -->
         <module name="AnonInnerLength"/>
-        <module name="MethodLength"/>
+        <module name="MethodLength">
+            <property name="tokens" value="METHOD_DEF" />
+            <property name="max" value="80" />
+        </module>
         <module name="LineLength">
             <property name="max" value="200"/>
             <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
@@ -184,6 +197,8 @@
         <module name="StringLiteralEquality"/>
         <module name="UnnecessaryParentheses"/>
         <module name="VariableDeclarationUsageDistance"/>
+        <!--Checks that classes that override equals() also override hashCode()-->
+        <module name="EqualsHashCode"/>
 
         <!-- Block Checks -->
         <module name="EmptyBlock"/>
@@ -228,7 +243,7 @@
         <module name="SummaryJavadoc"/>
         <module name="JavadocMethod">
             <property name="scope" value="public"/>
-            <property name="allowedAnnotations" value="Override, Test, Before, After, BeforeClass, AfterClass, Parameterized, Parameters"/>
+            <property name="allowedAnnotations" value="Override, Test, Before, After, BeforeClass, AfterClass, Parameterized, Parameters, BeforeEach, AfterEach, BeforeAll, AfterAll, ParameterizedTest, TestMethodOrder"/>
             <property name="ignoreMethodNamesRegex" value="^assert.*$|^verify.*$"/>
             <property name="tokens" value="METHOD_DEF, ANNOTATION_FIELD_DEF"/>
         </module>

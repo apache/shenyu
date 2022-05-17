@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.config;
 
+import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -37,6 +38,8 @@ public class ShenyuConfig {
     private FileConfig file = new FileConfig();
     
     private ExcludePath exclude = new ExcludePath();
+    
+    private Health health = new Health();
 
     private FallbackPath fallback = new FallbackPath();
     
@@ -49,6 +52,106 @@ public class ShenyuConfig {
     private CrossFilterConfig cross = new CrossFilterConfig();
     
     private InstanceConfig instance = new InstanceConfig();
+
+    private RibbonConfig ribbon = new RibbonConfig();
+    
+    private Local local = new Local();
+
+    private WebsocketConfig websocket = new WebsocketConfig();
+
+    private SharedPool sharedPool = new SharedPool();
+    
+    private MetricsConfig metrics = new MetricsConfig();
+    
+    /**
+     * Gets health.
+     *
+     * @return the health
+     */
+    public Health getHealth() {
+        return health;
+    }
+    
+    /**
+     * Sets health.
+     *
+     * @param health the health
+     */
+    public void setHealth(final Health health) {
+        this.health = health;
+    }
+    
+    /**
+     * Gets metrics.
+     *
+     * @return the metrics
+     */
+    public MetricsConfig getMetrics() {
+        return metrics;
+    }
+    
+    /**
+     * Sets metrics.
+     *
+     * @param metrics the metrics
+     */
+    public void setMetrics(final MetricsConfig metrics) {
+        this.metrics = metrics;
+    }
+    
+    /**
+     * Gets the shared thread pool config.
+     *
+     * @return the shared thread pool config
+     */
+    public SharedPool getSharedPool() {
+        return sharedPool;
+    }
+    
+    /**
+     * Sets the shared thread pool config.
+     *
+     * @param sharedPool the shared thread pool config
+     */
+    public void setSharedPool(final SharedPool sharedPool) {
+        this.sharedPool = sharedPool;
+    }
+    
+    /**
+     * Gets the local config.
+     *
+     * @return the local config
+     */
+    public Local getLocal() {
+        return local;
+    }
+    
+    /**
+     * Sets the local config.
+     *
+     * @param local the local config
+     */
+    public void setLocal(final Local local) {
+        this.local = local;
+    }
+    
+    /**
+     * Gets ribbon.
+     *
+     * @return the ribbon
+     */
+    public RibbonConfig getRibbon() {
+        return ribbon;
+    }
+    
+    /**
+     * Sets ribbon.
+     *
+     * @param ribbon the ribbon
+     */
+    public void setRibbon(final RibbonConfig ribbon) {
+        this.ribbon = ribbon;
+    }
     
     /**
      * Gets instance.
@@ -157,7 +260,7 @@ public class ShenyuConfig {
     public void setExclude(final ExcludePath exclude) {
         this.exclude = exclude;
     }
-
+    
     /**
      * Gets fallback.
      *
@@ -166,7 +269,7 @@ public class ShenyuConfig {
     public FallbackPath getFallback() {
         return fallback;
     }
-
+    
     /**
      * Sets fallback.
      *
@@ -175,7 +278,7 @@ public class ShenyuConfig {
     public void setFallback(final FallbackPath fallback) {
         this.fallback = fallback;
     }
-
+    
     /**
      * Gets upstream check.
      *
@@ -204,6 +307,24 @@ public class ShenyuConfig {
     }
     
     /**
+     * Gets the websocket config.
+     *
+     * @return the websocket config
+     */
+    public WebsocketConfig getWebsocket() {
+        return websocket;
+    }
+    
+    /**
+     * Sets the websocket config.
+     *
+     * @param websocket the websocket config
+     */
+    public void setWebsocket(final WebsocketConfig websocket) {
+        this.websocket = websocket;
+    }
+    
+    /**
      * Sets cross.
      *
      * @param cross the cross
@@ -217,7 +338,7 @@ public class ShenyuConfig {
      */
     public static class Scheduler {
     
-        private Boolean enabled = false;
+        private boolean enabled;
     
         private String type = "fixed";
     
@@ -228,7 +349,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -237,7 +358,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -286,7 +407,7 @@ public class ShenyuConfig {
         
         private String path;
         
-        private Boolean enabled = true;
+        private boolean enabled;
     
         private Integer threads = 1;
         
@@ -317,7 +438,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -326,7 +447,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -347,8 +468,7 @@ public class ShenyuConfig {
         public void setThreads(final Integer threads) {
             this.threads = threads;
         }
-    
-    
+        
         /**
          * Gets schedule time.
          *
@@ -391,7 +511,7 @@ public class ShenyuConfig {
      */
     public static class ExcludePath {
     
-        private Boolean enabled = false;
+        private boolean enabled;
     
         private List<String> paths = new ArrayList<>();
     
@@ -400,7 +520,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -409,7 +529,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -431,34 +551,34 @@ public class ShenyuConfig {
             return paths;
         }
     }
-
+    
     /**
      * The type fallback path.
      */
     public static class FallbackPath {
 
-        private Boolean enabled = false;
+        private boolean enabled;
 
         private List<String> paths = new ArrayList<>();
-
+    
         /**
          * Gets enabled.
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
-
+    
         /**
          * Sets enabled.
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
-
+    
         /**
          * Sets paths.
          *
@@ -467,7 +587,53 @@ public class ShenyuConfig {
         public void setPaths(final List<String> paths) {
             this.paths = paths;
         }
-
+    
+        /**
+         * get paths.
+         *
+         * @return paths paths
+         */
+        public List<String> getPaths() {
+            return paths;
+        }
+    }
+    
+    /**
+     * The type Health.
+     */
+    public static class Health {
+        
+        private boolean enabled;
+        
+        private List<String> paths = new ArrayList<>();
+    
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+    
+        /**
+         * Sets paths.
+         *
+         * @param paths the paths
+         */
+        public void setPaths(final List<String> paths) {
+            this.paths = paths;
+        }
+    
         /**
          * get paths.
          *
@@ -483,7 +649,7 @@ public class ShenyuConfig {
      */
     public static class FileConfig {
     
-        private Boolean enabled = true;
+        private boolean enabled;
     
         private Integer maxSize = 10;
     
@@ -492,7 +658,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -501,7 +667,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -529,14 +695,14 @@ public class ShenyuConfig {
      */
     public static class SwitchConfig {
         
-        private Boolean local = true;
+        private boolean local = true;
     
         /**
          * Gets local.
          *
          * @return the local
          */
-        public Boolean getLocal() {
+        public boolean getLocal() {
             return local;
         }
     
@@ -545,7 +711,7 @@ public class ShenyuConfig {
          *
          * @param local the local
          */
-        public void setLocal(final Boolean local) {
+        public void setLocal(final boolean local) {
             this.local = local;
         }
         
@@ -556,7 +722,7 @@ public class ShenyuConfig {
      */
     public static class UpstreamCheck {
     
-        private Boolean enabled = false;
+        private boolean enabled;
         
         private Integer timeout = 3000;
         
@@ -566,7 +732,7 @@ public class ShenyuConfig {
         
         private Integer interval = 5000;
         
-        private Boolean printEnabled = true;
+        private boolean printEnabled;
         
         private Integer printInterval = 60000;
     
@@ -575,7 +741,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -584,7 +750,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -665,7 +831,7 @@ public class ShenyuConfig {
          *
          * @return the print enabled
          */
-        public Boolean getPrintEnabled() {
+        public boolean getPrintEnabled() {
             return printEnabled;
         }
     
@@ -674,7 +840,7 @@ public class ShenyuConfig {
          *
          * @param printEnabled the print enabled
          */
-        public void setPrintEnabled(final Boolean printEnabled) {
+        public void setPrintEnabled(final boolean printEnabled) {
             this.printEnabled = printEnabled;
         }
     
@@ -720,7 +886,7 @@ public class ShenyuConfig {
             };
         }
     
-        private Boolean enabled = true;
+        private boolean enabled;
 
         /**
          * Comma-separated of “header”.
@@ -738,7 +904,7 @@ public class ShenyuConfig {
 
         private String maxAge = "18000";
 
-        private boolean allowCredentials = true;
+        private boolean allowCredentials;
 
         /**
          * wrapper the headers.
@@ -759,7 +925,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -768,7 +934,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -886,14 +1052,14 @@ public class ShenyuConfig {
      */
     public static class InstanceConfig {
     
-        private Boolean enabled = false;
+        private boolean enabled;
     
         private String registerType;
     
         private String serverLists;
     
         private Properties props = new Properties();
-        
+    
         /**
          * Instantiates a new Instance config.
          */
@@ -919,7 +1085,7 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public Boolean getEnabled() {
+        public boolean getEnabled() {
             return enabled;
         }
     
@@ -928,7 +1094,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(final Boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
     
@@ -981,6 +1147,451 @@ public class ShenyuConfig {
          * setProps.
          *
          * @param props props
+         */
+        public void setProps(final Properties props) {
+            this.props = props;
+        }
+    }
+    
+    /**
+     * The Ribbon Config.
+     */
+    public static class RibbonConfig {
+
+        /**
+         * see {@code com.netflix.client.config.CommonClientConfigKey#ServerListRefreshInterval}.
+         */
+        private Integer serverListRefreshInterval = 10000;
+    
+        /**
+         * Instantiates a new RibbonConfig.
+         */
+        public RibbonConfig() {
+        }
+    
+        /**
+         * Instantiates a new RibbonConfig.
+         *
+         * @param serverListRefreshInterval serverListRefreshInterval
+         */
+        public RibbonConfig(final Integer serverListRefreshInterval) {
+            this.serverListRefreshInterval = serverListRefreshInterval;
+        }
+    
+        /**
+         * Gets serverListRefreshInterval.
+         *
+         * @return the serverListRefreshInterval
+         */
+        public Integer getServerListRefreshInterval() {
+            return serverListRefreshInterval;
+        }
+    
+        /**
+         * setServerListRefreshInterval.
+         *
+         * @param serverListRefreshInterval serverListRefreshInterval
+         */
+        public void setServerListRefreshInterval(final Integer serverListRefreshInterval) {
+            this.serverListRefreshInterval = serverListRefreshInterval;
+        }
+    }
+    
+    /**
+     * The local config.
+     */
+    public static class Local {
+        
+        private boolean enabled;
+        
+        private String sha512Key;
+    
+        /**
+         * Instantiates a new Local.
+         */
+        public Local() {
+        }
+    
+        /**
+         * Instantiates a new Local.
+         *
+         * @param sha512Key the sha 512 key
+         */
+        public Local(final String sha512Key) {
+            this.sha512Key = sha512Key;
+        }
+    
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+    
+        /**
+         * Get Sha512Key.
+         *
+         * @return the key
+         */
+        public String getSha512Key() {
+            return sha512Key;
+        }
+    
+        /**
+         * Set Sha512Key.
+         *
+         * @param sha512Key sha512Key
+         */
+        public void setSha512Key(final String sha512Key) {
+            this.sha512Key = sha512Key;
+        }
+    }
+    
+    /**
+     * the websocket config.
+     */
+    public static class WebsocketConfig {
+
+        /**
+         * max frame pay load size mb.
+         */
+        private Integer maxFramePayloadSize = 10;
+    
+        /**
+         * Get max frame payload size.
+         *
+         * @return the max frame payload szie
+         */
+        public Integer getMaxFramePayloadSize() {
+            return maxFramePayloadSize;
+        }
+    
+        /**
+         * Set max frame payload size.
+         *
+         * @param maxFramePayloadSize the max frame paylod size
+         */
+        public void setMaxFramePayloadSize(final Integer maxFramePayloadSize) {
+            this.maxFramePayloadSize = maxFramePayloadSize;
+        }
+    }
+    
+    /**
+     * The type Shared Thread Pool.
+     */
+    public static class SharedPool {
+
+        /**
+         * Whether to enable shared thread pool, defaults to false.
+         * Note: it is planned to be enabled by default when all RPC/HTTP
+         * plugins support this shared thread pool.
+         */
+        private Boolean enable = Boolean.FALSE;
+
+        /**
+         * The the thread name prefix, defaults to shenyu-shared.
+         */
+        private String prefix = "shenyu-shared";
+
+        /**
+         * the number of threads to keep in the thread pool.
+         */
+        private Integer corePoolSize = 200;
+
+        /**
+         * the maximum number of threads to allow in the thread pool.
+         */
+        private Integer maximumPoolSize = Integer.MAX_VALUE;
+
+        /**
+         * when the number of threads is greater than the core,
+         * this is the maximum time that excess idle threads
+         * will wait for new tasks before terminating.
+         * Note: the unit of time is {@link java.util.concurrent.TimeUnit#MILLISECONDS}
+         */
+        private Long keepAliveTime = 60000L;
+
+        /**
+         * Maximum memory allowed to be used by a blocking queue, yes, unlike other
+         * implementations of {@link java.util.concurrent.BlockingQueue}
+         * (which all control memory based on the length of the blocking queue),
+         * {@link org.apache.shenyu.common.concurrent.MemoryLimitedLinkedBlockingQueue}
+         * controls memory directly by calculating the memory size used by the blocking queue.
+         */
+        private Long maxWorkQueueMemory = MemoryLimitCalculator.defaultLimit();
+
+        /**
+         * The memory used by the blocking queue is always in the safe range, and there
+         * is always an attempt to make the JVM's free memory higher than this value.
+         *
+         * @see org.apache.shenyu.common.concurrent.MemorySafeLinkedBlockingQueue#getMaxFreeMemory()
+         */
+        private Integer maxFreeMemory;
+    
+        /**
+         * Whether to enable shared thread pool.
+         *
+         * @return whether to enable
+         */
+        public Boolean getEnable() {
+            return enable;
+        }
+    
+        /**
+         * Set enable.
+         *
+         * @param enable the enable
+         */
+        public void setEnable(final Boolean enable) {
+            this.enable = enable;
+        }
+    
+        /**
+         * Get shared thread pool name prefix.
+         *
+         * @return the shared thread pool name prefix
+         */
+        public String getPrefix() {
+            return prefix;
+        }
+    
+        /**
+         * Set prefix.
+         *
+         * @param prefix the prefix
+         */
+        public void setPrefix(final String prefix) {
+            this.prefix = prefix;
+        }
+    
+        /**
+         * Get shared thread pool core size.
+         *
+         * @return the shared thread pool core size
+         */
+        public Integer getCorePoolSize() {
+            return corePoolSize;
+        }
+    
+        /**
+         * Set core pool size.
+         *
+         * @param corePoolSize the core pool size
+         */
+        public void setCorePoolSize(final Integer corePoolSize) {
+            this.corePoolSize = corePoolSize;
+        }
+    
+        /**
+         * Get shared thread pool maximum size.
+         *
+         * @return the shared thread pool name prefix
+         */
+        public Integer getMaximumPoolSize() {
+            return maximumPoolSize;
+        }
+    
+        /**
+         * Set max pool size.
+         *
+         * @param maximumPoolSize the max pool size
+         */
+        public void setMaximumPoolSize(final Integer maximumPoolSize) {
+            this.maximumPoolSize = maximumPoolSize;
+        }
+    
+        /**
+         * Get shared thread pool keep alive time.
+         *
+         * @return the shared thread pool keep alive time
+         */
+        public Long getKeepAliveTime() {
+            return keepAliveTime;
+        }
+    
+        /**
+         * Set keep alive time.
+         *
+         * @param keepAliveTime the keep alive time
+         */
+        public void setKeepAliveTime(final Long keepAliveTime) {
+            this.keepAliveTime = keepAliveTime;
+        }
+    
+        /**
+         * Get shared thread pool max work queue memory.
+         *
+         * @return the shared thread pool max work queue memory
+         */
+        public Long getMaxWorkQueueMemory() {
+            return maxWorkQueueMemory;
+        }
+    
+        /**
+         * Set max work queue memory.
+         *
+         * @param maxWorkQueueMemory the max work queue memory
+         */
+        public void setMaxWorkQueueMemory(final Long maxWorkQueueMemory) {
+            this.maxWorkQueueMemory = maxWorkQueueMemory;
+        }
+
+        /**
+         * Get shared thread pool max work queue free memory.
+         *
+         * @return the shared thread pool max work queue free memory
+         */
+        public Integer getMaxFreeMemory() {
+            return maxFreeMemory;
+        }
+
+        /**
+         * Set max work queue free memory.
+         *
+         * @param maxFreeMemory the max work queue free memory
+         */
+        public void setMaxFreeMemory(final Integer maxFreeMemory) {
+            this.maxFreeMemory = maxFreeMemory;
+        }
+    }
+    
+    /**
+     * The type Metrics config.
+     */
+    public static class MetricsConfig {
+    
+        private boolean enabled;
+        
+        private String name;
+        
+        private String host;
+        
+        private Integer port;
+        
+        private String jmxConfig;
+        
+        private Properties props;
+    
+        /**
+         * Instantiates a new Metrics config.
+         */
+        public MetricsConfig() {
+        }
+    
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+    
+        /**
+         * Gets metrics name.
+         *
+         * @return the metrics name
+         */
+        public String getName() {
+            return name;
+        }
+    
+        /**
+         * Sets metrics name.
+         *
+         * @param name the metrics name
+         */
+        public void setName(final String name) {
+            this.name = name;
+        }
+    
+        /**
+         * Gets host.
+         *
+         * @return the host
+         */
+        public String getHost() {
+            return host;
+        }
+    
+        /**
+         * Sets host.
+         *
+         * @param host the host
+         */
+        public void setHost(final String host) {
+            this.host = host;
+        }
+    
+        /**
+         * Gets port.
+         *
+         * @return the port
+         */
+        public Integer getPort() {
+            return port;
+        }
+    
+        /**
+         * Sets port.
+         *
+         * @param port the port
+         */
+        public void setPort(final Integer port) {
+            this.port = port;
+        }
+    
+        /**
+         * Gets jmx config.
+         *
+         * @return the jmx config
+         */
+        public String getJmxConfig() {
+            return jmxConfig;
+        }
+    
+        /**
+         * Sets jmx config.
+         *
+         * @param jmxConfig the jmx config
+         */
+        public void setJmxConfig(final String jmxConfig) {
+            this.jmxConfig = jmxConfig;
+        }
+    
+        /**
+         * Gets props.
+         *
+         * @return the props
+         */
+        public Properties getProps() {
+            return props;
+        }
+    
+        /**
+         * Sets props.
+         *
+         * @param props the props
          */
         public void setProps(final Properties props) {
             this.props = props;

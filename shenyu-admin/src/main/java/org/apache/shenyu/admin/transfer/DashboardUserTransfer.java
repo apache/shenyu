@@ -49,7 +49,7 @@ public enum DashboardUserTransfer {
                     dashboardVO.setEnabled(data.getEnabled());
                     return dashboardVO;
                 })
-                .orElseGet(null);
+                .orElse(null);
     }
 
     /**
@@ -69,12 +69,12 @@ public enum DashboardUserTransfer {
                     dashboardVO.setDateUpdated(data.getDateUpdated());
                     return dashboardVO;
                 })
-                .orElseGet(null);
+                .orElse(null);
     }
 
     /**
      * conversion dashboardUserVO to dashboardUserEditVO
-     * @param dashboardUserVO
+     * @param dashboardUserVO dashboardUserVO
      * @return {@linkplain DashboardUserEditVO}
      */
     public DashboardUserEditVO transfer2EditVO(final DashboardUserVO dashboardUserVO) {
@@ -88,7 +88,7 @@ public enum DashboardUserTransfer {
                     vo.setDateCreated(data.getDateCreated());
                     vo.setDateUpdated(data.getDateUpdated());
                     return vo;
-                }).orElseGet(null);
+                }).orElse(null);
     }
 
 }

@@ -19,24 +19,24 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.LdapProperties;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link LdapConfiguration}.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
 public final class LdapConfigurationTest {
 
     @InjectMocks
@@ -60,7 +60,7 @@ public final class LdapConfigurationTest {
         assertEquals(ldapContextSource.getUserDn(), user);
         assertEquals(ldapContextSource.getPassword(), pass);
     }
-    
+
     @Test
     public void testLdapTemplate() {
         LdapContextSource ldapContextSource = new LdapContextSource();

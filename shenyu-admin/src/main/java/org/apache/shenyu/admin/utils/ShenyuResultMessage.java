@@ -64,15 +64,13 @@ public final class ShenyuResultMessage {
 
     public static final String TOKEN_IS_ERROR = "token is error";
 
-    public static final String TOKEN_HAS_NO_PERMISSION = "toke has no permission";
+    public static final String TOKEN_HAS_NO_PERMISSION = "token has no permission";
 
     public static final String MENU_SUCCESS = "get menu and permission success";
 
     public static final String MENU_FAILED = "get menu and permission failed";
 
     public static final String SAVE_SUCCESS = "save success";
-
-    public static final String SAVE_FAILED = "save failed";
 
     public static final String NOT_FOUND_EXCEPTION = "not found exception";
 }

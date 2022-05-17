@@ -22,19 +22,18 @@ import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.assertj.core.util.Lists;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for ShenyuDictMapper.
@@ -113,8 +112,8 @@ public final class ShenyuDictMapperTest extends AbstractSpringIntegrationTest {
         int count = shenyuDictMapper.insert(record);
         assertThat(count, equalTo(1));
 
-        final Set<String> fieldSet = Stream.of(record1.getType(), record.getType()).collect(Collectors.toSet());
-        List<ShenyuDictDO> shenyuDictDOList = shenyuDictMapper.findByTypeBatch(fieldSet);
+        final List<String> fieldString = Stream.of(record1.getType(), record.getType()).distinct().collect(Collectors.toList());
+        List<ShenyuDictDO> shenyuDictDOList = shenyuDictMapper.findByTypeBatch(fieldString);
         assertThat(shenyuDictDOList, hasItems(record1, record));
     }
 }

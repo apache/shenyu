@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.plugin.global;
 
-import org.apache.shenyu.plugin.global.fixture.FixtureHttpShenyuContextDecorator;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.shenyu.plugin.global.fixture.FixtureHttpShenyuContextDecorator;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 
@@ -30,8 +30,8 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The Test Case For DefaultShenyuContextBuilder.
@@ -40,7 +40,7 @@ public final class DefaultShenyuContextBuilderTest {
 
     private DefaultShenyuContextBuilder defaultShenyuContextBuilder;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Map<String, ShenyuContextDecorator> decoratorMap = new HashMap<>();
         decoratorMap.put("http", new FixtureHttpShenyuContextDecorator());

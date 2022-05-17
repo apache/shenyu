@@ -38,6 +38,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * AbstractDubboPlugin.
@@ -92,12 +93,12 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
         if (!checkMetaData(metaData)) {
             LOG.error(" path is : {}, meta data have error : {}", shenyuContext.getPath(), metaData);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR, null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.META_DATA_ERROR);
             return WebFluxResultUtils.result(exchange, error);
         }
         if (Objects.nonNull(metaData) && StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM, null);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.DUBBO_HAVE_BODY_PARAM);
             return WebFluxResultUtils.result(exchange, error);
         }
         this.rpcContext(exchange);
@@ -141,9 +142,9 @@ public abstract class AbstractDubboPlugin extends AbstractShenyuPlugin {
 
     private void rpcContext(final ServerWebExchange exchange) {
         Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
-        if (Objects.nonNull(rpcContext) && Objects.nonNull(rpcContext.get(PluginEnum.DUBBO.getName()))) {
-            this.transmitRpcContext(rpcContext.get(PluginEnum.DUBBO.getName()));
-        }
+        Optional.ofNullable(rpcContext)
+                .map(context -> context.get(PluginEnum.DUBBO.getName()))
+                .ifPresent(this::transmitRpcContext);
     }
 
     private boolean checkMetaData(final MetaData metaData) {

@@ -22,8 +22,8 @@ import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.RoleDO;
 import org.apache.shenyu.admin.model.query.RoleQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
@@ -31,9 +31,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test cases for RoleMapper.
@@ -155,7 +155,7 @@ public final class RoleMapperTest extends AbstractSpringIntegrationTest {
         assertThat(roleDOS.size(), equalTo(1));
     }
 
-    @After
+    @AfterEach
     public void resetDB() {
         List<String> ids = mapper.selectAll().stream().map(BaseDO::getId).collect(Collectors.toList());
         if (!ids.isEmpty()) {
@@ -166,11 +166,11 @@ public final class RoleMapperTest extends AbstractSpringIntegrationTest {
     private RoleDO buildRoleDO() {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         return RoleDO.builder()
-            .id(UUIDUtils.getInstance().generateShortUuid())
-            .roleName("test-role")
-            .description("test role")
-            .dateUpdated(now)
-            .dateCreated(now)
-            .build();
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .roleName("test-role")
+                .description("test role")
+                .dateUpdated(now)
+                .dateCreated(now)
+                .build();
     }
 }

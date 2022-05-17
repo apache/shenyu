@@ -28,19 +28,16 @@ import org.apache.shenyu.admin.model.entity.PermissionDO;
 import org.apache.shenyu.admin.model.entity.UserRoleDO;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO.AuthPerm;
-import org.apache.shenyu.admin.model.vo.PermissionMenuVO.MenuInfo;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.PermissionService;
-import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,18 +55,14 @@ public class PermissionServiceImpl implements PermissionService {
 
     private final ResourceMapper resourceMapper;
 
-    private final ResourceService resourceService;
-
     public PermissionServiceImpl(final DashboardUserMapper dashboardUserMapper,
                                  final UserRoleMapper userRoleMapper,
                                  final PermissionMapper permissionMapper,
-                                 final ResourceMapper resourceMapper,
-                                 final ResourceService resourceService) {
+                                 final ResourceMapper resourceMapper) {
         this.dashboardUserMapper = dashboardUserMapper;
         this.userRoleMapper = userRoleMapper;
         this.permissionMapper = permissionMapper;
         this.resourceMapper = resourceMapper;
-        this.resourceService = resourceService;
     }
 
     /**
@@ -89,9 +82,8 @@ public class PermissionServiceImpl implements PermissionService {
         if (CollectionUtils.isEmpty(resourceVOList)) {
             return null;
         }
-
-        List<MenuInfo> menuInfoList = resourceService.getMenuInfo(resourceVOList);
-        return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
+        
+        return new PermissionMenuVO(ResourceUtil.buildMenu(resourceVOList), getAuthPerm(resourceVOList), getAllAuthPerms());
     }
 
     /**
@@ -130,7 +122,7 @@ public class PermissionServiceImpl implements PermissionService {
             return Collections.emptyList();
         }
 
-        return Optional.ofNullable(resourceMapper.selectByIdsBatch(resourceIds)).orElseGet(ArrayList::new)
+        return resourceMapper.selectByIdsBatch(resourceIds)
                 .stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList());
     }
 

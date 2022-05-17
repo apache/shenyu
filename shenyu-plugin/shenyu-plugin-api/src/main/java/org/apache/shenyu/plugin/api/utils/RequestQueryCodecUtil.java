@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.plugin.api.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -45,8 +47,12 @@ public final class RequestQueryCodecUtil {
         MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
         return queryParams.keySet().stream()
                 .map(key -> queryParams.get(key).stream()
-                        .map(item -> String.join("=", key,
-                                UriUtils.encode(item, StandardCharsets.UTF_8)))
+                        .map(item -> Optional.ofNullable(item)
+                                .map(value -> String.join("=",
+                                        UriUtils.encode(key, StandardCharsets.UTF_8),
+                                        UriUtils.encode(value, StandardCharsets.UTF_8)))
+                                .orElse(UriUtils.encode(key, StandardCharsets.UTF_8)))
+                        .filter(StringUtils::isNoneBlank)
                         .collect(Collectors.joining("&")))
                 .collect(Collectors.joining("&")).trim();
     }

@@ -17,27 +17,27 @@
 
 package org.apache.shenyu.springboot.sync.data.zookeeper;
 
-import org.I0Itec.zkclient.ZkClient;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.zookeeper.ZookeeperClient;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperSyncDataService;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * test case for {@link ZookeeperSyncDataConfiguration}.
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
         classes = {
                 ZookeeperSyncDataConfiguration.class
@@ -49,11 +49,11 @@ import static org.junit.Assert.assertTrue;
                 "shenyu.sync.zookeeper.connectionTimeout=500"
         })
 @EnableAutoConfiguration
-@MockBean({PluginDataSubscriber.class, ZkClient.class})
+@MockBean({PluginDataSubscriber.class, ZookeeperClient.class})
 public final class ZookeeperSyncDataConfigurationTest {
 
     @Autowired
-    private ZookeeperConfig zookeeperConfig;
+    private ZookeeperProperties zookeeperConfig;
 
     @Autowired
     private SyncDataService syncDataService;
@@ -68,7 +68,7 @@ public final class ZookeeperSyncDataConfigurationTest {
     }
 
     /**
-     * case to test {@link ZookeeperSyncDataConfiguration} to register bean {@link ZookeeperConfig}.
+     * case to test {@link ZookeeperSyncDataConfiguration} to register bean {@link ZookeeperProperties}.
      */
     @Test
     public void testZookeeperSyncDataConfigurationRegisterBeanZookeeperConfig() {

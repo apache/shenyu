@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * TimerTask.
  */
-public abstract class TimerTask implements Runnable {
+public abstract class TimerTask {
     
     /**
      * The time the current task delays execution ms.
@@ -89,4 +89,11 @@ public abstract class TimerTask implements Runnable {
         }
         timerTaskEntry = null;
     }
+    
+    /**
+     * Run.
+     *
+     * @param taskEntity the task entity
+     */
+    public abstract void run(TaskEntity taskEntity);
 }

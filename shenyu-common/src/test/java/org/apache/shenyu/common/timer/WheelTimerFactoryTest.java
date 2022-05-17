@@ -17,14 +17,15 @@
 
 package org.apache.shenyu.common.timer;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * WheelTimerFactoryTest .
  */
 public class WheelTimerFactoryTest {
-    
+
     /**
      * Test get shared.
      */
@@ -32,6 +33,6 @@ public class WheelTimerFactoryTest {
     public void testGetShared() {
         Timer sharedTimer1 = WheelTimerFactory.getSharedTimer();
         Timer sharedTimer2 = WheelTimerFactory.getSharedTimer();
-        Assert.assertSame(sharedTimer1, sharedTimer2);
+        assertSame(sharedTimer1, sharedTimer2);
     }
 }

@@ -20,15 +20,15 @@ package org.apache.shenyu.plugin.ratelimiter.executor;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.cache.redis.RedisConfigProperties;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory;
-import org.apache.shenyu.plugin.ratelimiter.config.RateLimiterConfig;
 import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import reactor.core.publisher.Flux;
@@ -44,12 +44,12 @@ import java.util.stream.Stream;
 /**
  * Test of rate limiter Lua scripts.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RedisRateLimiterScriptsTest {
 
     private static RedisServer redisServer;
 
-    @BeforeClass
+    @BeforeAll
     public static void startup() {
         redisServer = RedisServer.builder()
                 .port(63792)
@@ -57,7 +57,7 @@ public class RedisRateLimiterScriptsTest {
                 .build();
         redisServer.start();
         RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
-        RateLimiterConfig config = new RateLimiterConfig();
+        RedisConfigProperties config = new RedisConfigProperties();
         config.setUrl("127.0.0.1:63792");
         PluginData pluginData = PluginData.builder()
                 .enabled(true)
@@ -65,6 +65,11 @@ public class RedisRateLimiterScriptsTest {
                 .build();
 
         handler.handlerPlugin(pluginData);
+    }
+
+    @AfterAll
+    public static void end() {
+        redisServer.stop();
     }
 
     @Test
@@ -129,10 +134,5 @@ public class RedisRateLimiterScriptsTest {
                 .expectNext(Arrays.asList(1L, 100L))
                 .expectComplete()
                 .verify();
-    }
-
-    @AfterClass
-    public static void end() {
-        redisServer.stop();
     }
 }

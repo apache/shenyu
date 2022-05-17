@@ -24,7 +24,7 @@ import com.lmax.disruptor.EventFactory;
  * disruptor Create a factory implementation of the object.
  * @param <T> the type parameter
  */
-public class OrderlyDisruptorEventFactory<T> implements EventFactory<OrderlyDataEvent<T>> {
+public class OrderlyDisruptorEventFactory<T> implements EventFactory<DataEvent<T>> {
     
     @Override
     public OrderlyDataEvent<T> newInstance() {

@@ -39,6 +39,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
+import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.RuleService;
@@ -49,6 +50,7 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,7 +96,17 @@ public class RuleServiceImpl implements RuleService {
         this.dataPermissionMapper = dataPermissionMapper;
         this.eventPublisher = eventPublisher;
     }
-
+    
+    @Override
+    public List<RuleVO> searchByCondition(final RuleQueryCondition condition) {
+        condition.init();
+        final List<RuleVO> rules = ruleMapper.selectByCondition(condition);
+        for (RuleVO rule : rules) {
+            rule.setMatchModeName(MatchModeEnum.getMatchModeByCode(rule.getMatchMode()));
+        }
+        return rules;
+    }
+    
     @Override
     public String registerDefault(final RuleDTO ruleDTO) {
         RuleDO exist = ruleMapper.findBySelectorIdAndName(ruleDTO.getSelectorId(), ruleDTO.getName());
@@ -129,7 +141,7 @@ public class RuleServiceImpl implements RuleService {
         List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleCount = ruleMapper.insertSelective(ruleDO);
-            if (dataPermissionMapper.listByUserId(JwtUtils.getUserInfo().getUserId()).size() > 0) {
+            if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
                 DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
                 dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
                 dataPermissionDTO.setDataId(ruleDO.getId());
@@ -274,7 +286,7 @@ public class RuleServiceImpl implements RuleService {
                         return list1;
                     }));
 
-        return Optional.ofNullable(ruleDOList).orElseGet(ArrayList::new)
+        return Optional.of(ruleDOList).orElseGet(ArrayList::new)
                 .stream().filter(Objects::nonNull).map(ruleDO -> {
                     String ruleId = ruleDO.getId();
                     List<ConditionData> conditions = conditionMap.get(ruleId);
@@ -289,6 +301,7 @@ public class RuleServiceImpl implements RuleService {
                         }
                     }
                     return null;
-                }).collect(Collectors.toList());
+                }).filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

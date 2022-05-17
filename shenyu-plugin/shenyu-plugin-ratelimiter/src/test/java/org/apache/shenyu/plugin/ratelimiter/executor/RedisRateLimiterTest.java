@@ -21,21 +21,21 @@ import com.google.common.collect.Lists;
 import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ratelimiter.response.RateLimiterResponse;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
 /**
  * RedisRateLimiter test.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class RedisRateLimiterTest {
 
     private static final String DEFAULT_TEST_ID = "testId";
@@ -54,10 +54,10 @@ public final class RedisRateLimiterTest {
     private static final double DEFAULT_TEST_BURST_CAPACITY = 300.0;
 
     private RedisRateLimiter redisRateLimiter;
-    
+
     private RateLimiterHandle rateLimiterHandle;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.redisRateLimiter = new RedisRateLimiter();
         rateLimiterHandle = new RateLimiterHandle();
@@ -130,7 +130,7 @@ public final class RedisRateLimiterTest {
         rateLimiterHandle.setAlgorithmName("tokenBucket");
         Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
-            Assert.assertEquals(1L, r.getTokensRemaining());
+            assertEquals(1L, r.getTokensRemaining());
             assertTrue(r.isAllowed());
         }).verifyComplete();
     }
@@ -144,8 +144,8 @@ public final class RedisRateLimiterTest {
         rateLimiterHandle.setAlgorithmName("tokenBucket");
         Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
-            Assert.assertEquals(0, r.getTokensRemaining());
-            Assert.assertFalse(r.isAllowed());
+            assertEquals(0, r.getTokensRemaining());
+            assertFalse(r.isAllowed());
         }).verifyComplete();
     }
 
@@ -158,7 +158,7 @@ public final class RedisRateLimiterTest {
         rateLimiterHandle.setAlgorithmName("tokenBucket");
         Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
-            Assert.assertEquals(-1, r.getTokensRemaining());
+            assertEquals(-1, r.getTokensRemaining());
             assertTrue(r.isAllowed());
         }).verifyComplete();
     }
@@ -187,7 +187,7 @@ public final class RedisRateLimiterTest {
      * leaky bucket redisRateLimiter.isAllowed test pre init.
      *
      * @param allowFlag mock lua allow result
-     * @param waters mock the waters in the redis
+     * @param waters    mock the waters in the redis
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void leakyBucketPreInit(final long allowFlag, final long waters) {
@@ -200,7 +200,7 @@ public final class RedisRateLimiterTest {
     /**
      * sliding window redisRateLimiter.isAllowed test pre init.
      *
-     * @param allowFlag mock lua allow result
+     * @param allowFlag     mock lua allow result
      * @param remainingNums mock the remain number of the window
      */
     @SuppressWarnings({"unchecked", "rawtypes"})

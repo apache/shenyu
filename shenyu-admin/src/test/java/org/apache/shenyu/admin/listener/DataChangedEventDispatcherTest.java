@@ -17,36 +17,39 @@
 
 package org.apache.shenyu.admin.listener;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
+import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
+import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
+import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
+import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
-import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
-import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
-import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
-import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.context.ApplicationContext;
-import org.springframework.test.util.ReflectionTestUtils;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link DataChangedEventDispatcher}.
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public final class DataChangedEventDispatcherTest {
 
     @InjectMocks
@@ -67,7 +70,10 @@ public final class DataChangedEventDispatcherTest {
     @Mock
     private ZookeeperDataChangedListener zookeeperDataChangedListener;
 
-    @Before
+    @Mock
+    private LoadServiceDocEntry loadServiceDocEntry;
+
+    @BeforeEach
     public void setUp() {
         Map<String, DataChangedListener> listenerMap = new HashMap<>();
         listenerMap.put("httpLongPollingDataChangedListener", httpLongPollingDataChangedListener);
@@ -75,6 +81,9 @@ public final class DataChangedEventDispatcherTest {
         listenerMap.put("websocketDataChangedListener", websocketDataChangedListener);
         listenerMap.put("zookeeperDataChangedListener", zookeeperDataChangedListener);
         when(applicationContext.getBeansOfType(DataChangedListener.class)).thenReturn(listenerMap);
+
+        when(applicationContext.getBean(LoadServiceDocEntry.class)).thenReturn(loadServiceDocEntry);
+        applicationContext.getBean(LoadServiceDocEntry.class);
         dataChangedEventDispatcher.afterPropertiesSet();
     }
 
@@ -151,10 +160,13 @@ public final class DataChangedEventDispatcherTest {
     /**
      * onApplicationEvent null configGroupEnum test case.
      */
-    @Test(expected = NullPointerException.class)
+    @Test
     public void onApplicationEventWithNullTest() {
-        DataChangedEvent dataChangedEvent = new DataChangedEvent(null, null, new ArrayList<>());
-        dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> {
+            DataChangedEvent dataChangedEvent = new DataChangedEvent(null, null, new ArrayList<>());
+            dataChangedEventDispatcher.onApplicationEvent(dataChangedEvent);
+        });
+        assertNotNull(exception);
     }
 
     /**
@@ -164,9 +176,9 @@ public final class DataChangedEventDispatcherTest {
     @SuppressWarnings("unchecked")
     public void afterPropertiesSetTest() {
         List<DataChangedListener> listeners = (List<DataChangedListener>) ReflectionTestUtils.getField(dataChangedEventDispatcher, "listeners");
-        Assert.assertTrue(listeners.contains(httpLongPollingDataChangedListener));
-        Assert.assertTrue(listeners.contains(nacosDataChangedListener));
-        Assert.assertTrue(listeners.contains(websocketDataChangedListener));
-        Assert.assertTrue(listeners.contains(zookeeperDataChangedListener));
+        assertTrue(listeners.contains(httpLongPollingDataChangedListener));
+        assertTrue(listeners.contains(nacosDataChangedListener));
+        assertTrue(listeners.contains(websocketDataChangedListener));
+        assertTrue(listeners.contains(zookeeperDataChangedListener));
     }
 }

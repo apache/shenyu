@@ -20,21 +20,29 @@ server:
 spring:
   application:
     name: springCloud-test
-#  cloud:
-#    nacos:
-#      discovery:
-#        server-addr: 127.0.0.1:8848
-
-
-springCloud-test:
-  ribbon.NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: true
+    discovery:
+      enabled: true
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
+        enabled: false
+        namespace: ShenyuRegisterCenter
 
 eureka:
   client:
+    enabled: true
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
   instance:
-    prefer-ip-address: true
+    prefer-ip-address: true   
+    
+
+springCloud-test:
+  ribbon.NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
 
 shenyu:
   register:
@@ -47,7 +55,7 @@ shenyu:
     springCloud:
       props:
         contextPath: /springcloud
-        port: 8884
+#        port: 8884
 
 logging:
   level:

@@ -23,40 +23,48 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
+import org.apache.shenyu.common.utils.PathUtils;
+import org.apache.shenyu.common.utils.PortUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
  */
-public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
-    
+public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent>, BeanFactoryAware {
+
     private static final Logger LOG = LoggerFactory.getLogger(ContextRegisterListener.class);
-    
+
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final AtomicBoolean registered = new AtomicBoolean(false);
-    
+
     private final Boolean isFull;
-    
+
     private final String host;
-    
+
     private final String contextPath;
-    
+
     private final String appName;
-    
+
     private final Integer port;
-    
+
+    private BeanFactory beanFactory;
+
     /**
      * Instantiates a new Context register listener.
      *
@@ -74,23 +82,29 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
         }
-        port = Integer.parseInt(props.getProperty(ShenyuClientConstants.PORT));
+        this.port = Integer.parseInt(Optional.ofNullable(props.getProperty(ShenyuClientConstants.PORT)).orElseGet(() -> "-1"));
         this.appName = env.getProperty("spring.application.name");
         this.host = props.getProperty(ShenyuClientConstants.HOST);
     }
-    
+
     @Override
-    public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
+    public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
+
+    @Override
+    public void onApplicationEvent(@NonNull final ContextRefreshedEvent webServerInitializedEvent) {
         if (!registered.compareAndSet(false, true)) {
             return;
         }
         if (Boolean.TRUE.equals(isFull)) {
             publisher.publishEvent(buildMetaDataDTO());
         }
-        publisher.publishEvent(buildUriRegisterDTO());
+        final int mergedPort = port <= 0 ? PortUtils.findPort(beanFactory) : port;
+        publisher.publishEvent(buildUriRegisterDTO(mergedPort));
     }
-    
-    private URIRegisterDTO buildUriRegisterDTO() {
+
+    private URIRegisterDTO buildUriRegisterDTO(final int port) {
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
                 .appName(appName)
@@ -98,14 +112,13 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 .port(port)
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .build();
-        
     }
-    
+
     private MetaDataRegisterDTO buildMetaDataDTO() {
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
-                .path(contextPath)
+                .path(PathUtils.decoratorPath(contextPath))
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .enabled(true)
                 .ruleName(contextPath)

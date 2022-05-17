@@ -22,17 +22,12 @@ import java.util.Objects;
 /**
  * this is WebSocket upstream.
  */
-public final class WebSocketUpstream {
+public final class WebSocketUpstream extends CommonUpstream {
 
     /**
      * host.
      */
     private String host;
-
-    /**
-     * this is http protocol.
-     */
-    private String protocol;
 
     /**
      * url.
@@ -43,16 +38,6 @@ public final class WebSocketUpstream {
      * weight.
      */
     private int weight;
-
-    /**
-     * false close/ true open.
-     */
-    private boolean status;
-
-    /**
-     * startup time.
-     */
-    private long timestamp;
 
     /**
      * warmup.
@@ -66,11 +51,13 @@ public final class WebSocketUpstream {
      */
     private WebSocketUpstream(final Builder builder) {
         this.host = builder.host;
-        this.protocol = builder.protocol;
+        setUpstreamHost(builder.host);
+        setProtocol(builder.protocol);
         this.url = builder.url;
+        setUpstreamUrl(builder.url);
         this.weight = builder.weight;
-        this.status = builder.status;
-        this.timestamp = builder.timestamp;
+        setStatus(builder.status);
+        setTimestamp(builder.timestamp);
         this.warmup = builder.warmup;
     }
 
@@ -99,24 +86,6 @@ public final class WebSocketUpstream {
      */
     public void setHost(final String host) {
         this.host = host;
-    }
-
-    /**
-     * get protocol.
-     *
-     * @return protocol
-     */
-    public String getProtocol() {
-        return protocol;
-    }
-
-    /**
-     * set protocol.
-     *
-     * @param protocol protocol
-     */
-    public void setProtocol(final String protocol) {
-        this.protocol = protocol;
     }
 
     /**
@@ -156,42 +125,6 @@ public final class WebSocketUpstream {
     }
 
     /**
-     * get status.
-     *
-     * @return status
-     */
-    public boolean isStatus() {
-        return status;
-    }
-
-    /**
-     * set status.
-     *
-     * @param status status
-     */
-    public void setStatus(final boolean status) {
-        this.status = status;
-    }
-
-    /**
-     * get timestamp.
-     *
-     * @return timestamp
-     */
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    /**
-     * set timestamp.
-     *
-     * @param timestamp timestamp
-     */
-    public void setTimestamp(final long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    /**
      * get warmup.
      *
      * @return warmup
@@ -218,12 +151,12 @@ public final class WebSocketUpstream {
             return false;
         }
         WebSocketUpstream that = (WebSocketUpstream) o;
-        return Objects.equals(host, that.host) && Objects.equals(protocol, that.protocol) && Objects.equals(url, that.url);
+        return Objects.equals(host, that.host) && Objects.equals(getProtocol(), that.getProtocol()) && Objects.equals(url, that.url);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(host, protocol, url);
+        return Objects.hash(host, getProtocol(), url);
     }
 
     @Override
@@ -233,7 +166,7 @@ public final class WebSocketUpstream {
                 + host
                 + '\''
                 + ", protocol='"
-                + protocol
+                + getProtocol()
                 + '\''
                 + ", url='"
                 + url
@@ -241,9 +174,9 @@ public final class WebSocketUpstream {
                 + ", weight="
                 + weight
                 + ", status="
-                + status
+                + isStatus()
                 + ", timestamp="
-                + timestamp
+                + getTimestamp()
                 + ", warmup="
                 + warmup
                 + '}';

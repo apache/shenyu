@@ -21,14 +21,27 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.query.RuleQuery;
+import org.apache.shenyu.admin.model.query.RuleQueryCondition;
+import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.validation.ExistProvider;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Rule mapper.
  */
 @Mapper
-public interface RuleMapper {
+public interface RuleMapper extends ExistProvider {
+    
+    /**
+     * rule existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
     
     /**
      * select rule by id.
@@ -53,7 +66,7 @@ public interface RuleMapper {
      * @return the list
      */
     List<RuleDO> findBySelectorId(String selectorId);
-
+    
     /**
      * Find by selector id list.
      *
@@ -74,7 +87,7 @@ public interface RuleMapper {
      * Find by selector id and name rule do.
      *
      * @param selectorId the selector id
-     * @param name the name
+     * @param name       the name
      * @return the rule do
      */
     RuleDO findBySelectorIdAndName(@Param("selectorId") String selectorId, @Param("name") String name);
@@ -126,7 +139,7 @@ public interface RuleMapper {
      * @return rows int
      */
     int delete(String id);
-
+    
     /**
      * delete rule.
      *
@@ -141,4 +154,12 @@ public interface RuleMapper {
      * @return {@linkplain List}
      */
     List<RuleDO> selectAll();
+    
+    /**
+     * search by condition.
+     *
+     * @param condition condition
+     * @return list
+     */
+    List<RuleVO> selectByCondition(@Param("condition") RuleQueryCondition condition);
 }

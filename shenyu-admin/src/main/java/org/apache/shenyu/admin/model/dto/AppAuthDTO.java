@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
+
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -25,44 +29,48 @@ import java.util.Objects;
  * this is application authority from by web front.
  */
 public class AppAuthDTO implements Serializable {
-
+    
     private static final long serialVersionUID = 3906547569699874743L;
-
+    
     /**
      * primary key.
      */
+    @NotNull(message = "app auth id not null")
+    @Existed(message = "app auth is not existed", provider = AppAuthMapper.class)
     private String id;
-
+    
     /**
      * application key.
      */
+    @NotNull(message = "app auth appKey not null")
     private String appKey;
-
+    
     /**
      * encryption secret.
      */
+    @NotNull(message = "app auth appSecret not null")
     private String appSecret;
-
+    
     private String userId;
-
+    
     private String phone;
-
+    
     private String extInfo;
-
+    
     /**
      * whether open authPath.
      */
     private Boolean open;
-
+    
     /**
      * whether enabled.
      */
     private Boolean enabled;
-
+    
     private List<AuthParamDTO> authParamDTOList;
-
+    
     private List<AuthPathDTO> authPathDTOList;
-
+    
     /**
      * Gets the value of id.
      *
@@ -71,7 +79,7 @@ public class AppAuthDTO implements Serializable {
     public String getId() {
         return id;
     }
-
+    
     /**
      * Sets the id.
      *
@@ -80,7 +88,7 @@ public class AppAuthDTO implements Serializable {
     public void setId(final String id) {
         this.id = id;
     }
-
+    
     /**
      * Gets the value of appKey.
      *
@@ -89,7 +97,7 @@ public class AppAuthDTO implements Serializable {
     public String getAppKey() {
         return appKey;
     }
-
+    
     /**
      * Sets the appKey.
      *
@@ -98,7 +106,7 @@ public class AppAuthDTO implements Serializable {
     public void setAppKey(final String appKey) {
         this.appKey = appKey;
     }
-
+    
     /**
      * Gets the value of appSecret.
      *
@@ -107,7 +115,7 @@ public class AppAuthDTO implements Serializable {
     public String getAppSecret() {
         return appSecret;
     }
-
+    
     /**
      * Sets the appSecret.
      *
@@ -116,7 +124,7 @@ public class AppAuthDTO implements Serializable {
     public void setAppSecret(final String appSecret) {
         this.appSecret = appSecret;
     }
-
+    
     /**
      * Gets the value of userId.
      *
@@ -125,7 +133,7 @@ public class AppAuthDTO implements Serializable {
     public String getUserId() {
         return userId;
     }
-
+    
     /**
      * Sets the userId.
      *
@@ -134,7 +142,7 @@ public class AppAuthDTO implements Serializable {
     public void setUserId(final String userId) {
         this.userId = userId;
     }
-
+    
     /**
      * Gets the value of phone.
      *
@@ -143,7 +151,7 @@ public class AppAuthDTO implements Serializable {
     public String getPhone() {
         return phone;
     }
-
+    
     /**
      * Sets the phone.
      *
@@ -152,7 +160,7 @@ public class AppAuthDTO implements Serializable {
     public void setPhone(final String phone) {
         this.phone = phone;
     }
-
+    
     /**
      * Gets the value of extInfo.
      *
@@ -161,7 +169,7 @@ public class AppAuthDTO implements Serializable {
     public String getExtInfo() {
         return extInfo;
     }
-
+    
     /**
      * Sets the extInfo.
      *
@@ -170,7 +178,7 @@ public class AppAuthDTO implements Serializable {
     public void setExtInfo(final String extInfo) {
         this.extInfo = extInfo;
     }
-
+    
     /**
      * Gets the value of open.
      *
@@ -179,7 +187,7 @@ public class AppAuthDTO implements Serializable {
     public Boolean getOpen() {
         return open;
     }
-
+    
     /**
      * Sets the open.
      *
@@ -188,7 +196,7 @@ public class AppAuthDTO implements Serializable {
     public void setOpen(final Boolean open) {
         this.open = open;
     }
-
+    
     /**
      * Gets the value of enabled.
      *
@@ -197,7 +205,7 @@ public class AppAuthDTO implements Serializable {
     public Boolean getEnabled() {
         return enabled;
     }
-
+    
     /**
      * Sets the enabled.
      *
@@ -206,7 +214,7 @@ public class AppAuthDTO implements Serializable {
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
     }
-
+    
     /**
      * Gets the value of authParamDTOList.
      *
@@ -215,7 +223,7 @@ public class AppAuthDTO implements Serializable {
     public List<AuthParamDTO> getAuthParamDTOList() {
         return authParamDTOList;
     }
-
+    
     /**
      * Sets the authParamDTOList.
      *
@@ -224,7 +232,7 @@ public class AppAuthDTO implements Serializable {
     public void setAuthParamDTOList(final List<AuthParamDTO> authParamDTOList) {
         this.authParamDTOList = authParamDTOList;
     }
-
+    
     /**
      * Gets the value of authPathDTOList.
      *
@@ -233,7 +241,7 @@ public class AppAuthDTO implements Serializable {
     public List<AuthPathDTO> getAuthPathDTOList() {
         return authPathDTOList;
     }
-
+    
     /**
      * Sets the authPathDTOList.
      *
@@ -242,7 +250,7 @@ public class AppAuthDTO implements Serializable {
     public void setAuthPathDTOList(final List<AuthPathDTO> authPathDTOList) {
         this.authPathDTOList = authPathDTOList;
     }
-
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -263,7 +271,7 @@ public class AppAuthDTO implements Serializable {
                 && Objects.equals(authParamDTOList, that.authParamDTOList)
                 && Objects.equals(authPathDTOList, that.authPathDTOList);
     }
-
+    
     @Override
     public int hashCode() {
         return Objects.hash(id, appKey, appSecret, userId, phone, extInfo, open, enabled, authParamDTOList, authPathDTOList);

@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test Cases for PluginEnum.
@@ -43,5 +44,17 @@ public final class PluginEnumTest {
     public void testGetUpstreamNames() {
         List<String> list = PluginEnum.getUpstreamNames();
         assert list.size() > 0;
+    }
+
+    @Test
+    public void testGetCode() {
+        Arrays.stream(PluginEnum.values())
+                .forEach(pluginEnum -> assertEquals(pluginEnum.getCode(), PluginEnum.getPluginEnumByName(pluginEnum.getName()).getCode()));
+    }
+
+    @Test
+    public void testGetRole() {
+        Arrays.stream(PluginEnum.values())
+                .forEach(pluginEnum -> assertEquals(pluginEnum.getRole(), PluginEnum.getPluginEnumByName(pluginEnum.getName()).getRole()));
     }
 }

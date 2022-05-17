@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.tars.handler;
 
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -29,11 +28,6 @@ import java.util.Objects;
  * The type tars plugin data handler.
  */
 public class TarsPluginDataHandler implements PluginDataHandler {
-    
-    @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        pluginData.setName(pluginData.getName() + " tested");
-    }
     
     @Override
     public String pluginNamed() {
