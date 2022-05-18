@@ -56,7 +56,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * HTTP long polling, which blocks the client's request thread
@@ -76,8 +75,6 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     private static final String X_FORWARDED_FOR = "X-Forwarded-For";
 
     private static final String X_FORWARDED_FOR_SPLIT_SYMBOL = ",";
-
-    private static final ReentrantLock LOCK = new ReentrantLock();
 
     /**
      * Blocked client.
