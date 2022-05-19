@@ -82,7 +82,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             MatchDataCache.getInstance().cacheSelectorData(path, selectorData);
             selectorLog(selectorData, pluginName);
 
-
             List<RuleData> rules = MatchDataCache.getInstance().obtainRuleData(pluginName, path);
             if (CollectionUtils.isEmpty(rules)) {
                 rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());

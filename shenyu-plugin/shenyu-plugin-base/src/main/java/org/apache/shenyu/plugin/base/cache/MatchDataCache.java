@@ -26,7 +26,12 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -39,12 +44,12 @@ public final class MatchDataCache {
     private static final MatchDataCache INSTANCE = new MatchDataCache();
 
     /**
-     * pluginName -> Map -> path -> list<SelectorData>.
+     * pluginName -> LRUMap.
      */
     private static final ConcurrentMap<String, MemorySafeLRUMap<String, List<SelectorData>>> SELECTOR_DATA_MAP = Maps.newConcurrentMap();
 
     /**
-     * pluginName -> Map -> path -> list<RuleData>.
+     * pluginName -> LRUMap.
      */
     private static final ConcurrentMap<String, MemorySafeLRUMap<String, List<RuleData>>> RULE_DATA_MAP = Maps.newConcurrentMap();
 
@@ -164,8 +169,9 @@ public final class MatchDataCache {
         Set<String> paths = SELECTOR_MAPPING.get(selectorData.getId());
         //  If the path has already been cached, it does not need to be cached again.
         if (CollectionUtils.isEmpty(paths) || !paths.contains(path)) {
+            // todo The map size needs to be configured in a configurable way
             final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.computeIfAbsent(selectorData.getPluginName(),
-                    map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
+                map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
             lruMap.computeIfAbsent(path, list -> new ArrayList<>()).add(selectorData);
             SELECTOR_MAPPING.computeIfAbsent(selectorData.getId(), set -> new ConcurrentSkipListSet<>()).add(path);
         }
@@ -182,7 +188,7 @@ public final class MatchDataCache {
         //  If the path has already been cached, it does not need to be cached again.
         if (CollectionUtils.isEmpty(paths) || !paths.contains(path)) {
             final LRUMap<String, List<RuleData>> lruMap = RULE_DATA_MAP.computeIfAbsent(ruleData.getPluginName(),
-                    map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
+                map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
             lruMap.computeIfAbsent(path, list -> new ArrayList<>()).add(ruleData);
             RULE_MAPPING.computeIfAbsent(ruleData.getId(), set -> new ConcurrentSkipListSet<>()).add(path);
         }
@@ -191,6 +197,7 @@ public final class MatchDataCache {
     /**
      * Obtain selector data.
      *
+     * @param pluginName the pluginName
      * @param path the path
      * @return the selector data
      */
@@ -205,6 +212,7 @@ public final class MatchDataCache {
     /**
      * Obtain rule data.
      *
+     * @param pluginName the pluginName
      * @param path the path
      * @return the rule data
      */
