@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.LRUMap;
 import org.apache.shenyu.common.cache.MemorySafeLRUMap;
 import org.apache.shenyu.common.constant.Constants;
@@ -27,6 +28,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 
 /**
@@ -49,12 +51,12 @@ public final class MatchDataCache {
     /**
      * selectorId -> path.
      */
-    private static final MemorySafeLRUMap<String, String> SELECTOR_MAPPING = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
+    private static final ConcurrentMap<String, Set<String>> SELECTOR_MAPPING = Maps.newConcurrentMap();
 
     /**
      * ruleId -> path.
      */
-    private static final MemorySafeLRUMap<String, String> RULE_MAPPING = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
+    private static final ConcurrentMap<String, Set<String>> RULE_MAPPING = Maps.newConcurrentMap();
 
     private MatchDataCache() {
     }
@@ -69,18 +71,120 @@ public final class MatchDataCache {
     }
 
     /**
+     * Remove selector data.
+     *
+     * @param selectorData the selector data
+     */
+    public void removeSelectData(final SelectorData selectorData) {
+        final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.get(selectorData.getPluginName());
+        final String selectorDataId = selectorData.getId();
+        if (Objects.nonNull(lruMap)) {
+            // If the selector has been deleted or changed, need to delete the cache.
+            Set<String> paths = SELECTOR_MAPPING.get(selectorDataId);
+            if (CollectionUtils.isNotEmpty(paths)) {
+                SELECTOR_MAPPING.remove(selectorDataId);
+                paths.forEach(path -> {
+                    final List<SelectorData> selectorDataList = lruMap.get(path);
+                    Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(selectorDataId)));
+                    if (CollectionUtils.isEmpty(selectorDataList)) {
+                        lruMap.remove(path);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * Remove rule data.
+     *
+     * @param ruleData the rule data
+     */
+    public void removeRuleData(final RuleData ruleData) {
+        final LRUMap<String, List<RuleData>> lruMap = RULE_DATA_MAP.get(ruleData.getPluginName());
+        final String ruleDataId = ruleData.getId();
+        if (Objects.nonNull(lruMap)) {
+            // If the rule has been deleted or changed, need to delete the cache.
+            Set<String> paths = RULE_MAPPING.get(ruleDataId);
+            if (CollectionUtils.isNotEmpty(paths)) {
+                RULE_MAPPING.remove(ruleDataId);
+                paths.forEach(path -> {
+                    final List<RuleData> ruleDataList = lruMap.get(path);
+                    Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(ruleDataId)));
+                    if (CollectionUtils.isEmpty(ruleDataList)) {
+                        lruMap.remove(path);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * Remove selector data by plugin name.
+     *
+     * @param pluginName the plugin name
+     */
+    public void removeSelectDataByPluginName(final String pluginName) {
+        SELECTOR_DATA_MAP.remove(pluginName);
+        SELECTOR_MAPPING.clear();
+    }
+
+    /**
+     * Remove rule data by selector id.
+     *
+     * @param selectorId the selector id
+     */
+    public void removeRuleDataBySelectorId(final String selectorId) {
+        RULE_DATA_MAP.remove(selectorId);
+        RULE_MAPPING.clear();
+    }
+
+    /**
+     * Clean selector data.
+     */
+    public void cleanSelectorData() {
+        SELECTOR_DATA_MAP.clear();
+        SELECTOR_MAPPING.clear();
+    }
+
+    /**
+     * Clean rule data.
+     */
+    public void cleanRuleData() {
+        RULE_DATA_MAP.clear();
+        RULE_MAPPING.clear();
+    }
+
+    /**
      * Cache selector data.
      *
-     * @param path the path
-     * @param data the selector data
+     * @param path         the path
+     * @param selectorData the selector data
      */
-    public void cacheSelectorData(final String path, final SelectorData data) {
-        if (!SELECTOR_MAPPING.containsKey(data.getId())) {
-            LRUMap<String, List<SelectorData>> selectDataMap = SELECTOR_DATA_MAP.computeIfAbsent(data.getPluginName(),
+    public void cacheSelectorData(final String path, final SelectorData selectorData) {
+        Set<String> paths = SELECTOR_MAPPING.get(selectorData.getId());
+        //  If the path has already been cached, it does not need to be cached again.
+        if (CollectionUtils.isEmpty(paths) || !paths.contains(path)) {
+            final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.computeIfAbsent(selectorData.getPluginName(),
                     map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
-            List<SelectorData> selectorDataList = selectDataMap.computeIfAbsent(path, list -> new ArrayList<>());
-            selectorDataList.add(data);
-            SELECTOR_MAPPING.putIfAbsent(data.getId(), path);
+            lruMap.computeIfAbsent(path, list -> new ArrayList<>()).add(selectorData);
+            SELECTOR_MAPPING.computeIfAbsent(selectorData.getId(), set -> new ConcurrentSkipListSet<>()).add(path);
+        }
+    }
+
+    /**
+     * Cache rule data.
+     *
+     * @param path     the path
+     * @param ruleData the rule data
+     */
+    public void cacheRuleData(final String path, final RuleData ruleData) {
+        Set<String> paths = RULE_MAPPING.get(ruleData.getId());
+        //  If the path has already been cached, it does not need to be cached again.
+        if (CollectionUtils.isEmpty(paths) || !paths.contains(path)) {
+            final LRUMap<String, List<RuleData>> lruMap = RULE_DATA_MAP.computeIfAbsent(ruleData.getPluginName(),
+                    map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
+            lruMap.computeIfAbsent(path, list -> new ArrayList<>()).add(ruleData);
+            RULE_MAPPING.computeIfAbsent(ruleData.getId(), set -> new ConcurrentSkipListSet<>()).add(path);
         }
     }
 
@@ -91,11 +195,24 @@ public final class MatchDataCache {
      * @return the selector data
      */
     public Collection<SelectorData> obtainSelectorData(final String pluginName, final String path) {
-        MemorySafeLRUMap<String, List<SelectorData>> selectDataMap = SELECTOR_DATA_MAP.get(pluginName);
-        if (Objects.nonNull(selectDataMap)) {
-            return Optional.ofNullable(selectDataMap.get(path)).orElse(Lists.newArrayList());
+        final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.get(pluginName);
+        if (Objects.nonNull(lruMap)) {
+            return Optional.ofNullable(lruMap.get(path)).orElse(Lists.newArrayList());
         }
         return Lists.newArrayList();
     }
 
+    /**
+     * Obtain rule data.
+     *
+     * @param path the path
+     * @return the rule data
+     */
+    public List<RuleData> obtainRuleData(final String pluginName, final String path) {
+        final LRUMap<String, List<RuleData>> lruMap = RULE_DATA_MAP.get(pluginName);
+        if (Objects.nonNull(lruMap)) {
+            return Optional.ofNullable(lruMap.get(path)).orElse(Lists.newArrayList());
+        }
+        return Lists.newArrayList();
+    }
 }

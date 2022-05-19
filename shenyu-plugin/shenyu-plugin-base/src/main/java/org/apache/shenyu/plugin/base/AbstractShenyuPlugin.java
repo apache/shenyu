@@ -81,9 +81,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
             MatchDataCache.getInstance().cacheSelectorData(path, selectorData);
             selectorLog(selectorData, pluginName);
-            List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
+
+
+            List<RuleData> rules = MatchDataCache.getInstance().obtainRuleData(pluginName, path);
             if (CollectionUtils.isEmpty(rules)) {
-                return handleRuleIfNull(pluginName, exchange, chain);
+                rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
+                if (CollectionUtils.isEmpty(rules)) {
+                    return handleRuleIfNull(pluginName, exchange, chain);
+                }
             }
             RuleData rule;
             if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
@@ -95,6 +100,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (Objects.isNull(rule)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
             }
+            MatchDataCache.getInstance().cacheRuleData(path, rule);
             ruleLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         }
