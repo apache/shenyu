@@ -25,6 +25,7 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,14 +67,19 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         String pluginName = named();
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
-            final Collection<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
+            final String path = exchange.getRequest().getURI().getPath();
+            Collection<SelectorData> selectors = MatchDataCache.getInstance().obtainSelectorData(pluginName, path);
             if (CollectionUtils.isEmpty(selectors)) {
-                return handleSelectorIfNull(pluginName, exchange, chain);
+                selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
+                if (CollectionUtils.isEmpty(selectors)) {
+                    return handleSelectorIfNull(pluginName, exchange, chain);
+                }
             }
-            SelectorData selectorData = matchSelector(exchange, selectors);
+            final SelectorData selectorData = matchSelector(exchange, selectors);
             if (Objects.isNull(selectorData)) {
                 return handleSelectorIfNull(pluginName, exchange, chain);
             }
+            MatchDataCache.getInstance().cacheSelectorData(path, selectorData);
             selectorLog(selectorData, pluginName);
             List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
