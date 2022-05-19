@@ -28,6 +28,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -172,7 +173,7 @@ public final class MatchDataCache {
             // todo The map size needs to be configured in a configurable way
             final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.computeIfAbsent(selectorData.getPluginName(),
                 map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
-            lruMap.computeIfAbsent(path, list -> new ArrayList<>()).add(selectorData);
+            lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>())).add(selectorData);
             SELECTOR_MAPPING.computeIfAbsent(selectorData.getId(), set -> new ConcurrentSkipListSet<>()).add(path);
         }
     }
@@ -189,7 +190,7 @@ public final class MatchDataCache {
         if (CollectionUtils.isEmpty(paths) || !paths.contains(path)) {
             final LRUMap<String, List<RuleData>> lruMap = RULE_DATA_MAP.computeIfAbsent(ruleData.getPluginName(),
                 map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
-            lruMap.computeIfAbsent(path, list -> new ArrayList<>()).add(ruleData);
+            lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>())).add(ruleData);
             RULE_MAPPING.computeIfAbsent(ruleData.getId(), set -> new ConcurrentSkipListSet<>()).add(path);
         }
     }
