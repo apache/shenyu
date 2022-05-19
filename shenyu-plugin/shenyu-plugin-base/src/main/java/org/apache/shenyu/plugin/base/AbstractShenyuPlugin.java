@@ -68,39 +68,51 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
             final String path = exchange.getRequest().getURI().getPath();
-            Collection<SelectorData> selectors = MatchDataCache.getInstance().obtainSelectorData(pluginName, path);
-            if (CollectionUtils.isEmpty(selectors)) {
+            List<SelectorData> selectors = MatchDataCache.getInstance().obtainSelectorData(pluginName, path);
+            SelectorData selectorData;
+            if (selectors.size() == 1) {
+                selectorData = selectors.get(0);
+            } else {
+                selectorData = matchSelector(exchange, selectors);
+            }
+            if (Objects.isNull(selectorData)) {
                 selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
                 if (CollectionUtils.isEmpty(selectors)) {
                     return handleSelectorIfNull(pluginName, exchange, chain);
                 }
+                selectorData = matchSelector(exchange, selectors);
+                MatchDataCache.getInstance().cacheSelectorData(path, selectorData);
             }
-            final SelectorData selectorData = matchSelector(exchange, selectors);
             if (Objects.isNull(selectorData)) {
                 return handleSelectorIfNull(pluginName, exchange, chain);
             }
-            MatchDataCache.getInstance().cacheSelectorData(path, selectorData);
             selectorLog(selectorData, pluginName);
 
             List<RuleData> rules = MatchDataCache.getInstance().obtainRuleData(pluginName, path);
-            if (CollectionUtils.isEmpty(rules)) {
-                rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
-                if (CollectionUtils.isEmpty(rules)) {
-                    return handleRuleIfNull(pluginName, exchange, chain);
-                }
-            }
             RuleData rule;
-            if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
-                //get last
-                rule = rules.get(rules.size() - 1);
+            if (rules.size() == 1) {
+                rule = rules.get(0);
             } else {
                 rule = matchRule(exchange, rules);
             }
             if (Objects.isNull(rule)) {
+                rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
+                if (CollectionUtils.isEmpty(rules)) {
+                    return handleRuleIfNull(pluginName, exchange, chain);
+                }
+                if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
+                    //get last
+                    rule = rules.get(rules.size() - 1);
+                } else {
+                    rule = matchRule(exchange, rules);
+                    MatchDataCache.getInstance().cacheRuleData(path, rule);
+                }
+            }
+            if (Objects.isNull(rule)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
             }
-            MatchDataCache.getInstance().cacheRuleData(path, rule);
             ruleLog(rule, pluginName);
+
             return doExecute(exchange, chain, selectorData, rule);
         }
         return chain.execute(exchange);

@@ -27,7 +27,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -167,10 +166,8 @@ public final class MatchDataCache {
      * @param selectorData the selector data
      */
     public void cacheSelectorData(final String path, final SelectorData selectorData) {
-        Set<String> paths = SELECTOR_MAPPING.get(selectorData.getId());
-        //  If the path has already been cached, it does not need to be cached again.
-        if (CollectionUtils.isEmpty(paths) || !paths.contains(path)) {
-            // todo The map size needs to be configured in a configurable way
+        // todo The map size needs to be configured in a configurable way
+        if (Objects.nonNull(selectorData)) {
             final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.computeIfAbsent(selectorData.getPluginName(),
                 map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
             lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>())).add(selectorData);
@@ -185,9 +182,8 @@ public final class MatchDataCache {
      * @param ruleData the rule data
      */
     public void cacheRuleData(final String path, final RuleData ruleData) {
-        Set<String> paths = RULE_MAPPING.get(ruleData.getId());
-        //  If the path has already been cached, it does not need to be cached again.
-        if (CollectionUtils.isEmpty(paths) || !paths.contains(path)) {
+        // todo The map size needs to be configured in a configurable way
+        if (Objects.nonNull(ruleData)) {
             final LRUMap<String, List<RuleData>> lruMap = RULE_DATA_MAP.computeIfAbsent(ruleData.getPluginName(),
                 map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
             lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>())).add(ruleData);
@@ -199,10 +195,10 @@ public final class MatchDataCache {
      * Obtain selector data.
      *
      * @param pluginName the pluginName
-     * @param path the path
+     * @param path       the path
      * @return the selector data
      */
-    public Collection<SelectorData> obtainSelectorData(final String pluginName, final String path) {
+    public List<SelectorData> obtainSelectorData(final String pluginName, final String path) {
         final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.get(pluginName);
         if (Objects.nonNull(lruMap)) {
             return Optional.ofNullable(lruMap.get(path)).orElse(Lists.newArrayList());
@@ -214,7 +210,7 @@ public final class MatchDataCache {
      * Obtain rule data.
      *
      * @param pluginName the pluginName
-     * @param path the path
+     * @param path       the path
      * @return the rule data
      */
     public List<RuleData> obtainRuleData(final String pluginName, final String path) {
