@@ -527,9 +527,9 @@ public class ShenyuConfig {
     }
 
     /**
-     * the match cache
+     * the match cache.
      */
-    public static class MatchCache{
+    public static class MatchCache {
 
         private boolean enabled;
 
@@ -549,7 +549,7 @@ public class ShenyuConfig {
          *
          * @param enabled the enabled
          */
-        public void setEnabled(boolean enabled) {
+        public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
 
@@ -567,7 +567,7 @@ public class ShenyuConfig {
          *
          * @param maxMemory the maxMemory
          */
-        public void setMaxMemory(Integer maxMemory) {
+        public void setMaxMemory(final Integer maxMemory) {
             this.maxMemory = maxMemory;
         }
     }
