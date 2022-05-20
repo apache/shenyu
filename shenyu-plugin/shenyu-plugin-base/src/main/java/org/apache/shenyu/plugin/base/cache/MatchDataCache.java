@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.LRUMap;
 import org.apache.shenyu.common.cache.MemorySafeLRUMap;
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
@@ -164,12 +163,12 @@ public final class MatchDataCache {
      *
      * @param path         the path
      * @param selectorData the selector data
+     * @param maxMemory    the max memory
      */
-    public void cacheSelectorData(final String path, final SelectorData selectorData) {
-        // todo The map size needs to be configured in a configurable way
+    public void cacheSelectorData(final String path, final SelectorData selectorData, final Integer maxMemory) {
         if (Objects.nonNull(selectorData)) {
             final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.computeIfAbsent(selectorData.getPluginName(),
-                map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
+                    map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
             lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>())).add(selectorData);
             SELECTOR_MAPPING.computeIfAbsent(selectorData.getId(), set -> new ConcurrentSkipListSet<>()).add(path);
         }
@@ -178,14 +177,14 @@ public final class MatchDataCache {
     /**
      * Cache rule data.
      *
-     * @param path     the path
-     * @param ruleData the rule data
+     * @param path      the path
+     * @param ruleData  the rule data
+     * @param maxMemory the max memory
      */
-    public void cacheRuleData(final String path, final RuleData ruleData) {
-        // todo The map size needs to be configured in a configurable way
+    public void cacheRuleData(final String path, final RuleData ruleData, final Integer maxMemory) {
         if (Objects.nonNull(ruleData)) {
             final LRUMap<String, List<RuleData>> lruMap = RULE_DATA_MAP.computeIfAbsent(ruleData.getPluginName(),
-                map -> new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16));
+                    map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
             lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>())).add(ruleData);
             RULE_MAPPING.computeIfAbsent(ruleData.getId(), set -> new ConcurrentSkipListSet<>()).add(path);
         }

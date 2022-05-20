@@ -18,12 +18,14 @@
 package org.apache.shenyu.plugin.base;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
@@ -68,35 +70,24 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
             final String path = exchange.getRequest().getURI().getPath();
-            List<SelectorData> selectors = MatchDataCache.getInstance().obtainSelectorData(pluginName, path);
-            SelectorData selectorData;
-            if (selectors.size() == 1) {
-                selectorData = selectors.get(0);
-            } else {
-                selectorData = matchSelector(exchange, selectors);
-            }
+
+            SelectorData selectorData = obtainSelectorDataCacheIfEnabled(exchange);
             if (Objects.isNull(selectorData)) {
-                selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
+                List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
                 if (CollectionUtils.isEmpty(selectors)) {
                     return handleSelectorIfNull(pluginName, exchange, chain);
                 }
                 selectorData = matchSelector(exchange, selectors);
-                MatchDataCache.getInstance().cacheSelectorData(path, selectorData);
+                cacheSelectorDataIfEnabled(path, selectorData);
             }
             if (Objects.isNull(selectorData)) {
                 return handleSelectorIfNull(pluginName, exchange, chain);
             }
             selectorLog(selectorData, pluginName);
 
-            List<RuleData> rules = MatchDataCache.getInstance().obtainRuleData(pluginName, path);
-            RuleData rule;
-            if (rules.size() == 1) {
-                rule = rules.get(0);
-            } else {
-                rule = matchRule(exchange, rules);
-            }
+            RuleData rule = obtainRuleDataCacheIfEnabled(exchange);
             if (Objects.isNull(rule)) {
-                rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
+                List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
                 if (CollectionUtils.isEmpty(rules)) {
                     return handleRuleIfNull(pluginName, exchange, chain);
                 }
@@ -105,7 +96,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                     rule = rules.get(rules.size() - 1);
                 } else {
                     rule = matchRule(exchange, rules);
-                    MatchDataCache.getInstance().cacheRuleData(path, rule);
+                    cacheRuleDataIfEnabled(path, rule);
                 }
             }
             if (Objects.isNull(rule)) {
@@ -116,6 +107,48 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return doExecute(exchange, chain, selectorData, rule);
         }
         return chain.execute(exchange);
+    }
+
+    private void cacheRuleDataIfEnabled(String path, RuleData rule) {
+        ShenyuConfig.MatchCache matchCache = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
+        if (matchCache.getEnabled()) {
+            MatchDataCache.getInstance().cacheRuleData(path, rule, matchCache.getMaxMemory());
+        }
+    }
+
+    private RuleData obtainRuleDataCacheIfEnabled(ServerWebExchange exchange) {
+        RuleData rule = null;
+        ShenyuConfig.MatchCache matchCache = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
+        if (matchCache.getEnabled()) {
+            List<RuleData> rules = MatchDataCache.getInstance().obtainRuleData(named(), exchange.getRequest().getURI().getPath());
+            if (rules.size() == 1) {
+                rule = rules.get(0);
+            } else {
+                rule = matchRule(exchange, rules);
+            }
+        }
+        return rule;
+    }
+
+    private void cacheSelectorDataIfEnabled(String path, SelectorData selectorData) {
+        ShenyuConfig.MatchCache matchCache = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
+        if (matchCache.getEnabled()) {
+            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, matchCache.getMaxMemory());
+        }
+    }
+
+    private SelectorData obtainSelectorDataCacheIfEnabled(ServerWebExchange exchange) {
+        SelectorData selectorData = null;
+        ShenyuConfig.MatchCache matchCache = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
+        if (matchCache.getEnabled()) {
+            List<SelectorData> selectors = MatchDataCache.getInstance().obtainSelectorData(named(), exchange.getRequest().getURI().getPath());
+            if (selectors.size() == 1) {
+                selectorData = selectors.get(0);
+            } else {
+                selectorData = matchSelector(exchange, selectors);
+            }
+        }
+        return selectorData;
     }
 
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {

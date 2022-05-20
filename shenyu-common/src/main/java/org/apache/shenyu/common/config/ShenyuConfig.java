@@ -44,6 +44,8 @@ public class ShenyuConfig {
     private FallbackPath fallback = new FallbackPath();
     
     private ExtPlugin extPlugin = new ExtPlugin();
+
+    private MatchCache matchCache = new MatchCache();
     
     private Scheduler scheduler = new Scheduler();
     
@@ -223,6 +225,24 @@ public class ShenyuConfig {
      */
     public void setExtPlugin(final ExtPlugin extPlugin) {
         this.extPlugin = extPlugin;
+    }
+
+    /**
+     * Gets match cache.
+     *
+     * @return the match cache
+     */
+    public MatchCache getMatchCache() {
+        return matchCache;
+    }
+
+    /**
+     * Sets match cache.
+     *
+     * @param matchCache the match cache
+     */
+    public void setMatchCache(final MatchCache matchCache) {
+        this.matchCache = matchCache;
     }
     
     /**
@@ -503,6 +523,52 @@ public class ShenyuConfig {
          */
         public void setScheduleDelay(final Integer scheduleDelay) {
             this.scheduleDelay = scheduleDelay;
+        }
+    }
+
+    /**
+     * the match cache
+     */
+    public static class MatchCache{
+
+        private boolean enabled;
+
+        private Integer maxMemory = 256 * 1024 * 1024;
+
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        /**
+         * Gets maxMemory.
+         *
+         * @return the maxMemory
+         */
+        public Integer getMaxMemory() {
+            return maxMemory;
+        }
+
+        /**
+         * Sets maxMemory.
+         *
+         * @param maxMemory the maxMemory
+         */
+        public void setMaxMemory(Integer maxMemory) {
+            this.maxMemory = maxMemory;
         }
     }
     
