@@ -45,7 +45,7 @@ public final class MotanShenyuContextDecoratorTest {
     public void testDecorator() {
         metaData.setAppName("app");
         metaData.setServiceName("service");
-        metaData.setContextPath("test");
+        metaData.setContextPath("localhost");
         motanShenyuContextDecorator.decorator(shenyuContext, metaData);
         Assertions.assertEquals(shenyuContext.getModule(), "app");
     }

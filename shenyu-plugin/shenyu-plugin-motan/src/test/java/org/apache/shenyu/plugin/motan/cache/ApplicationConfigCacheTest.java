@@ -19,8 +19,8 @@ package org.apache.shenyu.plugin.motan.cache;
 
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RegistryConfig;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * The Test Case For ApplicationConfigCache.
  */
-public class ApplicationConfigCacheTest {
+public final class ApplicationConfigCacheTest {
 
     @Test
     public void testMotanParamInfo() {
@@ -81,7 +81,7 @@ public class ApplicationConfigCacheTest {
         Assertions.assertEquals(applicationConfigCache.getInstance().getClass(), ApplicationConfigCache.class);
         PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);
-        pluginData.setConfig("{\"register\" : \"test\"}");
+        pluginData.setConfig("{\"register\" : \"localhost\"}");
         MotanRegisterConfig motanRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MotanRegisterConfig.class);
         applicationConfigCache.init(motanRegisterConfig);
         Field field1 = applicationConfigCache.getClass().getDeclaredField("registryConfig");

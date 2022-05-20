@@ -42,9 +42,9 @@ public final class MotanPluginDataHandlerTest {
     @Test
     public void testHandlerPlugin() {
         pluginData.setEnabled(true);
-        pluginData.setConfig("{\"register\" : \"test\"}");
+        pluginData.setConfig("{\"register\" : \"localhost\"}");
         motanPluginDataHandler.handlerPlugin(pluginData);
-        Assertions.assertEquals(Singleton.INST.get(MotanRegisterConfig.class).getRegister(), "test");
+        Assertions.assertEquals(Singleton.INST.get(MotanRegisterConfig.class).getRegister(), "localhost");
     }
 
     @Test

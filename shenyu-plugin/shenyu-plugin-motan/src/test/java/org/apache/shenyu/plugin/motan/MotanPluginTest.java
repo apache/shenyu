@@ -17,8 +17,62 @@
 
 package org.apache.shenyu.plugin.motan;
 
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.springframework.web.server.ServerWebExchange;
+
+import static org.mockito.Mockito.mock;
+import reactor.test.StepVerifier;
+
 /**
  * The Test Case For MotanPlugin.
  */
 public class MotanPluginTest {
+
+    private MotanPlugin motanPlugin;
+
+    private RuleData ruleData;
+
+    private ShenyuPluginChain chain;
+
+    private SelectorData selectorData;
+
+    private ServerWebExchange exchange;
+
+    @Mock
+    private MotanProxyService motanProxyService;
+
+    @BeforeEach
+    public void setUp() {
+        this.motanPlugin = new MotanPlugin(motanProxyService);
+        this.ruleData = mock(RuleData.class);
+        this.chain = mock(ShenyuPluginChain.class);
+        this.selectorData = mock(SelectorData.class);
+        //this.exchange =
+    }
+
+    @Test
+    public void testDoExecute() {
+        //StepVerifier.create(motanPlugin.doExecute(exchange, chain, selectorData, ruleData)).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testSkip() {
+
+    }
+
+    @Test
+    public void testGetOrder() {
+
+    }
+
+    @Test
+    public void testCheckMetaData() {
+
+    }
 }
