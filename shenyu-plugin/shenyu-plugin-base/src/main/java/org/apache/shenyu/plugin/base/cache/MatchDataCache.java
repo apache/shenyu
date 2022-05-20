@@ -168,7 +168,7 @@ public final class MatchDataCache {
     public void cacheSelectorData(final String path, final SelectorData selectorData, final Integer maxMemory) {
         if (Objects.nonNull(selectorData)) {
             final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.computeIfAbsent(selectorData.getPluginName(),
-                    map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
+                map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
             lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>())).add(selectorData);
             SELECTOR_MAPPING.computeIfAbsent(selectorData.getId(), set -> new ConcurrentSkipListSet<>()).add(path);
         }
@@ -184,7 +184,7 @@ public final class MatchDataCache {
     public void cacheRuleData(final String path, final RuleData ruleData, final Integer maxMemory) {
         if (Objects.nonNull(ruleData)) {
             final LRUMap<String, List<RuleData>> lruMap = RULE_DATA_MAP.computeIfAbsent(ruleData.getPluginName(),
-                    map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
+                map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
             lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>())).add(ruleData);
             RULE_MAPPING.computeIfAbsent(ruleData.getId(), set -> new ConcurrentSkipListSet<>()).add(path);
         }

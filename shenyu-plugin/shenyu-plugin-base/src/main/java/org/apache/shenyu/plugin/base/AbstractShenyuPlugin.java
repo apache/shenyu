@@ -109,14 +109,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return chain.execute(exchange);
     }
 
-    private void cacheRuleDataIfEnabled(String path, RuleData rule) {
+    private void cacheRuleDataIfEnabled(final String path, final RuleData rule) {
         ShenyuConfig.MatchCache matchCache = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
         if (matchCache.getEnabled()) {
             MatchDataCache.getInstance().cacheRuleData(path, rule, matchCache.getMaxFreeMemory());
         }
     }
 
-    private RuleData obtainRuleDataCacheIfEnabled(ServerWebExchange exchange) {
+    private RuleData obtainRuleDataCacheIfEnabled(final ServerWebExchange exchange) {
         RuleData rule = null;
         ShenyuConfig.MatchCache matchCache = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
         if (matchCache.getEnabled()) {
@@ -130,14 +130,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return rule;
     }
 
-    private void cacheSelectorDataIfEnabled(String path, SelectorData selectorData) {
+    private void cacheSelectorDataIfEnabled(final String path, final SelectorData selectorData) {
         ShenyuConfig.MatchCache matchCache = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
         if (matchCache.getEnabled()) {
             MatchDataCache.getInstance().cacheSelectorData(path, selectorData, matchCache.getMaxFreeMemory());
         }
     }
 
-    private SelectorData obtainSelectorDataCacheIfEnabled(ServerWebExchange exchange) {
+    private SelectorData obtainSelectorDataCacheIfEnabled(final ServerWebExchange exchange) {
         SelectorData selectorData = null;
         ShenyuConfig.MatchCache matchCache = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
         if (matchCache.getEnabled()) {

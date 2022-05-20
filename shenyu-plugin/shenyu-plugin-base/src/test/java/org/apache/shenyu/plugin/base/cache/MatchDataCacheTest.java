@@ -86,21 +86,19 @@ public final class MatchDataCacheTest {
         RuleData firstCachedRuleData = RuleData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
         ConcurrentHashMap<String, MemorySafeLRUMap<String, List<RuleData>>> ruleMap = getFieldByName(ruleMapStr);
         ruleMap.put(mockPluginName1, new MemorySafeLRUMap<>(5 * 1024, 16));
-        List<RuleData> RuleDataListTemp = Lists.newArrayList(firstCachedRuleData);
-        ruleMap.get(mockPluginName1).put(path1, RuleDataListTemp);
+        List<RuleData> ruleDataListTemp = Lists.newArrayList(firstCachedRuleData);
+        ruleMap.get(mockPluginName1).put(path1, ruleDataListTemp);
         List<RuleData> firstRuleDataList = MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path1);
         assertEquals(Lists.newArrayList(firstCachedRuleData), firstRuleDataList);
 
         RuleData secondCachedRuleData = RuleData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
-        RuleDataListTemp.add(secondCachedRuleData);
+        ruleDataListTemp.add(secondCachedRuleData);
         List<RuleData> secondRuleDataList = MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path1);
-        assertEquals(RuleDataListTemp, secondRuleDataList);
+        assertEquals(ruleDataListTemp, secondRuleDataList);
     }
 
     @Test
     public void testRemoveSelectorData() throws NoSuchFieldException, IllegalAccessException {
-        ConcurrentHashMap<String, MemorySafeLRUMap<String, List<SelectorData>>> selectorMap = getFieldByName(selectorMapStr);
-
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
         MatchDataCache.getInstance().cacheSelectorData(path1, firstCachedSelectorData, 5 * 1024);
 
@@ -108,13 +106,12 @@ public final class MatchDataCacheTest {
         MatchDataCache.getInstance().cacheSelectorData(path1, secondCachedSelectorData, 5 * 1024);
 
         MatchDataCache.getInstance().removeSelectData(firstCachedSelectorData);
+        ConcurrentHashMap<String, MemorySafeLRUMap<String, List<SelectorData>>> selectorMap = getFieldByName(selectorMapStr);
         assertEquals(Lists.newArrayList(secondCachedSelectorData), selectorMap.get(mockPluginName1).get(path1));
     }
 
     @Test
     public void testRemoveRuleData() throws NoSuchFieldException, IllegalAccessException {
-        ConcurrentHashMap<String, MemorySafeLRUMap<String, List<RuleData>>> ruleMap = getFieldByName(ruleMapStr);
-
         RuleData firstCachedRuleData = RuleData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
         MatchDataCache.getInstance().cacheRuleData(path1, firstCachedRuleData, 5 * 1024);
 
@@ -122,6 +119,7 @@ public final class MatchDataCacheTest {
         MatchDataCache.getInstance().cacheRuleData(path1, secondCachedRuleData, 5 * 1024);
 
         MatchDataCache.getInstance().removeRuleData(firstCachedRuleData);
+        ConcurrentHashMap<String, MemorySafeLRUMap<String, List<RuleData>>> ruleMap = getFieldByName(ruleMapStr);
         assertEquals(Lists.newArrayList(secondCachedRuleData), ruleMap.get(mockPluginName1).get(path1));
     }
 
@@ -132,5 +130,4 @@ public final class MatchDataCacheTest {
         pluginMapField.setAccessible(true);
         return (ConcurrentHashMap) pluginMapField.get(matchDataCache);
     }
-
 }
