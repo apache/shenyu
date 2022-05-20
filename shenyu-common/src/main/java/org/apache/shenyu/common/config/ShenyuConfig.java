@@ -533,7 +533,7 @@ public class ShenyuConfig {
 
         private boolean enabled;
 
-        private Integer maxMemory = 256 * 1024 * 1024;
+        private Integer maxFreeMemory = 256 * 1024 * 1024;
 
         /**
          * Gets enabled.
@@ -554,21 +554,21 @@ public class ShenyuConfig {
         }
 
         /**
-         * Gets maxMemory.
+         * Gets maxFreeMemory.
          *
-         * @return the maxMemory
+         * @return the maxFreeMemory
          */
-        public Integer getMaxMemory() {
-            return maxMemory;
+        public Integer getMaxFreeMemory() {
+            return maxFreeMemory;
         }
 
         /**
-         * Sets maxMemory.
+         * Sets maxFreeMemory.
          *
-         * @param maxMemory the maxMemory
+         * @param maxFreeMemory the maxFreeMemory
          */
-        public void setMaxMemory(final Integer maxMemory) {
-            this.maxMemory = maxMemory;
+        public void setMaxFreeMemory(final Integer maxFreeMemory) {
+            this.maxFreeMemory = maxFreeMemory;
         }
     }
     

@@ -112,7 +112,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private void cacheRuleDataIfEnabled(String path, RuleData rule) {
         ShenyuConfig.MatchCache matchCache = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
         if (matchCache.getEnabled()) {
-            MatchDataCache.getInstance().cacheRuleData(path, rule, matchCache.getMaxMemory());
+            MatchDataCache.getInstance().cacheRuleData(path, rule, matchCache.getMaxFreeMemory());
         }
     }
 
@@ -133,7 +133,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private void cacheSelectorDataIfEnabled(String path, SelectorData selectorData) {
         ShenyuConfig.MatchCache matchCache = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
         if (matchCache.getEnabled()) {
-            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, matchCache.getMaxMemory());
+            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, matchCache.getMaxFreeMemory());
         }
     }
 

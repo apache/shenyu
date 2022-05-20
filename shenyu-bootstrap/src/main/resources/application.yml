@@ -66,7 +66,7 @@ management:
 shenyu:
   matchCache:
     enabled: true
-    maxMemory:
+    maxFreeMemory:
   netty:
     tcp:
       # set to false, user can custom the netty tcp server config.
