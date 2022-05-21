@@ -33,6 +33,7 @@ import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -68,7 +69,7 @@ public class FormDataOperator implements Operator {
                     String original = GsonUtils.getInstance().toJson(multiValueMap);
                     LOG.info("get from data success data:{}", original);
                     String modify = operation(original, paramMappingRuleHandle);
-                    if (StringUtils.isEmpty(modify)) {
+                    if (!StringUtils.hasLength(modify)) {
                         return shenyuPluginChain.execute(exchange);
                     }
                     HttpHeaders headers = exchange.getRequest().getHeaders();

@@ -38,7 +38,11 @@ import java.util.Objects;
  */
 public class NettyClientMessageWriter implements MessageWriter {
 
-    private final List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_STREAM_JSON);
+    /**
+     * stream media type: from {@linkplain MediaType#APPLICATION_STREAM_JSON} upgrade to {@linkplain MediaType#APPLICATION_STREAM_JSON_VALUE}
+     * latest version: {@linkplain MediaType#APPLICATION_NDJSON}
+     */
+    private final List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_NDJSON);
 
     @Override
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {

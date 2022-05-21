@@ -32,6 +32,9 @@ import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.WebsocketClientSpec;
+
+import java.util.function.Supplier;
 
 /**
  * The type Web socket plugin configuration.
@@ -72,9 +75,9 @@ public class WebSocketPluginConfiguration {
     @Bean
     public ReactorNettyWebSocketClient reactorNettyWebSocketClient(final ShenyuConfig shenyuConfig,
                                                                    final ObjectProvider<HttpClient> httpClient) {
-        final ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient(httpClient.getIfAvailable(HttpClient::create));
-        webSocketClient.setMaxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * 1024 * 1024);
-        return webSocketClient;
+        Supplier<WebsocketClientSpec.Builder> builder = WebsocketClientSpec.builder()
+                .maxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * 1024 * 1024);
+        return new ReactorNettyWebSocketClient(httpClient.getIfAvailable(HttpClient::create), builder);
     }
 
     /**
