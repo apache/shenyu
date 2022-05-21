@@ -1100,8 +1100,11 @@ IF (SELECT * FROM dblink('host=localhost user=' || _user || ' password=' || _pas
     RAISE NOTICE 'operation_record_log already exists';
 ELSE
     PERFORM public.dblink_exec('init_conn', 'BEGIN');
+    -- 主键自增 SEQUENCE
+    PERFORM public.dblink_exec('init_conn','CREATE SEQUENCE operation_record_log_id_seq START 1');
+
     PERFORM public.dblink_exec('init_conn', 'CREATE TABLE "operation_record_log" (
-      "id" int8 NOT NULL,
+      "id" int8 NOT NULL DEFAULT nextval(''' || 'operation_record_log_id_seq ' || '''::regclass),
       "color" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
       "context" text COLLATE "pg_catalog"."default" NOT NULL,
       "operator" varchar(200) COLLATE "pg_catalog"."default" NOT NULL,
