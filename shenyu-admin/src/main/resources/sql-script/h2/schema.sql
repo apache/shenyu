@@ -264,9 +264,8 @@ CREATE TABLE IF NOT EXISTS `alert_template`
     `name`          varchar(255)    NOT NULL COMMENT 'alert template name',
     `strategy_name` varchar(255)    NOT NULL COMMENT 'alert template strategy name',
     `content`       varchar(1000)   NOT NULL COMMENT 'alert template content',
-    `date_created`  timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
-    `date_updated`  timestamp       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
-    PRIMARY KEY (`id`) USING BTREE
+    `date_created`  timestamp       NOT NULL DEFAULT now() COMMENT 'create time',
+    `date_updated`  timestamp       NOT NULL DEFAULT now() COMMENT 'update time'
 );
 
 /**default admin user**/

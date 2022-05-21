@@ -68,6 +68,7 @@ public class PageableAspect {
             commonPager.setPage(result);
             return proceed;
         } catch (Throwable throwable) {
+            PageMethod.clearPage();
             throw new ShenyuException(throwable);
         }
         // CHECKSTYLE:ON
