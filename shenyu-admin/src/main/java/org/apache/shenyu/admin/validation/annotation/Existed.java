@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.admin.validation.annotation;
 
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 import org.apache.shenyu.admin.validation.ExistProvider;
 import org.apache.shenyu.admin.validation.validator.ExistedValidator;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;

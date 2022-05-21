@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import com.google.common.collect.Maps;
+import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -31,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
