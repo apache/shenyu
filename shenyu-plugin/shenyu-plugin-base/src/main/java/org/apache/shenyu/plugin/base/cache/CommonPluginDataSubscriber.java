@@ -191,7 +191,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
             BaseDataCache.getInstance().cacheSelectData(selectorData);
-            MatchDataCache.getInstance().removeSelectData(selectorData);
+            MatchDataCache.getInstance().removeSelectorData(selectorData);
             Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
                     .ifPresent(handler -> handler.handlerSelector(selectorData));
             
@@ -237,7 +237,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
             BaseDataCache.getInstance().removeSelectData(selectorData);
-            MatchDataCache.getInstance().removeSelectData(selectorData);
+            MatchDataCache.getInstance().removeSelectorData(selectorData);
             Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
                     .ifPresent(handler -> handler.removeSelector(selectorData));
             

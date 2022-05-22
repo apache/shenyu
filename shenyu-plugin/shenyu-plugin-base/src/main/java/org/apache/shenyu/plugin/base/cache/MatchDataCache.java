@@ -79,7 +79,7 @@ public final class MatchDataCache {
      *
      * @param selectorData the selector data
      */
-    public void removeSelectData(final SelectorData selectorData) {
+    public void removeSelectorData(final SelectorData selectorData) {
         final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.get(selectorData.getPluginName());
         final String selectorDataId = selectorData.getId();
         if (Objects.nonNull(lruMap)) {
@@ -127,7 +127,7 @@ public final class MatchDataCache {
      *
      * @param pluginName the plugin name
      */
-    public void removeSelectDataByPluginName(final String pluginName) {
+    public void removeSelectorDataByPluginName(final String pluginName) {
         SELECTOR_DATA_MAP.remove(pluginName);
         SELECTOR_MAPPING.clear();
     }

@@ -42,7 +42,7 @@ public final class MatchDataCacheTest {
     private final String path1 = "/http/abc";
 
     @Test
-    public void testCacheSelectData() throws NoSuchFieldException, IllegalAccessException {
+    public void testCacheSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
         MatchDataCache.getInstance().cacheSelectorData(path1, firstCachedSelectorData, 5 * 1024);
         ConcurrentHashMap<String, MemorySafeLRUMap<String, List<SelectorData>>> selectorMap = getFieldByName(selectorMapStr);
@@ -105,7 +105,7 @@ public final class MatchDataCacheTest {
         SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
         MatchDataCache.getInstance().cacheSelectorData(path1, secondCachedSelectorData, 5 * 1024);
 
-        MatchDataCache.getInstance().removeSelectData(firstCachedSelectorData);
+        MatchDataCache.getInstance().removeSelectorData(firstCachedSelectorData);
         ConcurrentHashMap<String, MemorySafeLRUMap<String, List<SelectorData>>> selectorMap = getFieldByName(selectorMapStr);
         assertEquals(Lists.newArrayList(secondCachedSelectorData), selectorMap.get(mockPluginName1).get(path1));
     }
