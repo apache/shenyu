@@ -50,6 +50,7 @@ public final class MatchDataCacheTest {
         SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
         MatchDataCache.getInstance().cacheSelectorData(path1, secondCachedSelectorData, 5 * 1024);
         assertEquals(Lists.newArrayList(firstCachedSelectorData, secondCachedSelectorData), selectorMap.get(mockPluginName1).get(path1));
+        selectorMap.clear();
     }
 
     @Test
@@ -62,6 +63,7 @@ public final class MatchDataCacheTest {
         RuleData secondCachedRuleData = RuleData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
         MatchDataCache.getInstance().cacheRuleData(path1, secondCachedRuleData, 5 * 1024);
         assertEquals(Lists.newArrayList(firstCachedRuleData, secondCachedRuleData), ruleMap.get(mockPluginName1).get(path1));
+        ruleMap.clear();
     }
 
     @Test
@@ -78,6 +80,7 @@ public final class MatchDataCacheTest {
         selectorDataListTemp.add(secondCachedSelectorData);
         List<SelectorData> secondSelectorDataList = MatchDataCache.getInstance().obtainSelectorData(mockPluginName1, path1);
         assertEquals(selectorDataListTemp, secondSelectorDataList);
+        selectorMap.clear();
     }
 
     @Test
@@ -94,6 +97,7 @@ public final class MatchDataCacheTest {
         ruleDataListTemp.add(secondCachedRuleData);
         List<RuleData> secondRuleDataList = MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path1);
         assertEquals(ruleDataListTemp, secondRuleDataList);
+        ruleMap.clear();
     }
 
     @Test
@@ -107,6 +111,7 @@ public final class MatchDataCacheTest {
         MatchDataCache.getInstance().removeSelectorData(firstCachedSelectorData);
         ConcurrentHashMap<String, MemorySafeLRUMap<String, List<SelectorData>>> selectorMap = getFieldByName(selectorMapStr);
         assertEquals(Lists.newArrayList(secondCachedSelectorData), selectorMap.get(mockPluginName1).get(path1));
+        selectorMap.clear();
     }
 
     @Test
@@ -120,6 +125,7 @@ public final class MatchDataCacheTest {
         MatchDataCache.getInstance().removeRuleData(firstCachedRuleData);
         ConcurrentHashMap<String, MemorySafeLRUMap<String, List<RuleData>>> ruleMap = getFieldByName(ruleMapStr);
         assertEquals(Lists.newArrayList(secondCachedRuleData), ruleMap.get(mockPluginName1).get(path1));
+        ruleMap.clear();
     }
 
     @SuppressWarnings("rawtypes")
