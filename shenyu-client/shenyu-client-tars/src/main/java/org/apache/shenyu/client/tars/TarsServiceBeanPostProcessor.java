@@ -95,7 +95,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         for (Method method : methods) {
             ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
             if (Objects.nonNull(shenyuTarsClient)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceName, shenyuTarsClient, method, buildRpcExt(methods)));
+                publisher.publishEvent(buildMetaDataDTO(serviceName, shenyuTarsClient, method, buildRpcExtJson(method)));
             }
         }
     }
@@ -140,14 +140,9 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         return new TarsRpcExt.RpcExt(method.getName(), params, method.getReturnType().getName());
     }
 
-    private String buildRpcExt(final Method[] methods) {
+    private String buildRpcExtJson(final Method method) {
         List<TarsRpcExt.RpcExt> list = new ArrayList<>();
-        for (Method method : methods) {
-            ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
-            if (Objects.nonNull(shenyuTarsClient)) {
-                list.add(buildRpcExt(method));
-            }
-        }
+        list.add(buildRpcExt(method));
         TarsRpcExt buildList = new TarsRpcExt(list);
         return GsonUtils.getInstance().toJson(buildList);
     }
