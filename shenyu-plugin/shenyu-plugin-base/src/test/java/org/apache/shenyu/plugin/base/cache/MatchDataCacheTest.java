@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SuppressWarnings("unchecked")
 public final class MatchDataCacheTest {
 
-
     private final String selectorMapStr = "SELECTOR_DATA_MAP";
 
     private final String ruleMapStr = "RULE_DATA_MAP";
