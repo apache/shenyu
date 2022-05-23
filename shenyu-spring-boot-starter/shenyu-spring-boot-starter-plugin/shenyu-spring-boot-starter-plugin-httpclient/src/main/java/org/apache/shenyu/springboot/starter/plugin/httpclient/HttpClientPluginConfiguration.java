@@ -23,6 +23,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import io.netty.resolver.AddressResolverGroup;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
@@ -37,14 +38,24 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.CoreSubscriber;
+import reactor.core.publisher.MonoSink;
+import reactor.netty.Connection;
+import reactor.netty.ConnectionObserver;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.internal.shaded.reactor.pool.InstrumentedPool;
+import reactor.netty.internal.shaded.reactor.pool.PooledRef;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.resources.LoopResources;
-import reactor.netty.tcp.ProxyProvider;
+import reactor.netty.resources.PooledConnectionProvider;
 import reactor.netty.tcp.SslProvider;
 import reactor.netty.tcp.TcpClient;
+import reactor.netty.transport.ProxyProvider;
+import reactor.netty.transport.TransportConfig;
 
+import java.net.SocketAddress;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -164,10 +175,23 @@ public class HttpClientPluginConfiguration {
         if (pool.getType() == HttpClientProperties.Pool.PoolType.DISABLED) {
             connectionProvider = ConnectionProvider.newConnection();
         } else if (pool.getType() == HttpClientProperties.Pool.PoolType.FIXED) {
-            connectionProvider = ConnectionProvider.fixed(pool.getName(),
-                    pool.getMaxConnections(), pool.getAcquireTimeout(), pool.getMaxIdleTime());
+            // reactor remove fixed pool from 0.9.4
+            // reason: https://github.com/reactor/reactor-netty/issues/1499 and https://github.com/reactor/reactor-netty/issues/1960
+            connectionProvider = ConnectionProvider.builder(pool.getName())
+                    .maxConnections(pool.getMaxConnections())
+                    .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()))
+                    .maxIdleTime(pool.getMaxIdleTime())
+                    .build();
+            // connectionProvider = ConnectionProvider.fixed(pool.getName(),
+            //         pool.getMaxConnections(), pool.getAcquireTimeout(), pool.getMaxIdleTime());
         } else {
-            connectionProvider = ConnectionProvider.elastic(pool.getName(), pool.getMaxIdleTime());
+
+            // reactor remove elastic pool from 0.9.4
+            // reason: https://github.com/reactor/reactor-netty/issues/1499 and https://github.com/reactor/reactor-netty/issues/1960
+            connectionProvider = ConnectionProvider.builder(pool.getName())
+                    .maxIdleTime(pool.getMaxIdleTime())
+                    .build();
+            // connectionProvider = ConnectionProvider.elastic(pool.getName(), pool.getMaxIdleTime());
         }
         return connectionProvider;
     }

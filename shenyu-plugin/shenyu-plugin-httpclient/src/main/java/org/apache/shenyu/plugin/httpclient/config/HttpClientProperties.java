@@ -480,7 +480,7 @@ public class HttpClientProperties {
          */
         public Duration getMaxIdleTime() {
             return Optional.ofNullable(maxIdleTime)
-                    .map(it -> Duration.ofMillis(maxIdleTime)).orElse(null);
+                    .map(it -> Duration.ofMillis(maxIdleTime)).orElse(Duration.ZERO);
         }
 
         /**

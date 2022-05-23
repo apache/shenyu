@@ -43,8 +43,8 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.retry.Backoff;
-import reactor.retry.Retry;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import java.net.URI;
 import java.time.Duration;
@@ -84,9 +84,16 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 .doOnError(e -> LOG.error(e.getMessage(), e));
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
             //old version of DividePlugin and SpringCloudPlugin will run on this
-            return response.retryWhen(Retry.anyOf(TimeoutException.class, ConnectTimeoutException.class, ReadTimeoutException.class, IllegalStateException.class)
-                    .retryMax(retryTimes)
-                    .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
+            RetryBackoffSpec retryBackoffSpec = Retry.backoff(retryTimes, Duration.ZERO)
+                    .minBackoff(Duration.ofMillis(20))
+                    .maxBackoff(Duration.ofSeconds(20))
+                    .transientErrors(true)
+                    .jitter(0.5d)
+                    .filter(TimeoutException.class::isInstance)
+                    .filter(ConnectTimeoutException.class::isInstance)
+                    .filter(ReadTimeoutException.class::isInstance)
+                    .filter(IllegalStateException.class::isInstance);
+            return response.retryWhen(retryBackoffSpec)
                     .onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
                     .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
         }
