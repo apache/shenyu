@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.query.ResourceQuery;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.impl.ResourceServiceImpl;
+import org.apache.shenyu.admin.service.publish.ResourceEventPublisher;
 import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
@@ -68,6 +69,9 @@ public class ResourceServiceTest {
 
     @Mock
     private PermissionMapper permissionMapper;
+    
+    @Mock
+    private ResourceEventPublisher publisher;
 
     @Test
     public void testCreateResource() {
@@ -76,6 +80,7 @@ public class ResourceServiceTest {
 
         reset(resourceMapper);
         reset(permissionMapper);
+        reset(publisher);
         when(resourceMapper.insertSelective(resourceDO)).thenReturn(1);
 
         resourceService.createResource(resourceDO);
@@ -93,6 +98,7 @@ public class ResourceServiceTest {
         List<ResourceDO> dataList = Lists.list(resourceDO1, resourceDO2);
 
         reset(resourceMapper);
+        reset(publisher);
         reset(permissionMapper);
         when(resourceMapper.insertBatch(dataList)).thenReturn(dataList.size());
 
@@ -105,6 +111,7 @@ public class ResourceServiceTest {
         ResourceDTO forUpdateResource = new ResourceDTO();
         forUpdateResource.setId("mock id");
         reset(resourceMapper);
+        reset(publisher);
         when(resourceMapper.updateSelective(ResourceDO.buildResourceDO(forUpdateResource))).thenReturn(1);
         assertThat(resourceService.createOrUpdate(forUpdateResource), equalTo(1));
     }
@@ -127,6 +134,7 @@ public class ResourceServiceTest {
         List<String> deleteResourceIds = newArrayList("mock resource parent id", "mock resource child id");
 
         reset(resourceMapper);
+        reset(publisher);
         when(resourceMapper.selectAll()).thenReturn(resources);
         when(resourceMapper.delete(deleteResourceIds)).thenReturn(2);
         assertThat(resourceService.delete(deleteResourceIds), equalTo(2));
