@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.global.cache;
+package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.cache.MemorySafeLRUMap;
@@ -33,6 +33,8 @@ import java.util.concurrent.ConcurrentSkipListSet;
  * The type Meta data cache.
  */
 public final class MetaDataCache {
+
+    private static final String DIVIDE_CACHE_KEY = "";
 
     private static final MetaData NULL = new MetaData();
 
@@ -86,13 +88,20 @@ public final class MetaDataCache {
     }
 
     private void clean(final String key) {
-        //only clean springCloud
+        // springCloud and divide are needs to be cleaned
         Optional.ofNullable(MAPPING.get(key))
                 .ifPresent(paths -> {
                     for (String path : paths) {
                         CACHE.remove(path);
                     }
                 });
+    }
+
+    /**
+     * clean cache for divide plugin.
+     */
+    public void clean() {
+        clean(DIVIDE_CACHE_KEY);
     }
 
     /**
@@ -108,12 +117,11 @@ public final class MetaDataCache {
                     if (Objects.nonNull(exist)) {
                         return exist;
                     }
-
                     final String key = META_DATA_MAP.keySet()
                             .stream()
                             .filter(k -> PathMatchUtils.match(k, path))
                             .findFirst()
-                            .orElse("");
+                            .orElse(DIVIDE_CACHE_KEY);
                     final MetaData value = META_DATA_MAP.get(key);
                     // The extreme case will lead to OOM, that's why use LRU
                     CACHE.put(path, Objects.isNull(value) ? NULL : value);
