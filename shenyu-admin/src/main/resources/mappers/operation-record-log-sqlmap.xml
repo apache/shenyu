@@ -45,13 +45,20 @@
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.OperationRecordLog"  useGeneratedKeys="true" keyProperty="id">
-        insert into operation_record_log(id, color, context, operator, operation_time, operation_type)
-        values (#{id},
-                #{color},
-                #{context},
-                #{operator},
-                #{operationTime},
-                #{operationType}
-                )
+        insert into operation_record_log(
+        <if test="id != null">
+            id,
+        </if>
+        color, context, operator, operation_time, operation_type)
+        values (
+        <if test="id != null">
+            #{id},
+        </if>
+        #{color},
+        #{context},
+        #{operator},
+        #{operationTime},
+        #{operationType}
+        )
     </insert>
 </mapper>
