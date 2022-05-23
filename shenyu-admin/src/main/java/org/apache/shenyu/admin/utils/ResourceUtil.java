@@ -194,11 +194,11 @@ public final class ResourceUtil {
         if (CollectionUtils.isEmpty(allMetaDataResources) || CollectionUtils.isEmpty(resourceIds)) {
             return Collections.emptyList();
         }
-        List<ResourceDO> deleteResourceIds = new ArrayList<>();
-        Map<String, ResourceDO> metaMap = ListUtil.toMap(allMetaDataResources,ResourceDO::getId);
-        Map<String, Set<String>> metaChildrenMap = dealChildrenMap(allMetaDataResources);
+        final List<ResourceDO> deleteResourceIds = new ArrayList<>();
+        final Map<String, ResourceDO> metaMap = ListUtil.toMap(allMetaDataResources,ResourceDO::getId);
+        final Map<String, Set<String>> metaChildrenMap = dealChildrenMap(allMetaDataResources);
         
-        Deque<String> cacheDatas = new ArrayDeque<>(resourceIds);
+        final Deque<String> cacheDatas = new ArrayDeque<>(resourceIds);
         while (!cacheDatas.isEmpty()) {
             String resourceId = cacheDatas.pollFirst();
             ResourceDO resourceVO = metaMap.get(resourceId);

@@ -97,12 +97,12 @@ public final class RuleServiceTest {
     private DataPermissionMapper dataPermissionMapper;
     
     @Mock
-    private  RuleEventPublisher ruleEventPublisher;
+    private RuleEventPublisher ruleEventPublisher;
 
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
-        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper,  ruleEventPublisher);
+        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, ruleEventPublisher);
     }
 
     @Test

@@ -80,7 +80,8 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
     /**
      * on rule created.
      *
-     * @param rule rule
+     * @param rule      rule
+     * @param condition condition
      */
     public void onCreated(final RuleDO rule, final List<RuleConditionDTO> condition) {
         publish(new RuleCreatedEvent(rule, SessionUtil.visitorName()));
@@ -120,16 +121,27 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
         publish(new RuleChangedEvent(rule, null, EventTypeEnum.RULE_DELETE, SessionUtil.visitorName()));
     }
     
+    /**
+     * rule delete.
+     *
+     * @param rules data
+     */
     @Override
     public void onDeleted(final Collection<RuleDO> rules) {
         publish(new BatchRuleDeletedEvent(rules, SessionUtil.visitorName(), null));
         final List<RuleConditionDO> condition = ruleConditionMapper.selectByRuleIdSet(rules.stream().map(BaseDO::getId).collect(Collectors.toSet()));
         final Map<String, List<RuleConditionDO>> conditionsRuleGroup = groupBy(condition, RuleConditionDO::getRuleId);
-        final List<RuleData> ruleData = map(rules, r -> (RuleDO.transFrom(r, ruleMapper.getPluginNameByRuleId(r.getId()), map(conditionsRuleGroup.get(r.getId()), ConditionTransfer.INSTANCE::mapToRuleDO))));
+        final List<RuleData> ruleData = map(rules, r -> (RuleDO.transFrom(r,
+                ruleMapper.getPluginNameByRuleId(r.getId()), map(conditionsRuleGroup.get(r.getId()), ConditionTransfer.INSTANCE::mapToRuleDO))));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE, ruleData));
     }
     
-    
+    /**
+     * register.
+     *
+     * @param rule      rule
+     * @param condition condition
+     */
     public void onRegister(final RuleDO rule, final List<RuleConditionDTO> condition) {
         publishEvent(rule, condition);
     }

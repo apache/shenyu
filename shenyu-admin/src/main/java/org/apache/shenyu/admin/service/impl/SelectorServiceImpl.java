@@ -186,7 +186,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
-        return delete(selectorMapper.selectByIdSet(new TreeSet<>(ids)), pluginMapper.selectByIds(ids));
+        return deleteSelector(selectorMapper.selectByIdSet(new TreeSet<>(ids)), pluginMapper.selectByIds(ids));
     }
     
     /**
@@ -274,7 +274,7 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @EventListener(value = BatchPluginDeletedEvent.class)
     public void onPluginDeleted(final BatchPluginDeletedEvent event) {
-        delete(selectorMapper.findByPluginIds(event.getDeletedPluginIds()), event.getPlugins());
+        deleteSelector(selectorMapper.findByPluginIds(event.getDeletedPluginIds()), event.getPlugins());
     }
     
     private void createCondition(final String selectorId, final List<SelectorConditionDTO> selectorConditions) {
@@ -284,7 +284,7 @@ public class SelectorServiceImpl implements SelectorService {
         }
     }
     
-    private int delete(final List<SelectorDO> selectors, final List<PluginDO> plugins) {
+    private int deleteSelector(final List<SelectorDO> selectors, final List<PluginDO> plugins) {
         if (CollectionUtils.isNotEmpty(selectors)) {
             final List<String> selectorIds = ListUtil.map(selectors, BaseDO::getId);
             final int count = selectorMapper.deleteByIds(selectorIds);
@@ -318,7 +318,6 @@ public class SelectorServiceImpl implements SelectorService {
     }
     
     private List<SelectorData> buildSelectorDataList(final List<SelectorDO> selectorDOList) {
-        
         Map<String, String> idMap = ListUtil.toMap(selectorDOList, SelectorDO::getId, SelectorDO::getPluginId);
         if (MapUtils.isEmpty(idMap)) {
             return new ArrayList<>();

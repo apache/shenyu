@@ -61,7 +61,7 @@ public class BatchRuleDeletedEvent extends BatchChangedEvent {
     }
     
     /**
-     * get selectors
+     * get selectors.
      *
      * @return list
      */

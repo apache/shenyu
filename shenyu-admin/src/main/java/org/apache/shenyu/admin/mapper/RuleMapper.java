@@ -164,7 +164,7 @@ public interface RuleMapper extends ExistProvider {
     List<RuleVO> selectByCondition(@Param("condition") RuleQueryCondition condition);
     
     /**
-     * get plugin name by ruleId
+     * get plugin name by ruleId.
      *
      * @param ruleId ruleId
      * @return plugin name

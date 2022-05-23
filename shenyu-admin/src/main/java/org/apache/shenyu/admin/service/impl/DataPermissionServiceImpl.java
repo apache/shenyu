@@ -248,7 +248,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     }
     
     /**
-     * listen {@link SelectorCreatedEvent} add data permission
+     * listen {@link SelectorCreatedEvent} add data permission.
      *
      * @param event event
      */
@@ -265,13 +265,13 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     }
     
     /**
-     * listen {@link RuleCreatedEvent} add data permission
+     * listen {@link RuleCreatedEvent} add data permission.
      *
      * @param event event
      */
     @EventListener(RuleCreatedEvent.class)
     public void onRuleCreated(final RuleCreatedEvent event) {
-        // check selector add
+        // check rule add
         if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
             DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
             dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
@@ -283,13 +283,13 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     
     
     /**
-     * listen {@link BatchSelectorDeletedEvent} delete data permission
+     * listen {@link BatchSelectorDeletedEvent} delete data permission.
      *
      * @param event event
      */
     @EventListener(BatchSelectorDeletedEvent.class)
     public void onSelectorDeleted(final BatchSelectorDeletedEvent event) {
-        // check selector add
+        // check selector delete
         dataPermissionMapper.deleteByDataIdList(event.getDeletedIds());
     }
 }

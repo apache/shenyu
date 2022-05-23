@@ -110,7 +110,7 @@ public class PermissionServiceImpl implements PermissionService {
     
     
     /**
-     * listen {@link ResourceCreatedEvent} add  permission
+     * listen {@link ResourceCreatedEvent} add  permission.
      *
      * @param event event
      */
@@ -120,7 +120,7 @@ public class PermissionServiceImpl implements PermissionService {
     }
     
     /**
-     * listen {@link BatchResourceCreatedEvent} add  permission
+     * listen {@link BatchResourceCreatedEvent} add  permission.
      *
      * @param event event
      */
@@ -130,7 +130,7 @@ public class PermissionServiceImpl implements PermissionService {
     }
     
     /**
-     * listen {@link BatchResourceDeletedEvent} delete  permission
+     * listen {@link BatchResourceDeletedEvent} delete  permission.
      *
      * @param event event
      */

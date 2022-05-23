@@ -37,7 +37,7 @@ import java.util.Collection;
 public class ResourceEventPublisher implements AdminDataModelChangedEventPublisher<ResourceDO> {
     
     private final ApplicationEventPublisher publisher;
-
+    
     
     public ResourceEventPublisher(final ApplicationEventPublisher publisher) {
         this.publisher = publisher;
@@ -54,7 +54,7 @@ public class ResourceEventPublisher implements AdminDataModelChangedEventPublish
     }
     
     /**
-     * batch on create
+     * batch on create.
      *
      * @param resource data
      */
@@ -65,17 +65,21 @@ public class ResourceEventPublisher implements AdminDataModelChangedEventPublish
     }
     
     /**
-     * on rule updated.
+     * on resource updated.
      *
-     * @param rule   rule
-     * @param before before rule
+     * @param resource   resource
+     * @param before before resource
      */
     @Override
-    public void onUpdated(final ResourceDO rule, final ResourceDO before) {
-        publish(new ResourceChangedEvent(rule, before, EventTypeEnum.RULE_DELETE, SessionUtil.visitorName()));
+    public void onUpdated(final ResourceDO resource, final ResourceDO before) {
+        publish(new ResourceChangedEvent(resource, before, EventTypeEnum.RULE_DELETE, SessionUtil.visitorName()));
     }
     
-    
+    /**
+     * on resource delete.
+     *
+     * @param data data
+     */
     @Override
     public void onDeleted(final Collection<ResourceDO> data) {
         publish(new BatchResourceDeletedEvent(data, SessionUtil.visitorName()));

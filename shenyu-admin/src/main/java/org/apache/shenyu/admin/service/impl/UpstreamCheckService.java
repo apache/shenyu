@@ -337,7 +337,7 @@ public class UpstreamCheckService {
                 });
     }
     /**
-     * listen {@link SelectorCreatedEvent} add data permission
+     * listen {@link SelectorCreatedEvent} add data permission.
      *
      * @param event event
      */
@@ -350,7 +350,7 @@ public class UpstreamCheckService {
         }
     }
     /**
-     * listen {@link SelectorCreatedEvent} add data permission
+     * listen {@link SelectorCreatedEvent} add data permission.
      *
      * @param event event
      */

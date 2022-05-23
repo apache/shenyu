@@ -57,7 +57,7 @@ public class BatchResourceDeletedEvent extends BatchChangedEvent {
     }
     
     /**
-     * get resource
+     * get resource.
      *
      * @return list
      */

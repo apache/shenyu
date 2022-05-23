@@ -43,6 +43,7 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -216,7 +217,7 @@ public class RuleServiceImpl implements RuleService {
     }
     
     /**
-     * listen {@link BatchSelectorDeletedEvent} delete rule
+     * listen {@link BatchSelectorDeletedEvent} delete rule.
      *
      * @param event event
      */
@@ -232,7 +233,6 @@ public class RuleServiceImpl implements RuleService {
             }
         }
     }
-    
     
     private void addCondition(final RuleDO ruleDO, final List<RuleConditionDTO> ruleConditions) {
         for (RuleConditionDTO ruleCondition : ruleConditions) {
@@ -266,14 +266,8 @@ public class RuleServiceImpl implements RuleService {
                 .stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(RuleConditionDO::getRuleId,
-                        ruleConditionDO -> {
-                            List<ConditionData> dataList = new ArrayList<>();
-                            dataList.add(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO));
-                            return dataList;
-                        }, (list1, list2) -> {
-                            list1.addAll(list2);
-                            return list1;
-                        }));
+                        ruleConditionDO -> ListUtil.of(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO)),
+                        ListUtil::merge));
         
         return ruleDOList.stream()
                 .filter(Objects::nonNull)

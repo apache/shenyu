@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +48,18 @@ public final class ListUtil {
     @SafeVarargs
     public static <T> List<T> list(final T... t) {
         return Stream.of(t).collect(Collectors.toList());
+    }
+    
+    /**
+     * new array list.
+     *
+     * @param t   e
+     * @param <T> type
+     * @return list
+     */
+    @SafeVarargs
+    public static <T> List<T> of(final T... t) {
+        return new ArrayList<>(list(t));
     }
     
     /**
@@ -167,5 +180,18 @@ public final class ListUtil {
     public static <T> Set<T> mergeSet(final Set<T> set1, final Set<T> set2) {
         set1.addAll(set2);
         return set1;
+    }
+    
+    /**
+     * merge.
+     *
+     * @param list1 list1
+     * @param list2 list2
+     * @param <T>   type
+     * @return list1
+     */
+    public static <T> List<T> merge(final List<T> list1, final List<T> list2) {
+        list1.addAll(list2);
+        return list1;
     }
 }

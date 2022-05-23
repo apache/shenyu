@@ -83,8 +83,7 @@ public class ResourceServiceImpl implements ResourceService {
     
     @Override
     public int create(final ResourceDTO resourceDTO) {
-        final ResourceDO resource = ResourceDO.buildResourceDO(resourceDTO);
-        return create(resource);
+        return createOne(ResourceDO.buildResourceDO(resourceDTO));
     }
     
     @Override
@@ -105,7 +104,7 @@ public class ResourceServiceImpl implements ResourceService {
      */
     @Override
     public void createResource(final ResourceDO resourceDO) {
-        create(resourceDO);
+        createOne(resourceDO);
     }
     
     /**
@@ -209,7 +208,7 @@ public class ResourceServiceImpl implements ResourceService {
     @EventListener(value = PluginCreatedEvent.class)
     public void onPluginCreated(final PluginCreatedEvent event) {
         ResourceDO resourceDO = ResourceUtil.buildPluginResource(event.getPlugin().getName());
-        create(resourceDO);
+        createOne(resourceDO);
         insertResourceBatch(ResourceUtil.buildPluginDataPermissionResource(resourceDO.getId(), event.getPlugin().getName()));
     }
     
@@ -227,7 +226,7 @@ public class ResourceServiceImpl implements ResourceService {
         }
     }
     
-    private int create(final ResourceDO resource) {
+    private int createOne(final ResourceDO resource) {
         final int insertCount = resourceMapper.insertSelective(resource);
         if (insertCount > 0) {
             publisher.onCreated(resource);
