@@ -40,6 +40,7 @@ import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
+import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +53,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -92,20 +92,17 @@ public final class RuleServiceTest {
 
     @Mock
     private PluginMapper pluginMapper;
-
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
-
+    
     @Mock
     private DataPermissionMapper dataPermissionMapper;
-
+    
     @Mock
-    private org.apache.shiro.mgt.SecurityManager securityManager;
+    private  RuleEventPublisher ruleEventPublisher;
 
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
-        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, dataPermissionMapper, eventPublisher);
+        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper,  ruleEventPublisher);
     }
 
     @Test
@@ -128,6 +125,7 @@ public final class RuleServiceTest {
         RuleDO ruleDO = buildRuleDO("123");
         given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
         final List<String> ids = Collections.singletonList(ruleDO.getId());
+        given(this.ruleMapper.deleteByIds(ids)).willReturn(ids.size());
         assertEquals(this.ruleService.delete(ids), ids.size());
     }
 
@@ -266,6 +264,7 @@ public final class RuleServiceTest {
 
     private void testUpdate() {
         RuleDTO ruleDTO = buildRuleDTO("123");
+        given(this.ruleMapper.selectById("123")).willReturn(RuleDO.builder().id("123").build());
         given(this.ruleMapper.updateSelective(any())).willReturn(1);
         assertThat(this.ruleService.createOrUpdate(ruleDTO), greaterThan(0));
     }

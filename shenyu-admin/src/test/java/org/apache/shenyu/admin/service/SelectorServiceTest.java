@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -38,7 +37,6 @@ import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
-import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -101,16 +99,10 @@ public final class SelectorServiceTest {
     private RuleMapper ruleMapper;
 
     @Mock
-    private RuleConditionMapper ruleConditionMapper;
-
-    @Mock
     private DataPermissionMapper dataPermissionMapper;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
-
-    @Mock
-    private UpstreamCheckService upstreamCheckService;
     
     @Mock
     private SelectorEventPublisher selectorEventPublisher;
@@ -118,8 +110,7 @@ public final class SelectorServiceTest {
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
-        selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper,
-                ruleMapper, ruleConditionMapper, eventPublisher, dataPermissionMapper, upstreamCheckService, selectorEventPublisher);
+        selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher,selectorEventPublisher);
     }
 
     @Test
@@ -158,8 +149,9 @@ public final class SelectorServiceTest {
 //        RuleDO mockedRuleDo = mock(RuleDO.class);
 //        when(ruleMapper.deleteByIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
 //        when(ruleConditionMapper.deleteByRuleIds(Collections.singletonList(mockedRuleDo.getId()))).thenReturn(1);
-
+    
         final List<String> ids = Collections.singletonList(correctId);
+        given(selectorMapper.deleteByIds(ids)).willReturn(ids.size());
         assertEquals(selectorService.delete(ids), ids.size());
     }
 

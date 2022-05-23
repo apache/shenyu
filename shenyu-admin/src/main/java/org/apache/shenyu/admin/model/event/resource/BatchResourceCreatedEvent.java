@@ -15,12 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.event.selector;
+package org.apache.shenyu.admin.model.event.resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.BaseDO;
-import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
 import org.apache.shenyu.admin.utils.ListUtil;
@@ -30,55 +29,43 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * BatchPluginDeletedEvent.
+ * BatchResourceCreatedEvent.
  */
-public class BatchSelectorDeletedEvent extends BatchChangedEvent {
+public class BatchResourceCreatedEvent extends BatchChangedEvent {
     
     private final List<String> deletedIds;
     
-    private final List<PluginDO> plugins;
     
     /**
      * Create a new {@code BatchChangedEvent}.operator is unknown.
      *
      * @param source   Current plugin state
      * @param operator operator
-     * @param plugins  about plugin
      */
-    public BatchSelectorDeletedEvent(final Collection<SelectorDO> source, final String operator, final List<PluginDO> plugins) {
-        super(source, null, EventTypeEnum.SELECTOR_DELETE, operator);
+    public BatchResourceCreatedEvent(final Collection<ResourceDO> source, final String operator) {
+        super(source, null, EventTypeEnum.RESOURCE_CREATE, operator);
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
-        this.plugins = plugins;
     }
     
     @Override
     public String buildContext() {
         final String selector = ((Collection<?>) getSource())
                 .stream()
-                .map(s -> ((SelectorDO) s).getName())
+                .map(s -> ((ResourceDO) s).getTitle())
                 .collect(Collectors.joining(","));
-        return String.format("the selector[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
+        return String.format("the resource[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
     }
     
     /**
-     * get selectors
+     * get resource
      *
      * @return list
      */
-    public List<SelectorDO> getSelectors() {
+    public List<ResourceDO> getResource() {
         return ((Collection<?>) getSource())
                 .stream()
-                .map(SelectorDO.class::cast)
+                .map(ResourceDO.class::cast)
                 .collect(Collectors.toList());
-    }
-    
-    /**
-     * get plugins.
-     *
-     * @return plugins.
-     */
-    public List<PluginDO> getPlugins() {
-        return plugins;
     }
     
     /**
