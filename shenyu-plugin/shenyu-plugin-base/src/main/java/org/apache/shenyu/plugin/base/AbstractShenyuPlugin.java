@@ -46,11 +46,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
-    private static ShenyuConfig.MatchCache MATCH_CACHE_CONFIG;
+    private static ShenyuConfig.MatchCache matchCacheConfig;
 
-    private static SelectorData NULL_SELECTOR_DATA = new SelectorData();
+    private static SelectorData nullSelectorData = new SelectorData();
 
-    private static RuleData NULL_RULE_DATA = new RuleData();
+    private static RuleData nullRuleData = new RuleData();
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -120,24 +120,24 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private void initMatchCacheConfig() {
-        if (Objects.isNull(MATCH_CACHE_CONFIG)) {
-            MATCH_CACHE_CONFIG = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
+        if (Objects.isNull(matchCacheConfig)) {
+            matchCacheConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
         }
     }
 
     private void cacheRuleDataIfEnabled(final String path, final RuleData rule) {
-        if (MATCH_CACHE_CONFIG.getEnabled()) {
+        if (matchCacheConfig.getEnabled()) {
             if (Objects.isNull(rule)) {
-                NULL_RULE_DATA.setPluginName(named());
-                MatchDataCache.getInstance().cacheRuleData(path, NULL_RULE_DATA, MATCH_CACHE_CONFIG.getMaxFreeMemory());
+                nullRuleData.setPluginName(named());
+                MatchDataCache.getInstance().cacheRuleData(path, nullRuleData, matchCacheConfig.getMaxFreeMemory());
             } else {
-                MatchDataCache.getInstance().cacheRuleData(path, rule, MATCH_CACHE_CONFIG.getMaxFreeMemory());
+                MatchDataCache.getInstance().cacheRuleData(path, rule, matchCacheConfig.getMaxFreeMemory());
             }
         }
     }
 
     private Pair<Boolean, RuleData> obtainRuleDataCacheIfEnabled(final ServerWebExchange exchange) {
-        if (MATCH_CACHE_CONFIG.getEnabled()) {
+        if (matchCacheConfig.getEnabled()) {
             List<RuleData> rules = MatchDataCache.getInstance().obtainRuleData(named(), exchange.getRequest().getURI().getPath());
 
             if (Objects.isNull(rules)) {
@@ -160,18 +160,18 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private void cacheSelectorDataIfEnabled(final String path, final SelectorData selectorData) {
-        if (MATCH_CACHE_CONFIG.getEnabled()) {
+        if (matchCacheConfig.getEnabled()) {
             if (Objects.isNull(selectorData)) {
-                NULL_SELECTOR_DATA.setPluginName(named());
-                MatchDataCache.getInstance().cacheSelectorData(path, NULL_SELECTOR_DATA, MATCH_CACHE_CONFIG.getMaxFreeMemory());
+                nullSelectorData.setPluginName(named());
+                MatchDataCache.getInstance().cacheSelectorData(path, nullSelectorData, matchCacheConfig.getMaxFreeMemory());
             } else {
-                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, MATCH_CACHE_CONFIG.getMaxFreeMemory());
+                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, matchCacheConfig.getMaxFreeMemory());
             }
         }
     }
 
     private Pair<Boolean, SelectorData> obtainSelectorDataCacheIfEnabled(final ServerWebExchange exchange) {
-        if (MATCH_CACHE_CONFIG.getEnabled()) {
+        if (matchCacheConfig.getEnabled()) {
             List<SelectorData> selectors = MatchDataCache.getInstance().obtainSelectorData(named(), exchange.getRequest().getURI().getPath());
 
             if (Objects.isNull(selectors)) {

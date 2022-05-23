@@ -104,7 +104,7 @@ public final class MatchDataCache {
      *
      * @param lruMap the lruMap
      */
-    private void cleanSelectorNullList(LRUMap<String, List<SelectorData>> lruMap) {
+    private void cleanSelectorNullList(final LRUMap<String, List<SelectorData>> lruMap) {
         List<String> removeNuLLList = new ArrayList<>();
         lruMap.forEach((key, value) -> {
             if (CollectionUtils.isEmpty(value)) {
@@ -119,7 +119,7 @@ public final class MatchDataCache {
      *
      * @param lruMap the lruMap
      */
-    private void cleanRuleNullList(LRUMap<String, List<RuleData>> lruMap) {
+    private void cleanRuleNullList(final LRUMap<String, List<RuleData>> lruMap) {
         List<String> removeNuLLList = new ArrayList<>();
         lruMap.forEach((key, value) -> {
             if (CollectionUtils.isEmpty(value)) {
@@ -199,7 +199,7 @@ public final class MatchDataCache {
      */
     public void cacheSelectorData(final String path, final SelectorData selectorData, final Integer maxMemory) {
         final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.computeIfAbsent(selectorData.getPluginName(),
-                map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
+            map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
         List<SelectorData> selectorDataList = lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>()));
         if (StringUtils.isNoneBlank(selectorData.getId())) {
             selectorDataList.add(selectorData);
@@ -216,7 +216,7 @@ public final class MatchDataCache {
      */
     public void cacheRuleData(final String path, final RuleData ruleData, final Integer maxMemory) {
         final LRUMap<String, List<RuleData>> lruMap = RULE_DATA_MAP.computeIfAbsent(ruleData.getPluginName(),
-                map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
+            map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
         List<RuleData> ruleDataList = lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>()));
         if (StringUtils.isNoneBlank(ruleData.getId())) {
             ruleDataList.add(ruleData);
