@@ -37,7 +37,6 @@ public class BaseTrigger {
      * @throws SQLException {@link SQLException}
      */
     public static void sqlExecute(final Object[] newRow, final PreparedStatement statement) throws SQLException {
-        // TODO moremind SpringUtils#isEmpty Deprecated
         if (ObjectUtils.isEmpty(newRow[0])) {
             statement.setObject(1, UUIDUtils.getInstance().generateShortUuid());
             for (int i = 1; i < newRow.length - 2; i++) {
