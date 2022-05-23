@@ -336,6 +336,7 @@ public class UpstreamCheckService {
                     }
                 });
     }
+    
     /**
      * listen {@link SelectorCreatedEvent} add data permission.
      *
@@ -349,6 +350,7 @@ public class UpstreamCheckService {
             replace(event.getSelector().getId(), CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
         }
     }
+    
     /**
      * listen {@link SelectorCreatedEvent} add data permission.
      *

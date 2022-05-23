@@ -38,7 +38,6 @@ public class ResourceEventPublisher implements AdminDataModelChangedEventPublish
     
     private final ApplicationEventPublisher publisher;
     
-    
     public ResourceEventPublisher(final ApplicationEventPublisher publisher) {
         this.publisher = publisher;
     }
@@ -67,8 +66,8 @@ public class ResourceEventPublisher implements AdminDataModelChangedEventPublish
     /**
      * on resource updated.
      *
-     * @param resource   resource
-     * @param before before resource
+     * @param resource resource
+     * @param before   before resource
      */
     @Override
     public void onUpdated(final ResourceDO resource, final ResourceDO before) {

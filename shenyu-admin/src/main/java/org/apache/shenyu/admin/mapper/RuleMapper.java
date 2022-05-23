@@ -179,5 +179,4 @@ public interface RuleMapper extends ExistProvider {
      */
     List<RuleDO> selectByIds(@Param("ids") List<String> ids);
     
-    
 }

@@ -186,8 +186,8 @@ public final class ResourceUtil {
     /**
      * get delete resource ids.
      *
-     * @param resourceIds resource ids
-     * @param allMetaDataResources    all resource object
+     * @param resourceIds          resource ids
+     * @param allMetaDataResources all resource object
      * @return the list of ids to delete
      */
     public static List<ResourceDO> getDeleteResourceIds(final List<String> resourceIds, final List<ResourceDO> allMetaDataResources) {
@@ -195,7 +195,7 @@ public final class ResourceUtil {
             return Collections.emptyList();
         }
         final List<ResourceDO> deleteResourceIds = new ArrayList<>();
-        final Map<String, ResourceDO> metaMap = ListUtil.toMap(allMetaDataResources,ResourceDO::getId);
+        final Map<String, ResourceDO> metaMap = ListUtil.toMap(allMetaDataResources, ResourceDO::getId);
         final Map<String, Set<String>> metaChildrenMap = dealChildrenMap(allMetaDataResources);
         
         final Deque<String> cacheDatas = new ArrayDeque<>(resourceIds);
