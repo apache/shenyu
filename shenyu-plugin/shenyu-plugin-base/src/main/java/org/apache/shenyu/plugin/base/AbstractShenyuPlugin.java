@@ -154,7 +154,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             } else {
                 rule = matchRule(exchange, rules);
             }
-            return Pair.of(Boolean.FALSE, rule);
+
+            if (Objects.nonNull(rule)) {
+                return Pair.of(Boolean.FALSE, rule);
+            }
+
         }
         return Pair.of(Boolean.TRUE, null);
     }
@@ -189,7 +193,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 selectorData = matchSelector(exchange, selectors);
             }
 
-            return Pair.of(Boolean.FALSE, selectorData);
+            if (Objects.nonNull(selectorData)) {
+                return Pair.of(Boolean.FALSE, selectorData);
+            }
         }
         return Pair.of(Boolean.TRUE, null);
     }
