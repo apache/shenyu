@@ -85,7 +85,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                                             final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
-        this.contextPath = Optional.ofNullable(props.getProperty(ShenyuClientConstants.CONTEXT_PATH)).map(UriUtils::repairData).orElse(null);
+        this.contextPath = Optional.ofNullable(props.getProperty(ShenyuClientConstants.CONTEXT_PATH)).map(UriUtils::repairData).orElse("");
         if (StringUtils.isBlank(appName) && StringUtils.isBlank(contextPath)) {
             String errorMsg = "http register param must config the appName or contextPath";
             LOG.error(errorMsg);
