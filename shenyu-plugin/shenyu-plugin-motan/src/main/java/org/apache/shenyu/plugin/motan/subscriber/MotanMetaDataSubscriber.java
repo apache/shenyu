@@ -38,7 +38,6 @@ public class MotanMetaDataSubscriber implements MetaDataSubscriber {
      */
     private static final Logger LOG = LoggerFactory.getLogger(MotanMetaDataSubscriber.class);
     
-    
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
     
     @Override
