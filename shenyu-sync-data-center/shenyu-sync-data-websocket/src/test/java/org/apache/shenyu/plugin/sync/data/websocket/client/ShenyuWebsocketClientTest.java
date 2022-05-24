@@ -96,6 +96,6 @@ public class ShenyuWebsocketClientTest {
     @Test
     public void testOnError() {
         shenyuWebsocketClient = spy(shenyuWebsocketClient);
-        Assertions.assertDoesNotThrow(()->shenyuWebsocketClient.onError(new ShenyuException("test")));
+        Assertions.assertDoesNotThrow(() -> shenyuWebsocketClient.onError(new ShenyuException("test")));
     }
 }
