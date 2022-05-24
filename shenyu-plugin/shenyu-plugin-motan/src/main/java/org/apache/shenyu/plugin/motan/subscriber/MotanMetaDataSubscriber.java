@@ -60,7 +60,7 @@ public class MotanMetaDataSubscriber implements MetaDataSubscriber {
         } catch (Exception e) {
             LOG.error("motan sync metadata is error [{}]", metaData, e);
         }
-    
+        
     }
     
     @Override
