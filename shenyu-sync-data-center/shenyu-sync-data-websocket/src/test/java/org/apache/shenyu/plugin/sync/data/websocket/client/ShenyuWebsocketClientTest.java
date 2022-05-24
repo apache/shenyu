@@ -23,10 +23,9 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.java_websocket.handshake.ServerHandshake;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,10 +33,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -55,25 +52,13 @@ public class ShenyuWebsocketClientTest {
     private ShenyuWebsocketClient shenyuWebsocketClient;
     
     @Mock
-    private URI serverUri;
-    
-    @Mock
     private PluginDataSubscriber pluginDataSubscriber;
-    
-    @Mock
-    private List<MetaDataSubscriber> metaDataSubscribers;
-    
-    @Mock
-    private List<AuthDataSubscriber> authDataSubscribers;
-    
-    @Mock
-    private ScheduledThreadPoolExecutor executor;
     
     private WebsocketData<PluginData> websocketData;
     
     @BeforeEach
     public void setUp() {
-        websocketData = new WebsocketData();
+        websocketData = new WebsocketData<>();
         websocketData.setEventType(DataEventTypeEnum.MYSELF.name());
         websocketData.setGroupType(ConfigGroupEnum.PLUGIN.name());
         List<PluginData> list = new ArrayList<>(1);
@@ -111,8 +96,6 @@ public class ShenyuWebsocketClientTest {
     @Test
     public void testOnError() {
         shenyuWebsocketClient = spy(shenyuWebsocketClient);
-        doNothing().when(shenyuWebsocketClient).close();
-        shenyuWebsocketClient.onError(new ShenyuException("test"));
-        verify(shenyuWebsocketClient).close();
+        Assertions.assertDoesNotThrow(()->shenyuWebsocketClient.onError(new ShenyuException("test")));
     }
 }
