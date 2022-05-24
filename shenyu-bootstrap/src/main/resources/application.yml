@@ -65,7 +65,7 @@ management:
 
 shenyu:
   matchCache:
-    enabled: false
+    enabled: true
     maxFreeMemory:
   netty:
     tcp:

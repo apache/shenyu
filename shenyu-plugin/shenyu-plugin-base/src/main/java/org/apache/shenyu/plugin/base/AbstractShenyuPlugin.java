@@ -96,7 +96,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
             Pair<Boolean, RuleData> resultRuleData = obtainRuleDataCacheIfEnabled(exchange);
             RuleData rule = resultRuleData.getRight();
-            if (resultRuleData.getLeft()) {
+            if ((Boolean.TRUE.equals(resultRuleData.getLeft()))) {
                 List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
                 if (CollectionUtils.isEmpty(rules)) {
                     return handleRuleIfNull(pluginName, exchange, chain);
@@ -156,7 +156,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
             return Pair.of(Boolean.FALSE, rule);
         }
-        return Pair.of(Boolean.FALSE, null);
+        return Pair.of(Boolean.TRUE, null);
     }
 
     private void cacheSelectorDataIfEnabled(final String path, final SelectorData selectorData) {
@@ -191,7 +191,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
             return Pair.of(Boolean.FALSE, selectorData);
         }
-        return Pair.of(Boolean.FALSE, null);
+        return Pair.of(Boolean.TRUE, null);
     }
 
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
