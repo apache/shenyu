@@ -31,9 +31,13 @@ import org.apache.shenyu.plugin.springcloud.SpringCloudPlugin;
 import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDecorator;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceRule;
+import org.apache.shenyu.plugin.springcloud.loadbalance.client.CustomBlockingLoadBalancerClient;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.blocking.client.BlockingLoadBalancerClient;
+import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.cloud.netflix.ribbon.RibbonClientSpecification;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +51,19 @@ import java.util.Optional;
 @Configuration
 @ConditionalOnProperty(value = {"shenyu.plugins.spring-cloud.enabled"}, havingValue = "true", matchIfMissing = true)
 public class SpringCloudPluginConfiguration {
+
+
+    /**
+     * custom blocking loadbalancer
+     * @param loadBalancerClientFactory loadBalancerFactory
+     * @return loadBalancerClient
+     */
+    @ConditionalOnProperty(value = {"spring.cloud.loadbalancer.ribbon.enabled"}, havingValue = "false", matchIfMissing = true)
+    @ConditionalOnClass(value = { BlockingLoadBalancerClient.class } )
+    @Bean
+    public LoadBalancerClient blockingLoadBalancerClient(final ObjectProvider<LoadBalancerClientFactory> loadBalancerClientFactory) {
+        return new CustomBlockingLoadBalancerClient(loadBalancerClientFactory.getIfAvailable());
+    }
 
     /**
      * init springCloud plugin.

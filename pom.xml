@@ -149,10 +149,11 @@
         <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
         <jaxb.api.version>2.3.0</jaxb.api.version>
         <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
-        <netflix-ribbon.version>2.2.9.RELEASE</netflix-ribbon.version>
+        <netflix-ribbon.version>2.2.10.RELEASE</netflix-ribbon.version>
         <mail.version>1.6.2</mail.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
         <jakarta.validation.version>3.0.1</jakarta.validation.version>
+        <ojdbc8.version>19.3.0.0</ojdbc8.version>
     </properties>
 
     <dependencyManagement>
@@ -442,7 +443,11 @@
                 <artifactId>curator-test</artifactId>
                 <version>${curator.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>com.oracle.ojdbc</groupId>
+                <artifactId>ojdbc8</artifactId>
+                <version>${ojdbc8.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
