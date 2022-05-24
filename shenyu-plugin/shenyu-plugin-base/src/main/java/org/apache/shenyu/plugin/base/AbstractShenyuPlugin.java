@@ -96,7 +96,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
             Pair<Boolean, RuleData> resultRuleData = obtainRuleDataCacheIfEnabled(exchange);
             RuleData rule = resultRuleData.getRight();
-            if ((Boolean.TRUE.equals(resultRuleData.getLeft()))) {
+            if (Boolean.TRUE.equals(resultRuleData.getLeft())) {
                 List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
                 if (CollectionUtils.isEmpty(rules)) {
                     return handleRuleIfNull(pluginName, exchange, chain);
