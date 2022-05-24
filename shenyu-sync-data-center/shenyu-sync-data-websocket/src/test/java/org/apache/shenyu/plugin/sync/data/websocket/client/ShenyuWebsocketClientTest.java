@@ -23,8 +23,11 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.java_websocket.handshake.ServerHandshake;
+import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,8 +36,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -52,7 +57,19 @@ public class ShenyuWebsocketClientTest {
     private ShenyuWebsocketClient shenyuWebsocketClient;
     
     @Mock
+    private URI serverUri;
+    
+    @Mock
     private PluginDataSubscriber pluginDataSubscriber;
+    
+    @Mock
+    private List<MetaDataSubscriber> metaDataSubscribers;
+    
+    @Mock
+    private List<AuthDataSubscriber> authDataSubscribers;
+    
+    @Mock
+    private ScheduledThreadPoolExecutor executor;
     
     private WebsocketData<PluginData> websocketData;
     
