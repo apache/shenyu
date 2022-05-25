@@ -126,12 +126,13 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
             clazz = AopUtils.getTargetClass(refProxy);
         }
         final ShenyuDubboClient beanShenyuClient = AnnotationUtils.findAnnotation(clazz, ShenyuDubboClient.class);
-        final String superPath = buildApiSuperPath(clazz);
-        // Compatible with previous versions
+        final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
         if (superPath.contains("*")) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
-                publisher.publishEvent(buildMetaDataDTO(serviceBean, beanShenyuClient, method, superPath));
+                if (Objects.nonNull(beanShenyuClient)) {
+                    publisher.publishEvent(buildMetaDataDTO(serviceBean, beanShenyuClient, method, superPath));
+                }
             }
             return;
         }
@@ -144,8 +145,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         }
     }
 
-    private String buildApiSuperPath(@NonNull final Class<?> clazz) {
-        ShenyuDubboClient shenyuDubboClient = AnnotationUtils.findAnnotation(clazz, ShenyuDubboClient.class);
+    private String buildApiSuperPath(@NonNull final Class<?> clazz, final ShenyuDubboClient shenyuDubboClient) {
         if (Objects.nonNull(shenyuDubboClient) && !StringUtils.isBlank(shenyuDubboClient.path())) {
             return shenyuDubboClient.path();
         }
