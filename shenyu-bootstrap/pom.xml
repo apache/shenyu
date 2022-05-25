@@ -26,8 +26,6 @@
     <artifactId>shenyu-bootstrap</artifactId>
 
     <properties>
-        <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
-        <spring-cloud-netflix.version>2.2.10.RELEASE</spring-cloud-netflix.version>
         <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
         <eureka-client.version>3.1.2</eureka-client.version>
     </properties>
@@ -271,7 +269,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-            <version>${spring-cloud-netflix.version}</version>
+            <version>${spring-cloud-netflix-ribbon.version}</version>
         </dependency>
         <!--shenyu springCloud plugin start-->
         
