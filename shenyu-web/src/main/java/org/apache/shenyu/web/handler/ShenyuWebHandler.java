@@ -114,7 +114,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(shenyuPlugins)) {
             shenyuPlugins.forEach(plugin -> LOG.info("shenyu auto add extends plugins:{}", plugin.named()));
-            shenyuPlugins.addAll(plugins);
+            plugins.addAll(shenyuPlugins);
             onSortedPlugins();
         }
     }
