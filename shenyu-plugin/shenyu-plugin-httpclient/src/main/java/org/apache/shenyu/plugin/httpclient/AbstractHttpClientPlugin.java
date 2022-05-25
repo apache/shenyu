@@ -43,8 +43,13 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
+import reactor.retry.DefaultRetry;
+import reactor.retry.RetryContext;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
+import reactor.util.retry.RetrySpec;
 
 import java.net.URI;
 import java.time.Duration;
@@ -54,6 +59,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -84,15 +90,14 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 .doOnError(e -> LOG.error(e.getMessage(), e));
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
             //old version of DividePlugin and SpringCloudPlugin will run on this
-            RetryBackoffSpec retryBackoffSpec = Retry.backoff(retryTimes, Duration.ZERO)
-                    .minBackoff(Duration.ofMillis(20))
-                    .maxBackoff(Duration.ofSeconds(20))
+            RetryBackoffSpec retryBackoffSpec = Retry.backoff(retryTimes, Duration.ofMillis(20L))
+                    .maxAttempts(retryTimes)
+                    .maxBackoff(Duration.ofSeconds(5L))
                     .transientErrors(true)
                     .jitter(0.5d)
-                    .filter(TimeoutException.class::isInstance)
-                    .filter(ConnectTimeoutException.class::isInstance)
-                    .filter(ReadTimeoutException.class::isInstance)
-                    .filter(IllegalStateException.class::isInstance);
+                    .scheduler(Schedulers.parallel())
+                    .filter(t -> t instanceof TimeoutException || t instanceof ConnectTimeoutException
+                            || t instanceof ReadTimeoutException || t instanceof IllegalStateException);
             return response.retryWhen(retryBackoffSpec)
                     .onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
                     .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
