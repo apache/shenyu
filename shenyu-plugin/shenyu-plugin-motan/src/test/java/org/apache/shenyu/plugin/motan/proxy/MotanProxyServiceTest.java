@@ -17,9 +17,52 @@
 
 package org.apache.shenyu.plugin.motan.proxy;
 
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.MetaData;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * The Test Case For MotanProxyService.
  */
-public class MotanProxyServiceTest {
+public final class MotanProxyServiceTest {
 
+    private ServerWebExchange exchange;
+
+    private MotanProxyService motanProxyService;
+
+    private MetaData metaData;
+
+    @BeforeEach
+    public void setUp() {
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+        Map<String, String> map = new HashMap<>();
+        map.put("test", "test");
+        Map<String, Map<String, String>> shenyuGeneralContext = new HashMap<>();
+        shenyuGeneralContext.put("motan", map);
+        this.exchange.getAttributes().put(Constants.GENERAL_CONTEXT, shenyuGeneralContext);
+        this.motanProxyService = new MotanProxyService();
+        this.metaData = new MetaData();
+        this.metaData.setAppName("motan");
+        this.metaData.setContextPath("/motan");
+        this.metaData.setPath("/motan/hello");
+        this.metaData.setRpcType("motan");
+        this.metaData.setServiceName("org.apache.shenyu.examples.motan.service.MotanDemoService");
+        this.metaData.setMethodName("hello");
+        this.metaData.setParameterTypes("java.lang.String");
+        this.metaData.setEnabled(true);
+        metaData.setRpcExt("{\"methodInfo\":[{\"methodName\":\"hello\",\"params\":[{\"left\":\"java.lang.String\",\"right\":\"name\"}]}],\"group\":\"motan-shenyu-rpc\"}");
+    }
+
+    @Test
+    public void testMotanProxyService() {
+        Assertions.assertNotNull(motanProxyService.genericInvoker("{\"name\":\"name\"}", metaData, exchange));
+    }
 }

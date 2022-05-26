@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.motan.util;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -25,7 +26,7 @@ import org.junit.jupiter.api.Test;
 public final class PrxInfoUtilTest {
 
     @Test
-    public void testPrimitiveType() {
-
+    public void testStatic() throws ClassNotFoundException {
+        Assertions.assertEquals(PrxInfoUtil.getParamClass("int"), int.class);
     }
 }

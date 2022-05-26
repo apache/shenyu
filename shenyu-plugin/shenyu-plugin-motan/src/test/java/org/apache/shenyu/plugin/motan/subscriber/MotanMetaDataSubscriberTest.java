@@ -18,8 +18,6 @@
 package org.apache.shenyu.plugin.motan.subscriber;
 
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +28,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * The Test Case For MotanMetaDataSubscriber.
  */
-public class MotanMetaDataSubscriberTest {
+public final class MotanMetaDataSubscriberTest {
 
     private MotanMetaDataSubscriber motanMetaDataSubscriber;
 
@@ -40,9 +38,15 @@ public class MotanMetaDataSubscriberTest {
     public void setUp() {
         this.motanMetaDataSubscriber = new MotanMetaDataSubscriber();
         this.metaData = new MetaData();
+        this.metaData.setAppName("motan");
+        this.metaData.setContextPath("/motan");
+        this.metaData.setPath("/motan/hello");
         this.metaData.setRpcType("motan");
-        this.metaData.setPath("localhost");
-        metaData.setRpcExt("{\"methodInfo\" : [{\"methodName\" : \"localhost\"}],\"group\" : \"localhost\", \"timeout\" : \"1000\"}");
+        this.metaData.setServiceName("org.apache.shenyu.examples.motan.service.MotanDemoService");
+        this.metaData.setMethodName("hello");
+        this.metaData.setParameterTypes("java.lang.String");
+        this.metaData.setEnabled(true);
+        metaData.setRpcExt("{\"methodInfo\":[{\"methodName\":\"hello\",\"params\":[{\"left\":\"java.lang.String\",\"right\":\"name\"}]}],\"group\":\"motan-shenyu-rpc\"}");
     }
 
     @Test
@@ -51,8 +55,8 @@ public class MotanMetaDataSubscriberTest {
         Field field1 = motanMetaDataSubscriber.getClass().getDeclaredField("META_DATA");
         field1.setAccessible(true);
         ConcurrentMap<String, MetaData> metaData1 = (ConcurrentMap<String, MetaData>) field1.get("META_DATA");
-        Assertions.assertEquals(metaData1.get("localhost").getRpcType(), "motan");
+        Assertions.assertEquals(metaData1.get("/motan/hello").getRpcType(), "motan");
         motanMetaDataSubscriber.unSubscribe(metaData);
-        Assertions.assertEquals(metaData1.get("localhost"), null);
+        Assertions.assertEquals(metaData1.get("/motan/hello"), null);
     }
 }
