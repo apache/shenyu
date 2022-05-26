@@ -15,24 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.global.subsciber;
+package org.apache.shenyu.admin.model.event.resource;
 
-import org.apache.shenyu.plugin.base.cache.MetaDataCache;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.apache.shenyu.admin.model.entity.ResourceDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 
 /**
- * The type Meta data cache subscriber.
+ * RuleCreatedEvent.
  */
-public class MetaDataCacheSubscriber implements MetaDataSubscriber {
+public class ResourceCreatedEvent extends ResourceChangedEvent {
     
-    @Override
-    public void onSubscribe(final MetaData metaData) {
-        MetaDataCache.getInstance().cache(metaData);
+    
+    /**
+     * Create a new {@code SelectorChangedEvent}.operator is unknown.
+     *
+     * @param source   Current plugin state
+     * @param operator operator
+     */
+    public ResourceCreatedEvent(final ResourceDO source, final String operator) {
+        super(source, null, EventTypeEnum.RESOURCE_CREATE, operator);
     }
     
-    @Override
-    public void unSubscribe(final MetaData metaData) {
-        MetaDataCache.getInstance().remove(metaData);
+    /**
+     * the created resource.
+     *
+     * @return resource
+     */
+    public ResourceDO getResource() {
+        return (ResourceDO) getSource();
     }
+    
 }

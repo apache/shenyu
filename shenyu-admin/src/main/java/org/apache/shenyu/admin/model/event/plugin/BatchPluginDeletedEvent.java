@@ -55,6 +55,18 @@ public class BatchPluginDeletedEvent extends BatchPluginChangedEvent {
     }
     
     /**
+     * get plugins.
+     *
+     * @return plugins
+     */
+    public List<PluginDO> getPlugins() {
+        return ((Collection<?>) getSource())
+                .stream()
+                .map(PluginDO.class::cast)
+                .collect(Collectors.toList());
+    }
+    
+    /**
      * get deleted iss.
      *
      * @return list

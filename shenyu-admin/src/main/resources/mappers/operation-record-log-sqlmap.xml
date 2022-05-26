@@ -42,6 +42,7 @@
                <include refid="Base_Column_List"/>
           FROM operation_record_log
          order by operation_time desc
+         limit #{limit}
     </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.OperationRecordLog"  useGeneratedKeys="true" keyProperty="id">

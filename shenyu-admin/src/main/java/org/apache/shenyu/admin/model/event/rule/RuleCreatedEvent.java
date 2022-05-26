@@ -15,24 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.global.subsciber;
+package org.apache.shenyu.admin.model.event.rule;
 
-import org.apache.shenyu.plugin.base.cache.MetaDataCache;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.apache.shenyu.admin.model.entity.RuleDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 
 /**
- * The type Meta data cache subscriber.
+ * RuleCreatedEvent.
  */
-public class MetaDataCacheSubscriber implements MetaDataSubscriber {
+public class RuleCreatedEvent extends RuleChangedEvent {
     
-    @Override
-    public void onSubscribe(final MetaData metaData) {
-        MetaDataCache.getInstance().cache(metaData);
+    
+    /**
+     * Create a new {@code SelectorChangedEvent}.operator is unknown.
+     *
+     * @param source   Current plugin state
+     * @param operator operator
+     */
+    public RuleCreatedEvent(final RuleDO source, final String operator) {
+        super(source, null, EventTypeEnum.RULE_CREATE, operator);
     }
     
-    @Override
-    public void unSubscribe(final MetaData metaData) {
-        MetaDataCache.getInstance().remove(metaData);
+    /**
+     * the created selector.
+     *
+     * @return selector
+     */
+    public RuleDO getRule() {
+        return (RuleDO) getSource();
     }
+    
 }
