@@ -37,6 +37,11 @@ spring:
         enabled: false
         namespace: ShenyuRegisterCenter
 
+# if you want use ribbon please config every server.
+#springCloud-test:
+#  ribbon:
+#    NIWSServerListClassName: com.netflix.niws.loadbalancer.DiscoveryEnabledNIWSServerList
+
 eureka:
   client:
     enabled: false
