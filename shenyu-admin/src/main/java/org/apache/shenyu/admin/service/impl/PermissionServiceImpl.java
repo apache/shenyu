@@ -24,15 +24,22 @@ import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.admin.model.dto.PermissionDTO;
 import org.apache.shenyu.admin.model.entity.PermissionDO;
 import org.apache.shenyu.admin.model.entity.UserRoleDO;
+import org.apache.shenyu.admin.model.event.resource.BatchResourceCreatedEvent;
+import org.apache.shenyu.admin.model.event.resource.BatchResourceDeletedEvent;
+import org.apache.shenyu.admin.model.event.resource.ResourceCreatedEvent;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO.AuthPerm;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ResourceUtil;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -46,15 +53,15 @@ import java.util.stream.Collectors;
  */
 @Service
 public class PermissionServiceImpl implements PermissionService {
-
+    
     private final DashboardUserMapper dashboardUserMapper;
-
+    
     private final UserRoleMapper userRoleMapper;
-
+    
     private final PermissionMapper permissionMapper;
-
+    
     private final ResourceMapper resourceMapper;
-
+    
     public PermissionServiceImpl(final DashboardUserMapper dashboardUserMapper,
                                  final UserRoleMapper userRoleMapper,
                                  final PermissionMapper permissionMapper,
@@ -64,7 +71,7 @@ public class PermissionServiceImpl implements PermissionService {
         this.permissionMapper = permissionMapper;
         this.resourceMapper = resourceMapper;
     }
-
+    
     /**
      * get user permission menu by token.
      *
@@ -77,7 +84,7 @@ public class PermissionServiceImpl implements PermissionService {
         if (Objects.isNull(userInfo)) {
             return null;
         }
-
+        
         List<ResourceVO> resourceVOList = getResourceListByUserName(userInfo.getUserName());
         if (CollectionUtils.isEmpty(resourceVOList)) {
             return null;
@@ -85,7 +92,7 @@ public class PermissionServiceImpl implements PermissionService {
         
         return new PermissionMenuVO(ResourceUtil.buildMenu(resourceVOList), getAuthPerm(resourceVOList), getAllAuthPerms());
     }
-
+    
     /**
      * get Auth perm by username for shiro.
      *
@@ -100,7 +107,38 @@ public class PermissionServiceImpl implements PermissionService {
         }
         return Collections.emptySet();
     }
-
+    
+    
+    /**
+     * listen {@link ResourceCreatedEvent} add  permission.
+     *
+     * @param event event
+     */
+    @EventListener(ResourceCreatedEvent.class)
+    public void onResourcesCreated(final ResourceCreatedEvent event) {
+        permissionMapper.insertSelective(buildPermissionFromResourceId(event.getResource().getId()));
+    }
+    
+    /**
+     * listen {@link BatchResourceCreatedEvent} add  permission.
+     *
+     * @param event event
+     */
+    @EventListener(BatchResourceCreatedEvent.class)
+    public void onResourcesCreated(final BatchResourceCreatedEvent event) {
+        permissionMapper.insertBatch(ListUtil.map(event.getDeletedIds(), this::buildPermissionFromResourceId));
+    }
+    
+    /**
+     * listen {@link BatchResourceDeletedEvent} delete  permission.
+     *
+     * @param event event
+     */
+    @EventListener(BatchResourceDeletedEvent.class)
+    public void onResourcesCreated(final BatchResourceDeletedEvent event) {
+        permissionMapper.deleteByResourceId(event.getDeletedIds());
+    }
+    
     /**
      * get resource by username.
      *
@@ -108,24 +146,27 @@ public class PermissionServiceImpl implements PermissionService {
      * @return {@linkplain List}
      */
     private List<ResourceVO> getResourceListByUserName(final String userName) {
-        List<UserRoleDO> userRoleDOList = userRoleMapper.findByUserId(dashboardUserMapper.selectByUserName(userName).getId());
-        List<String> roleIds = userRoleDOList.stream().filter(Objects::nonNull)
-                .map(UserRoleDO::getRoleId)
-                .collect(Collectors.toList());
-
-        Set<String> resourceIds = permissionMapper.findByObjectIds(roleIds).stream()
+        List<UserRoleDO> userRoles = userRoleMapper.findByUserId(dashboardUserMapper.selectByUserName(userName).getId());
+        Set<String> resourceIds = permissionMapper.findByObjectIds(ListUtil.map(userRoles, UserRoleDO::getRoleId))
+                .stream()
                 .map(PermissionDO::getResourceId)
                 .filter(StringUtils::isNoneBlank)
                 .collect(Collectors.toSet());
-
+        
         if (CollectionUtils.isEmpty(resourceIds)) {
             return Collections.emptyList();
         }
-
-        return resourceMapper.selectByIdsBatch(resourceIds)
-                .stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList());
+        
+        return ListUtil.map(resourceMapper.selectByIdsBatch(resourceIds), ResourceVO::buildResourceVO);
     }
-
+    
+    private PermissionDO buildPermissionFromResourceId(final String resourceId) {
+        return PermissionDO.buildPermissionDO(PermissionDTO.builder()
+                .objectId(AdminConstants.ROLE_SUPER_ID)
+                .resourceId(resourceId)
+                .build());
+    }
+    
     /**
      * get AuthPerm by username.
      *
@@ -138,15 +179,15 @@ public class PermissionServiceImpl implements PermissionService {
                 .map(AuthPerm::buildAuthPerm)
                 .collect(Collectors.toList());
     }
-
+    
     /**
      * get All AuthPerm.
      *
      * @return {@linkplain List}
      */
     private List<AuthPerm> getAllAuthPerms() {
-
-        return resourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2).stream()
+        return resourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2)
+                .stream()
                 .map(item -> AuthPerm.buildAuthPerm(ResourceVO.buildResourceVO(item)))
                 .collect(Collectors.toList());
     }
