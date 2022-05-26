@@ -108,17 +108,17 @@ public class SwaggerConfiguration {
      * @return BeanPostProcessor
      */
     @Bean
-    public BeanPostProcessor springfoxHandlerProviderBeanPostProcessor() {
+    public BeanPostProcessor springfoxBeanHandler() {
         return new BeanPostProcessor() {
             @Override
-            public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+            public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
                 if (bean instanceof WebMvcRequestHandlerProvider) {
                     customizeSpringfoxHandlerMappings(getHandlerMappings(bean));
                 }
                 return bean;
             }
 
-            private <T extends RequestMappingInfoHandlerMapping> void customizeSpringfoxHandlerMappings(List<T> mappings) {
+            private <T extends RequestMappingInfoHandlerMapping> void customizeSpringfoxHandlerMappings(final List<T> mappings) {
                 List<T> copy = mappings.stream()
                         .filter(mapping -> mapping.getPatternParser() == null)
                         .collect(Collectors.toList());
@@ -127,7 +127,7 @@ public class SwaggerConfiguration {
             }
 
             @SuppressWarnings("unchecked")
-            private List<RequestMappingInfoHandlerMapping> getHandlerMappings(Object bean) {
+            private List<RequestMappingInfoHandlerMapping> getHandlerMappings(final Object bean) {
                 try {
                     Field field = ReflectionUtils.findField(bean.getClass(), "handlerMappings");
                     field.setAccessible(true);
