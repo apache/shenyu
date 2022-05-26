@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.event.selector;
+package org.apache.shenyu.admin.model.event.rule;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
 import org.apache.shenyu.admin.utils.ListUtil;
@@ -30,9 +30,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * BatchPluginDeletedEvent.
+ * BatchRuleDeletedEvent.
  */
-public class BatchSelectorDeletedEvent extends BatchChangedEvent {
+public class BatchRuleDeletedEvent extends BatchChangedEvent {
     
     private final List<String> deletedIds;
     
@@ -45,8 +45,8 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
      * @param operator operator
      * @param plugins  about plugin
      */
-    public BatchSelectorDeletedEvent(final Collection<SelectorDO> source, final String operator, final List<PluginDO> plugins) {
-        super(source, null, EventTypeEnum.SELECTOR_DELETE, operator);
+    public BatchRuleDeletedEvent(final Collection<RuleDO> source, final String operator, final List<PluginDO> plugins) {
+        super(source, null, EventTypeEnum.RULE_DELETE, operator);
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
         this.plugins = plugins;
     }
@@ -55,9 +55,9 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
     public String buildContext() {
         final String selector = ((Collection<?>) getSource())
                 .stream()
-                .map(s -> ((SelectorDO) s).getName())
+                .map(s -> ((RuleDO) s).getName())
                 .collect(Collectors.joining(","));
-        return String.format("the selector[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
+        return String.format("the rule[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
     }
     
     /**
@@ -65,10 +65,10 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
      *
      * @return list
      */
-    public List<SelectorDO> getSelectors() {
+    public List<RuleDO> getRules() {
         return ((Collection<?>) getSource())
                 .stream()
-                .map(SelectorDO.class::cast)
+                .map(RuleDO.class::cast)
                 .collect(Collectors.toList());
     }
     
