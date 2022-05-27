@@ -56,7 +56,6 @@ public final class MatchDataCache {
      */
     private static final ConcurrentMap<String, Set<String>> SELECTOR_MAPPING = Maps.newConcurrentMap();
 
-
     private MatchDataCache() {
     }
 

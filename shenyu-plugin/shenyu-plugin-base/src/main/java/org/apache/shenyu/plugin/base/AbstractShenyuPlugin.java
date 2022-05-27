@@ -121,8 +121,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             matchCacheConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
         }
     }
-
-
+    
     private void cacheSelectorDataIfEnabled(final String path, final SelectorData selectorData) {
         if (matchCacheConfig.getEnabled()) {
             if (Objects.isNull(selectorData)) {
