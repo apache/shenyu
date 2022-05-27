@@ -123,10 +123,10 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
             final RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
-            ShenyuSpringCloudClient methodShenyuClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
+            ShenyuSpringCloudClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringCloudClient.class);
             methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
             if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
-                publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath)));
+                publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath, methodShenyuClient)));
             }
         }
         return bean;
@@ -136,10 +136,9 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         return Objects.nonNull(AnnotationUtils.findAnnotation(clazz, annotationType));
     }
     
-    private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
-        ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringCloudClient.class);
-        if (Objects.nonNull(shenyuSpringCloudClient) && StringUtils.isNotBlank(shenyuSpringCloudClient.path())) {
-            return pathJoin(contextPath, superPath, shenyuSpringCloudClient.path());
+    private String buildApiPath(@NonNull final Method method, @NonNull final String superPath, final ShenyuSpringCloudClient methodShenyuClient) {
+        if (Objects.nonNull(methodShenyuClient) && StringUtils.isNotBlank(methodShenyuClient.path())) {
+            return pathJoin(contextPath, superPath, methodShenyuClient.path());
         }
         final String path = getPathByMethod(method);
         if (StringUtils.isNotBlank(path)) {
