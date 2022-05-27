@@ -62,6 +62,7 @@ public final class AbstractShenyuPluginTest {
 
     @BeforeEach
     public void setUp() {
+        mockShenyuConfig();
         this.ruleData = RuleData.builder().id("1")
                 .selectorId("1").enabled(true)
                 .loged(true).sort(1).build();
@@ -85,7 +86,6 @@ public final class AbstractShenyuPluginTest {
      */
     @Test
     public void executePluginIsNullTest() {
-        mockShenyuConfig();
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
     }
 
@@ -94,7 +94,6 @@ public final class AbstractShenyuPluginTest {
      */
     @Test
     public void executeSelectorIsNullTest() {
-        mockShenyuConfig();
         BaseDataCache.getInstance().cachePluginData(pluginData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
     }
@@ -104,7 +103,6 @@ public final class AbstractShenyuPluginTest {
      */
     @Test
     public void executeSelectorDataIsNullTest() {
-        mockShenyuConfig();
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
@@ -115,7 +113,6 @@ public final class AbstractShenyuPluginTest {
      */
     @Test
     public void executeRuleIsNullTest() {
-        mockShenyuConfig();
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.selectorData.setMatchMode(0);
         this.selectorData.setLogged(true);
@@ -130,7 +127,6 @@ public final class AbstractShenyuPluginTest {
      */
     @Test
     public void executeRuleIsNotNullTest() {
-        mockShenyuConfig();
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.ruleData.setConditionDataList(conditionDataList);
         this.ruleData.setMatchMode(0);
@@ -148,7 +144,6 @@ public final class AbstractShenyuPluginTest {
      */
     @Test
     public void executeRuleFullTest() {
-        mockShenyuConfig();
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.ruleData.setConditionDataList(conditionDataList);
         this.ruleData.setMatchMode(1);

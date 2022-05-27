@@ -97,7 +97,6 @@ public class LocalPluginController {
         MatchDataCache.getInstance().removeSelectorDataByPluginName(name);
         for (String selectorId : selectorIds) {
             BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
-            MatchDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
         }
         return Mono.just(Constants.SUCCESS);
     }

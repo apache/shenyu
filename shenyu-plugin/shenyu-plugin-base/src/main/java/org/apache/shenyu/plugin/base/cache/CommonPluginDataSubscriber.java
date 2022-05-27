@@ -146,7 +146,6 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     @Override
     public void refreshRuleDataAll() {
         BaseDataCache.getInstance().cleanRuleData();
-        MatchDataCache.getInstance().cleanRuleData();
     }
     
     @Override
@@ -198,7 +197,6 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
             BaseDataCache.getInstance().cacheRuleData(ruleData);
-            MatchDataCache.getInstance().removeRuleData(ruleData);
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.handlerRule(ruleData));
             
@@ -244,7 +242,6 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
             BaseDataCache.getInstance().removeRuleData(ruleData);
-            MatchDataCache.getInstance().removeRuleData(ruleData);
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.removeRule(ruleData));
             

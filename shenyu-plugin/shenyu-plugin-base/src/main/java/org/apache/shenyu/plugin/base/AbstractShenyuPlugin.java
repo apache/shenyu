@@ -46,11 +46,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
 
-    private static ShenyuConfig.MatchCache matchCacheConfig;
+    private ShenyuConfig.MatchCache matchCacheConfig;
 
-    private static SelectorData nullSelectorData = new SelectorData();
+    private SelectorData defaultSelectorData = new SelectorData();
 
-    private static RuleData nullRuleData = new RuleData();
+    {
+        defaultSelectorData.setPluginName(named());
+    }
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -94,26 +96,21 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
             selectorLog(selectorData, pluginName);
 
-            Pair<Boolean, RuleData> resultRuleData = obtainRuleDataCacheIfEnabled(exchange);
-            RuleData rule = resultRuleData.getRight();
-            if (Boolean.TRUE.equals(resultRuleData.getLeft())) {
-                List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
-                if (CollectionUtils.isEmpty(rules)) {
-                    return handleRuleIfNull(pluginName, exchange, chain);
-                }
-                if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
-                    //get last
-                    rule = rules.get(rules.size() - 1);
-                } else {
-                    rule = matchRule(exchange, rules);
-                    cacheRuleDataIfEnabled(path, rule);
-                }
+            List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
+            if (CollectionUtils.isEmpty(rules)) {
+                return handleRuleIfNull(pluginName, exchange, chain);
+            }
+            RuleData rule;
+            if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
+                //get last
+                rule = rules.get(rules.size() - 1);
+            } else {
+                rule = matchRule(exchange, rules);
             }
             if (Objects.isNull(rule)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
             }
             ruleLog(rule, pluginName);
-
             return doExecute(exchange, chain, selectorData, rule);
         }
         return chain.execute(exchange);
@@ -125,49 +122,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
 
-    private void cacheRuleDataIfEnabled(final String path, final RuleData rule) {
-        if (matchCacheConfig.getEnabled()) {
-            if (Objects.isNull(rule)) {
-                nullRuleData.setPluginName(named());
-                MatchDataCache.getInstance().cacheRuleData(path, nullRuleData, matchCacheConfig.getMaxFreeMemory());
-            } else {
-                MatchDataCache.getInstance().cacheRuleData(path, rule, matchCacheConfig.getMaxFreeMemory());
-            }
-        }
-    }
-
-    private Pair<Boolean, RuleData> obtainRuleDataCacheIfEnabled(final ServerWebExchange exchange) {
-        if (matchCacheConfig.getEnabled()) {
-            List<RuleData> rules = MatchDataCache.getInstance().obtainRuleData(named(), exchange.getRequest().getURI().getPath());
-
-            if (Objects.isNull(rules)) {
-                return Pair.of(Boolean.TRUE, null);
-            }
-
-            if (rules.size() == 0) {
-                return Pair.of(Boolean.FALSE, null);
-            }
-
-            RuleData rule;
-            if (rules.size() == 1) {
-                rule = rules.get(0);
-            } else {
-                rule = matchRule(exchange, rules);
-            }
-
-            if (Objects.nonNull(rule)) {
-                return Pair.of(Boolean.FALSE, rule);
-            }
-
-        }
-        return Pair.of(Boolean.TRUE, null);
-    }
 
     private void cacheSelectorDataIfEnabled(final String path, final SelectorData selectorData) {
         if (matchCacheConfig.getEnabled()) {
             if (Objects.isNull(selectorData)) {
-                nullSelectorData.setPluginName(named());
-                MatchDataCache.getInstance().cacheSelectorData(path, nullSelectorData, matchCacheConfig.getMaxFreeMemory());
+                MatchDataCache.getInstance().cacheSelectorData(path, defaultSelectorData, matchCacheConfig.getMaxFreeMemory());
             } else {
                 MatchDataCache.getInstance().cacheSelectorData(path, selectorData, matchCacheConfig.getMaxFreeMemory());
             }

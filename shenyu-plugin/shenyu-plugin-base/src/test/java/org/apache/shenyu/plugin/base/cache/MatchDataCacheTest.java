@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.cache.MemorySafeLRUMap;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.junit.jupiter.api.Test;
 
@@ -33,8 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public final class MatchDataCacheTest {
 
     private final String selectorMapStr = "SELECTOR_DATA_MAP";
-
-    private final String ruleMapStr = "RULE_DATA_MAP";
 
     private final String mockPluginName1 = "MOCK_PLUGIN_NAME_1";
 
@@ -51,19 +48,6 @@ public final class MatchDataCacheTest {
         MatchDataCache.getInstance().cacheSelectorData(path1, secondCachedSelectorData, 5 * 1024);
         assertEquals(Lists.newArrayList(firstCachedSelectorData, secondCachedSelectorData), selectorMap.get(mockPluginName1).get(path1));
         selectorMap.clear();
-    }
-
-    @Test
-    public void testCacheRuleData() throws NoSuchFieldException, IllegalAccessException {
-        RuleData firstCachedRuleData = RuleData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
-        MatchDataCache.getInstance().cacheRuleData(path1, firstCachedRuleData, 5 * 1024);
-        ConcurrentHashMap<String, MemorySafeLRUMap<String, List<RuleData>>> ruleMap = getFieldByName(ruleMapStr);
-        assertEquals(Lists.newArrayList(firstCachedRuleData), ruleMap.get(mockPluginName1).get(path1));
-
-        RuleData secondCachedRuleData = RuleData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
-        MatchDataCache.getInstance().cacheRuleData(path1, secondCachedRuleData, 5 * 1024);
-        assertEquals(Lists.newArrayList(firstCachedRuleData, secondCachedRuleData), ruleMap.get(mockPluginName1).get(path1));
-        ruleMap.clear();
     }
 
     @Test
@@ -84,23 +68,6 @@ public final class MatchDataCacheTest {
     }
 
     @Test
-    public void testObtainRuleData() throws NoSuchFieldException, IllegalAccessException {
-        RuleData firstCachedRuleData = RuleData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
-        ConcurrentHashMap<String, MemorySafeLRUMap<String, List<RuleData>>> ruleMap = getFieldByName(ruleMapStr);
-        ruleMap.put(mockPluginName1, new MemorySafeLRUMap<>(5 * 1024, 16));
-        List<RuleData> ruleDataListTemp = Lists.newArrayList(firstCachedRuleData);
-        ruleMap.get(mockPluginName1).put(path1, ruleDataListTemp);
-        List<RuleData> firstRuleDataList = MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path1);
-        assertEquals(Lists.newArrayList(firstCachedRuleData), firstRuleDataList);
-
-        RuleData secondCachedRuleData = RuleData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
-        ruleDataListTemp.add(secondCachedRuleData);
-        List<RuleData> secondRuleDataList = MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path1);
-        assertEquals(ruleDataListTemp, secondRuleDataList);
-        ruleMap.clear();
-    }
-
-    @Test
     public void testRemoveSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
         MatchDataCache.getInstance().cacheSelectorData(path1, firstCachedSelectorData, 5 * 1024);
@@ -112,20 +79,6 @@ public final class MatchDataCacheTest {
         ConcurrentHashMap<String, MemorySafeLRUMap<String, List<SelectorData>>> selectorMap = getFieldByName(selectorMapStr);
         assertEquals(Lists.newArrayList(secondCachedSelectorData), selectorMap.get(mockPluginName1).get(path1));
         selectorMap.clear();
-    }
-
-    @Test
-    public void testRemoveRuleData() throws NoSuchFieldException, IllegalAccessException {
-        RuleData firstCachedRuleData = RuleData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
-        MatchDataCache.getInstance().cacheRuleData(path1, firstCachedRuleData, 5 * 1024);
-
-        RuleData secondCachedRuleData = RuleData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
-        MatchDataCache.getInstance().cacheRuleData(path1, secondCachedRuleData, 5 * 1024);
-
-        MatchDataCache.getInstance().removeRuleData(firstCachedRuleData);
-        ConcurrentHashMap<String, MemorySafeLRUMap<String, List<RuleData>>> ruleMap = getFieldByName(ruleMapStr);
-        assertEquals(Lists.newArrayList(secondCachedRuleData), ruleMap.get(mockPluginName1).get(path1));
-        ruleMap.clear();
     }
 
     @SuppressWarnings("rawtypes")
