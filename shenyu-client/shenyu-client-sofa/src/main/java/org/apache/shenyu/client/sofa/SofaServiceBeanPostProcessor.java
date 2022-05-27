@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -55,7 +57,11 @@ import java.util.stream.Collectors;
 public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(SofaServiceBeanPostProcessor.class);
-
+    /**
+     * api path separator.
+     */
+    private static final String PATH_SEPARATOR = "/";
+    
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final ExecutorService executorService;
@@ -104,18 +110,41 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         if (AopUtils.isAopProxy(targetProxy)) {
             clazz = AopUtils.getTargetClass(targetProxy);
         }
+        final ShenyuSofaClient shenyuSofaClient = AnnotationUtils.findAnnotation(clazz, ShenyuSofaClient.class);
+        final String superPath = buildApiSuperPath(shenyuSofaClient);
+        if(superPath.contains("*")){
+            Method[] declaredMethods = ReflectionUtils.getDeclaredMethods(clazz);
+            for (Method declaredMethod : declaredMethods) {
+                if (Objects.nonNull(shenyuSofaClient)) {
+                    publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuSofaClient, declaredMethod, superPath));
+                }
+            }
+            return;
+        }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuSofaClient shenyuSofaClient = method.getAnnotation(ShenyuSofaClient.class);
-            if (Objects.nonNull(shenyuSofaClient)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuSofaClient, method));
+            ShenyuSofaClient shenyuSofaClientAnnotation = method.getAnnotation(ShenyuSofaClient.class);
+            if (Objects.nonNull(shenyuSofaClientAnnotation)) {
+                publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuSofaClientAnnotation, method, superPath));
             }
         }
     }
-
-    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final ShenyuSofaClient shenyuSofaClient, final Method method) {
+    
+    private String buildApiSuperPath(final ShenyuSofaClient shenyuSofaClient) {
+        if (Objects.nonNull(shenyuSofaClient) && !StringUtils.isBlank(shenyuSofaClient.path())) {
+            return shenyuSofaClient.path();
+        }
+        return "";
+    }
+    
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final ShenyuSofaClient shenyuSofaClient, final Method method, final String superPath) {
         String appName = this.appName;
-        String path = contextPath + shenyuSofaClient.path();
+        String path;
+        if(superPath.contains("*")){
+            path = pathJoin(contextPath, superPath.replace("*", ""), method.getName());
+        }else{
+            path = pathJoin(contextPath, superPath, shenyuSofaClient.path());
+        }
         String desc = shenyuSofaClient.desc();
         String serviceName = serviceBean.getInterfaceClass().getName();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
@@ -159,5 +188,16 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .timeout(shenyuSofaClient.timeout())
                 .build();
         return GsonUtils.getInstance().toJson(build);
+    }
+
+    private String pathJoin(@NonNull final String... path) {
+        StringBuilder result = new StringBuilder(PATH_SEPARATOR);
+        for (String p : path) {
+            if (!result.toString().endsWith(PATH_SEPARATOR)) {
+                result.append(PATH_SEPARATOR);
+            }
+            result.append(p.startsWith(PATH_SEPARATOR) ? p.replaceFirst(PATH_SEPARATOR, "") : p);
+        }
+        return result.toString();
     }
 }
