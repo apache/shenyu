@@ -175,7 +175,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         return null;
     }
     
-    private String buildApiSuperPath(@NonNull final Class<?> clazz, ShenyuSpringCloudClient beanShenyuClient) {
+    private String buildApiSuperPath(@NonNull final Class<?> clazz, final ShenyuSpringCloudClient beanShenyuClient) {
         if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path())) {
             return beanShenyuClient.path();
         }
