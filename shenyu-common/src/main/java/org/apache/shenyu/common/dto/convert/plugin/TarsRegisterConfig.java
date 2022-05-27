@@ -116,12 +116,13 @@ public class TarsRegisterConfig implements Serializable {
             return false;
         }
         TarsRegisterConfig that = (TarsRegisterConfig) o;
-        return Objects.equals(threadpool, that.threadpool);
+        return Objects.equals(threadpool, that.threadpool) && Objects.equals(corethreads, that.corethreads)
+                && Objects.equals(threads, that.threads) && Objects.equals(queues, that.queues);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(threadpool);
+        return Objects.hash(threadpool, corethreads, threads, queues);
     }
 
     @Override
