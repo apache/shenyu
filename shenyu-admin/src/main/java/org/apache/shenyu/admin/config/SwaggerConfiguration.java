@@ -108,6 +108,7 @@ public class SwaggerConfiguration {
      * @return BeanPostProcessor
      */
     @Bean
+    @SuppressWarnings("all")
     public BeanPostProcessor springfoxBeanHandler() {
         return new BeanPostProcessor() {
             @Override
