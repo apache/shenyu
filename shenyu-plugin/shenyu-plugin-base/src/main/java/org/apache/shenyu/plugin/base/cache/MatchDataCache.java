@@ -129,7 +129,7 @@ public final class MatchDataCache {
      */
     public void cacheSelectorData(final String path, final SelectorData selectorData, final Integer maxMemory) {
         final LRUMap<String, List<SelectorData>> lruMap = SELECTOR_DATA_MAP.computeIfAbsent(selectorData.getPluginName(),
-                map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
+            map -> new MemorySafeLRUMap<>(maxMemory, 1 << 16));
         List<SelectorData> selectorDataList = lruMap.computeIfAbsent(path, list -> Collections.synchronizedList(new ArrayList<>()));
         if (StringUtils.isNoneBlank(selectorData.getId())) {
             selectorDataList.add(selectorData);
