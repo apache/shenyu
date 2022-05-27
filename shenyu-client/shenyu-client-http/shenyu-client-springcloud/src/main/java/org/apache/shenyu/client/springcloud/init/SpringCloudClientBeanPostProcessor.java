@@ -30,18 +30,16 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.annotation.Annotation;
@@ -100,33 +98,34 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         this.servletContextPath = env.getProperty("server.servlet.context-path", "");
         mappingAnnotation.add(ShenyuSpringCloudClient.class);
-        mappingAnnotation.add(PostMapping.class);
-        mappingAnnotation.add(GetMapping.class);
-        mappingAnnotation.add(DeleteMapping.class);
-        mappingAnnotation.add(PutMapping.class);
         mappingAnnotation.add(RequestMapping.class);
         publisher.start(shenyuClientRegisterRepository);
     }
     
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
+        Class<?> clazz = bean.getClass();
+        if (AopUtils.isAopProxy(bean)) {
+            clazz = AopUtils.getTargetClass(bean);
+        }
         // Filter out is not controller out
-        if (Boolean.TRUE.equals(isFull) || !hasAnnotation(bean.getClass(), Controller.class)) {
+        if (Boolean.TRUE.equals(isFull) || !hasAnnotation(clazz, Controller.class)) {
             return bean;
         }
         
-        final ShenyuSpringCloudClient beanShenyuClient = AnnotationUtils.findAnnotation(bean.getClass(), ShenyuSpringCloudClient.class);
-        final String superPath = buildApiSuperPath(bean.getClass());
+        final ShenyuSpringCloudClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringCloudClient.class);
+        final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
         // Compatible with previous versions
         if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
             publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath)));
             return bean;
         }
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
+        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
+            final RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
             ShenyuSpringCloudClient methodShenyuClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
             methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
-            if (Objects.nonNull(methodShenyuClient)) {
+            if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
                 publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath)));
             }
         }
@@ -138,7 +137,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     }
     
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
-        ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
+        ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringCloudClient.class);
         if (Objects.nonNull(shenyuSpringCloudClient) && StringUtils.isNotBlank(shenyuSpringCloudClient.path())) {
             return pathJoin(contextPath, superPath, shenyuSpringCloudClient.path());
         }
@@ -151,7 +150,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     
     private String getPathByMethod(@NonNull final Method method) {
         for (Class<? extends Annotation> mapping : mappingAnnotation) {
-            final String pathByAnnotation = getPathByAnnotation(AnnotationUtils.findAnnotation(method, mapping), pathAttributeNames);
+            final Annotation mergedAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, mapping);
+            final String pathByAnnotation = getPathByAnnotation(mergedAnnotation, pathAttributeNames);
             if (StringUtils.isNotBlank(pathByAnnotation)) {
                 return pathByAnnotation;
             }
@@ -176,12 +176,11 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         return null;
     }
     
-    private String buildApiSuperPath(@NonNull final Class<?> method) {
-        ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
-        if (Objects.nonNull(shenyuSpringCloudClient) && StringUtils.isNotBlank(shenyuSpringCloudClient.path())) {
-            return shenyuSpringCloudClient.path();
+    private String buildApiSuperPath(@NonNull final Class<?> clazz, ShenyuSpringCloudClient beanShenyuClient) {
+        if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path())) {
+            return beanShenyuClient.path();
         }
-        RequestMapping requestMapping = AnnotationUtils.findAnnotation(method, RequestMapping.class);
+        RequestMapping requestMapping = AnnotationUtils.findAnnotation(clazz, RequestMapping.class);
         // Only the first path is supported temporarily
         if (Objects.nonNull(requestMapping) && ArrayUtils.isNotEmpty(requestMapping.path()) && StringUtils.isNotBlank(requestMapping.path()[0])) {
             return requestMapping.path()[0];
