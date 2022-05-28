@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
-import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.SyncDataService;

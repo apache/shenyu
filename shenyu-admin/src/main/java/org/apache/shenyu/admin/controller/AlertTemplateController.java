@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-
 import org.apache.shenyu.admin.model.dto.AlertTemplateDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AlertTemplateVO;
