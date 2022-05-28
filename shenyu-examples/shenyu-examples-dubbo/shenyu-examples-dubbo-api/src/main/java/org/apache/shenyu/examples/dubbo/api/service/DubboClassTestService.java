@@ -15,28 +15,45 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.transfer;
+package org.apache.shenyu.examples.dubbo.api.service;
 
-import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
-
-import java.util.Optional;
+import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
+import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 
 /**
- * The shenyu service instance info transfer.
+ * DubboClassTestService.
  */
-public enum ShenyuServiceTransfer {
+public interface DubboClassTestService {
 
     /**
-     * The constant INSTANCE.
+     * find by id.
+     * body：{"id":"1223"}
+     *
+     * @param id id
+     * @return DubboTest dubbo test
      */
-    INSTANCE;
+    DubboTest findById(String id);
 
     /**
-     * deep copy instance.
-     * @param instance source data
-     * @return The new instance
+     * Find all dubbo test.
+     *
+     * @return the dubbo test
      */
-    public ShenyuServiceInstance deepCopy(final ShenyuServiceInstance instance) {
-        return Optional.ofNullable(instance).map(data -> new ShenyuServiceInstance(data.getHost(), data.getPort(), data.getMetadata())).orElse(null);
-    }
+    DubboTest findAll();
+
+    /**
+     * Insert dubbo test.
+     * body :{"id":"122344","name":"xiaoyu"}
+     *
+     * @param dubboTest the dubbo test
+     * @return the dubbo test
+     */
+    DubboTest insert(DubboTest dubboTest);
+
+    /**
+     * findList.
+     *
+     * @return {@linkplain ListResp}
+     */
+    ListResp findList();
 }
