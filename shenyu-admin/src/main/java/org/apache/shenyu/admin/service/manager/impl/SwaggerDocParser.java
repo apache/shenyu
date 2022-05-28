@@ -56,7 +56,7 @@ public class SwaggerDocParser implements DocParser {
     @Override
     public DocInfo parseJson(final JSONObject docRoot) {
         final String basePath = docRoot.getString("basePath");
-        final String title = docRoot.getJSONObject("info").getString("title");
+        final String title = Optional.ofNullable(docRoot.getJSONObject("info")).map(jsonObject -> jsonObject.getString("title")).orElse("");
         final List<DocItem> docItems = new ArrayList<>();
 
         JSONObject paths = docRoot.getJSONObject("paths");
