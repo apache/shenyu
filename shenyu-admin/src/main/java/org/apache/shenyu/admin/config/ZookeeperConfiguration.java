@@ -29,6 +29,7 @@ import java.util.Objects;
 /**
  * ZookeeperConfiguration.
  */
+@Deprecated
 @EnableConfigurationProperties(ZookeeperProperties.class)
 public class ZookeeperConfiguration {
 

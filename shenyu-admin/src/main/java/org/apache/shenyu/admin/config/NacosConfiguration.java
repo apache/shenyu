@@ -31,6 +31,7 @@ import java.util.Properties;
 /**
  * Nacos configuration.
  */
+@Deprecated
 @EnableConfigurationProperties(NacosProperties.class)
 public class NacosConfiguration {
 
