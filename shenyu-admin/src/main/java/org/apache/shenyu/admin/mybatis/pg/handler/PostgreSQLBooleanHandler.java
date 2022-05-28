@@ -32,26 +32,23 @@ import java.sql.SQLException;
 public class PostgreSQLBooleanHandler extends BaseTypeHandler<Boolean> {
 
     @Override
-    public void setNonNullParameter(final PreparedStatement preparedStatement, final int i,
-                                    final Boolean aBoolean, final JdbcType jdbcType) throws SQLException {
-        preparedStatement.setInt(i, aBoolean ? 1 : 0);
+    public void setNonNullParameter(final PreparedStatement preparedStatement, final int columnIndex,
+                                    final Boolean columnValue, final JdbcType jdbcType) throws SQLException {
+        preparedStatement.setInt(columnIndex, columnValue ? 1 : 0);
     }
 
     @Override
-    public Boolean getNullableResult(final ResultSet resultSet, final String s) throws SQLException {
-        int anInt = resultSet.getInt(s);
-        return 1 == anInt ? Boolean.TRUE : Boolean.FALSE;
+    public Boolean getNullableResult(final ResultSet resultSet, final String columnName) throws SQLException {
+        return resultSet.getBoolean(columnName);
     }
 
     @Override
-    public Boolean getNullableResult(final ResultSet resultSet, final int i) throws SQLException {
-        int anInt = resultSet.getInt(i);
-        return 1 == anInt ? Boolean.TRUE : Boolean.FALSE;
+    public Boolean getNullableResult(final ResultSet resultSet, final int columnIndex) throws SQLException {
+        return resultSet.getBoolean(columnIndex);
     }
 
     @Override
-    public Boolean getNullableResult(final CallableStatement callableStatement, final int i) throws SQLException {
-        int anInt = callableStatement.getInt(i);
-        return 1 == anInt ? Boolean.TRUE : Boolean.FALSE;
+    public Boolean getNullableResult(final CallableStatement callableStatement, final int columnIndex) throws SQLException {
+        return callableStatement.getBoolean(columnIndex);
     }
 }

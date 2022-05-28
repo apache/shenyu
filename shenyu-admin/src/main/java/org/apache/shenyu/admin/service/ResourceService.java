@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -30,15 +31,7 @@ import java.util.List;
  * this is Resource Service.
  */
 public interface ResourceService {
-
-    /**
-     * create Resource.
-     *
-     * @param resourceDO {@linkplain ResourceDO}
-     */
-    void createResource(ResourceDO resourceDO);
-
-
+    
     /**
      * create Resources.
      *
@@ -46,15 +39,40 @@ public interface ResourceService {
      * @return rows int
      */
     int createResourceBatch(List<ResourceDO> resourceDOList);
-
+    
     /**
      * create or update resource.
      *
      * @param resourceDTO {@linkplain ResourceDTO}
      * @return rows int
      */
-    int createOrUpdate(ResourceDTO resourceDTO);
-
+    default int createOrUpdate(final ResourceDTO resourceDTO) {
+        return StringUtils.isBlank(resourceDTO.getId()) ? create(resourceDTO) : update(resourceDTO);
+    }
+    
+    /**
+     * create resource.
+     *
+     * @param resourceDTO {@linkplain ResourceDTO}
+     * @return rows int
+     */
+    int create(ResourceDTO resourceDTO);
+    
+    /**
+     * update resource.
+     *
+     * @param resourceDTO {@linkplain ResourceDTO}
+     * @return rows int
+     */
+    int update(ResourceDTO resourceDTO);
+    
+    /**
+     * create Resource.
+     *
+     * @param resourceDO {@linkplain ResourceDO}
+     */
+    void createResource(ResourceDO resourceDO);
+    
     /**
      * delete resource by id.
      *
@@ -62,7 +80,7 @@ public interface ResourceService {
      * @return rows int
      */
     int delete(List<String> ids);
-
+    
     /**
      * find by id.
      *
@@ -70,7 +88,7 @@ public interface ResourceService {
      * @return {@linkplain ResourceVO}
      */
     ResourceVO findById(String id);
-
+    
     /**
      * find by title.
      *
@@ -78,7 +96,7 @@ public interface ResourceService {
      * @return {@linkplain ResourceVO}
      */
     ResourceVO findByTitle(String title);
-
+    
     /**
      * find by title.
      *
@@ -86,7 +104,7 @@ public interface ResourceService {
      * @return {@linkplain ResourceVO}
      */
     List<ResourceVO> listByTitles(List<String> titles);
-
+    
     /**
      * find page of resource by query.
      *
@@ -94,14 +112,14 @@ public interface ResourceService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<ResourceVO> listByPage(ResourceQuery resourceQuery);
-
+    
     /**
      * get menu tree.
      *
      * @return {@linkplain List}
      */
     List<MenuInfo> getMenuTree();
-
+    
     /**
      * get button by parent id.
      *

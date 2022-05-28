@@ -32,7 +32,7 @@ public enum ShenyuServiceTransfer {
     INSTANCE;
 
     /**
-     * deep copy instance
+     * deep copy instance.
      * @param instance source data
      * @return The new instance
      */

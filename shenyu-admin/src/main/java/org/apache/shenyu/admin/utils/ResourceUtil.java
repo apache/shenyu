@@ -30,6 +30,7 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
@@ -83,7 +84,11 @@ public final class ResourceUtil {
                 .resourceType(AdminResourceEnum.SECOND_MENU.getCode())
                 .sort(0)
                 .icon(AdminConstants.RESOURCE_PLUGIN_DEFAULT_ICON)
-                .isLeaf(Boolean.FALSE).isRoute(0).status(1).perms(StringUtils.EMPTY).build());
+                .isLeaf(Boolean.FALSE)
+                .isRoute(0)
+                .status(1)
+                .perms(StringUtils.EMPTY)
+                .build());
     }
     
     /**
@@ -181,29 +186,25 @@ public final class ResourceUtil {
     /**
      * get delete resource ids.
      *
-     * @param resourceIds resource ids
-     * @param metaList    all resource object
+     * @param resourceIds          resource ids
+     * @param allMetaDataResources all resource object
      * @return the list of ids to delete
      */
-    public static List<String> getDeleteResourceIds(final List<String> resourceIds, final List<ResourceVO> metaList) {
-        
-        List<String> deleteResourceIds = null;
-        if (CollectionUtils.isEmpty(metaList) || CollectionUtils.isEmpty(resourceIds)) {
-            return deleteResourceIds;
+    public static List<ResourceDO> getDeleteResourceIds(final List<String> resourceIds, final List<ResourceDO> allMetaDataResources) {
+        if (CollectionUtils.isEmpty(allMetaDataResources) || CollectionUtils.isEmpty(resourceIds)) {
+            return Collections.emptyList();
         }
-        deleteResourceIds = new ArrayList<>();
-        Map<String, ResourceVO> metaMap = metaList.stream().filter(Objects::nonNull)
-                .collect(Collectors.toMap(ResourceVO::getId, Function.identity(), (value1, value2) -> value1));
+        final List<ResourceDO> deleteResourceIds = new ArrayList<>();
+        final Map<String, ResourceDO> metaMap = ListUtil.toMap(allMetaDataResources, ResourceDO::getId);
+        final Map<String, Set<String>> metaChildrenMap = dealChildrenMap(allMetaDataResources);
         
-        Map<String, Set<String>> metaChildrenMap = dealChildrenMap(metaList);
-        
-        Deque<String> cacheDatas = new ArrayDeque<>(resourceIds);
+        final Deque<String> cacheDatas = new ArrayDeque<>(resourceIds);
         while (!cacheDatas.isEmpty()) {
             String resourceId = cacheDatas.pollFirst();
-            ResourceVO resourceVO = metaMap.get(resourceId);
+            ResourceDO resourceVO = metaMap.get(resourceId);
             Set<String> children = metaChildrenMap.get(resourceId);
             if (Objects.nonNull(resourceVO)) {
-                deleteResourceIds.add(resourceVO.getId());
+                deleteResourceIds.add(resourceVO);
                 metaMap.remove(resourceId);
             }
             if (CollectionUtils.isNotEmpty(children)) {
@@ -220,10 +221,16 @@ public final class ResourceUtil {
      * @param metaList the list to be converted
      * @return the map
      */
-    private static Map<String, Set<String>> dealChildrenMap(final List<ResourceVO> metaList) {
+    private static Map<String, Set<String>> dealChildrenMap(final List<ResourceDO> metaList) {
         return metaList.stream()
                 .filter(meta -> Objects.nonNull(meta) && StringUtils.isNotEmpty(meta.getId()))
-                .collect(Collectors.toMap(ResourceVO::getParentId, ResourceUtil::convertIds, ListUtil::mergeSet));
+                .collect(Collectors.toMap(ResourceDO::getParentId, ResourceUtil::convertIds, ListUtil::mergeSet));
+    }
+    
+    private static Set<String> convertIds(final ResourceDO resourceDO) {
+        Set<String> idSet = new HashSet<>();
+        idSet.add(resourceDO.getId());
+        return idSet;
     }
     
     private static Set<String> convertIds(final ResourceVO resourceVO) {

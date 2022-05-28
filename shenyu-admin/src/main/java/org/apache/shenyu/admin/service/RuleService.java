@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -46,7 +47,25 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @param ruleDTO {@linkplain RuleDTO}
      * @return rows int
      */
-    int createOrUpdate(RuleDTO ruleDTO);
+    default int createOrUpdate(final RuleDTO ruleDTO) {
+        return StringUtils.isBlank(ruleDTO.getId()) ? create(ruleDTO) : update(ruleDTO);
+    }
+    
+    /**
+     * create rule.
+     *
+     * @param ruleDTO {@linkplain RuleDTO}
+     * @return rows int
+     */
+    int create(RuleDTO ruleDTO);
+    
+    /**
+     * update rule.
+     *
+     * @param ruleDTO {@linkplain RuleDTO}
+     * @return rows int
+     */
+    int update(RuleDTO ruleDTO);
     
     /**
      * delete rules.
