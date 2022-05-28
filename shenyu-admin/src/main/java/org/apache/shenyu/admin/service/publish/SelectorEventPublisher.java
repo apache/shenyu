@@ -18,21 +18,28 @@
 package org.apache.shenyu.admin.service.publish;
 
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 import org.apache.shenyu.admin.model.event.selector.BatchSelectorDeletedEvent;
 import org.apache.shenyu.admin.model.event.selector.SelectorChangedEvent;
 import org.apache.shenyu.admin.model.event.selector.SelectorCreatedEvent;
+import org.apache.shenyu.admin.model.event.selector.SelectorUpdatedEvent;
+import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * SelectorEventPublisher.
@@ -64,7 +71,7 @@ public class SelectorEventPublisher implements AdminDataModelChangedEventPublish
      */
     @Override
     public void onUpdated(final SelectorDO selector, final SelectorDO before) {
-        publish(new SelectorChangedEvent(selector, before, EventTypeEnum.SELECTOR_UPDATE, SessionUtil.visitorName()));
+        publish(new SelectorUpdatedEvent(selector, before, SessionUtil.visitorName()));
     }
     
     /**
@@ -80,22 +87,21 @@ public class SelectorEventPublisher implements AdminDataModelChangedEventPublish
     /**
      * on plugin deleted.
      *
-     * @param selectors        selectors
-     * @param selectorDataList selectorDataList
-     */
-    public void onDeleted(final Collection<SelectorDO> selectors, final List<SelectorData> selectorDataList) {
-        onDeleted(selectors);
-        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE, selectorDataList));
-    }
-    
-    /**
-     * on plugin deleted.
-     *
      * @param selectors selectors
+     * @param plugins   about plugin
      */
-    @Override
-    public void onDeleted(final Collection<SelectorDO> selectors) {
-        publish(new BatchSelectorDeletedEvent(selectors, SessionUtil.visitorName()));
+    public void onDeleted(final Collection<SelectorDO> selectors, final List<PluginDO> plugins) {
+        publish(new BatchSelectorDeletedEvent(selectors, SessionUtil.visitorName(), plugins));
+        Map<String, String> pluginMap = ListUtil.toMap(plugins, PluginDO::getId, PluginDO::getName);
+        List<SelectorData> selectorDataList = selectors.stream()
+                .map(selectorDO -> {
+                    String pluginName = pluginMap.get(selectorDO.getPluginId());
+                    if (pluginName.equals(PluginEnum.DIVIDE.getName())) {
+                        UpstreamCheckService.removeByKey(selectorDO.getId());
+                    }
+                    return SelectorDO.transFrom(selectorDO, pluginName, null);
+                }).collect(Collectors.toList());
+        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE, selectorDataList));
     }
     
     /**

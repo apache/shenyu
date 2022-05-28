@@ -78,7 +78,6 @@
                <include refid="Base_Column_List"/>
           FROM app_auth
          WHERE app_key = #{appKey, jdbcType=VARCHAR}
-         LIMIT 1
     </select>
 
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.AppAuthQuery" resultMap="BaseResultMap">

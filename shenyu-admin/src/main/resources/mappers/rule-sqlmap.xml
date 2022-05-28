@@ -163,6 +163,23 @@
         </where>
     </select>
 
+    <select id="getPluginNameByRuleId" resultType="java.lang.String">
+        select p.name
+        from plugin p
+                 inner join selector s on p.id = s.plugin_id
+                 inner join rule r on s.id = r.selector_id
+        where r.id = #{ruleId}
+        limit 1
+    </select>
+    <select id="selectByIds" resultType="org.apache.shenyu.admin.model.entity.RuleDO">
+        select *
+        from rule
+        where id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.RuleDO">
         INSERT INTO rule (id,
                          date_created,

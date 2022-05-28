@@ -42,6 +42,9 @@
    <a target="_blank" href="https://codecov.io/gh/apache/incubator-shenyu">
         <img src="https://codecov.io/gh/apache/incubator-shenyu/branch/master/graph/badge.svg" />
    </a>
+  <a target="_blank" href="https://hub.docker.com/r/apache/shenyu-bootstrap/tags">
+    <image src="https://img.shields.io/docker/pulls/apache/shenyu-bootstrap" alt="Docker Pulls"/>
+  </a>
 </p>
 <br/>
 
