@@ -163,8 +163,6 @@ public final class PluginControllerTest {
                 .andReturn();
         // update fail
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(false);
-        System.out.println(pluginMapper.existed(pluginDTO.getId()));
-        System.out.println(pluginDTO.getId());
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginDTO)))

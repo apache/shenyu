@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 
 public class AlertTemplateDTO {
 

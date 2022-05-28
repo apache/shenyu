@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.admin.validation.validator;
 
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.validation.ExistProvider;
@@ -29,6 +27,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.shenyu.common.utils.ReflectUtils;
+
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
 /**
  * ExistedValidator.
