@@ -71,6 +71,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import static com.qq.tars.common.util.Constants.default_core_pool_size;
+import static com.qq.tars.common.util.Constants.default_max_pool_size;
+
 /**
  * Tars config cache.
  */
@@ -105,24 +108,30 @@ public final class ApplicationConfigCache {
     private ThreadPoolExecutor threadPool;
 
     private ApplicationConfigCache() {
-        communicator = CommunicatorFactory.getInstance().getCommunicator(CommunicatorConfig.getDefault());
-        initThreadPool();
-        if (Objects.nonNull(threadPool)) {
-            Field field = ReflectionUtils.findField(Communicator.class, "threadPoolExecutor");
-            ReflectionUtils.makeAccessible(field);
-            ReflectionUtils.setField(field, communicator, threadPool);
+        TarsRegisterConfig config = Singleton.INST.get(TarsRegisterConfig.class);
+        if (Objects.isNull(config) || StringUtils.isEmpty(config.getThreadpool())) {
+            CommunicatorConfig communicatorConfig = CommunicatorConfig.getDefault()
+                    .setCorePoolSize(Optional.ofNullable(config.getCorethreads()).orElse(default_core_pool_size))
+                    .setMaxPoolSize(Optional.ofNullable(config.getThreads()).orElse(default_max_pool_size))
+                    .setQueueSize(Optional.ofNullable(config.getQueues()).orElse(20000));
+            communicator = CommunicatorFactory.getInstance().getCommunicator(communicatorConfig);
+        } else {
+            communicator = CommunicatorFactory.getInstance().getCommunicator(CommunicatorConfig.getDefault());
+            initThreadPool(config);
+            if (Objects.nonNull(threadPool)) {
+                Field field = ReflectionUtils.findField(Communicator.class, "threadPoolExecutor");
+                ReflectionUtils.makeAccessible(field);
+                ReflectionUtils.setField(field, communicator, threadPool);
+            }
         }
+
     }
 
     /**
      * init thread pool.
      */
-    private void initThreadPool() {
+    private void initThreadPool(final TarsRegisterConfig config) {
         if (Objects.nonNull(threadPool)) {
-            return;
-        }
-        TarsRegisterConfig config = Singleton.INST.get(TarsRegisterConfig.class);
-        if (Objects.isNull(config) || StringUtils.isEmpty(config.getThreadpool())) {
             return;
         }
         switch (config.getThreadpool()) {
