@@ -31,6 +31,7 @@
         <spring-cloud.version>2021.0.2</spring-cloud.version>
         <jersey.version>1.19.4</jersey.version>
         <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
+        <jersey-bom.versoin>3.0.4</jersey-bom.versoin>
     </properties>
 
     <dependencyManagement>
@@ -41,6 +42,12 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
+                <version>${jersey-bom.versoin}</version>
+                <type>pom</type>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -64,6 +71,11 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey-bom.versoin}</version>
+        </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
