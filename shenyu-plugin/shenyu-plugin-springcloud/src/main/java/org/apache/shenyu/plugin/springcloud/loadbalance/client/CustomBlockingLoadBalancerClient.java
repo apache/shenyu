@@ -30,18 +30,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * blocking loadbalance client
+ * blocking loadbalancer client.
  */
-public class CustomBlockingLoadBalancerClient extends BlockingLoadBalancerClient  {
+public class CustomBlockingLoadBalancerClient extends BlockingLoadBalancerClient {
     private final ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory;
 
-    public CustomBlockingLoadBalancerClient(ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory) {
+    public CustomBlockingLoadBalancerClient(final ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory) {
         super(loadBalancerClientFactory);
         this.loadBalancerClientFactory = loadBalancerClientFactory;
     }
 
     @Override
-    public <T> ServiceInstance choose(String serviceId, Request<T> request) {
+    public <T> ServiceInstance choose(final String serviceId, final Request<T> request) {
         ReactiveLoadBalancer<ServiceInstance> loadBalancer = loadBalancerClientFactory.getInstance(serviceId);
         if (loadBalancer == null) {
             return null;

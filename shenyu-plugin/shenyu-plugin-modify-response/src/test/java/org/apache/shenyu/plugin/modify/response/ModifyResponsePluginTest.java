@@ -24,7 +24,6 @@ import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,7 +82,7 @@ public final class ModifyResponsePluginTest {
     @Test
     public void testDoExecute() {
         when(chain.execute(any())).thenReturn(Mono.empty());
-        RuleData ruleDataTest = RuleData.builder().id("1")
+        final RuleData ruleDataTest = RuleData.builder().id("1")
                 .name("test-modify-response-plugin")
                 .pluginName("modifyResponse")
                 .selectorId("1")
@@ -92,15 +91,12 @@ public final class ModifyResponsePluginTest {
                 .loged(true)
                 .selectorId("test")
                 .build();
-        ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
-        Map<String, String> map = new HashMap<>();
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        final Map<String, String> map = new HashMap<>();
         map.put("context-path-id", "1");
         responseRuleHandle.setAddHeaders(map);
-        System.out.println(CacheKeyUtils.INST.getKey(ruleDataTest));
         ModifyResponsePluginDataHandler.CACHED_HANDLE.get().cachedHandle("test_test-modify-response-plugin", responseRuleHandle);
-
         Mono<Void> result = modifyResponsePlugin.doExecute(exchange, chain, selectorData, ruleDataTest);
-
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 

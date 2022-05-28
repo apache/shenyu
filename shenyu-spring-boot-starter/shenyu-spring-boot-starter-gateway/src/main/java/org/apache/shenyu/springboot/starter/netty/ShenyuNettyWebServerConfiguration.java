@@ -77,7 +77,7 @@ public class ShenyuNettyWebServerConfiguration {
         }
 
         @Override
-        public HttpServer apply(HttpServer httpServer) {
+        public HttpServer apply(final HttpServer httpServer) {
             // TODO moremind: optimize httpServer
             return httpServer.runOn(LoopResources.create("shenyu-netty", nettyTcpProperties.getSelectCount(), nettyTcpProperties.getWorkerCount(), true))
                     .option(ChannelOption.SO_BACKLOG, nettyTcpProperties.getServerSocketChannel().getSoBacklog())

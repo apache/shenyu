@@ -54,12 +54,12 @@ public class SpringCloudPluginConfiguration {
 
 
     /**
-     * custom blocking loadbalancer
+     * custom blocking loadbalancer.
      * @param loadBalancerClientFactory loadBalancerFactory
      * @return loadBalancerClient
      */
     @ConditionalOnProperty(value = {"spring.cloud.loadbalancer.ribbon.enabled"}, havingValue = "false", matchIfMissing = true)
-    @ConditionalOnClass(value = { BlockingLoadBalancerClient.class } )
+    @ConditionalOnClass(value = BlockingLoadBalancerClient.class)
     @Bean
     public LoadBalancerClient blockingLoadBalancerClient(final ObjectProvider<LoadBalancerClientFactory> loadBalancerClientFactory) {
         return new CustomBlockingLoadBalancerClient(loadBalancerClientFactory.getIfAvailable());

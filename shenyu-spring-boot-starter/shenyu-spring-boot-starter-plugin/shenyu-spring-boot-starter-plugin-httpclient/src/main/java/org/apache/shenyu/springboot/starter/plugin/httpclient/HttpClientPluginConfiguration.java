@@ -117,7 +117,7 @@ public class HttpClientPluginConfiguration {
         });
         final LoopResources loopResources = provider.getIfAvailable();
         if (Objects.nonNull(loopResources)) {
-           httpClient.runOn(loopResources);
+            httpClient.runOn(loopResources);
         }
         HttpClientProperties.Ssl ssl = properties.getSsl();
         if (StringUtils.isNotEmpty(ssl.getKeyStorePath())
@@ -170,12 +170,12 @@ public class HttpClientPluginConfiguration {
     }
 
     /**
-     * build fixed connection pool
+     * build fixed connection pool.
      * @param poolName pool name
      * @param maxConnections max connections
      * @param acquireTimeout pending acquire timeout
      * @param maxIdleTime max idle time
-     * @return
+     * @return {@link ConnectionProvider}
      */
     public static ConnectionProvider buildFixedConnectionPool(final String poolName, final Integer maxConnections,
                                              final Long acquireTimeout, final Duration maxIdleTime) {
@@ -193,13 +193,13 @@ public class HttpClientPluginConfiguration {
     }
 
     /**
-     * TODO use DefaultPooledConnectionProvider build elastic pool
-     * use {@linkplain reactor.netty.resources.DefaultPooledConnectionProvider}
-     * please see: https://github.com/reactor/reactor-netty/blob/main/reactor-netty-core/src/main/java/reactor/netty/resources/DefaultPooledConnectionProvider.java
+     * TODO use DefaultPooledConnectionProvider build elastic pool.
+     * use {@linkplain reactor.netty.resources DefaultPooledConnectionProvider}.
+     * please see: https://github.com/reactor/reactor-netty/blob/main/reactor-netty-core/src/main/java/reactor/netty/resources/DefaultPooledConnectionProvider.java.
      * @param builder build
      * @return elastic pool
      */
-    public ConnectionProvider buildElasticConnectionPool(ConnectionProvider.Builder builder) {
+    public ConnectionProvider buildElasticConnectionPool(final ConnectionProvider.Builder builder) {
         return ConnectionProvider.builder("proxy").build();
     }
 
