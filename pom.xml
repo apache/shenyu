@@ -80,7 +80,6 @@
         <hutool.version>4.0.8</hutool.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jasypt.version>1.9.2</jasypt.version>
-<!--        not used-->
         <springfox.version>2.6.1</springfox.version>
         <mybatis.starter.version>1.1.1</mybatis.starter.version>
         <mysql.version>5.1.47</mysql.version>
@@ -149,7 +148,6 @@
         <jaxb.api.version>2.3.0</jaxb.api.version>
         <mail.version>1.6.2</mail.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
-        <jakarta.validation.version>3.0.1</jakarta.validation.version>
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
         <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
         <spring-cloud-netflix-ribbon.version>2.2.10.RELEASE</spring-cloud-netflix-ribbon.version>
@@ -448,6 +446,12 @@
                 <artifactId>ojdbc8</artifactId>
                 <version>${ojdbc8.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-validation</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -514,12 +518,6 @@
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
             <version>${jaxb.api.version}</version>
-        </dependency>
-        <!-- springboot-2.6.8 remove javax.validation -->
-        <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-            <version>${jakarta.validation.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
