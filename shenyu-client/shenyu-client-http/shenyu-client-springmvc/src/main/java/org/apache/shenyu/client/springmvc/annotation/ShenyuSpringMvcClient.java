@@ -62,5 +62,5 @@ public @interface ShenyuSpringMvcClient {
      *
      * @return the boolean
      */
-    boolean registerMetaData() default false;
+    boolean registerMetaData() default true;
 }
