@@ -23,8 +23,8 @@ import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.client.grpc.common.dto.GrpcExt;
 import org.apache.shenyu.client.grpc.json.JsonServerServiceInterceptor;
@@ -38,11 +38,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -122,17 +124,31 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             LOG.error(String.format("grpc SERVICE_NAME can not found: %s", classes));
             return;
         }
+        ShenyuGrpcClient grpcClassAnnotation = AnnotationUtils.findAnnotation(clazz, ShenyuGrpcClient.class);
+        String basePath = Objects.nonNull(grpcClassAnnotation)
+                ? StringUtils.defaultIfBlank(grpcClassAnnotation.path(), "")
+                : "";
+        if (basePath.contains("*")) {
+            Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
+            for (Method method : methods) {
+                publisher.publishEvent(buildMetaDataDTO(packageName, grpcClassAnnotation, method, basePath));
+            }
+            return;
+        }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
             ShenyuGrpcClient grpcClient = method.getAnnotation(ShenyuGrpcClient.class);
             if (Objects.nonNull(grpcClient)) {
-                publisher.publishEvent(buildMetaDataDTO(packageName, grpcClient, method));
+                publisher.publishEvent(buildMetaDataDTO(packageName, grpcClient, method, basePath));
             }
         }
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final ShenyuGrpcClient shenyuGrpcClient, final Method method) {
-        String path = this.contextPath + shenyuGrpcClient.path();
+    private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final ShenyuGrpcClient shenyuGrpcClient,
+                                                 final Method method, final String basePath) {
+        String path = basePath.contains("*")
+                ? buildAbsolutePath("/", contextPath, basePath.replace("*", ""), method.getName())
+                : buildAbsolutePath("/", contextPath, basePath, shenyuGrpcClient.path());
         String desc = shenyuGrpcClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuGrpcClient.ruleName();
@@ -157,6 +173,19 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
                 .rpcExt(buildRpcExt(shenyuGrpcClient, methodType))
                 .enabled(shenyuGrpcClient.enabled())
                 .build();
+    }
+
+    private String buildAbsolutePath(final String separator, final String... paths) {
+        List<String> pathList = new ArrayList<>();
+        for (String path : paths) {
+            if (StringUtils.isBlank(path)) {
+                continue;
+            }
+            String newPath = StringUtils.removeStart(path, separator);
+            newPath = StringUtils.removeEnd(newPath, separator);
+            pathList.add(newPath);
+        }
+        return separator + String.join(separator, pathList);
     }
 
     private String buildRpcExt(final ShenyuGrpcClient shenyuGrpcClient,
