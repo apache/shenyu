@@ -30,6 +30,8 @@ import java.util.Properties;
 
 /**
  * Nacos configuration.
+ *
+ * @deprecated {@link DataSyncConfiguration.NacosListener#nacosConfigService}
  */
 @Deprecated
 @EnableConfigurationProperties(NacosProperties.class)
