@@ -186,10 +186,11 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
-        return deleteSelector(selectorMapper.selectByIdSet(new TreeSet<>(ids)), pluginMapper.selectByIds(ids));
+        final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids));
+        return deleteSelector(selectors, pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId)));
     }
     
-    /**
+    /** 更新前端资源
      * find selector by id.
      *
      * @param id primary key.
