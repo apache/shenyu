@@ -49,7 +49,7 @@ public class ShenyuNettyWebServerConfiguration {
     }
     
     /**
-     * Netty reactive web server factory netty reactive web server factory.
+     * Netty reactive web server factory.
      *
      * @param properties the properties
      * @return the netty reactive web server factory

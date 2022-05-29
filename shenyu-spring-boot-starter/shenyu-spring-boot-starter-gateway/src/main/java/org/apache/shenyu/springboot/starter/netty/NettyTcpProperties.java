@@ -33,7 +33,7 @@ public class NettyTcpProperties {
     private SocketChannelProperties socketChannel = new SocketChannelProperties();
 
     /**
-     * gets webServerFactoryEnabled.
+     * get webServerFactoryEnabled.
      *
      * @return webServerFactoryEnabled
      */

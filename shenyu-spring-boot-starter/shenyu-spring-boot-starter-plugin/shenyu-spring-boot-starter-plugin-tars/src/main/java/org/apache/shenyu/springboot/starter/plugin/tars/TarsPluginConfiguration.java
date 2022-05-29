@@ -40,7 +40,7 @@ import org.springframework.context.annotation.Configuration;
 public class TarsPluginConfiguration {
 
     /**
-     * Tars plugin shenyu plugin.
+     * Tars plugin.
      *
      * @return the tars plugin
      */
@@ -50,7 +50,7 @@ public class TarsPluginConfiguration {
     }
 
     /**
-     * Tars meta data subscriber meta data subscriber.
+     * Tars meta data subscriber.
      *
      * @return the meta data subscriber
      */
@@ -70,7 +70,7 @@ public class TarsPluginConfiguration {
     }
     
     /**
-     * Tars shenyu context decorator shenyu context decorator.
+     * Tars shenyu context decorator.
      *
      * @return the shenyu context decorator
      */

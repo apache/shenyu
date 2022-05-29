@@ -64,7 +64,7 @@ public class HttpSyncDataConfiguration {
     }
 
     /**
-     * Http config http config.
+     * Http config.
      *
      * @return the http config
      */
