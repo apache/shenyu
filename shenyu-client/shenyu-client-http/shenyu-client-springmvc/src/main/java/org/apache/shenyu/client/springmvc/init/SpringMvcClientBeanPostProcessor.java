@@ -120,9 +120,9 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         for (Method method : methods) {
             final RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
             ShenyuSpringMvcClient methodShenyuClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
+            methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
             // the result of ReflectionUtils#getUniqueDeclaredMethods contains method such as hashCode, wait, toSting
             // add Objects.nonNull(requestMapping) to make sure not register wrong method
-            methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
             if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
                 publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath)));
             }
