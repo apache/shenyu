@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.sentinel;
 
 import com.alibaba.csp.sentinel.adapter.spring.webflux.exception.SentinelBlockExceptionHandler;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.sentinel.SentinelPlugin;
@@ -71,7 +72,7 @@ public class SentinelPluginConfiguration {
      * @return the shenyu plugin
      */
     @Bean
-    public SentinelPlugin sentinelPlugin(final FallbackHandler fallbackHandler) {
+    public ShenyuPlugin sentinelPlugin(final FallbackHandler fallbackHandler) {
         return new SentinelPlugin(fallbackHandler);
     }
 

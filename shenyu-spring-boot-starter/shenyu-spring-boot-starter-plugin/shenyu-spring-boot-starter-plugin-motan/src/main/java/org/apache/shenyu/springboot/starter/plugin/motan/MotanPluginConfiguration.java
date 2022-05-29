@@ -18,6 +18,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.motan;
 
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.motan.MotanPlugin;
@@ -45,7 +46,7 @@ public class MotanPluginConfiguration {
      * @return the shenyu plugin
      */
     @Bean
-    public MotanPlugin motanPlugin() {
+    public ShenyuPlugin motanPlugin() {
         return new MotanPlugin(new MotanProxyService());
     }
 
