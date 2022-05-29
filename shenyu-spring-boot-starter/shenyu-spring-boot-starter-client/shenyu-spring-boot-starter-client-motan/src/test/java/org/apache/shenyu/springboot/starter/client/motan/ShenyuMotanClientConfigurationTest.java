@@ -59,7 +59,7 @@ public class ShenyuMotanClientConfigurationTest {
                 "shenyu.client.motan.props[port]=8081"
             )
             .run(context -> {
-                MotanServiceBeanPostProcessor processor = context.getBean("tarsServiceBeanPostProcessor", MotanServiceBeanPostProcessor.class);
+                MotanServiceBeanPostProcessor processor = context.getBean("motanServiceBeanPostProcessor", MotanServiceBeanPostProcessor.class);
                 assertNotNull(processor);
             });
         registerUtilsMockedStatic.close();

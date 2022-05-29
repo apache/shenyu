@@ -60,7 +60,7 @@ public class SpringCloudPluginConfiguration {
     }
 
     /**
-     * Spring cloud shenyu context decorator shenyu context decorator.
+     * Spring cloud shenyu context decorator.
      *
      * @return the shenyu context decorator
      */
@@ -82,7 +82,7 @@ public class SpringCloudPluginConfiguration {
     /**
      * Custom ribbon IRule.
      *
-     * @return ribbonClientSpecification ribbonClientSpecification
+     * @return ribbonClientSpecification
      */
     @Bean
     public RibbonClientSpecification ribbonClientSpecification() {

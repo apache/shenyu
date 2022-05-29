@@ -18,6 +18,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.motan;
 
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.motan.MotanPlugin;
@@ -40,17 +41,17 @@ import org.springframework.context.annotation.Configuration;
 public class MotanPluginConfiguration {
 
     /**
-     * Motan plugin shenyu plugin.
+     * Motan plugin.
      *
      * @return the shenyu plugin
      */
     @Bean
-    public MotanPlugin motanPlugin() {
+    public ShenyuPlugin motanPlugin() {
         return new MotanPlugin(new MotanProxyService());
     }
 
     /**
-     * Motan plugin data handler plugin data handler.
+     * Motan plugin data handler.
      *
      * @return the plugin data handler
      */
@@ -60,7 +61,7 @@ public class MotanPluginConfiguration {
     }
 
     /**
-     * Motan meta data subscriber meta data subscriber.
+     * Motan meta data subscriber.
      *
      * @return the meta data subscriber
      */
@@ -70,7 +71,7 @@ public class MotanPluginConfiguration {
     }
     
     /**
-     * motan shenyu context decorator shenyu context decorator.
+     * motan shenyu context decorator.
      *
      * @return the shenyu context decorator
      */

@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 public class HystrixPluginConfiguration {
     
     /**
-     * Hystrix plugin shenyu plugin.
+     * Hystrix plugin.
      *
      * @return the shenyu plugin
      */
@@ -43,7 +43,7 @@ public class HystrixPluginConfiguration {
     }
     
     /**
-     * Hystrix plugin data handler plugin data handler.
+     * Hystrix plugin data handler.
      *
      * @return the plugin data handler
      */

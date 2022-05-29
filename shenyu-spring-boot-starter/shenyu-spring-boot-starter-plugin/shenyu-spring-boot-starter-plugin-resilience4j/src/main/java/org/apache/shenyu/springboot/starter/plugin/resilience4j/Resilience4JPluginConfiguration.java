@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.plugin.resilience4j;
 
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.resilience4j.Resilience4JPlugin;
 import org.apache.shenyu.plugin.resilience4j.executor.CombinedExecutor;
 import org.apache.shenyu.plugin.resilience4j.executor.RateLimiterExecutor;
@@ -38,7 +40,7 @@ public class Resilience4JPluginConfiguration {
      * @return the shenyu plugin
      */
     @Bean
-    public Resilience4JPlugin resilience4JPlugin() {
+    public ShenyuPlugin resilience4JPlugin() {
         return new Resilience4JPlugin(new CombinedExecutor(), new RateLimiterExecutor());
     }
 
@@ -48,7 +50,7 @@ public class Resilience4JPluginConfiguration {
      * @return ResilienceHandler
      */
     @Bean
-    public Resilience4JHandler resilience4JHandler() {
+    public PluginDataHandler resilience4JHandler() {
         return new Resilience4JHandler();
     }
 }

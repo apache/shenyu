@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Configuration;
 public class SignPluginConfiguration {
     
     /**
-     * Sign service sign service.
+     * Sign service.
      *
      * @return the sign service
      */
@@ -61,7 +61,7 @@ public class SignPluginConfiguration {
     }
     
     /**
-     * sign plugin shenyu plugin.
+     * sign plugin.
      *
      * @param signService the sign service
      * @return the shenyu plugin

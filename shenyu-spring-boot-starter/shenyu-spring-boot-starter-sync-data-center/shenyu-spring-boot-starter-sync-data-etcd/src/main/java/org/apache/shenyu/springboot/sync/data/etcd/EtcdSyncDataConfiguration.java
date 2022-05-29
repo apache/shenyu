@@ -48,7 +48,7 @@ public class EtcdSyncDataConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdSyncDataConfiguration.class);
 
     /**
-     * Sync data service sync data service.
+     * Sync data service.
      *
      * @param etcdClients the etcd client
      * @param pluginSubscriber the plugin subscriber

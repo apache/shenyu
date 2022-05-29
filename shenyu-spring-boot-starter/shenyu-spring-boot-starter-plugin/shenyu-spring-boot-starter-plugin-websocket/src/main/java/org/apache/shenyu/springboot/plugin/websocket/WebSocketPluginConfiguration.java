@@ -41,7 +41,7 @@ import reactor.netty.http.client.HttpClient;
 public class WebSocketPluginConfiguration {
 
     /**
-     * Websocket plugin data handler plugin data handler.
+     * Websocket plugin data handler.
      *
      * @return the plugin data handler
      */
@@ -63,7 +63,7 @@ public class WebSocketPluginConfiguration {
     }
 
     /**
-     * Reactor netty web socket client reactor netty web socket client.
+     * Reactor netty web socket client.
      *
      * @param shenyuConfig the shenyu config
      * @param httpClient   the http client
@@ -78,7 +78,7 @@ public class WebSocketPluginConfiguration {
     }
 
     /**
-     * Web socket service web socket service.
+     * Web socket service.
      *
      * @return the web socket service
      */
@@ -88,7 +88,7 @@ public class WebSocketPluginConfiguration {
     }
 
     /**
-     * Web socket shenyu context decorator shenyu context decorator.
+     * Web socket shenyu context decorator.
      *
      * @return the shenyu context decorator
      */

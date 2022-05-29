@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 public class DubboCommonConfiguration {
     
     /**
-     * Dubbo shenyu context decorator shenyu context decorator.
+     * Dubbo shenyu context decorator.
      *
      * @return the shenyu context decorator
      */
@@ -43,7 +43,7 @@ public class DubboCommonConfiguration {
     }
     
     /**
-     * Generic param resolve service dubbo param resolve service.
+     * Dubbo generic param resolve service.
      *
      * @return the dubbo param resolve service
      */
