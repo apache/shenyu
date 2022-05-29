@@ -28,12 +28,17 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.plugin.TarsRegisterConfig;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.tars.exception.ShenyuTarsPluginException;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrx;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
@@ -46,16 +51,28 @@ import org.assertj.core.internal.bytebuddy.dynamic.DynamicType;
 import org.assertj.core.internal.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.lang.NonNull;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+
+import static com.qq.tars.common.util.Constants.default_core_pool_size;
+import static com.qq.tars.common.util.Constants.default_max_pool_size;
 
 /**
  * Tars config cache.
@@ -85,11 +102,60 @@ public final class ApplicationConfigCache {
     private final ConcurrentHashMap<String, List<TarsUpstream>> refreshUpstreamCache = new ConcurrentHashMap<>();
     
     private final Communicator communicator;
-    
+
+    private final ThreadFactory factory = ShenyuThreadFactory.create("shenyu-tars", true);
+
+    private ThreadPoolExecutor threadPool;
+
     private ApplicationConfigCache() {
-        communicator = CommunicatorFactory.getInstance().getCommunicator(CommunicatorConfig.getDefault());
+        TarsRegisterConfig config = Singleton.INST.get(TarsRegisterConfig.class);
+        if (Objects.isNull(config) || StringUtils.isEmpty(config.getThreadpool())) {
+            CommunicatorConfig communicatorConfig = CommunicatorConfig.getDefault()
+                    .setCorePoolSize(Optional.ofNullable(config.getCorethreads()).orElse(default_core_pool_size))
+                    .setMaxPoolSize(Optional.ofNullable(config.getThreads()).orElse(default_max_pool_size))
+                    .setQueueSize(Optional.ofNullable(config.getQueues()).orElse(20000));
+            communicator = CommunicatorFactory.getInstance().getCommunicator(communicatorConfig);
+        } else {
+            communicator = CommunicatorFactory.getInstance().getCommunicator(CommunicatorConfig.getDefault());
+            initThreadPool(config);
+            if (Objects.nonNull(threadPool)) {
+                Field field = ReflectionUtils.findField(Communicator.class, "threadPoolExecutor");
+                ReflectionUtils.makeAccessible(field);
+                ReflectionUtils.setField(field, communicator, threadPool);
+            }
+        }
+
     }
-    
+
+    /**
+     * init thread pool.
+     */
+    private void initThreadPool(final TarsRegisterConfig config) {
+        if (Objects.nonNull(threadPool)) {
+            return;
+        }
+        switch (config.getThreadpool()) {
+            case Constants.SHARED:
+                try {
+                    threadPool = SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class);
+                    return;
+                } catch (NoSuchBeanDefinitionException t) {
+                    throw new ShenyuException("shared thread pool is not enable, config ${shenyu.sharedPool.enable} in your xml/yml !", t);
+                }
+            case Constants.FIXED:
+            case Constants.EAGER:
+            case Constants.LIMITED:
+                throw new UnsupportedOperationException();
+            case Constants.CACHED:
+            default:
+                int corePoolSize = Optional.ofNullable(config.getCorethreads()).orElse(0);
+                int maximumPoolSize = Optional.ofNullable(config.getThreads()).orElse(Integer.MAX_VALUE);
+                int queueSize = Optional.ofNullable(config.getQueues()).orElse(0);
+                threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.SECONDS,
+                        queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
+        }
+    }
+
     /**
      * Get reference config.
      *

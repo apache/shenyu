@@ -765,6 +765,11 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172864', '30', 'minIdle', 'min
 INSERT INTO `plugin_handle` VALUES ('1529402613204172865', '30', 'maxActive', 'maxActive', 1, 3, 9, '{\"required\":\"0\",\"defaultValue\":\"8\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172866', '30', 'maxWait', 'maxWait', 3, 3, 10, '{\"required\":\"0\",\"defaultValue\":\"-1\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172867', '30', 'timeoutSeconds', 'timeoutSeconds', 1, 2, 0, '{\"required\":\"0\",\"defaultValue\":\"60\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172868', '13', 'corethreads', 'corethreads', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"corethreads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172869', '13', 'threads', 'threads', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"2147483647\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172870', '13', 'queues', 'queues', 1, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172871', '13', 'threadpool', 'threadpool', 3, 3, 0, '{\"required\":\"0\",\"defaultValue\":\"cached\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+
 
 -- ----------------------------
 -- Table structure for resource

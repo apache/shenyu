@@ -23,7 +23,6 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.converter.SpringCloudSelectorHandleConverter;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
-import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
@@ -66,7 +65,6 @@ public class ShenyuClientRegisterSpringCloudServiceImpl extends AbstractContextP
     @Override
     protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
         MetaDataService metaDataService = getMetaDataService();
-        metaDataDTO.setPath(PathUtils.decoratorPath(metaDataDTO.getContextPath()));
         MetaDataDO metaDataDO = metaDataService.findByPath(metaDataDTO.getPath());
         metaDataService.saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
