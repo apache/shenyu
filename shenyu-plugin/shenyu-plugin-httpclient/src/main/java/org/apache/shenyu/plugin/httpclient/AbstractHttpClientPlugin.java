@@ -86,7 +86,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
             //old version of DividePlugin and SpringCloudPlugin will run on this
             RetryBackoffSpec retryBackoffSpec = Retry.backoff(retryTimes, Duration.ofMillis(20L))
-                    .maxBackoff(Duration.ofSeconds(5L))
+                    .maxBackoff(Duration.ofSeconds(20L))
                     .transientErrors(true)
                     .jitter(0.5d)
                     .scheduler(Schedulers.parallel())
