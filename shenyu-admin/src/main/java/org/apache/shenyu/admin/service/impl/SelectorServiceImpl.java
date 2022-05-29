@@ -190,7 +190,7 @@ public class SelectorServiceImpl implements SelectorService {
         return deleteSelector(selectors, pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId)));
     }
     
-    /** 更新前端资源
+    /**
      * find selector by id.
      *
      * @param id primary key.
