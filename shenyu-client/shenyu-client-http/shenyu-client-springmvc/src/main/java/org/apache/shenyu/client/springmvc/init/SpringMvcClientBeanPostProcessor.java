@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -117,9 +118,12 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
         for (Method method : methods) {
+            final RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
             ShenyuSpringMvcClient methodShenyuClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
             methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
-            if (Objects.nonNull(methodShenyuClient)) {
+            // the result of ReflectionUtils#getUniqueDeclaredMethods contains method such as hashCode, wait, toSting
+            // add Objects.nonNull(requestMapping) to make sure not register wrong method
+            if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
                 publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath)));
             }
         }
