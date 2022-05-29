@@ -49,7 +49,7 @@ public class ZookeeperSyncDataConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperSyncDataConfiguration.class);
 
     /**
-     * Sync data service sync data service.
+     * Sync data service.
      *
      * @param zookeeperClient  the zk client
      * @param pluginSubscriber the plugin subscriber

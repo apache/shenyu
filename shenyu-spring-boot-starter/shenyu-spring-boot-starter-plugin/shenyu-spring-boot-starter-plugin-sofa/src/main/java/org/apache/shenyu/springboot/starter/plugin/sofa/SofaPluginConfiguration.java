@@ -46,7 +46,7 @@ import org.springframework.context.annotation.Configuration;
 public class SofaPluginConfiguration {
     
     /**
-     * Sofa plugin shenyu plugin.
+     * Sofa plugin.
      *
      * @param sofaParamResolveService the sofa param resolve service
      * @return the shenyu plugin
@@ -57,7 +57,7 @@ public class SofaPluginConfiguration {
     }
     
     /**
-     * Sofa param resolve service sofa param resolve service.
+     * Sofa param resolve service.
      *
      * @return the sofa param resolve service
      */
@@ -68,7 +68,7 @@ public class SofaPluginConfiguration {
     }
     
     /**
-     * Sofa plugin data handler plugin data handler.
+     * Sofa plugin data handler.
      *
      * @return the plugin data handler
      */
@@ -78,7 +78,7 @@ public class SofaPluginConfiguration {
     }
     
     /**
-     * Sofa meta data subscriber meta data subscriber.
+     * Sofa meta data subscriber.
      *
      * @return the meta data subscriber
      */
@@ -88,7 +88,7 @@ public class SofaPluginConfiguration {
     }
     
     /**
-     * Sofa shenyu context decorator shenyu context decorator.
+     * Sofa shenyu context decorator.
      *
      * @return the shenyu context decorator
      */

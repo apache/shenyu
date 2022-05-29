@@ -35,11 +35,11 @@ import org.springframework.context.annotation.Configuration;
 public class ShenyuSpringWebSocketClientConfiguration {
 
     /**
-     * Spring http client bean post processor spring mvc client bean post processor.
+     * Spring web socket client bean post processor.
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
-     * @return the spring mvc client bean post processor
+     * @return the spring web socket client bean post processor
      */
     @Bean
     public SpringWebSocketClientBeanPostProcessor springWebSocketClientBeanPostProcessor(
@@ -49,10 +49,10 @@ public class ShenyuSpringWebSocketClientConfiguration {
     }
 
     /**
-     * Context register listener context register listener.
+     * Context register listener.
      *
      * @param clientConfig the client config
-     * @return the context register listener
+     * @return the spring context register listener
      */
     @Bean
     public SpringContextRegisterListener webSocketContextRegisterListener(final ShenyuClientConfig clientConfig) {

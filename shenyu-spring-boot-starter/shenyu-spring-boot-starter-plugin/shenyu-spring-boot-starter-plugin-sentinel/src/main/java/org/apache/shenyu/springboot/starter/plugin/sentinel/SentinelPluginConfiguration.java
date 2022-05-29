@@ -87,7 +87,7 @@ public class SentinelPluginConfiguration {
     }
 
     /**
-     * Sentinel plugin data handler plugin data handler.
+     * Sentinel plugin data handler.
      *
      * @return the plugin data handler
      */

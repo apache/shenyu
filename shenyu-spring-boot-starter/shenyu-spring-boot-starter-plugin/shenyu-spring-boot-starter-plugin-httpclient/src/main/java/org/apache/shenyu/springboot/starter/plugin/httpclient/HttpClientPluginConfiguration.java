@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 public class HttpClientPluginConfiguration {
 
     /**
-     * Http client properties http client properties.
+     * Http client properties.
      *
      * @return the http client properties
      */
@@ -202,7 +202,7 @@ public class HttpClientPluginConfiguration {
     static class NettyHttpClientConfiguration {
 
         /**
-         * Netty http client plugin shenyu plugin.
+         * Netty http client plugin.
          *
          * @param httpClient the http client
          * @return the shenyu plugin

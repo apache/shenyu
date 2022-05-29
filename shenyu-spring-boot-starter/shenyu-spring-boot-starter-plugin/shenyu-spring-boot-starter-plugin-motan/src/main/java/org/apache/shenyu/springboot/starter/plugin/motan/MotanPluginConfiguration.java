@@ -40,7 +40,7 @@ import org.springframework.context.annotation.Configuration;
 public class MotanPluginConfiguration {
 
     /**
-     * Motan plugin shenyu plugin.
+     * Motan plugin.
      *
      * @return the shenyu plugin
      */
@@ -50,7 +50,7 @@ public class MotanPluginConfiguration {
     }
 
     /**
-     * Motan plugin data handler plugin data handler.
+     * Motan plugin data handler.
      *
      * @return the plugin data handler
      */
@@ -60,7 +60,7 @@ public class MotanPluginConfiguration {
     }
 
     /**
-     * Motan meta data subscriber meta data subscriber.
+     * Motan meta data subscriber.
      *
      * @return the meta data subscriber
      */
@@ -70,7 +70,7 @@ public class MotanPluginConfiguration {
     }
     
     /**
-     * motan shenyu context decorator shenyu context decorator.
+     * motan shenyu context decorator.
      *
      * @return the shenyu context decorator
      */
