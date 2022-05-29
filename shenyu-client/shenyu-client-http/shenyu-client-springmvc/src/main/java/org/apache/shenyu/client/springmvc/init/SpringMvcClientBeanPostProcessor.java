@@ -56,26 +56,26 @@ import java.util.Properties;
  * The type Shenyu spring mvc client bean post processor.
  */
 public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
-
+    
     /**
      * api path separator.
      */
     private static final String PATH_SEPARATOR = "/";
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(SpringMvcClientBeanPostProcessor.class);
-
+    
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-
+    
     private final String contextPath;
-
+    
     private final String appName;
-
+    
     private final Boolean isFull;
-
+    
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(7);
-
+    
     private final String[] pathAttributeNames = new String[]{"path", "value"};
-
+    
     /**
      * Instantiates a new Spring mvc client bean post processor.
      *
@@ -101,14 +101,14 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         mappingAnnotation.add(RequestMapping.class);
         publisher.start(shenyuClientRegisterRepository);
     }
-
+    
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
         // Filter out is not controller out
         if (Boolean.TRUE.equals(isFull) || !hasAnnotation(bean.getClass(), Controller.class)) {
             return bean;
         }
-
+        
         final ShenyuSpringMvcClient beanShenyuClient = AnnotationUtils.findAnnotation(bean.getClass(), ShenyuSpringMvcClient.class);
         final String superPath = buildApiSuperPath(bean.getClass());
         // Compatible with previous versions
@@ -127,14 +127,14 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath)));
             }
         }
-
+        
         return bean;
     }
-
+    
     private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz, final @NonNull Class<A> annotationType) {
         return Objects.nonNull(AnnotationUtils.findAnnotation(clazz, annotationType));
     }
-
+    
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
         ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
         if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
@@ -146,7 +146,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return pathJoin(contextPath, superPath);
     }
-
+    
     private String getPathByMethod(@NonNull final Method method) {
         for (Class<? extends Annotation> mapping : mappingAnnotation) {
             final String pathByAnnotation = getPathByAnnotation(AnnotationUtils.findAnnotation(method, mapping), pathAttributeNames);
@@ -156,7 +156,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return null;
     }
-
+    
     private String getPathByAnnotation(@Nullable final Annotation annotation, @NonNull final String... pathAttributeName) {
         if (Objects.isNull(annotation)) {
             return null;
@@ -173,7 +173,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return null;
     }
-
+    
     private String buildApiSuperPath(@NonNull final Class<?> method) {
         ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
         if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
@@ -186,7 +186,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return "";
     }
-
+    
     private String pathJoin(@NonNull final String... path) {
         StringBuilder result = new StringBuilder(PATH_SEPARATOR);
         for (String p : path) {
@@ -197,7 +197,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return result.toString();
     }
-
+    
     private MetaDataRegisterDTO buildMetaDataDTO(@NonNull final ShenyuSpringMvcClient shenyuSpringMvcClient, final String path) {
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
@@ -210,5 +210,5 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .registerMetaData(shenyuSpringMvcClient.registerMetaData())
                 .build();
     }
-
+    
 }
