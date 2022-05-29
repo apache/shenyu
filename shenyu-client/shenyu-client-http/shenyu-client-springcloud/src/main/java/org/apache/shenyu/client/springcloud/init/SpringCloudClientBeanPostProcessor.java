@@ -125,6 +125,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
             final RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
             ShenyuSpringCloudClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringCloudClient.class);
             methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
+            // the result of ReflectionUtils#getUniqueDeclaredMethods contains methods such as hashCode, wait, toSting
+            // add Objects.nonNull(requestMapping) to make sure not register wrong method
             if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
                 publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath, methodShenyuClient)));
             }
