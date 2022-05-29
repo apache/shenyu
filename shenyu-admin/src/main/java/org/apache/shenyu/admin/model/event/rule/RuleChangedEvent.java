@@ -55,7 +55,7 @@ public class RuleChangedEvent extends AdminDataModelChangedEvent {
     private String contrast() {
         final RuleDO before = (RuleDO) getBefore();
         Objects.requireNonNull(before);
-        final SelectorDO after = (SelectorDO) getAfter();
+        final RuleDO after = (RuleDO) getAfter();
         Objects.requireNonNull(after);
         if (Objects.equals(before, after)) {
             return "it no change";
