@@ -110,22 +110,22 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         if (AopUtils.isAopProxy(targetProxy)) {
             clazz = AopUtils.getTargetClass(targetProxy);
         }
-        final ShenyuSofaClient shenyuSofaClient = AnnotationUtils.findAnnotation(clazz, ShenyuSofaClient.class);
-        final String superPath = buildApiSuperPath(shenyuSofaClient);
+        final ShenyuSofaClient beanSofaClient = AnnotationUtils.findAnnotation(clazz, ShenyuSofaClient.class);
+        final String superPath = buildApiSuperPath(beanSofaClient);
         if (superPath.contains("*")) {
             Method[] declaredMethods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method declaredMethod : declaredMethods) {
-                if (Objects.nonNull(shenyuSofaClient)) {
-                    publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuSofaClient, declaredMethod, superPath));
+                if (Objects.nonNull(beanSofaClient)) {
+                    publisher.publishEvent(buildMetaDataDTO(serviceBean, beanSofaClient, declaredMethod, superPath));
                 }
             }
             return;
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuSofaClient shenyuSofaClientAnnotation = method.getAnnotation(ShenyuSofaClient.class);
-            if (Objects.nonNull(shenyuSofaClientAnnotation)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuSofaClientAnnotation, method, superPath));
+            ShenyuSofaClient methodSofaClient = method.getAnnotation(ShenyuSofaClient.class);
+            if (Objects.nonNull(methodSofaClient)) {
+                publisher.publishEvent(buildMetaDataDTO(serviceBean, methodSofaClient, method, superPath));
             }
         }
     }
@@ -139,12 +139,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private MetaDataRegisterDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final ShenyuSofaClient shenyuSofaClient, final Method method, final String superPath) {
         String appName = this.appName;
-        String path;
-        if (superPath.contains("*")) {
-            path = pathJoin(contextPath, superPath.replace("*", ""), method.getName());
-        } else {
-            path = pathJoin(contextPath, superPath, shenyuSofaClient.path());
-        }
+        String path = pathJoin(contextPath, superPath, shenyuSofaClient.path());
         String desc = shenyuSofaClient.desc();
         String serviceName = serviceBean.getInterfaceClass().getName();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
