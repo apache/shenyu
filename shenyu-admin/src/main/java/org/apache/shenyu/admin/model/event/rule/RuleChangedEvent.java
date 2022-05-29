@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.model.event.rule;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.RuleDO;
-import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 
@@ -55,7 +54,7 @@ public class RuleChangedEvent extends AdminDataModelChangedEvent {
     private String contrast() {
         final RuleDO before = (RuleDO) getBefore();
         Objects.requireNonNull(before);
-        final SelectorDO after = (SelectorDO) getAfter();
+        final RuleDO after = (RuleDO) getAfter();
         Objects.requireNonNull(after);
         if (Objects.equals(before, after)) {
             return "it no change";
