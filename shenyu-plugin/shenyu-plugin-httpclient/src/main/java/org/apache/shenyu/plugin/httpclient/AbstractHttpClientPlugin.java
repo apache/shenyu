@@ -89,7 +89,6 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                     .maxBackoff(Duration.ofSeconds(20L))
                     .transientErrors(true)
                     .jitter(0.5d)
-                    .scheduler(Schedulers.parallel())
                     .filter(t -> t instanceof TimeoutException || t instanceof ConnectTimeoutException
                             || t instanceof ReadTimeoutException || t instanceof IllegalStateException);
             return response.retryWhen(retryBackoffSpec)
