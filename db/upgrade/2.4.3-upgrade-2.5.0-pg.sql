@@ -68,4 +68,3 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524913', '13', 'coret
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524914', '13', 'threads', 'threads', 1, 3, 0, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524915', '13', 'queues', 'queues', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524916', '13', 'threadpool', 'threadpool', 3, 3, 0, '{"required":"0","defaultValue":"cached","placeholder":"threadpool","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-UPDATE plugin SET config='{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"\"}' WHERE `name` = 'tars';
