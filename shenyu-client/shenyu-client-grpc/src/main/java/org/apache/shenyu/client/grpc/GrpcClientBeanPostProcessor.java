@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -125,9 +126,8 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             return;
         }
         ShenyuGrpcClient grpcClassAnnotation = AnnotationUtils.findAnnotation(clazz, ShenyuGrpcClient.class);
-        String basePath = Objects.nonNull(grpcClassAnnotation)
-                ? StringUtils.defaultIfBlank(grpcClassAnnotation.path(), "")
-                : "";
+        String basePath = Optional.ofNullable(grpcClassAnnotation)
+                .map(annotation -> StringUtils.defaultIfBlank(grpcClassAnnotation.path(), "")).orElse("");
         if (basePath.contains("*")) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
