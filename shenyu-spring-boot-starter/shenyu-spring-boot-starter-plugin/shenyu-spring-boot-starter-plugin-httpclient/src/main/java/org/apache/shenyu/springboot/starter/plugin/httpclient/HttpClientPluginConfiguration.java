@@ -96,19 +96,7 @@ public class HttpClientPluginConfiguration {
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
         HttpClientProperties.Proxy proxy = properties.getProxy();
         if (StringUtils.isNotEmpty(proxy.getHost())) {
-            httpClient.proxy(proxySpec -> {
-                ProxyProvider.Builder builder = proxySpec
-                        .type(ProxyProvider.Proxy.HTTP)
-                        .host(proxy.getHost());
-                PropertyMapper map = PropertyMapper.get();
-                map.from(proxy::getPort).whenNonNull().to(builder::port);
-                map.from(proxy::getUsername).whenHasText()
-                        .to(builder::username);
-                map.from(proxy::getPassword).whenHasText()
-                        .to(password -> builder.password(s -> password));
-                map.from(proxy::getNonProxyHostsPattern).whenHasText()
-                        .to(builder::nonProxyHosts);
-            });
+            httpClient = setHttpClientProxy(httpClient, proxy);
         }
         httpClient.doOnConnected(connection -> {
             connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
@@ -131,6 +119,28 @@ public class HttpClientPluginConfiguration {
         // set to false, fix java.io.IOException: Connection reset by peer
         // see https://github.com/reactor/reactor-netty/issues/388
         return httpClient.keepAlive(properties.isKeepAlive());
+    }
+
+    /**
+     * set http proxy.
+     * @param httpClient http client
+     * @param proxy proxy
+     * @return HttpClient
+     */
+    private HttpClient setHttpClientProxy(HttpClient httpClient, HttpClientProperties.Proxy proxy) {
+        return httpClient.proxy(proxySpec -> {
+            ProxyProvider.Builder builder = proxySpec
+                    .type(ProxyProvider.Proxy.HTTP)
+                    .host(proxy.getHost());
+            PropertyMapper map = PropertyMapper.get();
+            map.from(proxy::getPort).whenNonNull().to(builder::port);
+            map.from(proxy::getUsername).whenHasText()
+                    .to(builder::username);
+            map.from(proxy::getPassword).whenHasText()
+                    .to(password -> builder.password(s -> password));
+            map.from(proxy::getNonProxyHostsPattern).whenHasText()
+                    .to(builder::nonProxyHosts);
+        });
     }
 
     private void setSsl(final SslProvider.SslContextSpec sslContextSpec, final HttpClientProperties.Ssl ssl) {
