@@ -74,18 +74,3 @@ Content-Type: application/json
   ]
 }
 
-### shengyu gateway proxy clientStreamingFun
-POST http://localhost:9195/grpc/serverStreamingFun
-Accept: application/json
-Content-Type: application/json
-
-{
-  "data": [
-    {
-      "message": "hello grpc"
-    },
-    {
-      "message": "hello grpc"
-    }
-  ]
-}
