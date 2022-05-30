@@ -59,7 +59,7 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                 .body(BodyInserters.fromDataBuffers(body))
                 .exchangeToMono(res -> res.bodyToMono(String.class)
                         .map(responseBody -> ClientResponse.create(res.statusCode())
-                                .headers(headers -> res.headers().asHttpHeaders())
+                                .headers(headers -> headers.addAll(res.headers().asHttpHeaders()))
                                 .body(responseBody)
                                 .build()))
                 .doOnSuccess(res -> {
