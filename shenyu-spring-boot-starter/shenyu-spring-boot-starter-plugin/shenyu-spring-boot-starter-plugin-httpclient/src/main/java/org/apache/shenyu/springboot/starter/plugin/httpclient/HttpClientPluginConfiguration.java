@@ -127,7 +127,7 @@ public class HttpClientPluginConfiguration {
      * @param proxy proxy
      * @return HttpClient
      */
-    private HttpClient setHttpClientProxy(HttpClient httpClient, HttpClientProperties.Proxy proxy) {
+    private HttpClient setHttpClientProxy(final HttpClient httpClient, final HttpClientProperties.Proxy proxy) {
         return httpClient.proxy(proxySpec -> {
             ProxyProvider.Builder builder = proxySpec
                     .type(ProxyProvider.Proxy.HTTP)
