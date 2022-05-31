@@ -78,33 +78,17 @@ public class ShenyuNettyWebServerConfiguration {
 
         @Override
         public HttpServer apply(final HttpServer httpServer) {
-            return httpServer
-                    .tcpConfiguration(tcpServer -> tcpServer
-                            .runOn(LoopResources.create("shenyu-netty", nettyTcpProperties.getSelectCount(), nettyTcpProperties.getWorkerCount(), true))
-                            .selectorOption(ChannelOption.SO_BACKLOG, nettyTcpProperties.getServerSocketChannel().getSoBacklog())
-                            .selectorOption(ChannelOption.SO_REUSEADDR, nettyTcpProperties.getServerSocketChannel().isSoReuseAddr())
-                            .selectorOption(ChannelOption.SO_RCVBUF, nettyTcpProperties.getServerSocketChannel().getSoRcvBuf())
-                            .selectorOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpProperties.getServerSocketChannel().getConnectTimeoutMillis())
-                            .selectorOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpProperties.getServerSocketChannel().getWriteBufferLowWaterMark(),
-                                    nettyTcpProperties.getServerSocketChannel().getWriteBufferHighWaterMark()))
-                            .selectorOption(ChannelOption.WRITE_SPIN_COUNT, nettyTcpProperties.getServerSocketChannel().getWriteSpinCount())
-                            .selectorOption(ChannelOption.AUTO_READ, nettyTcpProperties.getServerSocketChannel().isAutoRead())
-                            .selectorOption(ChannelOption.ALLOCATOR, nettyTcpProperties.getServerSocketChannel().getAllocator())
-
-                            .option(ChannelOption.SO_KEEPALIVE, nettyTcpProperties.getSocketChannel().isSoKeepAlive())
-                            .option(ChannelOption.SO_REUSEADDR, nettyTcpProperties.getSocketChannel().isSoReuseAddr())
-                            .option(ChannelOption.SO_LINGER, nettyTcpProperties.getSocketChannel().getSoLinger())
-                            .option(ChannelOption.TCP_NODELAY, nettyTcpProperties.getSocketChannel().isTcpNoDelay())
-                            .option(ChannelOption.SO_RCVBUF, nettyTcpProperties.getSocketChannel().getSoRcvBuf())
-                            .option(ChannelOption.SO_SNDBUF, nettyTcpProperties.getSocketChannel().getSoSndBuf())
-                            .option(ChannelOption.IP_TOS, nettyTcpProperties.getSocketChannel().getIpTos())
-                            .option(ChannelOption.ALLOW_HALF_CLOSURE, nettyTcpProperties.getSocketChannel().isAllowHalfClosure())
-                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpProperties.getSocketChannel().getConnectTimeoutMillis())
-                            .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpProperties.getSocketChannel().getWriteBufferLowWaterMark(),
-                                    nettyTcpProperties.getSocketChannel().getWriteBufferHighWaterMark()))
-                            .option(ChannelOption.WRITE_SPIN_COUNT, nettyTcpProperties.getSocketChannel().getWriteSpinCount())
-                            .option(ChannelOption.AUTO_READ, nettyTcpProperties.getSocketChannel().isAutoRead())
-                            .option(ChannelOption.ALLOCATOR, nettyTcpProperties.getSocketChannel().getAllocator()));
+            // TODO moremind: optimize httpServer
+            return httpServer.runOn(LoopResources.create("shenyu-netty", nettyTcpProperties.getSelectCount(), nettyTcpProperties.getWorkerCount(), true))
+                    .option(ChannelOption.SO_BACKLOG, nettyTcpProperties.getServerSocketChannel().getSoBacklog())
+                    .option(ChannelOption.SO_REUSEADDR, nettyTcpProperties.getServerSocketChannel().isSoReuseAddr())
+                    .option(ChannelOption.SO_RCVBUF, nettyTcpProperties.getServerSocketChannel().getSoRcvBuf())
+                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpProperties.getServerSocketChannel().getConnectTimeoutMillis())
+                    .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpProperties.getServerSocketChannel().getWriteBufferLowWaterMark(),
+                            nettyTcpProperties.getServerSocketChannel().getWriteBufferHighWaterMark()))
+                    .option(ChannelOption.WRITE_SPIN_COUNT, nettyTcpProperties.getServerSocketChannel().getWriteSpinCount())
+                    .childOption(ChannelOption.AUTO_READ, false)
+                    .option(ChannelOption.ALLOCATOR, nettyTcpProperties.getServerSocketChannel().getAllocator());
         }
     }
 }

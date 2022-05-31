@@ -68,7 +68,7 @@ public class FormDataOperator implements Operator {
                     String original = GsonUtils.getInstance().toJson(multiValueMap);
                     LOG.info("get from data success data:{}", original);
                     String modify = operation(original, paramMappingRuleHandle);
-                    if (StringUtils.isEmpty(modify)) {
+                    if (!StringUtils.hasLength(modify)) {
                         return shenyuPluginChain.execute(exchange);
                     }
                     HttpHeaders headers = exchange.getRequest().getHeaders();
