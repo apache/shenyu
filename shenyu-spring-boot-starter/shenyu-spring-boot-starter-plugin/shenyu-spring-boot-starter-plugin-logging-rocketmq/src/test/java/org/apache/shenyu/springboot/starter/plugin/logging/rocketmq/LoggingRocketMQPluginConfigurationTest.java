@@ -49,8 +49,6 @@ public class LoggingRocketMQPluginConfigurationTest {
     @Test
     public void testLoggingRocketMQPlugin() {
         applicationContextRunner
-                .withConfiguration(AutoConfigurations.of(LoggingRocketMQPluginConfiguration.class))
-                .withBean(LoggingRocketMQPluginConfigurationTest.class)
                 .withPropertyValues(
                         "debug=true",
                         "shenyu.logging.rocketmq.enabled=true"

@@ -80,7 +80,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
             if (Objects.equals(config.getType(), "fixed")) {
                 this.scheduler = Schedulers.newParallel("shenyu-work-threads", config.getThreads());
             } else {
-                this.scheduler = Schedulers.elastic();
+                this.scheduler = Schedulers.boundedElastic();
             }
         }
     }
