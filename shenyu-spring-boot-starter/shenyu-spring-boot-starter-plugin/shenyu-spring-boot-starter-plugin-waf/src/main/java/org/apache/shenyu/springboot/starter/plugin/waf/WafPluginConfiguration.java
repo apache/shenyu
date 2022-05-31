@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 public class WafPluginConfiguration {
     
     /**
-     * Waf plugin shenyu plugin.
+     * Waf plugin.
      *
      * @return the shenyu plugin
      */
@@ -43,7 +43,7 @@ public class WafPluginConfiguration {
     }
     
     /**
-     * Waf plugin data handler plugin data handler.
+     * Waf plugin data handler.
      *
      * @return the plugin data handler
      */

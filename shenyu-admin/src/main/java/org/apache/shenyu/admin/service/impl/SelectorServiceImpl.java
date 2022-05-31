@@ -24,19 +24,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.RuleConditionMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
-import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
@@ -50,19 +44,14 @@ import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
-import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
-import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SelectorUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -73,16 +62,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.SelectorService}.
+ * Maintain {@link SelectorDO} and {@link SelectorConditionDO} related data.
  */
 @Service
 public class SelectorServiceImpl implements SelectorService {
@@ -93,35 +82,19 @@ public class SelectorServiceImpl implements SelectorService {
     
     private final PluginMapper pluginMapper;
     
-    private final RuleMapper ruleMapper;
-    
-    private final RuleConditionMapper ruleConditionMapper;
-    
     private final ApplicationEventPublisher eventPublisher;
-    
-    private final DataPermissionMapper dataPermissionMapper;
-    
-    private final UpstreamCheckService upstreamCheckService;
     
     private final SelectorEventPublisher selectorEventPublisher;
     
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
-                               final RuleMapper ruleMapper,
-                               final RuleConditionMapper ruleConditionMapper,
                                final ApplicationEventPublisher eventPublisher,
-                               final DataPermissionMapper dataPermissionMapper,
-                               final UpstreamCheckService upstreamCheckService,
                                final SelectorEventPublisher selectorEventPublisher) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
-        this.ruleMapper = ruleMapper;
-        this.ruleConditionMapper = ruleConditionMapper;
         this.eventPublisher = eventPublisher;
-        this.dataPermissionMapper = dataPermissionMapper;
-        this.upstreamCheckService = upstreamCheckService;
         this.selectorEventPublisher = selectorEventPublisher;
     }
     
@@ -176,12 +149,10 @@ public class SelectorServiceImpl implements SelectorService {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         final int selectorCount = selectorMapper.insertSelective(selectorDO);
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
-        initSelectorPermission(selectorDO);
         publishEvent(selectorDO, selectorDTO.getSelectorConditions());
         if (selectorCount > 0) {
             selectorEventPublisher.onCreated(selectorDO);
         }
-        updateDivideUpstream(selectorDO);
         return selectorCount;
         
     }
@@ -198,7 +169,6 @@ public class SelectorServiceImpl implements SelectorService {
         if (selectorCount > 0) {
             selectorEventPublisher.onUpdated(selectorDO, before);
         }
-        updateDivideUpstream(selectorDO);
         return selectorCount;
     }
     
@@ -216,38 +186,8 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
-        
-        if (CollectionUtils.isEmpty(ids)) {
-            return 0;
-        }
-        Set<String> idSet = new HashSet<>(ids);
-        List<SelectorDO> selectorDOList = selectorMapper.selectByIdSet(idSet);
-        if (CollectionUtils.isNotEmpty(selectorDOList)) {
-            Map<String, SelectorDO> selectorMap = ListUtil.toMap(selectorDOList, SelectorDO::getId);
-            List<String> pluginIdList = ListUtil.map(selectorMap.values(), SelectorDO::getPluginId);
-            List<PluginDO> pluginDOList = pluginMapper.selectByIds(pluginIdList);
-            
-            if (CollectionUtils.isNotEmpty(pluginDOList)) {
-                Map<String, String> pluginMap = ListUtil.toMap(pluginDOList, PluginDO::getId, PluginDO::getName);
-                if (pluginMap.size() == pluginIdList.size()) {
-                    selectorMapper.deleteByIds(ids);
-                    selectorConditionMapper.deleteBySelectorIds(ids);
-                    dataPermissionMapper.deleteByDataIdList(ids);
-                    
-                    List<SelectorData> selectorDataList = selectorMap.values().stream()
-                            .map(selectorDO -> {
-                                String pluginName = pluginMap.get(selectorDO.getPluginId());
-                                if (pluginName.equals(PluginEnum.DIVIDE.getName())) {
-                                    UpstreamCheckService.removeByKey(selectorDO.getId());
-                                }
-                                return SelectorDO.transFrom(selectorDO, pluginName, null);
-                            }).collect(Collectors.toList());
-                    selectorEventPublisher.onDeleted(selectorDOList, selectorDataList);
-                    deleteRule(ids, selectorMap, pluginMap);
-                }
-            }
-        }
-        return idSet.size();
+        final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids));
+        return deleteSelector(selectors, pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId)));
     }
     
     /**
@@ -306,6 +246,11 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @DataPermission(dataType = AdminConstants.DATA_PERMISSION_SELECTOR)
     @Pageable
+    public CommonPager<SelectorVO> listByPageWithPermission(final SelectorQuery selectorQuery) {
+        return listByPage(selectorQuery);
+    }
+    
+    @Override
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
         return PageResultUtils.result(selectorQuery.getPageParameter(), () -> selectorMapper.selectByQuery(selectorQuery)
                 .stream()
@@ -330,48 +275,7 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @EventListener(value = BatchPluginDeletedEvent.class)
     public void onPluginDeleted(final BatchPluginDeletedEvent event) {
-        final List<SelectorDO> selectors = this.selectorMapper.findByPluginIds(event.getDeletedPluginIds());
-        if (CollectionUtils.isNotEmpty(selectors)) {
-            final List<String> selectorIds = ListUtil.map(selectors, BaseDO::getId);
-            final int count = selectorMapper.deleteByIds(selectorIds);
-            // delete all selector conditions
-            this.selectorConditionMapper.deleteBySelectorIds(selectorIds);
-            deleteRefRule(selectorIds);
-            if (count > 0) {
-                selectorEventPublisher.onDeleted(selectors);
-            }
-        }
-    }
-    
-    private void deleteRefRule(final List<String> selectorIds) {
-        // todo: delete rule will move rule service
-        // delete all rules
-        final List<String> ruleIds = ListUtil.map(ruleMapper.findBySelectorIds(selectorIds), RuleDO::getId);
-        if (CollectionUtils.isNotEmpty(ruleIds)) {
-            this.ruleMapper.deleteByIds(ruleIds);
-            // delete all rule conditions
-            this.ruleConditionMapper.deleteByRuleIds(ruleIds);
-        }
-    }
-    
-    private void deleteRule(final List<String> ids, final Map<String, SelectorDO> selectorDOMap, final Map<String, String> pluginMap) {
-        // todo: delete rule will move rule service
-        List<RuleDO> ruleDOList = ruleMapper.findBySelectorIds(ids);
-        if (CollectionUtils.isNotEmpty(ruleDOList)) {
-            List<String> ruleIdList = new ArrayList<>();
-            List<RuleData> ruleDataList = ruleDOList.stream()
-                    .filter(Objects::nonNull)
-                    .map(ruleDO -> {
-                        ruleIdList.add(ruleDO.getId());
-                        SelectorDO selectorDO = selectorDOMap.get(ruleDO.getSelectorId());
-                        String pluginName = pluginMap.get(selectorDO.getPluginId());
-                        return RuleDO.transFrom(ruleDO, pluginName, null);
-                    })
-                    .collect(Collectors.toList());
-            ruleMapper.deleteByIds(ruleIdList);
-            ruleConditionMapper.deleteByRuleIds(ruleIdList);
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE, ruleDataList));
-        }
+        deleteSelector(selectorMapper.findByPluginIds(event.getDeletedPluginIds()), event.getPlugins());
     }
     
     private void createCondition(final String selectorId, final List<SelectorConditionDTO> selectorConditions) {
@@ -381,16 +285,18 @@ public class SelectorServiceImpl implements SelectorService {
         }
     }
     
-    private void initSelectorPermission(final SelectorDO selectorDO) {
-        // todo add permission will move permission service
-        // check selector add
-        if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
-            DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
-            dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
-            dataPermissionDTO.setDataId(selectorDO.getId());
-            dataPermissionDTO.setDataType(AdminConstants.SELECTOR_DATA_TYPE);
-            dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
+    private int deleteSelector(final List<SelectorDO> selectors, final List<PluginDO> plugins) {
+        if (CollectionUtils.isNotEmpty(selectors)) {
+            final List<String> selectorIds = ListUtil.map(selectors, BaseDO::getId);
+            final int count = selectorMapper.deleteByIds(selectorIds);
+            // delete all selector conditions
+            this.selectorConditionMapper.deleteBySelectorIds(selectorIds);
+            if (count > 0) {
+                selectorEventPublisher.onDeleted(selectors, plugins);
+            }
+            return count;
         }
+        return selectors.size();
     }
     
     private void publishEvent(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditions) {
@@ -413,7 +319,6 @@ public class SelectorServiceImpl implements SelectorService {
     }
     
     private List<SelectorData> buildSelectorDataList(final List<SelectorDO> selectorDOList) {
-        
         Map<String, String> idMap = ListUtil.toMap(selectorDOList, SelectorDO::getId, SelectorDO::getPluginId);
         if (MapUtils.isEmpty(idMap)) {
             return new ArrayList<>();
@@ -435,16 +340,8 @@ public class SelectorServiceImpl implements SelectorService {
                     List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(selectorConditionMap.get(id));
                     return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-    }
-    
-    private void updateDivideUpstream(final SelectorDO selectorDO) {
-        // todo update divide upstream will move upstream check service
-        final PluginDO plugin = pluginMapper.selectById(selectorDO.getPluginId());
-        List<DivideUpstream> existDivideUpstreams = SelectorUtil.buildDivideUpstream(selectorDO, plugin.getName());
-        if (CollectionUtils.isNotEmpty(existDivideUpstreams)) {
-            upstreamCheckService.replace(selectorDO.getId(), CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
-        }
     }
     
 }

@@ -54,7 +54,7 @@ public class ApacheDubboPluginConfiguration {
     }
     
     /**
-     * Apache dubbo plugin data handler plugin data handler.
+     * Apache dubbo plugin data handler.
      *
      * @return the plugin data handler
      */
@@ -64,7 +64,7 @@ public class ApacheDubboPluginConfiguration {
     }
 
     /**
-     * Apache dubbo meta data subscriber meta data subscriber.
+     * Apache dubbo meta data subscriber.
      *
      * @return the meta data subscriber
      */

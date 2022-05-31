@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.admin.listener;
 
+import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
@@ -31,6 +33,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApplicationStartListener implements ApplicationListener<WebServerInitializedEvent> {
 
+    @Resource
+    private LoadServiceDocEntry loadServiceDocEntry;
+
     @Override
     public void onApplicationEvent(final WebServerInitializedEvent event) {
         int port = event.getWebServer().getPort();
@@ -41,5 +46,6 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
         } else {
             ShenyuDomain.getInstance().setHttpPath(domain);
         }
+        loadServiceDocEntry.loadApiDocument();
     }
 }

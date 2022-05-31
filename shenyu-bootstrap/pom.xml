@@ -26,10 +26,8 @@
     <artifactId>shenyu-bootstrap</artifactId>
 
     <properties>
-        <curator.version>4.0.1</curator.version>
-        <spring-cloud.version>2.2.0.RELEASE</spring-cloud.version>
-        <nacos-discovery.version>2.2.6.RELEASE</nacos-discovery.version>
-        <eureka-client.version>2.1.2.RELEASE</eureka-client.version>
+        <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
+        <eureka-client.version>3.1.2</eureka-client.version>
     </properties>
 
     <dependencies>
@@ -266,12 +264,12 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-commons</artifactId>
-            <version>${spring-cloud.version}</version>
+            <version>${spring-cloud-commons.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-            <version>${spring-cloud.version}</version>
+            <version>${spring-cloud-netflix-ribbon.version}</version>
         </dependency>
         <!--shenyu springCloud plugin start-->
         
@@ -298,28 +296,7 @@
             <version>1.1.4</version>
         </dependency>-->
         <!-- Dubbo zookeeper registry dependency start -->
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-client</artifactId>
-            <version>4.0.1</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>log4j</artifactId>
-                    <groupId>log4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>4.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>4.0.1</version>
-        </dependency>
-        <!-- Dubbo zookeeper registry dependency end -->
+       <!-- Dubbo zookeeper registry dependency end -->
         <!-- shenyu  apache dubbo plugin end-->
 
         <!--shenyu alibaba dubbo plugin start-->

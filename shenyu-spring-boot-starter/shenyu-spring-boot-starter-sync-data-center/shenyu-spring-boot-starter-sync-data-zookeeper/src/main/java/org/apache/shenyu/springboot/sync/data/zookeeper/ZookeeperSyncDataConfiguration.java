@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.springboot.sync.data.zookeeper;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.zookeeper.ZookeeperClient;
+import org.apache.shenyu.sync.data.zookeeper.ZookeeperConfig;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperSyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Zookeeper sync data configuration for spring boot.
@@ -41,36 +43,43 @@ import java.util.List;
 @Configuration
 @ConditionalOnClass(ZookeeperSyncDataService.class)
 @ConditionalOnProperty(prefix = "shenyu.sync.zookeeper", name = "url")
-@EnableConfigurationProperties(ZookeeperConfig.class)
+@EnableConfigurationProperties(ZookeeperProperties.class)
 public class ZookeeperSyncDataConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperSyncDataConfiguration.class);
 
     /**
-     * Sync data service sync data service.
+     * Sync data service.
      *
-     * @param zkClient the zk client
+     * @param zookeeperClient  the zk client
      * @param pluginSubscriber the plugin subscriber
-     * @param metaSubscribers the meta subscribers
-     * @param authSubscribers the auth subscribers
+     * @param metaSubscribers  the meta subscribers
+     * @param authSubscribers  the auth subscribers
      * @return the sync data service
      */
     @Bean
-    public SyncDataService syncDataService(final ObjectProvider<ZkClient> zkClient, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
+    public SyncDataService syncDataService(final ObjectProvider<ZookeeperClient> zookeeperClient, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
         LOGGER.info("you use zookeeper sync shenyu data.......");
-        return new ZookeeperSyncDataService(zkClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
+        return new ZookeeperSyncDataService(zookeeperClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
 
     /**
      * register zkClient in spring ioc.
      *
-     * @param zookeeperConfig the zookeeper configuration
-     * @return ZkClient {@linkplain ZkClient}
+     * @param zookeeperProps the zookeeper configuration
+     * @return ZookeeperClient {@linkplain ZookeeperClient}
      */
     @Bean
-    public ZkClient zkClient(final ZookeeperConfig zookeeperConfig) {
-        return new ZkClient(zookeeperConfig.getUrl(), zookeeperConfig.getSessionTimeout(), zookeeperConfig.getConnectionTimeout());
+    public ZookeeperClient zookeeperClient(final ZookeeperProperties zookeeperProps) {
+        int sessionTimeout = Objects.isNull(zookeeperProps.getSessionTimeout()) ? 3000 : zookeeperProps.getSessionTimeout();
+        int connectionTimeout = Objects.isNull(zookeeperProps.getConnectionTimeout()) ? 3000 : zookeeperProps.getConnectionTimeout();
+        ZookeeperConfig zkConfig = new ZookeeperConfig(zookeeperProps.getUrl());
+        zkConfig.setSessionTimeoutMilliseconds(sessionTimeout)
+                .setConnectionTimeoutMilliseconds(connectionTimeout);
+        ZookeeperClient client = new ZookeeperClient(zkConfig);
+        client.start();
+        return client;
     }
 }

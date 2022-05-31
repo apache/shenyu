@@ -50,6 +50,16 @@ public enum EventTypeEnum {
      */
     SELECTOR_CREATE("CREATE:SELECTOR", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
     
+    /**
+     * rule created event.
+     */
+    RULE_CREATE("CREATE:RULE", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
+    /**
+     * resource created event.
+     */
+    RESOURCE_CREATE("CREATE:RESOURCE", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
     // ============== delete ===================
     /**
      * deleted event.
@@ -77,6 +87,16 @@ public enum EventTypeEnum {
      */
     SELECTOR_DELETE("DELETE:SELECTOR", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
     
+    /**
+     * rule deleted event.
+     */
+    RULE_DELETE("DELETE:RULE", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
+    /**
+     * resource deleted event.
+     */
+    RESOURCE_DELETE("DELETE:RESOURCE", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
     // ============== update ===================
     
     /**
@@ -97,7 +117,17 @@ public enum EventTypeEnum {
     /**
      * selector update.
      */
-    SELECTOR_UPDATE("UPDATE:PLUGIN-HANDLE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
+    SELECTOR_UPDATE("UPDATE:PLUGIN-HANDLE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * rule update.
+     */
+    RULE_UPDATE("UPDATE:RULE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * resource update.
+     */
+    RESOURCE_UPDATE("UPDATE:RESOURCE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
     
     /**
      * type name.

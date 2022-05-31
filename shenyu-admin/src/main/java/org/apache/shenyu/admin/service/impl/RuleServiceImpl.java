@@ -21,20 +21,17 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
-import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
-import org.apache.shenyu.admin.model.entity.DataPermissionDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.event.selector.BatchSelectorDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
@@ -43,20 +40,19 @@ import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
-import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.MatchModeEnum;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,36 +61,34 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.admin.utils.ListUtil.map;
+
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.RuleService}.
  */
 @Service
 public class RuleServiceImpl implements RuleService {
-
+    
     private final RuleMapper ruleMapper;
-
+    
     private final RuleConditionMapper ruleConditionMapper;
-
+    
     private final SelectorMapper selectorMapper;
-
+    
     private final PluginMapper pluginMapper;
-
-    private final DataPermissionMapper dataPermissionMapper;
-
-    private final ApplicationEventPublisher eventPublisher;
-
+    
+    private final RuleEventPublisher ruleEventPublisher;
+    
     public RuleServiceImpl(final RuleMapper ruleMapper,
                            final RuleConditionMapper ruleConditionMapper,
                            final SelectorMapper selectorMapper,
                            final PluginMapper pluginMapper,
-                           final DataPermissionMapper dataPermissionMapper,
-                           final ApplicationEventPublisher eventPublisher) {
+                           final RuleEventPublisher ruleEventPublisher) {
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
         this.selectorMapper = selectorMapper;
         this.pluginMapper = pluginMapper;
-        this.dataPermissionMapper = dataPermissionMapper;
-        this.eventPublisher = eventPublisher;
+        this.ruleEventPublisher = ruleEventPublisher;
     }
     
     @Override
@@ -109,24 +103,18 @@ public class RuleServiceImpl implements RuleService {
     
     @Override
     public String registerDefault(final RuleDTO ruleDTO) {
-        RuleDO exist = ruleMapper.findBySelectorIdAndName(ruleDTO.getSelectorId(), ruleDTO.getName());
-        if (Objects.nonNull(exist)) {
+        if (Objects.nonNull(ruleMapper.findBySelectorIdAndName(ruleDTO.getSelectorId(), ruleDTO.getName()))) {
             return "";
         }
-
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
-        List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleMapper.insertSelective(ruleDO);
-            ruleConditions.forEach(ruleConditionDTO -> {
-                ruleConditionDTO.setRuleId(ruleDO.getId());
-                ruleConditionMapper.insertSelective(RuleConditionDO.buildRuleConditionDO(ruleConditionDTO));
-            });
+            addCondition(ruleDO, ruleDTO.getRuleConditions());
         }
-        publishEvent(ruleDO, ruleConditions);
+        ruleEventPublisher.onRegister(ruleDO, ruleDTO.getRuleConditions());
         return ruleDO.getId();
     }
-
+    
     /**
      * create or update rule.
      *
@@ -136,61 +124,35 @@ public class RuleServiceImpl implements RuleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final RuleDTO ruleDTO) {
-        int ruleCount;
+        return RuleService.super.createOrUpdate(ruleDTO);
+    }
+    
+    @Override
+    public int create(final RuleDTO ruleDTO) {
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
-        List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
-        if (StringUtils.isEmpty(ruleDTO.getId())) {
-            ruleCount = ruleMapper.insertSelective(ruleDO);
-            if (Boolean.TRUE.equals(dataPermissionMapper.existed(JwtUtils.getUserInfo().getUserId()))) {
-                DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
-                dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
-                dataPermissionDTO.setDataId(ruleDO.getId());
-                dataPermissionDTO.setDataType(AdminConstants.RULE_DATA_TYPE);
-                dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
-            }
-            ruleConditions.forEach(ruleConditionDTO -> {
-                ruleConditionDTO.setRuleId(ruleDO.getId());
-                ruleConditionMapper.insertSelective(RuleConditionDO.buildRuleConditionDO(ruleConditionDTO));
-            });
-        } else {
-            ruleCount = ruleMapper.updateSelective(ruleDO);
-            //delete rule condition then add
-            ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
-            ruleConditions.forEach(ruleConditionDTO -> {
-                ruleConditionDTO.setRuleId(ruleDO.getId());
-                RuleConditionDO ruleConditionDO = RuleConditionDO.buildRuleConditionDO(ruleConditionDTO);
-                ruleConditionMapper.insertSelective(ruleConditionDO);
-            });
+        final int ruleCount = ruleMapper.insertSelective(ruleDO);
+        addCondition(ruleDO, ruleDTO.getRuleConditions());
+        if (ruleCount > 0) {
+            ruleEventPublisher.onCreated(ruleDO, ruleDTO.getRuleConditions());
         }
-        publishEvent(ruleDO, ruleConditions);
         return ruleCount;
     }
-
-    /**
-     * delete rules.
-     *
-     * @param ids primary key.
-     * @return rows
-     */
+    
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int delete(final List<String> ids) {
-        for (String id : ids) {
-            final RuleDO ruleDO = ruleMapper.selectById(id);
-            final SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
-            final PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-
-            ruleMapper.delete(id);
-            ruleConditionMapper.deleteByQuery(new RuleConditionQuery(id));
-            dataPermissionMapper.deleteByDataId(id);
-
-            // send deleted rule event
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE,
-                    Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), null))));
+    public int update(final RuleDTO ruleDTO) {
+        final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
+        Assert.notNull(before, "the updated rule is not found");
+        RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
+        final int ruleCount = ruleMapper.updateSelective(ruleDO);
+        //delete rule condition then add
+        ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
+        addCondition(ruleDO, ruleDTO.getRuleConditions());
+        if (ruleCount > 0) {
+            ruleEventPublisher.onUpdated(ruleDO, before, ruleDTO.getRuleConditions());
         }
-        return ids.size();
+        return ruleCount;
     }
-
+    
     /**
      * find rule by id.
      *
@@ -200,12 +162,9 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public RuleVO findById(final String id) {
         return RuleVO.buildRuleVO(ruleMapper.selectById(id),
-                ruleConditionMapper.selectByQuery(
-                                new RuleConditionQuery(id)).stream()
-                        .map(RuleConditionVO::buildRuleConditionVO)
-                        .collect(Collectors.toList()));
+                map(ruleConditionMapper.selectByQuery(new RuleConditionQuery(id)), RuleConditionVO::buildRuleConditionVO));
     }
-
+    
     /**
      * find page of rule by query.
      *
@@ -216,78 +175,101 @@ public class RuleServiceImpl implements RuleService {
     @DataPermission(dataType = AdminConstants.DATA_PERMISSION_RULE)
     @Pageable
     public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
-        return PageResultUtils.result(ruleQuery.getPageParameter(), () -> ruleMapper.selectByQuery(ruleQuery)
-                .stream().map(RuleVO::buildRuleVO).collect(Collectors.toList()));
+        return PageResultUtils.result(ruleQuery.getPageParameter(), () -> map(ruleMapper.selectByQuery(ruleQuery), RuleVO::buildRuleVO));
     }
-
+    
     @Override
     public List<RuleData> listAll() {
-
-        List<RuleDO> ruleDOList = ruleMapper.selectAll();
-
-        return this.buildRuleDataList(ruleDOList);
+        return this.buildRuleDataList(ruleMapper.selectAll());
     }
-
+    
     @Override
     public List<RuleData> findBySelectorId(final String selectorId) {
-
-        List<RuleDO> ruleDOList = ruleMapper.findBySelectorId(selectorId);
-
-        return this.buildRuleDataList(ruleDOList);
+        return this.buildRuleDataList(ruleMapper.findBySelectorId(selectorId));
     }
-
+    
     @Override
     public List<RuleData> findBySelectorIdList(final List<String> selectorIdList) {
-
-        List<RuleDO> ruleDOList = ruleMapper.findBySelectorIds(selectorIdList)
-                .stream().filter(Objects::nonNull).collect(Collectors.toList());
-
-        return this.buildRuleDataList(ruleDOList);
+        return this.buildRuleDataList(ruleMapper.findBySelectorIds(selectorIdList));
     }
-
+    
     @Override
     public RuleDO findByName(final String name) {
         return ruleMapper.findByName(name);
     }
-
-    private void publishEvent(final RuleDO ruleDO, final List<RuleConditionDTO> ruleConditions) {
-        SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
-        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-
-        List<ConditionData> conditionDataList =
-                ruleConditions.stream().map(ConditionTransfer.INSTANCE::mapToRuleDTO).collect(Collectors.toList());
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), conditionDataList))));
+    
+    /**
+     * delete rules.
+     *
+     * @param ids primary key.
+     * @return rows
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int delete(final List<String> ids) {
+        List<RuleDO> rules = ruleMapper.selectByIds(ids);
+        final int deleteCount = ruleMapper.deleteByIds(ids);
+        ruleConditionMapper.deleteByRuleIds(ids);
+        if (deleteCount > 0) {
+            ruleEventPublisher.onDeleted(rules);
+        }
+        return deleteCount;
     }
-
+    
+    /**
+     * listen {@link BatchSelectorDeletedEvent} delete rule.
+     *
+     * @param event event
+     */
+    @EventListener(BatchSelectorDeletedEvent.class)
+    public void onSelectorDeleted(final BatchSelectorDeletedEvent event) {
+        List<RuleDO> ruleDOList = ruleMapper.findBySelectorIds(event.getDeletedIds());
+        final List<String> ruleIds = map(ruleDOList, RuleDO::getId);
+        if (CollectionUtils.isNotEmpty(ruleDOList)) {
+            final int deleteCount = ruleMapper.deleteByIds(ruleIds);
+            ruleConditionMapper.deleteByRuleIds(ruleIds);
+            if (deleteCount > 0) {
+                ruleEventPublisher.onDeleted(ruleDOList);
+            }
+        }
+    }
+    
+    private void addCondition(final RuleDO ruleDO, final List<RuleConditionDTO> ruleConditions) {
+        for (RuleConditionDTO ruleCondition : ruleConditions) {
+            ruleCondition.setRuleId(ruleDO.getId());
+            ruleConditionMapper.insertSelective(RuleConditionDO.buildRuleConditionDO(ruleCondition));
+        }
+    }
+    
     private List<RuleData> buildRuleDataList(final List<RuleDO> ruleDOList) {
-
+        
         if (CollectionUtils.isEmpty(ruleDOList)) {
             return new ArrayList<>();
         }
-        Map<String, String> ruleDOMap = ruleDOList.stream().filter(Objects::nonNull).collect(Collectors.toMap(RuleDO::getId, RuleDO::getSelectorId, (selectorId1, selectorId2) -> selectorId1));
-
+        Map<String, String> ruleDOMap = ruleDOList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(RuleDO::getId, RuleDO::getSelectorId, (selectorId1, selectorId2) -> selectorId1));
+        
         Map<String, String> pluginIdMap = Optional.ofNullable(selectorMapper.selectByIdSet(new HashSet<>(ruleDOMap.values()))).orElseGet(ArrayList::new)
-                .stream().filter(Objects::nonNull).collect(Collectors.toMap(SelectorDO::getId, SelectorDO::getPluginId, (value1, value2) -> value1));
-
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(SelectorDO::getId, SelectorDO::getPluginId, (value1, value2) -> value1));
+        
         Map<String, PluginDO> pluginDOMap = Optional.ofNullable(pluginMapper.selectByIds(new ArrayList<>(pluginIdMap.values())))
-                .orElseGet(ArrayList::new).stream().filter(Objects::nonNull).collect(Collectors.toMap(PluginDO::getId,
-                        Function.identity(), (value1, value2) -> value1));
-
+                .orElseGet(ArrayList::new)
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(PluginDO::getId, Function.identity(), (value1, value2) -> value1));
+        
         Map<String, List<ConditionData>> conditionMap = Optional.ofNullable(ruleConditionMapper.selectByRuleIdSet(ruleDOMap.keySet()))
-                .orElseGet(ArrayList::new).stream().filter(Objects::nonNull).collect(Collectors.toMap(RuleConditionDO::getRuleId,
-                    ruleConditionDO -> {
-                        List<ConditionData> dataList = new ArrayList<>();
-                        dataList.add(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO));
-                        return dataList;
-                    }, (list1, list2) -> {
-                        list1.addAll(list2);
-                        return list1;
-                    }));
-
-        return Optional.of(ruleDOList).orElseGet(ArrayList::new)
-                .stream().filter(Objects::nonNull).map(ruleDO -> {
+                .orElseGet(ArrayList::new)
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(RuleConditionDO::getRuleId, ruleConditionDO -> ListUtil.of(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO)), ListUtil::merge));
+        
+        return ruleDOList.stream()
+                .filter(Objects::nonNull)
+                .map(ruleDO -> {
                     String ruleId = ruleDO.getId();
                     List<ConditionData> conditions = conditionMap.get(ruleId);
                     if (CollectionUtils.isNotEmpty(conditions)) {
@@ -301,6 +283,8 @@ public class RuleServiceImpl implements RuleService {
                         }
                     }
                     return null;
-                }).collect(Collectors.toList());
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

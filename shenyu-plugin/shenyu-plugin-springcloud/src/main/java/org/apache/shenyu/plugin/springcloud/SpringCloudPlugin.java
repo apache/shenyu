@@ -79,6 +79,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         ServiceInstance serviceInstance;
         try {
             LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
+            // async choose or custom loadbalancer
             serviceInstance = loadBalancer.choose(serviceId);
         } finally {
             LoadBalanceKeyHolder.resetLoadBalanceKey();

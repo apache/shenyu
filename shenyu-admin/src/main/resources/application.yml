@@ -26,6 +26,9 @@ spring:
     enabled: true
     prefix: classpath:/static/
     suffix: .html
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
@@ -94,6 +97,15 @@ shenyu:
       - /csrf
   swagger:
     enable: true
+  apidoc:
+    gatewayUrl: http://127.0.0.1:9195
+    envProps:
+      - envLabel: Test environment
+        addressLabel: Request Address
+        addressUrl: http://127.0.0.1:9195
+      - envLabel: Prod environment
+        addressLabel: Request Address
+        addressUrl: http://127.0.0.1:9195
 
 logging:
   level:

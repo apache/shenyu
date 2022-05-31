@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.config;
 
 import com.alibaba.nacos.client.config.NacosConfigService;
 import com.ecwid.consul.v1.ConsulClient;
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.ConsulProperties;
@@ -33,6 +32,8 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
 import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,7 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,7 +58,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
     private static TestingServer zkServer;
 
-    private final ZkClient zkClient = new ZkClient("127.0.0.1:21810");
+    private static ZookeeperClient zkClient;
 
     @InjectMocks
     private AppAuthServiceImpl appAuthService;
@@ -79,11 +80,14 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
     @BeforeAll
     public static void setUpBeforeClass() throws Exception {
-        zkServer = new TestingServer(21810, true);
+        zkServer = new TestingServer();
+        ZookeeperConfig config = new ZookeeperConfig(zkServer.getConnectString());
+        zkClient = new ZookeeperClient(config);
     }
 
     @AfterAll
     public static void tearDown() throws Exception {
+        zkClient.close();
         zkServer.stop();
     }
 

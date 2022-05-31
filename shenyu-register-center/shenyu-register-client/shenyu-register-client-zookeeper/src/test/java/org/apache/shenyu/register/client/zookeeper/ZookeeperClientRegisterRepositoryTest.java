@@ -17,27 +17,18 @@
 
 package org.apache.shenyu.register.client.zookeeper;
 
-import org.I0Itec.zkclient.ZkClient;
+import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Test for Zookeeper client register repository.
@@ -46,60 +37,22 @@ public class ZookeeperClientRegisterRepositoryTest {
 
     private ZookeeperClientRegisterRepository repository;
 
-    private final Map<String, Object> zookeeperBroker = new HashMap<>();
-
-    private final Set<String> ephemeralNode = new HashSet<>();
+    private ZookeeperClient client;
 
     @BeforeEach
-    public void setUp() throws NoSuchFieldException, IllegalAccessException {
+    public void setUp() throws Exception {
+        TestingServer server = new TestingServer();
         this.repository = new ZookeeperClientRegisterRepository();
+        ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
+        config.setServerLists(server.getConnectString());
+        this.repository.init(config);
+
         Class<? extends ZookeeperClientRegisterRepository> clazz = this.repository.getClass();
 
-        String fieldString = "zkClient";
+        String fieldString = "client";
         Field field = clazz.getDeclaredField(fieldString);
         field.setAccessible(true);
-        field.set(repository, mockZkClient());
-
-        zookeeperBroker.clear();
-        ephemeralNode.clear();
-    }
-
-    private ZkClient mockZkClient() {
-        ZkClient zkClient = mock(ZkClient.class);
-
-        doAnswer(invocationOnMock -> {
-            String key = invocationOnMock.getArgument(0);
-            String value = invocationOnMock.getArgument(1);
-            zookeeperBroker.put(key, value);
-            ephemeralNode.add(key);
-            return true;
-        }).when(zkClient).createEphemeral(anyString(), any(Object.class));
-
-        doAnswer(invocationOnMock -> {
-            String key = invocationOnMock.getArgument(0);
-            String value = invocationOnMock.getArgument(1);
-            zookeeperBroker.put(key, value);
-            return true;
-        }).when(zkClient).createPersistent(any(), any());
-
-        doAnswer(invocationOnMock -> {
-            String key = invocationOnMock.getArgument(0);
-            String value = invocationOnMock.getArgument(1);
-            zookeeperBroker.put(key, value);
-            return true;
-        }).when(zkClient).writeData(any(), any());
-
-        doAnswer(invocationOnMock -> {
-            String node = invocationOnMock.getArgument(0);
-            return zookeeperBroker.containsKey(node);
-        }).when(zkClient).exists(anyString());
-
-        doAnswer(invocationOnMock -> {
-            ephemeralNode.forEach(zookeeperBroker::remove);
-            return true;
-        }).when(zkClient).close();
-
-        return zkClient;
+        this.client = (ZookeeperClient) field.get(repository);
     }
 
     @Test
@@ -113,11 +66,11 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .build();
         repository.persistInterface(data);
         String metadataPath = "/shenyu/register/metadata/http/context/context-ruleName";
-        assertTrue(zookeeperBroker.containsKey(metadataPath));
-        assertEquals(zookeeperBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
+        String value = client.get(metadataPath);
+        assertEquals(value, GsonUtils.getInstance().toJson(data));
         repository.close();
     }
-    
+
     @Test
     public void testPersistUri() {
         URIRegisterDTO data = URIRegisterDTO.builder()
@@ -128,15 +81,13 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .build();
         repository.persistURI(data);
         String uriPath = "/shenyu/register/uri/http/context/host:80";
-        assertTrue(zookeeperBroker.containsKey(uriPath));
-        assertEquals(zookeeperBroker.get(uriPath), GsonUtils.getInstance().toJson(data));
+        String value = client.get(uriPath);
+        assertEquals(value, GsonUtils.getInstance().toJson(data));
         repository.close();
     }
 
     @Test
     public void testPersistInterfaceDoAnswerWriteData4Grpc() {
-        ZkClient zkClient = mock(ZkClient.class);
-        when(zkClient.exists(anyString())).thenReturn(true);
         final MetaDataRegisterDTO data = MetaDataRegisterDTO.builder()
                 .rpcType(RpcTypeEnum.GRPC.getName())
                 .host("host")
@@ -148,8 +99,8 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .build();
         repository.persistInterface(data);
         String metadataPath = "/shenyu/register/metadata/grpc/context/testService.testMethod";
-        assertTrue(zookeeperBroker.containsKey(metadataPath));
-        assertEquals(zookeeperBroker.get(metadataPath), GsonUtils.getInstance().toJson(data));
+        String value = client.get(metadataPath);
+        assertEquals(value, GsonUtils.getInstance().toJson(data));
         repository.close();
     }
 }

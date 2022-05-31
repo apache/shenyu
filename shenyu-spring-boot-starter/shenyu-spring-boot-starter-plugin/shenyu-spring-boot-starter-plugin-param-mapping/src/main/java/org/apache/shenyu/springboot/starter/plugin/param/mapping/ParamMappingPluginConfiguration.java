@@ -56,7 +56,7 @@ public class ParamMappingPluginConfiguration {
     }
 
     /**
-     * Param mapping plugin data handler plugin data handler.
+     * Param mapping plugin data handler.
      *
      * @return the plugin data handler
      */

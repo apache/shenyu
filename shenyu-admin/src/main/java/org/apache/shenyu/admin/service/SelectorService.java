@@ -71,6 +71,12 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     
     /**
      * create  selector.
+     * <ul>
+     *     <li>1. create selector[selector]</li>
+     *     <li>2. add selector condition[selector_condition]</li>
+     *     <li>3. add selector permission [data_permission]</li>
+     *     <li>4. update divide upstream</li>
+     * </ul>
      *
      * @param selectorDTO {@linkplain SelectorDTO}
      * @return rows int
@@ -148,6 +154,14 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      *
      * @param selectorQuery {@linkplain SelectorQuery}
      * @return {@linkplain CommonPager}
+     */
+    CommonPager<SelectorVO> listByPageWithPermission(SelectorQuery selectorQuery);
+    
+    /**
+     * find page of selector by query.
+     *
+     * @param selectorQuery selectorQuery
+     * @return CommonPager
      */
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
     

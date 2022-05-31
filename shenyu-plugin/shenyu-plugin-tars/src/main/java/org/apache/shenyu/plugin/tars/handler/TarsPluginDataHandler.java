@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.plugin.tars.handler;
 
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.plugin.TarsRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.tars.cache.ApplicationConfigCache;
 
@@ -28,6 +32,21 @@ import java.util.Objects;
  * The type tars plugin data handler.
  */
 public class TarsPluginDataHandler implements PluginDataHandler {
+
+    @Override
+    public void handlerPlugin(final PluginData pluginData) {
+        if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
+            TarsRegisterConfig tarsRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), TarsRegisterConfig.class);
+            TarsRegisterConfig exist = Singleton.INST.get(TarsRegisterConfig.class);
+            if (Objects.isNull(tarsRegisterConfig)) {
+                return;
+            }
+            if (Objects.isNull(exist) || !tarsRegisterConfig.equals(exist)) {
+                // If it is null, cache it
+                Singleton.INST.single(TarsRegisterConfig.class, tarsRegisterConfig);
+            }
+        }
+    }
     
     @Override
     public String pluginNamed() {

@@ -22,9 +22,9 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.zookeeper.ZookeeperClient;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperSyncDataService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,11 +49,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
                 "shenyu.sync.zookeeper.connectionTimeout=500"
         })
 @EnableAutoConfiguration
-@MockBean({PluginDataSubscriber.class, ZkClient.class})
+@MockBean({PluginDataSubscriber.class, ZookeeperClient.class})
 public final class ZookeeperSyncDataConfigurationTest {
 
     @Autowired
-    private ZookeeperConfig zookeeperConfig;
+    private ZookeeperProperties zookeeperConfig;
 
     @Autowired
     private SyncDataService syncDataService;
@@ -68,7 +68,7 @@ public final class ZookeeperSyncDataConfigurationTest {
     }
 
     /**
-     * case to test {@link ZookeeperSyncDataConfiguration} to register bean {@link ZookeeperConfig}.
+     * case to test {@link ZookeeperSyncDataConfiguration} to register bean {@link ZookeeperProperties}.
      */
     @Test
     public void testZookeeperSyncDataConfigurationRegisterBeanZookeeperConfig() {

@@ -84,7 +84,7 @@ public class ShenyuThreadPoolConfiguration {
     }
 
     /**
-     * crate shenyu shared thread pool executor.
+     * create shenyu shared thread pool executor.
      *
      * @param shenyuConfig the shenyu config
      * @param provider     the queue bean provider

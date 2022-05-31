@@ -54,7 +54,7 @@ public class AlibabaDubboPluginConfiguration {
     }
     
     /**
-     * Alibaba dubbo plugin data handler plugin data handler.
+     * Alibaba dubbo plugin data handler.
      *
      * @return the plugin data handler
      */
@@ -64,7 +64,7 @@ public class AlibabaDubboPluginConfiguration {
     }
     
     /**
-     * Dubbo meta data subscriber meta data subscriber.
+     * Dubbo meta data subscriber.
      *
      * @return the meta data subscriber
      */

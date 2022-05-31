@@ -1,6 +1,6 @@
-<p align="center" >
-    <a href="https://shenyu.apache.org/"><img src="https://shenyu.apache.org/img/logo/apache-shenyu.png" width="45%"></a>
-</p>
+![Light Logo](https://raw.githubusercontent.com/apache/incubator-shenyu-website/main/static/img/logo-light.svg#gh-dark-mode-only)
+![Dark Logo](https://raw.githubusercontent.com/apache/incubator-shenyu-website/main/static/img/logo.svg#gh-light-mode-only)
+
 <p align="center">
   <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
 </p>
@@ -42,6 +42,9 @@
    <a target="_blank" href="https://codecov.io/gh/apache/incubator-shenyu">
         <img src="https://codecov.io/gh/apache/incubator-shenyu/branch/master/graph/badge.svg" />
    </a>
+  <a target="_blank" href="https://hub.docker.com/r/apache/shenyu-bootstrap/tags">
+    <image src="https://img.shields.io/docker/pulls/apache/shenyu-bootstrap" alt="Docker Pulls"/>
+  </a>
 </p>
 <br/>
 

@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 public class MqttPluginConfiguration {
 
     /**
-     * Mqtt plugin data handler plugin data handler.
+     * Mqtt plugin data handler.
      *
      * @return the plugin data handler
      */

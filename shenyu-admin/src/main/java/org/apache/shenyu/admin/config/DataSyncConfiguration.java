@@ -17,14 +17,18 @@
 
 package org.apache.shenyu.admin.config;
 
+import com.alibaba.nacos.api.NacosFactory;
+import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.ecwid.consul.v1.ConsulClient;
 import io.etcd.jetcd.Client;
-import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ConsulProperties;
 import org.apache.shenyu.admin.config.properties.EtcdProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
+import org.apache.shenyu.admin.config.properties.NacosProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
+import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.admin.listener.consul.ConsulDataChangedInit;
@@ -39,13 +43,17 @@ import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
+
+import java.util.Objects;
+import java.util.Properties;
 
 /**
  * The type Data sync configuration.
@@ -73,8 +81,27 @@ public class DataSyncConfiguration {
      */
     @Configuration
     @ConditionalOnProperty(prefix = "shenyu.sync.zookeeper", name = "url")
-    @Import(ZookeeperConfiguration.class)
+    @EnableConfigurationProperties(ZookeeperProperties.class)
     static class ZookeeperListener {
+
+        /**
+         * register ZookeeperClient in spring ioc.
+         *
+         * @param zookeeperProp the zookeeper configuration
+         * @return ZookeeperClient {@linkplain ZookeeperClient}
+         */
+        @Bean
+        @ConditionalOnMissingBean(ZookeeperClient.class)
+        public ZookeeperClient zookeeperClient(final ZookeeperProperties zookeeperProp) {
+            int sessionTimeout = Objects.isNull(zookeeperProp.getSessionTimeout()) ? 3000 : zookeeperProp.getSessionTimeout();
+            int connectionTimeout = Objects.isNull(zookeeperProp.getConnectionTimeout()) ? 3000 : zookeeperProp.getConnectionTimeout();
+            ZookeeperConfig zkConfig = new ZookeeperConfig(zookeeperProp.getUrl());
+            zkConfig.setSessionTimeoutMilliseconds(sessionTimeout)
+                    .setConnectionTimeoutMilliseconds(connectionTimeout);
+            ZookeeperClient client = new ZookeeperClient(zkConfig);
+            client.start();
+            return client;
+        }
 
         /**
          * Config event listener data changed listener.
@@ -84,7 +111,7 @@ public class DataSyncConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean(ZookeeperDataChangedListener.class)
-        public DataChangedListener zookeeperDataChangedListener(final ZkClient zkClient) {
+        public DataChangedListener zookeeperDataChangedListener(final ZookeeperClient zkClient) {
             return new ZookeeperDataChangedListener(zkClient);
         }
 
@@ -96,7 +123,7 @@ public class DataSyncConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean(ZookeeperDataChangedInit.class)
-        public DataChangedInit zookeeperDataChangedInit(final ZkClient zkClient) {
+        public DataChangedInit zookeeperDataChangedInit(final ZookeeperClient zkClient) {
             return new ZookeeperDataChangedInit(zkClient);
         }
     }
@@ -106,8 +133,41 @@ public class DataSyncConfiguration {
      */
     @Configuration
     @ConditionalOnProperty(prefix = "shenyu.sync.nacos", name = "url")
-    @Import(NacosConfiguration.class)
+    @EnableConfigurationProperties(NacosProperties.class)
     static class NacosListener {
+
+        /**
+         * register configService in spring ioc.
+         *
+         * @param nacosProp the nacos configuration
+         * @return ConfigService {@linkplain ConfigService}
+         * @throws Exception the exception
+         */
+        @Bean
+        @ConditionalOnMissingBean(ConfigService.class)
+        public ConfigService nacosConfigService(final NacosProperties nacosProp) throws Exception {
+            Properties properties = new Properties();
+            if (Objects.nonNull(nacosProp.getAcm()) && nacosProp.getAcm().isEnabled()) {
+                // Use aliyun ACM service
+                properties.put(PropertyKeyConst.ENDPOINT, nacosProp.getAcm().getEndpoint());
+                properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getAcm().getNamespace());
+                // Use subaccount ACM administrative authority
+                properties.put(PropertyKeyConst.ACCESS_KEY, nacosProp.getAcm().getAccessKey());
+                properties.put(PropertyKeyConst.SECRET_KEY, nacosProp.getAcm().getSecretKey());
+            } else {
+                properties.put(PropertyKeyConst.SERVER_ADDR, nacosProp.getUrl());
+                if (StringUtils.isNotBlank(nacosProp.getNamespace())) {
+                    properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getNamespace());
+                }
+                if (StringUtils.isNotBlank(nacosProp.getUsername())) {
+                    properties.put(PropertyKeyConst.USERNAME, nacosProp.getUsername());
+                }
+                if (StringUtils.isNotBlank(nacosProp.getPassword())) {
+                    properties.put(PropertyKeyConst.PASSWORD, nacosProp.getPassword());
+                }
+            }
+            return NacosFactory.createConfigService(properties);
+        }
 
         /**
          * Data changed listener data changed listener.
@@ -184,6 +244,12 @@ public class DataSyncConfiguration {
     @EnableConfigurationProperties(EtcdProperties.class)
     static class EtcdListener {
 
+        /**
+         * Init etcd client.
+         *
+         * @param etcdProperties etcd properties
+         * @return Etcd Client
+         */
         @Bean
         public EtcdClient etcdClient(final EtcdProperties etcdProperties) {
             Client client = Client.builder()

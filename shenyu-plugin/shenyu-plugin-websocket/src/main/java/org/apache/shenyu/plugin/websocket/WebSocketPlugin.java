@@ -106,10 +106,10 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     
     private String buildWsRealPath(final ServerWebExchange exchange, final Upstream upstream, final ShenyuContext shenyuContext) {
         String protocol = upstream.getProtocol();
-        if (StringUtils.isEmpty(protocol)) {
+        if (!StringUtils.hasLength(protocol)) {
             protocol = "ws://";
         }
-        String path = !StringUtils.isEmpty(shenyuContext.getRealUrl()) ? shenyuContext.getRealUrl() : shenyuContext.getMethod();
+        String path = StringUtils.hasLength(shenyuContext.getRealUrl()) ? shenyuContext.getRealUrl() : shenyuContext.getMethod();
         if (StringUtils.hasText(exchange.getRequest().getURI().getQuery())) {
             path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
         }

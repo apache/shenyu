@@ -31,8 +31,6 @@ public class ZookeeperProperties {
 
     private Integer connectionTimeout;
 
-    private String serializer;
-
     /**
      * Gets the value of url.
      *
@@ -85,23 +83,5 @@ public class ZookeeperProperties {
      */
     public void setConnectionTimeout(final Integer connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
-    }
-
-    /**
-     * Gets the value of serializer.
-     *
-     * @return the value of serializer
-     */
-    public String getSerializer() {
-        return serializer;
-    }
-
-    /**
-     * Sets the serializer.
-     *
-     * @param serializer serializer
-     */
-    public void setSerializer(final String serializer) {
-        this.serializer = serializer;
     }
 }

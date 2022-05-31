@@ -122,7 +122,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
             ShenyuMotanClient shenyuMotanClient = method.getAnnotation(ShenyuMotanClient.class);
             if (Objects.nonNull(shenyuMotanClient)) {
                 publisher.publishEvent(buildMetaDataDTO(clazz, service,
-                        shenyuMotanClient, method, buildRpcExt(methods, timeout)));
+                        shenyuMotanClient, method, buildRpcExt(method, timeout)));
             }
         }
     }
@@ -180,14 +180,9 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         return new MotanRpcExt.RpcExt(method.getName(), params);
     }
 
-    private String buildRpcExt(final Method[] methods, final Integer timeout) {
+    private String buildRpcExt(final Method method, final Integer timeout) {
         List<MotanRpcExt.RpcExt> list = new ArrayList<>();
-        for (Method method : methods) {
-            ShenyuMotanClient shenyuMotanClient = method.getAnnotation(ShenyuMotanClient.class);
-            if (Objects.nonNull(shenyuMotanClient)) {
-                list.add(buildRpcExt(method));
-            }
-        }
+        list.add(buildRpcExt(method));
         MotanRpcExt buildList = new MotanRpcExt(list, group, timeout);
         return GsonUtils.getInstance().toJson(buildList);
     }

@@ -44,7 +44,7 @@ public class RateLimiterPluginConfiguration {
     }
     
     /**
-     * Rate limiter plugin data handler plugin data handler.
+     * Rate limiter plugin data handler.
      *
      * @return the plugin data handler
      */

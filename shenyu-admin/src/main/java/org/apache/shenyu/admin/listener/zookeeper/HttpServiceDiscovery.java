@@ -18,18 +18,23 @@
 package org.apache.shenyu.admin.listener.zookeeper;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
-import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.PathMatchUtils;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperConfig;
+import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -54,7 +59,9 @@ public class HttpServiceDiscovery implements InitializingBean {
 
     public static final String ROOT = "/shenyu/register";
 
-    private ZkClient zkClient;
+    public static final String URI_PATH = "/shenyu/register/*/*";
+
+    private ZookeeperClient zkClient;
 
     private final SelectorService selectorService;
 
@@ -94,65 +101,30 @@ public class HttpServiceDiscovery implements InitializingBean {
         String zookeeperUrl = env.getProperty("shenyu.http.zookeeperUrl", "");
         if (StringUtils.isNoneBlank(zookeeperUrl)) {
             zkClient = createZkClient(zookeeperUrl);
-            boolean exists = zkClient.exists(ROOT);
+            boolean exists = zkClient.isExist(ROOT);
             if (!exists) {
-                zkClient.createPersistent(ROOT, true);
+                zkClient.createOrUpdate(ROOT, "", CreateMode.PERSISTENT);
             }
-            contextPathList = zkClient.getChildren(ROOT);
-            updateServerNode(contextPathList);
-            zkClient.subscribeChildChanges(ROOT, (parentPath, childs) -> {
-                final List<String> addSubscribePath = addSubscribePath(contextPathList, childs);
-                updateServerNode(addSubscribePath);
-                contextPathList = childs;
-            });
+
+            zkClient.addCache(ROOT, new HttpServiceListener());
         }
     }
 
     @VisibleForTesting
-    ZkClient createZkClient(final String zookeeperUrl) {
-        return new ZkClient(zookeeperUrl, 5000, 2000);
-    }
-
-    private void updateServerNode(final List<String> serverNodeList) {
-        for (String children : serverNodeList) {
-            String serverPath = buildServerPath(children);
-            List<String> realPath = zkClient.getChildren(serverPath);
-            List<String> collect = realPath.stream().map(r -> buildRealPath(children, r)).collect(Collectors.toList());
-            updateServiceList(collect, "/" + children);
-            subscribeChildChanges(serverPath);
-        }
-    }
-
-    private void subscribeChildChanges(final String children) {
-        zkClient.subscribeChildChanges(children, (parentPath, currentChilds) -> {
-            String[] split = StringUtils.split(parentPath, "/");
-            String contextPath = "/" + split[2];
-            if (CollectionUtils.isEmpty(currentChilds)) {
-                updateSelectorHandler(contextPath, null);
-            } else {
-                List<String> uriList = new ArrayList<>();
-                for (String subNode : currentChilds) {
-                    // Read node data
-                    String data = zkClient.readData(parentPath + "/" + subNode);
-                    uriList.add(data);
-                }
-                updateSelectorHandler(contextPath, uriList);
-            }
-        });
-    }
-
-    private List<String> addSubscribePath(final List<String> alreadyChildren, final List<String> currentChildren) {
-        if (CollectionUtils.isEmpty(alreadyChildren)) {
-            return currentChildren;
-        }
-        return currentChildren.stream().filter(current -> alreadyChildren.stream().noneMatch(current::equals)).collect(Collectors.toList());
+    ZookeeperClient createZkClient(final String zookeeperUrl) {
+        ZookeeperConfig config = new ZookeeperConfig(zookeeperUrl);
+        config.setSessionTimeoutMilliseconds(5000)
+                .setConnectionTimeoutMilliseconds(2000);
+        ZookeeperClient client = new ZookeeperClient(config);
+        client.start();
+        return client;
     }
 
     private void updateServiceList(final List<String> children, final String contextPath) {
         List<String> uriList = new ArrayList<>();
         for (String subNode : children) {
             // Read node data
-            String data = zkClient.readData(subNode);
+            String data = zkClient.get(subNode);
             uriList.add(data);
         }
         updateSelectorHandler(contextPath, uriList);
@@ -190,11 +162,22 @@ public class HttpServiceDiscovery implements InitializingBean {
         }).collect(Collectors.toList());
     }
 
-    private String buildServerPath(final String serverNode) {
-        return ROOT + "/" + serverNode;
-    }
+    class HttpServiceListener implements CuratorCacheListener {
+        @Override
+        public void event(final Type type, final ChildData oldData, final ChildData data) {
+            String path = Objects.isNull(data) ? oldData.getPath() : data.getPath();
 
-    private String buildRealPath(final String serverNode, final String path) {
-        return ROOT + "/" + serverNode + "/" + path;
+            // if not uri register path, return.
+            if (!PathMatchUtils.match(URI_PATH, path)) {
+                return;
+            }
+
+            // get children under context path
+            int lastSepIndex = path.lastIndexOf(Constants.PATH_SEPARATOR);
+            String contextPath = path.substring(0, lastSepIndex);
+            List<String> childrenList = zkClient.getChildren(contextPath);
+            List<String> collect = childrenList.stream().map(r -> contextPath + "/" + r).collect(Collectors.toList());
+            updateServiceList(collect, contextPath);
+        }
     }
 }

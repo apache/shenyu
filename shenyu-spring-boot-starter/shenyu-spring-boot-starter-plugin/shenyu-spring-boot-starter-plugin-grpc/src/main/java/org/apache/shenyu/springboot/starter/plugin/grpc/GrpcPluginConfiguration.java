@@ -36,9 +36,9 @@ import org.springframework.context.annotation.Configuration;
 public class GrpcPluginConfiguration {
 
     /**
-     * grpc plugin shenyu plugin.
+     * grpc plugin.
      *
-     * @return the tars plugin
+     * @return the grpc plugin
      */
     @Bean
     public ShenyuPlugin grpcPlugin() {
@@ -56,7 +56,7 @@ public class GrpcPluginConfiguration {
     }
 
     /**
-     * Grpc shenyu context decorator shenyu context decorator.
+     * Grpc shenyu context decorator.
      *
      * @return the shenyu context decorator
      */

@@ -35,60 +35,60 @@ public enum DashboardUserTransfer {
     INSTANCE;
 
     /**
-     * conversion data to VO
+     * conversion data to VO.
      * @param dashboardUserDTO original data
      * @return {@linkplain DashboardUserVO}
      */
     public DashboardUserVO transferDTO2VO(final DashboardUserDTO dashboardUserDTO) {
         return Optional.ofNullable(dashboardUserDTO).map(data -> {
-                    DashboardUserVO dashboardVO = new DashboardUserVO();
-                    dashboardVO.setId(data.getId());
-                    dashboardVO.setUserName(data.getUserName());
-                    dashboardVO.setPassword(data.getPassword());
-                    dashboardVO.setRole(data.getRole());
-                    dashboardVO.setEnabled(data.getEnabled());
-                    return dashboardVO;
-                })
-                .orElse(null);
+            DashboardUserVO dashboardVO = new DashboardUserVO();
+            dashboardVO.setId(data.getId());
+            dashboardVO.setUserName(data.getUserName());
+            dashboardVO.setPassword(data.getPassword());
+            dashboardVO.setRole(data.getRole());
+            dashboardVO.setEnabled(data.getEnabled());
+            return dashboardVO;
+        })
+        .orElse(null);
     }
 
     /**
-     * conversion dashboardUserVO to loginDashboardUserVO
+     * conversion dashboardUserVO to loginDashboardUserVO.
      * @param dashboardUserVO original data
      * @return {@linkplain LoginDashboardUserVO}
      */
     public LoginDashboardUserVO transferVO2LoginVO(final DashboardUserVO dashboardUserVO) {
         return Optional.ofNullable(dashboardUserVO).map(data -> {
-                    LoginDashboardUserVO dashboardVO = new LoginDashboardUserVO();
-                    dashboardVO.setId(data.getId());
-                    dashboardVO.setUserName(data.getUserName());
-                    dashboardVO.setPassword(data.getPassword());
-                    dashboardVO.setRole(data.getRole());
-                    dashboardVO.setEnabled(data.getEnabled());
-                    dashboardVO.setDateCreated(data.getDateCreated());
-                    dashboardVO.setDateUpdated(data.getDateUpdated());
-                    return dashboardVO;
-                })
-                .orElse(null);
+            LoginDashboardUserVO dashboardVO = new LoginDashboardUserVO();
+            dashboardVO.setId(data.getId());
+            dashboardVO.setUserName(data.getUserName());
+            dashboardVO.setPassword(data.getPassword());
+            dashboardVO.setRole(data.getRole());
+            dashboardVO.setEnabled(data.getEnabled());
+            dashboardVO.setDateCreated(data.getDateCreated());
+            dashboardVO.setDateUpdated(data.getDateUpdated());
+            return dashboardVO;
+        })
+        .orElse(null);
     }
 
     /**
-     * conversion dashboardUserVO to dashboardUserEditVO
+     * conversion dashboardUserVO to dashboardUserEditVO.
      * @param dashboardUserVO dashboardUserVO
      * @return {@linkplain DashboardUserEditVO}
      */
     public DashboardUserEditVO transfer2EditVO(final DashboardUserVO dashboardUserVO) {
         return Optional.ofNullable(dashboardUserVO).map(data -> {
-                    DashboardUserEditVO vo = new DashboardUserEditVO();
-                    vo.setId(data.getId());
-                    vo.setPassword(data.getPassword());
-                    vo.setUserName(data.getUserName());
-                    vo.setRole(data.getRole());
-                    vo.setEnabled(data.getEnabled());
-                    vo.setDateCreated(data.getDateCreated());
-                    vo.setDateUpdated(data.getDateUpdated());
-                    return vo;
-                }).orElse(null);
+            DashboardUserEditVO vo = new DashboardUserEditVO();
+            vo.setId(data.getId());
+            vo.setPassword(data.getPassword());
+            vo.setUserName(data.getUserName());
+            vo.setRole(data.getRole());
+            vo.setEnabled(data.getEnabled());
+            vo.setDateCreated(data.getDateCreated());
+            vo.setDateUpdated(data.getDateUpdated());
+            return vo;
+        }).orElse(null);
     }
 
 }

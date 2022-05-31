@@ -17,27 +17,40 @@
 
 package org.apache.shenyu.admin.config;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
+import org.apache.shenyu.register.client.server.zookeeper.ZookeeperConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.Objects;
+
 /**
  * ZookeeperConfiguration.
+ *
+ * @deprecated {@link DataSyncConfiguration.ZookeeperListener#zookeeperClient}
  */
+@Deprecated
 @EnableConfigurationProperties(ZookeeperProperties.class)
 public class ZookeeperConfiguration {
 
     /**
-     * register zkClient in spring ioc.
+     * register ZookeeperClient in spring ioc.
      *
      * @param zookeeperProp the zookeeper configuration
-     * @return ZkClient {@linkplain ZkClient}
+     * @return ZookeeperClient {@linkplain ZookeeperClient}
      */
     @Bean
-    @ConditionalOnMissingBean(ZkClient.class)
-    public ZkClient zkClient(final ZookeeperProperties zookeeperProp) {
-        return new ZkClient(zookeeperProp.getUrl(), zookeeperProp.getSessionTimeout(), zookeeperProp.getConnectionTimeout());
+    @ConditionalOnMissingBean(ZookeeperClient.class)
+    public ZookeeperClient zookeeperClient(final ZookeeperProperties zookeeperProp) {
+        int sessionTimeout = Objects.isNull(zookeeperProp.getSessionTimeout()) ? 3000 : zookeeperProp.getSessionTimeout();
+        int connectionTimeout = Objects.isNull(zookeeperProp.getConnectionTimeout()) ? 3000 : zookeeperProp.getConnectionTimeout();
+        ZookeeperConfig zkConfig = new ZookeeperConfig(zookeeperProp.getUrl());
+        zkConfig.setSessionTimeoutMilliseconds(sessionTimeout)
+                .setConnectionTimeoutMilliseconds(connectionTimeout);
+        ZookeeperClient client = new ZookeeperClient(zkConfig);
+        client.start();
+        return client;
     }
 }
