@@ -56,6 +56,11 @@ public enum EventTypeEnum {
     RULE_CREATE("CREATE:RULE", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
     
     /**
+     * meta data created event.
+     */
+    META_DATA_CREATE("CREATE:META_DATA", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
+    /**
      * resource created event.
      */
     RESOURCE_CREATE("CREATE:RESOURCE", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
@@ -93,6 +98,11 @@ public enum EventTypeEnum {
     RULE_DELETE("DELETE:RULE", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
     
     /**
+     * meta data deleted event.
+     */
+    META_DATA_DELETE("DELETE:META_DATA", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
+    /**
      * resource deleted event.
      */
     RESOURCE_DELETE("DELETE:RESOURCE", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
@@ -123,6 +133,11 @@ public enum EventTypeEnum {
      * rule update.
      */
     RULE_UPDATE("UPDATE:RULE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * meta data update.
+     */
+    META_DATA_UPDATE("UPDATE:META_DATA", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
     
     /**
      * resource update.
@@ -199,7 +214,7 @@ public enum EventTypeEnum {
         /**
          * default update event color.
          */
-        public static final String UPDATE_COLOR = "yellow";
+        public static final String UPDATE_COLOR = "#CC6600";
     }
     
 }
