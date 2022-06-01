@@ -18,14 +18,17 @@
 package org.apache.shenyu.plugin.tars.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.convert.plugin.TarsRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.Singleton;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for {@link TarsPluginDataHandler}.
@@ -42,9 +45,14 @@ public final class TarsPluginDataHandlerTest {
     
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("id", "name", "config", "0", false);
+        final PluginData pluginData = new PluginData("id", "name", "{\"threadpool\":\"cached\",\"corethreads\":1,\"threads\":2,\"queues\":3}", "0", true);
         tarsPluginDataHandlerUnderTest.handlerPlugin(pluginData);
-        assertTrue(pluginData.getName().endsWith("tested"));
+        assertTrue(pluginData.getName().endsWith("name"));
+        TarsRegisterConfig config = Singleton.INST.get(TarsRegisterConfig.class);
+        Assertions.assertEquals(config.getThreadpool(), "cached");
+        Assertions.assertEquals(config.getCorethreads(), 1);
+        Assertions.assertEquals(config.getThreads(), 2);
+        Assertions.assertEquals(config.getQueues(), 3);
     }
     
     @Test
