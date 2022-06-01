@@ -23,6 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class AppAuthDataRefresh extends AbstractDataRefresh<AppAuthData> {
 
     @Override
     protected ConfigData<AppAuthData> fromJson(final JsonObject data) {
-        return GSON.fromJson(data, new TypeToken<ConfigData<AppAuthData>>() {
+        return GsonUtils.getGson().fromJson(data, new TypeToken<ConfigData<AppAuthData>>() {
         }.getType());
     }
 

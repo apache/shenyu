@@ -77,7 +77,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     /**
      * only use for http long polling.
      */
-    private final RestTemplate httpClient;
+    private final RestTemplate restTemplate;
 
     private ExecutorService executor;
 
@@ -89,12 +89,12 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
 
     private final FreshBeanHolder<String, Optional<Object>> accessToken;
 
-    public HttpSyncDataService(final HttpConfig httpConfig, final PluginDataSubscriber pluginDataSubscriber,
+    public HttpSyncDataService(final HttpConfig httpConfig, final PluginDataSubscriber pluginDataSubscriber, final RestTemplate restTemplate,
                                final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
         this.httpConfig = httpConfig;
         this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
-        this.httpClient = createRestTemplate(httpConfig);
+        this.restTemplate = createRestTemplate(httpConfig);
         this.accessToken = new FreshBeanHolder<>(this::doLogin);
         this.start();
     }
@@ -155,7 +155,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
             HttpHeaders headers = new HttpHeaders();
             headers.set(Constants.X_ACCESS_TOKEN, String.valueOf(token.get()));
             HttpEntity<String> httpEntity = new HttpEntity<>(headers);
-            json = this.httpClient.exchange(url, HttpMethod.GET, httpEntity, String.class).getBody();
+            json = this.restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class).getBody();
         } catch (RestClientException e) {
             String message = String.format("fetch config fail from server[%s], %s", url, e.getMessage());
             LOG.warn(message);
@@ -207,7 +207,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
 
         JsonArray groupJson;
         try {
-            String json = this.httpClient.postForEntity(listenerUrl, httpEntity, String.class).getBody();
+            String json = this.restTemplate.postForEntity(listenerUrl, httpEntity, String.class).getBody();
             LOG.debug("listener result: [{}]", json);
             groupJson = GsonUtils.getGson().fromJson(json, JsonObject.class).getAsJsonArray("data");
         } catch (RestClientException e) {
@@ -238,7 +238,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
     private Optional<Object> doLogin(final String server) {
         String param = Constants.LOGIN_NAME + "=" + httpConfig.getUsername() + "&" + Constants.PASS_WORD + "=" + httpConfig.getPassword();
         String url = String.join("?", server + Constants.LOGIN_PATH, param);
-        String result = this.httpClient.getForObject(url, String.class);
+        String result = this.restTemplate.getForObject(url, String.class);
         Map<String, Object> resultMap = GsonUtils.getInstance().convertToMap(result);
         if (!String.valueOf(CommonErrorCode.SUCCESSFUL).equals(String.valueOf(resultMap.get(Constants.ADMIN_RESULT_CODE)))) {
             return Optional.empty();

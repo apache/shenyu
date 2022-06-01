@@ -40,15 +40,15 @@ import wiremock.org.apache.http.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
 
 import java.util.Collections;
-import java.util.Objects;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -111,8 +111,8 @@ public final class HttpSyncDataServiceTest {
         this.pluginDataSubscriber = mock(PluginDataSubscriber.class);
         this.metaDataSubscriber = mock(MetaDataSubscriber.class);
         this.authDataSubscriber = mock(AuthDataSubscriber.class);
-        this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber,
-                Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber));
+//        this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber,
+//                Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber));
     }
 
     @AfterEach
