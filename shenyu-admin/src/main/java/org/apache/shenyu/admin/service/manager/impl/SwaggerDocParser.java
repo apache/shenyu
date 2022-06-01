@@ -56,7 +56,7 @@ public class SwaggerDocParser implements DocParser {
     @Override
     public DocInfo parseJson(final JSONObject docRoot) {
         final String basePath = docRoot.getString("basePath");
-        final String title = Optional.ofNullable(docRoot.getJSONObject("info")).map(jsonObject -> jsonObject.getString("title")).orElse("");
+        final String title = Optional.ofNullable(docRoot.getJSONObject("info")).map(jsonObject -> jsonObject.getString("title")).orElse(basePath);
         final List<DocItem> docItems = new ArrayList<>();
 
         JSONObject paths = docRoot.getJSONObject("paths");
@@ -154,7 +154,7 @@ public class SwaggerDocParser implements DocParser {
         }
         docItem.setModuleOrder(NumberUtils.toInt(docInfo.getString("module_order"), 0));
         docItem.setApiOrder(NumberUtils.toInt(docInfo.getString("api_order"), 0));
-        String moduleName = this.buildModuleName(docInfo, docRoot);
+        String moduleName = this.buildModuleName(docInfo, docRoot, basePath);
         docItem.setModule(moduleName);
         List<DocParameter> docParameterList = this.buildRequestParameterList(docInfo, docRoot);
         docItem.setRequestParameters(docParameterList);
@@ -164,8 +164,8 @@ public class SwaggerDocParser implements DocParser {
         return docItem;
     }
 
-    protected String buildModuleName(final JSONObject docInfo, final JSONObject docRoot) {
-        String title = docRoot.getJSONObject("info").getString("title");
+    protected String buildModuleName(final JSONObject docInfo, final JSONObject docRoot, final String basePath) {
+        final String title = Optional.ofNullable(docRoot.getJSONObject("info")).map(jsonObject -> jsonObject.getString("title")).orElse(basePath);
         JSONArray tags = docInfo.getJSONArray("tags");
         if (Objects.nonNull(tags) && tags.size() > 0) {
             return tags.getString(0);
