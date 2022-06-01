@@ -17,6 +17,19 @@
 
 package org.apache.shenyu.admin.utils;
 
+import okhttp3.Cookie;
+import okhttp3.CookieJar;
+import okhttp3.FormBody;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import org.apache.commons.codec.digest.DigestUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,18 +45,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import okhttp3.Cookie;
-import okhttp3.CookieJar;
-import okhttp3.FormBody;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * HTTP request tool, based on okhttp3.
@@ -92,17 +93,27 @@ public class HttpUtils {
                     .head();
             case PUT:
                 return new Request.Builder()
-                    .url(url)
+                    .url(buildHttpUrl(url))
                     .put(buildFormBody(form));
             case DELETE:
                 return new Request.Builder()
-                    .url(url)
+                    .url(buildHttpUrl(url))
                     .delete(buildFormBody(form));
             default:
                 return new Request.Builder()
-                    .url(url)
+                    .url(buildHttpUrl(url))
                     .post(buildFormBody(form));
         }
+    }
+
+    /**
+     * buildHttpUrl.
+     *
+     * @param url  url
+     * @return HttpUrl
+     */
+    public static HttpUrl buildHttpUrl(final String url) {
+        return buildHttpUrl(url, null);
     }
 
     /**
@@ -114,8 +125,10 @@ public class HttpUtils {
      */
     public static HttpUrl buildHttpUrl(final String url, final Map<String, ?> form) {
         HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
-        for (Map.Entry<String, ?> entry : form.entrySet()) {
-            urlBuilder.addQueryParameter(entry.getKey(), String.valueOf(entry.getValue()));
+        if (Objects.nonNull(form) && !form.isEmpty()) {
+            for (Map.Entry<String, ?> entry : form.entrySet()) {
+                urlBuilder.addQueryParameter(entry.getKey(), String.valueOf(entry.getValue()));
+            }
         }
         return urlBuilder.build();
     }
@@ -269,7 +282,7 @@ public class HttpUtils {
         }
 
         RequestBody requestBody = bodyBuilder.build();
-        Request.Builder builder = new Request.Builder().url(url).post(requestBody);
+        Request.Builder builder = new Request.Builder().url(buildHttpUrl(url)).post(requestBody);
         addHeader(builder, header);
 
         Request request = builder.build();
