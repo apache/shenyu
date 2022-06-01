@@ -68,7 +68,7 @@ public class NacosSyncDataConfiguration {
     }
 
     /**
-     * Nacos config service config service.
+     * Nacos config service.
      *
      * @param nacosConfig the nacos config
      * @return the config service
@@ -98,7 +98,7 @@ public class NacosSyncDataConfiguration {
     }
 
     /**
-     * Http config http config.
+     * Http config.
      *
      * @return the http config
      */

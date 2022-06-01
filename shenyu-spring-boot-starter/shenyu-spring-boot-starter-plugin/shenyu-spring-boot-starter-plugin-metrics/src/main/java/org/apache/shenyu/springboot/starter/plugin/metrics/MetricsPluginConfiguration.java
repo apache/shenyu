@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 public class MetricsPluginConfiguration {
     
     /**
-     * Logging plugin shenyu plugin.
+     * Logging plugin.
      *
      * @return the shenyu plugin
      */
@@ -43,7 +43,7 @@ public class MetricsPluginConfiguration {
     }
     
     /**
-     * Metrics runner metrics runner.
+     * Metrics runner.
      *
      * @param shenyuConfig the shenyu config
      * @return the metrics runner

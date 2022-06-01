@@ -71,7 +71,7 @@ public class OAuth2PluginConfiguration {
     private static final OrServerWebExchangeMatcher OR_MATCHER = new OrServerWebExchangeMatcher(MATCHERS);
 
     /**
-     * oauth2 plugin shenyu plugin.
+     * oauth2 plugin.
      *
      * @param authorizedClientServiceProvider the ReactiveOAuth2AuthorizedClientServiceProvider
      * @return the shenyu plugin

@@ -114,7 +114,7 @@
         <shiro.version>1.8.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
         <motan.version>1.1.9</motan.version>
-        <spring-boot.version>2.2.2.RELEASE</spring-boot.version>
+        <spring-boot.version>2.6.8</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
         <jetcd-core.version>0.5.0</jetcd-core.version>
@@ -146,10 +146,12 @@
         <bytebuddy.version>1.12.6</bytebuddy.version>
         <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
         <jaxb.api.version>2.3.0</jaxb.api.version>
-        <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
-        <netflix-ribbon.version>2.2.9.RELEASE</netflix-ribbon.version>
         <mail.version>1.6.2</mail.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
+        <ojdbc8.version>19.3.0.0</ojdbc8.version>
+        <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
+        <spring-cloud-netflix-ribbon.version>2.2.10.RELEASE</spring-cloud-netflix-ribbon.version>
+        <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
     </properties>
 
     <dependencyManagement>
@@ -405,7 +407,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-                <version>${netflix-ribbon.version}</version>
+                <version>${spring-cloud-netflix-ribbon.version}</version>
             </dependency>
 
             <dependency>
@@ -438,6 +440,18 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
                 <version>${curator.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.oracle.ojdbc</groupId>
+                <artifactId>ojdbc8</artifactId>
+                <version>${ojdbc8.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-commons</artifactId>
+                <version>${spring-cloud-commons.version}</version>
             </dependency>
 
         </dependencies>
@@ -507,6 +521,7 @@
             <artifactId>jaxb-api</artifactId>
             <version>${jaxb.api.version}</version>
         </dependency>
+
     </dependencies>
 
     <build>

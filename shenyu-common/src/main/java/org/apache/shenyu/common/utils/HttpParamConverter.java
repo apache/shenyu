@@ -66,13 +66,13 @@ public final class HttpParamConverter {
      */
     public static Map<String, String> initQueryParams(final String query) {
         final Map<String, String> queryParams = new LinkedHashMap<>();
-        if (!StringUtils.isEmpty(query)) {
+        if (StringUtils.hasLength(query)) {
             final Matcher matcher = PATTERN.matcher(query);
             while (matcher.find()) {
                 String name = decodeQueryParam(matcher.group(1));
                 String eq = matcher.group(2);
                 String value = matcher.group(3);
-                value = !StringUtils.isEmpty(value) ? decodeQueryParam(value) : (StringUtils.hasLength(eq) ? "" : null);
+                value = StringUtils.hasLength(value) ? decodeQueryParam(value) : (StringUtils.hasLength(eq) ? "" : null);
                 queryParams.put(name, value);
             }
         }

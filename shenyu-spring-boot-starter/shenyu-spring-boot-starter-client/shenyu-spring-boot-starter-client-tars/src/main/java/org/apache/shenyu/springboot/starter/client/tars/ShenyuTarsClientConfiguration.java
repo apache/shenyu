@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
 public class ShenyuTarsClientConfiguration {
     
     /**
-     * Tars service bean post processor sofa service bean post processor.
+     * Tars service bean post processor.
      *
      * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
@@ -48,7 +48,7 @@ public class ShenyuTarsClientConfiguration {
     }
     
     /**
-     * Tars context refreshed event listener tars context refreshed event listener.
+     * Tars context refreshed event listener.
      *
      * @param clientConfig the client config
      * @return the tars context refreshed event listener

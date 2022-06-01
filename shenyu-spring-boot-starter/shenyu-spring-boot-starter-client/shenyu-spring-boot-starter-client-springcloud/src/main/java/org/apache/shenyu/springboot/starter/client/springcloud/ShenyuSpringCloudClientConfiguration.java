@@ -36,7 +36,7 @@ import org.springframework.core.env.Environment;
 public class ShenyuSpringCloudClientConfiguration {
     
     /**
-     * Spring cloud client bean post processor spring cloud client bean post processor.
+     * Spring cloud client bean post processor.
      *
      * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
@@ -51,7 +51,7 @@ public class ShenyuSpringCloudClientConfiguration {
     }
     
     /**
-     * Context register listener context register listener.
+     * Context register listener.
      *
      * @param clientConfig the client config
      * @param env the env

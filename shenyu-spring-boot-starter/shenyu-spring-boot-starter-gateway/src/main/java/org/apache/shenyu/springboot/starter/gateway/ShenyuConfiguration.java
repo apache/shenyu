@@ -100,7 +100,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * Param transform plugin shenyu plugin.
+     * Param transform plugin.
      *
      * @return the shenyu plugin
      */
@@ -110,7 +110,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * Plugin data subscriber plugin data subscriber.
+     * Plugin data subscriber.
      *
      * @param pluginDataHandlerList the plugin data handler list
      * @param eventPublisher event publisher
@@ -123,7 +123,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * Shenyu loader service shenyu loader service.
+     * Shenyu loader service.
      *
      * @param shenyuWebHandler the shenyu web handler
      * @param pluginDataSubscriber the plugin data subscriber
@@ -139,7 +139,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * Remote address resolver remote address resolver.
+     * Remote address resolver.
      *
      * @return the remote address resolver
      */
@@ -150,7 +150,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * Local dispatcher filter web filter.
+     * Local dispatcher filter.
      *
      * @param dispatcherHandler the dispatcher handler
      * @param shenyuConfig the shenyuConfig
@@ -164,7 +164,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * Cross filter web filter.
+     * Cross filter.
      * if you application has cross-domain.
      * this is demo.
      * 1. Customize webflux's cross-domain requests.
@@ -181,7 +181,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * Body web filter web filter.
+     * Body web filter.
      *
      * @param shenyuConfig the shenyu config
      * @return the web filter
@@ -194,7 +194,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * Exclude filter web filter.
+     * Exclude filter.
      *
      * @param shenyuConfig the shenyu config
      * @return the web filter
@@ -207,7 +207,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * fallback filter web filter.
+     * fallback filter.
      *
      * @param shenyuConfig the shenyu config
      * @param dispatcherHandler the dispatcher handler
@@ -221,7 +221,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * Health filter web filter.
+     * Health filter.
      *
      * @param shenyuConfig the shenyu config
      * @return the web filter

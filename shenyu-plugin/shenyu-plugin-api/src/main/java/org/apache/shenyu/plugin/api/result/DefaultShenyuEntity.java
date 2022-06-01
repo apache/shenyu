@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.api.result;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import java.io.Serializable;
 
 /**
@@ -32,6 +34,7 @@ public class DefaultShenyuEntity implements Serializable {
 
     private String message;
 
+    @JsonBackReference
     private Object data;
 
     /**

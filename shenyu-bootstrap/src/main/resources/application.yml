@@ -20,6 +20,7 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
+    allow-circular-references: true
   application:
     name: shenyu-bootstrap
   codec:
@@ -35,6 +36,11 @@ spring:
         server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
         enabled: false
         namespace: ShenyuRegisterCenter
+
+# if you want use ribbon please config every server.
+#springCloud-test:
+#  ribbon:
+#    NIWSServerListClassName: com.netflix.niws.loadbalancer.DiscoveryEnabledNIWSServerList
 
 eureka:
   client:

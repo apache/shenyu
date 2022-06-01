@@ -176,7 +176,7 @@ public class NettyChannelProperties {
     }
 
     /**
-     * ser setSoReuseAddr.
+     * set setSoReuseAddr.
      *
      * @param soReuseAddr SO_REUSEADDR
      */

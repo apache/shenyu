@@ -127,7 +127,7 @@ public final class WebsocketCollectorTest {
         websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
         doNothing().when(loggerSpy).error(anyString(), anyString(), isA(Throwable.class));
-        Throwable throwable = mock(Throwable.class);
+        Throwable throwable = new Throwable();
         websocketCollector.onError(session, throwable);
         assertEquals(0L, getSessionSetSize());
         assertNull(getSession());
