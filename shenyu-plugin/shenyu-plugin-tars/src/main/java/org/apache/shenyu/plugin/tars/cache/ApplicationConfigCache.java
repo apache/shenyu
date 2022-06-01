@@ -71,9 +71,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static com.qq.tars.common.util.Constants.default_core_pool_size;
-import static com.qq.tars.common.util.Constants.default_max_pool_size;
-
 /**
  * Tars config cache.
  */
@@ -109,11 +106,13 @@ public final class ApplicationConfigCache {
 
     private ApplicationConfigCache() {
         TarsRegisterConfig config = Singleton.INST.get(TarsRegisterConfig.class);
-        if (Objects.isNull(config) || StringUtils.isEmpty(config.getThreadpool())) {
-            CommunicatorConfig communicatorConfig = CommunicatorConfig.getDefault()
-                    .setCorePoolSize(Optional.ofNullable(config.getCorethreads()).orElse(default_core_pool_size))
-                    .setMaxPoolSize(Optional.ofNullable(config.getThreads()).orElse(default_max_pool_size))
-                    .setQueueSize(Optional.ofNullable(config.getQueues()).orElse(20000));
+        if (Objects.isNull(config)) {
+            communicator = CommunicatorFactory.getInstance().getCommunicator(CommunicatorConfig.getDefault());
+        } else if (StringUtils.isEmpty(config.getThreadpool())) {
+            CommunicatorConfig communicatorConfig = CommunicatorConfig.getDefault();
+            Optional.ofNullable(config.getCorethreads()).ifPresent(communicatorConfig::setCorePoolSize);
+            Optional.ofNullable(config.getThreads()).ifPresent(communicatorConfig::setMaxPoolSize);
+            Optional.ofNullable(config.getQueues()).ifPresent(communicatorConfig::setQueueSize);
             communicator = CommunicatorFactory.getInstance().getCommunicator(communicatorConfig);
         } else {
             communicator = CommunicatorFactory.getInstance().getCommunicator(CommunicatorConfig.getDefault());
