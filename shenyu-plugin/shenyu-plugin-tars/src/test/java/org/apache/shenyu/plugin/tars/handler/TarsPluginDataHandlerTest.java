@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.tars.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.dto.convert.plugin.TarsRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.Singleton;
@@ -28,8 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for {@link TarsPluginDataHandler}.
