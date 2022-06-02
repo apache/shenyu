@@ -38,7 +38,7 @@ public enum PluginEnum {
     /**
      * the cache plugin enum.
      */
-    CACHE(180, 0, "cache"),
+    CACHE(10, 0, "cache"),
 
     /**
      * Monitor plugin enum.
