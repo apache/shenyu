@@ -18,15 +18,15 @@
 package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+
+import java.util.EnumMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The type Data refresh factory.
@@ -59,7 +59,7 @@ public final class DataRefreshFactory {
      * @return the boolean
      */
     public boolean executor(final JsonObject data) {
-        List<Boolean> result = ENUM_MAP.values().parallelStream()
+        List<Boolean> result = ENUM_MAP.values().stream()
                 .map(dataRefresh -> dataRefresh.refresh(data))
                 .collect(Collectors.toList());
         return result.stream().anyMatch(Boolean.TRUE::equals);
