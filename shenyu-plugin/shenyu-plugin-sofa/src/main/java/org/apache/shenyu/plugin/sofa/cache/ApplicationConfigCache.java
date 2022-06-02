@@ -22,25 +22,36 @@ import com.alipay.sofa.rpc.common.RpcConstants;
 import com.alipay.sofa.rpc.config.ApplicationConfig;
 import com.alipay.sofa.rpc.config.ConsumerConfig;
 import com.alipay.sofa.rpc.config.RegistryConfig;
+import com.alipay.sofa.rpc.context.AsyncRuntime;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.lang.NonNull;
+import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Application config cache.
@@ -48,11 +59,15 @@ import java.util.concurrent.ExecutionException;
 public final class ApplicationConfigCache {
     
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
-    
+
+    private final ThreadFactory factory = ShenyuThreadFactory.create("shenyu-sofa", true);
+
     private ApplicationConfig applicationConfig;
     
     private RegistryConfig registryConfig;
-    
+
+    private ThreadPoolExecutor threadPool;
+
     private final LoadingCache<String, ConsumerConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
@@ -107,6 +122,50 @@ public final class ApplicationConfigCache {
             registryConfig.setId(shenyuProxy);
             registryConfig.setRegister(false);
             registryConfig.setAddress(sofaRegisterConfig.getRegister());
+        }
+        if (StringUtils.isNotBlank(sofaRegisterConfig.getThreadpool())) {
+            initThreadPool(sofaRegisterConfig);
+            setAsyncRuntimeThreadPool();
+        }
+    }
+
+    /**
+     * set sofa asyncRuntime thread pool.
+     */
+    private void setAsyncRuntimeThreadPool() {
+        if (Objects.nonNull(threadPool)) {
+            Field field = ReflectionUtils.findField(AsyncRuntime.class, "asyncThreadPool");
+            ReflectionUtils.makeAccessible(field);
+            ReflectionUtils.setField(field, AsyncRuntime.class, threadPool);
+        }
+    }
+
+    /**
+     * init thread pool.
+     */
+    private void initThreadPool(final SofaRegisterConfig config) {
+        if (Objects.nonNull(threadPool)) {
+            return;
+        }
+        switch (config.getThreadpool()) {
+            case Constants.SHARED:
+                try {
+                    threadPool = SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class);
+                    return;
+                } catch (NoSuchBeanDefinitionException t) {
+                    throw new ShenyuException("shared thread pool is not enable, config ${shenyu.sharedPool.enable} in your xml/yml !", t);
+                }
+            case Constants.FIXED:
+            case Constants.EAGER:
+            case Constants.LIMITED:
+                throw new UnsupportedOperationException();
+            case Constants.CACHED:
+            default:
+                int corePoolSize = Optional.ofNullable(config.getCorethreads()).orElse(0);
+                int maximumPoolSize = Optional.ofNullable(config.getThreads()).orElse(Integer.MAX_VALUE);
+                int queueSize = Optional.ofNullable(config.getQueues()).orElse(0);
+                threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.SECONDS,
+                        queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
         }
     }
     
