@@ -103,7 +103,7 @@ public class ShenyuNettyWebServerConfiguration {
                     .childOption(ChannelOption.ALLOW_HALF_CLOSURE, nettyHttpProperties.getSocketChannel().isAllowHalfClosure())
                     .childOption(ChannelOption.SO_RCVBUF, nettyHttpProperties.getSocketChannel().getSoRcvBuf())
                     .childOption(ChannelOption.SO_REUSEADDR, nettyHttpProperties.getSocketChannel().isSoReuseAddr())
-                    // common
+                    // common parameters
                     .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyHttpProperties.getSocketChannel().getConnectTimeoutMillis())
                     .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyHttpProperties.getSocketChannel().getWriteBufferLowWaterMark(),
                     nettyHttpProperties.getSocketChannel().getWriteBufferHighWaterMark()))
