@@ -20,6 +20,10 @@ package org.apache.shenyu.springboot.starter.netty;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.channel.DefaultMessageSizeEstimator;
+import io.netty.channel.MessageSizeEstimator;
+
+import java.util.Objects;
 
 /**
  * Netty channel properties.
@@ -38,7 +42,7 @@ public class NettyChannelProperties {
 
     private Integer writeSpinCount = 16;
 
-    private Boolean autoRead = true;
+    private Boolean autoRead = false;
 
     /**
      * options: unpooled or pooled.
@@ -48,6 +52,16 @@ public class NettyChannelProperties {
     private Boolean soReuseAddr = false;
 
     private Integer soRcvBuf = 87380;
+
+    /**
+     * message estimator.
+     */
+    private Integer messageSizeEstimator = 8;
+
+    /**
+     * single event executor.
+     */
+    private Boolean singleEventExecutorPerGroup = true;
 
     /**
      * get connectTimeoutMillis.
@@ -200,5 +214,46 @@ public class NettyChannelProperties {
      */
     public void setSoRcvBuf(final Integer soRcvBuf) {
         this.soRcvBuf = soRcvBuf;
+    }
+
+    /**
+     * message size estimator.
+     *
+     * @return MessageSizeEstimator
+     */
+    public MessageSizeEstimator getMessageSizeEstimatorBuild() {
+        return Objects.isNull(messageSizeEstimator) || messageSizeEstimator == 8 ? DefaultMessageSizeEstimator.DEFAULT
+                : new DefaultMessageSizeEstimator(this.getMessageSizeEstimator());
+    }
+
+    public Integer getMessageSizeEstimator() {
+        return messageSizeEstimator;
+    }
+
+    /**
+     * set message size estimator.
+     *
+     * @param messageSizeEstimator messageSizeEstimator
+     */
+    public void setMessageSizeEstimator(Integer messageSizeEstimator) {
+        this.messageSizeEstimator = messageSizeEstimator;
+    }
+
+    /**
+     * single event executor.
+     *
+     * @return single event executor state
+     */
+    public Boolean getSingleEventExecutorPerGroup() {
+        return singleEventExecutorPerGroup;
+    }
+
+    /**
+     * set single event executor.
+     *
+     * @param singleEventExecutorPerGroup single executor
+     */
+    public void setSingleEventExecutorPerGroup(Boolean singleEventExecutorPerGroup) {
+        this.singleEventExecutorPerGroup = singleEventExecutorPerGroup;
     }
 }
