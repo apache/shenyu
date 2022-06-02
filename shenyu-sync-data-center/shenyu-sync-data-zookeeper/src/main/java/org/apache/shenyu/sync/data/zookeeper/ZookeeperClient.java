@@ -21,8 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.CuratorCache;
-import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -35,7 +35,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ZookeeperClient {
@@ -46,7 +45,7 @@ public class ZookeeperClient {
 
     private final CuratorFramework client;
 
-    private final Map<String, CuratorCache> caches = new ConcurrentHashMap<>();
+    private final Map<String, TreeCache> caches = new ConcurrentHashMap<>();
 
     public ZookeeperClient(final ZookeeperConfig zookeeperConfig) {
         this.config = zookeeperConfig;
@@ -84,7 +83,7 @@ public class ZookeeperClient {
      */
     public void close() {
         // close all caches
-        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
+        for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
             CloseableUtils.closeQuietly(cache.getValue());
         }
         // close client
@@ -136,12 +135,15 @@ public class ZookeeperClient {
      * @return value.
      */
     public String get(final String key) {
-        CuratorCache cache = findFromcache(key);
+        TreeCache cache = findFromcache(key);
         if (Objects.isNull(cache)) {
             return getDirectly(key);
         }
-        Optional<ChildData> data = cache.get(key);
-        return data.map(childData -> new String(childData.getData(), StandardCharsets.UTF_8)).orElseGet(() -> getDirectly(key));
+        ChildData data = cache.getCurrentData(key);
+        if (Objects.isNull(data)) {
+            return getDirectly(key);
+        }
+        return Objects.isNull(data.getData()) ? null : new String(data.getData(), StandardCharsets.UTF_8);
     }
 
     /**
@@ -208,7 +210,7 @@ public class ZookeeperClient {
      * @param path path.
      * @return cache.
      */
-    public CuratorCache getCache(final String path) {
+    public TreeCache getCache(final String path) {
         return caches.get(path);
     }
 
@@ -218,15 +220,19 @@ public class ZookeeperClient {
      * @param listeners listeners.
      * @return cache.
      */
-    public CuratorCache addCache(final String path, final CuratorCacheListener... listeners) {
-        CuratorCache cache = CuratorCache.build(client, path);
+    public TreeCache addCache(final String path, final TreeCacheListener... listeners) {
+        TreeCache cache = TreeCache.newBuilder(client, path).build();
         caches.put(path, cache);
         if (listeners != null && listeners.length > 0) {
-            for (CuratorCacheListener listener : listeners) {
-                cache.listenable().addListener(listener);
+            for (TreeCacheListener listener : listeners) {
+                cache.getListenable().addListener(listener);
             }
         }
-        cache.start();
+        try {
+            cache.start();
+        } catch (Exception e) {
+            throw new ShenyuException("failed to add curator cache.", e);
+        }
         return cache;
     }
 
@@ -235,8 +241,8 @@ public class ZookeeperClient {
      * @param key key.
      * @return cache.
      */
-    private CuratorCache findFromcache(final String key) {
-        for (Map.Entry<String, CuratorCache> cache : caches.entrySet()) {
+    private TreeCache findFromcache(final String key) {
+        for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
             if (key.startsWith(cache.getKey())) {
                 return cache.getValue();
             }
