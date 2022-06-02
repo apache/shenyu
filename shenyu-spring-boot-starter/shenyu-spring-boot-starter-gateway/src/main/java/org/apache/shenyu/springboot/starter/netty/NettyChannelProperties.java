@@ -235,7 +235,7 @@ public class NettyChannelProperties {
      *
      * @param messageSizeEstimator messageSizeEstimator
      */
-    public void setMessageSizeEstimator(Integer messageSizeEstimator) {
+    public void setMessageSizeEstimator(final Integer messageSizeEstimator) {
         this.messageSizeEstimator = messageSizeEstimator;
     }
 
@@ -253,7 +253,7 @@ public class NettyChannelProperties {
      *
      * @param singleEventExecutorPerGroup single executor
      */
-    public void setSingleEventExecutorPerGroup(Boolean singleEventExecutorPerGroup) {
+    public void setSingleEventExecutorPerGroup(final Boolean singleEventExecutorPerGroup) {
         this.singleEventExecutorPerGroup = singleEventExecutorPerGroup;
     }
 }

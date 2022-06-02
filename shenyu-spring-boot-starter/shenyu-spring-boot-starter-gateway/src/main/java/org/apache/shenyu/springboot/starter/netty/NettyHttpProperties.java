@@ -139,7 +139,7 @@ public class NettyHttpProperties {
      *
      * @param accessLog access log state
      */
-    public void setAccessLog(Boolean accessLog) {
+    public void setAccessLog(final Boolean accessLog) {
         this.accessLog = accessLog;
     }
 
