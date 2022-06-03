@@ -37,7 +37,6 @@ import org.apache.shenyu.common.dto.convert.plugin.TarsRegisterConfig;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.tars.exception.ShenyuTarsPluginException;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrx;
@@ -98,32 +97,32 @@ public final class ApplicationConfigCache {
     
     private final ConcurrentHashMap<String, List<TarsUpstream>> refreshUpstreamCache = new ConcurrentHashMap<>();
     
-    private final Communicator communicator;
+    private Communicator communicator;
 
     private final ThreadFactory factory = ShenyuThreadFactory.create("shenyu-tars", true);
 
     private ThreadPoolExecutor threadPool;
 
     private ApplicationConfigCache() {
-        TarsRegisterConfig config = Singleton.INST.get(TarsRegisterConfig.class);
-        if (Objects.isNull(config)) {
-            communicator = CommunicatorFactory.getInstance().getCommunicator(CommunicatorConfig.getDefault());
-        } else if (StringUtils.isEmpty(config.getThreadpool())) {
+        communicator = CommunicatorFactory.getInstance().getCommunicator(CommunicatorConfig.getDefault());
+    }
+
+    /**
+     * Init.
+     *
+     * @param tarsRegisterConfig the tars register config
+     */
+    public void init(final TarsRegisterConfig tarsRegisterConfig) {
+        if (StringUtils.isEmpty(tarsRegisterConfig.getThreadpool())) {
             CommunicatorConfig communicatorConfig = CommunicatorConfig.getDefault();
-            Optional.ofNullable(config.getCorethreads()).ifPresent(communicatorConfig::setCorePoolSize);
-            Optional.ofNullable(config.getThreads()).ifPresent(communicatorConfig::setMaxPoolSize);
-            Optional.ofNullable(config.getQueues()).ifPresent(communicatorConfig::setQueueSize);
+            Optional.ofNullable(tarsRegisterConfig.getCorethreads()).ifPresent(communicatorConfig::setCorePoolSize);
+            Optional.ofNullable(tarsRegisterConfig.getThreads()).ifPresent(communicatorConfig::setMaxPoolSize);
+            Optional.ofNullable(tarsRegisterConfig.getQueues()).ifPresent(communicatorConfig::setQueueSize);
             communicator = CommunicatorFactory.getInstance().getCommunicator(communicatorConfig);
         } else {
-            communicator = CommunicatorFactory.getInstance().getCommunicator(CommunicatorConfig.getDefault());
-            initThreadPool(config);
-            if (Objects.nonNull(threadPool)) {
-                Field field = ReflectionUtils.findField(Communicator.class, "threadPoolExecutor");
-                ReflectionUtils.makeAccessible(field);
-                ReflectionUtils.setField(field, communicator, threadPool);
-            }
+            initThreadPool(tarsRegisterConfig);
+            setCommunicatorThreadPool();
         }
-
     }
 
     /**
@@ -146,12 +145,25 @@ public final class ApplicationConfigCache {
             case Constants.LIMITED:
                 throw new UnsupportedOperationException();
             case Constants.CACHED:
-            default:
                 int corePoolSize = Optional.ofNullable(config.getCorethreads()).orElse(0);
                 int maximumPoolSize = Optional.ofNullable(config.getThreads()).orElse(Integer.MAX_VALUE);
                 int queueSize = Optional.ofNullable(config.getQueues()).orElse(0);
                 threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.SECONDS,
                         queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
+                return;
+            default:
+                return;
+        }
+    }
+
+    /**
+     * Set communicator thread pool.
+     */
+    private void setCommunicatorThreadPool() {
+        if (Objects.nonNull(threadPool)) {
+            Field field = ReflectionUtils.findField(Communicator.class, "threadPoolExecutor");
+            ReflectionUtils.makeAccessible(field);
+            ReflectionUtils.setField(field, communicator, threadPool);
         }
     }
 

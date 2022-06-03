@@ -130,7 +130,7 @@ public final class ApplicationConfigCache {
     }
 
     /**
-     * set sofa asyncRuntime thread pool.
+     * Set sofa asyncRuntime thread pool.
      */
     private void setAsyncRuntimeThreadPool() {
         if (Objects.nonNull(threadPool)) {
@@ -141,7 +141,7 @@ public final class ApplicationConfigCache {
     }
 
     /**
-     * init thread pool.
+     * Init thread pool.
      */
     private void initThreadPool(final SofaRegisterConfig config) {
         if (Objects.nonNull(threadPool)) {
@@ -160,12 +160,14 @@ public final class ApplicationConfigCache {
             case Constants.LIMITED:
                 throw new UnsupportedOperationException();
             case Constants.CACHED:
-            default:
                 int corePoolSize = Optional.ofNullable(config.getCorethreads()).orElse(0);
                 int maximumPoolSize = Optional.ofNullable(config.getThreads()).orElse(Integer.MAX_VALUE);
                 int queueSize = Optional.ofNullable(config.getQueues()).orElse(0);
                 threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.SECONDS,
                         queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
+                return;
+            default:
+                return;
         }
     }
     
