@@ -227,7 +227,8 @@ public class NettyChannelProperties {
     }
 
     /**
-     * get message size estimator
+     * get message size estimator.
+     *
      * @return message size estimator
      */
     public Integer getMessageSizeEstimator() {
