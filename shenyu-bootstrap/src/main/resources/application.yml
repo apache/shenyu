@@ -106,7 +106,6 @@ shenyu:
         allocType: "pooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
-
 #  httpclient:
 #    strategy: webClient
 #    connectTimeout: 45000
