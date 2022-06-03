@@ -226,6 +226,10 @@ public class NettyChannelProperties {
                 : new DefaultMessageSizeEstimator(this.getMessageSizeEstimator());
     }
 
+    /**
+     * get message size estimator
+     * @return message size estimator
+     */
     public Integer getMessageSizeEstimator() {
         return messageSizeEstimator;
     }
