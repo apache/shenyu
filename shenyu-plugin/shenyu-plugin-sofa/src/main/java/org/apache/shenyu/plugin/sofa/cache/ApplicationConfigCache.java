@@ -125,19 +125,17 @@ public final class ApplicationConfigCache {
         }
         if (StringUtils.isNotBlank(sofaRegisterConfig.getThreadpool())) {
             initThreadPool(sofaRegisterConfig);
-            setAsyncRuntimeThreadPool();
+            Optional.ofNullable(threadPool).ifPresent(this::setAsyncRuntimeThreadPool);
         }
     }
 
     /**
      * Set sofa asyncRuntime thread pool.
      */
-    private void setAsyncRuntimeThreadPool() {
-        if (Objects.nonNull(threadPool)) {
-            Field field = ReflectionUtils.findField(AsyncRuntime.class, "asyncThreadPool");
-            ReflectionUtils.makeAccessible(field);
-            ReflectionUtils.setField(field, AsyncRuntime.class, threadPool);
-        }
+    private void setAsyncRuntimeThreadPool(final ThreadPoolExecutor threadPool) {
+        Field field = ReflectionUtils.findField(AsyncRuntime.class, "asyncThreadPool");
+        ReflectionUtils.makeAccessible(field);
+        ReflectionUtils.setField(field, AsyncRuntime.class, threadPool);
     }
 
     /**

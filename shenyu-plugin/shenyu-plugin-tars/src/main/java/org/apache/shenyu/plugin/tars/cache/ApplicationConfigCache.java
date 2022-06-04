@@ -121,7 +121,7 @@ public final class ApplicationConfigCache {
             communicator = CommunicatorFactory.getInstance().getCommunicator(communicatorConfig);
         } else {
             initThreadPool(tarsRegisterConfig);
-            setCommunicatorThreadPool();
+            Optional.ofNullable(threadPool).ifPresent(this::setCommunicatorThreadPool);
         }
     }
 
@@ -159,12 +159,10 @@ public final class ApplicationConfigCache {
     /**
      * Set communicator thread pool.
      */
-    private void setCommunicatorThreadPool() {
-        if (Objects.nonNull(threadPool)) {
-            Field field = ReflectionUtils.findField(Communicator.class, "threadPoolExecutor");
-            ReflectionUtils.makeAccessible(field);
-            ReflectionUtils.setField(field, communicator, threadPool);
-        }
+    private void setCommunicatorThreadPool(final ThreadPoolExecutor threadPool) {
+        Field field = ReflectionUtils.findField(Communicator.class, "threadPoolExecutor");
+        ReflectionUtils.makeAccessible(field);
+        ReflectionUtils.setField(field, communicator, threadPool);
     }
 
     /**
