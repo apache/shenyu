@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.service.manager;
 
-import com.alibaba.fastjson.JSONObject;
+import com.google.gson.JsonObject;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 
 /**
@@ -31,5 +31,5 @@ public interface DocParser {
      * @param docRoot docRoot
      * @return DocInfo DocInfo
      */
-    DocInfo parseJson(JSONObject docRoot);
+    DocInfo parseJson(JsonObject docRoot);
 }

@@ -26,7 +26,6 @@
     <artifactId>shenyu-admin</artifactId>
 
     <properties>
-        <fastjson.version>1.2.80</fastjson.version>
         <commons-io.version>2.11.0</commons-io.version>
     </properties>
 
@@ -246,12 +245,6 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
         </dependency>
 
         <dependency>
