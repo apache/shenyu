@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.base;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -45,6 +46,8 @@ import java.util.Objects;
 public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
+
+    private static final String URI_CONDITION_TYPE = "uri";
 
     private ShenyuConfig.MatchCache matchCacheConfig;
 
@@ -121,13 +124,19 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             matchCacheConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
         }
     }
-    
+
     private void cacheSelectorDataIfEnabled(final String path, final SelectorData selectorData) {
         if (matchCacheConfig.getEnabled()) {
             if (Objects.isNull(selectorData)) {
                 MatchDataCache.getInstance().cacheSelectorData(path, defaultSelectorData, matchCacheConfig.getMaxFreeMemory());
             } else {
-                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, matchCacheConfig.getMaxFreeMemory());
+                List<ConditionData> conditionList = selectorData.getConditionList();
+                if (CollectionUtils.isNotEmpty(conditionList)) {
+                    boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
+                    if (isUriCondition) {
+                        MatchDataCache.getInstance().cacheSelectorData(path, selectorData, matchCacheConfig.getMaxFreeMemory());
+                    }
+                }
             }
         }
     }
