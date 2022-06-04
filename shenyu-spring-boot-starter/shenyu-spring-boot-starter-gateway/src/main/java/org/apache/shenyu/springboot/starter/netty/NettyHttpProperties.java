@@ -20,13 +20,15 @@ package org.apache.shenyu.springboot.starter.netty;
 /**
  * The netty tcp properties.
  */
-public class NettyTcpProperties {
+public class NettyHttpProperties {
 
     private Boolean webServerFactoryEnabled = true;
 
     private Integer selectCount = 1;
 
     private Integer workerCount = Runtime.getRuntime().availableProcessors() << 1;
+
+    private Boolean accessLog = false;
 
     private ServerSocketChannelProperties serverSocketChannel = new ServerSocketChannelProperties();
 
@@ -121,6 +123,24 @@ public class NettyTcpProperties {
      */
     public SocketChannelProperties getSocketChannel() {
         return socketChannel;
+    }
+
+    /**
+     * get access log state.
+     *
+     * @return access log state
+     */
+    public Boolean getAccessLog() {
+        return accessLog;
+    }
+
+    /**
+     * set access log state.
+     *
+     * @param accessLog access log state
+     */
+    public void setAccessLog(final Boolean accessLog) {
+        this.accessLog = accessLog;
     }
 
     public static class ServerSocketChannelProperties extends NettyChannelProperties {
