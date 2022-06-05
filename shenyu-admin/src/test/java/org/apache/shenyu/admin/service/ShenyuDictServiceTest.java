@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.impl.ShenyuDictServiceImpl;
+import org.apache.shenyu.admin.service.publish.DictEventPublisher;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,6 +62,9 @@ public final class ShenyuDictServiceTest {
 
     @Mock
     private ShenyuDictMapper shenyuDictMapper;
+    
+    @Mock
+    private DictEventPublisher publisher;
 
     @Test
     public void testFindByType() {
@@ -85,8 +89,10 @@ public final class ShenyuDictServiceTest {
         ShenyuDictDTO insertShenyuDictDTO = buildShenyuDictDTO();
         given(this.shenyuDictMapper.insertSelective(any())).willReturn(1);
         assertThat(this.shenyuDictService.createOrUpdate(insertShenyuDictDTO), greaterThan(0));
-        ShenyuDictDTO updateShenyuDictDTO = buildShenyuDictDTO(UUIDUtils.getInstance().generateShortUuid());
+        final String id = UUIDUtils.getInstance().generateShortUuid();
+        ShenyuDictDTO updateShenyuDictDTO = buildShenyuDictDTO(id);
         given(this.shenyuDictMapper.updateByPrimaryKeySelective(any())).willReturn(1);
+        given(this.shenyuDictMapper.selectById(id)).willReturn(new ShenyuDictDO());
         assertThat(this.shenyuDictService.createOrUpdate(updateShenyuDictDTO), greaterThan(0));
     }
 

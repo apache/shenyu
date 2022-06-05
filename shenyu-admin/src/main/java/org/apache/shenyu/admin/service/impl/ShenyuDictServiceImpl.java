@@ -27,6 +27,8 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
+import org.apache.shenyu.admin.service.publish.DictEventPublisher;
+import org.apache.shenyu.admin.utils.Assert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,52 +40,78 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ShenyuDictServiceImpl implements ShenyuDictService {
-
+    
     private final ShenyuDictMapper shenyuDictMapper;
-
-    public ShenyuDictServiceImpl(final ShenyuDictMapper shenyuDictMapper) {
+    
+    private final DictEventPublisher publisher;
+    
+    public ShenyuDictServiceImpl(final ShenyuDictMapper shenyuDictMapper, final DictEventPublisher publisher) {
         this.shenyuDictMapper = shenyuDictMapper;
+        this.publisher = publisher;
     }
-
+    
     @Override
     @Pageable
     public CommonPager<ShenyuDictVO> listByPage(final ShenyuDictQuery shenyuDictQuery) {
         return PageResultUtils.result(shenyuDictQuery.getPageParameter(),
-            () -> shenyuDictMapper.selectByQuery(shenyuDictQuery)
+                () -> shenyuDictMapper.selectByQuery(shenyuDictQuery)
                         .stream()
                         .map(ShenyuDictVO::buildShenyuDictVO)
                         .collect(Collectors.toList()));
     }
-
+    
     @Override
     public Integer createOrUpdate(final ShenyuDictDTO shenyuDictDTO) {
-        return StringUtils.isBlank(shenyuDictDTO.getId())
-                ? shenyuDictMapper.insertSelective(ShenyuDictDO.buildShenyuDictDO(shenyuDictDTO))
-                : shenyuDictMapper.updateByPrimaryKeySelective(ShenyuDictDO.buildShenyuDictDO(shenyuDictDTO));
+        return StringUtils.isBlank(shenyuDictDTO.getId()) ? create(shenyuDictDTO) : update(shenyuDictDTO);
     }
-
+    
+    private int update(final ShenyuDictDTO shenyuDictDTO) {
+        final ShenyuDictDO before = shenyuDictMapper.selectById(shenyuDictDTO.getId());
+        Assert.notNull(before, "the dict is not existed");
+        final ShenyuDictDO dict = ShenyuDictDO.buildShenyuDictDO(shenyuDictDTO);
+        final int changeCount = shenyuDictMapper.updateByPrimaryKeySelective(dict);
+        if (changeCount > 0) {
+            publisher.onUpdated(dict, before);
+        }
+        return changeCount;
+    }
+    
+    private int create(final ShenyuDictDTO shenyuDictDTO) {
+        final ShenyuDictDO dict = ShenyuDictDO.buildShenyuDictDO(shenyuDictDTO);
+        final int insertCount = shenyuDictMapper.insertSelective(dict);
+        if (insertCount > 0) {
+            publisher.onCreated(dict);
+        }
+        return insertCount;
+    }
+    
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer deleteShenyuDicts(final List<String> ids) {
-        return shenyuDictMapper.deleteByIdList(ids);
+        final List<ShenyuDictDO> dictList = shenyuDictMapper.selectByIds(ids);
+        final int deleteCount = shenyuDictMapper.deleteByIdList(ids);
+        if (deleteCount > 0) {
+            publisher.onDeleted(dictList);
+        }
+        return deleteCount;
     }
-
+    
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Integer enabled(final List<String> ids, final Boolean enabled) {
         return shenyuDictMapper.enabled(ids, enabled);
     }
-
+    
     @Override
     public ShenyuDictVO findById(final String id) {
         return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectById(id));
     }
-
+    
     @Override
     public ShenyuDictVO findByDictCodeName(final String dictCode, final String dictName) {
         return ShenyuDictVO.buildShenyuDictVO(shenyuDictMapper.selectByDictCodeAndDictName(dictCode, dictName));
     }
-
+    
     @Override
     public List<ShenyuDictVO> list(final String type) {
         ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery();
@@ -92,5 +120,5 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
                 .map(ShenyuDictVO::buildShenyuDictVO)
                 .collect(Collectors.toList());
     }
-
+    
 }
