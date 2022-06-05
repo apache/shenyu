@@ -53,11 +53,10 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     @Override
     @Pageable
     public CommonPager<ShenyuDictVO> listByPage(final ShenyuDictQuery shenyuDictQuery) {
-        return PageResultUtils.result(shenyuDictQuery.getPageParameter(),
-                () -> shenyuDictMapper.selectByQuery(shenyuDictQuery)
-                        .stream()
-                        .map(ShenyuDictVO::buildShenyuDictVO)
-                        .collect(Collectors.toList()));
+        return PageResultUtils.result(shenyuDictQuery.getPageParameter(), () -> shenyuDictMapper.selectByQuery(shenyuDictQuery)
+                .stream()
+                .map(ShenyuDictVO::buildShenyuDictVO)
+                .collect(Collectors.toList()));
     }
     
     @Override
