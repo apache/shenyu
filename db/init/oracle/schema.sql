@@ -284,6 +284,36 @@ comment on column META_DATA.date_updated
 comment on column META_DATA.enabled
   is 'enabled state';
 
+create table operation_record_log
+(
+    id                NUMBER(20) not null PRIMARY KEY,
+    color             VARCHAR2(20) not null,
+    context           CLOB not null,
+    operator          VARCHAR2(200) not null,
+    operation_time    date not null,
+    operation_type    VARCHAR2(60) DEFAULT 'update' not null
+);
+-- Add comments to the columns
+comment on column OPERATION_RECORD_LOG.id
+  is 'id';
+comment on column OPERATION_RECORD_LOG.color
+  is 'log color';
+comment on column OPERATION_RECORD_LOG.context
+  is 'log context';
+comment on column OPERATION_RECORD_LOG.operator
+  is 'operator [user or app]]';
+comment on column OPERATION_RECORD_LOG.operation_time
+  is 'operation time';
+comment on column OPERATION_RECORD_LOG.operation_type
+  is 'operation type：create/update/delete/register...';
+
+create sequence operation_record_log_seq
+    increment by 1
+    START WITH 1
+    NOMAXVALUE
+    NOCYCLE
+    NOCACHE;
+
 create table app_auth
 (
     id           VARCHAR2(128) not null,
