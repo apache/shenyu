@@ -25,6 +25,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.utils.PortUtils;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -74,7 +75,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     public ContextRegisterListener(final PropertiesConfig config, final Environment env) {
         Properties props = config.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
-        this.contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        this.contextPath = Optional.ofNullable(props.getProperty(ShenyuClientConstants.CONTEXT_PATH)).map(UriUtils::repairData).orElse(null);
         if (Boolean.TRUE.equals(isFull)) {
             if (StringUtils.isBlank(contextPath)) {
                 String errorMsg = "http register param must config the contextPath";

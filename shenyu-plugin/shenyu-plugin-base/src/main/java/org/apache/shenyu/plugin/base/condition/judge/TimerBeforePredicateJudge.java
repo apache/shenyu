@@ -33,7 +33,7 @@ public class TimerBeforePredicateJudge implements PredicateJudge {
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
         String paramName = conditionData.getParamName();
-        if (StringUtils.isEmpty(paramName)) {
+        if (!StringUtils.hasLength(paramName)) {
             return LocalDateTime.now().isBefore(DateUtils.parseLocalDateTime(conditionData.getParamValue().trim()));
         }
         return DateUtils.parseLocalDateTime(realData).isBefore(DateUtils.parseLocalDateTime(conditionData.getParamValue().trim()));

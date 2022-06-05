@@ -27,6 +27,7 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.java_websocket.handshake.ServerHandshake;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,7 +74,7 @@ public class ShenyuWebsocketClientTest {
     
     @BeforeEach
     public void setUp() {
-        websocketData = new WebsocketData();
+        websocketData = new WebsocketData<>();
         websocketData.setEventType(DataEventTypeEnum.MYSELF.name());
         websocketData.setGroupType(ConfigGroupEnum.PLUGIN.name());
         List<PluginData> list = new ArrayList<>(1);
@@ -111,8 +112,6 @@ public class ShenyuWebsocketClientTest {
     @Test
     public void testOnError() {
         shenyuWebsocketClient = spy(shenyuWebsocketClient);
-        doNothing().when(shenyuWebsocketClient).close();
-        shenyuWebsocketClient.onError(new ShenyuException("test"));
-        verify(shenyuWebsocketClient).close();
+        Assertions.assertDoesNotThrow(() -> shenyuWebsocketClient.onError(new ShenyuException("test")));
     }
 }

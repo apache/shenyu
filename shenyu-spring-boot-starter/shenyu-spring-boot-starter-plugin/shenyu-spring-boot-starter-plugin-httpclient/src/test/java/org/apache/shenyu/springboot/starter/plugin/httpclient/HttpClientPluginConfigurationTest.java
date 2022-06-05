@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.time.Duration;
 
+import io.netty.handler.ssl.SslProvider;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +35,6 @@ import org.springframework.context.annotation.Configuration;
 
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.tcp.SslProvider;
 
 /**
  * Test case for {@link HttpClientPluginConfiguration}.
@@ -92,7 +92,7 @@ public class HttpClientPluginConfigurationTest {
                     assertNotNull(properties.getSsl().getTrustedX509Certificates());
                     assertThat(properties.getSsl().getCloseNotifyFlushTimeout(), is(Duration.ofMillis(3000)));
                     assertThat(properties.getSsl().getCloseNotifyReadTimeout(), is(Duration.ZERO));
-                    assertThat(properties.getSsl().getDefaultConfigurationType(), is(SslProvider.DefaultConfigurationType.TCP));
+                    assertThat(properties.getSsl().getDefaultConfigurationType(), is(SslProvider.JDK));
                 });
     }
 

@@ -19,6 +19,7 @@ package org.apache.shenyu.common.utils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -68,7 +69,7 @@ public final class JsonUtils {
                 .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
                 .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
                 .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
-                .configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true)
+                .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true)
                 .setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
                 .registerModule(javaTimeModule)
                 .addMixIn(Map.class, IgnoreType.class);

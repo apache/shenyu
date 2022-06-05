@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 public class URIPluginConfiguration {
     
     /**
-     * Uri plugin shenyu plugin.
+     * Uri plugin.
      *
      * @return the shenyu plugin
      */

@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +51,30 @@ public final class ListUtil {
     }
     
     /**
+     * new array list.
+     *
+     * @param t   e
+     * @param <T> type
+     * @return list
+     */
+    @SafeVarargs
+    public static <T> List<T> of(final T... t) {
+        return new ArrayList<>(list(t));
+    }
+    
+    /**
+     * if list is empty, return default value.
+     *
+     * @param list     list
+     * @param defaultV default value
+     * @param <T>      list type
+     * @return default value or list
+     */
+    public static <T> List<T> emptyIsDefault(final List<T> list, final List<T> defaultV) {
+        return CollectionUtils.isEmpty(list) ? defaultV : list;
+    }
+    
+    /**
      * list map.<br>
      * if element is null it filter.
      *
@@ -67,6 +92,27 @@ public final class ListUtil {
                 .filter(Objects::nonNull)
                 .map(function)
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * list map.<br>
+     * if element is null it filter.
+     *
+     * @param list     list
+     * @param function map fun
+     * @param <R>      resource type
+     * @return list
+     */
+    public static <R> R findFirst(final List<R> list, final Function<R, Boolean> function) {
+        if (CollectionUtils.isEmpty(list)) {
+            return null;
+        }
+        for (R r : list) {
+            if (Boolean.TRUE.equals(function.apply(r))) {
+                return r;
+            }
+        }
+        return null;
     }
     
     /**
@@ -134,5 +180,18 @@ public final class ListUtil {
     public static <T> Set<T> mergeSet(final Set<T> set1, final Set<T> set2) {
         set1.addAll(set2);
         return set1;
+    }
+    
+    /**
+     * merge.
+     *
+     * @param list1 list1
+     * @param list2 list2
+     * @param <T>   type
+     * @return list1
+     */
+    public static <T> List<T> merge(final List<T> list1, final List<T> list2) {
+        list1.addAll(list2);
+        return list1;
     }
 }

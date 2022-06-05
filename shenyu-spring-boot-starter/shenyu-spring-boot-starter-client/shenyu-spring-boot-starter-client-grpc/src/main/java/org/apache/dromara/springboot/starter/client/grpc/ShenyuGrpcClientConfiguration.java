@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Configuration;
 public class ShenyuGrpcClientConfiguration {
     
     /**
-     * Grpc service bean post processor grpc client bean post processor.
+     * Grpc service bean post processor.
      *
      * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
@@ -51,7 +51,7 @@ public class ShenyuGrpcClientConfiguration {
     }
     
     /**
-     * Grpc context refreshed event listener grpc context refreshed event listener.
+     * Grpc context refreshed event listener.
      *
      * @param clientConfig the client config
      * @return the grpc context refreshed event listener

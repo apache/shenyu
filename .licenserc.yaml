@@ -64,5 +64,6 @@ header:
     - 'licenses'
     - 'LICENSE'
     - 'NOTICE'
+    - '**/static/**'
 
   comment: on-failure

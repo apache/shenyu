@@ -16,9 +16,8 @@
 shenyu:
   database:
     dialect: oracle
-    init_script: "sql-script/oracle/schema.sql"
     init_enable: true
-    
+
 spring:
   datasource:
     url: jdbc:oracle:thin:@localhost:1521/shenyu

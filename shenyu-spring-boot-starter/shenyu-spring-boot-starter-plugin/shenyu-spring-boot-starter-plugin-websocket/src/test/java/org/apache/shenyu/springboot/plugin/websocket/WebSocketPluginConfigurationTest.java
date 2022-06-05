@@ -49,7 +49,6 @@ public class WebSocketPluginConfigurationTest {
             .withConfiguration(AutoConfigurations.of(WebSocketPluginConfiguration.class))
             .withBean(WebSocketPluginConfigurationTest.class)
             .withConfiguration(AutoConfigurations.of(ShenyuConfig.class))
-            .withBean(ShenyuConfig.class)
             .withPropertyValues("debug=true");
     }
 

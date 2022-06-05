@@ -45,7 +45,7 @@ public class DividePluginConfiguration {
     }
     
     /**
-     * Divide plugin data handler plugin data handler.
+     * Divide plugin data handler.
      *
      * @return the plugin data handler
      */
@@ -55,7 +55,7 @@ public class DividePluginConfiguration {
     }
     
     /**
-     * Divide shenyu context decorator shenyu context decorator.
+     * Divide shenyu context decorator.
      *
      * @return the shenyu context decorator
      */

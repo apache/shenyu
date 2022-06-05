@@ -20,9 +20,11 @@ package org.apache.shenyu.plugin.modify.response;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.impl.ModifyResponseRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.modify.response.handler.ModifyResponsePluginDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +36,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -78,7 +82,21 @@ public final class ModifyResponsePluginTest {
     @Test
     public void testDoExecute() {
         when(chain.execute(any())).thenReturn(Mono.empty());
-        Mono<Void> result = modifyResponsePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        final RuleData ruleDataTest = RuleData.builder().id("1")
+                .name("test-modify-response-plugin")
+                .pluginName("modifyResponse")
+                .selectorId("1")
+                .matchMode(1)
+                .sort(1)
+                .loged(true)
+                .selectorId("test")
+                .build();
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        final Map<String, String> map = new HashMap<>();
+        map.put("context-path-id", "1");
+        responseRuleHandle.setAddHeaders(map);
+        ModifyResponsePluginDataHandler.CACHED_HANDLE.get().cachedHandle("test_test-modify-response-plugin", responseRuleHandle);
+        Mono<Void> result = modifyResponsePlugin.doExecute(exchange, chain, selectorData, ruleDataTest);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 

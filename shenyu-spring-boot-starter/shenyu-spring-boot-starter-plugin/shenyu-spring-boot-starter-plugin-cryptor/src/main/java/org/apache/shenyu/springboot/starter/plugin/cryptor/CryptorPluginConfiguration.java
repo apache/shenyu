@@ -55,7 +55,7 @@ public class CryptorPluginConfiguration {
     }
 
     /**
-     * Cryptor request plugin data handler plugin data handler.
+     * Cryptor request plugin data handler.
      *
      * @return the plugin data handler
      */
@@ -65,7 +65,7 @@ public class CryptorPluginConfiguration {
     }
 
     /**
-     * Cryptor response plugin data handler plugin data handler.
+     * Cryptor response plugin data handler.
      *
      * @return the plugin data handler
      */

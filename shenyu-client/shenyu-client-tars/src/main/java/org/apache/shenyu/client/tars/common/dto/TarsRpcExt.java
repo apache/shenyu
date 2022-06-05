@@ -26,7 +26,11 @@ import java.util.List;
  * The type Tars rpc ext.
  */
 public class TarsRpcExt {
-    
+
+    /**
+     * in order to be compatible with the old version,
+     * we can't change the type of this field.
+     */
     private List<RpcExt> methodInfo;
 
     /**

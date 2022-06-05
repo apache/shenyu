@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 public class ShenyuApacheDubboClientConfiguration {
     
     /**
-     * Apache dubbo service bean listener apache dubbo service bean listener.
+     * Apache dubbo service bean listener.
      *
      * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository

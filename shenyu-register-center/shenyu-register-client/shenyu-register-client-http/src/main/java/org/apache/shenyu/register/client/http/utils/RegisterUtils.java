@@ -53,7 +53,7 @@ public final class RegisterUtils {
      * @throws IOException the io exception
      */
     public static void doRegister(final String json, final String url, final String type, final String accessToken) throws IOException {
-        if (StringUtils.isEmpty(accessToken)) {
+        if (!StringUtils.hasLength(accessToken)) {
             LOGGER.error("{} client register error accessToken is null, please check the config : {} ", type, json);
             return;
         }

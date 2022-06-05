@@ -33,23 +33,23 @@ import reactor.core.publisher.Mono;
  * GlobalErrorHandler.
  */
 public class GlobalErrorHandler implements ErrorWebExceptionHandler {
-
+    
     /**
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(GlobalErrorHandler.class);
-
+    
     /**
      * handler error.
      *
-     * @param exchange the exchange
+     * @param exchange  the exchange
      * @param throwable the throwable
      * @return error result
      */
     @Override
     @NonNull
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
-        LOG.error(exchange.getLogPrefix() + formatError(throwable, exchange.getRequest()));
+        LOG.error("handle error: {}{}", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         if (throwable instanceof ResponseStatusException) {
             httpStatus = ((ResponseStatusException) throwable).getStatus();
@@ -58,12 +58,12 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
         Object error = ShenyuResultWrap.error(exchange, httpStatus.value(), httpStatus.getReasonPhrase(), throwable);
         return WebFluxResultUtils.result(exchange, error);
     }
-
+    
     /**
      * log error info.
      *
      * @param throwable the throwable
-     * @param request the request
+     * @param request   the request
      */
     private String formatError(final Throwable throwable, final ServerHttpRequest request) {
         String reason = throwable.getClass().getSimpleName() + ": " + throwable.getMessage();
