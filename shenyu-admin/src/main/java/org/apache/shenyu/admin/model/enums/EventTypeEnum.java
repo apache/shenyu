@@ -68,7 +68,7 @@ public enum EventTypeEnum {
     /**
      * dict created event.
      */
-    DICT_CREATE("CREATE:dict", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    DICT_CREATE("CREATE:DICT", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
     
     // ============== delete ===================
     /**
