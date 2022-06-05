@@ -16,7 +16,7 @@
 
 package org.apache.shenyu.examples.apache.dubbo.service.annotation.impl;
 
-import org.apache.dubbo.config.annotation.Service;
+import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.dubbo.rpc.RpcContext;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -32,7 +32,7 @@ import java.util.Random;
 /**
  * The type Dubbo service.
  */
-@Service
+@DubboService
 public class DubboTestServiceImpl implements DubboTestService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboTestServiceImpl.class);
