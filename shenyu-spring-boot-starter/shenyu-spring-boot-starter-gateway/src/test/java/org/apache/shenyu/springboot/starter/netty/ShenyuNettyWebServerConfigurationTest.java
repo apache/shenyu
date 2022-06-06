@@ -49,29 +49,33 @@ public class ShenyuNettyWebServerConfigurationTest {
         applicationContextRunner
             .withPropertyValues(
                 "debug=true",
-                "shenyu.netty.tcp.webServerFactoryEnabled=false",
-                "shenyu.netty.tcp.selectCount=10",
-                "shenyu.netty.tcp.workerCount=2",
-                "shenyu.netty.tcp.serverSocketChannel.soBacklog=64",
-                "shenyu.netty.tcp.serverSocketChannel.connectTimeoutMillis=65536",
-                "shenyu.netty.tcp.serverSocketChannel.writeBufferLowWaterMark=65536",
-                "shenyu.netty.tcp.serverSocketChannel.soRcvBuf=65536",
-                "shenyu.netty.tcp.socketChannel.soSndBuf=128",
-                "shenyu.netty.tcp.socketChannel.ipTos=64",
-                "shenyu.netty.tcp.socketChannel.soKeepAlive=true",
-                "shenyu.netty.tcp.socketChannel.allowHalfClosure=true",
-                "shenyu.netty.tcp.socketChannel.soLinger=10",
-                "shenyu.netty.tcp.socketChannel.tcpNoDelay=false",
-                "shenyu.netty.tcp.socketChannel.writeBufferHighWaterMark=256",
-                "shenyu.netty.tcp.socketChannel.writeBufferLowWaterMark=128",
-                "shenyu.netty.tcp.socketChannel.writeSpinCount=8",
-                "shenyu.netty.tcp.socketChannel.autoRead=false",
-                "shenyu.netty.tcp.socketChannel.soReuseAddr=true",
-                "shenyu.netty.tcp.socketChannel.soRcvBuf=65536"
+                "shenyu.netty.http.accessLog=false",
+                "shenyu.netty.http.webServerFactoryEnabled=false",
+                "shenyu.netty.http.selectCount=10",
+                "shenyu.netty.http.workerCount=2",
+                "shenyu.netty.http.serverSocketChannel.soBacklog=64",
+                "shenyu.netty.http.serverSocketChannel.connectTimeoutMillis=65536",
+                "shenyu.netty.http.serverSocketChannel.writeBufferLowWaterMark=65536",
+                "shenyu.netty.http.serverSocketChannel.soRcvBuf=65536",
+                "shenyu.netty.http.socketChannel.soSndBuf=128",
+                "shenyu.netty.http.socketChannel.ipTos=64",
+                "shenyu.netty.http.socketChannel.soKeepAlive=true",
+                "shenyu.netty.http.socketChannel.allowHalfClosure=true",
+                "shenyu.netty.http.socketChannel.soLinger=10",
+                "shenyu.netty.http.socketChannel.tcpNoDelay=false",
+                "shenyu.netty.http.socketChannel.writeBufferHighWaterMark=256",
+                "shenyu.netty.http.socketChannel.writeBufferLowWaterMark=128",
+                "shenyu.netty.http.socketChannel.writeSpinCount=8",
+                "shenyu.netty.http.socketChannel.autoRead=false",
+                "shenyu.netty.http.socketChannel.soReuseAddr=true",
+                "shenyu.netty.http.socketChannel.soRcvBuf=65536",
+                "shenyu.netty.http.socketChannel.messageSizeEstimator=8",
+                "shenyu.netty.http.socketChannel.singleEventExecutorPerGroup=false"
             )
             .run(context -> {
-                NettyTcpProperties properties = context.getBean("nettyTcpProperties", NettyTcpProperties.class);
+                NettyHttpProperties properties = context.getBean("nettyTcpProperties", NettyHttpProperties.class);
                 assertNotNull(properties);
+                assertThat(properties.getAccessLog(), is(false));
                 assertThat(properties.isWebServerFactoryEnabled(), is(false));
                 assertThat(properties.getSelectCount(), is(10));
                 assertThat(properties.getWorkerCount(), is(2));
@@ -93,6 +97,8 @@ public class ShenyuNettyWebServerConfigurationTest {
                 assertThat(properties.getSocketChannel().isAutoRead(), is(false));
                 assertThat(properties.getSocketChannel().isSoReuseAddr(), is(true));
                 assertThat(properties.getSocketChannel().getSoRcvBuf(), is(65536));
+                assertThat(properties.getSocketChannel().getMessageSizeEstimator(), is(8));
+                assertThat(properties.getSocketChannel().getSingleEventExecutorPerGroup(), is(false));
             });
     }
 }

@@ -15,21 +15,35 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.manager;
+package org.apache.shenyu.admin.model.event.metadata;
 
-import com.google.gson.JsonObject;
-import org.apache.shenyu.admin.model.bean.DocInfo;
+import org.apache.shenyu.admin.model.entity.MetaDataDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 
 /**
- * DocParser.
+ * MetadataUpdatedEvent.
  */
-public interface DocParser {
-
+public class MetadataUpdatedEvent extends MetaDataChangedEvent {
+    
+    
     /**
-     * parseJson.
+     * Create a new {@code SelectorChangedEvent}.operator is unknown.
      *
-     * @param docRoot docRoot
-     * @return DocInfo DocInfo
+     * @param source   Current selector state
+     * @param before   before selector state
+     * @param operator operator
      */
-    DocInfo parseJson(JsonObject docRoot);
+    public MetadataUpdatedEvent(final MetaDataDO source, final MetaDataDO before, final String operator) {
+        super(source, before, EventTypeEnum.META_DATA_UPDATE, operator);
+    }
+    
+    /**
+     * the created metadata.
+     *
+     * @return metadata
+     */
+    public MetaDataDO getMetaData() {
+        return (MetaDataDO) getSource();
+    }
+    
 }

@@ -28,6 +28,7 @@
     <properties>
         <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
         <eureka-client.version>3.1.2</eureka-client.version>
+        <bootstrap-curator.version>4.0.1</bootstrap-curator.version>
     </properties>
 
     <dependencies>
@@ -454,7 +455,24 @@
 <!--            <version>${project.version}</version>-->
 <!--        </dependency>-->
         <!--shenyu logging-rocketmq plugin end-->
-        
+
+        <!-- curator start -->
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-client</artifactId>
+            <version>${bootstrap-curator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>${bootstrap-curator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>${bootstrap-curator.version}</version>
+        </dependency>
+        <!-- curator end -->
     </dependencies>
     <profiles>
         <profile>

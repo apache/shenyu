@@ -26,8 +26,8 @@
     <artifactId>shenyu-admin</artifactId>
 
     <properties>
-        <fastjson.version>1.2.80</fastjson.version>
         <commons-io.version>2.11.0</commons-io.version>
+        <orai18n.version>19.7.0.0</orai18n.version>
     </properties>
 
     <dependencies>
@@ -238,6 +238,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.oracle.database.nls</groupId>
+            <artifactId>orai18n</artifactId>
+            <version>${orai18n.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-test</artifactId>
             <scope>test</scope>
@@ -246,12 +252,6 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
         </dependency>
 
         <dependency>

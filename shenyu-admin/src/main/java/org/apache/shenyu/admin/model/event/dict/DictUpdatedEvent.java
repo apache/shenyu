@@ -15,21 +15,35 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.manager;
+package org.apache.shenyu.admin.model.event.dict;
 
-import com.google.gson.JsonObject;
-import org.apache.shenyu.admin.model.bean.DocInfo;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 
 /**
- * DocParser.
+ * DictUpdatedEvent.
  */
-public interface DocParser {
-
+public class DictUpdatedEvent extends DictChangedEvent {
+    
+    
     /**
-     * parseJson.
+     * Create a new {@code DictUpdatedEvent}.operator is unknown.
      *
-     * @param docRoot docRoot
-     * @return DocInfo DocInfo
+     * @param source   Current dict state
+     * @param before   before dict state
+     * @param operator operator
      */
-    DocInfo parseJson(JsonObject docRoot);
+    public DictUpdatedEvent(final ShenyuDictDO source, final ShenyuDictDO before, final String operator) {
+        super(source, before, EventTypeEnum.DICT_UPDATE, operator);
+    }
+    
+    /**
+     * the update dict.
+     *
+     * @return dict
+     */
+    public ShenyuDictDO getDict() {
+        return (ShenyuDictDO) getSource();
+    }
+    
 }
