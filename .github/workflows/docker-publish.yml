@@ -38,8 +38,12 @@ jobs:
         with:
           submodules: true
 
+      - name: Set Skip Env Var
+        uses: ./.github/actions/skip-ci
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
+        if: env.SKIP_CI != 'true'
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -47,15 +51,36 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
+        if: env.SKIP_CI != 'true'
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+        if: env.SKIP_CI != 'true'
 
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
+        if: env.SKIP_CI != 'true'
+
+      - name: Cache Maven Repos
+        if: env.SKIP_CI != 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - uses: actions/setup-java@v1
+        if: env.SKIP_CI != 'true'
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Build with Maven
+        if: env.SKIP_CI != 'true'
+        run: ./mvnw -B clean package -Prelease
 
       - name: Build and push(admin)
         uses: docker/build-push-action@v3
+        if: env.SKIP_CI != 'true'
         with:
           context: ./shenyu-dist/shenyu-admin-dist
           platforms: linux/amd64,linux/arm64
@@ -64,6 +89,7 @@ jobs:
 
       - name: Build and push(bootstrap)
         uses: docker/build-push-action@v3
+        if: env.SKIP_CI != 'true'
         with:
           context: ./shenyu-dist/shenyu-bootstrap-dist
           platforms: linux/amd64,linux/arm64
