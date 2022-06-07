@@ -31,6 +31,11 @@ public class LoginDashboardUserVO extends DashboardUserVO {
      */
     private String token;
 
+    /**
+     * expired time(milliSeconds)
+     */
+    private Long expiredTime;
+
     public LoginDashboardUserVO() {
     }
 
@@ -51,6 +56,26 @@ public class LoginDashboardUserVO extends DashboardUserVO {
      */
     public LoginDashboardUserVO setToken(final String token) {
         this.token = token;
+        return this;
+    }
+
+    /**
+     * Gets the value of expiredTime.
+     *
+     * @return the value of expiredTime
+     */
+    public Long getExpiredTime() {
+        return expiredTime;
+    }
+
+    /**
+     * Sets the expiredTime.
+     *
+     * @param expiredTime expiredTime
+     * @return {@link LoginDashboardUserVO}
+     */
+    public LoginDashboardUserVO setExpiredTime(final Long expiredTime) {
+        this.expiredTime = expiredTime;
         return this;
     }
 
