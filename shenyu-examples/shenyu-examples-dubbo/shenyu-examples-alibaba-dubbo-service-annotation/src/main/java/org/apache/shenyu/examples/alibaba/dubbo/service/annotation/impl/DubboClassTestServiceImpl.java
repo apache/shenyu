@@ -14,44 +14,49 @@
  *
  */
 
-package org.apache.shenyu.examples.alibaba.dubbo.service.impl;
+package org.apache.shenyu.examples.alibaba.dubbo.service.annotation.impl;
 
+
+import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.dubbo.rpc.RpcContext;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
-import org.apache.shenyu.examples.dubbo.api.service.DubboTestService;
-import org.springframework.stereotype.Service;
+import org.apache.shenyu.examples.dubbo.api.service.DubboClassTestService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Random;
 
 /**
- * DubboTestServiceImpl.
+ * The type Dubbo service.
  */
-@Service("dubboTestService")
-public class DubboTestServiceImpl implements DubboTestService {
+@ShenyuDubboClient(path = "/demo/**", desc = "class init")
+@Service
+public class DubboClassTestServiceImpl implements DubboClassTestService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DubboClassTestServiceImpl.class);
+    
     @Override
-    @ShenyuDubboClient(path = "/findById", desc = "Query by Id")
     public DubboTest findById(final String id) {
-        return new DubboTest(id, "hello world shenyu Alibaba Dubbo, findById");
+        LOGGER.info(GsonUtils.getInstance().toJson(RpcContext.getContext().getAttachments()));
+        return new DubboTest(id, "hello world shenyu Apache, findById");
     }
-
+    
     @Override
-    @ShenyuDubboClient(path = "/findAll", desc = "Get all data")
     public DubboTest findAll() {
-        return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Alibaba Dubbo , findAll");
+        return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Apache, findAll");
     }
-
+    
     @Override
-    @ShenyuDubboClient(path = "/insert", desc = "Insert a row of data")
     public DubboTest insert(final DubboTest dubboTest) {
-        dubboTest.setName("hello world shenyu Alibaba Dubbo: " + dubboTest.getName());
+        dubboTest.setName("hello world shenyu Apache Dubbo: " + dubboTest.getName());
         return dubboTest;
     }
-
+    
     @Override
-    @ShenyuDubboClient(path = "/findList", desc = "Find list")
     public ListResp findList() {
         return new ListResp(1, Collections.singletonList(new DubboTest("1", "test")));
     }

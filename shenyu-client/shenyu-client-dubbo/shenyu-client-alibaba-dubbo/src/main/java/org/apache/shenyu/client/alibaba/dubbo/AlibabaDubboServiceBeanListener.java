@@ -105,8 +105,17 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         if (AopUtils.isAopProxy(refProxy)) {
             clazz = AopUtils.getTargetClass(refProxy);
         }
-
-        final String superPath = buildApiSuperPath(clazz);
+        ShenyuDubboClient beanShenyuClient = AnnotationUtils.findAnnotation(clazz, ShenyuDubboClient.class);
+        final String superPath = buildApiSuperPath(beanShenyuClient);
+        if (superPath.contains("*")) {
+            Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
+            for (Method method : methods) {
+                if (Objects.nonNull(beanShenyuClient)) {
+                    publisher.publishEvent(buildMetaDataDTO(serviceBean, beanShenyuClient, method, superPath));
+                }
+            }
+            return;
+        }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
             ShenyuDubboClient shenyuDubboClient = method.getAnnotation(ShenyuDubboClient.class);
@@ -116,8 +125,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         }
     }
 
-    private String buildApiSuperPath(@NonNull final Class<?> clazz) {
-        ShenyuDubboClient shenyuDubboClient = AnnotationUtils.findAnnotation(clazz, ShenyuDubboClient.class);
+    private String buildApiSuperPath(ShenyuDubboClient shenyuDubboClient) {
         if (Objects.nonNull(shenyuDubboClient) && !StringUtils.isBlank(shenyuDubboClient.path())) {
             return shenyuDubboClient.path();
         }
@@ -136,7 +144,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method, final String superPath) {
-        String path = pathJoin(contextPath, superPath, shenyuDubboClient.path());
+        String path = superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName()) : pathJoin(contextPath, superPath, shenyuDubboClient.path());
         String desc = shenyuDubboClient.desc();
         String serviceName = serviceBean.getInterface();
         String configRuleName = shenyuDubboClient.ruleName();
