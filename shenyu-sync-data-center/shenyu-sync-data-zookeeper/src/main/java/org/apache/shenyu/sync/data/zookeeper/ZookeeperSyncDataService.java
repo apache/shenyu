@@ -50,7 +50,7 @@ import java.util.Optional;
 /**
  * this cache data with zookeeper.
  */
-public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable {
+public class ZookeeperSyncDataService implements SyncDataService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperSyncDataService.class);
 
