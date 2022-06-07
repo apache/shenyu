@@ -21,16 +21,12 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.FreshBeanHolder;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -45,7 +41,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
@@ -53,9 +48,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -81,30 +74,23 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
 
     private ExecutorService executor;
 
-    private final HttpConfig httpConfig;
-
     private final List<String> serverList;
 
     private final DataRefreshFactory factory;
 
-    private final FreshBeanHolder<String, Optional<Object>> accessToken;
+    private final AccessTokenManager accessTokenManager;
 
-    public HttpSyncDataService(final HttpConfig httpConfig, final PluginDataSubscriber pluginDataSubscriber, final RestTemplate restTemplate,
-                               final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
-        this.httpConfig = httpConfig;
+    public HttpSyncDataService(final HttpConfig httpConfig,
+                               final PluginDataSubscriber pluginDataSubscriber,
+                               final RestTemplate restTemplate,
+                               final List<MetaDataSubscriber> metaDataSubscribers,
+                               final List<AuthDataSubscriber> authDataSubscribers,
+                               final AccessTokenManager accessTokenManager) {
+        this.accessTokenManager = accessTokenManager;
         this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
-        this.restTemplate = createRestTemplate(httpConfig);
-        this.accessToken = new FreshBeanHolder<>(this::doLogin);
+        this.restTemplate = restTemplate;
         this.start();
-    }
-
-    private RestTemplate createRestTemplate(final HttpConfig httpConfig) {
-        OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
-        factory.setConnectTimeout(Objects.isNull(httpConfig.getConnectionTimeout()) ? (int) HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout());
-        factory.setReadTimeout(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout());
-        factory.setWriteTimeout(Objects.isNull(httpConfig.getWriteTimeout()) ? (int) HttpConstants.CLIENT_POLLING_WRITE_TIMEOUT : httpConfig.getWriteTimeout());
-        return new RestTemplate(factory);
     }
 
     private void start() {
@@ -127,6 +113,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         for (int index = 0; index < this.serverList.size(); index++) {
             String server = serverList.get(index);
             try {
+                // TODO bug
                 this.doFetchGroupConfig(server, groups);
                 break;
             } catch (ShenyuException e) {
@@ -148,12 +135,8 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         LOG.info("request configs: [{}]", url);
         String json;
         try {
-            Optional<Object> token = accessToken.apply(server);
-            if (!token.isPresent()) {
-                throw new ShenyuException("get token from server : [" + server + " ] error");
-            }
             HttpHeaders headers = new HttpHeaders();
-            headers.set(Constants.X_ACCESS_TOKEN, String.valueOf(token.get()));
+            headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
             HttpEntity<String> httpEntity = new HttpEntity<>(headers);
             json = this.restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class).getBody();
         } catch (RestClientException e) {
@@ -172,6 +155,8 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         ThreadUtils.sleep(TimeUnit.SECONDS, 30);
     }
 
+
+
     /**
      * update local cache.
      *
@@ -180,16 +165,11 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
      */
     private boolean updateCacheWithJson(final String json) {
         JsonObject jsonObject = GsonUtils.getGson().fromJson(json, JsonObject.class);
-        JsonObject data = jsonObject.getAsJsonObject("data");
         // if the config cache will be updated?
-        return factory.executor(data);
+        return factory.executor(jsonObject.getAsJsonObject("data"));
     }
 
     private void doLongPolling(final String server) {
-        Optional<Object> token = accessToken.apply(server);
-        if (!token.isPresent()) {
-            throw new ShenyuException("get token from server : [" + server + " ] error");
-        }
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>(8);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             ConfigData<?> cacheConfig = factory.cacheConfigData(group);
@@ -200,7 +180,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.set(Constants.X_ACCESS_TOKEN, String.valueOf(token.get()));
+        headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
         String listenerUrl = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
         LOG.debug("request listener configs: [{}]", listenerUrl);
@@ -209,19 +189,18 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         try {
             String json = this.restTemplate.postForEntity(listenerUrl, httpEntity, String.class).getBody();
             LOG.debug("listener result: [{}]", json);
-            groupJson = GsonUtils.getGson().fromJson(json, JsonObject.class).getAsJsonArray("data");
+            JsonObject responseFromServer = GsonUtils.getGson().fromJson(json, JsonObject.class);
+            groupJson = responseFromServer.getAsJsonArray("data");
         } catch (RestClientException e) {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
             throw new ShenyuException(message, e);
         }
 
-        if (Objects.nonNull(groupJson)) {
+        if (Objects.nonNull(groupJson) && groupJson.size() > 0) {
             // fetch group configuration async.
             ConfigGroupEnum[] changedGroups = GsonUtils.getGson().fromJson(groupJson, ConfigGroupEnum[].class);
-            if (ArrayUtils.isNotEmpty(changedGroups)) {
-                LOG.info("Group config changed: {}", Arrays.toString(changedGroups));
-                this.doFetchGroupConfig(server, changedGroups);
-            }
+            LOG.info("Group config changed: {}", Arrays.toString(changedGroups));
+            this.doFetchGroupConfig(server, changedGroups);
         }
     }
 
@@ -233,20 +212,6 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
             // help gc
             executor = null;
         }
-    }
-
-    private Optional<Object> doLogin(final String server) {
-        String param = Constants.LOGIN_NAME + "=" + httpConfig.getUsername() + "&" + Constants.PASS_WORD + "=" + httpConfig.getPassword();
-        String url = String.join("?", server + Constants.LOGIN_PATH, param);
-        String result = this.restTemplate.getForObject(url, String.class);
-        Map<String, Object> resultMap = GsonUtils.getInstance().convertToMap(result);
-        if (!String.valueOf(CommonErrorCode.SUCCESSFUL).equals(String.valueOf(resultMap.get(Constants.ADMIN_RESULT_CODE)))) {
-            return Optional.empty();
-        }
-        String tokenJson = GsonUtils.getInstance().toJson(resultMap.get(Constants.ADMIN_RESULT_DATA));
-        LOG.info("login success: {} ", tokenJson);
-        Map<String, Object> tokenMap = GsonUtils.getInstance().convertToMap(tokenJson);
-        return Optional.ofNullable(tokenMap.get(Constants.ADMIN_RESULT_TOKEN));
     }
 
     class HttpLongPollingTask implements Runnable {
@@ -264,7 +229,6 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
                 for (int time = 1; time <= retryTimes; time++) {
                     try {
                         //refresh the admin token
-                        accessToken.doFresh(server);
                         doLongPolling(server);
                     } catch (Exception e) {
                         // print warnning LOG.
