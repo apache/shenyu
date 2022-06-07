@@ -47,7 +47,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Data synchronize of etcd.
  */
-public class EtcdSyncDataService implements SyncDataService, AutoCloseable {
+public class EtcdSyncDataService implements SyncDataService {
 
     /**
      * logger.
