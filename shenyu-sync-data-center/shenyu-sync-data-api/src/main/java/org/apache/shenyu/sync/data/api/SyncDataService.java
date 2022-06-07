@@ -20,5 +20,5 @@ package org.apache.shenyu.sync.data.api;
 /**
  * The interface Sync data service.
  */
-public interface SyncDataService {
+public interface SyncDataService extends AutoCloseable {
 }

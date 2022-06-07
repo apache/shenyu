@@ -36,7 +36,7 @@ import java.util.Objects;
 /**
  * Websocket sync data service.
  */
-public class WebsocketSyncDataService implements SyncDataService, AutoCloseable {
+public class WebsocketSyncDataService implements SyncDataService {
     
     /**
      * logger.
