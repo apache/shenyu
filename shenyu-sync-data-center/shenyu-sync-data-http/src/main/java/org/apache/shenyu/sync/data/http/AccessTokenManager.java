@@ -101,7 +101,7 @@ public class AccessTokenManager {
 
     private void start(final List<String> servers){
         this.login(servers);
-        this.executorService.scheduleWithFixedDelay(() -> this.login(servers), 0, 5000, TimeUnit.MILLISECONDS);
+        this.executorService.scheduleWithFixedDelay(() -> this.login(servers), 5000, 5000, TimeUnit.MILLISECONDS);
     }
 
     public String getAccessToken() {
