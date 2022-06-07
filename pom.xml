@@ -86,7 +86,7 @@
         <druid.version>1.0.29</druid.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
         <guava.version>30.1-jre</guava.version>
-        <commons-collections4.version>4.1</commons-collections4.version>
+        <commons-collections4.version>4.4</commons-collections4.version>
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
         <disruptor.version>3.4.0</disruptor.version>
         <consul.api.version>1.4.5</consul.api.version>
@@ -163,6 +163,18 @@
                 <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-context</artifactId>
+                <version>${spring-cloud-commons.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-commons</artifactId>
+                <version>${spring-cloud-commons.version}</version>
             </dependency>
 
             <dependency>
@@ -446,12 +458,6 @@
                 <groupId>com.oracle.ojdbc</groupId>
                 <artifactId>ojdbc8</artifactId>
                 <version>${ojdbc8.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-commons</artifactId>
-                <version>${spring-cloud-commons.version}</version>
             </dependency>
 
         </dependencies>
