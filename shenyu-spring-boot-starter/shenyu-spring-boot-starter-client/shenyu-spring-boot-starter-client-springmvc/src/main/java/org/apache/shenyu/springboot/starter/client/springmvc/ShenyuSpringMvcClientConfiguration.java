@@ -28,14 +28,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * The type shenyu client http configuration.
+ * The type shenyu spring mvc client configuration.
  */
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuSpringMvcClientConfiguration {
     
     /**
-     * Spring http client bean post processor spring mvc client bean post processor.
+     * Spring mvc client bean post processor.
      *
      * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
@@ -48,7 +48,7 @@ public class ShenyuSpringMvcClientConfiguration {
     }
     
     /**
-     * Context register listener context register listener.
+     * Context register listener.
      *
      * @param clientConfig the client config
      * @return the context register listener

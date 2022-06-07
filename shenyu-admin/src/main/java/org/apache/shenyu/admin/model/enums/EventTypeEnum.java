@@ -50,6 +50,26 @@ public enum EventTypeEnum {
      */
     SELECTOR_CREATE("CREATE:SELECTOR", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
     
+    /**
+     * rule created event.
+     */
+    RULE_CREATE("CREATE:RULE", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
+    /**
+     * meta data created event.
+     */
+    META_DATA_CREATE("CREATE:META_DATA", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
+    /**
+     * resource created event.
+     */
+    RESOURCE_CREATE("CREATE:RESOURCE", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
+    /**
+     * dict created event.
+     */
+    DICT_CREATE("CREATE:DICT", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
     // ============== delete ===================
     /**
      * deleted event.
@@ -77,6 +97,26 @@ public enum EventTypeEnum {
      */
     SELECTOR_DELETE("DELETE:SELECTOR", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
     
+    /**
+     * rule deleted event.
+     */
+    RULE_DELETE("DELETE:RULE", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
+    /**
+     * meta data deleted event.
+     */
+    META_DATA_DELETE("DELETE:META_DATA", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
+    /**
+     * resource deleted event.
+     */
+    RESOURCE_DELETE("DELETE:RESOURCE", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
+    /**
+     * dict deleted event.
+     */
+    DICT_DELETE("DELETE:DICT", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
     // ============== update ===================
     
     /**
@@ -97,7 +137,27 @@ public enum EventTypeEnum {
     /**
      * selector update.
      */
-    SELECTOR_UPDATE("UPDATE:PLUGIN-HANDLE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
+    SELECTOR_UPDATE("UPDATE:PLUGIN-HANDLE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * rule update.
+     */
+    RULE_UPDATE("UPDATE:RULE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * meta data update.
+     */
+    META_DATA_UPDATE("UPDATE:META_DATA", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * resource update.
+     */
+    RESOURCE_UPDATE("UPDATE:RESOURCE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * dict update.
+     */
+    DICT_UPDATE("UPDATE:DICT", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
     
     /**
      * type name.
@@ -169,7 +229,7 @@ public enum EventTypeEnum {
         /**
          * default update event color.
          */
-        public static final String UPDATE_COLOR = "yellow";
+        public static final String UPDATE_COLOR = "#CC6600";
     }
     
 }

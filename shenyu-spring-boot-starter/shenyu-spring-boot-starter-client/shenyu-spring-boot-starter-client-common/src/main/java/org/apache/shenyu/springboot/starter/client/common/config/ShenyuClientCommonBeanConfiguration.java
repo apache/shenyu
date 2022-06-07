@@ -54,7 +54,7 @@ public class ShenyuClientCommonBeanConfiguration {
     }
     
     /**
-     * Shenyu client config shenyu client config.
+     * Shenyu client config.
      *
      * @return the shenyu client config
      */

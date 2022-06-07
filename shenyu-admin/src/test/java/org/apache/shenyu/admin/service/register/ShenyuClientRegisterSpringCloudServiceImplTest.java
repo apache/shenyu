@@ -92,9 +92,9 @@ public final class ShenyuClientRegisterSpringCloudServiceImplTest {
     public void testRegisterMetadata() {
         MetaDataDO metaDataDO = MetaDataDO.builder().build();
         when(metaDataService.findByPath(any())).thenReturn(metaDataDO);
-        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().contextPath("/contextPath").build();
+        MetaDataRegisterDTO metaDataDTO = MetaDataRegisterDTO.builder().path("/contextPath/test").build();
         shenyuClientRegisterSpringCloudService.registerMetadata(metaDataDTO);
-        verify(metaDataService).findByPath("/contextPath/**");
+        verify(metaDataService).findByPath("/contextPath/test");
         verify(metaDataService).saveOrUpdateMetaData(metaDataDO, metaDataDTO);
     }
     

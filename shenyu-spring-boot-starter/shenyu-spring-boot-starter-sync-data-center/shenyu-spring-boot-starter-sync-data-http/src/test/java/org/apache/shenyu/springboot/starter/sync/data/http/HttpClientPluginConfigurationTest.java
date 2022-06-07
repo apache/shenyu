@@ -64,7 +64,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
                 "shenyu.sync.http.delayTime=3",
                 "shenyu.sync.http.username=admin",
                 "shenyu.sync.http.password=123456",
-                "shenyu.sync.http.connectionTimeout=5"
+                "shenyu.sync.http.connectionTimeout=5",
+                "spring.main.web-application-type=none"
         })
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ServletWebServerFactory.class})

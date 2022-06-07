@@ -138,7 +138,8 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
         if (CollectionUtils.isEmpty(pluginNameList)) {
             return;
         }
-        List<ResourceDO> resourceList = pluginNameList.stream().filter(StringUtils::isNotEmpty)
+        List<ResourceDO> resourceList = pluginNameList.stream()
+                .filter(StringUtils::isNotEmpty)
                 .map(pluginName -> ResourceDTO.builder()
                         .parentId(RESOURCE_PLUGIN_ID)
                         .id(UUIDUtils.getInstance().generateShortUuid())
@@ -154,11 +155,14 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
                         .perms(StringUtils.EMPTY)
                         .status(STATUS)
                         .build())
-                .map(ResourceDO::buildResourceDO).collect(Collectors.toList());
+                .map(ResourceDO::buildResourceDO)
+                .collect(Collectors.toList());
         resourceService.createResourceBatch(resourceList);
-        List<ResourceDO> resourceChildren = resourceList.stream().filter(resourceDO -> Objects.nonNull(resourceDO) && StringUtils.isNotEmpty(resourceDO.getId()))
+        List<ResourceDO> resourceChildren = resourceList.stream()
+                .filter(resourceDO -> Objects.nonNull(resourceDO) && StringUtils.isNotEmpty(resourceDO.getId()))
                 .map(resourceDO -> this.prepareChildrenResource(resourceDO.getId(), resourceDO.getTitle()))
-                .flatMap(Collection::stream).collect(Collectors.toList());
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
         resourceService.createResourceBatch(resourceChildren);
     }
 

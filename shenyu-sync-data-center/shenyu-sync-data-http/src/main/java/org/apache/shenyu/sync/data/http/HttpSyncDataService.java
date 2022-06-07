@@ -65,7 +65,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * HTTP long polling implementation.
  */
-public class HttpSyncDataService implements SyncDataService, AutoCloseable {
+public class HttpSyncDataService implements SyncDataService {
 
     /**
      * logger.

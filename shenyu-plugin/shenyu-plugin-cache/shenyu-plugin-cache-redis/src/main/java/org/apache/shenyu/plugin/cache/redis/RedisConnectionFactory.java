@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.lettuce.LettucePoolingClientCon
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -77,7 +78,7 @@ public class RedisConnectionFactory {
         config.setMaxIdle(redisConfigProperties.getMaxIdle());
         config.setMinIdle(redisConfigProperties.getMinIdle());
         if (redisConfigProperties.getMaxWait() != null) {
-            config.setMaxWaitMillis(redisConfigProperties.getMaxWait().toMillis());
+            config.setMaxWait(Duration.ofMillis(redisConfigProperties.getMaxWait().toMillis()));
         }
         return config;
     }

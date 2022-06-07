@@ -28,7 +28,10 @@ import java.util.Objects;
 
 /**
  * ZookeeperConfiguration.
+ *
+ * @deprecated {@link DataSyncConfiguration.ZookeeperListener#zookeeperClient}
  */
+@Deprecated
 @EnableConfigurationProperties(ZookeeperProperties.class)
 public class ZookeeperConfiguration {
 

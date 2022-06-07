@@ -18,9 +18,12 @@
 package org.apache.shenyu.sync.data.zookeeper;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -47,7 +50,7 @@ import java.util.Optional;
 /**
  * this cache data with zookeeper.
  */
-public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable {
+public class ZookeeperSyncDataService implements SyncDataService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperSyncDataService.class);
 
@@ -168,14 +171,36 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         }
     }
 
-    class PluginCacheListener implements CuratorCacheListener {
+    abstract class AbstractDataSyncListener implements TreeCacheListener {
+        @Override
+        public final void childEvent(final CuratorFramework client, final TreeCacheEvent event) {
+            ChildData childData = event.getData();
+            if (null == childData) {
+                return;
+            }
+            String path = childData.getPath();
+            if (Strings.isNullOrEmpty(path)) {
+                return;
+            }
+            event(event.getType(), path, childData);
+        }
+
+        /**
+         * data sync event.
+         *
+         * @param type tree cache event type.
+         * @param path tree cache event path.
+         * @param data tree cache event data.
+         */
+        protected abstract void event(TreeCacheEvent.Type type, String path, ChildData data);
+    }
+
+    class PluginCacheListener extends AbstractDataSyncListener {
 
         private static final String PLUGIN_PATH = DefaultPathConstants.PLUGIN_PARENT + "/*";
 
         @Override
-        public void event(final Type type, final ChildData oldData, final ChildData data) {
-            String path = Objects.isNull(data) ? oldData.getPath() : data.getPath();
-
+        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
             if (!PathMatchUtils.match(PLUGIN_PATH, path)) {
                 return;
@@ -184,7 +209,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             String pluginName = path.substring(path.lastIndexOf("/") + 1);
 
             // delete a plugin
-            if (type.equals(Type.NODE_DELETED)) {
+            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 final PluginData pluginData = new PluginData();
                 pluginData.setName(pluginName);
                 Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData));
@@ -196,21 +221,20 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         }
     }
 
-    class SelectorCacheListener implements CuratorCacheListener {
+    class SelectorCacheListener extends AbstractDataSyncListener {
 
         // /shenyu/selector/{plugin}/{selector}
         private static final String SELECTOR_PATH = DefaultPathConstants.SELECTOR_PARENT + "/*/*";
 
         @Override
-        public void event(final Type type, final ChildData oldData, final ChildData data) {
-            String path = Objects.isNull(data) ? oldData.getPath() : data.getPath();
+        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
 
             // if not uri register path, return.
             if (!PathMatchUtils.match(SELECTOR_PATH, path)) {
                 return;
             }
 
-            if (type.equals(Type.NODE_DELETED)) {
+            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheSelectorData(path);
             }
 
@@ -220,20 +244,18 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         }
     }
 
-    class MetadataCacheListener implements CuratorCacheListener {
+    class MetadataCacheListener extends AbstractDataSyncListener {
 
         private static final String META_DATA_PATH = DefaultPathConstants.META_DATA + "/*";
 
         @Override
-        public void event(final Type type, final ChildData oldData, final ChildData data) {
-            String path = Objects.isNull(data) ? oldData.getPath() : data.getPath();
-
+        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
             if (!PathMatchUtils.match(META_DATA_PATH, path)) {
                 return;
             }
 
-            if (type.equals(Type.NODE_DELETED)) {
+            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 final String realPath = path.substring(DefaultPathConstants.META_DATA.length() + 1);
                 MetaData metaData = new MetaData();
                 try {
@@ -250,20 +272,18 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         }
     }
 
-    class AuthCacheListener implements CuratorCacheListener {
+    class AuthCacheListener extends AbstractDataSyncListener {
 
         private static final String APP_AUTH_PATH = DefaultPathConstants.APP_AUTH_PARENT + "/*";
 
         @Override
-        public void event(final Type type, final ChildData oldData, final ChildData data) {
-            String path = Objects.isNull(data) ? oldData.getPath() : data.getPath();
-
+        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
             if (!PathMatchUtils.match(APP_AUTH_PATH, path)) {
                 return;
             }
 
-            if (type.equals(Type.NODE_DELETED)) {
+            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheAuthData(path);
             }
 
@@ -273,21 +293,19 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         }
     }
 
-    class RuleCacheListener implements CuratorCacheListener {
+    class RuleCacheListener extends AbstractDataSyncListener {
 
         // /shenyu/rule/{plugin}/{rule}
         private static final String RULE_PATH = DefaultPathConstants.RULE_PARENT + "/*/*";
 
         @Override
-        public void event(final Type type, final ChildData oldData, final ChildData data) {
-            String path = Objects.isNull(data) ? oldData.getPath() : data.getPath();
-
+        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
             if (!PathMatchUtils.match(RULE_PATH, path)) {
                 return;
             }
 
-            if (type.equals(Type.NODE_DELETED)) {
+            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheRuleData(path);
             }
 

@@ -159,6 +159,21 @@
         order by p.sort, p.id
     </select>
 
+    <select id="activePluginSnapshot" resultType="org.apache.shenyu.admin.model.vo.PluginSnapshotVO" databaseId="oracle">
+        select p.id,
+               p.name,
+               to_char(config),
+               role,
+               count(ph.id) handlecount,
+               count(s.id) selectorcount
+        from plugin p
+                 left join plugin_handle ph on p.id = ph.plugin_id
+                 left join selector s on p.id = s.plugin_id
+        where p.enabled = 1
+        group by p.id, p.name, to_char(config), p.role, p.sort
+        order by p.sort, p.id
+    </select>
+
     <select id="searchByCondition" resultType="org.apache.shenyu.admin.model.vo.PluginVO">
 
         SELECT

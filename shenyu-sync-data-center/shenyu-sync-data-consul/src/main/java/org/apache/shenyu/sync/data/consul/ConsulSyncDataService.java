@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Consul sync data service.
  */
-public class ConsulSyncDataService extends ConsulCacheHandler implements AutoCloseable, SyncDataService {
+public class ConsulSyncDataService extends ConsulCacheHandler implements SyncDataService {
     /**
      * logger.
      */

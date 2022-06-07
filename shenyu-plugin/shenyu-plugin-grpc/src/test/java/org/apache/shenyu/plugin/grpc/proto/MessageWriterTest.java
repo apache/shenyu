@@ -41,7 +41,7 @@ public class MessageWriterTest {
 
     @Test
     public void onError() {
-        Throwable throwable = mock(Throwable.class);
+        Throwable throwable = new Throwable();
         messageWriter.onError(throwable);
         
     }
