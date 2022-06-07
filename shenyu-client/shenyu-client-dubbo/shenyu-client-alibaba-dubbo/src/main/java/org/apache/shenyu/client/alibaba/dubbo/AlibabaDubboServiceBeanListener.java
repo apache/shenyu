@@ -125,7 +125,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         }
     }
 
-    private String buildApiSuperPath(ShenyuDubboClient shenyuDubboClient) {
+    private String buildApiSuperPath(final ShenyuDubboClient shenyuDubboClient) {
         if (Objects.nonNull(shenyuDubboClient) && !StringUtils.isBlank(shenyuDubboClient.path())) {
             return shenyuDubboClient.path();
         }
