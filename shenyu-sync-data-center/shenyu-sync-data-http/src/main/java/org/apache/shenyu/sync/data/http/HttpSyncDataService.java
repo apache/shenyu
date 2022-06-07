@@ -113,7 +113,6 @@ public class HttpSyncDataService implements SyncDataService {
         for (int index = 0; index < this.serverList.size(); index++) {
             String server = serverList.get(index);
             try {
-                // TODO bug
                 this.doFetchGroupConfig(server, groups);
                 break;
             } catch (ShenyuException e) {
