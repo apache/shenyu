@@ -42,7 +42,7 @@ dubbo:
   application:
     name: ${spring.application.name}
   registry:
-    address: nacos://127.0.0.1:8848
+    address: zookeeper://localhost:2181
   protocol:
     name: dubbo
     port: 20888

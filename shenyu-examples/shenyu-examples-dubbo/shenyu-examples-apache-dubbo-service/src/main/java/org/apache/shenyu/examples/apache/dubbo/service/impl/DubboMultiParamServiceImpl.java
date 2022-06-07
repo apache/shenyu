@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.entity.ComplexBeanTest;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Service;
  * The type Dubbo multi param service.
  */
 @Service("dubboMultiParamService")
+@DubboService
 public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     
     @Override
