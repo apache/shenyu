@@ -36,9 +36,9 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
+import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -125,7 +125,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         if (AopUtils.isAopProxy(refProxy)) {
             clazz = AopUtils.getTargetClass(refProxy);
         }
-        final ShenyuDubboClient beanShenyuClient = AnnotationUtils.findAnnotation(clazz, ShenyuDubboClient.class);
+        final ShenyuDubboClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuDubboClient.class);
         final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
         if (superPath.contains("*")) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
@@ -138,7 +138,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuDubboClient methodShenyuClient = method.getAnnotation(ShenyuDubboClient.class);
+            ShenyuDubboClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuDubboClient.class);
             if (Objects.nonNull(methodShenyuClient)) {
                 publisher.publishEvent(buildMetaDataDTO(serviceBean, methodShenyuClient, method, superPath));
             }
