@@ -187,7 +187,7 @@ public final class HttpSyncDataServiceTest {
         Map<String, Object> result = new HashMap<>();
         Map<String, Object> data = new HashMap<>();
         data.put("token", "token");
-        data.put("expiredTime", 24*60*60*1000);
+        data.put("expiredTime", 24 * 60 * 60 * 1000);
         result.put("data", data);
         result.put("code", CommonErrorCode.SUCCESSFUL);
         return GsonUtils.getInstance().toJson(result);

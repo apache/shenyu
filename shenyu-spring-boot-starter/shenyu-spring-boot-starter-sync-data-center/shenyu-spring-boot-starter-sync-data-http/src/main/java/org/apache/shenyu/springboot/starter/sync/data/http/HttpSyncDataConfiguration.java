@@ -58,7 +58,7 @@ public class HttpSyncDataConfiguration {
      * @return the rest template
      */
     @Bean
-    public RestTemplate restTemplate(final HttpConfig httpConfig){
+    public RestTemplate restTemplate(final HttpConfig httpConfig) {
         OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
         factory.setConnectTimeout(Objects.isNull(httpConfig.getConnectionTimeout()) ? (int) HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout());
         factory.setReadTimeout(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout());
@@ -74,17 +74,19 @@ public class HttpSyncDataConfiguration {
      * @return the access token manager.
      */
     @Bean
-    public AccessTokenManager accessTokenManager(final HttpConfig httpConfig, final RestTemplate restTemplate){
+    public AccessTokenManager accessTokenManager(final HttpConfig httpConfig, final RestTemplate restTemplate) {
         return new AccessTokenManager(restTemplate, httpConfig);
     }
 
     /**
      * Http sync data service.
      *
-     * @param httpConfig        the http config
-     * @param pluginSubscriber the plugin subscriber
-     * @param metaSubscribers   the meta subscribers
-     * @param authSubscribers   the auth subscribers
+     * @param httpConfig         the http config
+     * @param pluginSubscriber   the plugin subscriber
+     * @param restTemplate       the rest template
+     * @param metaSubscribers    the meta subscribers
+     * @param authSubscribers    the auth subscribers
+     * @param accessTokenManager the access token manager
      * @return the sync data service
      */
     @Bean
@@ -95,7 +97,13 @@ public class HttpSyncDataConfiguration {
                                                final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                final ObjectProvider<AccessTokenManager> accessTokenManager) {
         LOGGER.info("you use http long pull sync shenyu data");
-        return new HttpSyncDataService(Objects.requireNonNull(httpConfig.getIfAvailable()), Objects.requireNonNull(pluginSubscriber.getIfAvailable()), Objects.requireNonNull(restTemplate.getIfAvailable()),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList), Objects.requireNonNull(accessTokenManager.getIfAvailable()));
+        return new HttpSyncDataService(
+                Objects.requireNonNull(httpConfig.getIfAvailable()),
+                Objects.requireNonNull(pluginSubscriber.getIfAvailable()),
+                Objects.requireNonNull(restTemplate.getIfAvailable()),
+                metaSubscribers.getIfAvailable(Collections::emptyList),
+                authSubscribers.getIfAvailable(Collections::emptyList),
+                Objects.requireNonNull(accessTokenManager.getIfAvailable())
+        );
     }
 }

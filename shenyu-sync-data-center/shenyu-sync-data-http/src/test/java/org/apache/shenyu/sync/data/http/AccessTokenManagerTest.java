@@ -87,7 +87,6 @@ public class AccessTokenManagerTest {
         httpConfig.setPassword("123456");
         httpConfig.setUsername("admin");
 
-
         OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
         factory.setConnectTimeout(Objects.isNull(httpConfig.getConnectionTimeout()) ? (int) HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout());
         factory.setReadTimeout(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout());
@@ -98,18 +97,18 @@ public class AccessTokenManagerTest {
     }
 
     @Test
-    public void testLogin(){
+    public void testLogin() {
         accessTokenManager.login(Lists.newArrayList(httpConfig.getUrl().split(",")));
         Assert.assertEquals(this.accessToken, accessTokenManager.getAccessToken());
     }
 
     // mock configs fetch api response
     private String mockLoginResponseJson() {
-        Map<String, Object> result = new HashMap<>();
         Map<String, Object> data = new HashMap<>();
         data.put("token", "token");
         this.accessToken = "token";
-        data.put("expiredTime", 24*60*60*1000);
+        data.put("expiredTime", 24 * 60 * 60 * 1000);
+        Map<String, Object> result = new HashMap<>();
         result.put("data", data);
         result.put("code", CommonErrorCode.SUCCESSFUL);
         return GsonUtils.getInstance().toJson(result);

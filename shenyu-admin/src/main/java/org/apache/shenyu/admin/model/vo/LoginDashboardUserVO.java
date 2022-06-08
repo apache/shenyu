@@ -32,7 +32,7 @@ public class LoginDashboardUserVO extends DashboardUserVO {
     private String token;
 
     /**
-     * expired time(milliSeconds)
+     * expired time(milliSeconds).
      */
     private Long expiredTime;
 

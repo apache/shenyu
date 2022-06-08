@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.sync.data.http;
 
 import com.google.common.base.Splitter;
@@ -64,7 +81,12 @@ public class AccessTokenManager {
         this.start(Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl())));
     }
 
-    public void login(final List<String> servers){
+    /**
+     * server login.
+     *
+     * @param servers server list.
+     */
+    public void login(final List<String> servers) {
         if ((System.currentTimeMillis() - lastRefreshTime) < (tokenExpiredTime - tokenRefreshWindow)) {
             return;
         }
@@ -89,8 +111,8 @@ public class AccessTokenManager {
             String tokenJson = GsonUtils.getInstance().toJson(resultMap.get(Constants.ADMIN_RESULT_DATA));
             LOG.info("login success: {} ", tokenJson);
             Map<String, Object> tokenMap = GsonUtils.getInstance().convertToMap(tokenJson);
-            this.accessToken =  (String) tokenMap.get(Constants.ADMIN_RESULT_TOKEN);
-            this.tokenExpiredTime = (long)tokenMap.get(Constants.ADMIN_RESULT_EXPIRED_TIME);
+            this.accessToken = (String) tokenMap.get(Constants.ADMIN_RESULT_TOKEN);
+            this.tokenExpiredTime = (long) tokenMap.get(Constants.ADMIN_RESULT_EXPIRED_TIME);
             this.tokenRefreshWindow = this.tokenExpiredTime / 10;
             return true;
         } catch (RestClientException e) {
@@ -99,11 +121,16 @@ public class AccessTokenManager {
         }
     }
 
-    private void start(final List<String> servers){
+    private void start(final List<String> servers) {
         this.login(servers);
         this.executorService.scheduleWithFixedDelay(() -> this.login(servers), 5000, 5000, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * get access token.
+     *
+     * @return the access token
+     */
     public String getAccessToken() {
         return accessToken;
     }
