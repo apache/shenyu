@@ -273,6 +273,16 @@
          LIMIT 1
     </select>
 
+    <select id="selectByIds" resultType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM shenyu_dict
+        WHERE id IN
+        <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
     <update id="enabled">
         UPDATE shenyu_dict
            SET enabled = #{enabled, jdbcType=TINYINT}

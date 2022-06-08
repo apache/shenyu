@@ -65,6 +65,11 @@ public enum EventTypeEnum {
      */
     RESOURCE_CREATE("CREATE:RESOURCE", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
     
+    /**
+     * dict created event.
+     */
+    DICT_CREATE("CREATE:DICT", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
     // ============== delete ===================
     /**
      * deleted event.
@@ -107,6 +112,11 @@ public enum EventTypeEnum {
      */
     RESOURCE_DELETE("DELETE:RESOURCE", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
     
+    /**
+     * dict deleted event.
+     */
+    DICT_DELETE("DELETE:DICT", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
     // ============== update ===================
     
     /**
@@ -142,7 +152,12 @@ public enum EventTypeEnum {
     /**
      * resource update.
      */
-    RESOURCE_UPDATE("UPDATE:RESOURCE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
+    RESOURCE_UPDATE("UPDATE:RESOURCE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * dict update.
+     */
+    DICT_UPDATE("UPDATE:DICT", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
     
     /**
      * type name.
