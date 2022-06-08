@@ -19,6 +19,7 @@ package org.apache.shenyu.sync.data.http;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -35,7 +36,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 import wiremock.org.apache.http.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
 
@@ -111,8 +114,16 @@ public final class HttpSyncDataServiceTest {
         this.pluginDataSubscriber = mock(PluginDataSubscriber.class);
         this.metaDataSubscriber = mock(MetaDataSubscriber.class);
         this.authDataSubscriber = mock(AuthDataSubscriber.class);
-//        this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber,
-//                Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber));
+
+        OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
+        factory.setConnectTimeout(Objects.isNull(httpConfig.getConnectionTimeout()) ? (int) HttpConstants.CLIENT_POLLING_CONNECT_TIMEOUT : httpConfig.getConnectionTimeout());
+        factory.setReadTimeout(Objects.isNull(httpConfig.getReadTimeout()) ? (int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT : httpConfig.getReadTimeout());
+        factory.setWriteTimeout(Objects.isNull(httpConfig.getWriteTimeout()) ? (int) HttpConstants.CLIENT_POLLING_WRITE_TIMEOUT : httpConfig.getWriteTimeout());
+        RestTemplate restTemplate = new RestTemplate(factory);
+
+        AccessTokenManager accessTokenManager = new AccessTokenManager(restTemplate, httpConfig);
+        this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber, restTemplate,
+                Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber), accessTokenManager);
     }
 
     @AfterEach
@@ -176,6 +187,7 @@ public final class HttpSyncDataServiceTest {
         Map<String, Object> result = new HashMap<>();
         Map<String, Object> data = new HashMap<>();
         data.put("token", "token");
+        data.put("expiredTime", 24*60*60*1000);
         result.put("data", data);
         result.put("code", CommonErrorCode.SUCCESSFUL);
         return GsonUtils.getInstance().toJson(result);
