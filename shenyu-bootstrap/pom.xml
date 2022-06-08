@@ -271,6 +271,12 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
             <version>${spring-cloud-netflix-ribbon.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!--shenyu springCloud plugin start-->
         
