@@ -15,10 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sync.data.api;
+package org.apache.shenyu.admin.model.event.dict;
+
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
+import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 
 /**
- * The interface Sync data service.
+ * DictCreatedEvent.
  */
-public interface SyncDataService extends AutoCloseable {
+public class DictCreatedEvent extends DictChangedEvent {
+    
+    
+    /**
+     * Create a new {@code DictCreatedEvent}.operator is unknown.
+     *
+     * @param source   Current dict state
+     * @param operator operator
+     */
+    public DictCreatedEvent(final ShenyuDictDO source, final String operator) {
+        super(source, null, EventTypeEnum.DICT_CREATE, operator);
+    }
+    
+    /**
+     * the created dict.
+     *
+     * @return dict
+     */
+    public ShenyuDictDO getDict() {
+        return (ShenyuDictDO) getSource();
+    }
+    
 }

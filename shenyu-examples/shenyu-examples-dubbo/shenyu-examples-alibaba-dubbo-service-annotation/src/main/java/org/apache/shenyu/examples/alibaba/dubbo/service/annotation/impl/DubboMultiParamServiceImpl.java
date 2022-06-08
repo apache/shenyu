@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
  * The type Dubbo multi param service.
  */
 @Service
+@ShenyuDubboClient(path = "/demo")
 public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     
     @Override
