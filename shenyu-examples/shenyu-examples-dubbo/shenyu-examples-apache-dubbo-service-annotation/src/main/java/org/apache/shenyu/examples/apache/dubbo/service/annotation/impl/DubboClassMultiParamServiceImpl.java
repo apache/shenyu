@@ -32,12 +32,12 @@ import java.util.stream.Collectors;
 /**
  * The type Dubbo multi param service.
  */
-@ShenyuDubboClient(path = "/demo")
+@ShenyuDubboClient("/demo")
 @DubboService
 public class DubboClassMultiParamServiceImpl implements DubboClassMultiParamService {
     
     @Override
-    @ShenyuDubboClient(path = "/findByIdsAndName", desc = "findByIdsAndName")
+    @ShenyuDubboClient("/findByIdsAndName")
     public DubboTest findByIdsAndName(final List<Integer> ids, final String name) {
         return new DubboTest(ids.toString(), "hello world shenyu apache dubbo param findByIdsAndName ：" + name);
     }
