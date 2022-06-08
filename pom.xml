@@ -86,7 +86,7 @@
         <druid.version>1.0.29</druid.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
         <guava.version>30.1-jre</guava.version>
-        <commons-collections4.version>4.1</commons-collections4.version>
+        <commons-collections4.version>4.4</commons-collections4.version>
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
         <disruptor.version>3.4.0</disruptor.version>
         <consul.api.version>1.4.5</consul.api.version>
