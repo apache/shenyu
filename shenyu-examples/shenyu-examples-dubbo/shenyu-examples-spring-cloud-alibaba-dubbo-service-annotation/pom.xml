@@ -30,6 +30,8 @@
 
     <properties>
         <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
+        <spring-common.version>3.1.2</spring-common.version>
+        <spring-cloud-ribbon.version>2.2.10.RELEASE</spring-cloud-ribbon.version>
     </properties>
 
     <dependencyManagement>
@@ -58,7 +60,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-            <version>2.2.10.RELEASE</version>
+            <version>${spring-cloud-ribbon.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>spring-cloud-context</artifactId>
@@ -93,6 +95,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+            <version>${spring-common.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
