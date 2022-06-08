@@ -146,7 +146,7 @@ public class HttpSyncDataService implements SyncDataService {
         // update local cache
         boolean updated = this.updateCacheWithJson(json);
         if (updated) {
-            LOG.info("get latest configs: [{}]", json);
+            LOG.debug("get latest configs: [{}]", json);
             return;
         }
         // not updated. it is likely that the current config server has not been updated yet. wait a moment.
@@ -182,12 +182,11 @@ public class HttpSyncDataService implements SyncDataService {
         headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
         String listenerUrl = server + Constants.SHENYU_ADMIN_PATH_CONFIGS_LISTENER;
-        LOG.debug("request listener configs: [{}]", listenerUrl);
 
         JsonArray groupJson;
         try {
             String json = this.restTemplate.postForEntity(listenerUrl, httpEntity, String.class).getBody();
-            LOG.debug("listener result: [{}]", json);
+            LOG.info("listener result: [{}]", json);
             JsonObject responseFromServer = GsonUtils.getGson().fromJson(json, JsonObject.class);
             groupJson = responseFromServer.getAsJsonArray("data");
         } catch (RestClientException e) {
@@ -227,7 +226,7 @@ public class HttpSyncDataService implements SyncDataService {
                 int retryTimes = 3;
                 for (int time = 1; time <= retryTimes; time++) {
                     try {
-                        //refresh the admin token
+                        //do long polling.
                         doLongPolling(server);
                     } catch (Exception e) {
                         // print warnning LOG.
