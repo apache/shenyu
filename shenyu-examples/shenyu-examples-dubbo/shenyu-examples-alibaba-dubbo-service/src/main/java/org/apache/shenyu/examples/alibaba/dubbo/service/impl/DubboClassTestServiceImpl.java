@@ -34,17 +34,17 @@ public class DubboClassTestServiceImpl implements DubboClassTestService {
     
     @Override
     public DubboTest findById(final String id) {
-        return new DubboTest(id, "hello world shenyu Apache, findById");
+        return new DubboTest(id, "hello world shenyu Alibaba Dubbo, findById");
     }
     
     @Override
     public DubboTest findAll() {
-        return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Apache, findAll");
+        return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Alibaba Dubbo , findAll");
     }
     
     @Override
     public DubboTest insert(final DubboTest dubboTest) {
-        dubboTest.setName("hello world shenyu Apache Dubbo: " + dubboTest.getName());
+        dubboTest.setName("hello world shenyu Alibaba Dubbo: " + dubboTest.getName());
         return dubboTest;
     }
     
