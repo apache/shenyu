@@ -73,16 +73,18 @@ jobs:
       - uses: actions/setup-java@v1
         if: env.SKIP_CI != 'true'
         with:
-          java-version: ${{ matrix.java }}
+          java-version: 8
+          
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
-        run: ./mvnw -B clean package -Prelease
+        run: ./mvnw -B clean -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
 
       - name: Build and push(admin)
         uses: docker/build-push-action@v3
         if: env.SKIP_CI != 'true'
         with:
           context: ./shenyu-dist/shenyu-admin-dist
+          build-args: APP_NAME=apache-shenyu-incubating-*-admin-bin
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/admin:${{ env.TAG }}
@@ -92,6 +94,7 @@ jobs:
         if: env.SKIP_CI != 'true'
         with:
           context: ./shenyu-dist/shenyu-bootstrap-dist
+          build-args: APP_NAME=apache-shenyu-incubating-*-bootstrap-bin
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/bootstrap:${{ env.TAG }}
