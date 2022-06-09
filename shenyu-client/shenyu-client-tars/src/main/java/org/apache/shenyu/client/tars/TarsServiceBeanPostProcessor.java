@@ -52,16 +52,16 @@ import java.util.stream.Collectors;
  */
 public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
+    /**
+     * api path separator.
+     */
+    private static final String PATH_SEPARATOR = "/";
+
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final String contextPath;
-
-    /**
-     * api path separator.
-     */
-    private static final String PATH_SEPARATOR = "/";
 
     private final String ipAndPort;
 
