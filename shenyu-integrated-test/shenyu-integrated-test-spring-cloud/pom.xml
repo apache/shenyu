@@ -62,6 +62,10 @@
                     <artifactId>spring-cloud-context</artifactId>
                     <groupId>org.springframework.cloud</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         
