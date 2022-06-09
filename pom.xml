@@ -149,8 +149,7 @@
         <mail.version>1.6.2</mail.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
-        <spring-cloud-alibaba.version>2.2.3.RELEASE</spring-cloud-alibaba.version>
-<!--        <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>-->
+        <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
         <spring-cloud-netflix-ribbon.version>2.2.10.RELEASE</spring-cloud-netflix-ribbon.version>
         <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
     </properties>
@@ -458,6 +457,18 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-context</artifactId>
+                <version>${spring-cloud-commons.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter</artifactId>
+                <version>${spring-cloud-commons.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-loadbalancer</artifactId>
                 <version>${spring-cloud-commons.version}</version>
             </dependency>
 
