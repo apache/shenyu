@@ -57,10 +57,12 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final String contextPath;
+
     /**
      * api path separator.
      */
     private static final String PATH_SEPARATOR = "/";
+
     private final String ipAndPort;
 
     private final String host;
@@ -116,7 +118,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private MetaDataRegisterDTO buildMetaDataDTO(final String serviceName, final ShenyuTarsClient shenyuTarsClient, final Method method, final String rpcExt) {
         String ipAndPort = this.ipAndPort;
-        String path = serviceName.contains("*") ? pathJoin(this.contextPath , serviceName) : pathJoin(this.contextPath,serviceName,shenyuTarsClient.path());
+        String path = serviceName.contains("*") ? pathJoin(this.contextPath, serviceName) : pathJoin(this.contextPath, serviceName, shenyuTarsClient.path());
         String desc = shenyuTarsClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuTarsClient.ruleName();
