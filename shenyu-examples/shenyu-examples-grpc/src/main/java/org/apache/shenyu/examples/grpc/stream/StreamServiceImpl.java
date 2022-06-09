@@ -32,7 +32,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
     private static final Logger LOG = LoggerFactory.getLogger(StreamServiceImpl.class);
     
     @Override
-    @ShenyuGrpcClient(path = "/unaryFun", desc = "unaryFun")
+    @ShenyuGrpcClient("/unaryFun")
     public void unaryFun(final RequestData request, final StreamObserver<ResponseData> responseObserver) {
         LOG.info("unaryFun received：{}", request.getText());
         
@@ -44,7 +44,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
     }
     
     @Override
-    @ShenyuGrpcClient(path = "/serverStreamingFun", desc = "serverStreamingFun")
+    @ShenyuGrpcClient("/serverStreamingFun")
     public void serverStreamingFun(final RequestData request, final StreamObserver<ResponseData> responseObserver) {
         LOG.info("serverStreamingFun received：{}", request.getText());
         
@@ -59,7 +59,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
     }
     
     @Override
-    @ShenyuGrpcClient(path = "/clientStreamingFun", desc = "clientStreamingFun")
+    @ShenyuGrpcClient("/clientStreamingFun")
     public StreamObserver<RequestData> clientStreamingFun(final StreamObserver<ResponseData> responseObserver) {
         
         return new StreamObserver<RequestData>() {
@@ -87,7 +87,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
     }
     
     @Override
-    @ShenyuGrpcClient(path = "/bidiStreamingFun", desc = "bidiStreamingFun")
+    @ShenyuGrpcClient("/bidiStreamingFun")
     public StreamObserver<RequestData> bidiStreamingFun(final StreamObserver<ResponseData> responseObserver) {
         
         return new StreamObserver<RequestData>() {

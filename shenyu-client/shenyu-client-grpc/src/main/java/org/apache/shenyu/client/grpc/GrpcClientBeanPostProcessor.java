@@ -38,18 +38,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -125,7 +120,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             LOG.error(String.format("grpc SERVICE_NAME can not found: %s", classes));
             return;
         }
-        ShenyuGrpcClient grpcClassAnnotation = AnnotationUtils.findAnnotation(clazz, ShenyuGrpcClient.class);
+        ShenyuGrpcClient grpcClassAnnotation = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuGrpcClient.class);
         String basePath = Optional.ofNullable(grpcClassAnnotation)
                 .map(annotation -> StringUtils.defaultIfBlank(grpcClassAnnotation.path(), "")).orElse("");
         if (basePath.contains("*")) {
@@ -137,7 +132,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuGrpcClient grpcClient = method.getAnnotation(ShenyuGrpcClient.class);
+            ShenyuGrpcClient grpcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
             if (Objects.nonNull(grpcClient)) {
                 publisher.publishEvent(buildMetaDataDTO(packageName, grpcClient, method, basePath));
             }
