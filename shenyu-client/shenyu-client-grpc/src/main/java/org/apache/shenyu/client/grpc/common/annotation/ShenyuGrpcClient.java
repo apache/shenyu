@@ -31,6 +31,10 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface ShenyuGrpcClient {
 
+    /**
+     * value string.
+     * @return the string
+     */
     @AliasFor(attribute = "path")
     String value() default "";
     
