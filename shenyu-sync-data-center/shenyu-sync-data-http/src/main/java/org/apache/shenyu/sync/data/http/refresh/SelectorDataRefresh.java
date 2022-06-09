@@ -23,6 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class SelectorDataRefresh extends AbstractDataRefresh<SelectorData> {
 
     @Override
     protected ConfigData<SelectorData> fromJson(final JsonObject data) {
-        return GSON.fromJson(data, new TypeToken<ConfigData<SelectorData>>() {
+        return GsonUtils.getGson().fromJson(data, new TypeToken<ConfigData<SelectorData>>() {
         }.getType());
     }
 

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.sync.data.http.refresh;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConfigData;
@@ -41,11 +40,6 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
      * The Group cache.
      */
     protected static final ConcurrentMap<ConfigGroupEnum, ConfigData<?>> GROUP_CACHE = new ConcurrentHashMap<>();
-
-    /**
-     * The constant GSON.
-     */
-    protected static final Gson GSON = new Gson();
 
     /**
      * logger.
