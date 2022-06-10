@@ -125,21 +125,22 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             LOG.error(String.format("grpc SERVICE_NAME can not found: %s", classes));
             return;
         }
-        ShenyuGrpcClient grpcClassAnnotation = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuGrpcClient.class);
-        String basePath = Optional.ofNullable(grpcClassAnnotation)
-                .map(annotation -> StringUtils.defaultIfBlank(grpcClassAnnotation.path(), "")).orElse("");
+        ShenyuGrpcClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuGrpcClient.class);
+        String basePath = Optional.ofNullable(beanShenyuClient)
+                .map(annotation -> StringUtils.defaultIfBlank(beanShenyuClient.path(), "")).orElse("");
         if (basePath.contains("*")) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
-                publisher.publishEvent(buildMetaDataDTO(packageName, grpcClassAnnotation, method, basePath));
+                publisher.publishEvent(buildMetaDataDTO(packageName, beanShenyuClient, method, basePath));
             }
             return;
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuGrpcClient grpcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
-            if (Objects.nonNull(grpcClient)) {
-                publisher.publishEvent(buildMetaDataDTO(packageName, grpcClient, method, basePath));
+            ShenyuGrpcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
+            methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
+            if (Objects.nonNull(methodShenyuClient)) {
+                publisher.publishEvent(buildMetaDataDTO(packageName, methodShenyuClient, method, basePath));
             }
         }
     }
