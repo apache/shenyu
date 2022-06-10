@@ -116,7 +116,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
             Method[] declaredMethods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method declaredMethod : declaredMethods) {
                 if (Objects.nonNull(beanSofaClient)) {
-                    publisher.publishEvent(buildMetaDataDTO(serviceBean, beanSofaClient, declaredMethod, superPath));
+                    publisher.publishEvent(buildMetaDataDTO(serviceBean, beanSofaClient, declaredMethod, ""));
                 }
             }
             return;

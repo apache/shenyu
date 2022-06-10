@@ -17,23 +17,18 @@
 
 package org.apache.shenyu.common.concurrent;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryUsage;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * {@link javax.management.MXBean} technology is used to calculate the memory
- * limit by using the percentage of the current maximum available memory,
+ * {@link java.lang.Runtime#freeMemory()} technology is used to calculate the
+ * memory limit by using the percentage of the current maximum available memory,
  * which can be used with {@link org.apache.shenyu.common.concurrent.MemoryLimiter}.
  *
  * @see org.apache.shenyu.common.concurrent.MemoryLimiter
  */
 public class MemoryLimitCalculator {
-
-    private static final MemoryMXBean MX_BEAN = ManagementFactory.getMemoryMXBean();
 
     private static volatile long maxAvailable;
 
@@ -48,8 +43,7 @@ public class MemoryLimitCalculator {
     }
 
     private static void refresh() {
-        final MemoryUsage usage = MX_BEAN.getHeapMemoryUsage();
-        maxAvailable = usage.getCommitted();
+        maxAvailable = Runtime.getRuntime().freeMemory();
     }
 
     /**

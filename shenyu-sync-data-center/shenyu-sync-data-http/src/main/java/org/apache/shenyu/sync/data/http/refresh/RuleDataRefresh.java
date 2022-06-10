@@ -19,14 +19,16 @@ package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * The type Rule data refresh.
@@ -51,7 +53,7 @@ public class RuleDataRefresh extends AbstractDataRefresh<RuleData> {
 
     @Override
     protected ConfigData<RuleData> fromJson(final JsonObject data) {
-        return GSON.fromJson(data, new TypeToken<ConfigData<RuleData>>() {
+        return GsonUtils.getGson().fromJson(data, new TypeToken<ConfigData<RuleData>>() {
         }.getType());
     }
 

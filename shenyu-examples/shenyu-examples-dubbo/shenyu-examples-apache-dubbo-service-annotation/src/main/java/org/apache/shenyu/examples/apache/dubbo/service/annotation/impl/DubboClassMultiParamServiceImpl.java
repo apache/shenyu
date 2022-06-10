@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.examples.apache.dubbo.service.annotation.impl;
 
-import org.apache.dubbo.config.annotation.Service;
+import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.entity.ComplexBeanTest;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
@@ -32,12 +32,12 @@ import java.util.stream.Collectors;
 /**
  * The type Dubbo multi param service.
  */
-@ShenyuDubboClient(path = "/demo")
-@Service
+@ShenyuDubboClient("/demo")
+@DubboService
 public class DubboClassMultiParamServiceImpl implements DubboClassMultiParamService {
     
     @Override
-    @ShenyuDubboClient(path = "/findByIdsAndName", desc = "findByIdsAndName")
+    @ShenyuDubboClient("/findByIdsAndName")
     public DubboTest findByIdsAndName(final List<Integer> ids, final String name) {
         return new DubboTest(ids.toString(), "hello world shenyu apache dubbo param findByIdsAndName ：" + name);
     }
