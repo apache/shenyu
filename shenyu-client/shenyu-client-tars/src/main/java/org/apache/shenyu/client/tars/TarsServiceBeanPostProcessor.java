@@ -96,18 +96,8 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         if (AopUtils.isAopProxy(serviceBean)) {
             clazz = AopUtils.getTargetClass(serviceBean);
         }
+        String serviceName = clazz.getAnnotation(ShenyuTarsService.class).serviceName();
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
-        ShenyuTarsService shenyuTarsService = clazz.getAnnotation(ShenyuTarsService.class);
-        String serviceName = shenyuTarsService.serviceName();
-        if (serviceName.contains("*")) {
-            for (Method method : methods) {
-                ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
-                if (Objects.nonNull(shenyuTarsClient)) {
-                    publisher.publishEvent(buildMetaDataDTO(serviceName, shenyuTarsClient, method, buildRpcExtJson(method)));
-                }
-            }
-            return;
-        }
         for (Method method : methods) {
             ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
             if (Objects.nonNull(shenyuTarsClient)) {
