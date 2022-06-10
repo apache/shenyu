@@ -59,6 +59,7 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
             return;
         }
         final Map<String, List<URIRegisterDTO>> groupByRpcType = dataList.stream()
+                .filter(data -> StringUtils.isNotBlank(data.getRpcType()))
                 .collect(Collectors.groupingBy(URIRegisterDTO::getRpcType));
         for (Map.Entry<String, List<URIRegisterDTO>> entry : groupByRpcType.entrySet()) {
             final String rpcType = entry.getKey();
