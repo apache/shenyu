@@ -72,7 +72,7 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
     }
     
     private Map<String, List<URIRegisterDTO>> buildData(final Collection<URIRegisterDTO> dataList) {
-        Map<String, List<URIRegisterDTO>> resultMap = new HashMap<>(128);
+        Map<String, List<URIRegisterDTO>> resultMap = new HashMap<>(8);
         for (URIRegisterDTO dto : dataList) {
             String contextPath = dto.getContextPath();
             String key = StringUtils.isNotEmpty(contextPath) ? contextPath : dto.getAppName();
