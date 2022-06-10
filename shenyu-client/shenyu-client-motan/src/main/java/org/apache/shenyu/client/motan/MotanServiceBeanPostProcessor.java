@@ -205,7 +205,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
     }
 
     private String buildApiSuperPath(@NonNull final Class<?> clazz) {
-        ShenyuMotanClient shenyuMotanClient =  AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuMotanClient.class);
+        ShenyuMotanClient shenyuMotanClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuMotanClient.class);
         if (Objects.nonNull(shenyuMotanClient) && StringUtils.isNotBlank(shenyuMotanClient.path())) {
             return shenyuMotanClient.path();
         }
