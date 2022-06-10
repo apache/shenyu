@@ -24,7 +24,7 @@ import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.springframework.stereotype.Service;
 
 
-@ShenyuGrpcClient(path = "/helloService/**", desc = "hello")
+@ShenyuGrpcClient("/helloService/**")
 @Service
 public class HelloServiceImpl extends HelloServiceGrpc.HelloServiceImplBase {
 

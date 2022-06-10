@@ -37,7 +37,7 @@ public class EchoServiceImpl extends EchoServiceGrpc.EchoServiceImplBase {
     private static final Logger LOG = LoggerFactory.getLogger(EchoServiceImpl.class);
 
     @Override
-    @ShenyuGrpcClient(path = "/echo", desc = "echo")
+    @ShenyuGrpcClient("/echo")
     public void echo(final EchoRequest request, final StreamObserver<EchoResponse> responseObserver) {
         LOG.info("Received: {}", request.getMessage());
         EchoResponse.Builder response = EchoResponse.newBuilder()

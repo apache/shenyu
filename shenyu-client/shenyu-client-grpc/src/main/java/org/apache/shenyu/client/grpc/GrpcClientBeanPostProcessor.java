@@ -36,9 +36,10 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
@@ -109,6 +110,9 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             LOG.error("failed to get grpc target class", e);
             return;
         }
+        if (AopUtils.isAopProxy(serviceBean)) {
+            clazz = AopUtils.getTargetClass(serviceBean);
+        }
         Class<?> parent = clazz.getSuperclass();
         Class<?> classes = parent.getDeclaringClass();
         String packageName;
@@ -125,21 +129,21 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             LOG.error(String.format("grpc SERVICE_NAME can not found: %s", classes));
             return;
         }
-        ShenyuGrpcClient grpcClassAnnotation = AnnotationUtils.findAnnotation(clazz, ShenyuGrpcClient.class);
-        String basePath = Optional.ofNullable(grpcClassAnnotation)
-                .map(annotation -> StringUtils.defaultIfBlank(grpcClassAnnotation.path(), "")).orElse("");
+        ShenyuGrpcClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuGrpcClient.class);
+        String basePath = Optional.ofNullable(beanShenyuClient)
+                .map(annotation -> StringUtils.defaultIfBlank(beanShenyuClient.path(), "")).orElse("");
         if (basePath.contains("*")) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
-                publisher.publishEvent(buildMetaDataDTO(packageName, grpcClassAnnotation, method, basePath));
+                publisher.publishEvent(buildMetaDataDTO(packageName, beanShenyuClient, method, basePath));
             }
             return;
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuGrpcClient grpcClient = method.getAnnotation(ShenyuGrpcClient.class);
-            if (Objects.nonNull(grpcClient)) {
-                publisher.publishEvent(buildMetaDataDTO(packageName, grpcClient, method, basePath));
+            ShenyuGrpcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
+            if (Objects.nonNull(methodShenyuClient)) {
+                publisher.publishEvent(buildMetaDataDTO(packageName, methodShenyuClient, method, basePath));
             }
         }
     }
