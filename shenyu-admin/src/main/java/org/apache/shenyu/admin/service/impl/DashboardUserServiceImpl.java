@@ -239,7 +239,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                 return loginUser;
             }
             return loginUser.setToken(JwtUtils.generateToken(finalDashboardUserVO.getUserName(), finalDashboardUserVO.getPassword(),
-                    jwtProperties.getExpiredSeconds()));
+                    jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
         }).orElse(null);
     }
 

@@ -35,7 +35,7 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
@@ -105,7 +105,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         if (AopUtils.isAopProxy(refProxy)) {
             clazz = AopUtils.getTargetClass(refProxy);
         }
-        ShenyuDubboClient beanShenyuClient = AnnotationUtils.findAnnotation(clazz, ShenyuDubboClient.class);
+        ShenyuDubboClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuDubboClient.class);
         final String superPath = buildApiSuperPath(beanShenyuClient);
         if (superPath.contains("*")) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
@@ -118,7 +118,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuDubboClient shenyuDubboClient = method.getAnnotation(ShenyuDubboClient.class);
+            ShenyuDubboClient shenyuDubboClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuDubboClient.class);
             if (Objects.nonNull(shenyuDubboClient)) {
                 publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuDubboClient, method, superPath));
             }
