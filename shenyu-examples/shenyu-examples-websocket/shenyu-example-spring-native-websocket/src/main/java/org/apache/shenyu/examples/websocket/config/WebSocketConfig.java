@@ -32,7 +32,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
  */
 @Configuration
 @EnableWebSocket
-@ShenyuSpringWebSocketClient(path = "/myWebSocket", desc = "myWebSocket")
+@ShenyuSpringWebSocketClient("/myWebSocket")
 public class WebSocketConfig implements WebSocketConfigurer {
 
     @Autowired
