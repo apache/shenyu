@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The type Uri register executor subscriber.
@@ -57,14 +58,21 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
         if (CollectionUtils.isEmpty(dataList)) {
             return;
         }
-        findService(dataList).ifPresent(service -> {
-            Map<String, List<URIRegisterDTO>> listMap = buildData(dataList);
-            listMap.forEach(service::registerURI);
-        });
+        final Map<String, List<URIRegisterDTO>> groupByRpcType = dataList.stream()
+                .collect(Collectors.groupingBy(URIRegisterDTO::getRpcType));
+        for (Map.Entry<String, List<URIRegisterDTO>> entry : groupByRpcType.entrySet()) {
+            final String rpcType = entry.getKey();
+            Optional.ofNullable(shenyuClientRegisterService.get(rpcType))
+                    .ifPresent(service -> {
+                        final List<URIRegisterDTO> list = entry.getValue();
+                        Map<String, List<URIRegisterDTO>> listMap = buildData(list);
+                        listMap.forEach(service::registerURI);
+                    });
+        }
     }
     
     private Map<String, List<URIRegisterDTO>> buildData(final Collection<URIRegisterDTO> dataList) {
-        Map<String, List<URIRegisterDTO>> resultMap = new HashMap<>();
+        Map<String, List<URIRegisterDTO>> resultMap = new HashMap<>(128);
         for (URIRegisterDTO dto : dataList) {
             String contextPath = dto.getContextPath();
             String key = StringUtils.isNotEmpty(contextPath) ? contextPath : dto.getAppName();
@@ -79,9 +87,5 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
             }
         }
         return resultMap;
-    }
-    
-    private Optional<ShenyuClientRegisterService> findService(final Collection<URIRegisterDTO> dataList) {
-        return dataList.stream().map(dto -> shenyuClientRegisterService.get(dto.getRpcType())).findFirst();
     }
 }
