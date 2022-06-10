@@ -30,7 +30,7 @@
 
     <properties>
         <curator.version>4.0.1</curator.version>
-        <alibaba.dubbo.version>2.6.5</alibaba.dubbo.version>
+        <alibaba.dubbo.version>2.6.12</alibaba.dubbo.version>
         <zookeeper.version>3.5.6</zookeeper.version>
     </properties>
 
