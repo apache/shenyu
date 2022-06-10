@@ -36,6 +36,7 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -109,6 +110,9 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             LOG.error("failed to get grpc target class", e);
             return;
         }
+        if (AopUtils.isAopProxy(serviceBean)) {
+            clazz = AopUtils.getTargetClass(serviceBean);
+        }
         Class<?> parent = clazz.getSuperclass();
         Class<?> classes = parent.getDeclaringClass();
         String packageName;
@@ -138,7 +142,6 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
             ShenyuGrpcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
-            methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
             if (Objects.nonNull(methodShenyuClient)) {
                 publisher.publishEvent(buildMetaDataDTO(packageName, methodShenyuClient, method, basePath));
             }
