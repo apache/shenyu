@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.examples.websocket.config;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.apache.shenyu.examples.websocket.handler.EchoHandler;
 import org.springframework.context.annotation.Bean;
@@ -29,11 +27,14 @@ import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * The type Web socket configuration.
  */
 @Configuration
-@ShenyuSpringWebSocketClient(path = "/websocket/**", desc = "myWebSocket")
+@ShenyuSpringWebSocketClient("/websocket/**")
 public class WebSocketConfiguration {
 
     /**
