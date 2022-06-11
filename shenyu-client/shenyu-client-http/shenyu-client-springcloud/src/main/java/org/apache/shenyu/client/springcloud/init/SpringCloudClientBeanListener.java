@@ -31,8 +31,8 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
@@ -46,21 +46,22 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
 /**
- * The type Shenyu client bean post processor.
+ * The type Shenyu client bean listener.
  */
-public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
+public class SpringCloudClientBeanListener implements ApplicationListener<ContextRefreshedEvent> {
     
     /**
      * api path separator.
      */
     private static final String PATH_SEPARATOR = "/";
     
-    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientBeanPostProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientBeanListener.class);
     
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
@@ -83,9 +84,9 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
      * @param shenyuClientRegisterRepository the shenyu client register repository
      * @param env                            the env
      */
-    public SpringCloudClientBeanPostProcessor(final PropertiesConfig clientConfig,
-                                              final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
-                                              final Environment env) {
+    public SpringCloudClientBeanListener(final PropertiesConfig clientConfig,
+                                         final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                         final Environment env) {
         String appName = env.getProperty("spring.application.name");
         Properties props = clientConfig.getProps();
         this.contextPath = Optional.ofNullable(props.getProperty(ShenyuClientConstants.CONTEXT_PATH)).map(UriUtils::repairData).orElse(null);
@@ -101,24 +102,34 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         mappingAnnotation.add(RequestMapping.class);
         publisher.start(shenyuClientRegisterRepository);
     }
-    
+
     @Override
-    public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
+            return;
+        }
+        Map<String, Object> beans = contextRefreshedEvent.getApplicationContext().getBeansWithAnnotation(Controller.class);
+        for (Map.Entry<String, Object> entry : beans.entrySet()) {
+            handler(entry.getValue());
+        }
+    }
+
+    private void handler(final Object bean) {
         Class<?> clazz = bean.getClass();
         if (AopUtils.isAopProxy(bean)) {
             clazz = AopUtils.getTargetClass(bean);
         }
         // Filter out is not controller out
-        if (Boolean.TRUE.equals(isFull) || !hasAnnotation(clazz, Controller.class)) {
-            return bean;
+        if (Boolean.TRUE.equals(isFull)) {
+            return;
         }
-        
+
         final ShenyuSpringCloudClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringCloudClient.class);
         final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
         // Compatible with previous versions
         if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
             publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath)));
-            return bean;
+            return;
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
@@ -131,7 +142,6 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
                 publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath, methodShenyuClient)));
             }
         }
-        return bean;
     }
     
     private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz, final @NonNull Class<A> annotationType) {
