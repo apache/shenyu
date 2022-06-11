@@ -108,7 +108,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private MetaDataRegisterDTO buildMetaDataDTO(final String serviceName, final ShenyuTarsClient shenyuTarsClient, final Method method, final String rpcExt) {
         String ipAndPort = this.ipAndPort;
-        String path = serviceName.contains("*") ? pathJoin(this.contextPath, serviceName) : pathJoin(this.contextPath, serviceName, shenyuTarsClient.path());
+        String path = serviceName.contains("*") ? pathJoin(this.contextPath, serviceName.replace("*", ""), method.getName()) : pathJoin(this.contextPath, serviceName, shenyuTarsClient.path());
         String desc = shenyuTarsClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuTarsClient.ruleName();
