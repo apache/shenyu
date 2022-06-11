@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -83,7 +84,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
             final String path = exchange.getRequest().getURI().getPath();
-
             Pair<Boolean, SelectorData> resultSelectorData = obtainSelectorDataCacheIfEnabled(exchange);
             SelectorData selectorData = resultSelectorData.getRight();
             if (Boolean.TRUE.equals(resultSelectorData.getLeft())) {
@@ -143,26 +143,17 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private Pair<Boolean, SelectorData> obtainSelectorDataCacheIfEnabled(final ServerWebExchange exchange) {
         if (matchCacheConfig.getEnabled()) {
-            List<SelectorData> selectors = MatchDataCache.getInstance().obtainSelectorData(named(), exchange.getRequest().getURI().getPath());
+            SelectorData selectorData = MatchDataCache.getInstance().obtainSelectorData(named(), exchange.getRequest().getURI().getPath());
 
-            if (Objects.isNull(selectors)) {
+            if (Objects.isNull(selectorData)) {
                 return Pair.of(Boolean.TRUE, null);
             }
 
-            if (selectors.size() == 0) {
+            if (StringUtils.isBlank(selectorData.getId())){
                 return Pair.of(Boolean.FALSE, null);
             }
 
-            SelectorData selectorData;
-            if (selectors.size() == 1) {
-                selectorData = selectors.get(0);
-            } else {
-                selectorData = matchSelector(exchange, selectors);
-            }
-
-            if (Objects.nonNull(selectorData)) {
-                return Pair.of(Boolean.FALSE, selectorData);
-            }
+            return Pair.of(Boolean.FALSE, selectorData);
         }
         return Pair.of(Boolean.TRUE, null);
     }
