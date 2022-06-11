@@ -18,7 +18,7 @@
 
 package org.apache.dromara.springboot.starter.client.grpc;
 
-import org.apache.shenyu.client.grpc.GrpcClientBeanPostProcessor;
+import org.apache.shenyu.client.grpc.GrpcClientEventListener;
 import org.apache.shenyu.client.grpc.GrpcContextRefreshedEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
@@ -70,8 +70,8 @@ public class ShenyuGrpcClientConfigurationTest {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         applicationContextRunner.run(context -> {
-            GrpcClientBeanPostProcessor processor = context.getBean("grpcServiceBeanPostProcessor", GrpcClientBeanPostProcessor.class);
-            assertNotNull(processor);
+            GrpcClientEventListener listener = context.getBean("grpcClientEventListener", GrpcClientEventListener.class);
+            assertNotNull(listener);
         });
         registerUtilsMockedStatic.close();
     }
