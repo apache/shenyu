@@ -52,16 +52,16 @@ import java.util.Optional;
 import java.util.Properties;
 
 /**
- * The type Shenyu client bean listener.
+ * The type Spring cloud client event listener.
  */
-public class SpringCloudClientBeanListener implements ApplicationListener<ContextRefreshedEvent> {
+public class SpringCloudClientEventListener implements ApplicationListener<ContextRefreshedEvent> {
     
     /**
      * api path separator.
      */
     private static final String PATH_SEPARATOR = "/";
     
-    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientBeanListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientEventListener.class);
     
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
@@ -84,9 +84,9 @@ public class SpringCloudClientBeanListener implements ApplicationListener<Contex
      * @param shenyuClientRegisterRepository the shenyu client register repository
      * @param env                            the env
      */
-    public SpringCloudClientBeanListener(final PropertiesConfig clientConfig,
-                                         final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
-                                         final Environment env) {
+    public SpringCloudClientEventListener(final PropertiesConfig clientConfig,
+                                          final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
+                                          final Environment env) {
         String appName = env.getProperty("spring.application.name");
         Properties props = clientConfig.getProps();
         this.contextPath = Optional.ofNullable(props.getProperty(ShenyuClientConstants.CONTEXT_PATH)).map(UriUtils::repairData).orElse(null);
@@ -105,9 +105,6 @@ public class SpringCloudClientBeanListener implements ApplicationListener<Contex
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
-            return;
-        }
         Map<String, Object> beans = contextRefreshedEvent.getApplicationContext().getBeansWithAnnotation(Controller.class);
         for (Map.Entry<String, Object> entry : beans.entrySet()) {
             handler(entry.getValue());

@@ -39,15 +39,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test for {@link SpringCloudClientBeanListener}.
+ * Test for {@link SpringCloudClientEventListener}.
  */
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
@@ -58,6 +62,8 @@ public final class SpringCloudClientBeanPostProcessorTest {
 
     private final MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
 
+    private final SpringCloudClientTestBean springCloudClientTestBean = new SpringCloudClientTestBean();
+
     @Mock
     private ApplicationContext applicationContext;
 
@@ -66,6 +72,9 @@ public final class SpringCloudClientBeanPostProcessorTest {
     @BeforeEach
     public void init() {
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
+        Map<String, Object> results = new LinkedHashMap();
+        results.put("springCloudClientTestBean", springCloudClientTestBean);
+        when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
         contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
     }
 
@@ -73,16 +82,18 @@ public final class SpringCloudClientBeanPostProcessorTest {
     public void testShenyuBeanProcess() {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         // config with full
-        SpringCloudClientBeanListener springCloudClientBeanListener = buildSpringCloudClientBeanPostProcessor(true);
-        springCloudClientBeanListener.onApplicationEvent(contextRefreshedEvent);
+        SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClientBeanPostProcessor(true);
+        springCloudClientEventListener.onApplicationEvent(contextRefreshedEvent);
+        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
     @Test
     public void testNormalBeanProcess() {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
-        SpringCloudClientBeanListener springCloudClientBeanListener = buildSpringCloudClientBeanPostProcessor(false);
-        springCloudClientBeanListener.onApplicationEvent(contextRefreshedEvent);
+        SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClientBeanPostProcessor(false);
+        springCloudClientEventListener.onApplicationEvent(contextRefreshedEvent);
+        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
@@ -91,12 +102,13 @@ public final class SpringCloudClientBeanPostProcessorTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         registerUtilsMockedStatic.when(() -> RegisterUtils.doRegister(any(), any(), any()))
                 .thenAnswer((Answer<Void>) invocation -> null);
-        SpringCloudClientBeanListener springCloudClientBeanListener = buildSpringCloudClientBeanPostProcessor(false);
-        springCloudClientBeanListener.onApplicationEvent(contextRefreshedEvent);
+        SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClientBeanPostProcessor(false);
+        springCloudClientEventListener.onApplicationEvent(contextRefreshedEvent);
+        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
-    private SpringCloudClientBeanListener buildSpringCloudClientBeanPostProcessor(final boolean full) {
+    private SpringCloudClientEventListener buildSpringCloudClientBeanPostProcessor(final boolean full) {
         Properties properties = new Properties();
         properties.setProperty("contextPath", "/test");
         properties.setProperty("isFull", full + "");
@@ -110,7 +122,7 @@ public final class SpringCloudClientBeanPostProcessorTest {
         mockRegisterCenter.setServerLists("http://127.0.0.1:8080");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
-        return new SpringCloudClientBeanListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env);
+        return new SpringCloudClientEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter), env);
     }
 
     @RestController
