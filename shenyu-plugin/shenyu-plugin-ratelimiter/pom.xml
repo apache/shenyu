@@ -24,6 +24,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-ratelimiter</artifactId>
+
+    <properties>
+        <embedded-redis.version>0.6</embedded-redis.version>
+    </properties>
     
     <dependencies>
         <dependency>
@@ -49,7 +53,7 @@
         <dependency>
             <groupId>com.github.kstyrc</groupId>
             <artifactId>embedded-redis</artifactId>
-            <version>0.6</version>
+            <version>${embedded-redis.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
