@@ -60,7 +60,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/test")
-@ShenyuSpringMvcClient(path = "/test/**")
+@ShenyuSpringMvcClient("/test/**")
 public class HttpTestController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpTestController.class);

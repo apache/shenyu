@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/test")
-@ShenyuSpringMvcClient(path = "/test/**")
+@ShenyuSpringMvcClient("/test/**")
 public class HttpTestController {
 
     /**
