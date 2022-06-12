@@ -32,7 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
@@ -48,43 +49,44 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
 /**
- * The type Shenyu spring mvc client bean post processor.
+ * The type Shenyu spring mvc client event listener.
  */
-public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
-    
+public class SpringMvcClientEventListener implements ApplicationListener<ContextRefreshedEvent> {
+
     /**
      * api path separator.
      */
     private static final String PATH_SEPARATOR = "/";
-    
-    private static final Logger LOG = LoggerFactory.getLogger(SpringMvcClientBeanPostProcessor.class);
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(SpringMvcClientEventListener.class);
+
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final String contextPath;
-    
+
     private final String appName;
-    
+
     private final Boolean isFull;
-    
+
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(7);
-    
+
     private final String[] pathAttributeNames = new String[]{"path", "value"};
-    
+
     /**
-     * Instantiates a new Spring mvc client bean post processor.
+     * Instantiates a new Spring mvc client event listener.
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
      */
-    public SpringMvcClientBeanPostProcessor(final PropertiesConfig clientConfig,
-                                            final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public SpringMvcClientEventListener(final PropertiesConfig clientConfig,
+                                        final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         this.contextPath = Optional.ofNullable(props.getProperty(ShenyuClientConstants.CONTEXT_PATH)).map(UriUtils::repairData).orElse("");
@@ -102,24 +104,30 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         mappingAnnotation.add(RequestMapping.class);
         publisher.start(shenyuClientRegisterRepository);
     }
-    
+
     @Override
-    public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
+    public void onApplicationEvent(final ContextRefreshedEvent event) throws BeansException {
+        // Filter out
+        if (Boolean.TRUE.equals(isFull)) {
+            return;
+        }
+        Map<String, Object> controllerBeans = event.getApplicationContext().getBeansWithAnnotation(Controller.class);
+        for (Map.Entry<String, Object> entry : controllerBeans.entrySet()) {
+            handler(entry.getValue());
+        }
+    }
+
+    private void handler(@NonNull final Object bean) {
         Class<?> clazz = bean.getClass();
         if (AopUtils.isAopProxy(bean)) {
             clazz = AopUtils.getTargetClass(bean);
         }
-        // Filter out is not controller out
-        if (Boolean.TRUE.equals(isFull) || !hasAnnotation(bean.getClass(), Controller.class)) {
-            return bean;
-        }
-        
         final ShenyuSpringMvcClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringMvcClient.class);
         final String superPath = buildApiSuperPath(clazz);
         // Compatible with previous versions
         if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
             publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath)));
-            return bean;
+            return;
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
@@ -132,14 +140,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath)));
             }
         }
-        
-        return bean;
     }
-    
-    private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz, final @NonNull Class<A> annotationType) {
-        return Objects.nonNull(AnnotationUtils.findAnnotation(clazz, annotationType));
-    }
-    
+
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
         ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
         if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
@@ -151,7 +153,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return pathJoin(contextPath, superPath);
     }
-    
+
     private String getPathByMethod(@NonNull final Method method) {
         for (Class<? extends Annotation> mapping : mappingAnnotation) {
             final String pathByAnnotation = getPathByAnnotation(AnnotationUtils.findAnnotation(method, mapping), pathAttributeNames);
@@ -161,7 +163,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return null;
     }
-    
+
     private String getPathByAnnotation(@Nullable final Annotation annotation, @NonNull final String... pathAttributeName) {
         if (Objects.isNull(annotation)) {
             return null;
@@ -178,7 +180,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return null;
     }
-    
+
     private String buildApiSuperPath(@NonNull final Class<?> method) {
         ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
         if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
@@ -191,7 +193,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return "";
     }
-    
+
     private String pathJoin(@NonNull final String... path) {
         StringBuilder result = new StringBuilder(PATH_SEPARATOR);
         for (String p : path) {
@@ -202,18 +204,18 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         return result.toString();
     }
-    
+
     private MetaDataRegisterDTO buildMetaDataDTO(@NonNull final ShenyuSpringMvcClient shenyuSpringMvcClient, final String path) {
         return MetaDataRegisterDTO.builder()
-                .contextPath(contextPath)
-                .appName(appName)
-                .path(path)
-                .pathDesc(shenyuSpringMvcClient.desc())
-                .rpcType(RpcTypeEnum.HTTP.getName())
-                .enabled(shenyuSpringMvcClient.enabled())
-                .ruleName(StringUtils.defaultIfBlank(shenyuSpringMvcClient.ruleName(), path))
-                .registerMetaData(shenyuSpringMvcClient.registerMetaData())
-                .build();
+            .contextPath(contextPath)
+            .appName(appName)
+            .path(path)
+            .pathDesc(shenyuSpringMvcClient.desc())
+            .rpcType(RpcTypeEnum.HTTP.getName())
+            .enabled(shenyuSpringMvcClient.enabled())
+            .ruleName(StringUtils.defaultIfBlank(shenyuSpringMvcClient.ruleName(), path))
+            .registerMetaData(shenyuSpringMvcClient.registerMetaData())
+            .build();
     }
-    
+
 }
