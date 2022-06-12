@@ -109,7 +109,7 @@ public class SpringMvcClientEventListener implements ApplicationListener<Context
     public void onApplicationEvent(final ContextRefreshedEvent event) throws BeansException {
         // Filter out
         if (Boolean.TRUE.equals(isFull)) {
-            return ;
+            return;
         }
         Map<String, Object> controllerBeans = event.getApplicationContext().getBeansWithAnnotation(Controller.class);
         for (Map.Entry<String, Object> entry : controllerBeans.entrySet()) {
