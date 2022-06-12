@@ -65,7 +65,7 @@ public class ShenyuSpringMvcClientConfigurationTest {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         applicationContextRunner.run(context -> {
-            SpringMvcClientEventListener processor = context.getBean("SpringMvcClientEventListener", SpringMvcClientEventListener.class);
+            SpringMvcClientEventListener processor = context.getBean("springHttpClientEventListener", SpringMvcClientEventListener.class);
             assertNotNull(processor);
         });
         registerUtilsMockedStatic.close();
