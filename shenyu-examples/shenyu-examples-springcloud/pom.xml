@@ -39,7 +39,7 @@
             <artifactId>shenyu-spring-boot-starter-client-springcloud</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--spring boot的核心启动器-->
+        <!--spring bootstrap-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -54,6 +54,16 @@
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
             <version>${nacos-discovery.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-cloud-context</artifactId>
+                    <groupId>org.springframework.cloud</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>spring-cloud-commons</artifactId>
+                    <groupId>org.springframework.cloud</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

@@ -32,7 +32,7 @@ import java.util.Random;
 /**
  * The type Dubbo service.
  */
-@ShenyuDubboClient(path = "/demo/**", desc = "class init")
+@ShenyuDubboClient("/demo/**")
 @DubboService
 public class DubboClassTestServiceImpl implements DubboClassTestService {
 

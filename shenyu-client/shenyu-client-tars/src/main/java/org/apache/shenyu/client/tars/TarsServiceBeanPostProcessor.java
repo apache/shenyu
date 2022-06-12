@@ -20,8 +20,8 @@ package org.apache.shenyu.client.tars;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
@@ -35,7 +35,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -79,7 +79,11 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
-        if (AnnotationUtils.findAnnotation(bean.getClass(), ShenyuTarsService.class) != null) {
+        Class clazz = bean.getClass();
+        if (AopUtils.isAopProxy(clazz)) {
+            clazz = AopUtils.getTargetClass(clazz);
+        }
+        if (AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuTarsService.class) != null) {
             handler(bean);
         }
         return bean;

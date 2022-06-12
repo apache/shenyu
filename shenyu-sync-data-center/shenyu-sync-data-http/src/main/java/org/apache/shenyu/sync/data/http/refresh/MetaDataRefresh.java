@@ -19,14 +19,16 @@ package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * The type meta data refresh.
@@ -50,7 +52,7 @@ public class MetaDataRefresh extends AbstractDataRefresh<MetaData> {
 
     @Override
     protected ConfigData<MetaData> fromJson(final JsonObject data) {
-        return GSON.fromJson(data, new TypeToken<ConfigData<MetaData>>() {
+        return GsonUtils.getGson().fromJson(data, new TypeToken<ConfigData<MetaData>>() {
         }.getType());
     }
 

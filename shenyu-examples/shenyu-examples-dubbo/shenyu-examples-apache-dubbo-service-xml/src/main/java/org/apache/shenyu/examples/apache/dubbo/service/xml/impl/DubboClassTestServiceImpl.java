@@ -29,7 +29,7 @@ import java.util.Random;
  * DubboTestServiceImpl.
  */
 @Service("dubboClassTestService")
-@ShenyuDubboClient(path = "/demo/**", desc = "class init")
+@ShenyuDubboClient("/demo/**")
 public class DubboClassTestServiceImpl implements DubboClassTestService {
     
     @Override

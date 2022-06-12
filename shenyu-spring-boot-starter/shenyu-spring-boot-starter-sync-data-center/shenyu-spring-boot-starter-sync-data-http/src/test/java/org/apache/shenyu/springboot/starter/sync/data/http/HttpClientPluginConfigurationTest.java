@@ -46,9 +46,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test cases for {@link HttpSyncDataConfiguration}.
@@ -133,6 +133,7 @@ public final class HttpClientPluginConfigurationTest {
         Map<String, Object> result = new HashMap<>();
         Map<String, Object> data = new HashMap<>();
         data.put("token", "token");
+        data.put("expiredTime", 24 * 60 * 60 * 1000);
         result.put("data", data);
         result.put("code", CommonErrorCode.SUCCESSFUL);
         return GsonUtils.getInstance().toJson(result);

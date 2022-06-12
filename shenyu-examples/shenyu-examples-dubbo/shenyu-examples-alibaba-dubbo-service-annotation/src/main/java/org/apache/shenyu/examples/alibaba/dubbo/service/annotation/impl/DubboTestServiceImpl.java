@@ -29,30 +29,29 @@ import java.util.Random;
  * The type Dubbo service.
  */
 @Service
-@ShenyuDubboClient(path = "/demo")
 public class DubboTestServiceImpl implements DubboTestService {
     
     @Override
-    @ShenyuDubboClient(path = "/findById", desc = "Query by Id")
+    @ShenyuDubboClient("/findById")
     public DubboTest findById(final String id) {
         return new DubboTest(id, "hello world shenyu Alibaba Dubbo, findById");
     }
     
     @Override
-    @ShenyuDubboClient(path = "/findAll", desc = "Get all data")
+    @ShenyuDubboClient("/findAll")
     public DubboTest findAll() {
         return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Alibaba Dubbo , findAll");
     }
     
     @Override
-    @ShenyuDubboClient(path = "/insert", desc = "Insert a row of data")
+    @ShenyuDubboClient("/insert")
     public DubboTest insert(final DubboTest dubboTest) {
         dubboTest.setName("hello world shenyu Alibaba Dubbo: " + dubboTest.getName());
         return dubboTest;
     }
     
     @Override
-    @ShenyuDubboClient(path = "/findList", desc = "Find list")
+    @ShenyuDubboClient("/findList")
     public ListResp findList() {
         return new ListResp(1, Collections.singletonList(new DubboTest("1", "test")));
     }

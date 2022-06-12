@@ -83,7 +83,7 @@ public final class TarsServiceBeanPostProcessorTest {
 
     @ShenyuTarsService(serviceName = "testObj")
     static class TarsDemoService {
-        @ShenyuTarsClient(path = "hello")
+        @ShenyuTarsClient("hello")
         public String test(final String hello) {
             return hello + "";
         }
