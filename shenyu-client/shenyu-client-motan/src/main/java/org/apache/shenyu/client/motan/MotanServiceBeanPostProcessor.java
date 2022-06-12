@@ -39,7 +39,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
@@ -122,7 +122,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         }
         String superPath = buildApiSuperPath(clazz);
         MotanService service = clazz.getAnnotation(MotanService.class);
-        ShenyuMotanClient beanShenyuClient = AnnotationUtils.findAnnotation(clazz, ShenyuMotanClient.class);
+        ShenyuMotanClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuMotanClient.class);
         if (superPath.contains("*")) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
@@ -135,7 +135,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuMotanClient shenyuMotanClient = method.getAnnotation(ShenyuMotanClient.class);
+            ShenyuMotanClient shenyuMotanClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuMotanClient.class);
             if (Objects.nonNull(shenyuMotanClient)) {
                 publisher.publishEvent(buildMetaDataDTO(clazz, service,
                         shenyuMotanClient, method, buildRpcExt(method, timeout), superPath));
@@ -205,7 +205,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
     }
 
     private String buildApiSuperPath(@NonNull final Class<?> clazz) {
-        ShenyuMotanClient shenyuMotanClient = AnnotationUtils.findAnnotation(clazz, ShenyuMotanClient.class);
+        ShenyuMotanClient shenyuMotanClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuMotanClient.class);
         if (Objects.nonNull(shenyuMotanClient) && StringUtils.isNotBlank(shenyuMotanClient.path())) {
             return shenyuMotanClient.path();
         }

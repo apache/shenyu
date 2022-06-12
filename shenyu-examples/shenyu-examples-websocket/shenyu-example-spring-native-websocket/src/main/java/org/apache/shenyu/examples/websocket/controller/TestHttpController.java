@@ -32,7 +32,7 @@ import java.io.IOException;
  */
 @Controller
 @RequestMapping("/ws")
-@ShenyuSpringMvcClient(path = "/ws/**")
+@ShenyuSpringMvcClient("/ws/**")
 public class TestHttpController {
 
     @RequestMapping("/sendMsg")

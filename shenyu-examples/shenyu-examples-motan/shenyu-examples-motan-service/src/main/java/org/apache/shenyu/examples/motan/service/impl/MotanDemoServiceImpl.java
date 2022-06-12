@@ -25,17 +25,17 @@ import org.apache.shenyu.examples.motan.service.MotanDemoService;
  * Motan demo service.
  */
 @MotanService(export = "demoMotan:8002")
-@ShenyuMotanClient(path = "/demo/**")
+@ShenyuMotanClient("/demo/**")
 public class MotanDemoServiceImpl implements MotanDemoService {
 
     @Override
-    @ShenyuMotanClient(path = "/hello")
+    @ShenyuMotanClient("/hello")
     public String hello(final String name) {
         return "hello " + name;
     }
 
     @Override
-    @ShenyuMotanClient(path = "/timeout")
+    @ShenyuMotanClient("/timeout")
     public String testTimeOut(final String timeout) {
         try {
             Thread.sleep((long) (Double.parseDouble(timeout) * 1000));
