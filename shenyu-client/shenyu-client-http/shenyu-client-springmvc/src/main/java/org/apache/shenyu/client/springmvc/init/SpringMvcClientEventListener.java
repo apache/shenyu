@@ -107,6 +107,10 @@ public class SpringMvcClientEventListener implements ApplicationListener<Context
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) throws BeansException {
+        // Filter out
+        if (Boolean.TRUE.equals(isFull)) {
+            return ;
+        }
         Map<String, Object> controllerBeans = event.getApplicationContext().getBeansWithAnnotation(Controller.class);
         for (Map.Entry<String, Object> entry : controllerBeans.entrySet()) {
             handler(entry.getValue());
