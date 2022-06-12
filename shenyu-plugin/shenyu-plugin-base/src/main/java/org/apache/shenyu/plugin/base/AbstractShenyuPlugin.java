@@ -149,7 +149,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 return Pair.of(Boolean.TRUE, null);
             }
 
-            if (StringUtils.isBlank(selectorData.getId())){
+            if (StringUtils.isBlank(selectorData.getId())) {
                 return Pair.of(Boolean.FALSE, null);
             }
 
