@@ -30,8 +30,10 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -106,25 +108,36 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
     }
 
     private void handler(final Object bean) {
-        final String superPath = buildApiSuperPath(bean.getClass());
+        Class<?> clazz;
+        clazz = bean.getClass();
+        if (AopUtils.isAopProxy(bean)) {
+            clazz = AopUtils.getTargetClass(bean);
+        }
+
+        final String superPath = buildApiSuperPath(clazz);
         // Filter out is not controller out
-        if (Boolean.TRUE.equals(isFull)) {
+        if (Boolean.TRUE.equals(isFull) || !hasAnnotation(clazz, ShenyuSpringWebSocketClient.class)) {
             return;
         }
-        final ShenyuSpringWebSocketClient beanShenyuClient = AnnotationUtils.findAnnotation(bean.getClass(), ShenyuSpringWebSocketClient.class);
+        final ShenyuSpringWebSocketClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringWebSocketClient.class);
         // Compatible with previous versions
         if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
             publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath)));
             return;
         }
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
+        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuSpringWebSocketClient webSocketClient = AnnotationUtils.findAnnotation(method, ShenyuSpringWebSocketClient.class);
+            ShenyuSpringWebSocketClient webSocketClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringWebSocketClient.class);
             webSocketClient = Objects.isNull(webSocketClient) ? beanShenyuClient : webSocketClient;
             if (Objects.nonNull(webSocketClient)) {
                 publisher.publishEvent(buildMetaDataDTO(webSocketClient, buildApiPath(method, superPath)));
             }
         }
+    }
+
+    private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz,
+                                                         final @NonNull Class<A> annotationType) {
+        return Objects.nonNull(AnnotatedElementUtils.findMergedAnnotation(clazz, annotationType));
     }
 
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {

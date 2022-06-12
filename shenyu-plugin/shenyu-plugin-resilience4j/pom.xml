@@ -27,7 +27,7 @@
     <artifactId>shenyu-plugin-resilience4j</artifactId>
 
     <properties>
-        <resilience.version>1.6.1</resilience.version>
+        <resilience.version>1.7.1</resilience.version>
     </properties>
 
     <dependencies>

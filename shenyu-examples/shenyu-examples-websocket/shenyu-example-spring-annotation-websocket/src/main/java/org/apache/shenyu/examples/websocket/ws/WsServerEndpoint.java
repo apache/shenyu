@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * WsServerEndpoint
  */
-@ShenyuSpringWebSocketClient(path = "/myWs", desc = "myWs")
+@ShenyuSpringWebSocketClient("/myWs")
 @ServerEndpoint("/myWs")
 @Component
 public class WsServerEndpoint {

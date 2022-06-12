@@ -32,7 +32,7 @@ public class EchoHandler implements WebSocketHandler {
 
     @Override
     @NonNull
-    @ShenyuSpringWebSocketClient(path = "/org/apache/shenyu/examples/websocket/**", desc = "onlineusers")
+    @ShenyuSpringWebSocketClient("/org/apache/shenyu/examples/websocket/**")
     public Mono<Void> handle(final WebSocketSession session) {
         return session.send(
                 session.receive()

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.client.spring.websocket;
 
+import java.util.Optional;
 import org.apache.shenyu.client.spring.websocket.init.SpringContextRegisterListener;
 import org.apache.shenyu.client.spring.websocket.init.SpringWebSocketClientEventListener;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
@@ -27,8 +28,6 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
