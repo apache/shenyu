@@ -142,10 +142,6 @@ public class SpringMvcClientEventListener implements ApplicationListener<Context
         }
     }
 
-    private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz, final @NonNull Class<A> annotationType) {
-        return Objects.nonNull(AnnotationUtils.findAnnotation(clazz, annotationType));
-    }
-
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
         ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
         if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
@@ -186,7 +182,7 @@ public class SpringMvcClientEventListener implements ApplicationListener<Context
     }
 
     private String buildApiSuperPath(@NonNull final Class<?> method) {
-        ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
+        ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
         if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
             return shenyuSpringMvcClient.path();
         }
