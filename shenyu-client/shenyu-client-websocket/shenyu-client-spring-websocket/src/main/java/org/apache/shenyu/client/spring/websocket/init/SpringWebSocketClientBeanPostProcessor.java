@@ -17,12 +17,6 @@
 
 package org.apache.shenyu.client.spring.websocket.init;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
@@ -35,12 +29,21 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
 
 /**
  * The type Shenyu websocket client bean post processor.
@@ -93,20 +96,26 @@ public class SpringWebSocketClientBeanPostProcessor implements BeanPostProcessor
     public Object postProcessAfterInitialization(@NonNull final Object bean,
         @NonNull final String beanName) throws BeansException {
 
-        final String superPath = buildApiSuperPath(bean.getClass());
+        Class<?> clazz;
+        clazz = bean.getClass();
+        if (AopUtils.isAopProxy(bean)) {
+            clazz = AopUtils.getTargetClass(bean);
+        }
+
+        final String superPath = buildApiSuperPath(clazz);
         // Filter out is not controller out
-        if (Boolean.TRUE.equals(isFull) || !hasAnnotation(bean.getClass(), ShenyuSpringWebSocketClient.class)) {
+        if (Boolean.TRUE.equals(isFull) || !hasAnnotation(clazz, ShenyuSpringWebSocketClient.class)) {
             return bean;
         }
-        final ShenyuSpringWebSocketClient beanShenyuClient = AnnotationUtils.findAnnotation(bean.getClass(), ShenyuSpringWebSocketClient.class);
+        final ShenyuSpringWebSocketClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringWebSocketClient.class);
         // Compatible with previous versions
         if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
             publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath)));
             return bean;
         }
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
+        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuSpringWebSocketClient webSocketClient = AnnotationUtils.findAnnotation(method, ShenyuSpringWebSocketClient.class);
+            ShenyuSpringWebSocketClient webSocketClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringWebSocketClient.class);
             webSocketClient = Objects.isNull(webSocketClient) ? beanShenyuClient : webSocketClient;
             if (Objects.nonNull(webSocketClient)) {
                 publisher.publishEvent(buildMetaDataDTO(webSocketClient, buildApiPath(method, superPath)));
@@ -117,7 +126,7 @@ public class SpringWebSocketClientBeanPostProcessor implements BeanPostProcessor
 
     private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz,
         final @NonNull Class<A> annotationType) {
-        return Objects.nonNull(AnnotationUtils.findAnnotation(clazz, annotationType));
+        return Objects.nonNull(AnnotatedElementUtils.findMergedAnnotation(clazz, annotationType));
     }
 
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
@@ -161,7 +170,7 @@ public class SpringWebSocketClientBeanPostProcessor implements BeanPostProcessor
     }
 
     private String buildApiSuperPath(@NonNull final Class<?> method) {
-        ShenyuSpringWebSocketClient webSocketClient = AnnotationUtils.findAnnotation(method, ShenyuSpringWebSocketClient.class);
+        ShenyuSpringWebSocketClient webSocketClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringWebSocketClient.class);
         if (Objects.nonNull(webSocketClient) && StringUtils.isNotBlank(webSocketClient.path())) {
             return webSocketClient.path();
         }

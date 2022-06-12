@@ -183,7 +183,7 @@ public class ZookeeperClient {
      */
     public void delete(final String key) {
         try {
-            client.delete().deletingChildrenIfNeeded().forPath(key);
+            client.delete().guaranteed().deletingChildrenIfNeeded().forPath(key);
         } catch (Exception e) {
             throw new ShenyuException(e);
         }

@@ -38,27 +38,27 @@ public class DubboTestServiceImpl implements DubboTestService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboTestServiceImpl.class);
     
     @Override
-    @ShenyuDubboClient(path = "/findById", desc = "Query by Id")
+    @ShenyuDubboClient("/findById")
     public DubboTest findById(final String id) {
         LOGGER.info(GsonUtils.getInstance().toJson(RpcContext.getContext().getAttachments()));
         return new DubboTest(id, "hello world shenyu Apache, findById");
     }
     
     @Override
-    @ShenyuDubboClient(path = "/findAll", desc = "Get all data")
+    @ShenyuDubboClient("/findAll")
     public DubboTest findAll() {
         return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Apache, findAll");
     }
     
     @Override
-    @ShenyuDubboClient(path = "/insert", desc = "Insert a row of data")
+    @ShenyuDubboClient("/insert")
     public DubboTest insert(final DubboTest dubboTest) {
         dubboTest.setName("hello world shenyu Apache Dubbo: " + dubboTest.getName());
         return dubboTest;
     }
     
     @Override
-    @ShenyuDubboClient(path = "/findList", desc = "Find list")
+    @ShenyuDubboClient("/findList")
     public ListResp findList() {
         return new ListResp(1, Collections.singletonList(new DubboTest("1", "test")));
     }

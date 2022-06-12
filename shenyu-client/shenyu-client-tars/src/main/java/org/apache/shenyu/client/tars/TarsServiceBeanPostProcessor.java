@@ -20,8 +20,8 @@ package org.apache.shenyu.client.tars;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
@@ -35,8 +35,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.lang.NonNull;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -51,11 +50,6 @@ import java.util.stream.Collectors;
  * The Tars ServiceBean PostProcessor.
  */
 public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
-
-    /**
-     * api path separator.
-     */
-    private static final String PATH_SEPARATOR = "/";
 
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
@@ -85,7 +79,11 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
-        if (AnnotationUtils.findAnnotation(bean.getClass(), ShenyuTarsService.class) != null) {
+        Class clazz = bean.getClass();
+        if (AopUtils.isAopProxy(clazz)) {
+            clazz = AopUtils.getTargetClass(clazz);
+        }
+        if (AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuTarsService.class) != null) {
             handler(bean);
         }
         return bean;
@@ -96,8 +94,8 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         if (AopUtils.isAopProxy(serviceBean)) {
             clazz = AopUtils.getTargetClass(serviceBean);
         }
-        String serviceName = clazz.getAnnotation(ShenyuTarsService.class).serviceName();
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
+        String serviceName = clazz.getAnnotation(ShenyuTarsService.class).serviceName();
         for (Method method : methods) {
             ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
             if (Objects.nonNull(shenyuTarsClient)) {
@@ -108,7 +106,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private MetaDataRegisterDTO buildMetaDataDTO(final String serviceName, final ShenyuTarsClient shenyuTarsClient, final Method method, final String rpcExt) {
         String ipAndPort = this.ipAndPort;
-        String path = serviceName.contains("*") ? pathJoin(this.contextPath, serviceName.replace("*", ""), method.getName()) : pathJoin(this.contextPath, serviceName, shenyuTarsClient.path());
+        String path = this.contextPath + shenyuTarsClient.path();
         String desc = shenyuTarsClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuTarsClient.ruleName();
@@ -116,22 +114,22 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
-            .collect(Collectors.joining(","));
+                .collect(Collectors.joining(","));
         return MetaDataRegisterDTO.builder()
-            .appName(ipAndPort)
-            .serviceName(serviceName)
-            .methodName(methodName)
-            .contextPath(this.contextPath)
-            .path(path)
-            .host(host)
-            .port(port)
-            .ruleName(ruleName)
-            .pathDesc(desc)
-            .parameterTypes(parameterTypes)
-            .rpcType(RpcTypeEnum.TARS.getName())
-            .rpcExt(rpcExt)
-            .enabled(shenyuTarsClient.enabled())
-            .build();
+                .appName(ipAndPort)
+                .serviceName(serviceName)
+                .methodName(methodName)
+                .contextPath(this.contextPath)
+                .path(path)
+                .host(host)
+                .port(port)
+                .ruleName(ruleName)
+                .pathDesc(desc)
+                .parameterTypes(parameterTypes)
+                .rpcType(RpcTypeEnum.TARS.getName())
+                .rpcExt(rpcExt)
+                .enabled(shenyuTarsClient.enabled())
+                .build();
     }
 
     private TarsRpcExt.RpcExt buildRpcExt(final Method method) {
@@ -151,16 +149,5 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         list.add(buildRpcExt(method));
         TarsRpcExt buildList = new TarsRpcExt(list);
         return GsonUtils.getInstance().toJson(buildList);
-    }
-
-    private String pathJoin(@NonNull final String... path) {
-        StringBuilder result = new StringBuilder(PATH_SEPARATOR);
-        for (String p : path) {
-            if (!result.toString().endsWith(PATH_SEPARATOR)) {
-                result.append(PATH_SEPARATOR);
-            }
-            result.append(p.startsWith(PATH_SEPARATOR) ? p.replaceFirst(PATH_SEPARATOR, "") : p);
-        }
-        return result.toString();
     }
 }
