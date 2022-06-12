@@ -30,6 +30,7 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -55,7 +56,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 /**
- * The type Shenyu spring mvc client bean post processor.
+ * The type Shenyu spring mvc client event listener.
  */
 public class SpringMvcClientEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
@@ -79,7 +80,7 @@ public class SpringMvcClientEventListener implements ApplicationListener<Context
     private final String[] pathAttributeNames = new String[]{"path", "value"};
 
     /**
-     * Instantiates a new Spring mvc client bean post processor.
+     * Instantiates a new Spring mvc client event listener.
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
@@ -113,17 +114,21 @@ public class SpringMvcClientEventListener implements ApplicationListener<Context
     }
 
     private void handler(@NonNull final Object bean) {
-        final ShenyuSpringMvcClient beanShenyuClient = AnnotationUtils.findAnnotation(bean.getClass(), ShenyuSpringMvcClient.class);
-        final String superPath = buildApiSuperPath(bean.getClass());
+        Class<?> clazz = bean.getClass();
+        if (AopUtils.isAopProxy(bean)) {
+            clazz = AopUtils.getTargetClass(bean);
+        }
+        final ShenyuSpringMvcClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringMvcClient.class);
+        final String superPath = buildApiSuperPath(clazz);
         // Compatible with previous versions
         if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
             publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath)));
             return;
         }
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
+        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
             final RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
-            ShenyuSpringMvcClient methodShenyuClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
+            ShenyuSpringMvcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
             methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
             // the result of ReflectionUtils#getUniqueDeclaredMethods contains method such as hashCode, wait, toSting
             // add Objects.nonNull(requestMapping) to make sure not register wrong method
@@ -138,7 +143,7 @@ public class SpringMvcClientEventListener implements ApplicationListener<Context
     }
 
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
-        ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
+        ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
         if (Objects.nonNull(shenyuSpringMvcClient) && StringUtils.isNotBlank(shenyuSpringMvcClient.path())) {
             return pathJoin(contextPath, superPath, shenyuSpringMvcClient.path());
         }
