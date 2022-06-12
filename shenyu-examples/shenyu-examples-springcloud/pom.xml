@@ -28,9 +28,9 @@
     <artifactId>shenyu-examples-springcloud</artifactId>
 
     <properties>
-        <spring-cloud.version>2.2.0.RELEASE</spring-cloud.version>
-        <nacos-discovery.version>2.2.6.RELEASE</nacos-discovery.version>
-        <eureka-client.version>2.1.2.RELEASE</eureka-client.version>
+        <spring-cloud.version>3.1.2</spring-cloud.version>
+        <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
+        <eureka-client.version>3.1.2</eureka-client.version>
     </properties>
 
     <dependencies>
@@ -39,7 +39,7 @@
             <artifactId>shenyu-spring-boot-starter-client-springcloud</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--spring boot的核心启动器-->
+        <!--spring bootstrap-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -54,6 +54,16 @@
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
             <version>${nacos-discovery.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-cloud-context</artifactId>
+                    <groupId>org.springframework.cloud</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>spring-cloud-commons</artifactId>
+                    <groupId>org.springframework.cloud</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

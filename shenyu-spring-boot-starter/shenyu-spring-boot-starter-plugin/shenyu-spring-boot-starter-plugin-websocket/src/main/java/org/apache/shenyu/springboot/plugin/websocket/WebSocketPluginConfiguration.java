@@ -32,6 +32,9 @@ import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.WebsocketClientSpec;
+
+import java.util.function.Supplier;
 
 /**
  * The type Web socket plugin configuration.
@@ -41,7 +44,7 @@ import reactor.netty.http.client.HttpClient;
 public class WebSocketPluginConfiguration {
 
     /**
-     * Websocket plugin data handler plugin data handler.
+     * Websocket plugin data handler.
      *
      * @return the plugin data handler
      */
@@ -63,7 +66,7 @@ public class WebSocketPluginConfiguration {
     }
 
     /**
-     * Reactor netty web socket client reactor netty web socket client.
+     * Reactor netty web socket client.
      *
      * @param shenyuConfig the shenyu config
      * @param httpClient   the http client
@@ -72,13 +75,13 @@ public class WebSocketPluginConfiguration {
     @Bean
     public ReactorNettyWebSocketClient reactorNettyWebSocketClient(final ShenyuConfig shenyuConfig,
                                                                    final ObjectProvider<HttpClient> httpClient) {
-        final ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient(httpClient.getIfAvailable(HttpClient::create));
-        webSocketClient.setMaxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * 1024 * 1024);
-        return webSocketClient;
+        Supplier<WebsocketClientSpec.Builder> builder = WebsocketClientSpec.builder()
+                .maxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * 1024 * 1024);
+        return new ReactorNettyWebSocketClient(httpClient.getIfAvailable(HttpClient::create), builder);
     }
 
     /**
-     * Web socket service web socket service.
+     * Web socket service.
      *
      * @return the web socket service
      */
@@ -88,7 +91,7 @@ public class WebSocketPluginConfiguration {
     }
 
     /**
-     * Web socket shenyu context decorator shenyu context decorator.
+     * Web socket shenyu context decorator.
      *
      * @return the shenyu context decorator
      */

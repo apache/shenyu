@@ -43,7 +43,7 @@ public class ContextPathPluginConfiguration {
     }
     
     /**
-     * Context path plugin data handler plugin data handler.
+     * Context path plugin data handler.
      *
      * @return the plugin data handler
      */

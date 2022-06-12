@@ -146,4 +146,12 @@ public interface ShenyuDictMapper extends ExistProvider {
      * @return affected rows
      */
     Integer enabled(@Param("ids") List<String> ids, @Param("enabled") Boolean enabled);
+    
+    /**
+     * select by ids.
+     *
+     * @param ids ids
+     * @return list
+     */
+    List<ShenyuDictDO> selectByIds(@Param("ids") List<String> ids);
 }

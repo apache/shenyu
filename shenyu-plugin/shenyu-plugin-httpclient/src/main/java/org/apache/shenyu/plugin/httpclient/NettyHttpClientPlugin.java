@@ -71,8 +71,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     if (status != null) {
                         response.setStatusCode(status);
                     } else if (response instanceof AbstractServerHttpResponse) {
-                        ((AbstractServerHttpResponse) response)
-                                .setStatusCodeValue(res.status().code());
+                        response.setRawStatusCode(res.status().code());
                     } else {
                         throw new IllegalStateException("Unable to set status code on response: " + res.status().code() + ", " + response.getClass());
                     }

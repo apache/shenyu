@@ -42,16 +42,43 @@
                <include refid="Base_Column_List"/>
           FROM operation_record_log
          order by operation_time desc
+         limit #{limit}
     </select>
 
-    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.OperationRecordLog"  useGeneratedKeys="true" keyProperty="id">
-        insert into operation_record_log(id, color, context, operator, operation_time, operation_type)
-        values (#{id},
-                #{color},
-                #{context},
-                #{operator},
-                #{operationTime},
-                #{operationType}
-                )
+    <select id="selectLimit" parameterType="java.lang.Integer" resultMap="BaseResultMap" databaseId="oracle">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM operation_record_log
+        where rownum <![CDATA[<=]]> #{limit}
+        order by operation_time desc
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.OperationRecordLog">
+
+        <!-- Generate before inserting non auto increment PK -->
+        <selectKey keyProperty="id" resultType="java.lang.Long" order="BEFORE" databaseId="oracle">
+            select operation_record_log_seq.nextval from dual
+        </selectKey>
+
+        <!-- Generated after auto increment primary key is inserted -->
+        <selectKey keyProperty="id" resultType="java.lang.Long" order="AFTER">
+            select LAST_INSERT_ID()
+        </selectKey>
+
+        insert into operation_record_log(
+        <if test="id != null">
+            id,
+        </if>
+        color, context, operator, operation_time, operation_type)
+        values (
+        <if test="id != null">
+            #{id},
+        </if>
+        #{color},
+        #{context},
+        #{operator},
+        #{operationTime},
+        #{operationType}
+        )
     </insert>
 </mapper>

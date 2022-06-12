@@ -20,6 +20,7 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
+    allow-circular-references: true
   application:
     name: shenyu-bootstrap
   codec:
@@ -35,6 +36,11 @@ spring:
         server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
         enabled: false
         namespace: ShenyuRegisterCenter
+
+# if you want use ribbon please config every server.
+#springCloud-test:
+#  ribbon:
+#    NIWSServerListClassName: com.netflix.niws.loadbalancer.DiscoveryEnabledNIWSServerList
 
 eureka:
   client:
@@ -65,11 +71,12 @@ management:
 
 shenyu:
   netty:
-    tcp:
+    http:
       # set to false, user can custom the netty tcp server config.
       webServerFactoryEnabled: true
       selectCount: 1
       workerCount: 4
+      accessLog: false
       serverSocketChannel:
         soRcvBuf: 87380
         soBackLog: 128
@@ -78,8 +85,10 @@ shenyu:
         writeBufferHighWaterMark: 65536
         writeBufferLowWaterMark: 32768
         writeSpinCount: 16
-        autoRead: true
+        autoRead: false
         allocType: "pooled"
+        messageSizeEstimator: 8
+        singleEventExecutorPerGroup: true
       socketChannel:
         soKeepAlive: false
         soReuseAddr: false
@@ -93,8 +102,10 @@ shenyu:
         writeBufferHighWaterMark: 65536
         writeBufferLowWaterMark: 32768
         writeSpinCount: 16
-        autoRead: true
+        autoRead: false
         allocType: "pooled"
+        messageSizeEstimator: 8
+        singleEventExecutorPerGroup: true
 #  httpclient:
 #    strategy: webClient
 #    connectTimeout: 45000
@@ -162,6 +173,8 @@ shenyu:
 #      connectionTimeout: 2000
 #    http:
 #      url: http://localhost:9095
+#      username:
+#      password:
 #    nacos:
 #      url: localhost:8848
 #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c

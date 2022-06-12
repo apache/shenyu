@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
+import org.apache.shenyu.admin.service.publish.MetaDataEventPublisher;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -77,6 +78,9 @@ public final class MetaDataServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    
+    @Mock
+    private MetaDataEventPublisher publisher;
 
     @Mock
     private MetaDataDTO metaDataDTO;

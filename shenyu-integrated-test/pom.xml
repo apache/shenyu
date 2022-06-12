@@ -48,7 +48,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <spring-cloud.version>2.2.0.RELEASE</spring-cloud.version>
+        <spring-cloud.version>3.1.2</spring-cloud.version>
         <gson.version>2.8.6</gson.version>
         <okhttp3.version>4.9.1</okhttp3.version>
         <guava.version>30.1.1-jre</guava.version>
@@ -56,6 +56,7 @@
         <sofa-rpc-all.version>5.7.6</sofa-rpc-all.version>
         <curator.version>4.0.1</curator.version>
         <apache.dubbo.version>2.7.15</apache.dubbo.version>
+        <spring-cloud-netflix-ribbon.version>2.2.10.RELEASE</spring-cloud-netflix-ribbon.version>
     </properties>
 
     <dependencies>

@@ -17,11 +17,15 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.ibatis.mapping.DatabaseIdProvider;
+import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
 import org.apache.shenyu.admin.config.properties.DataBaseProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Properties;
 
 /**
  * Local Data Source Configuration.
@@ -47,5 +51,22 @@ public class DataBaseConfiguration {
         dataSourceProperties.setInitScript(initScript);
         dataSourceProperties.setInitEnable(initEnable);
         return dataSourceProperties;
+    }
+
+    /**
+     * Database dialect configuration.
+     *
+     * @return {@linkplain DatabaseIdProvider}
+     */
+    @Bean
+    public DatabaseIdProvider databaseIdProvider() {
+        Properties properties = new Properties();
+        properties.setProperty("Oracle", "oracle");
+        properties.setProperty("MySQL", "mysql");
+        properties.setProperty("PostgreSQL", "postgresql");
+        properties.setProperty("H2", "h2");
+        VendorDatabaseIdProvider databaseIdProvider = new VendorDatabaseIdProvider();
+        databaseIdProvider.setProperties(properties);
+        return databaseIdProvider;
     }
 }

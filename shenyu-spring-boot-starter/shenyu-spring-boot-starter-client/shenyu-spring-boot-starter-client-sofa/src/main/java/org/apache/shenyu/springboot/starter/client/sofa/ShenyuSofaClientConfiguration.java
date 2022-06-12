@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 public class ShenyuSofaClientConfiguration {
 
     /**
-     * Sofa service bean post processor sofa service bean post processor.
+     * Sofa service bean post processor.
      *
      * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository

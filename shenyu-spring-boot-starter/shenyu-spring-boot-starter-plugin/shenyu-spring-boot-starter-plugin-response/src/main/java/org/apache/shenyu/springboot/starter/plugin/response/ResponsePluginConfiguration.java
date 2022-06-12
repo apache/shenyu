@@ -41,7 +41,7 @@ import java.util.Map;
 public class ResponsePluginConfiguration {
     
     /**
-     * Response plugin shenyu plugin.
+     * Response plugin.
      *
      * @param httpWriter the http writer
      * @return the shenyu plugin
@@ -69,7 +69,7 @@ public class ResponsePluginConfiguration {
     static class WebClientMessageWriterConfiguration {
     
         /**
-         * Web client message writer message writer.
+         * Web client message writer.
          *
          * @return the message writer
          */
@@ -87,7 +87,7 @@ public class ResponsePluginConfiguration {
     static class NettyClientMessageWriterConfiguration {
     
         /**
-         * Netty message writer message writer.
+         * Netty message writer.
          *
          * @return the message writer
          */

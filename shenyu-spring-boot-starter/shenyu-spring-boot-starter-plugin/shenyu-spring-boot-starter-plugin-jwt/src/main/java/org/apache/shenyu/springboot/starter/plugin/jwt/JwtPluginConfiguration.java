@@ -43,7 +43,7 @@ public class JwtPluginConfiguration {
     }
 
     /**
-     * Jwt plugin data handler plugin data handler.
+     * Jwt plugin data handler.
      *
      * @return the plugin data handler
      */
