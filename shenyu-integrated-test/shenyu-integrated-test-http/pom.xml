@@ -154,6 +154,14 @@
         </dependency>
         <!-- apache shenyu rewrite plugin end-->
 
+        <!--shenyu metrics plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-metrics</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu metrics plugin end-->
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
