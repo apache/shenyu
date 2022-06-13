@@ -27,14 +27,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class MetricsPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testPass() throws ExecutionException, InterruptedException {
         Map<String, Object> headers = new HashMap<>();
-        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://shenyu-prometheus:9090/api/v1/targets", headers, String.class));
-        assertFalse(resp.get().contains("down"));
+        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://localhost:8090", headers, String.class));
+        assertTrue(resp.get().contains("process_cpu_seconds_total"));
     }
 
 }
