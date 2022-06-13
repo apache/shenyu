@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.spring.websocket.init;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
@@ -45,8 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * The type Shenyu websocket client event listener.
@@ -61,8 +58,6 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
     private static final Logger LOG = LoggerFactory.getLogger(SpringWebSocketClientEventListener.class);
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-
-    private final ExecutorService executorService;
 
     private final String contextPath;
 
@@ -93,7 +88,6 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
         }
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         mappingAnnotation.add(ShenyuSpringWebSocketClient.class);
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-websocket-client-thread-pool-%d").build());
 
         publisher.start(shenyuClientRegisterRepository);
     }
@@ -102,8 +96,7 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
         String[] beanNames = contextRefreshedEvent.getApplicationContext().getBeanDefinitionNames();
         for (String beanName : beanNames) {
-            Object bean = contextRefreshedEvent.getApplicationContext().getBean(beanName);
-            executorService.execute(() -> handler(bean));
+            handler(contextRefreshedEvent.getApplicationContext().getBean(beanName));
         }
     }
 
@@ -181,7 +174,7 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
     }
 
     private String buildApiSuperPath(@NonNull final Class<?> method) {
-        ShenyuSpringWebSocketClient webSocketClient = AnnotationUtils.findAnnotation(method, ShenyuSpringWebSocketClient.class);
+        ShenyuSpringWebSocketClient webSocketClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringWebSocketClient.class);
         if (Objects.nonNull(webSocketClient) && StringUtils.isNotBlank(webSocketClient.path())) {
             return webSocketClient.path();
         }

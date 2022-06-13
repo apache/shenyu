@@ -19,7 +19,6 @@ package org.apache.shenyu.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -48,8 +47,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -65,8 +62,6 @@ public class SofaServiceEventListener implements ApplicationListener<ContextRefr
     private static final String PATH_SEPARATOR = "/";
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-
-    private final ExecutorService executorService;
 
     private final String contextPath;
 
@@ -87,7 +82,6 @@ public class SofaServiceEventListener implements ApplicationListener<ContextRefr
         this.appName = appName;
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-sofa-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 
@@ -95,7 +89,7 @@ public class SofaServiceEventListener implements ApplicationListener<ContextRefr
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
         Map<String, ServiceFactoryBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceFactoryBean.class);
         for (Map.Entry<String, ServiceFactoryBean> entry : serviceBean.entrySet()) {
-            executorService.execute(() -> handler(entry.getValue()));
+            handler(entry.getValue());
         }
     }
 
