@@ -227,7 +227,7 @@ shenyu:
   ribbon:
     serverListRefreshInterval: 10000
   metrics:
-    enabled: true
+    enabled: false
     name : prometheus
     host: 127.0.0.1
     port: 8090
