@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.jwt;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -30,6 +31,7 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.jwt.handle.JwtPluginDataHandler;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -46,7 +48,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -74,13 +75,14 @@ public final class JwtPluginTest {
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setApplicationContext(context);
-        PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu\"}", "0", false);
+        PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu-test-shenyu-shenyu-shenyu\"}", "0", false);
         JwtPluginDataHandler jwtPluginDataHandler = new JwtPluginDataHandler();
         jwtPluginDataHandler.handlerPlugin(pluginData);
         selectorData = mock(SelectorData.class);
         ruleData = new RuleData();
         jwtPluginUnderTest = new JwtPlugin();
-        final String secreteKey = "shenyu";
+        // HMAC-SHA algorithms MUST have a size >= 256 bits
+        final String secreteKey = "shenyu-test-shenyu-shenyu-shenyu";
         Map<String, Object> map = new HashMap<>();
         map.put("userId", 1);
         Map<String, Object> multi = new HashMap<>();
@@ -92,7 +94,7 @@ public final class JwtPluginTest {
                 .setIssuedAt(date)
                 .setExpiration(new Date())
                 .setClaims(map)
-                .signWith(SignatureAlgorithm.HS256, secreteKey.getBytes(StandardCharsets.UTF_8))
+                .signWith(Keys.hmacShaKeyFor(secreteKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
                 .compact();
         jwtRuleHandle = new JwtRuleHandle();
 
@@ -147,13 +149,13 @@ public final class JwtPluginTest {
     @Test
     public void testNamed() {
         final String result = jwtPluginUnderTest.named();
-        assertEquals(PluginEnum.JWT.getName(), result);
+        Assertions.assertEquals(PluginEnum.JWT.getName(), result);
     }
 
     @Test
     public void testGetOrder() {
         final int result = jwtPluginUnderTest.getOrder();
-        assertEquals(PluginEnum.JWT.getCode(), result);
+        Assertions.assertEquals(PluginEnum.JWT.getCode(), result);
     }
 
 }
