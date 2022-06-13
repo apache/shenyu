@@ -167,6 +167,12 @@
             <artifactId>shenyu-integrated-test-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     
     <profiles>
