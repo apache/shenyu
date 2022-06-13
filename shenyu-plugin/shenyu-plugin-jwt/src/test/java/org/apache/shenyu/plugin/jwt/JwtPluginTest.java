@@ -75,14 +75,14 @@ public final class JwtPluginTest {
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setApplicationContext(context);
-        PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu-test-shenyu-shenyu-shenyu\"}", "0", false);
+        PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu-test-shenyu-test-shenyu-test\"}", "0", false);
         JwtPluginDataHandler jwtPluginDataHandler = new JwtPluginDataHandler();
         jwtPluginDataHandler.handlerPlugin(pluginData);
         selectorData = mock(SelectorData.class);
         ruleData = new RuleData();
         jwtPluginUnderTest = new JwtPlugin();
         // HMAC-SHA algorithms MUST have a size >= 256 bits
-        final String secreteKey = "shenyu-test-shenyu-shenyu-shenyu";
+        final String secreteKey = "shenyu-test-shenyu-test-shenyu-test";
         Map<String, Object> map = new HashMap<>();
         map.put("userId", 1);
         Map<String, Object> multi = new HashMap<>();
