@@ -437,6 +437,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- apache shenyu data sync start use nacos-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-nacos</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--shenyu debug plugin end-->
 
         <!--shenyu data sync start use consul-->
