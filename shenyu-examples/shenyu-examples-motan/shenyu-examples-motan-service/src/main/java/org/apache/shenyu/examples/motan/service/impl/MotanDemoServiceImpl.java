@@ -20,6 +20,7 @@ package org.apache.shenyu.examples.motan.service.impl;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
 import org.apache.shenyu.examples.motan.service.MotanDemoService;
+import org.apache.shenyu.examples.motan.service.aop.Log;
 
 /**
  * Motan demo service.
@@ -30,6 +31,7 @@ public class MotanDemoServiceImpl implements MotanDemoService {
 
     @Override
     @ShenyuMotanClient("/hello")
+    @Log
     public String hello(final String name) {
         return "hello " + name;
     }

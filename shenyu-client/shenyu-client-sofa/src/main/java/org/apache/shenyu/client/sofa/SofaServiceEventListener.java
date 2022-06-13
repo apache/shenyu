@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
@@ -106,7 +106,7 @@ public class SofaServiceEventListener implements ApplicationListener<ContextRefr
         if (AopUtils.isAopProxy(targetProxy)) {
             clazz = AopUtils.getTargetClass(targetProxy);
         }
-        final ShenyuSofaClient beanSofaClient = AnnotationUtils.findAnnotation(clazz, ShenyuSofaClient.class);
+        final ShenyuSofaClient beanSofaClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSofaClient.class);
         final String superPath = buildApiSuperPath(beanSofaClient);
         if (superPath.contains("*")) {
             Method[] declaredMethods = ReflectionUtils.getDeclaredMethods(clazz);
@@ -119,7 +119,7 @@ public class SofaServiceEventListener implements ApplicationListener<ContextRefr
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuSofaClient methodSofaClient = method.getAnnotation(ShenyuSofaClient.class);
+            ShenyuSofaClient methodSofaClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSofaClient.class);
             if (Objects.nonNull(methodSofaClient)) {
                 publisher.publishEvent(buildMetaDataDTO(serviceBean, methodSofaClient, method, superPath));
             }
