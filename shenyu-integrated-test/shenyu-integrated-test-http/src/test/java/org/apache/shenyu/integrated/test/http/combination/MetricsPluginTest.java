@@ -33,7 +33,7 @@ public final class MetricsPluginTest extends AbstractPluginDataInit {
     @Test
     public void testPass() throws ExecutionException, InterruptedException {
         Map<String, Object> headers = new HashMap<>();
-        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://localhost:9090/api/v1/targets", headers, String.class));
+        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://shenyu-prometheus:9090/api/v1/targets", headers, String.class));
         assertFalse(resp.get().contains("down"));
     }
 
