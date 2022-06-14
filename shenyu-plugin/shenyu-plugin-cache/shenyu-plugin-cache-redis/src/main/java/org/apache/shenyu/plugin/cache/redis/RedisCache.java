@@ -22,9 +22,14 @@ import org.apache.shenyu.plugin.cache.redis.serializer.ShenyuRedisSerializationC
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * RedisCache.
@@ -58,7 +63,15 @@ public final class RedisCache implements ICache {
      */
     @Override
     public boolean isExist(final String key) {
-        return Boolean.TRUE.equals(this.redisTemplate.hasKey(key).block());
+        CompletableFuture<Boolean> f = CompletableFuture.supplyAsync(() -> Mono.from(this.redisTemplate.hasKey(key)).block());
+        Boolean result = null;
+        try {
+            result = f.get(3, TimeUnit.SECONDS);
+        } catch (ExecutionException | TimeoutException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (Objects.isNull(result)) { return Boolean.FALSE; }
+        return Boolean.TRUE.equals(result);
     }
 
     /**
@@ -68,7 +81,16 @@ public final class RedisCache implements ICache {
      */
     @Override
     public byte[] getData(final String key) {
-        return this.redisTemplate.opsForValue().get(key).block();
+        CompletableFuture<byte[]> f = CompletableFuture.supplyAsync(() -> Mono.from(this.redisTemplate.opsForValue().get(key)).block());
+        byte[] result = null;
+        try {
+            // can't get result in 3 seconds, this handle will fail
+            result = f.get(3, TimeUnit.SECONDS);
+        } catch (ExecutionException | TimeoutException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (Objects.isNull(result)) { return null; }
+        return result;
     }
 
     /**
