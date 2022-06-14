@@ -54,7 +54,6 @@ public class MqttPluginDataHandlerTest {
                 + "}", "0", true);
         mqttPluginDataHandlerUnderTest.handlerPlugin(enablePluginData);
         assertTrue(isPortUsing());
-        Thread.sleep(5000);
         final PluginData disablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"
                 + "  \"bossGroupThreadCount\": 1,"
