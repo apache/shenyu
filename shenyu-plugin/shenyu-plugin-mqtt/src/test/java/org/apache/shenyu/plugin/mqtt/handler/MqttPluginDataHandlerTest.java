@@ -41,7 +41,6 @@ public class MqttPluginDataHandlerTest {
     }
 
     @Test
-    @Disabled
     public void testEnableConfiguration() {
         final PluginData enablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"

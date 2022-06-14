@@ -25,6 +25,9 @@ import org.apache.shenyu.protocol.mqtt.BootstrapServer;
 import org.apache.shenyu.protocol.mqtt.MqttBootstrapServer;
 import org.apache.shenyu.protocol.mqtt.MqttServerConfiguration;
 
+import java.net.InetAddress;
+import java.net.Socket;
+
 /**
  * The type Mqtt plugin data handler.
  */
@@ -34,19 +37,39 @@ public class MqttPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
+        MqttServerConfiguration configuration = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MqttServerConfiguration.class);
+        configuration.afterPropertiesSet();
         if (pluginData.getEnabled()) {
-            MqttServerConfiguration configuration = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MqttServerConfiguration.class);
-            configuration.afterPropertiesSet();
             server.init();
             server.start();
         } else {
-            server.shutdown();
+            if (isPortUsing(configuration.getPort())) {
+                server.shutdown();
+            }
         }
     }
 
     @Override
     public String pluginNamed() {
         return PluginEnum.MQTT.getName();
+    }
+
+    /**
+     *
+     * @param port port
+     * @return True is use else false.
+     */
+    private boolean isPortUsing(final int port) {
+        boolean flag = false;
+        try {
+            InetAddress address = InetAddress.getByName("127.0.0.1");
+            Socket socket = new Socket(address, port);
+            flag = true;
+        } catch (Exception ignored) {
+
+        }
+        return flag;
+
     }
 
 }
