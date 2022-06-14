@@ -17,24 +17,23 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.shenyu.plugin.mqtt.handler.MqttPluginDataHandler;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class MqttPluginTest extends AbstractPluginDataInit {
 
-    @BeforeEach
-    public void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.MQTT.getName(), "{\n"
+    @Test
+    public void setup() throws IOException, InterruptedException {
+        MqttPluginDataHandler mqttPluginDataHandler = new MqttPluginDataHandler();
+        final PluginData enablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"
                 + "  \"bossGroupThreadCount\": 1,"
                 + "  \"maxPayloadSize\": 65536,"
@@ -44,20 +43,17 @@ public final class MqttPluginTest extends AbstractPluginDataInit {
                 + "  \"isEncryptPassword\": false,"
                 + "  \"encryptMode\": \"\","
                 + "  \"leakDetectorLevel\": \"DISABLED\""
-                + "}");
-        assertThat(pluginResult, is("success"));
-    }
-
-    @Test
-    public void testStart() {
+                + "}", "0", true);
+        mqttPluginDataHandler.handlerPlugin(enablePluginData);
+        Thread.sleep(3000);
         assertTrue(isPortUsing());
     }
 
     private boolean isPortUsing() {
         boolean flag = false;
         try {
-            InetAddress localHost = InetAddress.getLocalHost();
-            Socket socket = new Socket(localHost, 9500);
+            InetAddress address = InetAddress.getByName("127.0.0.1");
+            Socket socket = new Socket(address, 9500);
             flag = true;
         } catch (Exception ignored) {
 
