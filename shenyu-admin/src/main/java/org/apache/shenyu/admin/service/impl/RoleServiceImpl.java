@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
@@ -43,7 +42,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -209,19 +207,17 @@ public class RoleServiceImpl implements RoleService {
      * @return list of {@linkplain ResourceInfo}
      */
     private List<ResourceInfo> getTreeModelList(final List<ResourceVO> metaList) {
-        List<ResourceInfo> retList = new ArrayList<>();
+        final List<ResourceInfo> retList = new ArrayList<>();
         if (CollectionUtils.isEmpty(metaList)) {
             return retList;
         }
-        Map<String, ResourceInfo> resourceInfoMap = metaList.stream()
+        final Map<String, ResourceInfo> resourceInfoMap = metaList.stream()
                 .map(ResourceInfo::buildResourceInfo)
                 .filter(resourceInfo -> Objects.nonNull(resourceInfo) && StringUtils.isNotEmpty(resourceInfo.getId()))
                 .collect(Collectors.toMap(ResourceInfo::getId, Function.identity(), (value1, value2) -> value1));
-        Map<String, Set<String>> metaChildrenMap = metaList.stream()
+        final Map<String, Set<String>> metaChildrenMap = metaList.stream()
                 .filter(meta -> Objects.nonNull(meta) && StringUtils.isNotEmpty(meta.getId()))
-                .collect(Collectors.toMap(ResourceVO::getParentId,
-                        resourceVO -> new LinkedHashSet<>(Collections.singletonList(resourceVO.getId())),
-                        ListUtil::mergeSet, LinkedHashMap::new));
+                .collect(Collectors.toMap(ResourceVO::getParentId, resourceVO -> new LinkedHashSet<>(Collections.singletonList(resourceVO.getId())), ListUtil::mergeSet, LinkedHashMap::new));
         metaChildrenMap.forEach((parent, children) -> {
             if (CollectionUtils.isNotEmpty(children)) {
                 ResourceInfo resourceInfo = resourceInfoMap.get(parent);
