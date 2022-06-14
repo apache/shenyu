@@ -70,7 +70,9 @@ public final class RedisCache implements ICache {
         } catch (ExecutionException | TimeoutException | InterruptedException e) {
             e.printStackTrace();
         }
-        if (Objects.isNull(result)) { return Boolean.FALSE; }
+        if (Objects.isNull(result)) {
+            return Boolean.FALSE;
+        }
         return Boolean.TRUE.equals(result);
     }
 
@@ -89,7 +91,6 @@ public final class RedisCache implements ICache {
         } catch (ExecutionException | TimeoutException | InterruptedException e) {
             e.printStackTrace();
         }
-        if (Objects.isNull(result)) { return null; }
         return result;
     }
 
