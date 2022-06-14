@@ -245,7 +245,6 @@ public class PermissionServiceImpl implements PermissionService {
         }
     }
     
-    
     /**
      * get two list different.
      *

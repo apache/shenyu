@@ -55,8 +55,9 @@ public class RoleEventPublisher implements AdminDataModelChangedEventPublisher<R
     /**
      * on rule updated.
      *
-     * @param rule   rule
-     * @param before before rule
+     * @param rule       rule
+     * @param before     before rule
+     * @param permission new permission
      */
     public void onUpdated(final RoleDO rule, final RoleDO before, final List<String> permission) {
         publish(new RoleUpdatedEvent(rule, before, SessionUtil.visitorName(), permission));
