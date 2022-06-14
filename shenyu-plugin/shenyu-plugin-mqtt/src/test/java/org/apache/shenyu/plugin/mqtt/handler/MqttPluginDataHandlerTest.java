@@ -67,6 +67,7 @@ public class MqttPluginDataHandlerTest {
                 + "  \"leakDetectorLevel\": \"DISABLED\""
                 + "}", "0", false);
         mqttPluginDataHandlerUnderTest.handlerPlugin(disablePluginData);
+        Thread.sleep(5000);
         assertFalse(isPortUsing());
     }
 
