@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.cache.redis;
 
 import org.apache.shenyu.plugin.cache.ICache;
 import org.apache.shenyu.plugin.cache.redis.serializer.ShenyuRedisSerializationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -36,7 +38,11 @@ import java.util.concurrent.TimeoutException;
  */
 public final class RedisCache implements ICache {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisCache.class);
+
     private final ReactiveRedisTemplate<String, byte[]> redisTemplate;
+
+    private final static Integer REDIS_DEFAULT_TIMEOUT = 3;
 
     public RedisCache(final RedisConfigProperties redisConfigProperties) {
         this.redisTemplate = new ReactiveRedisTemplate<>(new RedisConnectionFactory(redisConfigProperties).getLettuceConnectionFactory(),
@@ -66,9 +72,9 @@ public final class RedisCache implements ICache {
         CompletableFuture<Boolean> f = CompletableFuture.supplyAsync(() -> Mono.from(this.redisTemplate.hasKey(key)).block());
         Boolean result = null;
         try {
-            result = f.get(3, TimeUnit.SECONDS);
+            result = f.get(REDIS_DEFAULT_TIMEOUT, TimeUnit.SECONDS);
         } catch (ExecutionException | TimeoutException | InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.error("isExist error: {}", e.getMessage());
         }
         if (Objects.isNull(result)) {
             return Boolean.FALSE;
@@ -87,9 +93,9 @@ public final class RedisCache implements ICache {
         byte[] result = null;
         try {
             // can't get result in 3 seconds, this handle will fail
-            result = f.get(3, TimeUnit.SECONDS);
+            result = f.get(REDIS_DEFAULT_TIMEOUT, TimeUnit.SECONDS);
         } catch (ExecutionException | TimeoutException | InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.error("getData error: {}", e.getMessage());
         }
         return result;
     }
