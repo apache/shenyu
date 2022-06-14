@@ -42,7 +42,7 @@ public final class RedisCache implements ICache {
 
     private final ReactiveRedisTemplate<String, byte[]> redisTemplate;
 
-    private static final int REDIS_DEFAULT_TIMEOUT = 3;
+    private static final long REDIS_DEFAULT_TIMEOUT = 3L;
 
     public RedisCache(final RedisConfigProperties redisConfigProperties) {
         this.redisTemplate = new ReactiveRedisTemplate<>(new RedisConnectionFactory(redisConfigProperties).getLettuceConnectionFactory(),
