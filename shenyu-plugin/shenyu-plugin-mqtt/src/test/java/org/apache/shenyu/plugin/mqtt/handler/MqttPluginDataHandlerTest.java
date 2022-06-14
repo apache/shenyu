@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.mqtt.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
@@ -41,8 +40,7 @@ public class MqttPluginDataHandlerTest {
     }
 
     @Test
-    @Disabled
-    public void testEnableConfiguration() {
+    public void testEnableConfiguration() throws InterruptedException {
         final PluginData enablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"
                 + "  \"bossGroupThreadCount\": 1,"
@@ -56,7 +54,6 @@ public class MqttPluginDataHandlerTest {
                 + "}", "0", true);
         mqttPluginDataHandlerUnderTest.handlerPlugin(enablePluginData);
         assertTrue(isPortUsing());
-
         final PluginData disablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"
                 + "  \"bossGroupThreadCount\": 1,"
@@ -69,6 +66,7 @@ public class MqttPluginDataHandlerTest {
                 + "  \"leakDetectorLevel\": \"DISABLED\""
                 + "}", "0", false);
         mqttPluginDataHandlerUnderTest.handlerPlugin(disablePluginData);
+        Thread.sleep(5000);
         assertFalse(isPortUsing());
     }
 

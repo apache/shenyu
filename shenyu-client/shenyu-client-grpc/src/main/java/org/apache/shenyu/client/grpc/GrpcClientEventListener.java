@@ -36,9 +36,10 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
@@ -47,17 +48,18 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
- * The type Shenyu grpc client bean post processor.
+ * The type Shenyu grpc client event listener.
  */
-public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
+public class GrpcClientEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GrpcClientBeanPostProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GrpcClientEventListener.class);
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
@@ -77,7 +79,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
      * @param clientConfig the shenyu grpc client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    public GrpcClientBeanPostProcessor(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public GrpcClientEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         String ipAndPort = props.getProperty(ShenyuClientConstants.IP_PORT);
@@ -93,12 +95,12 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     }
 
     @Override
-    public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
-        if (bean instanceof BindableService) {
-            exportJsonGenericService(bean);
-            handler(bean);
+    public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
+        Map<String, BindableService> beans = contextRefreshedEvent.getApplicationContext().getBeansOfType(BindableService.class);
+        for (Map.Entry<String, BindableService> entry : beans.entrySet()) {
+            exportJsonGenericService(entry.getValue());
+            handler(entry.getValue());
         }
-        return bean;
     }
 
     private void handler(final Object serviceBean) {
@@ -108,6 +110,9 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         } catch (Exception e) {
             LOG.error("failed to get grpc target class", e);
             return;
+        }
+        if (AopUtils.isAopProxy(serviceBean)) {
+            clazz = AopUtils.getTargetClass(serviceBean);
         }
         Class<?> parent = clazz.getSuperclass();
         Class<?> classes = parent.getDeclaringClass();
@@ -125,21 +130,21 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             LOG.error(String.format("grpc SERVICE_NAME can not found: %s", classes));
             return;
         }
-        ShenyuGrpcClient grpcClassAnnotation = AnnotationUtils.findAnnotation(clazz, ShenyuGrpcClient.class);
-        String basePath = Optional.ofNullable(grpcClassAnnotation)
-                .map(annotation -> StringUtils.defaultIfBlank(grpcClassAnnotation.path(), "")).orElse("");
+        ShenyuGrpcClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuGrpcClient.class);
+        String basePath = Optional.ofNullable(beanShenyuClient)
+                .map(annotation -> StringUtils.defaultIfBlank(beanShenyuClient.path(), "")).orElse("");
         if (basePath.contains("*")) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
-                publisher.publishEvent(buildMetaDataDTO(packageName, grpcClassAnnotation, method, basePath));
+                publisher.publishEvent(buildMetaDataDTO(packageName, beanShenyuClient, method, basePath));
             }
             return;
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuGrpcClient grpcClient = method.getAnnotation(ShenyuGrpcClient.class);
-            if (Objects.nonNull(grpcClient)) {
-                publisher.publishEvent(buildMetaDataDTO(packageName, grpcClient, method, basePath));
+            ShenyuGrpcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
+            if (Objects.nonNull(methodShenyuClient)) {
+                publisher.publishEvent(buildMetaDataDTO(packageName, methodShenyuClient, method, basePath));
             }
         }
     }
@@ -197,8 +202,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         return GsonUtils.getInstance().toJson(build);
     }
 
-    private void exportJsonGenericService(final Object bean) {
-        BindableService bindableService = (BindableService) bean;
+    private void exportJsonGenericService(final BindableService bindableService) {
         ServerServiceDefinition serviceDefinition = bindableService.bindService();
 
         try {

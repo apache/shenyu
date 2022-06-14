@@ -20,11 +20,12 @@ package org.apache.shenyu.client.tars;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -35,7 +36,8 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -79,7 +81,11 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
-        if (AnnotationUtils.findAnnotation(bean.getClass(), ShenyuTarsService.class) != null) {
+        Class clazz = bean.getClass();
+        if (AopUtils.isAopProxy(clazz)) {
+            clazz = AopUtils.getTargetClass(clazz);
+        }
+        if (AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuTarsService.class) != null) {
             handler(bean);
         }
         return bean;
@@ -90,19 +96,35 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         if (AopUtils.isAopProxy(serviceBean)) {
             clazz = AopUtils.getTargetClass(serviceBean);
         }
-        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         String serviceName = clazz.getAnnotation(ShenyuTarsService.class).serviceName();
+        final ShenyuTarsClient beanTarsClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuTarsClient.class);
+        final String superPath = buildApiSuperPath(beanTarsClient);
+        if (superPath.contains("*") && Objects.nonNull(beanTarsClient)) {
+            Method[] declaredMethods = ReflectionUtils.getDeclaredMethods(clazz);
+            for (Method declaredMethod : declaredMethods) {
+                publisher.publishEvent(buildMetaDataDTO(serviceName, superPath, beanTarsClient, declaredMethod, ""));
+            }
+            return;
+        }
+        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuTarsClient shenyuTarsClient = method.getAnnotation(ShenyuTarsClient.class);
+            ShenyuTarsClient shenyuTarsClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuTarsClient.class);
             if (Objects.nonNull(shenyuTarsClient)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceName, shenyuTarsClient, method, buildRpcExtJson(method)));
+                publisher.publishEvent(buildMetaDataDTO(serviceName, superPath, shenyuTarsClient, method, buildRpcExtJson(method)));
             }
         }
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(final String serviceName, final ShenyuTarsClient shenyuTarsClient, final Method method, final String rpcExt) {
+    private String buildApiSuperPath(final ShenyuTarsClient shenyuTarsClient) {
+        if (Objects.nonNull(shenyuTarsClient) && !StringUtils.isBlank(shenyuTarsClient.path())) {
+            return shenyuTarsClient.path();
+        }
+        return "";
+    }
+
+    private MetaDataRegisterDTO buildMetaDataDTO(final String serviceName, final String superPath, final ShenyuTarsClient shenyuTarsClient, final Method method, final String rpcExt) {
         String ipAndPort = this.ipAndPort;
-        String path = this.contextPath + shenyuTarsClient.path();
+        String path = superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName()) : pathJoin(contextPath, superPath, shenyuTarsClient.path());
         String desc = shenyuTarsClient.desc();
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
         String configRuleName = shenyuTarsClient.ruleName();
@@ -126,6 +148,17 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 .rpcExt(rpcExt)
                 .enabled(shenyuTarsClient.enabled())
                 .build();
+    }
+
+    private String pathJoin(@NonNull final String... path) {
+        StringBuilder result = new StringBuilder(Constants.PATH_SEPARATOR);
+        for (String p : path) {
+            if (!result.toString().endsWith(Constants.PATH_SEPARATOR)) {
+                result.append(Constants.PATH_SEPARATOR);
+            }
+            result.append(p.startsWith(Constants.PATH_SEPARATOR) ? p.replaceFirst(Constants.PATH_SEPARATOR, "") : p);
+        }
+        return result.toString();
     }
 
     private TarsRpcExt.RpcExt buildRpcExt(final Method method) {

@@ -28,7 +28,7 @@
     <artifactId>shenyu-examples-grpc</artifactId>
 
     <properties>
-        <grpc.version>1.46.0</grpc.version>
+        <grpc.version>1.33.1</grpc.version>
         <protobuf.version>3.13.0</protobuf.version>
         <os-maven-plugin.version>1.6.2</os-maven-plugin.version>
     </properties>
@@ -42,6 +42,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
         <dependency>

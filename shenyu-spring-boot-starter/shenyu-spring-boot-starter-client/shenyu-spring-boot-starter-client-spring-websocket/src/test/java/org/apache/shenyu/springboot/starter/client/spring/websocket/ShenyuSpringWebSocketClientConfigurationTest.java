@@ -60,7 +60,7 @@ public class ShenyuSpringWebSocketClientConfigurationTest {
     }
 
     @Test
-    public void testSpringMvcClientBeanPostProcessor() {
+    public void testSpringWebSocketClientBeanPostProcessor() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         applicationContextRunner.run(context -> {

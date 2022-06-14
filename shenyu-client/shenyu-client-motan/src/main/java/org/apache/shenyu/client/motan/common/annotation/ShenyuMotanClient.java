@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.client.motan.common.annotation;
 
+import org.springframework.core.annotation.AliasFor;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -30,13 +32,22 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
 public @interface ShenyuMotanClient {
+
     /**
      * Path string.
      *
      * @return the string
      */
-    String path();
+    @AliasFor(attribute = "path")
+    String value() default "";
 
+    /**
+     * Path string.
+     *
+     * @return the string
+     */
+    @AliasFor(attribute = "value")
+    String path() default "";
     /**
      * Rule name string.
      *

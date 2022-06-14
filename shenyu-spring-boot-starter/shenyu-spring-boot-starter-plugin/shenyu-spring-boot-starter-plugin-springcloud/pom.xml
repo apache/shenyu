@@ -24,6 +24,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-spring-boot-starter-plugin-springcloud</artifactId>
+
+    <properties>
+        <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
+    </properties>
     
     <dependencies>
         <dependency>

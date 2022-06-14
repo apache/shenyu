@@ -18,7 +18,7 @@
 
 package org.apache.dromara.springboot.starter.client.grpc;
 
-import org.apache.shenyu.client.grpc.GrpcClientBeanPostProcessor;
+import org.apache.shenyu.client.grpc.GrpcClientEventListener;
 import org.apache.shenyu.client.grpc.GrpcContextRefreshedEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
@@ -38,16 +38,16 @@ import org.springframework.context.annotation.Configuration;
 public class ShenyuGrpcClientConfiguration {
     
     /**
-     * Grpc service bean post processor.
+     * Grpc client event listener.
      *
      * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
      * @return the grpc client bean post processor
      */
     @Bean
-    public GrpcClientBeanPostProcessor grpcServiceBeanPostProcessor(final ShenyuClientConfig clientConfig,
-                                                                    final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new GrpcClientBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()), shenyuClientRegisterRepository);
+    public GrpcClientEventListener grpcClientEventListener(final ShenyuClientConfig clientConfig,
+                                                                final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        return new GrpcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()), shenyuClientRegisterRepository);
     }
     
     /**
@@ -65,12 +65,12 @@ public class ShenyuGrpcClientConfiguration {
      * Grpc Server.
      *
      * @param grpcServerBuilder grpcServerBuilder
-     * @param grpcServiceBeanPostProcessor grpcServiceBeanPostProcessor
+     * @param grpcClientEventListener grpcClientEventListener
      * @return the grpc server
      */
     @Bean
     public GrpcServerRunner grpcServer(final GrpcServerBuilder grpcServerBuilder,
-                                       final GrpcClientBeanPostProcessor grpcServiceBeanPostProcessor) {
-        return new GrpcServerRunner(grpcServerBuilder, grpcServiceBeanPostProcessor);
+                                       final GrpcClientEventListener grpcClientEventListener) {
+        return new GrpcServerRunner(grpcServerBuilder, grpcClientEventListener);
     }
 }

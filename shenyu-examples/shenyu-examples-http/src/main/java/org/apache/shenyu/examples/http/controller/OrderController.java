@@ -38,7 +38,7 @@ import java.util.Objects;
  */
 @RestController
 @RequestMapping("/order")
-@ShenyuSpringMvcClient(path = "/order")
+@ShenyuSpringMvcClient("/order")
 public class OrderController {
 
     /**
@@ -48,7 +48,7 @@ public class OrderController {
      * @return the order dto
      */
     @PostMapping("/save")
-    @ShenyuSpringMvcClient(path = "/save", desc = "Save order")
+    @ShenyuSpringMvcClient("/save")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
         orderDTO.setName("hello world save order");
         return orderDTO;
@@ -61,7 +61,7 @@ public class OrderController {
      * @return the order dto
      */
     @GetMapping("/findById")
-    @ShenyuSpringMvcClient(path = "/findById", desc = "Find by id")
+    @ShenyuSpringMvcClient("/findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
         return build(id, "hello world findById");
     }
@@ -74,7 +74,7 @@ public class OrderController {
      * @return the path variable
      */
     @GetMapping("/path/{id}/{name}")
-    @ShenyuSpringMvcClient(path = "/path/**")
+    @ShenyuSpringMvcClient("/path/**")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
         return build(id, "hello world restful: " + name);
     }
@@ -86,13 +86,13 @@ public class OrderController {
      * @return the order dto
      */
     @GetMapping("/path/{id}/name")
-    @ShenyuSpringMvcClient(path = "/path/**/name")
+    @ShenyuSpringMvcClient("/path/**/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
         return build(id, "hello world restful inline " + id);
     }
 
     @GetMapping("/oauth2/test")
-    @ShenyuSpringMvcClient(path = "/oauth2/test")
+    @ShenyuSpringMvcClient("/oauth2/test")
     public OAuth2DTO testRestFul(final ServerHttpRequest request) {
         HttpHeaders headers = request.getHeaders();
         List<String> tokens = headers.get("Authorization");
