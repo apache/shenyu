@@ -26,7 +26,7 @@
     <artifactId>shenyu-plugin-jwt</artifactId>
 
     <properties>
-        <jjwt.version>0.9.0</jjwt.version>
+        <jjwt.version>0.11.5</jjwt.version>
     </properties>
 
     <dependencies>
@@ -48,7 +48,13 @@
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <!-- jjwt must use jjwt-jackson or gson -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
             <version>${jjwt.version}</version>
         </dependency>
     </dependencies>
