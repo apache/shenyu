@@ -30,6 +30,9 @@ import org.apache.shenyu.admin.model.entity.UserRoleDO;
 import org.apache.shenyu.admin.model.event.resource.BatchResourceCreatedEvent;
 import org.apache.shenyu.admin.model.event.resource.BatchResourceDeletedEvent;
 import org.apache.shenyu.admin.model.event.resource.ResourceCreatedEvent;
+import org.apache.shenyu.admin.model.event.role.BatchRoleDeletedEvent;
+import org.apache.shenyu.admin.model.event.role.RoleUpdatedEvent;
+import org.apache.shenyu.admin.model.query.PermissionQuery;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO.AuthPerm;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
@@ -44,6 +47,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -140,6 +144,26 @@ public class PermissionServiceImpl implements PermissionService {
     }
     
     /**
+     * listen {@link BatchRoleDeletedEvent} delete  permission.
+     *
+     * @param event event
+     */
+    @EventListener(BatchRoleDeletedEvent.class)
+    public void onRoleDeleted(final BatchRoleDeletedEvent event) {
+        permissionMapper.deleteByObjectIds(event.getDeletedIds());
+    }
+    
+    /**
+     * listen {@link RoleUpdatedEvent} delete  permission.
+     *
+     * @param event event
+     */
+    @EventListener(RoleUpdatedEvent.class)
+    public void onRoleUpdated(final RoleUpdatedEvent event) {
+        manageRolePermission(event.getRole().getId(), event.getNewPermission());
+    }
+    
+    /**
      * get resource by username.
      *
      * @param userName username
@@ -190,5 +214,77 @@ public class PermissionServiceImpl implements PermissionService {
                 .stream()
                 .map(item -> AuthPerm.buildAuthPerm(ResourceVO.buildResourceVO(item)))
                 .collect(Collectors.toList());
+    }
+    
+    
+    /**
+     * manger role permission.
+     *
+     * @param roleId                role id.
+     * @param currentPermissionList {@linkplain List} current role permission ids
+     */
+    private void manageRolePermission(final String roleId, final List<String> currentPermissionList) {
+        List<String> lastPermissionList = permissionMapper.findByObjectId(roleId)
+                .stream()
+                .map(PermissionDO::getResourceId)
+                .collect(Collectors.toList());
+        List<String> addPermission = getListDiff(lastPermissionList, currentPermissionList);
+        if (CollectionUtils.isNotEmpty(addPermission)) {
+            batchSavePermission(addPermission.stream()
+                    .map(node -> PermissionDO.buildPermissionDO(PermissionDTO
+                            .builder()
+                            .objectId(roleId)
+                            .resourceId(node)
+                            .build()))
+                    .collect(Collectors.toList()));
+        }
+        
+        List<String> deletePermission = getListDiff(currentPermissionList, lastPermissionList);
+        if (CollectionUtils.isNotEmpty(deletePermission)) {
+            deletePermission.forEach(node -> deleteByObjectIdAndResourceId(new PermissionQuery(roleId, node)));
+        }
+    }
+    
+    
+    /**
+     * get two list different.
+     *
+     * @param preList  {@linkplain List}
+     * @param lastList {@linkplain List}
+     * @return {@linkplain List}
+     */
+    private List<String> getListDiff(final List<String> preList, final List<String> lastList) {
+        if (CollectionUtils.isEmpty(lastList)) {
+            return null;
+        }
+        
+        if (CollectionUtils.isEmpty(preList)) {
+            return lastList;
+        }
+        
+        Map<String, Integer> map = preList.stream()
+                .distinct()
+                .collect(Collectors.toMap(source -> source, source -> 1));
+        return lastList.stream()
+                .filter(item -> !map.containsKey(item))
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * batch save permission.
+     *
+     * @param permissionDOList {@linkplain List}
+     */
+    private void batchSavePermission(final List<PermissionDO> permissionDOList) {
+        permissionDOList.forEach(permissionMapper::insertSelective);
+    }
+    
+    /**
+     * delete by object and resource id.
+     *
+     * @param permissionQuery permission query
+     */
+    private void deleteByObjectIdAndResourceId(final PermissionQuery permissionQuery) {
+        permissionMapper.deleteByObjectIdAndResourceId(permissionQuery);
     }
 }
