@@ -40,7 +40,7 @@ public class MqttPluginDataHandlerTest {
     }
 
     @Test
-    public void testEnableConfiguration() {
+    public void testEnableConfiguration() throws InterruptedException {
         final PluginData enablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"
                 + "  \"bossGroupThreadCount\": 1,"
@@ -54,7 +54,7 @@ public class MqttPluginDataHandlerTest {
                 + "}", "0", true);
         mqttPluginDataHandlerUnderTest.handlerPlugin(enablePluginData);
         assertTrue(isPortUsing());
-
+        Thread.sleep(5000);
         final PluginData disablePluginData = new PluginData("pluginId", "pluginName", "{\n"
                 + "  \"port\": 9500,"
                 + "  \"bossGroupThreadCount\": 1,"
