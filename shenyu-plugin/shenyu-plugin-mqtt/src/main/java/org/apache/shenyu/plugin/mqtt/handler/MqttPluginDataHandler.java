@@ -55,9 +55,10 @@ public class MqttPluginDataHandler implements PluginDataHandler {
     }
 
     /**
+     * Ture is use else false.
      *
-     * @param port port
-     * @return True is use else false.
+     * @param port server port
+     * @return boolean
      */
     private boolean isPortUsing(final int port) {
         boolean flag = false;

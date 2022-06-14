@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.mqtt.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
