@@ -119,4 +119,12 @@ public interface RoleMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<RoleDO> selectAll();
+    
+    /**
+     * select by ids.
+     *
+     * @param ids ids.
+     * @return list
+     */
+    List<RoleDO> selectByIds(@Param("ids") List<String> ids);
 }
