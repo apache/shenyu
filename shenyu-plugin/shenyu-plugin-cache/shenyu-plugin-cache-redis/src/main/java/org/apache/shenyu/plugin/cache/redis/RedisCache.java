@@ -40,9 +40,9 @@ public final class RedisCache implements ICache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisCache.class);
 
-    private final ReactiveRedisTemplate<String, byte[]> redisTemplate;
-
     private static final long REDIS_DEFAULT_TIMEOUT = 3L;
+
+    private final ReactiveRedisTemplate<String, byte[]> redisTemplate;
 
     public RedisCache(final RedisConfigProperties redisConfigProperties) {
         this.redisTemplate = new ReactiveRedisTemplate<>(new RedisConnectionFactory(redisConfigProperties).getLettuceConnectionFactory(),
