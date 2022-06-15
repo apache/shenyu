@@ -20,6 +20,7 @@ package org.apache.shenyu.examples.sofa.service.impl;
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.examples.sofa.api.entity.SofaSimpleTypeBean;
 import org.apache.shenyu.examples.sofa.api.service.SofaSingleParamService;
+import org.apache.shenyu.examples.sofa.service.aop.Log;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -32,6 +33,7 @@ public class SofaSingleParamServiceImpl implements SofaSingleParamService {
 
     @Override
     @ShenyuSofaClient("/findById")
+    @Log
     public SofaSimpleTypeBean findById(final String id) {
         return new SofaSimpleTypeBean(id, "hello world shenyu Sofa, findById");
     }
