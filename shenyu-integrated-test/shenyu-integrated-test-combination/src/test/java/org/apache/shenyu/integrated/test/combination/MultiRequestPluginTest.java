@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.jsonwebtoken.security.Keys;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
@@ -133,7 +134,8 @@ public final class MultiRequestPluginTest extends AbstractPluginDataInit {
     }
 
     private void setupJWT() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.JWT.getName(), "{\"secretKey\":\"key00000\"}");
+        // HMAC-SHA algorithms MUST have a size >= 256 bits
+        String pluginResult = initPlugin(PluginEnum.JWT.getName(), "{\"secretKey\":\"shenyu-test-shenyu-test-shenyu-test\"}");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.JWT.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList4JWT());
@@ -307,8 +309,8 @@ public final class MultiRequestPluginTest extends AbstractPluginDataInit {
             setupJWT();
             setupRedirect();
 
-            final String key = "key00000";
-            final String token = Jwts.builder().setId("1001").signWith(SignatureAlgorithm.HS256, key.getBytes(StandardCharsets.UTF_8)).compact();
+            final String key = "shenyu-test-shenyu-test-shenyu-test";
+            final String token = Jwts.builder().setId("1001").signWith(Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256).compact();
             Map<String, Object> headers = new HashMap<>();
             headers.put("token", token);
             PluginData pluginData = new PluginData();
@@ -357,8 +359,8 @@ public final class MultiRequestPluginTest extends AbstractPluginDataInit {
             setupJWT();
             setupRewrite();
 
-            final String key = "key00000";
-            final String token = Jwts.builder().setId("1001").signWith(SignatureAlgorithm.HS256, key.getBytes(StandardCharsets.UTF_8)).compact();
+            final String key = "shenyu-test-shenyu-test-shenyu-test";
+            final String token = Jwts.builder().setId("1001").signWith(Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256).compact();
             Map<String, Object> headers = new HashMap<>();
             headers.put("token", token);
 
@@ -436,8 +438,8 @@ public final class MultiRequestPluginTest extends AbstractPluginDataInit {
             setupRateLimiter(algorithmName);
             setupJWT();
 
-            final String key = "key00000";
-            final String token = Jwts.builder().setId("1001").signWith(SignatureAlgorithm.HS256, key.getBytes(StandardCharsets.UTF_8)).compact();
+            final String key = "shenyu-test-shenyu-test-shenyu-test";
+            final String token = Jwts.builder().setId("1001").signWith(Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256).compact();
             Map<String, Object> headers = new HashMap<>();
             headers.put("token", token);
 
