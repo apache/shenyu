@@ -29,11 +29,16 @@ public enum PluginEnum {
      * Mqtt plugin enum.
      */
     MQTT(0, 0, "mqtt"),
-    
+
     /**
      * Global plugin enum.
      */
     GLOBAL(5, 0, "global"),
+
+    /**
+     * the mock plugin enum.
+     */
+    MOCK(8, 0, "mock"),
 
     /**
      * the cache plugin enum.
@@ -44,57 +49,57 @@ public enum PluginEnum {
      * Monitor plugin enum.
      */
     METRICS(15, 0, "metrics"),
-    
+
     /**
      * Sign plugin enum.
      */
     SIGN(20, 0, "sign"),
-    
+
     /**
      * Jwt plugin enum.
      */
     JWT(30, 0, "jwt"),
-    
+
     /**
      * OAuth2 plugin enum.
      */
     OAUTH2(40, 0, "oauth2"),
-    
+
     /**
      * Waf plugin enum.
      */
     WAF(50, 0, "waf"),
-    
+
     /**
      * Rate limiter plugin enum.
      */
     RATE_LIMITER(60, 0, "rateLimiter"),
-    
+
     /**
      * Param mapping plugin enum.
      */
     PARAM_MAPPING(70, 0, "paramMapping"),
-    
+
     /**
      * Context path plugin enum.
      */
     CONTEXT_PATH(80, 0, "contextPath"),
-    
+
     /**
      * Rewrite plugin enum.
      */
     REWRITE(90, 0, "rewrite"),
-    
+
     /**
      * Cryptor request plugin enum.
      */
     CRYPTOR_REQUEST(100, 0, "cryptorRequest"),
-    
+
     /**
      * Redirect plugin enum.
      */
     REDIRECT(110, 0, "redirect"),
-    
+
     /**
      * Request plugin enum.
      */
@@ -104,22 +109,22 @@ public enum PluginEnum {
      * GeneralContext plugin enum.
      */
     GENERAL_CONTEXT(125, 0, "generalContext"),
-    
+
     /**
      * Hystrix plugin enum.
      */
     HYSTRIX(130, 0, "hystrix"),
-    
+
     /**
      * Sentinel plugin enum.
      */
     SENTINEL(140, 0, "sentinel"),
-    
+
     /**
      * Resilence4J plugin enum.
      */
     RESILIENCE4J(150, 0, "resilience4j"),
-    
+
     /**
      * Logging console plugin enum.
      */
@@ -134,67 +139,67 @@ public enum PluginEnum {
      * Divide plugin enum.
      */
     DIVIDE(200, 0, "divide"),
-    
+
     /**
      * springCloud plugin enum.
      */
     SPRING_CLOUD(200, 0, "springCloud"),
-    
+
     /**
      * webSocket plugin enum.
      */
     WEB_SOCKET(200, 0, "websocket"),
-    
+
     /**
      * Uri plugin enum.
      */
     URI(205, 0, "uri"),
-    
+
     /**
      * Web client plugin enum.
      */
     WEB_CLIENT(210, 0, "webClient"),
-    
+
     /**
      * Netty http client plugin enum.
      */
     NETTY_HTTP_CLIENT(210, 0, "nettyHttpClient"),
-    
+
     /**
      * ModifyResponse plugin enum.
      */
     MODIFY_RESPONSE(220, 0, "modifyResponse"),
-    
+
     /**
      * Param transform plugin enum.
      */
     RPC_PARAM_TRANSFORM(300, 0, "paramTransform"),
-    
+
     /**
      * Dubbo plugin enum.
      */
     DUBBO(310, 0, "dubbo"),
-    
+
     /**
      * Sofa plugin enum.
      */
     SOFA(310, 0, "sofa"),
-    
+
     /**
      * Tars plugin enum.
      */
     TARS(310, 0, "tars"),
-    
+
     /**
      * GPRC plugin enum.
      */
     GRPC(310, 0, "grpc"),
-    
+
     /**
      * Motan plugin enum.
      */
     MOTAN(310, 0, "motan"),
-    
+
     /**
      * Cryptor response plugin enum.
      */

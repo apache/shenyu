@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -51,6 +52,18 @@ public final class WebFluxResultUtils {
      * @return the result
      */
     public static Mono<Void> result(final ServerWebExchange exchange, final Object result) {
+        return resultCustomStatusCode(exchange, result, HttpStatus.OK);
+    }
+
+    /**
+     * Response result and support specify the http status code .
+     *
+     * @param exchange   the exchange
+     * @param result     the result
+     * @param httpStatus the http status
+     * @return the result
+     */
+    public static Mono<Void> resultCustomStatusCode(final ServerWebExchange exchange, final Object result, final HttpStatus httpStatus) {
         if (Objects.isNull(result)) {
             return Mono.empty();
         }
@@ -62,6 +75,7 @@ public final class WebFluxResultUtils {
             mediaType = shenyuResult.contentType(exchange, resultData);
         }
         exchange.getResponse().getHeaders().setContentType(mediaType);
+        exchange.getResponse().setStatusCode(httpStatus);
         final Object responseData = shenyuResult.result(exchange, resultData);
         assert null != responseData;
         final byte[] bytes = (responseData instanceof byte[])
