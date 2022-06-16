@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/order")
-@ShenyuSpringMvcClient(path = "/order")
+@ShenyuSpringMvcClient("/order")
 public class OrderController {
     
     /**
@@ -39,7 +39,7 @@ public class OrderController {
      * @return the order dto
      */
     @GetMapping("/findById")
-    @ShenyuSpringMvcClient(path = "/findById", desc = "Find by id")
+    @ShenyuSpringMvcClient("/findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
         OrderDTO dto = new OrderDTO();
         dto.setId(id);

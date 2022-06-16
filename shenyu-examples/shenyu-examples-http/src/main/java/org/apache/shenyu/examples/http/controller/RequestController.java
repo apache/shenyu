@@ -35,7 +35,7 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequestMapping("/request")
-@ShenyuSpringMvcClient(path = "/request/**")
+@ShenyuSpringMvcClient("/request/**")
 public class RequestController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestController.class);
