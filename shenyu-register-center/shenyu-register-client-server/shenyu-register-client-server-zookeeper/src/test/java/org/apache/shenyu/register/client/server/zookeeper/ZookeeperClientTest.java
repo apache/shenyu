@@ -18,8 +18,9 @@
 package org.apache.shenyu.register.client.server.zookeeper;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.CuratorCache;
-import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -31,7 +32,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -129,7 +129,7 @@ class ZookeeperClientTest {
 
     @Test
     void getCache() {
-        CuratorCache cache = client.getCache("/test");
+        TreeCache cache = client.getCache("/test");
         assertNull(cache);
 
         client.addCache("/test");
@@ -140,14 +140,14 @@ class ZookeeperClientTest {
     @Test
     void addCache() throws InterruptedException {
         List<String> paths = new ArrayList<>();
-        CuratorCacheListener listener = CuratorCacheListener.builder()
-                .forCreatesAndChanges((oldNode, node) -> {
-                    String path = Objects.isNull(oldNode) ? node.getPath() : oldNode.getPath();
-                    paths.add(path);
-                }).build();
+        TreeCacheListener listener = (client, event) -> {
+            if (event.getType() == TreeCacheEvent.Type.NODE_ADDED || event.getType() == TreeCacheEvent.Type.NODE_UPDATED) {
+                paths.add(event.getData().getPath());
+            }
+        };
         client.createOrUpdate("/test", "", CreateMode.PERSISTENT);
         client.addCache("/test", listener);
-        CuratorCache cache = client.getCache("/test");
+        TreeCache cache = client.getCache("/test");
 
         Thread.sleep(500);
         assertNotNull(cache);

@@ -107,9 +107,9 @@
         <tars.version>1.7.2</tars.version>
         <skipTests>false</skipTests>
         <undertow.version>2.2.2.Final</undertow.version>
-        <curator.version>5.2.1</curator.version>
+        <curator.version>4.3.0</curator.version>
         <wiremock.version>2.18.0</wiremock.version>
-        <zookeeper.version>3.6.3</zookeeper.version>
+        <zookeeper.version>3.5.7</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.8.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
@@ -430,11 +430,6 @@
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
-                <version>${curator.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.curator</groupId>
-                <artifactId>curator-x-async</artifactId>
                 <version>${curator.version}</version>
             </dependency>
             <dependency>
