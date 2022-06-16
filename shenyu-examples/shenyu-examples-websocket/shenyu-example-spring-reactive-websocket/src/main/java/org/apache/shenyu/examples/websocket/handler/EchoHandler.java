@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.examples.websocket.handler;
 
-import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -32,7 +31,6 @@ public class EchoHandler implements WebSocketHandler {
 
     @Override
     @NonNull
-    @ShenyuSpringWebSocketClient("/org/apache/shenyu/examples/websocket/**")
     public Mono<Void> handle(final WebSocketSession session) {
         return session.send(
                 session.receive()

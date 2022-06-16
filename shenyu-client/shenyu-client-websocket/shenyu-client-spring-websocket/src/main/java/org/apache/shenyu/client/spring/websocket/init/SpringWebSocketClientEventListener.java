@@ -42,6 +42,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -94,9 +95,9 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        String[] beanNames = contextRefreshedEvent.getApplicationContext().getBeanDefinitionNames();
-        for (String beanName : beanNames) {
-            handler(contextRefreshedEvent.getApplicationContext().getBean(beanName));
+        Map<String, Object> beans = contextRefreshedEvent.getApplicationContext().getBeansWithAnnotation(ShenyuSpringWebSocketClient.class);
+        for (Map.Entry<String, Object> entry : beans.entrySet()) {
+            handler(entry.getValue());
         }
     }
 
@@ -109,7 +110,7 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
 
         final String superPath = buildApiSuperPath(clazz);
         // Filter out is not controller out
-        if (Boolean.TRUE.equals(isFull) || !hasAnnotation(clazz, ShenyuSpringWebSocketClient.class)) {
+        if (Boolean.TRUE.equals(isFull)) {
             return;
         }
         final ShenyuSpringWebSocketClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringWebSocketClient.class);
@@ -126,11 +127,6 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
                 publisher.publishEvent(buildMetaDataDTO(webSocketClient, buildApiPath(method, superPath)));
             }
         }
-    }
-
-    private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz,
-                                                         final @NonNull Class<A> annotationType) {
-        return Objects.nonNull(AnnotatedElementUtils.findMergedAnnotation(clazz, annotationType));
     }
 
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {
