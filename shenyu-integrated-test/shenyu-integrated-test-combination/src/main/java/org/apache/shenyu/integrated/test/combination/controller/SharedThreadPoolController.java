@@ -35,12 +35,22 @@ import java.util.Optional;
 @RestController
 @RequestMapping(value = "/shenyu", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
 public class SharedThreadPoolController {
-
+    
+    /**
+     * get the shared thread pool from spring container.
+     *
+     * @return the shared thread pool
+     */
     @GetMapping("/getFromSpring")
     public String getFromSpring() {
         return SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class).toString();
     }
-
+    
+    /**
+     * get the shared thread pool from apache dubbo.
+     *
+     * @return the shared thread pool
+     */
     @GetMapping("/getFromDubbo")
     public String getFromDubbo() {
         return Optional.ofNullable(ExtensionLoader.getExtensionLoader(ThreadPool.class))
@@ -49,21 +59,36 @@ public class SharedThreadPoolController {
                 .map(Object::toString)
                 .orElse("");
     }
-
+    
+    /**
+     * get the shared thread pool from grpc.
+     *
+     * @return the shared thread pool
+     */
     @GetMapping("/getFromGrpc")
     public String getFromGrpc() {
         return Optional.ofNullable(GrpcClientBuilder.buildExecutor())
                 .map(Object::toString)
                 .orElse("");
     }
-
+    
+    /**
+     * get the shared thread pool from motan.
+     *
+     * @return the shared thread pool
+     */
     @GetMapping("/getFromMotan")
     public String getFromMotan() {
         return Optional.ofNullable(SpringBeanUtils.getInstance().getBean(MotanProxyService.class).getThreadPool())
                 .map(Objects::toString)
                 .orElse("");
     }
-
+    
+    /**
+     * get the shared thread pool from sofa.
+     *
+     * @return the shared thread pool
+     */
     @GetMapping("/getFromSofa")
     public String getFromSofa() {
         return Optional.ofNullable(ApplicationConfigCache.getInstance().getThreadPool())
