@@ -15,28 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.websocket.handler;
+package org.apache.shenyu.examples.websocket.aop;
 
-import org.apache.shenyu.examples.websocket.aop.Log;
-import org.springframework.lang.NonNull;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.socket.WebSocketHandler;
-import org.springframework.web.reactive.socket.WebSocketSession;
-import reactor.core.publisher.Mono;
 
-/**
- * The type Echo handler.
- */
+@Aspect
 @Component
-public class EchoHandler implements WebSocketHandler {
+public class LogInterceptor {
 
-    @Override
-    @NonNull
-    @Log
-    public Mono<Void> handle(final WebSocketSession session) {
-        return session.send(
-                session.receive()
-                        .map(msg -> session.textMessage(
-                                "result apache shenyu : -> " + msg.getPayloadAsText())));
+    private static final Logger log = LoggerFactory.getLogger(LogInterceptor.class);
+
+    @Pointcut("@annotation(org.apache.shenyu.examples.websocket.aop.Log)")
+    public void logPointcut() {
+        //just for pointcut
+    }
+
+    @Around("logPointcut()")
+    public Object around(ProceedingJoinPoint point) throws Throwable {
+        try {
+            log.info("before proceed");
+            return point.proceed(point.getArgs());
+        } finally {
+            log.info("after proceed");
+        }
     }
 }
