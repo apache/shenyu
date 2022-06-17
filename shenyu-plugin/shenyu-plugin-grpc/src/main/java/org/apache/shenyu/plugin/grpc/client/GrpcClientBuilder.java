@@ -70,7 +70,12 @@ public final class GrpcClientBuilder {
         return new ShenyuGrpcClient(channel);
     }
 
-    private static Executor buildExecutor() {
+    /**
+     * get thread pool, just for integrated test.
+     *
+     * @return the thread pool
+     */
+    public static Executor buildExecutor() {
         GrpcRegisterConfig config = Singleton.INST.get(GrpcRegisterConfig.class);
         if (null == config) {
             return null;

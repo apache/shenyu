@@ -41,13 +41,23 @@ import org.springframework.context.annotation.Configuration;
 public class MotanPluginConfiguration {
 
     /**
+     * Motan proxy service.
+     *
+     * @return the motan proxy service
+     */
+    @Bean
+    public MotanProxyService motanProxyService() {
+        return new MotanProxyService();
+    }
+
+    /**
      * Motan plugin.
      *
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin motanPlugin() {
-        return new MotanPlugin(new MotanProxyService());
+    public ShenyuPlugin motanPlugin(final MotanProxyService motanProxyService) {
+        return new MotanPlugin(motanProxyService);
     }
 
     /**
