@@ -53,6 +53,7 @@ public class MotanPluginConfiguration {
     /**
      * Motan plugin.
      *
+     * @param motanProxyService the motan proxy service
      * @return the shenyu plugin
      */
     @Bean
