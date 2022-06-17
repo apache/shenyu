@@ -91,7 +91,7 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertEquals("hello shenyu", response);
     }
 
-    @Test
+//    @Test
     public void testSofa() throws IOException {
         SofaTestData response = HttpHelper.INSTANCE.getFromGateway("/sofa/findById?id=1001", new TypeToken<SofaTestData>() {
         }.getType());
@@ -108,7 +108,7 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertEquals(spring, grpc);
         String motan = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromMotan", String.class);
         assertEquals(spring, motan);
-        String sofa = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromSofa", String.class);
-        assertEquals(spring, sofa);
+//        String sofa = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromSofa", String.class);
+//        assertEquals(spring, sofa);
     }
 }
