@@ -19,8 +19,9 @@ package org.apache.shenyu.admin.listener.zookeeper;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
@@ -162,11 +163,10 @@ public class HttpServiceDiscovery implements InitializingBean {
         }).collect(Collectors.toList());
     }
 
-    class HttpServiceListener implements CuratorCacheListener {
+    class HttpServiceListener implements TreeCacheListener {
         @Override
-        public void event(final Type type, final ChildData oldData, final ChildData data) {
-            String path = Objects.isNull(data) ? oldData.getPath() : data.getPath();
-
+        public void childEvent(final CuratorFramework client, final TreeCacheEvent event) throws Exception {
+            String path = event.getData().getPath();
             // if not uri register path, return.
             if (!PathMatchUtils.match(URI_PATH, path)) {
                 return;

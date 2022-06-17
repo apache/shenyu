@@ -17,11 +17,14 @@
 
 package org.apache.shenyu.register.client.server.zookeeper;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -39,7 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -103,15 +106,7 @@ public class ZookeeperClientServerRegisterRepository implements ShenyuClientServ
 
     private void subscribeMetaData(final String rpcType) {
         String contextPathParent = RegisterPathConstants.buildMetaDataContextPathParent(rpcType);
-        CuratorCacheListener listener = CuratorCacheListener.builder()
-                .forCreatesAndChanges((oldNode, node) -> {
-                    if (PathMatchUtils.match(RegisterPathConstants.REGISTER_METADATA_INSTANCE_PATH, node.getPath())) {
-                        String data = new String(node.getData(), StandardCharsets.UTF_8);
-                        publishMetadata(data);
-                        LOGGER.info("zookeeper register metadata success: {}", data);
-                    }
-                }).build();
-        client.addCache(contextPathParent, listener);
+        client.addCache(contextPathParent, new MetadataCacheListener());
     }
 
     private void publishMetadata(final String data) {
@@ -122,11 +117,49 @@ public class ZookeeperClientServerRegisterRepository implements ShenyuClientServ
         publisher.publish(registerDTOList);
     }
 
-    class URICacheListener implements CuratorCacheListener {
+    abstract class AbstractRegisterListener implements TreeCacheListener {
         @Override
-        public void event(final Type type, final ChildData oldData, final ChildData data) {
-            String path = Objects.isNull(data) ? oldData.getPath() : data.getPath();
+        public final void childEvent(final CuratorFramework client, final TreeCacheEvent event) {
+            ChildData childData = event.getData();
+            if (null == childData) {
+                return;
+            }
+            String path = childData.getPath();
+            if (Strings.isNullOrEmpty(path)) {
+                return;
+            }
+            event(event.getType(), path, childData);
+        }
 
+        /**
+         * data sync event.
+         *
+         * @param type tree cache event type.
+         * @param path tree cache event path.
+         * @param data tree cache event data.
+         */
+        protected abstract void event(TreeCacheEvent.Type type, String path, ChildData data);
+    }
+
+    class MetadataCacheListener extends AbstractRegisterListener {
+        @Override
+        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
+            // if not uri register path, return.
+            if (!PathMatchUtils.match(RegisterPathConstants.REGISTER_METADATA_INSTANCE_PATH, path)) {
+                return;
+            }
+            Optional.ofNullable(data)
+                    .ifPresent(e -> {
+                        String str = new String(data.getData(), StandardCharsets.UTF_8);
+                        publishMetadata(str);
+                        LOGGER.info("zookeeper register metadata success: {}", str);
+                    });
+        }
+    }
+
+    class URICacheListener extends AbstractRegisterListener {
+        @Override
+        public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
             if (!PathMatchUtils.match(RegisterPathConstants.REGISTER_URI_INSTANCE_PATH, path)) {
                 return;
