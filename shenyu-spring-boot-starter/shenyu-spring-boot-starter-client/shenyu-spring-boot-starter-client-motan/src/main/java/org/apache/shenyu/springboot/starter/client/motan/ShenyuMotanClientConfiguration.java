@@ -42,7 +42,7 @@ public class ShenyuMotanClientConfiguration {
      * @return the motan service event listener
      */
     @Bean
-    public MotanServiceEventListener motanServiceBeanPostProcessor(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public MotanServiceEventListener motanServiceEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new MotanServiceEventListener(clientConfig.getClient().get(RpcTypeEnum.MOTAN.getName()), shenyuClientRegisterRepository);
     }
 }
