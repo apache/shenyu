@@ -98,6 +98,8 @@ services:
   shenyu-prometheus:
     image: prom/prometheus:v2.35.0
     container_name: shenyu-prometheus
+    ports:
+      - "9090:9090"
     depends_on:
       shenyu-integrated-test-http:
         condition: service_healthy
