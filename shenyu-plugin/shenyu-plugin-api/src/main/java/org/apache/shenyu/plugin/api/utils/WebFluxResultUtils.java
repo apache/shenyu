@@ -35,12 +35,12 @@ import java.util.Objects;
  * The type Shenyu result utils.
  */
 public final class WebFluxResultUtils {
-    
+
     /**
      * result utils log.
      */
     private static final Logger LOG = LoggerFactory.getLogger(WebFluxResultUtils.class);
-    
+
     private WebFluxResultUtils() {
     }
 
@@ -52,18 +52,6 @@ public final class WebFluxResultUtils {
      * @return the result
      */
     public static Mono<Void> result(final ServerWebExchange exchange, final Object result) {
-        return resultCustomStatusCode(exchange, result, HttpStatus.OK);
-    }
-
-    /**
-     * Response result and support specify the http status code .
-     *
-     * @param exchange   the exchange
-     * @param result     the result
-     * @param httpStatus the http status
-     * @return the result
-     */
-    public static Mono<Void> resultCustomStatusCode(final ServerWebExchange exchange, final Object result, final HttpStatus httpStatus) {
         if (Objects.isNull(result)) {
             return Mono.empty();
         }
@@ -75,14 +63,28 @@ public final class WebFluxResultUtils {
             mediaType = shenyuResult.contentType(exchange, resultData);
         }
         exchange.getResponse().getHeaders().setContentType(mediaType);
-        exchange.getResponse().setStatusCode(httpStatus);
+
         final Object responseData = shenyuResult.result(exchange, resultData);
         assert null != responseData;
         final byte[] bytes = (responseData instanceof byte[])
-                ? (byte[]) responseData : responseData.toString().getBytes(StandardCharsets.UTF_8);
+            ? (byte[]) responseData : responseData.toString().getBytes(StandardCharsets.UTF_8);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                        .bufferFactory().wrap(bytes))
-                .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
+            .bufferFactory().wrap(bytes))
+            .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
+    }
+
+    /**
+     * Response result and support specify the http status code .
+     *
+     * @param exchange   the exchange
+     * @param result     the result
+     * @param httpStatus the http status
+     * @return the result
+     */
+    public static Mono<Void> resultCustomStatusCode(final ServerWebExchange exchange, final Object result, final HttpStatus httpStatus) {
+        exchange.getResponse().setStatusCode(httpStatus);
+        return result(exchange,result);
+
     }
 
     /**
