@@ -460,7 +460,6 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu logging-rocketmq plugin end-->
-
     </dependencies>
     <profiles>
         <profile>

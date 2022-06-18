@@ -19,7 +19,7 @@ package org.apache.shenyu.springboot.starter.client.spring.websocket;
 
 import java.util.Optional;
 import org.apache.shenyu.client.spring.websocket.init.SpringContextRegisterListener;
-import org.apache.shenyu.client.spring.websocket.init.SpringWebSocketClientBeanPostProcessor;
+import org.apache.shenyu.client.spring.websocket.init.SpringWebSocketClientEventListener;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,12 +60,12 @@ public class ShenyuSpringWebSocketClientConfigurationTest {
     }
 
     @Test
-    public void testSpringMvcClientBeanPostProcessor() {
+    public void testSpringWebSocketClientEventListener() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         applicationContextRunner.run(context -> {
-            SpringWebSocketClientBeanPostProcessor processor = context.getBean("springWebSocketClientBeanPostProcessor", SpringWebSocketClientBeanPostProcessor.class);
-            assertNotNull(processor);
+            SpringWebSocketClientEventListener eventListener = context.getBean("springWebSocketClientEventListener", SpringWebSocketClientEventListener.class);
+            assertNotNull(eventListener);
         });
         registerUtilsMockedStatic.close();
     }

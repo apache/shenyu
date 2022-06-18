@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
 import org.apache.shenyu.client.springmvc.init.ContextRegisterListener;
-import org.apache.shenyu.client.springmvc.init.SpringMvcClientBeanPostProcessor;
+import org.apache.shenyu.client.springmvc.init.SpringMvcClientEventListener;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,11 +61,11 @@ public class ShenyuSpringMvcClientConfigurationTest {
     }
 
     @Test
-    public void testSpringMvcClientBeanPostProcessor() {
+    public void testSpringMvcClientEventListener() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         applicationContextRunner.run(context -> {
-            SpringMvcClientBeanPostProcessor processor = context.getBean("springHttpClientBeanPostProcessor", SpringMvcClientBeanPostProcessor.class);
+            SpringMvcClientEventListener processor = context.getBean("springHttpClientEventListener", SpringMvcClientEventListener.class);
             assertNotNull(processor);
         });
         registerUtilsMockedStatic.close();

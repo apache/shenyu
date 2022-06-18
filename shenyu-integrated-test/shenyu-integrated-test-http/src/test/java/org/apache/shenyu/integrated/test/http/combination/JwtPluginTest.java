@@ -19,6 +19,7 @@ package org.apache.shenyu.integrated.test.http.combination;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -45,7 +46,7 @@ public final class JwtPluginTest extends AbstractPluginDataInit {
 
     @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.JWT.getName(), "{\"secretKey\":\"key00000\"}");
+        String pluginResult = initPlugin(PluginEnum.JWT.getName(), "{\"secretKey\":\"shenyu-test-shenyu-test-shenyu-test\"}");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult = initSelectorAndRules(PluginEnum.JWT.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
         assertThat(selectorAndRulesResult, is("success"));
@@ -53,9 +54,9 @@ public final class JwtPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testJwt() throws IOException {
-        final String key = "key00000";
+        final String key = "shenyu-test-shenyu-test-shenyu-test";
         final String testPath = "/http/test/findByUserId?userId=1001";
-        final String token = Jwts.builder().setId("1001").signWith(SignatureAlgorithm.HS256, key.getBytes(StandardCharsets.UTF_8)).compact();
+        final String token = Jwts.builder().setId("1001").signWith(Keys.hmacShaKeyFor(key.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256).compact();
         Map<String, Object> headers = new HashMap<>();
 
         // send request with fake jwt
