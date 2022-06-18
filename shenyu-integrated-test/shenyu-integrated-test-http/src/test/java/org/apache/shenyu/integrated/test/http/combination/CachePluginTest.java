@@ -74,12 +74,11 @@ public final class CachePluginTest extends AbstractPluginDataInit {
         cleanPluginData(PluginEnum.CACHE.getName());
     }
 
-
-    public boolean testPass() throws ExecutionException, InterruptedException {
+    private boolean testPass() throws ExecutionException, InterruptedException {
         Future<ResultBean> resp0 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_CACHE_PATH, ResultBean.class));
         Thread.sleep(2000);
         Future<ResultBean> resp1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_CACHE_PATH, ResultBean.class));
-        return  resp0.get().getMsg().equals(resp1.get().getMsg());
+        return resp0.get().getMsg().equals(resp1.get().getMsg());
     }
 
     private static List<ConditionData> buildSelectorConditionList() {
