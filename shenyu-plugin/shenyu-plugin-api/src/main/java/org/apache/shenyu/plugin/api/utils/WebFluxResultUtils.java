@@ -83,7 +83,7 @@ public final class WebFluxResultUtils {
      */
     public static Mono<Void> resultCustomStatusCode(final ServerWebExchange exchange, final Object result, final HttpStatus httpStatus) {
         exchange.getResponse().setStatusCode(httpStatus);
-        return result(exchange,result);
+        return result(exchange, result);
 
     }
 
