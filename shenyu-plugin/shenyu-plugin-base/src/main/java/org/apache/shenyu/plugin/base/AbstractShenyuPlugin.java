@@ -18,9 +18,11 @@
 package org.apache.shenyu.plugin.base;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -32,16 +34,20 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * abstract shenyu plugin please extends.
  */
 public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuPlugin.class);
-
+    
     /**
      * this is Template Method child has Implement your own logic.
      *
@@ -52,7 +58,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     protected abstract Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule);
-
+    
     /**
      * Process the Web request and (optionally) delegate to the next
      * {@code ShenyuPlugin} through the given {@link ShenyuPluginChain}.
@@ -94,21 +100,42 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
         return chain.execute(exchange);
     }
-
+    
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
-
+    
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
-
+    
     private SelectorData matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
-        return selectors.stream()
-                .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
-                .findFirst().orElse(null);
+        List<SelectorData> filterCollectors = selectors.stream()
+                .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange)).collect(Collectors.toList());
+        if (filterCollectors.size() > 1) {
+            return manyMatchSelector(filterCollectors);
+        } else {
+            return filterCollectors.stream().findFirst().orElse(null);
+        }
     }
-
+    
+    private SelectorData manyMatchSelector(final List<SelectorData> filterCollectors) {
+        //What needs to be dealt with here is the and condition. If the number of and conditions is the same and is matched at the same time,
+        // it will be sorted by the sort field.
+        Map<Integer, List<Pair<Integer, SelectorData>>> collect =
+                filterCollectors.stream().map(selector -> {
+                    boolean match = MatchModeEnum.match(selector.getMatchMode(), MatchModeEnum.AND);
+                    int sort = 0;
+                    if (match) {
+                        sort = selector.getConditionList().size();
+                    }
+                    return Pair.of(sort, selector);
+                }).collect(Collectors.groupingBy(Pair::getLeft));
+        Integer max = Collections.max(collect.keySet());
+        List<Pair<Integer, SelectorData>> pairs = collect.get(max);
+        return pairs.stream().map(Pair::getRight).min(Comparator.comparing(SelectorData::getSort)).orElse(null);
+    }
+    
     private Boolean filterSelector(final SelectorData selector, final ServerWebExchange exchange) {
         if (selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
             if (CollectionUtils.isEmpty(selector.getConditionList())) {
@@ -118,21 +145,21 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
         return true;
     }
-
+    
     private RuleData matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
         return rules.stream().filter(rule -> filterRule(rule, exchange)).findFirst().orElse(null);
     }
-
+    
     private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {
         return ruleData.getEnabled() && MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
-
+    
     private void selectorLog(final SelectorData selectorData, final String pluginName) {
         if (selectorData.getLogged()) {
             LOG.info("{} selector success match , selector name :{}", pluginName, selectorData.getName());
         }
     }
-
+    
     private void ruleLog(final RuleData ruleData, final String pluginName) {
         if (ruleData.getLoged()) {
             LOG.info("{} rule success match , rule name :{}", pluginName, ruleData.getName());
