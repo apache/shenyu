@@ -81,9 +81,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jasypt.version>1.9.2</jasypt.version>
         <springfox.version>2.6.1</springfox.version>
-        <mybatis.starter.version>1.1.1</mybatis.starter.version>
-        <mysql.version>5.1.47</mysql.version>
-        <druid.version>1.0.29</druid.version>
+        <mybatis.starter.version>2.2.2</mybatis.starter.version>
+        <mysql.version>8.0.29</mysql.version>
+        <druid.version>1.2.11</druid.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <guava.version>30.1-jre</guava.version>
         <commons-collections4.version>4.4</commons-collections4.version>
@@ -95,7 +95,7 @@
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>
-        <pagehelper.version>5.1.2</pagehelper.version>
+        <pagehelper.version>5.3.0</pagehelper.version>
         <alibaba.dubbo.version>2.6.12</alibaba.dubbo.version>
         <apache.dubbo.version>2.7.15</apache.dubbo.version>
         <gson.version>2.9.0</gson.version>
@@ -107,9 +107,9 @@
         <tars.version>1.7.2</tars.version>
         <skipTests>false</skipTests>
         <undertow.version>2.2.2.Final</undertow.version>
-        <curator.version>5.2.1</curator.version>
+        <curator.version>4.3.0</curator.version>
         <wiremock.version>2.18.0</wiremock.version>
-        <zookeeper.version>3.6.3</zookeeper.version>
+        <zookeeper.version>3.5.7</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.8.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
@@ -430,11 +430,6 @@
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
-                <version>${curator.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.curator</groupId>
-                <artifactId>curator-x-async</artifactId>
                 <version>${curator.version}</version>
             </dependency>
             <dependency>

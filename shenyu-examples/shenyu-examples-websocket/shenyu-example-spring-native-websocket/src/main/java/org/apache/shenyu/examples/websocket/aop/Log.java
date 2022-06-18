@@ -15,28 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.websocket.handler;
+package org.apache.shenyu.examples.websocket.aop;
 
-import org.apache.shenyu.examples.websocket.aop.Log;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.socket.WebSocketHandler;
-import org.springframework.web.reactive.socket.WebSocketSession;
-import reactor.core.publisher.Mono;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * The type Echo handler.
- */
-@Component
-public class EchoHandler implements WebSocketHandler {
-
-    @Override
-    @NonNull
-    @Log
-    public Mono<Void> handle(final WebSocketSession session) {
-        return session.send(
-                session.receive()
-                        .map(msg -> session.textMessage(
-                                "result apache shenyu : -> " + msg.getPayloadAsText())));
-    }
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Log {
 }

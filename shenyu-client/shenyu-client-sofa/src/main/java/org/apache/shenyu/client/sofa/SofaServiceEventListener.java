@@ -19,16 +19,6 @@ package org.apache.shenyu.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -44,18 +34,27 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
-/**
- * The Sofa ServiceBean PostProcessor.
- */
-public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
-    private static final Logger LOG = LoggerFactory.getLogger(SofaServiceBeanPostProcessor.class);
+/**
+ * The Sofa Service Event Listener.
+ */
+public class SofaServiceEventListener implements ApplicationListener<ContextRefreshedEvent> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SofaServiceEventListener.class);
 
     /**
      * api path separator.
@@ -63,8 +62,6 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     private static final String PATH_SEPARATOR = "/";
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-
-    private final ExecutorService executorService;
 
     private final String contextPath;
 
@@ -74,7 +71,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final String port;
 
-    public SofaServiceBeanPostProcessor(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public SofaServiceEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
@@ -85,16 +82,15 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         this.appName = appName;
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-sofa-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
-    public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
-        if (bean instanceof ServiceFactoryBean) {
-            executorService.execute(() -> handler((ServiceFactoryBean) bean));
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        Map<String, ServiceFactoryBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceFactoryBean.class);
+        for (Map.Entry<String, ServiceFactoryBean> entry : serviceBean.entrySet()) {
+            handler(entry.getValue());
         }
-        return bean;
     }
 
     private void handler(final ServiceFactoryBean serviceBean) {

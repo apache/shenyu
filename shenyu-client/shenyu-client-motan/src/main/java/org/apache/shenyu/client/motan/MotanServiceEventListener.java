@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.motan;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import org.apache.commons.lang3.StringUtils;
@@ -35,9 +34,9 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
@@ -47,17 +46,16 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
- * Motan BeanPostProcessor.
+ * Motan Service Event Listener.
  */
-public class MotanServiceBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
+public class MotanServiceEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
     private static final String BASE_SERVICE_CONFIG = "baseServiceConfig";
 
@@ -68,8 +66,6 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private ApplicationContext applicationContext;
-
-    private final ExecutorService executorService;
 
     private final String contextPath;
 
@@ -83,7 +79,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
 
     private Integer timeout;
 
-    public MotanServiceBeanPostProcessor(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public MotanServiceEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
@@ -94,21 +90,16 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         this.appName = appName;
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-motan-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
-    public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
-        Class<?> clazz = bean.getClass();
-        if (AopUtils.isAopProxy(bean)) {
-            clazz = AopUtils.getTargetClass(bean);
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) throws BeansException {
+        applicationContext = contextRefreshedEvent.getApplicationContext();
+        Map<String, Object> beans = applicationContext.getBeansWithAnnotation(ShenyuMotanClient.class);
+        for (Map.Entry<String, Object> entry : beans.entrySet()) {
+            handler(entry.getValue());
         }
-        MotanService service = clazz.getAnnotation(MotanService.class);
-        if (service != null) {
-            executorService.execute(() -> handler(bean));
-        }
-        return bean;
     }
 
     private void handler(final Object bean) {
@@ -223,8 +214,4 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         return result.toString();
     }
 
-    @Override
-    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
 }
