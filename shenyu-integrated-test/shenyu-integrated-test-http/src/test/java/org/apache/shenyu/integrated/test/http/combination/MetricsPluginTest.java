@@ -20,23 +20,21 @@ package org.apache.shenyu.integrated.test.http.combination;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.Test;
-import org.apache.http.protocol.HTTP;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public final class MetricsPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testPass() throws ExecutionException, InterruptedException {
         Map<String, Object> headers = new HashMap<>();
-        headers.put("HTTP.CONN_DIRECTIVE", HTTP.CONN_CLOSE);
-        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://localhost:8090", headers, String.class));
-        assertTrue(resp.get().contains("process_cpu_seconds_total"));
+        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://localhost:9090/api/v1/targets", headers, String.class));
+        assertFalse(resp.get().contains("down"));
     }
 
 }
