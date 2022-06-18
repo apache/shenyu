@@ -96,15 +96,11 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
     }
     
     @Test
-    public void testSofa() {
-        try {
-            SofaTestData response = HttpHelper.INSTANCE.getFromGateway("/sofa/findById?id=1001", new TypeToken<SofaTestData>() {
-            }.getType());
-            assertThat(response.getName(), Is.is("hello world shenyu Sofa, findById"));
-            assertThat(response.getId(), Is.is("1001"));
-        } catch (Throwable e) {
-            LOG.error("testSofa failed !", e);
-        }
+    public void testSofa() throws Exception {
+        SofaTestData response = HttpHelper.INSTANCE.getFromGateway("/sofa/findById?id=1001", new TypeToken<SofaTestData>() {
+        }.getType());
+        assertThat(response.getName(), Is.is("hello world shenyu Sofa, findById"));
+        assertThat(response.getId(), Is.is("1001"));
     }
     
     @AfterAll
@@ -116,11 +112,7 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertEquals(spring, grpc);
         String motan = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromMotan", String.class);
         assertEquals(spring, motan);
-        try {
-            String sofa = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromSofa", String.class);
-            assertEquals(spring, sofa);
-        } catch (Throwable e) {
-            LOG.error("testIsOneThreadPool sofa failed !", e);
-        }
+        String sofa = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromSofa", String.class);
+        assertEquals(spring, sofa);
     }
 }
