@@ -38,6 +38,22 @@ public interface DashboardUserService {
      * @return rows
      */
     int createOrUpdate(DashboardUserDTO dashboardUserDTO);
+    
+    /**
+     * create dashboard user.
+     *
+     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
+     * @return rows
+     */
+    int create(DashboardUserDTO dashboardUserDTO);
+    
+    /**
+     *  update dashboard user.
+     *
+     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
+     * @return rows
+     */
+    int update(DashboardUserDTO dashboardUserDTO);
 
     /**
      * delete dashboard users.

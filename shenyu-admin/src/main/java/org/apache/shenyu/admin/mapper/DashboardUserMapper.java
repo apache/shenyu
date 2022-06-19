@@ -75,6 +75,14 @@ public interface DashboardUserMapper extends ExistProvider {
     List<DashboardUserDO> selectByQuery(DashboardUserQuery dashboardUserQuery);
     
     /**
+     * select by ids.
+     *
+     * @param ids ids.
+     * @return users
+     */
+    List<DashboardUserDO> selectByIds(@Param("ids") List<String> ids);
+    
+    /**
      * count dashboard user by query.
      *
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
