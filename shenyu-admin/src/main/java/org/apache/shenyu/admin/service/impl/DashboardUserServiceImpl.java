@@ -227,9 +227,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         return PageResultUtils.result(dashboardUserQuery.getPageParameter(),
                 () -> dashboardUserMapper.countByQuery(dashboardUserQuery),
                 () -> dashboardUserMapper.selectByQuery(dashboardUserQuery)
-                        .stream()
-                        .map(DashboardUserVO::buildDashboardUserVO)
-                        .collect(Collectors.toList()));
+                            .stream()
+                            .map(DashboardUserVO::buildDashboardUserVO)
+                            .collect(Collectors.toList()));
     }
     
     /**
