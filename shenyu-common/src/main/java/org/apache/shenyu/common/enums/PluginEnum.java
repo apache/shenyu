@@ -134,6 +134,11 @@ public enum PluginEnum {
      * Logging RocketMQ plugin enum.
      */
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
+
+    /**
+     * Logging ElasticSearch plugin enum.
+     */
+    LOGGING_ElasticSearch(190, 0, "loggingElasticSearch"),
     
     /**
      * Divide plugin enum.
