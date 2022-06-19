@@ -20,7 +20,6 @@ package org.apache.shenyu.examples.tars.servant.testapp.impl;
 import com.qq.tars.spring.annotation.TarsServant;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
-import org.apache.shenyu.examples.tars.aop.Log;
 import org.apache.shenyu.examples.tars.servant.testapp.UserServant;
 
 @TarsServant("UserObj")
@@ -33,7 +32,6 @@ public class UserServantImpl implements UserServant {
         return String.format("hello no=%s, name=%s, time=%s", no, name, System.currentTimeMillis());
     }
     
-    @Log
     @Override
     public int helloInt(final int no, final String name) {
         return 1;
