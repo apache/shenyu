@@ -53,9 +53,9 @@ import java.time.format.DateTimeFormatter;
 /**
  * decorate ServerHttpResponse for read org.apache.shenyu.plugin.logging.body.
  */
-public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
+public class LoggingElasticSearchServerResponse extends ServerHttpResponseDecorator {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingServerHttpResponse.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LoggingElasticSearchServerResponse.class);
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -72,8 +72,8 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
      * @param logInfo      access log
      * @param logCollector LogCollector  instance
      */
-    public LoggingServerHttpResponse(final ServerHttpResponse delegate, final ShenyuRequestLog logInfo,
-                                     final LogCollector logCollector) {
+    public LoggingElasticSearchServerResponse(final ServerHttpResponse delegate, final ShenyuRequestLog logInfo,
+                                              final LogCollector logCollector) {
         super(delegate);
         this.logInfo = logInfo;
         this.logCollector = logCollector;

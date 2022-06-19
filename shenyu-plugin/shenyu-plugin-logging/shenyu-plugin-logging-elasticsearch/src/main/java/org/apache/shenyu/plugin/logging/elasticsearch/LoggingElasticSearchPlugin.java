@@ -22,8 +22,8 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
-import org.apache.shenyu.plugin.logging.elasticsearch.body.LoggingServerHttpRequest;
-import org.apache.shenyu.plugin.logging.elasticsearch.body.LoggingServerHttpResponse;
+import org.apache.shenyu.plugin.logging.elasticsearch.body.LoggingElasticSearchServerHttpRequest;
+import org.apache.shenyu.plugin.logging.elasticsearch.body.LoggingElasticSearchServerResponse;
 import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectUtils;
@@ -61,14 +61,14 @@ public class LoggingElasticSearchPlugin extends AbstractShenyuPlugin {
         requestInfo.setHost(request.getHeaders().getFirst(HOST));
         requestInfo.setPath(request.getURI().getPath());
 
-        LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
-        LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
+        LoggingElasticSearchServerHttpRequest loggingElasticSearchServerHttpRequest = new LoggingElasticSearchServerHttpRequest(request, requestInfo);
+        LoggingElasticSearchServerResponse loggingElasticSearchServerResponse = new LoggingElasticSearchServerResponse(exchange.getResponse(),
                 requestInfo, DefaultLogCollector.getInstance());
-        ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
-                .response(loggingServerHttpResponse).build();
-        loggingServerHttpResponse.setExchange(webExchange);
+        ServerWebExchange webExchange = exchange.mutate().request(loggingElasticSearchServerHttpRequest)
+                .response(loggingElasticSearchServerResponse).build();
+        loggingElasticSearchServerResponse.setExchange(webExchange);
 
-        return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
+        return chain.execute(webExchange).doOnError(loggingElasticSearchServerResponse::logError);
     }
 
     /**

@@ -30,11 +30,11 @@ import reactor.util.annotation.NonNull;
 /**
  * decorate ServerHttpRequest for read org.apache.shenyu.plugin.logging.body.
  */
-public class LoggingServerHttpRequest extends ServerHttpRequestDecorator {
+public class LoggingElasticSearchServerHttpRequest extends ServerHttpRequestDecorator {
     
     private final ShenyuRequestLog logInfo;
 
-    public LoggingServerHttpRequest(final ServerHttpRequest delegate, final ShenyuRequestLog logInfo) {
+    public LoggingElasticSearchServerHttpRequest(final ServerHttpRequest delegate, final ShenyuRequestLog logInfo) {
         super(delegate);
         this.logInfo = logInfo;
     }
