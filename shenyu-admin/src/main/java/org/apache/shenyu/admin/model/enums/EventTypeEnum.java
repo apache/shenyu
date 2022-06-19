@@ -70,6 +70,12 @@ public enum EventTypeEnum {
      */
     DICT_CREATE("CREATE:DICT", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
     
+    
+    /**
+     * role created event.
+     */
+    ROLE_CREATE("CREATE:ROLE", DataEventTypeEnum.CREATE, Color.CREATE_COLOR),
+    
     // ============== delete ===================
     /**
      * deleted event.
@@ -117,6 +123,11 @@ public enum EventTypeEnum {
      */
     DICT_DELETE("DELETE:DICT", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
     
+    /**
+     * role deleted event.
+     */
+    ROLE_DELETE("DELETE:ROLE", DataEventTypeEnum.DELETE, Color.DELETE_COLOR),
+    
     // ============== update ===================
     
     /**
@@ -157,7 +168,12 @@ public enum EventTypeEnum {
     /**
      * dict update.
      */
-    DICT_UPDATE("UPDATE:DICT", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
+    DICT_UPDATE("UPDATE:DICT", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR),
+    
+    /**
+     * role update.
+     */
+    ROLE_UPDATE("UPDATE:ROLE", DataEventTypeEnum.UPDATE, Color.UPDATE_COLOR);
     
     /**
      * type name.

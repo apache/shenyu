@@ -30,8 +30,8 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
@@ -42,20 +42,21 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
 /**
- * The type Shenyu websocket client bean post processor.
+ * The type Shenyu websocket client event listener.
  */
-public class SpringWebSocketClientBeanPostProcessor implements BeanPostProcessor {
+public class SpringWebSocketClientEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
     /**
      * api path separator.
      */
     private static final String PATH_SEPARATOR = "/";
 
-    private static final Logger LOG = LoggerFactory.getLogger(SpringWebSocketClientBeanPostProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SpringWebSocketClientEventListener.class);
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
@@ -70,13 +71,13 @@ public class SpringWebSocketClientBeanPostProcessor implements BeanPostProcessor
     private final String[] pathAttributeNames = new String[] {"path", "value"};
 
     /**
-     * Instantiates a new Spring websocket client bean post processor.
+     * Instantiates a new Spring websocket client event listener.
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
      */
-    public SpringWebSocketClientBeanPostProcessor(final PropertiesConfig clientConfig,
-        final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public SpringWebSocketClientEventListener(final PropertiesConfig clientConfig,
+                                              final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
 
         Properties props = clientConfig.getProps();
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
@@ -93,9 +94,14 @@ public class SpringWebSocketClientBeanPostProcessor implements BeanPostProcessor
     }
 
     @Override
-    public Object postProcessAfterInitialization(@NonNull final Object bean,
-        @NonNull final String beanName) throws BeansException {
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        Map<String, Object> beans = contextRefreshedEvent.getApplicationContext().getBeansWithAnnotation(ShenyuSpringWebSocketClient.class);
+        for (Map.Entry<String, Object> entry : beans.entrySet()) {
+            handler(entry.getValue());
+        }
+    }
 
+    private void handler(final Object bean) {
         Class<?> clazz;
         clazz = bean.getClass();
         if (AopUtils.isAopProxy(bean)) {
@@ -104,14 +110,14 @@ public class SpringWebSocketClientBeanPostProcessor implements BeanPostProcessor
 
         final String superPath = buildApiSuperPath(clazz);
         // Filter out is not controller out
-        if (Boolean.TRUE.equals(isFull) || !hasAnnotation(clazz, ShenyuSpringWebSocketClient.class)) {
-            return bean;
+        if (Boolean.TRUE.equals(isFull)) {
+            return;
         }
         final ShenyuSpringWebSocketClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringWebSocketClient.class);
         // Compatible with previous versions
         if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
             publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath)));
-            return bean;
+            return;
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
@@ -121,12 +127,6 @@ public class SpringWebSocketClientBeanPostProcessor implements BeanPostProcessor
                 publisher.publishEvent(buildMetaDataDTO(webSocketClient, buildApiPath(method, superPath)));
             }
         }
-        return bean;
-    }
-
-    private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz,
-        final @NonNull Class<A> annotationType) {
-        return Objects.nonNull(AnnotatedElementUtils.findMergedAnnotation(clazz, annotationType));
     }
 
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath) {

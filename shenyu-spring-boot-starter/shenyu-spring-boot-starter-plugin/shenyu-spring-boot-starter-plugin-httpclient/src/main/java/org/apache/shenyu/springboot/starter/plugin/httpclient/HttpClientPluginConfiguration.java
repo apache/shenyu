@@ -72,7 +72,7 @@ public class HttpClientPluginConfiguration {
      * @return the http client loop resource
      */
     @Bean
-    @ConditionalOnProperty("shenyu.httpclient.threadPool.prefix")
+    @ConditionalOnProperty("shenyu.httpclient.thread-pool.prefix")
     public LoopResources httpClientLoopResource(final HttpClientProperties properties) {
         HttpClientProperties.ThreadPool threadPool = properties.getThreadPool();
         return LoopResources.create(threadPool.getPrefix(), threadPool.getSelectCount(),
@@ -166,21 +166,21 @@ public class HttpClientPluginConfiguration {
         if (pool.getType() == HttpClientProperties.Pool.PoolType.DISABLED) {
             connectionProvider = ConnectionProvider.newConnection();
         } else if (pool.getType() == HttpClientProperties.Pool.PoolType.FIXED) {
-            // TODO moremind add fixed connection pool
-            // reactor remove fixed pool from 0.9.4
+            // reactor remove fixed pool by fixed method from 0.9.4
             // reason: https://github.com/reactor/reactor-netty/issues/1499 and https://github.com/reactor/reactor-netty/issues/1960
             connectionProvider = buildFixedConnectionPool(pool.getName(), pool.getMaxConnections(), pool.getAcquireTimeout(), pool.getMaxIdleTime());
         } else {
-            // TODO moremind add elastic connection pool
-            // reactor remove elastic pool from 0.9.4
+            // please see https://projectreactor.io/docs/netty/release/reference/index.html#_connection_pool_2
+            // reactor remove elastic pool by elastic method from 0.9.4
             // reason: https://github.com/reactor/reactor-netty/issues/1499 and https://github.com/reactor/reactor-netty/issues/1960
-            connectionProvider = buildFixedConnectionPool(pool.getName(), pool.getMaxConnections(), pool.getAcquireTimeout(), pool.getMaxIdleTime());
+            connectionProvider = buildElasticConnectionPool(pool.getName(), pool.getMaxIdleTime());
         }
         return connectionProvider;
     }
 
     /**
      * build fixed connection pool.
+     *
      * @param poolName pool name
      * @param maxConnections max connections
      * @param acquireTimeout pending acquire timeout
@@ -203,14 +203,20 @@ public class HttpClientPluginConfiguration {
     }
 
     /**
-     * TODO use DefaultPooledConnectionProvider build elastic pool.
-     * use {@linkplain reactor.netty.resources DefaultPooledConnectionProvider}.
-     * please see: https://github.com/reactor/reactor-netty/blob/main/reactor-netty-core/src/main/java/reactor/netty/resources/DefaultPooledConnectionProvider.java.
-     * @param builder build
-     * @return elastic pool
+     * build elastic connection provider pool.
+     *
+     * @param poolName pool name
+     * @param maxIdleTime max idle time
+     * @return {@link ConnectionProvider} elastic pool
      */
-    public ConnectionProvider buildElasticConnectionPool(final ConnectionProvider.Builder builder) {
-        return ConnectionProvider.builder("proxy").build();
+    public ConnectionProvider buildElasticConnectionPool(final String poolName, final Duration maxIdleTime) {
+        // about the args, please see https://projectreactor.io/docs/netty/release/reference/index.html#_connection_pool_2
+        return ConnectionProvider.builder(poolName)
+                .maxConnections(Integer.MAX_VALUE)
+                .pendingAcquireTimeout(Duration.ofMillis(0))
+                .pendingAcquireMaxCount(-1)
+                .maxIdleTime(maxIdleTime)
+                .build();
     }
 
     /**

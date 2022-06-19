@@ -540,6 +540,9 @@ INSERT INTO `permission` VALUES ('1529402639376629893', '1346358560427216896', '
 INSERT INTO `permission` VALUES ('1529402639376629894', '1346358560427216896', '1529402639372435660', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `permission` VALUES ('1529402639376629895', '1346358560427216896', '1529402639372435661', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `permission` VALUES ('1529402639376629896', '1346358560427216896', '1529402639372435662', '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `permission` VALUES ('1534577122279825408', '1346358560427216896', '1534577121923309568', '2022-06-09 00:44:32', '2022-06-09 00:44:31');
+INSERT INTO `permission` VALUES ('1534585430587875328', '1346358560427216896', '1534585430311051264', '2022-06-09 01:17:33', '2022-06-09 01:17:32');
+INSERT INTO `permission` VALUES ('1534585531389583360', '1346358560427216896', '1534585531108564992', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
 
 -- ----------------------------
 -- Table structure for plugin
@@ -561,6 +564,7 @@ CREATE TABLE `plugin`  (
 -- Records of plugin
 -- ----------------------------
 INSERT INTO `plugin` VALUES ('1', 'sign', NULL, 'Authentication', 20, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin` VALUES ('31', 'mock', null, 'Mock', 1, 0, '2022-06-16 14:40:35', '2022-06-16 14:40:55');
 INSERT INTO `plugin` VALUES ('10', 'sentinel', NULL, 'FaultTolerance', 140, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('11', 'sofa', '{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('12', 'resilience4j', NULL, 'FaultTolerance', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -773,6 +777,8 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172872', '11', 'corethreads', 
 INSERT INTO `plugin_handle` VALUES ('1529402613204172873', '11', 'threads', 'threads', 1, 3, 5, '{\"required\":\"0\",\"defaultValue\":\"2147483647\",\"placeholder\":\"threads\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172874', '11', 'queues', 'queues', 1, 3, 6, '{\"required\":\"0\",\"defaultValue\":\"0\",\"placeholder\":\"queues\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172875', '11', 'threadpool', 'threadpool', 3, 3, 3, '{\"required\":\"0\",\"defaultValue\":\"default\",\"placeholder\":\"threadpool\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1537326008606343168', '31', 'responseContent', 'responseContent', 2, 2, 0, '{"required":"0","rule":""}', '2022-06-16 14:47:37', '2022-06-16 14:50:39');
+INSERT INTO `plugin_handle` VALUES ('1537325892176658432', '31', 'httpStatusCode', 'httpStatusCode', 1, 2, 0, '{"required":"0","defaultValue":"200","rule":""}', '2022-06-16 14:47:09', '2022-06-16 14:50:39');
 
 
 -- ----------------------------
@@ -1146,6 +1152,9 @@ INSERT INTO `resource` VALUES ('1529402639372435659', '1529402639284355099', 'SH
 INSERT INTO `resource` VALUES ('1529402639372435660', '1529402639284355099', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:hystrixRule:edit', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639372435661', '1529402639284355099', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:hystrixRule:delete', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
 INSERT INTO `resource` VALUES ('1529402639372435662', '1529402639284355099', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:hystrix:modify', 1, '2022-05-25 18:02:58', '2022-05-25 18:02:58');
+INSERT INTO `resource` VALUES ('1534577121923309568', '', 'Document', '', '/document', '', 0, 3, 'file-text', 0, 0, '', 1, '2022-06-09 00:44:32', '2022-06-09 01:06:45');
+INSERT INTO `resource` VALUES ('1534585430311051264', '1534577121923309568', 'API document', '', '/document/apidoc', '', 1, 0, 'api', 0, 0, '', 1, '2022-06-09 01:17:32', '2022-06-09 01:17:32');
+INSERT INTO `resource` VALUES ('1534585531108564992', '1534585430311051264', 'send', '', '', '', 2, 0, '', 1, 0, 'document:apirun:send', 1, '2022-06-09 01:17:56', '2022-06-09 01:17:56');
 
 -- ----------------------------
 -- Table structure for role

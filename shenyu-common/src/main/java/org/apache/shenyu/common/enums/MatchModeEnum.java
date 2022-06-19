@@ -18,26 +18,27 @@
 package org.apache.shenyu.common.enums;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * MatchModeEnum.
  */
 public enum MatchModeEnum {
-
+    
     /**
      * And match mode enum.
      */
     AND(0, "and"),
-
+    
     /**
      * Or match mode enum.
      */
     OR(1, "or");
-
+    
     private final int code;
-
+    
     private final String name;
-
+    
     /**
      * all args constructor.
      *
@@ -48,7 +49,7 @@ public enum MatchModeEnum {
         this.code = code;
         this.name = name;
     }
-
+    
     /**
      * get code.
      *
@@ -57,7 +58,7 @@ public enum MatchModeEnum {
     public int getCode() {
         return code;
     }
-
+    
     /**
      * get name.
      *
@@ -66,7 +67,18 @@ public enum MatchModeEnum {
     public String getName() {
         return name;
     }
-
+    
+    /**
+     * Judgment code and enum eq.
+     *
+     * @param code          code.
+     * @param matchModeEnum enum
+     * @return true or false.
+     */
+    public static boolean match(final Integer code, final MatchModeEnum matchModeEnum) {
+        return Objects.equals(matchModeEnum.getCode(), code);
+    }
+    
     /**
      * get match mode name by code.
      *
