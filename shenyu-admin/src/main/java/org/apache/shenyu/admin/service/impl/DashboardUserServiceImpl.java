@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.config.properties.LdapProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
-import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
@@ -39,8 +38,11 @@ import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
+import org.apache.shenyu.admin.service.publish.UserEventPublisher;
 import org.apache.shenyu.admin.transfer.DashboardUserTransfer;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.ShaUtils;
 import org.slf4j.Logger;
@@ -52,7 +54,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -64,41 +65,41 @@ import java.util.stream.Collectors;
  */
 @Service
 public class DashboardUserServiceImpl implements DashboardUserService {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(DashboardUserServiceImpl.class);
-
+    
     private final DashboardUserMapper dashboardUserMapper;
-
+    
     private final UserRoleMapper userRoleMapper;
-
+    
     private final RoleMapper roleMapper;
-
-    private final DataPermissionMapper dataPermissionMapper;
-
+    
     @Nullable
     private final LdapProperties ldapProperties;
-
+    
     @Nullable
     private final LdapTemplate ldapTemplate;
-
+    
     private final JwtProperties jwtProperties;
-
+    
+    private final UserEventPublisher publisher;
+    
     public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper,
                                     final UserRoleMapper userRoleMapper,
                                     final RoleMapper roleMapper,
-                                    final DataPermissionMapper dataPermissionMapper,
                                     @Nullable final LdapProperties ldapProperties,
                                     @Nullable final LdapTemplate ldapTemplate,
-                                    final JwtProperties jwtProperties) {
+                                    final JwtProperties jwtProperties,
+                                    final UserEventPublisher publisher) {
         this.dashboardUserMapper = dashboardUserMapper;
         this.userRoleMapper = userRoleMapper;
         this.roleMapper = roleMapper;
-        this.dataPermissionMapper = dataPermissionMapper;
         this.ldapProperties = ldapProperties;
         this.ldapTemplate = ldapTemplate;
         this.jwtProperties = jwtProperties;
+        this.publisher = publisher;
     }
-
+    
     /**
      * create or update dashboard user.
      *
@@ -108,13 +109,24 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
+        return StringUtils.isBlank(dashboardUserDTO.getId()) ? create(dashboardUserDTO) : update(dashboardUserDTO);
+    }
+    
+    @Override
+    public int create(final DashboardUserDTO dashboardUserDTO) {
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         // create new user
-        if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
-            bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
-            return dashboardUserMapper.insertSelective(dashboardUserDO);
+        final int insertCount = dashboardUserMapper.insertSelective(dashboardUserDO);
+        bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
+        if (insertCount > 0) {
+            publisher.onCreated(dashboardUserDO);
         }
-
+        return insertCount;
+    }
+    
+    @Override
+    public int update(final DashboardUserDTO dashboardUserDTO) {
+        DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         // update old user
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
             if (!AdminConstants.ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
@@ -122,10 +134,14 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             }
             bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
         }
-
-        return dashboardUserMapper.updateSelective(dashboardUserDO);
+        final DashboardUserDO before = dashboardUserMapper.selectById(dashboardUserDO.getId());
+        final int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
+        if (updateCount > 0) {
+            publisher.onUpdated(dashboardUserDO, before);
+        }
+        return updateCount;
     }
-
+    
     /**
      * delete dashboard users.
      *
@@ -134,16 +150,22 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int delete(final List<String> ids) {
-        List<String> idList = ids.stream().filter(StringUtils::isNotEmpty).distinct().collect(Collectors.toList());
-        Optional.ofNullable(dashboardUserMapper.selectByUserName(AdminConstants.ADMIN_NAME))
-                .ifPresent(userDO -> idList.remove(userDO.getId()));
-        int ret = dashboardUserMapper.deleteByIdList(idList);
-        userRoleMapper.deleteByUserIdList(idList);
-        dataPermissionMapper.deleteByUserIdList(idList);
-        return ret;
+    public int delete(final Set<String> ids) {
+        final List<DashboardUserDO> deletedUser = dashboardUserMapper.selectByIds(ids)
+                .stream()
+                // skip default admin user
+                .filter(u -> !Objects.equals(u.getUserName(), AdminConstants.ADMIN_NAME))
+                .collect(Collectors.toList());
+        final List<String> deletedIds = ListUtil.map(deletedUser, DashboardUserDO::getId);
+        int deleteCount = dashboardUserMapper.deleteByIdList(deletedIds);
+        if (deleteCount > 0) {
+            userRoleMapper.deleteByUserIdList(deletedIds);
+            publisher.onDeleted(deletedUser);
+            
+        }
+        return deleteCount;
     }
-
+    
     /**
      * find dashboard user by id.
      *
@@ -152,29 +174,25 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     public DashboardUserEditVO findById(final String id) {
-
+        
         DashboardUserVO dashboardUserVO = DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id));
-
+        
         Set<String> roleIdSet = userRoleMapper.findByUserId(id)
                 .stream()
                 .map(UserRoleDO::getRoleId)
                 .collect(Collectors.toSet());
-
+        
         List<RoleDO> allRoleDOList = roleMapper.selectAll();
-        List<RoleVO> allRoles = allRoleDOList.stream()
-                .map(RoleVO::buildRoleVO).collect(Collectors.toList());
-
+        List<RoleVO> allRoles = ListUtil.map(allRoleDOList, RoleVO::buildRoleVO);
+        
         List<RoleDO> roleDOList = allRoleDOList.stream()
                 .filter(roleDO -> roleIdSet.contains(roleDO.getId()))
                 .collect(Collectors.toList());
-        List<RoleVO> roles = roleDOList.stream()
-                .map(RoleVO::buildRoleVO)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
+        List<RoleVO> roles = ListUtil.map(roleDOList, RoleVO::buildRoleVO);
+        
         return DashboardUserEditVO.buildDashboardUserEditVO(dashboardUserVO, roles, allRoles);
     }
-
+    
     /**
      * find dashboard user by query.
      *
@@ -186,7 +204,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public DashboardUserVO findByQuery(final String userName, final String password) {
         return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.findByQuery(userName, password));
     }
-
+    
     /**
      * find dashboard user by username.
      *
@@ -197,7 +215,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public DashboardUserVO findByUserName(final String userName) {
         return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectByUserName(userName));
     }
-
+    
     /**
      * find page of dashboard user by query.
      *
@@ -208,12 +226,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
         return PageResultUtils.result(dashboardUserQuery.getPageParameter(),
             () -> dashboardUserMapper.countByQuery(dashboardUserQuery),
-            () -> dashboardUserMapper.selectByQuery(dashboardUserQuery)
-                        .stream()
-                        .map(DashboardUserVO::buildDashboardUserVO)
-                        .collect(Collectors.toList()));
+            () -> ListUtil.map(dashboardUserMapper.selectByQuery(dashboardUserQuery), DashboardUserVO::buildDashboardUserVO));
     }
-
+    
     /**
      * To deal with the admin login.
      *
@@ -227,11 +242,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         if (Objects.nonNull(ldapTemplate)) {
             dashboardUserVO = loginByLdap(userName, password);
         }
-
+        
         if (Objects.isNull(dashboardUserVO)) {
             dashboardUserVO = loginByDatabase(userName, password);
         }
-
+        
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
         final DashboardUserVO finalDashboardUserVO = dashboardUserVO;
         return Optional.ofNullable(loginDashboardUserVO).map(loginUser -> {
@@ -242,13 +257,14 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
         }).orElse(null);
     }
-
+    
     private DashboardUserVO loginByLdap(final String userName, final String password) {
+        Assert.notNull(ldapProperties, "ldap config is not enable");
         String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), LdapEncoder.nameEncode(userName), ldapProperties.getBaseDn());
         String filter = String.format("(objectClass=%s)", ldapProperties.getObjectClass());
         try {
             DashboardUserVO dashboardUserVO = null;
-            if (ldapTemplate.authenticate(searchBase, filter, password)) {
+            if (Objects.nonNull(ldapTemplate) && ldapTemplate.authenticate(searchBase, filter, password)) {
                 dashboardUserVO = findByUserName(userName);
                 if (Objects.isNull(dashboardUserVO)) {
                     RoleDO role = roleMapper.findByRoleName("default");
@@ -271,24 +287,26 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             return null;
         }
     }
-
+    
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
         return findByQuery(userName, ShaUtils.shaEncryption(password));
     }
-
+    
     /**
      * bind user and role id.
      *
-     * @param userId user id
+     * @param userId  user id
      * @param roleIds role ids.
      */
     private void bindUserRole(final String userId, final List<String> roleIds) {
-        List<UserRoleDO> userRoleDOList = Optional.ofNullable(roleIds).orElseGet(ArrayList::new)
-                        .stream().map(roleId -> UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().userId(userId).roleId(roleId).build()))
-                        .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(userRoleDOList)) {
+        if (CollectionUtils.isEmpty(roleIds)) {
             return;
         }
-        userRoleMapper.insertBatch(userRoleDOList);
+        userRoleMapper.insertBatch(roleIds.stream()
+                .map(roleId -> UserRoleDO.buildUserRoleDO(UserRoleDTO.builder()
+                        .userId(userId)
+                        .roleId(roleId)
+                        .build()))
+                .collect(Collectors.toList()));
     }
 }

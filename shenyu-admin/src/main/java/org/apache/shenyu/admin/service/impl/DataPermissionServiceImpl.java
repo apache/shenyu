@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.rule.RuleCreatedEvent;
 import org.apache.shenyu.admin.model.event.selector.BatchSelectorDeletedEvent;
 import org.apache.shenyu.admin.model.event.selector.SelectorCreatedEvent;
+import org.apache.shenyu.admin.model.event.user.BatchUserDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.RuleQuery;
@@ -291,5 +292,15 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     public void onSelectorDeleted(final BatchSelectorDeletedEvent event) {
         // check selector delete
         dataPermissionMapper.deleteByDataIdList(event.getDeletedIds());
+    }
+    
+    /**
+     * listen {@link BatchUserDeletedEvent} delete data permission.
+     *
+     * @param event event
+     */
+    @EventListener(BatchUserDeletedEvent.class)
+    public void onUserDeleted(final BatchUserDeletedEvent event) {
+        dataPermissionMapper.deleteByUserIdList(event.getDeletedIds());
     }
 }
