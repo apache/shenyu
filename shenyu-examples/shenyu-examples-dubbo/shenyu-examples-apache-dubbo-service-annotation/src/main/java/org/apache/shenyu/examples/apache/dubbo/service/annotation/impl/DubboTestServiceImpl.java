@@ -20,7 +20,7 @@ import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.dubbo.rpc.RpcContext;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.examples.apache.dubbo.service.annotation.aop.Log;
+import org.apache.shenyu.examples.common.aop.Log;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 import org.apache.shenyu.examples.dubbo.api.service.DubboTestService;

@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.apache.dubbo.service.xml.aop;
+package org.apache.shenyu.examples.common.aop;
 
-import java.lang.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface Log {
+@Configuration
+public class InterceptorConfiguration {
+    @Bean
+    public LogInterceptor logInterceptor() {
+        return new LogInterceptor();
+    }
 }

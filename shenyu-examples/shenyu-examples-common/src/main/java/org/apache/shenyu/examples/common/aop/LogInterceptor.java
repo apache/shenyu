@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.alibaba.dubbo.service.aop;
+package org.apache.shenyu.examples.common.aop;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -23,15 +23,13 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 @Aspect
-@Component
 public class LogInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(LogInterceptor.class);
 
-    @Pointcut("@annotation(org.apache.shenyu.examples.alibaba.dubbo.service.aop.Log)")
+    @Pointcut("@annotation(org.apache.shenyu.examples.common.aop.Log)")
     public void logPointcut() {
         //just for pointcut
     }
