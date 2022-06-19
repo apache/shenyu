@@ -61,9 +61,8 @@ public final class TarsServiceBeanPostProcessorTest {
 
     private ContextRefreshedEvent contextRefreshedEvent;
 
-
     @BeforeEach
-    public void BeforeEachInit() {
+    public void init() {
         Map<String, Object> results = new LinkedHashMap();
         results.put("tarsDemoService", tarsDemoService);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
