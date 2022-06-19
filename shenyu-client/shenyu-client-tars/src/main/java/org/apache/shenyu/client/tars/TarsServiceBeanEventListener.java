@@ -81,7 +81,7 @@ public class TarsServiceBeanEventListener implements ApplicationListener<Context
     }
 
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
+    public void onApplicationEvent(final ContextRefreshedEvent event) {
         Map<String, Object> controllerBeans = event.getApplicationContext().getBeansWithAnnotation(ShenyuTarsService.class);
         for (Map.Entry<String, Object> entry : controllerBeans.entrySet()) {
             handler(entry.getValue());
@@ -176,6 +176,4 @@ public class TarsServiceBeanEventListener implements ApplicationListener<Context
         TarsRpcExt buildList = new TarsRpcExt(list);
         return GsonUtils.getInstance().toJson(buildList);
     }
-
-
 }
