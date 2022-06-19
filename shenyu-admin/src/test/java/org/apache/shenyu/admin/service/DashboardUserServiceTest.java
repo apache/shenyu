@@ -45,6 +45,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -112,9 +113,9 @@ public final class DashboardUserServiceTest {
         List<String> deleteIds = Stream.of("1", "2").collect(Collectors.toList());
         given(userRoleMapper.deleteByUserIdList(deleteIds)).willReturn(deleteIds.size());
 //        given(dataPermissionMapper.deleteByUserIdList(deleteIds)).willReturn(deleteIds.size());
-        given(dashboardUserMapper.selectByIds(deleteIds)).willReturn(ListUtil.map(deleteIds, this::mockUserById));
+        given(dashboardUserMapper.selectByIds(new HashSet<>(deleteIds))).willReturn(ListUtil.map(deleteIds, this::mockUserById));
         given(dashboardUserMapper.deleteByIdList(deleteIds)).willReturn(deleteIds.size());
-        assertEquals(deleteIds.size(), dashboardUserService.delete(deleteIds));
+        assertEquals(deleteIds.size(), dashboardUserService.delete(new HashSet<>(deleteIds)));
     }
     
     private DashboardUserDO mockUserById(final String id) {

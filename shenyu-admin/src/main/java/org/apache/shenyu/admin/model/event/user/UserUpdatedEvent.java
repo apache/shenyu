@@ -37,13 +37,4 @@ public class UserUpdatedEvent extends UserChangedEvent {
         super(source, before, EventTypeEnum.USER_UPDATE, operator);
     }
     
-    /**
-     * the created user.
-     *
-     * @return user
-     */
-    public DashboardUserDO getUser() {
-        return (DashboardUserDO) getSource();
-    }
-    
 }

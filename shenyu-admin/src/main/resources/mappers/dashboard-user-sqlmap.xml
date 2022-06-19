@@ -33,7 +33,8 @@
         date_created,
         date_updated,
         user_name,
-        password, role,
+        password,
+        role,
         enabled
     </sql>
 

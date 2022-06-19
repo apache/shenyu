@@ -51,6 +51,15 @@ public class UserChangedEvent extends AdminDataModelChangedEvent {
         
     }
     
+    /**
+     * the changed user.
+     *
+     * @return user
+     */
+    public DashboardUserDO getChangedUser() {
+        return (DashboardUserDO) getSource();
+    }
+    
     private String contrast() {
         final DashboardUserDO before = (DashboardUserDO) getBefore();
         Objects.requireNonNull(before);

@@ -150,7 +150,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int delete(final List<String> ids) {
+    public int delete(final Set<String> ids) {
         final List<DashboardUserDO> deletedUser = dashboardUserMapper.selectByIds(ids)
                 .stream()
                 // skip default admin user
