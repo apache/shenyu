@@ -21,8 +21,8 @@ create table dashboard_user
     password     VARCHAR2(128),
     role         NUMBER(10) not null,
     enabled      NUMBER(3) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id),
     constraint unique_user_name unique (user_name)
 );
@@ -50,8 +50,8 @@ create table plugin
     role         VARCHAR2(64) not null,
     sort         NUMBER(10),
     enabled      NUMBER(3) default '0' not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -82,8 +82,8 @@ create table plugin_handle
     type         NUMBER(5),
     sort         NUMBER(10),
     ext_obj      clob,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id),
     constraint plugin_id_field_type unique (plugin_id,field,type)
 );
@@ -119,8 +119,8 @@ create table selector
     enabled      NUMBER(3) not null,
     loged        NUMBER(3) not null,
     continued    NUMBER(3) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
 );
 -- Add comments to the columns
 comment on column SELECTOR.id
@@ -156,8 +156,8 @@ create table selector_condition
     operator     VARCHAR2(64) not null,
     param_name   VARCHAR2(64) not null,
     param_value  VARCHAR2(64) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -188,8 +188,8 @@ create table rule
     loged        NUMBER(3) not null,
     sort         NUMBER(10) not null,
     handle       VARCHAR2(1024),
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
 );
 -- Add comments to the columns
 comment on column RULE.id
@@ -221,8 +221,8 @@ create table rule_condition
     operator     VARCHAR2(64) not null,
     param_name   VARCHAR2(64) not null,
     param_value  VARCHAR2(64) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
 );
 -- Add comments to the columns
 comment on column RULE_CONDITION.id
@@ -253,8 +253,8 @@ create table meta_data
     method_name     VARCHAR2(255),
     parameter_types VARCHAR2(255),
     rpc_ext         VARCHAR2(512),
-    date_created    DATE default SYSDATE not null,
-    date_updated    DATE default SYSDATE not null,
+    date_created    timestamp(3) default SYSDATE not null,
+    date_updated    timestamp(3) default SYSDATE not null,
     enabled         NUMBER(3) default '0' not null,
     PRIMARY KEY (id)
 );
@@ -290,7 +290,7 @@ create table operation_record_log
     color             VARCHAR2(20) not null,
     context           CLOB not null,
     operator          VARCHAR2(200) not null,
-    operation_time    date not null,
+    operation_time    timestamp(3) not null,
     operation_type    VARCHAR2(60) DEFAULT 'update' not null
 );
 -- Add comments to the columns
@@ -324,8 +324,8 @@ create table app_auth
     ext_info     VARCHAR2(1024),
     open         NUMBER(3) not null,
     enabled      NUMBER(3) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -356,8 +356,8 @@ create table auth_param
     auth_id      VARCHAR2(128),
     app_name     VARCHAR2(255) not null,
     app_param    VARCHAR2(255),
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -381,8 +381,8 @@ create table auth_path
     app_name     VARCHAR2(255) not null,
     path         VARCHAR2(255) not null,
     enabled      NUMBER(3) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -411,8 +411,8 @@ create table shenyu_dict
     "desc"       VARCHAR2(255),
     sort         NUMBER(10) not null,
     enabled      NUMBER(3),
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id),
     constraint dict_type_dict_code_dict_name unique (type,dict_code,dict_name)
 );
@@ -443,8 +443,8 @@ create table role
     id           VARCHAR2(128) not null,
     role_name    VARCHAR2(32) not null,
     description  VARCHAR2(255),
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id,role_name)
 );
 -- Add comments to the table
@@ -467,8 +467,8 @@ create table user_role
     id           VARCHAR2(128) not null,
     user_id      VARCHAR2(128) not null,
     role_id      VARCHAR2(128) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the table
@@ -491,8 +491,8 @@ create table permission
     id           VARCHAR2(128) not null,
     object_id    VARCHAR2(128) not null,
     resource_id  VARCHAR2(128) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the table
@@ -525,8 +525,8 @@ create table "resource"
     is_route      NUMBER(10) not null,
     perms         VARCHAR2(64),
     status        NUMBER(10) not null,
-    date_created  DATE default SYSDATE not null,
-    date_updated  DATE default SYSDATE not null,
+    date_created  timestamp(3) default SYSDATE not null,
+    date_updated  timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the table
@@ -570,8 +570,8 @@ create table data_permission
     user_id      VARCHAR2(128) not null,
     data_id      VARCHAR2(128) not null,
     data_type    NUMBER(10) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the table

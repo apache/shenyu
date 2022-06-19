@@ -30,8 +30,8 @@ CREATE TABLE `alert_template`  (
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'alert template name',
   `strategy_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'alert template strategy name',
   `content` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'alert template content',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -52,8 +52,8 @@ CREATE TABLE `app_auth`  (
   `ext_info` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'extended parameter json',
   `open` tinyint(0) NOT NULL COMMENT 'open auth path or not',
   `enabled` tinyint(0) NOT NULL COMMENT 'delete or not',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -70,8 +70,8 @@ CREATE TABLE `auth_param`  (
   `auth_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'Authentication table id',
   `app_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'business Module',
   `app_param` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'service module parameters (parameters that need to be passed by the gateway) json type',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -89,8 +89,8 @@ CREATE TABLE `auth_path`  (
   `app_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'module',
   `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'path',
   `enabled` tinyint(0) NOT NULL COMMENT 'whether pass 1 is',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -108,8 +108,8 @@ CREATE TABLE `dashboard_user`  (
   `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'user password',
   `role` int(0) NOT NULL COMMENT 'role',
   `enabled` tinyint(0) NOT NULL COMMENT 'delete or not',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `unique_user_name`(`user_name`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
@@ -128,8 +128,8 @@ CREATE TABLE `data_permission`  (
   `user_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'user primary key id',
   `data_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'data(selector,rule) primary key id',
   `data_type` int(0) NOT NULL COMMENT '0 selector type , 1 rule type',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'data permission table' ROW_FORMAT = Dynamic;
 
@@ -151,8 +151,8 @@ CREATE TABLE `meta_data`  (
   `method_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'method name',
   `parameter_types` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'parameter types are provided with multiple parameter types separated by commas',
   `rpc_ext` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'rpc extended information, json format',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   `enabled` tinyint(0) NOT NULL DEFAULT 0 COMMENT 'enabled state',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
@@ -170,7 +170,7 @@ CREATE TABLE `operation_record_log`  (
   `color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'log color',
   `context` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'log context',
   `operator` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'operator [user or app]]',
-  `operation_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'operation time',
+  `operation_time` datetime(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'operation time',
   `operation_type` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'update' COMMENT 'operation type：create/update/delete/register...',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'operation record log' ROW_FORMAT = Dynamic;
@@ -187,8 +187,8 @@ CREATE TABLE `permission`  (
   `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
   `object_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'user primary key id or role primary key id',
   `resource_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'resource primary key id',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'permission table' ROW_FORMAT = Dynamic;
 
@@ -555,8 +555,8 @@ CREATE TABLE `plugin`  (
   `role` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'plug-in role',
   `sort` int(0) NULL DEFAULT NULL COMMENT 'sort',
   `enabled` tinyint(0) NOT NULL DEFAULT 0 COMMENT 'whether to open (0, not open, 1 open)',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -607,8 +607,8 @@ CREATE TABLE `plugin_handle`  (
   `type` smallint(0) NULL DEFAULT NULL COMMENT 'type, 1 means selector, 2 means rule, 3 means plugin',
   `sort` int(0) NULL DEFAULT NULL COMMENT 'sort',
   `ext_obj` varchar(4096) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'extra configuration (json format data)',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `plugin_id_field_type`(`plugin_id`, `field`, `type`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
@@ -799,8 +799,8 @@ CREATE TABLE `resource`  (
   `is_route` int(0) NOT NULL COMMENT 'route 1:yes 0:no',
   `perms` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'button permission description sys:user:add(add)/sys:user:edit(edit)',
   `status` int(0) NOT NULL COMMENT 'status 1:enable 0:disable',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'resource table' ROW_FORMAT = Dynamic;
 
@@ -1164,8 +1164,8 @@ CREATE TABLE `role`  (
   `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
   `role_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'role name',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'role describe',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`, `role_name`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'role table' ROW_FORMAT = Dynamic;
 
@@ -1188,8 +1188,8 @@ CREATE TABLE `rule`  (
   `loged` tinyint(0) NOT NULL COMMENT 'whether to log or not',
   `sort` int(0) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -1208,8 +1208,8 @@ CREATE TABLE `rule_condition`  (
   `operator` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'matching character (=> <like match)',
   `param_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter name',
   `param_value` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter value',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -1232,8 +1232,8 @@ CREATE TABLE `selector`  (
   `enabled` tinyint(0) NOT NULL COMMENT 'whether to open',
   `loged` tinyint(0) NOT NULL COMMENT 'whether to print the log',
   `continued` tinyint(0) NOT NULL COMMENT 'whether to continue execution',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -1252,8 +1252,8 @@ CREATE TABLE `selector_condition`  (
   `operator` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'matching character (=> <like matching)',
   `param_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter name',
   `param_value` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter value',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -1274,8 +1274,8 @@ CREATE TABLE `shenyu_dict`  (
   `desc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'dictionary description or remarks',
   `sort` int(0) NOT NULL COMMENT 'sort',
   `enabled` tinyint(0) NULL DEFAULT NULL COMMENT 'whether it is enabled',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `dict_type_dict_code_dict_name`(`type`, `dict_code`, `dict_name`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
@@ -1361,8 +1361,8 @@ CREATE TABLE `user_role`  (
   `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
   `user_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'user primary key',
   `role_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'role primary key',
-  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'create time',
-  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_timestamp(3) ON UPDATE CURRENT_timestamp(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = 'user and role bind table' ROW_FORMAT = Dynamic;
 
