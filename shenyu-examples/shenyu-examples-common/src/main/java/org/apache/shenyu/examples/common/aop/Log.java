@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.springcloud.aop;
+package org.apache.shenyu.examples.common.aop;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

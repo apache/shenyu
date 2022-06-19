@@ -22,13 +22,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.integrated.test.combination.dto.SofaTestData;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
 import org.apache.shenyu.integratedtest.common.dto.MotanDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.hamcrest.Matchers;
-import org.hamcrest.core.Is;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -95,18 +93,6 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertEquals("hello shenyu", response);
     }
     
-    @Test
-    public void testSofa() {
-        try {
-            SofaTestData response = HttpHelper.INSTANCE.getFromGateway("/sofa/findById?id=1001", new TypeToken<SofaTestData>() {
-            }.getType());
-            assertThat(response.getName(), Is.is("hello world shenyu Sofa, findById"));
-            assertThat(response.getId(), Is.is("1001"));
-        } catch (Throwable e) {
-            LOG.error("testSofa failed !", e);
-        }
-    }
-    
     @AfterAll
     public static void testIsOneThreadPool() throws IOException {
         String spring = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromSpring", String.class);
@@ -116,11 +102,5 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertEquals(spring, grpc);
         String motan = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromMotan", String.class);
         assertEquals(spring, motan);
-        try {
-            String sofa = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromSofa", String.class);
-            assertEquals(spring, sofa);
-        } catch (Throwable e) {
-            LOG.error("testIsOneThreadPool sofa failed !", e);
-        }
     }
 }
