@@ -27,7 +27,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
-import org.apache.shenyu.examples.grpc.aop.Log;
+import org.apache.shenyu.examples.common.aop.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

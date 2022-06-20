@@ -29,11 +29,12 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, 
-        date_created, 
-        date_updated, 
-        user_name, 
-        password, role, 
+        id,
+        date_created,
+        date_updated,
+        user_name,
+        password,
+        role,
         enabled
     </sql>
 
@@ -83,6 +84,16 @@
           FROM dashboard_user
          WHERE id = #{id}
          LIMIT 1
+    </select>
+
+    <select id="selectByIds" resultType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
+        select
+            <include refid="Base_Column_List"/>
+            FROM dashboard_user
+        WHERE id IN
+        <foreach collection="ids" index="index" item="id" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
     </select>
 
     <sql id="likeUser">

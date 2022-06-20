@@ -40,6 +40,7 @@
     </properties>
 
     <modules>
+        <module>shenyu-examples-common</module>
         <module>shenyu-examples-http</module>
         <module>shenyu-examples-https</module>
         <module>shenyu-examples-dubbo</module>

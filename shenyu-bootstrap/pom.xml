@@ -469,6 +469,14 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu logging-rocketmq plugin end-->
+
+        <!--shenyu logging-elasticsearch plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-elasticsearch</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu logging-elasticsearch plugin end-->
     </dependencies>
     <profiles>
         <profile>

@@ -59,6 +59,7 @@
         <module>shenyu-spring-boot-starter-plugin-mqtt</module>
         <module>shenyu-spring-boot-starter-plugin-metrics</module>
         <module>shenyu-spring-boot-starter-plugin-logging-rocketmq</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-elasticsearch</module>
         <module>shenyu-spring-boot-starter-plugin-cache</module>
         <module>shenyu-spring-boot-starter-plugin-mock</module>
     </modules>

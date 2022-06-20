@@ -72,3 +72,16 @@ INSERT INTO `resource` VALUES ('1534585531108564992', '1534585430311051264', 'se
 INSERT INTO `permission` VALUES ('1534577122279825408', '1346358560427216896', '1534577121923309568', '2022-06-09 00:44:32', '2022-06-09 00:44:31');
 INSERT INTO `permission` VALUES ('1534585430587875328', '1346358560427216896', '1534585430311051264', '2022-06-09 01:17:33', '2022-06-09 01:17:32');
 INSERT INTO `permission` VALUES ('1534585531389583360', '1346358560427216896', '1534585531108564992', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
+
+/* insert plugin for loggingElasticSearch  */
+INSERT INTO `plugin` VALUES ('32', 'loggingElasticSearch','{\"host\":\"localhost\", \"port\": \"9200\"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+
+/*insert plugin_handle data for plugin loggingElasticSearch*/
+INSERT INTO `plugin_handle` VALUES ('1529402613204172876', '32', 'host', 'host', 2, 3, 1, '{\"required\":\"1\",\"defaultValue\":\"localhost\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172877', '32', 'port', 'port', 2, 3, 2, '{\"required\":\"1\",\"defaultValue\":\"9200\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172878', '32', 'sampleRate', 'sampleRate', 2, 3, 3, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172879', '32', 'maxResponseBody', 'maxResponseBody', 1, 3, 4, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172880', '32', 'maxRequestBody', 'maxRequestBody', 1, 3, 5, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172881', '32', 'compressAlg', 'compressAlg', 3, 3, 6, '{\"required\":\"0\",\"defaultValue\":\"none\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172882', '32', 'index', 'index', 2, 1, 1, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172883', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');

@@ -17,10 +17,19 @@
 
 
 ### shengyu getway proxy hello
-GET http://localhost:9195/motan/hello
+GET http://localhost:9195/motan/demo/hello
 Accept: application/json
 Content-Type: application/json
 
 {
   "name": "order"
+}
+
+### shengyu getway proxy timeout
+GET http://localhost:9195/motan/demo/testTimeOut
+Accept: application/json
+Content-Type: application/json
+
+{
+  "timeout": "1"
 }
