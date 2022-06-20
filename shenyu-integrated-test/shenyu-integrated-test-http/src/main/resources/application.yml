@@ -36,7 +36,7 @@ shenyu:
   metrics:
     enabled: true
     name: prometheus
-    host: 127.0.0.1
+    host: shenyu-integrated-test-http
     port: 8090
     jmxConfig:
     props:
