@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
-import org.apache.shenyu.examples.springmvc.aop.Log;
+import org.apache.shenyu.examples.common.aop.Log;
 import org.apache.shenyu.examples.springmvc.dto.UserDTO;
 import org.apache.shenyu.examples.springmvc.result.ResultBean;
 import org.springframework.web.bind.annotation.CookieValue;

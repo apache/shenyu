@@ -46,8 +46,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-examples-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
