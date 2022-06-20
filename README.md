@@ -204,7 +204,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
 
 # Contributor and Support
 
-* [How to Contributor](https://shenyu.apache.org/community/contributor-guide)
+* [How to Contribute](https://shenyu.apache.org/community/contributor-guide)
 * [Mailing Lists](mailto:dev@shenyu.apache.org)
 
 ---  
