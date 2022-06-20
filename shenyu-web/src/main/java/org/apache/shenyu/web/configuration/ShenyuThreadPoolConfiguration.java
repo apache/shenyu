@@ -54,7 +54,7 @@ public class ShenyuThreadPoolConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(TaskQueue.class)
-    @ConditionalOnProperty("shenyu.sharedPool.maxWorkQueueMemory")
+    @ConditionalOnProperty("shenyu.shared-pool.max-work-queue-memory")
     public TaskQueue<Runnable> memoryLimitedTaskQueue(final ShenyuConfig shenyuConfig) {
         final Instrumentation instrumentation = ByteBuddyAgent.install();
         final ShenyuConfig.SharedPool sharedPool = shenyuConfig.getSharedPool();
@@ -73,7 +73,7 @@ public class ShenyuThreadPoolConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(TaskQueue.class)
-    @ConditionalOnProperty("shenyu.sharedPool.maxFreeMemory")
+    @ConditionalOnProperty("shenyu.shared-pool.max-free-memory")
     public TaskQueue<Runnable> memorySafeTaskQueue(final ShenyuConfig shenyuConfig) {
         final ShenyuConfig.SharedPool sharedPool = shenyuConfig.getSharedPool();
         final Integer maxFreeMemory = sharedPool.getMaxFreeMemory();
@@ -91,7 +91,7 @@ public class ShenyuThreadPoolConfiguration {
      * @return the shenyu thread pool executor
      */
     @Bean
-    @ConditionalOnProperty(name = "shenyu.sharedPool.enable", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.shared-pool.enable", havingValue = "true")
     public ShenyuThreadPoolExecutor shenyuThreadPoolExecutor(final ShenyuConfig shenyuConfig,
                                                              final ObjectProvider<TaskQueue<Runnable>> provider) {
         final ShenyuConfig.SharedPool sharedPool = shenyuConfig.getSharedPool();

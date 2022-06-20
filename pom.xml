@@ -127,6 +127,10 @@
         <grpc.version>1.33.1</grpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
         <lz4-java.version>1.8.0</lz4-java.version>
+        <elasticsearch-java.version>8.2.3</elasticsearch-java.version>
+        <jackson-databind.version>2.12.3</jackson-databind.version>
+        <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
+        <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -145,7 +149,7 @@
         <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
         <bytebuddy.version>1.12.6</bytebuddy.version>
         <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
-        <jaxb.api.version>2.3.0</jaxb.api.version>
+        <jaxb.api.version>2.3.1</jaxb.api.version>
         <mail.version>1.6.2</mail.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
@@ -466,6 +470,18 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-loadbalancer</artifactId>
                 <version>${spring-cloud.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>elasticsearch-rest-client</artifactId>
+                <version>${elasticsearch-rest-client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>jakarta.json</groupId>
+                <artifactId>jakarta.json-api</artifactId>
+                <version>${jakarta.json-api.version}</version>
             </dependency>
 
         </dependencies>

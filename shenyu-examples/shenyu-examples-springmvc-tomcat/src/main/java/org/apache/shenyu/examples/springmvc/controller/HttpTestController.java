@@ -19,7 +19,9 @@ package org.apache.shenyu.examples.springmvc.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.examples.common.aop.Log;
 import org.apache.shenyu.examples.springmvc.dto.UserDTO;
 import org.apache.shenyu.examples.springmvc.result.ResultBean;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -60,26 +62,26 @@ public class HttpTestController {
      */
     @GetMapping("/findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
-        return buildUser(userId,"hello world");
+        return buildUser(userId, "hello world");
     }
 
     /**
      * Find by page user dto.
      *
-     * @param keyword the keyword
-     * @param page the page
+     * @param keyword  the keyword
+     * @param page     the page
      * @param pageSize the page size
      * @return the user dto
      */
     @GetMapping("/findByPage")
     public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
-        return buildUser(keyword,"hello world keyword is" + keyword + " page is" + page + " pageSize is" + pageSize);
+        return buildUser(keyword, "hello world keyword is" + keyword + " page is" + page + " pageSize is" + pageSize);
     }
 
     /**
      * Gets path variable.
      *
-     * @param id the id
+     * @param id   the id
      * @param name the name
      * @return the path variable
      */
@@ -95,16 +97,17 @@ public class HttpTestController {
      * @param id the id
      * @return the string
      */
+    @Log
     @GetMapping("/path/{id}/name")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
-        return buildUser(id,"hello world");
+        return buildUser(id, "hello world");
     }
 
 
     /**
      * Put path variable and body string.
      *
-     * @param id the id
+     * @param id      the id
      * @param userDTO the user dto
      * @return the string
      */

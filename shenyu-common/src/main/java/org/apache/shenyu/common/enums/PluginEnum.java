@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 package org.apache.shenyu.common.enums;
 
 import java.util.Arrays;
@@ -24,7 +24,7 @@ import java.util.List;
  * PluginEnum.
  */
 public enum PluginEnum {
-
+    
     /**
      * Mqtt plugin enum.
      */
@@ -34,12 +34,17 @@ public enum PluginEnum {
      * Global plugin enum.
      */
     GLOBAL(5, 0, "global"),
-
+    
+    /**
+     * the mock plugin enum.
+     */
+    MOCK(8, 0, "mock"),
+    
     /**
      * the cache plugin enum.
      */
     CACHE(10, 0, "cache"),
-
+    
     /**
      * Monitor plugin enum.
      */
@@ -99,7 +104,7 @@ public enum PluginEnum {
      * Request plugin enum.
      */
     REQUEST(120, 0, "request"),
-
+    
     /**
      * GeneralContext plugin enum.
      */
@@ -124,12 +129,17 @@ public enum PluginEnum {
      * Logging console plugin enum.
      */
     LOGGING_CONSOLE(160, 0, "loggingConsole"),
-
+    
     /**
      * Logging RocketMQ plugin enum.
      */
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
 
+    /**
+     * Logging ElasticSearch plugin enum.
+     */
+    LOGGING_ElasticSearch(190, 0, "loggingElasticSearch"),
+    
     /**
      * Divide plugin enum.
      */
@@ -194,25 +204,25 @@ public enum PluginEnum {
      * Motan plugin enum.
      */
     MOTAN(310, 0, "motan"),
-    
+
     /**
      * Cryptor response plugin enum.
      */
     CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),
-
+    
     /**
      * Response plugin enum.
      */
     RESPONSE(420, 0, "response");
-
-
-
+    
+    
+    
     private final int code;
-
+    
     private final int role;
-
+    
     private final String name;
-
+    
     /**
      * all args constructor.
      *
