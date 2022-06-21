@@ -61,10 +61,6 @@
             <artifactId>jakarta.json-api</artifactId>
             <version>${jakarta.json-api.version}</version>
         </dependency>
-        <dependency>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy-agent</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

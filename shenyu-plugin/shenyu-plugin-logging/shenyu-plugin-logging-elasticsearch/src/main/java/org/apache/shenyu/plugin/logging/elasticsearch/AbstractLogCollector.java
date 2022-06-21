@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.elasticsearch;
 
-import net.bytebuddy.agent.ByteBuddyAgent;
-import org.apache.shenyu.common.concurrent.MemoryLimitedTaskQueue;
+import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectConfigUtils;
@@ -33,8 +34,7 @@ import java.util.Objects;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -53,15 +53,18 @@ public abstract class AbstractLogCollector implements LogCollector {
 
     private final AtomicBoolean started = new AtomicBoolean(true);
 
-    private final ThreadFactory factory = ShenyuThreadFactory.create("shenyu-logging-elasticsearch", true);
+    private final ShenyuConfig config = new ShenyuConfig();
 
     @Override
     public void start() {
         bufferSize = LogCollectConfigUtils.getGlobalLogConfig().getBufferQueueSize();
         bufferQueue = new LinkedBlockingDeque<>(bufferSize);
-        ByteBuddyAgent.install();
-        ShenyuThreadPoolExecutor threadExecutor = new ShenyuThreadPoolExecutor(1, 1, 0L,
-                TimeUnit.MILLISECONDS, new MemoryLimitedTaskQueue<>(ByteBuddyAgent.getInstrumentation()), factory, new AbortPolicy());
+        final ShenyuConfig.SharedPool sharedPool = config.getSharedPool();
+        ShenyuThreadPoolExecutor threadExecutor = new ShenyuThreadPoolExecutor(sharedPool.getCorePoolSize(),
+                sharedPool.getMaximumPoolSize(), sharedPool.getKeepAliveTime(), TimeUnit.MILLISECONDS,
+                new MemorySafeTaskQueue<>(Constants.THE_256_MB),
+                ShenyuThreadFactory.create(config.getSharedPool().getPrefix(), true),
+                new ThreadPoolExecutor.AbortPolicy());
         started.set(true);
         threadExecutor.execute(this::consume);
     }
