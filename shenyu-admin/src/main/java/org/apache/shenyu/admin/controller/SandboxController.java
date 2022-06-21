@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -45,6 +44,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -67,17 +67,17 @@ public class SandboxController {
     /**
      * proxyGateway.
      *
-     * @param gatewayUrl        gatewayUrl
-     * @param appKey            appKey
-     * @param method            method
-     * @param cookie            cookie
-     * @param bizParam          bizParam
-     * @param httpMethod        httpMethod
-     * @param request           request
-     * @param response          response
+     * @param gatewayUrl gatewayUrl
+     * @param appKey     appKey
+     * @param method     method
+     * @param cookie     cookie
+     * @param bizParam   bizParam
+     * @param httpMethod httpMethod
+     * @param request    request
+     * @param response   response
      * @throws IOException IOException
      */
-    @RequestMapping("/proxyGateway")
+    @PostMapping(path = "/proxyGateway")
     public void proxyGateway(
         @RequestParam(required = false) final String gatewayUrl,
         @RequestParam final String appKey,
@@ -93,19 +93,18 @@ public class SandboxController {
         String gatewayUrlStr = gatewayUrl + method;
 
         // Public request parameters.
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> reqParams = new HashMap<String, String>();
         try {
             String bizParamStr = StringEscapeUtils.escapeHtml4(bizParam);
-            Map<String, String> map = (Map) JsonUtils.toMap(bizParamStr);
-            LOG.info("bizParam toMap= {}", JsonUtils.toJson(map));
-            if (map != null) {
-                params.putAll(map);
+            Map<String, String> reqMap = (Map) JsonUtils.toMap(bizParamStr);
+            LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
+            if (Objects.nonNull(reqMap)) {
+                reqParams.putAll(reqMap);
             }
         } catch (Exception e) {
-            LOG.error("JsonUtils.toMap error={}", e);
+            LOG.error("proxyGateway JsonUtils.toMap error={}", e);
+            return;
         }
-
-        String paramsQuery = buildParamQuery(params);
 
         Collection<MultipartFile> uploadFiles = UploadUtils.getUploadFiles(request);
         List<HttpUtils.UploadFile> files = uploadFiles.stream()
@@ -138,22 +137,16 @@ public class SandboxController {
         }
 
         try {
-            Response resp = HTTP_UTILS.requestCall(gatewayUrlStr, params, header, HttpUtils.HTTPMethod.fromValue(httpMethod), files);
+            Response resp = HTTP_UTILS.requestCall(gatewayUrlStr, reqParams, header, HttpUtils.HTTPMethod.fromValue(httpMethod), files);
             ResponseBody body = resp.body();
             if (Objects.isNull(body)) {
                 return;
             }
-            Map<String, List<String>> headersMap = resp.headers().toMultimap();
-            Map<String, String> targetHeaders = Maps.newHashMapWithExpectedSize(headersMap.size());
-            headersMap.forEach((key, value) -> {
-                String headerValue = String.join(",", value);
-                response.setHeader(key, headerValue);
-                targetHeaders.put(key, headerValue);
-            });
-            response.addHeader("response-headers", JsonUtils.toJson(targetHeaders));
-            response.addHeader("sendbox-params", UriUtils.encode(paramsQuery, StandardCharsets.UTF_8));
-            response.addHeader("sendbox-beforesign", UriUtils.encode(signContent, StandardCharsets.UTF_8));
-            response.addHeader("sendbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
+            response.addHeader("sandbox-params", UriUtils.encode(buildParamQuery(reqParams), StandardCharsets.UTF_8));
+            if (StringUtils.isNotEmpty(appKey)) {
+                response.addHeader("sandbox-beforesign", UriUtils.encode(signContent, StandardCharsets.UTF_8));
+                response.addHeader("sandbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
+            }
             IOUtils.copy(body.byteStream(), response.getOutputStream());
             response.flushBuffer();
         } catch (Exception e) {
