@@ -16,7 +16,7 @@
 #
 
 github:
-  description: Apache ShenYu is dynamic full lifecycle JAVA API gateway with easy scalability and hot-pluggble features.
+  description: Apache ShenYu is a Java native API Gateway for service proxy, protocol conversion and API governance.
   homepage: https://shenyu.apache.org/
   labels:
     - api-gateway
