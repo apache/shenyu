@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.global.cache;
 
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

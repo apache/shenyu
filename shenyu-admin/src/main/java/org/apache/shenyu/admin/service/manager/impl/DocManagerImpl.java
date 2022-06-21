@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.service.manager.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.parser.Feature;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,12 +25,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+
+import com.google.gson.JsonObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.bean.DocModule;
 import org.apache.shenyu.admin.service.manager.DocManager;
 import org.apache.shenyu.admin.service.manager.DocParser;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -94,8 +94,8 @@ public class DocManagerImpl implements DocManager {
 
     private DocInfo getDocInfo(final String clusterName, final String docInfoJson) {
         try {
-            JSONObject docRoot = JSON.parseObject(docInfoJson, Feature.OrderedField, Feature.DisableCircularReferenceDetect);
-            docRoot.put("basePath", "/" + clusterName);
+            JsonObject docRoot = GsonUtils.getInstance().fromJson(docInfoJson, JsonObject.class);
+            docRoot.addProperty("basePath", "/" + clusterName);
             DocInfo docInfo = SWAGGER_DOC_PARSER.parseJson(docRoot);
             docInfo.setClusterName(clusterName);
             return docInfo;

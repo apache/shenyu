@@ -36,7 +36,7 @@ public class ShenyuClientPathController {
      * @return result
      */
     @RequestMapping("shenyu/client/hello")
-    @ShenyuSpringMvcClient(path = "shenyu/client/hello", desc = "shenyu client annotation register")
+    @ShenyuSpringMvcClient("shenyu/client/hello")
     public String hello() {
         return "hello! " + HELLO_SUFFIX;
     }
@@ -47,7 +47,7 @@ public class ShenyuClientPathController {
      * @return result
      */
     @RequestMapping("shenyu/client/timeout")
-    @ShenyuSpringMvcClient(path = "shenyu/client/timeout", desc = "shenyu client annotation register")
+    @ShenyuSpringMvcClient("shenyu/client/timeout")
     public String timeout() {
         System.out.println("timeout");
         try {
@@ -65,7 +65,7 @@ public class ShenyuClientPathController {
      * @return result
      */
     @RequestMapping("shenyu/client/hi")
-    @ShenyuSpringMvcClient(path = "shenyu/client/hi", desc = "shenyu client annotation register")
+    @ShenyuSpringMvcClient("shenyu/client/hi")
     public String hello(final String name) {
         return "hi! " + name + "! " + HELLO_SUFFIX;
     }

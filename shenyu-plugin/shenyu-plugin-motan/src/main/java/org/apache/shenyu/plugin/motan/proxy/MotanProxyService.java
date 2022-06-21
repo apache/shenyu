@@ -144,9 +144,18 @@ public class MotanProxyService {
             default:
                 int corePoolSize = Optional.ofNullable(config.getCorethreads()).orElse(0);
                 int maximumPoolSize = Optional.ofNullable(config.getThreads()).orElse(Integer.MAX_VALUE);
-                int queueSize = Optional.ofNullable(config.getThreads()).orElse(0);
+                int queueSize = Optional.ofNullable(config.getQueues()).orElse(0);
                 threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.SECONDS,
                         queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
         }
+    }
+
+    /**
+     * get thread pool, just for integrated test.
+     *
+     * @return the thread pool
+     */
+    public ExecutorService getThreadPool() {
+        return threadPool;
     }
 }

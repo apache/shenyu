@@ -26,9 +26,8 @@
     <artifactId>shenyu-bootstrap</artifactId>
 
     <properties>
-        <spring-cloud.version>2.2.0.RELEASE</spring-cloud.version>
-        <nacos-discovery.version>2.2.6.RELEASE</nacos-discovery.version>
-        <eureka-client.version>2.1.2.RELEASE</eureka-client.version>
+        <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
+        <eureka-client.version>3.1.2</eureka-client.version>
     </properties>
 
     <dependencies>
@@ -244,7 +243,7 @@
         <!--shenyu sofa plugin end-->
 
         <!--shenyu springCloud plugin start-->
-       <dependency>
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-springcloud</artifactId>
             <version>${project.version}</version>
@@ -265,17 +264,32 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-commons</artifactId>
-            <version>${spring-cloud.version}</version>
+            <version>${spring-cloud-commons.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-            <version>${spring-cloud.version}</version>
+            <version>${spring-cloud-netflix-ribbon.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!--shenyu springCloud plugin start-->
-        
+
+
+        <!--shenyu mock plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-mock</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu mock plugin end-->
+
         <!--shenyu  apache dubbo plugin start-->
-         <dependency>
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>
             <version>${project.version}</version>
@@ -286,52 +300,52 @@
             <version>2.7.15</version>
         </dependency>
         <!-- Dubbo Nacos registry dependency -->
-      <!--  <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-registry-nacos</artifactId>
-            <version>2.7.15</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
-            <version>1.1.4</version>
-        </dependency>-->
+        <!--  <dependency>
+              <groupId>org.apache.dubbo</groupId>
+              <artifactId>dubbo-registry-nacos</artifactId>
+              <version>2.7.15</version>
+          </dependency>
+          <dependency>
+              <groupId>com.alibaba.nacos</groupId>
+              <artifactId>nacos-client</artifactId>
+              <version>1.1.4</version>
+          </dependency>-->
         <!-- Dubbo zookeeper registry dependency start -->
-       <!-- Dubbo zookeeper registry dependency end -->
+        <!-- Dubbo zookeeper registry dependency end -->
         <!-- shenyu  apache dubbo plugin end-->
 
         <!--shenyu alibaba dubbo plugin start-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.shenyu</groupId>-->
-<!--            <artifactId>shenyu-spring-boot-starter-plugin-alibaba-dubbo</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.alibaba</groupId>-->
-<!--            <artifactId>dubbo</artifactId>-->
-<!--            <version>${alibaba.dubbo.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.curator</groupId>-->
-<!--            <artifactId>curator-client</artifactId>-->
-<!--            <version>${curator.version}</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <artifactId>log4j</artifactId>-->
-<!--                    <groupId>log4j</groupId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.curator</groupId>-->
-<!--            <artifactId>curator-framework</artifactId>-->
-<!--            <version>${curator.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.curator</groupId>-->
-<!--            <artifactId>curator-recipes</artifactId>-->
-<!--            <version>${curator.version}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.shenyu</groupId>-->
+        <!--            <artifactId>shenyu-spring-boot-starter-plugin-alibaba-dubbo</artifactId>-->
+        <!--            <version>${project.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.alibaba</groupId>-->
+        <!--            <artifactId>dubbo</artifactId>-->
+        <!--            <version>${alibaba.dubbo.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.curator</groupId>-->
+        <!--            <artifactId>curator-client</artifactId>-->
+        <!--            <version>${curator.version}</version>-->
+        <!--            <exclusions>-->
+        <!--                <exclusion>-->
+        <!--                    <artifactId>log4j</artifactId>-->
+        <!--                    <groupId>log4j</groupId>-->
+        <!--                </exclusion>-->
+        <!--            </exclusions>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.curator</groupId>-->
+        <!--            <artifactId>curator-framework</artifactId>-->
+        <!--            <version>${curator.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.curator</groupId>-->
+        <!--            <artifactId>curator-recipes</artifactId>-->
+        <!--            <version>${curator.version}</version>-->
+        <!--        </dependency>-->
         <!--shenyu alibaba dubbo plugin end-->
 
         <!--shenyu spring cloud alibaba dubbo plugin start-->
@@ -455,7 +469,14 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu logging-rocketmq plugin end-->
-        
+
+        <!--shenyu logging-elasticsearch plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-elasticsearch</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu logging-elasticsearch plugin end-->
     </dependencies>
     <profiles>
         <profile>

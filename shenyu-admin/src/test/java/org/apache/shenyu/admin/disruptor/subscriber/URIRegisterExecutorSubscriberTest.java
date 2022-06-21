@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.disruptor.subscriber;
     
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.type.DataType;
@@ -34,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
     
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,7 +65,8 @@ public class URIRegisterExecutorSubscriberTest {
         List<URIRegisterDTO> list = new ArrayList<>();
         uriRegisterExecutorSubscriber.executor(list);
         assertEquals(true, list.isEmpty());
-        list.add(URIRegisterDTO.builder().appName("test").contextPath("/test").build());
+        list.add(URIRegisterDTO.builder().rpcType(RpcTypeEnum.HTTP.getName())
+                .appName("test").contextPath("/test").build());
         ShenyuClientRegisterService service = mock(ShenyuClientRegisterService.class);
         when(shenyuClientRegisterService.get(any())).thenReturn(service);
         uriRegisterExecutorSubscriber.executor(list);
@@ -86,23 +87,6 @@ public class URIRegisterExecutorSubscriberTest {
             list.add(URIRegisterDTO.builder().appName("test1").build());
             result = (Map) testMethod.invoke(uriRegisterExecutorSubscriber, list);
             assertEquals(2, result.size());
-        } catch (Exception e) {
-            throw new ShenyuException(e.getCause());
-        }
-    }
-    
-    @Test
-    public void testFindService() {
-        try {
-            List<URIRegisterDTO> list = new ArrayList<>();
-            list.add(URIRegisterDTO.builder().appName("test1").build());
-            list.add(URIRegisterDTO.builder().appName("test2").build());
-            ShenyuClientRegisterService service = mock(ShenyuClientRegisterService.class);
-            when(shenyuClientRegisterService.get(any())).thenReturn(service);
-            Method testMethod = uriRegisterExecutorSubscriber.getClass().getDeclaredMethod("findService", Collection.class);
-            testMethod.setAccessible(true);
-            Optional<ShenyuClientRegisterService> result = (Optional) testMethod.invoke(uriRegisterExecutorSubscriber, list);
-            assertEquals(service, result.get());
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
         }

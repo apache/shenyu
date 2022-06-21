@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 public class LoggingConsolePluginConfiguration {
 
     /**
-     * Logging console plugin shenyu plugin.
+     * Logging console plugin.
      *
      * @return the shenyu plugin
      */

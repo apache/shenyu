@@ -119,7 +119,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     
     @Override
     public void onError(final Exception e) {
-        this.close();
+        LOG.error("websocket server[{}] is error.....", getURI(), e);
     }
     
     @Override
@@ -145,17 +145,16 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
                 this.reconnectBlocking();
             } else {
                 this.sendPing();
-                LOG.debug("websocket send to [{}] ping message successful", this.getURI().toString());
+                LOG.debug("websocket send to [{}] ping message successful", this.getURI());
             }
         } catch (Exception e) {
             LOG.error("websocket connect is error :{}", e.getMessage());
         }
     }
     
-    @SuppressWarnings("ALL")
     private void handleResult(final String result) {
         LOG.info("handleResult({})", result);
-        WebsocketData websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
+        WebsocketData<?> websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
         ConfigGroupEnum groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
         String eventType = websocketData.getEventType();
         String json = GsonUtils.getInstance().toJson(websocketData.getData());

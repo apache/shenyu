@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.event.selector;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.entity.BaseDO;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
@@ -35,15 +36,19 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
     
     private final List<String> deletedIds;
     
+    private final List<PluginDO> plugins;
+    
     /**
      * Create a new {@code BatchChangedEvent}.operator is unknown.
      *
      * @param source   Current plugin state
      * @param operator operator
+     * @param plugins  about plugin
      */
-    public BatchSelectorDeletedEvent(final Collection<SelectorDO> source, final String operator) {
+    public BatchSelectorDeletedEvent(final Collection<SelectorDO> source, final String operator, final List<PluginDO> plugins) {
         super(source, null, EventTypeEnum.SELECTOR_DELETE, operator);
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
+        this.plugins = plugins;
     }
     
     @Override
@@ -53,6 +58,27 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
                 .map(s -> ((SelectorDO) s).getName())
                 .collect(Collectors.joining(","));
         return String.format("the selector[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
+    }
+    
+    /**
+     * get selectors.
+     *
+     * @return list
+     */
+    public List<SelectorDO> getSelectors() {
+        return ((Collection<?>) getSource())
+                .stream()
+                .map(SelectorDO.class::cast)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * get plugins.
+     *
+     * @return plugins.
+     */
+    public List<PluginDO> getPlugins() {
+        return plugins;
     }
     
     /**

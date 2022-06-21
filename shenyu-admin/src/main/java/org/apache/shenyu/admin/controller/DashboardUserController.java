@@ -48,6 +48,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -169,7 +170,7 @@ public class DashboardUserController {
     @DeleteMapping("/batch")
     @RequiresPermissions("system:manager:delete")
     public ShenyuAdminResult deleteDashboardUser(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        Integer deleteCount = dashboardUserService.delete(ids);
+        Integer deleteCount = dashboardUserService.delete(new HashSet<>(ids));
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }

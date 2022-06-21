@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.model.bean;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import java.util.List;
 
 /**
@@ -27,8 +26,7 @@ public class DocInfo {
 
     private String title;
 
-    @JSONField(serialize = false)
-    private String clusterName;
+    private transient String clusterName;
 
     private List<DocModule> docModuleList;
 

@@ -18,7 +18,7 @@
 
 package org.apache.shenyu.springboot.starter.client.sofa;
 
-import org.apache.shenyu.client.sofa.SofaServiceBeanPostProcessor;
+import org.apache.shenyu.client.sofa.SofaServiceEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
@@ -28,21 +28,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Sofa type client bean postprocessor.
+ * Sofa type client event listener.
  */
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuSofaClientConfiguration {
 
     /**
-     * Sofa service bean post processor sofa service bean post processor.
+     * Sofa service event listener.
      *
      * @param clientConfig the client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
-     * @return the sofa service bean post processor
+     * @return the sofa service event listener
      */
     @Bean
-    public SofaServiceBeanPostProcessor sofaServiceBeanPostProcessor(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new SofaServiceBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.SOFA.getName()), shenyuClientRegisterRepository);
+    public SofaServiceEventListener sofaServiceEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        return new SofaServiceEventListener(clientConfig.getClient().get(RpcTypeEnum.SOFA.getName()), shenyuClientRegisterRepository);
     }
 }

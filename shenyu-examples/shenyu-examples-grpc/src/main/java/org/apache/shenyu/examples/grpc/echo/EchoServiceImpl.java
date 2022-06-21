@@ -27,6 +27,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
+import org.apache.shenyu.examples.common.aop.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,8 @@ public class EchoServiceImpl extends EchoServiceGrpc.EchoServiceImplBase {
     private static final Logger LOG = LoggerFactory.getLogger(EchoServiceImpl.class);
 
     @Override
-    @ShenyuGrpcClient(path = "/echo", desc = "echo")
+    @Log
+    @ShenyuGrpcClient("/echo")
     public void echo(final EchoRequest request, final StreamObserver<EchoResponse> responseObserver) {
         LOG.info("Received: {}", request.getMessage());
         EchoResponse.Builder response = EchoResponse.newBuilder()

@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.client.spring.websocket;
 
 import org.apache.shenyu.client.spring.websocket.init.SpringContextRegisterListener;
-import org.apache.shenyu.client.spring.websocket.init.SpringWebSocketClientBeanPostProcessor;
+import org.apache.shenyu.client.spring.websocket.init.SpringWebSocketClientEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
@@ -35,24 +35,24 @@ import org.springframework.context.annotation.Configuration;
 public class ShenyuSpringWebSocketClientConfiguration {
 
     /**
-     * Spring http client bean post processor spring mvc client bean post processor.
+     * Spring web socket client event listener.
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
-     * @return the spring mvc client bean post processor
+     * @return the spring web socket client event listener
      */
     @Bean
-    public SpringWebSocketClientBeanPostProcessor springWebSocketClientBeanPostProcessor(
+    public SpringWebSocketClientEventListener springWebSocketClientEventListener(
         final ShenyuClientConfig clientConfig,
         final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new SpringWebSocketClientBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.WEB_SOCKET.getName()), shenyuClientRegisterRepository);
+        return new SpringWebSocketClientEventListener(clientConfig.getClient().get(RpcTypeEnum.WEB_SOCKET.getName()), shenyuClientRegisterRepository);
     }
 
     /**
-     * Context register listener context register listener.
+     * Context register listener.
      *
      * @param clientConfig the client config
-     * @return the context register listener
+     * @return the spring context register listener
      */
     @Bean
     public SpringContextRegisterListener webSocketContextRegisterListener(final ShenyuClientConfig clientConfig) {

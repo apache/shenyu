@@ -28,7 +28,10 @@
     <artifactId>shenyu-examples-eureka</artifactId>
 
     <properties>
-        <spring-cloud.version>Hoxton.SR1</spring-cloud.version>
+        <spring-cloud.version>2021.0.2</spring-cloud.version>
+        <jersey.version>1.19.4</jersey.version>
+        <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
+        <jersey-bom.versoin>3.0.4</jersey-bom.versoin>
     </properties>
 
     <dependencyManagement>
@@ -40,10 +43,20 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
+                <version>${jersey-bom.versoin}</version>
+                <type>pom</type>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
@@ -57,6 +70,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-apache-client4</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
      
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -67,6 +96,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
 
         <dependency>

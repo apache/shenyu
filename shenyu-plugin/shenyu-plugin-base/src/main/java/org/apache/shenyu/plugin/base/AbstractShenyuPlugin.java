@@ -22,9 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -38,8 +40,12 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * abstract shenyu plugin please extends.
@@ -167,9 +173,30 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private SelectorData matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
-        return selectors.stream()
-                .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
-                .findFirst().orElse(null);
+        List<SelectorData> filterCollectors = selectors.stream()
+                .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange)).collect(Collectors.toList());
+        if (filterCollectors.size() > 1) {
+            return manyMatchSelector(filterCollectors);
+        } else {
+            return filterCollectors.stream().findFirst().orElse(null);
+        }
+    }
+
+    private SelectorData manyMatchSelector(final List<SelectorData> filterCollectors) {
+        //What needs to be dealt with here is the and condition. If the number of and conditions is the same and is matched at the same time,
+        // it will be sorted by the sort field.
+        Map<Integer, List<Pair<Integer, SelectorData>>> collect =
+                filterCollectors.stream().map(selector -> {
+                    boolean match = MatchModeEnum.match(selector.getMatchMode(), MatchModeEnum.AND);
+                    int sort = 0;
+                    if (match) {
+                        sort = selector.getConditionList().size();
+                    }
+                    return Pair.of(sort, selector);
+                }).collect(Collectors.groupingBy(Pair::getLeft));
+        Integer max = Collections.max(collect.keySet());
+        List<Pair<Integer, SelectorData>> pairs = collect.get(max);
+        return pairs.stream().map(Pair::getRight).min(Comparator.comparing(SelectorData::getSort)).orElse(null);
     }
 
     private Boolean filterSelector(final SelectorData selector, final ServerWebExchange exchange) {
