@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.plugin.logging.elasticsearch;
 
+import net.bytebuddy.agent.ByteBuddyAgent;
+import org.apache.shenyu.common.concurrent.MemoryLimitedTaskQueue;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectConfigUtils;
@@ -28,9 +32,9 @@ import java.util.List;
 import java.util.Objects;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -49,11 +53,15 @@ public abstract class AbstractLogCollector implements LogCollector {
 
     private final AtomicBoolean started = new AtomicBoolean(true);
 
+    private final ThreadFactory factory = ShenyuThreadFactory.create("shenyu-logging-elasticsearch", true);
+
     @Override
     public void start() {
         bufferSize = LogCollectConfigUtils.getGlobalLogConfig().getBufferQueueSize();
         bufferQueue = new LinkedBlockingDeque<>(bufferSize);
-        ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
+        ByteBuddyAgent.install();
+        ShenyuThreadPoolExecutor threadExecutor = new ShenyuThreadPoolExecutor(1, 1, 0L,
+                TimeUnit.MILLISECONDS, new MemoryLimitedTaskQueue<>(ByteBuddyAgent.getInstrumentation()), factory, new AbortPolicy());
         started.set(true);
         threadExecutor.execute(this::consume);
     }
