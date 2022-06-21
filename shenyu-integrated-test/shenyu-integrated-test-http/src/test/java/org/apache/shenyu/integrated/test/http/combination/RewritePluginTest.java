@@ -79,7 +79,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(conditionData);
     }
 
-    private static List<RuleLocalData> buildRuleLocalDataList(String regex, String replace) {
+    private static List<RuleLocalData> buildRuleLocalDataList(final String regex, final String replace) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
 
         ConditionData conditionData = new ConditionData();
