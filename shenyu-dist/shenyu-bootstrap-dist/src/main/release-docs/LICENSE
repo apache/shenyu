@@ -392,6 +392,8 @@ The text of each license is the standard Apache 2.0 license.
     tomcat-annotations-api 9.0.29: https://tomcat.apache.org/, Apache 2.0
     tomcat-embed-core 9.0.29: https://tomcat.apache.org/, Apache 2.0
     jackson-jr-objects 2.10.1: http://wiki.fasterxml.com/JacksonHome, Apache 2.0
+    elasticsearch-java 8.2.3: https://github.com/elastic/elasticsearch-java, Apache 2.0
+    elasticsearch-rest-client 8.2.3: https://github.com/elastic/elasticsearch, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -461,6 +463,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     logback-classic 1.2.3: https://github.com/qos-ch/logback, EPL 1.0
     logback-core 1.2.3: https://github.com/qos-ch/logback, EPL 1.0
     aspectjweaver 1.9.5: https://mvnrepository.com/artifact/org.aspectj/aspectjweaver/1.9.5, EPL 1.0
+    jakarta.json-api 2.0.1: https://projects.eclipse.org/projects/ee4j.jsonp, EPL 2.0
 
 ========================================================================
 MIT licenses
