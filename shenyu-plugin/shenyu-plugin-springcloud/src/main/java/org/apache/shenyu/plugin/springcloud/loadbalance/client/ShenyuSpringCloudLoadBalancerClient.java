@@ -98,23 +98,6 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
         return execute(serviceId, serviceInstance, lbRequest);
     }
 
-    private <T> TimedRequestContext buildRequestContext(final LoadBalancerRequest<T> delegate, final String hint) {
-        if (delegate instanceof HttpRequestLoadBalancerRequest) {
-            HttpRequest request = ((HttpRequestLoadBalancerRequest<?>) delegate).getHttpRequest();
-            if (request != null) {
-                RequestData requestData = new RequestData(request);
-                return new RequestDataContext(requestData, hint);
-            }
-        }
-        return new DefaultRequestContext(delegate, hint);
-    }
-
-    private Set<LoadBalancerLifecycle> getSupportedLifecycleProcessors(final String serviceId) {
-        return LoadBalancerLifecycleValidator.getSupportedLifecycleProcessors(
-                loadBalancerClientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
-                DefaultRequestContext.class, Object.class, ServiceInstance.class);
-    }
-
     @Override
     public <T> T execute(final String serviceId, final ServiceInstance serviceInstance, final LoadBalancerRequest<T> request) throws IOException {
         DefaultResponse defaultResponse = new DefaultResponse(serviceInstance);
@@ -141,25 +124,6 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
             LOG.info("execute serviceInstance error");
         }
         return null;
-    }
-
-    private <T> Object getClientResponse(final T response, final boolean useRawStatusCodes) {
-        ClientHttpResponse clientHttpResponse = null;
-        if (response instanceof ClientHttpResponse) {
-            clientHttpResponse = (ClientHttpResponse) response;
-        }
-        if (clientHttpResponse != null) {
-            try {
-                if (useRawStatusCodes) {
-                    return new ResponseData(null, clientHttpResponse);
-                }
-                return new ResponseData(clientHttpResponse, null);
-            } catch (IOException ignored) {
-            } finally {
-                clientHttpResponse.close();
-            }
-        }
-        return response;
     }
 
     @Override
@@ -204,6 +168,47 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
         return this.doSelect(serviceId, choose);
     }
 
+    private <T> TimedRequestContext buildRequestContext(final LoadBalancerRequest<T> delegate, final String hint) {
+        if (delegate instanceof HttpRequestLoadBalancerRequest) {
+            HttpRequest request = ((HttpRequestLoadBalancerRequest<?>) delegate).getHttpRequest();
+            if (request != null) {
+                RequestData requestData = new RequestData(request);
+                return new RequestDataContext(requestData, hint);
+            }
+        }
+        return new DefaultRequestContext(delegate, hint);
+    }
+
+    private Set<LoadBalancerLifecycle> getSupportedLifecycleProcessors(final String serviceId) {
+        return LoadBalancerLifecycleValidator.getSupportedLifecycleProcessors(
+                loadBalancerClientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
+                DefaultRequestContext.class, Object.class, ServiceInstance.class);
+    }
+
+    private <T> Object getClientResponse(final T response, final boolean useRawStatusCodes) {
+        ClientHttpResponse clientHttpResponse = null;
+        if (response instanceof ClientHttpResponse) {
+            clientHttpResponse = (ClientHttpResponse) response;
+        }
+        if (clientHttpResponse != null) {
+            try {
+                if (useRawStatusCodes) {
+                    return new ResponseData(null, clientHttpResponse);
+                }
+                return new ResponseData(clientHttpResponse, null);
+            } catch (IOException ignored) {
+            } finally {
+                clientHttpResponse.close();
+            }
+        }
+        return response;
+    }
+
+    /**
+     * build url.
+     * @param upstream upstream
+     * @return url
+     */
     private static String buildUrl(final Upstream upstream) {
         if (Objects.isNull(upstream)) {
             return null;
