@@ -17,16 +17,18 @@
 
 package org.apache.shenyu.plugin.mock;
 
+import java.nio.charset.StandardCharsets;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.MockHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.mock.handler.MockPluginHandler;
+import org.apache.shenyu.plugin.mock.util.GenerateUtil;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -34,24 +36,34 @@ import reactor.core.publisher.Mono;
  * MockPlugin.
  */
 public class MockPlugin extends AbstractShenyuPlugin {
-
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange,
-                                   final ShenyuPluginChain chain,
-                                   final SelectorData selector,
-                                   final RuleData rule) {
-        MockHandle mockHandle = MockPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        return WebFluxResultUtils.resultCustomStatusCode(exchange, mockHandle.getResponseContent(), HttpStatus.valueOf(mockHandle.getHttpStatusCode()));
+        final ShenyuPluginChain chain,
+        final SelectorData selector,
+        final RuleData rule) {
+        MockHandle mockHandle = MockPluginHandler.CACHED_HANDLE.get()
+            .obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        String replaceContent = GenerateUtil.dealRule(mockHandle.getResponseContent());
+        
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        exchange.getResponse().setStatusCode(HttpStatus.valueOf(mockHandle.getHttpStatusCode()));
+        
+        final byte[] bytes = replaceContent.getBytes(StandardCharsets.UTF_8);
+        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+            .bufferFactory().wrap(bytes))
+            .doOnNext(data -> exchange.getResponse().getHeaders()
+                .setContentLength(data.readableByteCount())));
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.MOCK.getCode();
     }
-
+    
     @Override
     public String named() {
         return PluginEnum.MOCK.getName();
     }
-
+    
 }
