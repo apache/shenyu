@@ -116,8 +116,7 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
     }
 
     @Override
-    public <T> T execute(final String serviceId, final ServiceInstance serviceInstance, final LoadBalancerRequest<T> request)
-            throws IOException {
+    public <T> T execute(final String serviceId, final ServiceInstance serviceInstance, final LoadBalancerRequest<T> request) throws IOException {
         DefaultResponse defaultResponse = new DefaultResponse(serviceInstance);
         Set<LoadBalancerLifecycle> supportedLifecycleProcessors = getSupportedLifecycleProcessors(serviceId);
         Request lbRequest = request instanceof Request ? (Request) request : new DefaultRequest<>();
@@ -130,13 +129,11 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
             supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(new CompletionContext<>(CompletionContext.Status.SUCCESS,
                             lbRequest, defaultResponse, clientResponse)));
             return response;
-        }
-        catch (IOException ioException) {
+        } catch (IOException ioException) {
             supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(
                     new CompletionContext<>(CompletionContext.Status.FAILED, ioException, lbRequest, defaultResponse)));
             throw ioException;
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(
                     new CompletionContext<>(CompletionContext.Status.FAILED, exception, lbRequest, defaultResponse)));
             ReflectionUtils.rethrowRuntimeException(exception);
@@ -157,8 +154,7 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
                     return new ResponseData(null, clientHttpResponse);
                 }
                 return new ResponseData(clientHttpResponse, null);
-            }
-            catch (IOException ignored) {
+            } catch (IOException ignored) {
             } finally {
                 clientHttpResponse.close();
             }
