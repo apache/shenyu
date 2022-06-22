@@ -51,7 +51,7 @@ import java.util.Map;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ShenyuSpringCloudLoadBalancerClientTest {
     @Mock
-    ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory;
+    private ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory;
 
     private SimpleDiscoveryClient discoveryClient;
 
@@ -61,17 +61,17 @@ public class ShenyuSpringCloudLoadBalancerClientTest {
 
     @BeforeEach
     public void setup() {
-        List<DefaultServiceInstance> serviceInstances = new ArrayList<>();
+        List<DefaultServiceInstance> serviceInstanceList = new ArrayList<>();
         DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
         defaultServiceInstance.setServiceId("serviceId");
         defaultServiceInstance.setUri(URI.create("http://localhost:8080"));
         defaultServiceInstance.setInstanceId("serviceId");
         defaultServiceInstance.setPort(8080);
         defaultServiceInstance.setHost("localhost");
-        serviceInstances.add(defaultServiceInstance);
+        serviceInstanceList.add(defaultServiceInstance);
         SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
         Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
-        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstances);
+        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
         simpleDiscoveryProperties.setInstances(serviceInstanceMap);
         discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
         loadBalancerClient = new ShenyuSpringCloudLoadBalancerClient(discoveryClient, loadBalancerClientFactory);

@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 import static org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer.REQUEST;
 
 /**
- * spring cloud plugin loadbalancer
+ * spring cloud plugin loadbalancer.
  */
 public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
 
@@ -72,13 +72,14 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
 
     private final ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory;
 
-    public ShenyuSpringCloudLoadBalancerClient(DiscoveryClient discoveryClient, ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory) {
+    public ShenyuSpringCloudLoadBalancerClient(final DiscoveryClient discoveryClient,
+                                               final ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory) {
         this.discoveryClient = discoveryClient;
         this.loadBalancerClientFactory = loadBalancerClientFactory;
     }
 
     @Override
-    public <T> T execute(String serviceId, LoadBalancerRequest<T> request) throws IOException {
+    public <T> T execute(final String serviceId, final LoadBalancerRequest<T> request) throws IOException {
         String hint = getHint(serviceId);
         LoadBalancerRequestAdapter<T, TimedRequestContext> lbRequest = new LoadBalancerRequestAdapter<>(request,
                 buildRequestContext(request, hint));
@@ -93,7 +94,7 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
         return execute(serviceId, serviceInstance, lbRequest);
     }
 
-    private <T> TimedRequestContext buildRequestContext(LoadBalancerRequest<T> delegate, String hint) {
+    private <T> TimedRequestContext buildRequestContext(final LoadBalancerRequest<T> delegate, final String hint) {
         if (delegate instanceof HttpRequestLoadBalancerRequest) {
             HttpRequest request = ((HttpRequestLoadBalancerRequest<?>) delegate).getHttpRequest();
             if (request != null) {
@@ -104,14 +105,15 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
         return new DefaultRequestContext(delegate, hint);
     }
 
-    private Set<LoadBalancerLifecycle> getSupportedLifecycleProcessors(String serviceId) {
+    private Set<LoadBalancerLifecycle> getSupportedLifecycleProcessors(final String serviceId) {
         return LoadBalancerLifecycleValidator.getSupportedLifecycleProcessors(
                 loadBalancerClientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
                 DefaultRequestContext.class, Object.class, ServiceInstance.class);
     }
 
     @Override
-    public <T> T execute(String serviceId, ServiceInstance serviceInstance, LoadBalancerRequest<T> request) throws IOException {
+    public <T> T execute(final String serviceId, final ServiceInstance serviceInstance, final LoadBalancerRequest<T> request)
+            throws IOException {
         DefaultResponse defaultResponse = new DefaultResponse(serviceInstance);
         Set<LoadBalancerLifecycle> supportedLifecycleProcessors = getSupportedLifecycleProcessors(serviceId);
         Request lbRequest = request instanceof Request ? (Request) request : new DefaultRequest<>();
@@ -152,23 +154,25 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
                 return new ResponseData(clientHttpResponse, null);
             }
             catch (IOException ignored) {
+            } finally {
+                clientHttpResponse.close();
             }
         }
         return response;
     }
 
     @Override
-    public URI reconstructURI(ServiceInstance instance, URI original) {
+    public URI reconstructURI(final ServiceInstance instance, final URI original) {
         return LoadBalancerUriTools.reconstructURI(instance, original);
     }
 
     @Override
-    public ServiceInstance choose(String serviceId) {
+    public ServiceInstance choose(final String serviceId) {
         return choose(serviceId, REQUEST);
     }
 
     @Override
-    public <T> ServiceInstance choose(String serviceId, Request<T> request) {
+    public <T> ServiceInstance choose(final String serviceId, final Request<T> request) {
         final LoadBalanceKey loadBalanceKey = LoadBalanceKeyHolder.getLoadBalanceKey();
         List<ServiceInstance> available = this.getServiceInstance(serviceId);
         if (CollectionUtils.isEmpty(available)) {
@@ -199,7 +203,7 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
         return this.doSelect(serviceId, choose);
     }
 
-    private static String buildUrl(Upstream upstream) {
+    private static String buildUrl(final Upstream upstream) {
         if (Objects.isNull(upstream)) {
             return null;
         }
@@ -228,7 +232,7 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
      * @param upstreamList upstream list
      * @return
      */
-    private ServiceInstance doSelect(final String serviceId, List<Upstream> upstreamList) {
+    private ServiceInstance doSelect(final String serviceId, final List<Upstream> upstreamList) {
         final LoadBalanceKey loadBalanceKey = LoadBalanceKeyHolder.getLoadBalanceKey();
         // default loadbalancer
         if (Objects.isNull(loadBalanceKey) || StringUtils.isEmpty(loadBalanceKey.getLoadBalance())) {
@@ -253,7 +257,7 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
      * get service instance by serviceId.
      *
      * @param serviceId serviceId
-     * @return {@linkplain List<ServiceInstance>}
+     * @return {@linkplain ServiceInstance}
      */
     private List<ServiceInstance> getServiceInstance(final String serviceId) {
         List<String> serviceNames = discoveryClient.getServices().stream().map(String::toUpperCase).collect(Collectors.toList());
@@ -267,7 +271,7 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
      * build upstream by service instance.
      *
      * @param serviceId serviceId
-     * @return
+     * @return Upstream
      */
     private List<Upstream> buildUpstream(final String serviceId) {
         List<ServiceInstance> serviceInstanceList = this.getServiceInstance(serviceId);
@@ -286,7 +290,7 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
         }).collect(Collectors.toList());
     }
 
-    private String getHint(String serviceId) {
+    private String getHint(final String serviceId) {
         LoadBalancerProperties properties = loadBalancerClientFactory.getProperties(serviceId);
         String defaultHint = properties.getHint().getOrDefault("default", "default");
         String hintPropertyValue = properties.getHint().get(serviceId);
