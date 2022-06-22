@@ -123,7 +123,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         //handler selector rule
         String ruleHandler = ruleHandler();
         RuleDTO ruleDTO = buildRpcDefaultRuleDTO(selectorId, dto, ruleHandler);
-        //todo
         ruleService.registerDefault(ruleDTO);
         //handler register metadata
         registerMetadata(dto);
