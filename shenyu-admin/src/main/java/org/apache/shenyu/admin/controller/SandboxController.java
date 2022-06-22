@@ -43,7 +43,6 @@ import org.apache.shenyu.admin.utils.UploadUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -64,12 +63,23 @@ public class SandboxController {
     @Resource
     private AppAuthMapper appAuthMapper;
 
+    //    /**
+//     * proxyGateway.
+//     *
+//     * @param proxyGatewayDTO proxyGatewayDTO
+//     * @param request         request
+//     * @param response        response
+//     * @throws IOException IOException
+//     */
+//    @PostMapping(path = "/proxyGateway")
+//    public void proxyGateway(@RequestBody @Valid final ProxyGatewayDTO proxyGatewayDTO,
+//        final HttpServletRequest request,
+//        final HttpServletResponse response) throws IOException {
     /**
      * proxyGateway.
      *
-     * @param gatewayUrl gatewayUrl
+     * @param requestUrl requestUrl
      * @param appKey     appKey
-     * @param method     method
      * @param cookie     cookie
      * @param bizParam   bizParam
      * @param httpMethod httpMethod
@@ -79,22 +89,21 @@ public class SandboxController {
      */
     @PostMapping(path = "/proxyGateway")
     public void proxyGateway(
-        @RequestParam(required = false) final String gatewayUrl,
-        @RequestParam final String appKey,
-        @RequestParam final String method,
-        @RequestParam final String cookie,
-        @RequestParam final String bizParam,
+        @RequestParam(required = false) final String requestUrl,
+        @RequestParam(required = false) final String appKey,
+        @RequestParam(required = false) final String cookie,
+        @RequestParam(required = false) final String bizParam,
         @RequestParam(defaultValue = "get") final String httpMethod,
         final HttpServletRequest request,
         final HttpServletResponse response) throws IOException {
-
-        Assert.isTrue(StringUtils.isNotBlank(method), "method cannot be empty.");
-        Assert.isTrue(StringUtils.isNotBlank(gatewayUrl), "gatewayUrl cannot be empty.");
-        String gatewayUrlStr = gatewayUrl + method;
+//        Assert.isTrue(StringUtils.isNotBlank(proxyGatewayDTO), "requestUrl cannot be empty.");
+//        String appKey = proxyGatewayDTO.getAppKey();
+//        String requestUrl = proxyGatewayDTO.getRequestUrl();
 
         // Public request parameters.
         Map<String, String> reqParams = new HashMap<String, String>();
         try {
+//            String bizParamStr = StringEscapeUtils.escapeHtml4(proxyGatewayDTO.getBizParam());
             String bizParamStr = StringEscapeUtils.escapeHtml4(bizParam);
             Map<String, String> reqMap = (Map) JsonUtils.toMap(bizParamStr);
             LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
@@ -120,6 +129,7 @@ public class SandboxController {
             .collect(Collectors.toList());
 
         Map<String, String> header = new HashMap<>();
+//        header.put("Cookie", proxyGatewayDTO.getCookie());
         header.put("Cookie", cookie);
 
         String signContent = null;
@@ -127,7 +137,8 @@ public class SandboxController {
         if (StringUtils.isNotEmpty(appKey)) {
             String timestamp = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli());
             String secureKey = getSecureKey(appKey);
-            signContent = ShenyuSignatureUtils.getSignContent(secureKey, timestamp, method);
+            String[] methodArr = requestUrl.split("/", 2);
+            signContent = ShenyuSignatureUtils.getSignContent(secureKey, timestamp, methodArr[1]);
             sign = ShenyuSignatureUtils.generateSign(signContent);
 
             header.put("timestamp", timestamp);
@@ -136,23 +147,19 @@ public class SandboxController {
             header.put("version", ShenyuSignatureUtils.VERSION);
         }
 
-        try {
-            Response resp = HTTP_UTILS.requestCall(gatewayUrlStr, reqParams, header, HttpUtils.HTTPMethod.fromValue(httpMethod), files);
-            ResponseBody body = resp.body();
-            if (Objects.isNull(body)) {
-                return;
-            }
-            response.addHeader("sandbox-params", UriUtils.encode(buildParamQuery(reqParams), StandardCharsets.UTF_8));
-            if (StringUtils.isNotEmpty(appKey)) {
-                response.addHeader("sandbox-beforesign", UriUtils.encode(signContent, StandardCharsets.UTF_8));
-                response.addHeader("sandbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
-            }
-            IOUtils.copy(body.byteStream(), response.getOutputStream());
-            response.flushBuffer();
-        } catch (Exception e) {
-            LOG.error("request error", e);
-            throw new RuntimeException(e.getMessage());
+//        Response resp = HTTP_UTILS.requestCall(requestUrl, reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files);
+        Response resp = HTTP_UTILS.requestCall(requestUrl, reqParams, header, HttpUtils.HTTPMethod.fromValue(httpMethod), files);
+        ResponseBody body = resp.body();
+        if (Objects.isNull(body)) {
+            return;
         }
+        response.addHeader("sandbox-params", UriUtils.encode(buildParamQuery(reqParams), StandardCharsets.UTF_8));
+        if (StringUtils.isNotEmpty(appKey)) {
+            response.addHeader("sandbox-beforesign", UriUtils.encode(signContent, StandardCharsets.UTF_8));
+            response.addHeader("sandbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
+        }
+        IOUtils.copy(body.byteStream(), response.getOutputStream());
+        response.flushBuffer();
     }
 
     private String getSecureKey(final String appKey) {
