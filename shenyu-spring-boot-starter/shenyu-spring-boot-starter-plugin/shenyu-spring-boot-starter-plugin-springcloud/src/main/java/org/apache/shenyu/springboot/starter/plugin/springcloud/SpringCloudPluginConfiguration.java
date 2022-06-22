@@ -43,8 +43,9 @@ public class SpringCloudPluginConfiguration {
     /**
      * shenyu springcloud loadbalancer.
      *
+     * @param discoveryClient discoveryClient
      * @param loadBalancerClientFactory loadBalancerFactory
-     * @return loadBalancerClient
+     * @return
      */
     @Bean
     public LoadBalancerClient shenyuSpringCloudLoadBalancerClient(final ObjectProvider<DiscoveryClient> discoveryClient,
