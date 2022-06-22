@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
-
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
@@ -82,8 +81,6 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
                 .get(searchResponse.hits().hits().size() - 1).source();
         assertThat(shenyuRequestLog.getMethod(), is("/http/post/hi"));
     }
-
-
 
     private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
