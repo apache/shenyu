@@ -123,6 +123,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         //handler selector rule
         String ruleHandler = ruleHandler();
         RuleDTO ruleDTO = buildRpcDefaultRuleDTO(selectorId, dto, ruleHandler);
+        //todo
         ruleService.registerDefault(ruleDTO);
         //handler register metadata
         registerMetadata(dto);
@@ -152,7 +153,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         }
         // fetch UPSTREAM_MAP data from db
         //upstreamCheckService.fetchUpstreamData();
-        //update upstream
+        //update upstream todo
         List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
         String handler = buildHandle(validUriList, selectorDO);
         if (handler != null) {
