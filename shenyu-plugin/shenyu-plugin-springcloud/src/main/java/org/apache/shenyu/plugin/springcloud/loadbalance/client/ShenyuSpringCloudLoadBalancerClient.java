@@ -26,6 +26,8 @@ import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKey;
 import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKeyHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.CompletionContext;
@@ -67,6 +69,8 @@ import static org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoa
  * spring cloud plugin loadbalancer.
  */
 public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuSpringCloudLoadBalancerClient.class);
 
     private final DiscoveryClient discoveryClient;
 
@@ -123,8 +127,7 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
             T response = request.apply(serviceInstance);
             LoadBalancerProperties properties = loadBalancerClientFactory.getProperties(serviceId);
             Object clientResponse = getClientResponse(response, properties.isUseRawStatusCodeInResponseData());
-            supportedLifecycleProcessors
-                    .forEach(lifecycle -> lifecycle.onComplete(new CompletionContext<>(CompletionContext.Status.SUCCESS,
+            supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(new CompletionContext<>(CompletionContext.Status.SUCCESS,
                             lbRequest, defaultResponse, clientResponse)));
             return response;
         }
@@ -137,11 +140,13 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
             supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(
                     new CompletionContext<>(CompletionContext.Status.FAILED, exception, lbRequest, defaultResponse)));
             ReflectionUtils.rethrowRuntimeException(exception);
+        } finally {
+            LOG.info("execute serviceInstance error");
         }
         return null;
     }
 
-    private <T> Object getClientResponse(T response, boolean useRawStatusCodes) {
+    private <T> Object getClientResponse(final T response, final boolean useRawStatusCodes) {
         ClientHttpResponse clientHttpResponse = null;
         if (response instanceof ClientHttpResponse) {
             clientHttpResponse = (ClientHttpResponse) response;
@@ -217,8 +222,8 @@ public class ShenyuSpringCloudLoadBalancerClient implements LoadBalancerClient {
     /**
      * select serviceInstance by shenyu loadbalancer.
      *
-     * @param serviceId
-     * @return
+     * @param serviceId serviceId
+     * @return ServiceInstance
      */
     private ServiceInstance doSelect(final String serviceId) {
         List<Upstream> choose = this.buildUpstream(serviceId);

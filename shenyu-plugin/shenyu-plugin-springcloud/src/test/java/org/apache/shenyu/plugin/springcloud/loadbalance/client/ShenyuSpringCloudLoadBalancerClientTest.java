@@ -61,7 +61,7 @@ public class ShenyuSpringCloudLoadBalancerClientTest {
 
     @BeforeEach
     public void setup() {
-        List<DefaultServiceInstance> serviceInstanceList = new ArrayList<>();
+        final List<DefaultServiceInstance> serviceInstanceList = new ArrayList<>();
         DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
         defaultServiceInstance.setServiceId("serviceId");
         defaultServiceInstance.setUri(URI.create("http://localhost:8080"));
@@ -150,7 +150,7 @@ public class ShenyuSpringCloudLoadBalancerClientTest {
 
     @Test
     public void testLoadBalancer() {
-        List<DefaultServiceInstance> serviceInstances = new ArrayList<>();
+        final List<DefaultServiceInstance> serviceInstances = new ArrayList<>();
         DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
         defaultServiceInstance.setServiceId("serviceId");
         defaultServiceInstance.setUri(URI.create("http://localhost:8081"));
