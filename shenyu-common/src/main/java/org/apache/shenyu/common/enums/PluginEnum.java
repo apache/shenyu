@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.apache.shenyu.common.enums;
 
 import java.util.Arrays;
@@ -26,112 +26,112 @@ import java.util.stream.Collectors;
  * PluginEnum.
  */
 public enum PluginEnum {
-    
+
     /**
      * Mqtt plugin enum.
      */
     MQTT(0, 0, "mqtt"),
-    
+
     /**
      * Global plugin enum.
      */
     GLOBAL(5, 0, "global"),
-    
+
     /**
      * the mock plugin enum.
      */
     MOCK(8, 0, "mock"),
-    
+
     /**
      * the cache plugin enum.
      */
     CACHE(10, 0, "cache"),
-    
+
     /**
      * Monitor plugin enum.
      */
     METRICS(15, 0, "metrics"),
-    
+
     /**
      * Sign plugin enum.
      */
     SIGN(20, 0, "sign"),
-    
+
     /**
      * Jwt plugin enum.
      */
     JWT(30, 0, "jwt"),
-    
+
     /**
      * OAuth2 plugin enum.
      */
     OAUTH2(40, 0, "oauth2"),
-    
+
     /**
      * Waf plugin enum.
      */
     WAF(50, 0, "waf"),
-    
+
     /**
      * Rate limiter plugin enum.
      */
     RATE_LIMITER(60, 0, "rateLimiter"),
-    
+
     /**
      * Param mapping plugin enum.
      */
     PARAM_MAPPING(70, 0, "paramMapping"),
-    
+
     /**
      * Context path plugin enum.
      */
     CONTEXT_PATH(80, 0, "contextPath"),
-    
+
     /**
      * Rewrite plugin enum.
      */
     REWRITE(90, 0, "rewrite"),
-    
+
     /**
      * Cryptor request plugin enum.
      */
     CRYPTOR_REQUEST(100, 0, "cryptorRequest"),
-    
+
     /**
      * Redirect plugin enum.
      */
     REDIRECT(110, 0, "redirect"),
-    
+
     /**
      * Request plugin enum.
      */
     REQUEST(120, 0, "request"),
-    
+
     /**
      * GeneralContext plugin enum.
      */
     GENERAL_CONTEXT(125, 0, "generalContext"),
-    
+
     /**
      * Hystrix plugin enum.
      */
     HYSTRIX(130, 0, "hystrix"),
-    
+
     /**
      * Sentinel plugin enum.
      */
     SENTINEL(140, 0, "sentinel"),
-    
+
     /**
      * Resilence4J plugin enum.
      */
     RESILIENCE4J(150, 0, "resilience4j"),
-    
+
     /**
      * Logging console plugin enum.
      */
     LOGGING_CONSOLE(160, 0, "loggingConsole"),
-    
+
     /**
      * Logging RocketMQ plugin enum.
      */
@@ -141,67 +141,67 @@ public enum PluginEnum {
      * Logging ElasticSearch plugin enum.
      */
     LOGGING_ElasticSearch(190, 0, "loggingElasticSearch"),
-    
+
     /**
      * Divide plugin enum.
      */
     DIVIDE(200, 0, "divide"),
-    
+
     /**
      * springCloud plugin enum.
      */
     SPRING_CLOUD(200, 0, "springCloud"),
-    
+
     /**
      * webSocket plugin enum.
      */
     WEB_SOCKET(200, 0, "websocket"),
-    
+
     /**
      * Uri plugin enum.
      */
     URI(205, 0, "uri"),
-    
+
     /**
      * Web client plugin enum.
      */
     WEB_CLIENT(210, 0, "webClient"),
-    
+
     /**
      * Netty http client plugin enum.
      */
     NETTY_HTTP_CLIENT(210, 0, "nettyHttpClient"),
-    
+
     /**
      * ModifyResponse plugin enum.
      */
     MODIFY_RESPONSE(220, 0, "modifyResponse"),
-    
+
     /**
      * Param transform plugin enum.
      */
     RPC_PARAM_TRANSFORM(300, 0, "paramTransform"),
-    
+
     /**
      * Dubbo plugin enum.
      */
     DUBBO(310, 0, "dubbo"),
-    
+
     /**
      * Sofa plugin enum.
      */
     SOFA(310, 0, "sofa"),
-    
+
     /**
      * Tars plugin enum.
      */
     TARS(310, 0, "tars"),
-    
+
     /**
      * GPRC plugin enum.
      */
     GRPC(310, 0, "grpc"),
-    
+
     /**
      * Motan plugin enum.
      */
@@ -211,7 +211,7 @@ public enum PluginEnum {
      * Cryptor response plugin enum.
      */
     CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),
-    
+
     /**
      * Response plugin enum.
      */
@@ -224,11 +224,11 @@ public enum PluginEnum {
     private static final Map<String, PluginEnum> PLUGIN_ENUM_MAP = Arrays.stream(PluginEnum.values()).collect(Collectors.toMap(plugin -> plugin.name, plugin -> plugin));
 
     private final int code;
-    
+
     private final int role;
-    
+
     private final String name;
-    
+
     /**
      * all args constructor.
      *
@@ -241,7 +241,7 @@ public enum PluginEnum {
         this.role = role;
         this.name = name;
     }
-    
+
     /**
      * get code.
      *
@@ -250,7 +250,7 @@ public enum PluginEnum {
     public int getCode() {
         return code;
     }
-    
+
     /**
      * get role.
      *
@@ -259,7 +259,7 @@ public enum PluginEnum {
     public int getRole() {
         return role;
     }
-    
+
     /**
      * get name.
      *
@@ -268,7 +268,7 @@ public enum PluginEnum {
     public String getName() {
         return name;
     }
-    
+
     /**
      * get plugin enum by name.
      *
@@ -278,7 +278,7 @@ public enum PluginEnum {
     public static PluginEnum getPluginEnumByName(final String name) {
         return PLUGIN_ENUM_MAP.getOrDefault(name, PluginEnum.GLOBAL);
     }
-    
+
     /**
      * get upstream plugin names.
      *
