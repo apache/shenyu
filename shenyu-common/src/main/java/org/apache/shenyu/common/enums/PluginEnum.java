@@ -131,6 +131,10 @@ public enum PluginEnum {
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
 
     /**
+     * Logging RocketMQ plugin enum.
+     */
+    LOGGING_KAFKA(170, 0, "loggingKafka"),
+    /**
      * Divide plugin enum.
      */
     DIVIDE(200, 0, "divide"),
