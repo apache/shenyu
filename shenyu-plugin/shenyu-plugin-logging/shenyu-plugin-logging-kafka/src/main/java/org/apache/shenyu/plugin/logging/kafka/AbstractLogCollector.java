@@ -17,6 +17,14 @@
 
 package org.apache.shenyu.plugin.logging.kafka;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
@@ -28,12 +36,6 @@ import org.apache.shenyu.plugin.logging.kafka.utils.LogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * abstract log collector,Contains common methods.
  */
@@ -41,14 +43,15 @@ public abstract class AbstractLogCollector implements LogCollector {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLogCollector.class);
 
+    private final AtomicBoolean started = new AtomicBoolean(true);
+
+    private final ShenyuConfig config = new ShenyuConfig();
+
     private int bufferSize;
 
     private BlockingQueue<ShenyuRequestLog> bufferQueue;
 
     private long lastPushTime;
-
-    private final AtomicBoolean started = new AtomicBoolean(true);
-    private final ShenyuConfig config = new ShenyuConfig();
 
     @Override
     public void start() {
@@ -56,12 +59,10 @@ public abstract class AbstractLogCollector implements LogCollector {
         bufferQueue = new LinkedBlockingDeque<>(bufferSize);
         final ShenyuConfig.SharedPool sharedPool = config.getSharedPool();
         ShenyuThreadPoolExecutor threadExecutor = new ShenyuThreadPoolExecutor(sharedPool.getCorePoolSize(),
-                sharedPool.getMaximumPoolSize(), sharedPool.getKeepAliveTime(), TimeUnit.MILLISECONDS,
-                new MemorySafeTaskQueue<>(Constants.THE_256_MB),
-                ShenyuThreadFactory.create(config.getSharedPool().getPrefix(), true),
-                new ThreadPoolExecutor.AbortPolicy());
-
-
+            sharedPool.getMaximumPoolSize(), sharedPool.getKeepAliveTime(), TimeUnit.MILLISECONDS,
+            new MemorySafeTaskQueue<>(Constants.THE_256_MB),
+            ShenyuThreadFactory.create(config.getSharedPool().getPrefix(), true),
+            new ThreadPoolExecutor.AbortPolicy());
         started.set(true);
         threadExecutor.execute(this::consume);
     }

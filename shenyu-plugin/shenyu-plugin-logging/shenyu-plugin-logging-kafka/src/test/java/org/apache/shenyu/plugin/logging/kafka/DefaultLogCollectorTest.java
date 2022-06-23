@@ -17,13 +17,12 @@
 
 package org.apache.shenyu.plugin.logging.kafka;
 
+import java.lang.reflect.Field;
 import org.apache.shenyu.plugin.logging.kafka.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.kafka.kafka.KafkaLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Field;
 
 /**
  * The Test Case For DefaultLogCollector.

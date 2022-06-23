@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.kafka.body;
 
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -24,12 +29,12 @@ import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.logging.kafka.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.kafka.LogCollector;
 import org.apache.shenyu.plugin.logging.kafka.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.kafka.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.kafka.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.kafka.utils.LogCollectUtils;
-import org.apache.shenyu.plugin.logging.kafka.DefaultLogCollector;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,12 +49,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
-import java.net.URI;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 /**
  * decorate ServerHttpResponse for read body.
  */
@@ -61,9 +60,9 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
 
     private final ShenyuRequestLog logInfo;
 
-    private ServerWebExchange exchange;
-
     private final LogCollector logCollector;
+
+    private ServerWebExchange exchange;
 
     /**
      * Constructor LoggingServerHttpResponse.
@@ -205,14 +204,14 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
         logInfo.setTraceId(getTraceId());
         // Do not collect stack
         Object result = ShenyuResultWrap.error(exchange, httpStatus.value(),
-                httpStatus.getReasonPhrase(), throwable.getMessage());
+            httpStatus.getReasonPhrase(), throwable.getMessage());
         final ShenyuResult<?> shenyuResult = ShenyuResultWrap.shenyuResult();
         Object resultData = shenyuResult.format(exchange, result);
         final Object responseData = shenyuResult.result(exchange, resultData);
         assert null != responseData;
         final byte[] bytes = (responseData instanceof byte[])
-                ? (byte[]) responseData
-                : responseData.toString().getBytes(StandardCharsets.UTF_8);
+            ? (byte[]) responseData
+            : responseData.toString().getBytes(StandardCharsets.UTF_8);
         logInfo.setResponseContentLength(bytes.length);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;

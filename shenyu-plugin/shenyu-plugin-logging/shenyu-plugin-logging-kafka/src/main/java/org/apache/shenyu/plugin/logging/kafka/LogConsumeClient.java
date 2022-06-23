@@ -17,15 +17,14 @@
 
 package org.apache.shenyu.plugin.logging.kafka;
 
-import org.apache.shenyu.plugin.logging.kafka.entity.ShenyuRequestLog;
-
 import java.util.List;
+import org.apache.shenyu.plugin.logging.kafka.entity.ShenyuRequestLog;
 
 /**
  * Used to collect logs, which can be stored in remote or local files or databases, or others.
  */
 public interface LogConsumeClient extends AutoCloseable {
-    
+
     /**
      * collect logs.
      *

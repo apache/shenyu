@@ -17,40 +17,37 @@
 
 package org.apache.shenyu.plugin.logging.kafka.kafka;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig.GlobalLogConfig;
 import org.apache.shenyu.plugin.logging.kafka.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.kafka.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig.GlobalLogConfig;
-import org.apache.shenyu.plugin.logging.kafka.utils.LogCollectConfigUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Field;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
 /**
  * The Test Case For RocketMQLogCollectClient.
  */
 public class KafkaLogCollectClientTest {
 
-    private KafkaLogCollectClient kafkaLogCollectClient;
-
     private final Properties props = new Properties();
 
     private final PluginData pluginData = new PluginData();
 
-    private GlobalLogConfig globalLogConfig;
-
     private final List<ShenyuRequestLog> logs = new ArrayList<>();
 
     private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
+
+    private KafkaLogCollectClient kafkaLogCollectClient;
+
+    private GlobalLogConfig globalLogConfig;
 
     @BeforeEach
     public void setUp() {
@@ -58,7 +55,7 @@ public class KafkaLogCollectClientTest {
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\":\"localhost:8082\"}");
         globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                GlobalLogConfig.class);
+            GlobalLogConfig.class);
         globalLogConfig.setCompressAlg("LZ4");
         props.put("bootstrap.servers", globalLogConfig.getNamesrvAddr());
         props.put(LoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getNamesrvAddr());
@@ -76,34 +73,6 @@ public class KafkaLogCollectClientTest {
         Field field = kafkaLogCollectClient.getClass().getDeclaredField("topic");
         field.setAccessible(true);
         Assertions.assertEquals(field.get(kafkaLogCollectClient), "shenyu-access-logging");
-        kafkaLogCollectClient.close();
-    }
-
-    @Test
-    public void testConsume() {
-        String msg = "hey you bad bad";
-        LogCollectConfigUtils.setGlobalConfig(globalLogConfig);
-        kafkaLogCollectClient.initProducer(props);
-
-        ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
-        shenyuRequestLog.setModule("test");
-        shenyuRequestLog.setResponseContentLength(5);
-        shenyuRequestLog.setUserAgent("test");
-        shenyuRequestLog.setHost("test");
-        shenyuRequestLog.setClientIp("0.0.0.0");
-        LocalDateTime timeLocal = LocalDateTime.now();
-        shenyuRequestLog.setTimeLocal(timeLocal.toString());
-        shenyuRequestLog.setMethod("test");
-        shenyuRequestLog.setRequestBody("hello");
-        shenyuRequestLog.setUpstreamIp("0.0.0.0");
-
-        try {
-            kafkaLogCollectClient.consume(logs);
-        } catch (Exception e) {
-            msg = "false";
-        }
-
-//        Assertions.assertEquals("", msg);
         kafkaLogCollectClient.close();
     }
 }

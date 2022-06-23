@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.kafka;
 
+import java.net.InetSocketAddress;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -38,8 +39,6 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import java.net.InetSocketAddress;
 
 /**
  * The Test Case For LoggingKafkaPlugin.
@@ -64,11 +63,11 @@ public final class LoggingKafkaPluginTest {
         this.chain = Mockito.mock(ShenyuPluginChain.class);
         this.selectorData = Mockito.mock(SelectorData.class);
         MockServerHttpRequest request = MockServerHttpRequest
-                .get("localhost")
-                .remoteAddress(new InetSocketAddress(8090))
-                .header("X-source", "mock test")
-                .queryParam("queryParam", "Hello,World")
-                .build();
+            .get("localhost")
+            .remoteAddress(new InetSocketAddress(8090))
+            .header("X-source", "mock test")
+            .queryParam("queryParam", "Hello,World")
+            .build();
         ConfigurableApplicationContext context = Mockito.mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {

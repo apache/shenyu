@@ -17,13 +17,12 @@
 
 package org.apache.shenyu.plugin.logging.kafka.sampler;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-
 import java.util.BitSet;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
  * used for sample log.
@@ -42,6 +41,30 @@ public class CountSampler implements Sampler {
         counter = new AtomicInteger();
         int percent = (int) (probability * 100.0f);
         this.sampleDecisions = genRandomBitSet(100, percent);
+    }
+
+    /**
+     * create a sampler instance.
+     *
+     * @param probability probability
+     * @return sampler instance
+     */
+    public static Sampler create(final String probability) {
+        if (StringUtils.isBlank(probability)) {
+            return ALWAYS_SAMPLE;
+        }
+        if ("0".equals(probability)) {
+            return NEVER_SAMPLE;
+        }
+        if ("1".equals(probability) || "1.0".equals(probability) || "1.0.0".equals(probability)) {
+            return ALWAYS_SAMPLE;
+        }
+        float parseProbability = NumberUtils.toFloat(probability, 1);
+        if (parseProbability < 0.01f || parseProbability > 1) {
+            throw new IllegalArgumentException(
+                "probability should be between 0.01 and 1: was " + probability);
+        }
+        return new CountSampler(parseProbability);
     }
 
     /**
@@ -86,30 +109,6 @@ public class CountSampler implements Sampler {
             }
         }
         return result;
-    }
-
-    /**
-     * create a sampler instance.
-     *
-     * @param probability probability
-     * @return sampler instance
-     */
-    public static Sampler create(final String probability) {
-        if (StringUtils.isBlank(probability)) {
-            return ALWAYS_SAMPLE;
-        }
-        if ("0".equals(probability)) {
-            return NEVER_SAMPLE;
-        }
-        if ("1".equals(probability) || "1.0".equals(probability) || "1.0.0".equals(probability)) {
-            return ALWAYS_SAMPLE;
-        }
-        float parseProbability = NumberUtils.toFloat(probability, 1);
-        if (parseProbability < 0.01f || parseProbability > 1) {
-            throw new IllegalArgumentException(
-                    "probability should be between 0.01 and 1: was " + probability);
-        }
-        return new CountSampler(parseProbability);
     }
 
 }

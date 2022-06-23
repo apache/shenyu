@@ -35,7 +35,7 @@ public class LZ4CompressDataTest {
     @BeforeEach
     public void setUp() {
         this.length = 5;
-        this.compressedData = new byte[]{'h', 'e', 'l', 'l', 'o'};
+        this.compressedData = new byte[] {'h', 'e', 'l', 'l', 'o'};
         this.lz4CompressData = new LZ4CompressData(length, compressedData);
     }
 
@@ -47,7 +47,7 @@ public class LZ4CompressDataTest {
 
     @Test
     public void testGetCompressedData() {
-        byte[] bytes = new byte[]{'h', 'e', 'l', 'l', 'o', '!'};
+        byte[] bytes = new byte[] {'h', 'e', 'l', 'l', 'o', '!'};
         lz4CompressData.setCompressedData(bytes);
         Assertions.assertEquals(lz4CompressData.getCompressedData(), bytes);
     }

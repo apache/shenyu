@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.plugin.logging.kafka.sampler;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.util.BitSet;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.junit.jupiter.api.Assertions;
@@ -27,11 +31,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.util.BitSet;
 
 /**
  * The Test Case For CountSampler.
@@ -48,11 +47,11 @@ public class CountSamplerTest {
     public void setUp() {
         this.countSampler = new CountSampler(1);
         MockServerHttpRequest request = MockServerHttpRequest
-                .get("localhost")
-                .remoteAddress(new InetSocketAddress(8090))
-                .header("X-source", "mock test")
-                .queryParam("queryParam", "Hello,World")
-                .build();
+            .get("localhost")
+            .remoteAddress(new InetSocketAddress(8090))
+            .header("X-source", "mock test")
+            .queryParam("queryParam", "Hello,World")
+            .build();
         this.exchange = Mockito.spy(MockServerWebExchange.from(request));
         ShenyuContext shenyuContext = Mockito.mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);

@@ -17,10 +17,9 @@
 
 package org.apache.shenyu.plugin.logging.kafka.entity;
 
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
 
 /**
  * The Test Case For ShenyuRequestLog.

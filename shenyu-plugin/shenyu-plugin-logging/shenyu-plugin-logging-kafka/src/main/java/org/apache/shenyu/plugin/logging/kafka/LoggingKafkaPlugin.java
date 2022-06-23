@@ -63,9 +63,9 @@ public class LoggingKafkaPlugin extends AbstractShenyuPlugin {
 
         LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
         LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
-                requestInfo, DefaultLogCollector.getInstance());
+            requestInfo, DefaultLogCollector.getInstance());
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
-                .response(loggingServerHttpResponse).build();
+            .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);
 
         return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);

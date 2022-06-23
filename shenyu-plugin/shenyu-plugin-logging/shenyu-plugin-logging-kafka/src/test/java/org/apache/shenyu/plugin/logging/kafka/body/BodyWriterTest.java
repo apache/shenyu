@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.kafka.body;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 
 /**
  * The Test Case For BodyWriter.

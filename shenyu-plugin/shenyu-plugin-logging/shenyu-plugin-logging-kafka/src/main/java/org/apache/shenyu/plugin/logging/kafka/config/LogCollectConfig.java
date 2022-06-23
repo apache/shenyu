@@ -180,6 +180,7 @@ public class LogCollectConfig {
 
         /**
          * get kafka nameserver address.
+         *
          * @return kafka nameserver address
          */
         public String getNamesrvAddr() {
@@ -196,6 +197,7 @@ public class LogCollectConfig {
 
         /**
          * get producer group.
+         *
          * @return producer group
          */
         public String getProducerGroup() {
@@ -204,6 +206,7 @@ public class LogCollectConfig {
 
         /**
          * set producer group.
+         *
          * @param producerGroup producer group
          */
         public void setProducerGroup(final String producerGroup) {

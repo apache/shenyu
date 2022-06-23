@@ -17,17 +17,16 @@
 
 package org.apache.shenyu.plugin.logging.kafka.utils;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.kafka.sampler.CountSampler;
 import org.apache.shenyu.plugin.logging.kafka.sampler.Sampler;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.AntPathMatcher;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * log collect config Utils.
@@ -36,10 +35,10 @@ public final class LogCollectConfigUtils {
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
-    private static LogCollectConfig.GlobalLogConfig globalLogConfig;
-
     private static final LogCollectConfig.GlobalLogConfig DEFAULT_GLOBAL_LOG_CONFIG =
-            new LogCollectConfig.GlobalLogConfig();
+        new LogCollectConfig.GlobalLogConfig();
+
+    private static LogCollectConfig.GlobalLogConfig globalLogConfig;
 
     private static Map<String, Sampler> apiSamplerMap = new HashMap<>();
 
@@ -52,6 +51,7 @@ public final class LogCollectConfigUtils {
 
     /**
      * set global config.
+     *
      * @param config global config
      */
     public static void setGlobalConfig(final LogCollectConfig.GlobalLogConfig config) {
@@ -60,6 +60,7 @@ public final class LogCollectConfigUtils {
 
     /**
      * set api sample.
+     *
      * @param uriSampleMap api sample map
      */
     public static void setSampler(final Map<String, String> uriSampleMap) {
@@ -76,6 +77,7 @@ public final class LogCollectConfigUtils {
 
     /**
      * set api topic map.
+     *
      * @param uriTopicMap api topic map
      */
     public static void setTopic(final Map<String, String> uriTopicMap) {
@@ -84,6 +86,7 @@ public final class LogCollectConfigUtils {
 
     /**
      * set global Sampler.
+     *
      * @param sampler global sampler
      */
     public static void setGlobalSampler(final String sampler) {

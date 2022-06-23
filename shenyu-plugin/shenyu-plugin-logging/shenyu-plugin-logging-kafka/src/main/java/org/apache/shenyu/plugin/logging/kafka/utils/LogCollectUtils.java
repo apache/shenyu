@@ -17,14 +17,13 @@
 
 package org.apache.shenyu.plugin.logging.kafka.utils;
 
-import org.apache.shenyu.common.utils.JsonUtils;
-import org.springframework.http.HttpHeaders;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.springframework.http.HttpHeaders;
 
 /**
  * log collect utils.
@@ -32,7 +31,7 @@ import java.util.stream.Collectors;
 public class LogCollectUtils {
 
     private static final List<String> BINARY_TYPE_LIST = Arrays.asList("image", "multipart", "cbor",
-            "octet-stream", "pdf", "javascript", "css", "html");
+        "octet-stream", "pdf", "javascript", "css", "html");
 
     /**
      * judge whether is binary type.
@@ -42,9 +41,9 @@ public class LogCollectUtils {
      */
     public static boolean isNotBinaryType(final HttpHeaders headers) {
         return Optional.ofNullable(headers).map(HttpHeaders::getContentType)
-                .map(contentType -> !BINARY_TYPE_LIST.contains(contentType.getType())
-                        && !BINARY_TYPE_LIST.contains(contentType.getSubtype()))
-                .orElse(true);
+            .map(contentType -> !BINARY_TYPE_LIST.contains(contentType.getType())
+                && !BINARY_TYPE_LIST.contains(contentType.getSubtype()))
+            .orElse(true);
     }
 
     /**
@@ -55,7 +54,7 @@ public class LogCollectUtils {
      */
     public static String getHeaders(final HttpHeaders headers) {
         Map<String, String> map = headers.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(",", entry.getValue())));
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(",", entry.getValue())));
         return JsonUtils.toJson(map);
     }
 

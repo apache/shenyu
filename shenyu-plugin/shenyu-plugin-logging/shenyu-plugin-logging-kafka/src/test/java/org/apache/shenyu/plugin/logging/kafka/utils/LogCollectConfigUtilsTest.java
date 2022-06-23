@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.plugin.logging.kafka.utils;
 
+import java.lang.reflect.Field;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig.GlobalLogConfig;
@@ -29,11 +33,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.lang.reflect.Field;
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -60,11 +59,11 @@ public class LogCollectConfigUtilsTest {
         uriSampleMap.put("const", "1");
         apiTopicMap.put("topic", "shenyu-access-logging");
         MockServerHttpRequest request = MockServerHttpRequest
-                .get("localhost")
-                .remoteAddress(new InetSocketAddress(8090))
-                .header("X-source", "mock test")
-                .queryParam("queryParam", "Hello,World")
-                .build();
+            .get("localhost")
+            .remoteAddress(new InetSocketAddress(8090))
+            .header("X-source", "mock test")
+            .queryParam("queryParam", "Hello,World")
+            .build();
         this.exchange = Mockito.spy(MockServerWebExchange.from(request));
         ShenyuContext shenyuContext = Mockito.mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);

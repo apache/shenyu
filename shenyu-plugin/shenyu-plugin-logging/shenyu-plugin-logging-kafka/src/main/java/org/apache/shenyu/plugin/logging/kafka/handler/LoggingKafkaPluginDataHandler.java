@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.kafka.handler;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -28,19 +33,13 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.logging.kafka.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.kafka.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.kafka.kafka.KafkaLogCollectClient;
 import org.apache.shenyu.plugin.logging.kafka.utils.LogCollectConfigUtils;
-import org.apache.shenyu.plugin.logging.kafka.DefaultLogCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The type logging kafka plugin data handler.
@@ -58,6 +57,33 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
     private static final Map<String, LogCollectConfig.LogApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
 
     /**
+     * get kafka log collect client.
+     *
+     * @return kafka log collect client.
+     */
+    public static KafkaLogCollectClient getKafkaLogCollectClient() {
+        return KAFKA_LOG_COLLECT_CLIENT;
+    }
+
+    /**
+     * get selectId uriList map.
+     *
+     * @return selectId uriList map
+     */
+    public static Map<String, List<String>> getSelectIdUriListMap() {
+        return SELECT_ID_URI_LIST_MAP;
+    }
+
+    /**
+     * get select api config map.
+     *
+     * @return select api config map
+     */
+    public static Map<String, LogCollectConfig.LogApiConfig> getSelectApiConfigMap() {
+        return SELECT_API_CONFIG_MAP;
+    }
+
+    /**
      * start or close kafka client.
      */
     @Override
@@ -65,7 +91,7 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
         LOG.info("handler loggingKafka Plugin data:{}", GsonUtils.getGson().toJson(pluginData));
         if (pluginData.getEnabled()) {
             LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                    LogCollectConfig.GlobalLogConfig.class);
+                LogCollectConfig.GlobalLogConfig.class);
 
             LogCollectConfigUtils.setGlobalConfig(globalLogConfig);
             // start kafka producer
@@ -94,19 +120,19 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
             return;
         }
         if (selectorData.getType() != SelectorTypeEnum.CUSTOM_FLOW.getCode()
-                || CollectionUtils.isEmpty(selectorData.getConditionList())) {
+            || CollectionUtils.isEmpty(selectorData.getConditionList())) {
             return;
         }
 
         LogCollectConfig.LogApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson,
-                LogCollectConfig.LogApiConfig.class);
+            LogCollectConfig.LogApiConfig.class);
         if (StringUtils.isBlank(logApiConfig.getTopic()) || StringUtils.isBlank(logApiConfig.getSampleRate())) {
             return;
         }
         List<String> uriList = new ArrayList<>();
         for (ConditionData conditionData : selectorData.getConditionList()) {
             if ("uri".equals(conditionData.getParamType()) && StringUtils.isNotBlank(conditionData.getParamValue())
-                    && ("match".equals(conditionData.getOperator()) || "=".equals(conditionData.getOperator()))) {
+                && ("match".equals(conditionData.getOperator()) || "=".equals(conditionData.getOperator()))) {
                 uriList.add(conditionData.getParamValue().trim());
             }
         }
@@ -124,29 +150,5 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
     @Override
     public String pluginNamed() {
         return PluginEnum.LOGGING_KAFKA.getName();
-    }
-
-    /**
-     * get kafka log collect client.
-     * @return kafka log collect client.
-     */
-    public static KafkaLogCollectClient getKafkaLogCollectClient() {
-        return KAFKA_LOG_COLLECT_CLIENT;
-    }
-
-    /**
-     * get selectId uriList map.
-     * @return selectId uriList map
-     */
-    public static Map<String, List<String>> getSelectIdUriListMap() {
-        return SELECT_ID_URI_LIST_MAP;
-    }
-
-    /**
-     * get select api config map.
-     * @return select api config map
-     */
-    public static Map<String, LogCollectConfig.LogApiConfig> getSelectApiConfigMap() {
-        return SELECT_API_CONFIG_MAP;
     }
 }

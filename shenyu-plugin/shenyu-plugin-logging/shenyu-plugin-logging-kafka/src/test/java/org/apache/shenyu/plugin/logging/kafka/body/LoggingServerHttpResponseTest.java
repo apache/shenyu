@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.kafka.body;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.time.LocalDateTime;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -24,8 +29,8 @@ import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.plugin.logging.kafka.DefaultLogCollector;
-import org.apache.shenyu.plugin.logging.kafka.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.kafka.constant.LoggingConstant;
+import org.apache.shenyu.plugin.logging.kafka.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.kafka.utils.LogCollectUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,12 +41,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.time.LocalDateTime;
 
 /**
  * The Test Case For LoggingServerHttpResponse.
@@ -65,11 +64,11 @@ public class LoggingServerHttpResponseTest {
     @BeforeEach
     public void setUp() {
         MockServerHttpRequest request = MockServerHttpRequest
-                .post("localhost")
-                .remoteAddress(new InetSocketAddress(8090))
-                .header("X-source", "mock test")
-                .queryParam("queryParam", "Hello,World")
-                .body("hello");
+            .post("localhost")
+            .remoteAddress(new InetSocketAddress(8090))
+            .header("X-source", "mock test")
+            .queryParam("queryParam", "Hello,World")
+            .body("hello");
         ConfigurableApplicationContext context = Mockito.mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {

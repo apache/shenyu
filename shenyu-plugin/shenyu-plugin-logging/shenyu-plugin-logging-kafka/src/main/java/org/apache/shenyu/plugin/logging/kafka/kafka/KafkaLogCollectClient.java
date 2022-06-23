@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.plugin.logging.kafka.kafka;
 
-
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,23 +41,18 @@ import org.apache.shenyu.plugin.logging.kafka.utils.LogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * queue-based logging collector.
  */
 public class KafkaLogCollectClient implements LogConsumeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaLogCollectClient.class);
+
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
+
     private KafkaProducer<String, String> producer;
 
     private String topic;
-
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
     /**
      * init producer.
@@ -80,10 +78,10 @@ public class KafkaLogCollectClient implements LogConsumeClient {
 
         producer = new KafkaProducer<String, String>(props);
 
-        ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, "start producer");
+        ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, "shenyu-access-logging");
 
         try {
-            producer.send(record).get();
+            producer.send(record);
             LOG.info("init kafkaLogCollectClient success");
             isStarted.set(true);
         } catch (ProducerFencedException | OutOfOrderSequenceException | AuthorizationException e) {
@@ -92,11 +90,8 @@ public class KafkaLogCollectClient implements LogConsumeClient {
             producer.close();
         } catch (KafkaException e) {
             // For all other exceptions, just abort the transaction and try again.
-            LOG.error("init kafkaLogCollectClient error，Exceptions other than ProducerFencedException or OutOfOrderSequenceException or AuthorizationException, just abort the transaction and try again", e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            LOG.error(
+                "init kafkaLogCollectClient error，Exceptions other than ProducerFencedException or OutOfOrderSequenceException or AuthorizationException, just abort the transaction and try again", e);
         }
     }
 
@@ -125,12 +120,13 @@ public class KafkaLogCollectClient implements LogConsumeClient {
         String compressAlg = StringUtils.defaultIfBlank(LogCollectConfigUtils.getGlobalLogConfig().getCompressAlg(), "");
         if ("LZ4".equalsIgnoreCase(compressAlg.trim())) {
             LZ4CompressData lz4CompressData = new LZ4CompressData(bytes.length, compressedByte(bytes));
-            return new ProducerRecord<>(logTopic,JsonUtils.toJson(lz4CompressData));
+            return new ProducerRecord<>(logTopic, JsonUtils.toJson(lz4CompressData));
 
         } else {
-            return new ProducerRecord<>(logTopic,JsonUtils.toJson(log));
+            return new ProducerRecord<>(logTopic, JsonUtils.toJson(log));
         }
     }
+
     private byte[] compressedByte(final byte[] srcByte) {
         LZ4Factory factory = LZ4Factory.fastestInstance();
         LZ4Compressor compressor = factory.fastCompressor();

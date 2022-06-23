@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.kafka.utils;
 
+import java.net.InetSocketAddress;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,8 +27,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.net.InetSocketAddress;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -43,11 +42,11 @@ public class LogCollectUtilsTest {
     @BeforeEach
     public void setUp() {
         MockServerHttpRequest request = MockServerHttpRequest
-                .get("localhost")
-                .remoteAddress(new InetSocketAddress(8090))
-                .header("X-source", "mock test")
-                .queryParam("queryParam", "Hello,World")
-                .build();
+            .get("localhost")
+            .remoteAddress(new InetSocketAddress(8090))
+            .header("X-source", "mock test")
+            .queryParam("queryParam", "Hello,World")
+            .build();
         this.exchange = Mockito.spy(MockServerWebExchange.from(request));
         ShenyuContext shenyuContext = Mockito.mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
