@@ -19,6 +19,8 @@ package org.apache.shenyu.common.enums;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * PluginEnum.
@@ -214,9 +216,13 @@ public enum PluginEnum {
      * Response plugin enum.
      */
     RESPONSE(420, 0, "response");
-    
-    
-    
+
+    /**
+     * When the application starts, the plugin is cached and we can obtained by name.
+     * When there are duplicate plugin names, it can be detected and resolved at compile time.
+     */
+    private static final Map<String, PluginEnum> PLUGIN_ENUM_MAP = Arrays.stream(PluginEnum.values()).collect(Collectors.toMap(plugin -> plugin.name, plugin -> plugin));
+
     private final int code;
     
     private final int role;
@@ -270,9 +276,7 @@ public enum PluginEnum {
      * @return plugin enum.
      */
     public static PluginEnum getPluginEnumByName(final String name) {
-        return Arrays.stream(PluginEnum.values())
-                .filter(pluginEnum -> pluginEnum.getName().equals(name))
-                .findFirst().orElse(PluginEnum.GLOBAL);
+        return PLUGIN_ENUM_MAP.getOrDefault(name, PluginEnum.GLOBAL);
     }
     
     /**
