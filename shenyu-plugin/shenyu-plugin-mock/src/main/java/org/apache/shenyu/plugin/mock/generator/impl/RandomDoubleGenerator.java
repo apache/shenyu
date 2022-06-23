@@ -15,43 +15,57 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator;
+package org.apache.shenyu.plugin.mock.generator.impl;
 
-import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomInt;
-import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomLowerLetterString;
+import java.util.List;
+import java.util.Objects;
+import org.apache.shenyu.plugin.mock.generator.Generator;
+import org.apache.shenyu.spi.Join;
 
 /**
- * Random email address generator.
+ * Random double value generator in the specified range.
  */
-public class EmailGenerator extends AbstractGenerator<String> {
+@Join
+public class RandomDoubleGenerator implements Generator<String> {
     
-    private static final String[] DOMAIN_SUFFIX = {"com", "org", "cn", "com.cn", "top", "edu",
-        "io"};
+    private Double min;
+    
+    private Double max;
+    
+    private String format;
     
     @Override
     public String getName() {
-        return "email";
+        return "double";
     }
     
     @Override
     public String generate() {
-        return String.format("%s@%s.%s",
-            randomLowerLetterString(randomInt(5, 10)),
-            randomLowerLetterString(randomInt(3, 8)),
-            DOMAIN_SUFFIX[randomInt(0, DOMAIN_SUFFIX.length - 1)]);
+        Double result = (Math.random() * (max - min)) + min;
+        if (format != null) {
+            return String.format(format, result);
+        }
+        return String.valueOf(result);
     }
     
     @Override
     public int getParamSize() {
-        return 0;
+        return 1;
     }
     
     @Override
-    void initParam() {
+    public void initParam(final List<String> params) {
+        String[] range = params.get(0).split("-");
+        min = Double.parseDouble(range[0]);
+        max = Double.parseDouble(range[1]);
+        if (params.size() == 2) {
+            format = Objects.equals(params.get(1), "") ? null : params.get(1);
+        }
     }
     
     @Override
     public boolean match(final String rule) {
-        return rule.matches("^email$");
+        return rule.matches("^double\\|\\d+(?:\\.\\d+)?-\\d+(?:\\.\\d+)?.*");
     }
 }
+

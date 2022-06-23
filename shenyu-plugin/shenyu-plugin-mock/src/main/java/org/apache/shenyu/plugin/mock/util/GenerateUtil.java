@@ -17,33 +17,16 @@
 
 package org.apache.shenyu.plugin.mock.util;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.shenyu.plugin.mock.generator.AbstractGenerator;
-import org.apache.shenyu.plugin.mock.generator.BoolGenerator;
-import org.apache.shenyu.plugin.mock.generator.CnameGenerator;
-import org.apache.shenyu.plugin.mock.generator.CurrentTimeGenerator;
-import org.apache.shenyu.plugin.mock.generator.EmailGenerator;
-import org.apache.shenyu.plugin.mock.generator.EnStringGenerator;
-import org.apache.shenyu.plugin.mock.generator.IdCardNumGenerator;
-import org.apache.shenyu.plugin.mock.generator.PhoneGenerator;
-import org.apache.shenyu.plugin.mock.generator.RandomDoubleGenerator;
-import org.apache.shenyu.plugin.mock.generator.RandomIntGenerator;
-import org.apache.shenyu.plugin.mock.generator.RangeDataGenerator;
-import org.apache.shenyu.plugin.mock.generator.ZhStringGenerator;
+import org.apache.shenyu.plugin.mock.generator.Generator;
+import org.apache.shenyu.spi.ExtensionLoader;
 
 /**
  * GenerateUtil.
  */
 public class GenerateUtil {
-    
-    /**
-     * map of generator.
-     */
-    private static final Map<String, AbstractGenerator<?>> GENERATORS = new HashMap<>();
     
     /**
      * Regular expression to extract placeholders.
@@ -57,18 +40,8 @@ public class GenerateUtil {
     private static final Pattern RULE_CONTENT_PATTERN = Pattern
         .compile("^\\$\\{(.+?)}$", Pattern.MULTILINE);
     
-    static {
-        GENERATORS.put("int", new RandomIntGenerator());
-        GENERATORS.put("zh", new ZhStringGenerator());
-        GENERATORS.put("en", new EnStringGenerator());
-        GENERATORS.put("cname", new CnameGenerator());
-        GENERATORS.put("double", new RandomDoubleGenerator());
-        GENERATORS.put("bool", new BoolGenerator());
-        GENERATORS.put("phone", new PhoneGenerator());
-        GENERATORS.put("current", new CurrentTimeGenerator());
-        GENERATORS.put("idcard", new IdCardNumGenerator());
-        GENERATORS.put("email", new EmailGenerator());
-        GENERATORS.put("list", new RangeDataGenerator());
+    private static Generator<?> getGenerator(final String ruleName) {
+        return ExtensionLoader.getExtensionLoader(Generator.class).getJoin(ruleName);
     }
     
     private static Object generate(final String rule) {
@@ -76,7 +49,7 @@ public class GenerateUtil {
         if (matcher.find()) {
             String ruleContent = matcher.group(1);
             String ruleName = ruleContent.split("\\|")[0];
-            AbstractGenerator<?> generator = GENERATORS.get(ruleName);
+            Generator<?> generator = getGenerator(ruleName);
             if (generator == null || !generator.match(ruleContent)) {
                 return rule;
             }
@@ -110,15 +83,6 @@ public class GenerateUtil {
             afterDeal = afterDeal.replaceFirst(placeHolder, toString);
         }
         return afterDeal;
-    }
-    
-    /**
-     * add data generator.
-     * @param name name
-     * @param generator generator
-     */
-    public static void addGenerator(final String name, final AbstractGenerator<?> generator) {
-        GENERATORS.put(name, generator);
     }
     
 }

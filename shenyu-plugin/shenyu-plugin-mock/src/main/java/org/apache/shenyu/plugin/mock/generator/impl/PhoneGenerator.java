@@ -15,45 +15,46 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator;
+package org.apache.shenyu.plugin.mock.generator.impl;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import java.util.List;
+import org.apache.shenyu.plugin.mock.generator.Generator;
 import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import org.apache.shenyu.spi.Join;
 
 /**
- * Random english string generator.
+ * 11-digit mobile number generator.
  */
-public class EnStringGenerator extends AbstractGenerator<String> {
-    
-    private int min;
-    
-    private int max;
+@Join
+public class PhoneGenerator implements Generator<String> {
     
     @Override
     public String getName() {
-        return "zh";
+        return "phone";
     }
     
     @Override
     public String generate() {
-        return RandomStringUtils.random(RandomUtil.randomInt(min, max), 5, 129, true, false);
+        StringBuilder builder = new StringBuilder("1");
+        builder.append(RandomUtil.randomInt(3, 9));
+        for (int i = 0; i < 9; i++) {
+            builder.append(RandomUtil.randomInt(0, 9));
+        }
+        return builder.toString();
     }
     
     @Override
     public int getParamSize() {
-        return 1;
+        return 0;
     }
     
     @Override
-    void initParam() {
-        String[] range = super.getParams().get(0).split("-");
-        min = Integer.parseInt(range[0]);
-        max = Integer.parseInt(range[1]);
+    public void initParam(final List<String> params) {
+    
     }
     
     @Override
     public boolean match(final String rule) {
-        return rule.matches("^en\\|\\d+-\\d+$");
+        return rule.matches("^phone$");
     }
-    
 }

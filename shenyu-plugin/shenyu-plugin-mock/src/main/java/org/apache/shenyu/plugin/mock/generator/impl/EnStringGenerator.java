@@ -15,34 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator;
+package org.apache.shenyu.plugin.mock.generator.impl;
 
 import java.util.List;
-import java.util.Objects;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.shenyu.plugin.mock.generator.Generator;
+import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import org.apache.shenyu.spi.Join;
 
 /**
- * Random double value generator in the specified range.
+ * Random english string generator.
  */
-public class RandomDoubleGenerator extends AbstractGenerator<String> {
+@Join
+public class EnStringGenerator implements Generator<String> {
     
-    private Double min;
+    private int min;
     
-    private Double max;
-    
-    private String format;
+    private int max;
     
     @Override
     public String getName() {
-        return "double";
+        return "zh";
     }
     
     @Override
     public String generate() {
-        Double result = (Math.random() * (max - min)) + min;
-        if (format != null) {
-            return String.format(format, result);
-        }
-        return String.valueOf(result);
+        return RandomStringUtils.random(RandomUtil.randomInt(min, max), 5, 129, true, false);
     }
     
     @Override
@@ -51,19 +49,15 @@ public class RandomDoubleGenerator extends AbstractGenerator<String> {
     }
     
     @Override
-    void initParam() {
-        List<String> params = super.getParams();
+    public void initParam(final List<String> params) {
         String[] range = params.get(0).split("-");
-        min = Double.parseDouble(range[0]);
-        max = Double.parseDouble(range[1]);
-        if (params.size() == 2) {
-            format = Objects.equals(params.get(1), "") ? null : params.get(1);
-        }
+        min = Integer.parseInt(range[0]);
+        max = Integer.parseInt(range[1]);
     }
     
     @Override
     public boolean match(final String rule) {
-        return rule.matches("^double\\|\\d+(?:\\.\\d+)?-\\d+(?:\\.\\d+)?.*");
+        return rule.matches("^en\\|\\d+-\\d+$");
     }
+    
 }
-

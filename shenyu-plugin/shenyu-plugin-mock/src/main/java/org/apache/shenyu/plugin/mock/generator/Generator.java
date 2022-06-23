@@ -17,64 +17,59 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.shenyu.spi.SPI;
 
 /**
  * Abstract generator.
  */
-public abstract class AbstractGenerator<T> {
-    
-    private List<String> params;
-    
-    /**
-     * get params.
-     *
-     * @return params
-     */
-    public List<String> getParams() {
-        return params;
-    }
+@SPI
+public interface Generator<T> {
     
     /**
      * rule name.
      *
      * @return name
      */
-    abstract String getName();
+    String getName();
     
     /**
      * generate mock data.
      *
      * @return random data
      */
-    public abstract T generate();
+    T generate();
     
     /**
      * get size of rule params.
      *
      * @return params size
      */
-    abstract int getParamSize();
+    int getParamSize();
     
     /**
      * init generator.
      *
      * @param rule rule
      */
-    public void parseRule(final String rule) {
+    default void parseRule(final String rule) {
+        List<String> params = new ArrayList<>();
         String[] split = rule.split("\\|");
         if (split.length >= getParamSize() + 1) {
-            params = Arrays.stream(split).skip(1).collect(Collectors.toList());
+            params.addAll(Arrays.stream(split).skip(1).collect(Collectors.toList()));
         }
-        initParam();
+        initParam(params);
     }
     
     /**
      * param from rule.
+     *
+     * @param params rule params.
      */
-    abstract void initParam();
+    void initParam(List<String> params);
     
     /**
      * Determine whether the rule meets the format requirements.
@@ -82,6 +77,6 @@ public abstract class AbstractGenerator<T> {
      * @param rule rule
      * @return if match return true.
      */
-    public abstract boolean match(String rule);
+    boolean match(String rule);
     
 }

@@ -15,17 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator;
+package org.apache.shenyu.plugin.mock.generator.impl;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.shenyu.plugin.mock.generator.Generator;
 import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import org.apache.shenyu.spi.Join;
 
 /**
  * Specify the in-list data generator.
  */
-public class RangeDataGenerator extends AbstractGenerator<String> {
+@Join
+public class RangeDataGenerator implements Generator<String> {
     
     private List<String> data;
     
@@ -45,8 +48,8 @@ public class RangeDataGenerator extends AbstractGenerator<String> {
     }
     
     @Override
-    void initParam() {
-        String rangeData = super.getParams().get(0).replaceAll("\\[(.+)]", "$1");
+    public void initParam(final List<String> params) {
+        String rangeData = params.get(0).replaceAll("\\[(.+)]", "$1");
         data = Arrays.stream(rangeData.split("(?<!\\\\),"))
             .map(data -> data.replace("\\,", ","))
             .collect(Collectors.toList());

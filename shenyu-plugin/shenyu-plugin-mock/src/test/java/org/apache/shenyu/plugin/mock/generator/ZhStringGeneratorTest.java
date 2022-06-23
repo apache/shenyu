@@ -17,40 +17,30 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.apache.shenyu.plugin.mock.generator.impl.ZhStringGenerator;
+import org.junit.jupiter.api.Test;
 
 /**
- * 11-digit mobile number generator.
+ * The test case for {@link ZhStringGenerator}.
+ * @date 2022/6/20 15:44
  */
-public class PhoneGenerator extends AbstractGenerator<String> {
+class ZhStringGeneratorTest {
     
-    @Override
-    public String getName() {
-        return "phone";
+    private final ZhStringGenerator generator = new ZhStringGenerator();
+    
+    @Test
+    void generate() {
+        int minLength = 10;
+        int maxLength = 20;
+        generator.parseRule(String.format("zh|%d-%d", minLength, maxLength));
+        String generate = generator.generate();
+        assertTrue(
+            generate != null && generate.length() >= minLength && generate.length() <= maxLength);
     }
     
-    @Override
-    public String generate() {
-        StringBuilder builder = new StringBuilder("1");
-        builder.append(RandomUtil.randomInt(3, 9));
-        for (int i = 0; i < 9; i++) {
-            builder.append(RandomUtil.randomInt(0, 9));
-        }
-        return builder.toString();
-    }
-    
-    @Override
-    public int getParamSize() {
-        return 0;
-    }
-    
-    @Override
-    void initParam() {
-    
-    }
-    
-    @Override
-    public boolean match(final String rule) {
-        return rule.matches("^phone$");
+    @Test
+    void match() {
     }
 }

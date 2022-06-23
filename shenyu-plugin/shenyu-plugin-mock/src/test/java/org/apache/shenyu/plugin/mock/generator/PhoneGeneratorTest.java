@@ -17,42 +17,32 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.apache.shenyu.plugin.mock.generator.impl.PhoneGenerator;
+import org.junit.jupiter.api.Test;
 
 /**
- * Random int value generator in the specified range.
+ * The test case for {@link PhoneGenerator }.
+ *
+ * @date 2022/6/20 14:48
  */
-public class RandomIntGenerator extends AbstractGenerator<Integer> {
+class PhoneGeneratorTest {
     
-    private int min;
+    private final PhoneGenerator generator = new PhoneGenerator();
     
-    private int max;
-    
-    @Override
-    public String getName() {
-        return "int";
+    @Test
+    void testGenerate() {
+        generator.parseRule("phone");
+        String phone = generator.generate();
+        assertTrue(phone.matches("^1[3-9]\\d{9}$"));
     }
     
-    @Override
-    public Integer generate() {
-        return RandomUtil.randomInt(min, max);
+    @Test
+    void match() {
+        assertTrue(generator.match("phone"));
+        assertFalse(generator.match("mobile"));
+        
     }
-    
-    @Override
-    public int getParamSize() {
-        return 1;
-    }
-    
-    @Override
-    void initParam() {
-        String[] range = super.getParams().get(0).split("-");
-        min = Integer.parseInt(range[0]);
-        max = Integer.parseInt(range[1]);
-    }
-    
-    @Override
-    public boolean match(final String rule) {
-        return rule.matches("^int\\|\\d+-\\d+$");
-    }
-    
 }

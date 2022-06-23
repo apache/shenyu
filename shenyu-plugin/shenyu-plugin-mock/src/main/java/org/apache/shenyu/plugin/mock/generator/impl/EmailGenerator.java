@@ -15,39 +15,35 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator;
+package org.apache.shenyu.plugin.mock.generator.impl;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomInt;
+import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomLowerLetterString;
+
+import java.util.List;
+import org.apache.shenyu.plugin.mock.generator.Generator;
+import org.apache.shenyu.spi.Join;
 
 /**
- * current time generator.
+ * Random email address generator.
  */
-public class CurrentTimeGenerator extends AbstractGenerator<String> {
+@Join
+public class EmailGenerator implements Generator<String> {
     
-    private static final String DEFAULT_FORMAT = "YYYY-MM-dd HH:mm:ss";
-    
-    private static final Logger LOG = LoggerFactory.getLogger(CurrentTimeGenerator.class);
-    
-    private String format;
+    private static final String[] DOMAIN_SUFFIX = {"com", "org", "cn", "com.cn", "top", "edu",
+        "io"};
     
     @Override
     public String getName() {
-        return "current";
+        return "email";
     }
     
     @Override
     public String generate() {
-        Date now = new Date();
-        try {
-            return new SimpleDateFormat(this.format).format(now);
-        } catch (IllegalArgumentException e) {
-            LOG.warn("illegal format: {} ,use default format :{}", format, DEFAULT_FORMAT);
-            return new SimpleDateFormat(DEFAULT_FORMAT).format(now);
-        }
-        
+        return String.format("%s@%s.%s",
+            randomLowerLetterString(randomInt(5, 10)),
+            randomLowerLetterString(randomInt(3, 8)),
+            DOMAIN_SUFFIX[randomInt(0, DOMAIN_SUFFIX.length - 1)]);
     }
     
     @Override
@@ -56,16 +52,11 @@ public class CurrentTimeGenerator extends AbstractGenerator<String> {
     }
     
     @Override
-    void initParam() {
-        if (super.getParams().size() >= 1) {
-            format = super.getParams().get(0);
-        } else {
-            format = DEFAULT_FORMAT;
-        }
+    public void initParam(final List<String> params) {
     }
     
     @Override
     public boolean match(final String rule) {
-        return rule.matches("^current(\\|.+)?");
+        return rule.matches("^email$");
     }
 }

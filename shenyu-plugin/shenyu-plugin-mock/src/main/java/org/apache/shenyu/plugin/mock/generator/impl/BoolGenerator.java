@@ -15,48 +15,40 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator;
+package org.apache.shenyu.plugin.mock.generator.impl;
 
-import java.util.Random;
-import org.apache.commons.lang3.RandomStringUtils;
+import java.util.List;
+import org.apache.shenyu.plugin.mock.generator.Generator;
+import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import org.apache.shenyu.spi.Join;
 
 /**
- * Random length Chinese string generator.
+ * Boolean Generator.
  */
-public class ZhStringGenerator extends AbstractGenerator<String> {
-    
-    private int min;
-    
-    private int max;
+@Join
+public class BoolGenerator implements Generator<Boolean> {
     
     @Override
     public String getName() {
-        return "zh";
+        return "bool";
     }
     
     @Override
-    public String generate() {
-        Random random = new Random();
-        int len = random.nextInt(max - min - 1) + min;
-        return RandomStringUtils.random(len, 0x4e00, 0x9fa5, false, false);
+    public Boolean generate() {
+        return RandomUtil.randomInt(0, 1) == 1;
     }
     
     @Override
     public int getParamSize() {
-        return 1;
+        return 0;
     }
     
     @Override
-    void initParam() {
-        String[] range = super.getParams().get(0).split("-");
-        min = Integer.parseInt(range[0]);
-        max = Integer.parseInt(range[1]);
+    public void initParam(final List<String> params) {
     }
     
     @Override
     public boolean match(final String rule) {
-        return rule.matches("^zh\\|\\d+-\\d+$");
+        return rule.matches("^bool$");
     }
-    
 }
-
