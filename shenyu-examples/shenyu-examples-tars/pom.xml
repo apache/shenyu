@@ -39,8 +39,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-examples-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

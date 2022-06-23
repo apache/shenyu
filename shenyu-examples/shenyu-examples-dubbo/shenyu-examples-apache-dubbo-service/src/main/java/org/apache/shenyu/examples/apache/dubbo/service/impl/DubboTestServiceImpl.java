@@ -17,7 +17,7 @@
 package org.apache.shenyu.examples.apache.dubbo.service.impl;
 
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
-import org.apache.shenyu.examples.apache.dubbo.service.aop.Log;
+import org.apache.shenyu.examples.common.aop.Log;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 import org.apache.shenyu.examples.dubbo.api.service.DubboTestService;

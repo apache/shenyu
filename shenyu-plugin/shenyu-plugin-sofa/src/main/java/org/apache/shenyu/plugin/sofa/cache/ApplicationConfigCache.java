@@ -59,15 +59,15 @@ import java.util.concurrent.TimeUnit;
 public final class ApplicationConfigCache {
     
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
-
+    
     private final ThreadFactory factory = ShenyuThreadFactory.create("shenyu-sofa", true);
-
+    
     private ApplicationConfig applicationConfig;
     
     private RegistryConfig registryConfig;
-
+    
     private ThreadPoolExecutor threadPool;
-
+    
     private final LoadingCache<String, ConsumerConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener(notification -> {
@@ -128,7 +128,7 @@ public final class ApplicationConfigCache {
             Optional.ofNullable(threadPool).ifPresent(this::setAsyncRuntimeThreadPool);
         }
     }
-
+    
     /**
      * Set sofa asyncRuntime thread pool.
      */
@@ -137,7 +137,7 @@ public final class ApplicationConfigCache {
         ReflectionUtils.makeAccessible(field);
         ReflectionUtils.setField(field, AsyncRuntime.class, threadPool);
     }
-
+    
     /**
      * Init thread pool.
      */
@@ -267,6 +267,15 @@ public final class ApplicationConfigCache {
      */
     public void invalidateAll() {
         cache.invalidateAll();
+    }
+    
+    /**
+     * get thread pool, just for integrated test.
+     *
+     * @return the thread pool
+     */
+    public ThreadPoolExecutor getThreadPool() {
+        return threadPool;
     }
     
     /**

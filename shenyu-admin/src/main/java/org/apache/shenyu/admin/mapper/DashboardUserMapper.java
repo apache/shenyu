@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * DashboardUserMapper.
@@ -73,6 +74,14 @@ public interface DashboardUserMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<DashboardUserDO> selectByQuery(DashboardUserQuery dashboardUserQuery);
+    
+    /**
+     * select by ids.
+     *
+     * @param ids ids.
+     * @return users
+     */
+    List<DashboardUserDO> selectByIds(@Param("ids") Set<String> ids);
     
     /**
      * count dashboard user by query.

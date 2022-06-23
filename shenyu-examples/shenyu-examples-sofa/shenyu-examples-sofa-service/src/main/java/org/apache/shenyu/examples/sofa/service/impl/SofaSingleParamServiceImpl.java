@@ -18,9 +18,9 @@
 package org.apache.shenyu.examples.sofa.service.impl;
 
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
+import org.apache.shenyu.examples.common.aop.Log;
 import org.apache.shenyu.examples.sofa.api.entity.SofaSimpleTypeBean;
 import org.apache.shenyu.examples.sofa.api.service.SofaSingleParamService;
-import org.apache.shenyu.examples.sofa.service.aop.Log;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;

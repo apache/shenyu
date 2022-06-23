@@ -72,7 +72,7 @@ public class HttpClientPluginConfiguration {
      * @return the http client loop resource
      */
     @Bean
-    @ConditionalOnProperty("shenyu.httpclient.threadPool.prefix")
+    @ConditionalOnProperty("shenyu.httpclient.thread-pool.prefix")
     public LoopResources httpClientLoopResource(final HttpClientProperties properties) {
         HttpClientProperties.ThreadPool threadPool = properties.getThreadPool();
         return LoopResources.create(threadPool.getPrefix(), threadPool.getSelectCount(),
