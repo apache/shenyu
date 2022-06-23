@@ -40,6 +40,7 @@
     </properties>
 
     <modules>
+        <module>shenyu-examples-common</module>
         <module>shenyu-examples-http</module>
         <module>shenyu-examples-https</module>
         <module>shenyu-examples-dubbo</module>
@@ -51,6 +52,7 @@
         <module>shenyu-examples-motan</module>
         <module>shenyu-examples-plugin</module>
         <module>shenyu-examples-websocket</module>
+        <module>shenyu-examples-springmvc</module>
         <module>shenyu-examples-springmvc-tomcat</module>
     </modules>
 

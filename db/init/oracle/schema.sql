@@ -21,8 +21,8 @@ create table dashboard_user
     password     VARCHAR2(128),
     role         NUMBER(10) not null,
     enabled      NUMBER(3) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id),
     constraint unique_user_name unique (user_name)
 );
@@ -50,8 +50,8 @@ create table plugin
     role         VARCHAR2(64) not null,
     sort         NUMBER(10),
     enabled      NUMBER(3) default '0' not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -82,8 +82,8 @@ create table plugin_handle
     type         NUMBER(5),
     sort         NUMBER(10),
     ext_obj      clob,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id),
     constraint plugin_id_field_type unique (plugin_id,field,type)
 );
@@ -119,8 +119,8 @@ create table selector
     enabled      NUMBER(3) not null,
     loged        NUMBER(3) not null,
     continued    NUMBER(3) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
 );
 -- Add comments to the columns
 comment on column SELECTOR.id
@@ -156,8 +156,8 @@ create table selector_condition
     operator     VARCHAR2(64) not null,
     param_name   VARCHAR2(64) not null,
     param_value  VARCHAR2(64) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -188,8 +188,8 @@ create table rule
     loged        NUMBER(3) not null,
     sort         NUMBER(10) not null,
     handle       VARCHAR2(1024),
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
 );
 -- Add comments to the columns
 comment on column RULE.id
@@ -221,8 +221,8 @@ create table rule_condition
     operator     VARCHAR2(64) not null,
     param_name   VARCHAR2(64) not null,
     param_value  VARCHAR2(64) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
 );
 -- Add comments to the columns
 comment on column RULE_CONDITION.id
@@ -253,8 +253,8 @@ create table meta_data
     method_name     VARCHAR2(255),
     parameter_types VARCHAR2(255),
     rpc_ext         VARCHAR2(512),
-    date_created    DATE default SYSDATE not null,
-    date_updated    DATE default SYSDATE not null,
+    date_created    timestamp(3) default SYSDATE not null,
+    date_updated    timestamp(3) default SYSDATE not null,
     enabled         NUMBER(3) default '0' not null,
     PRIMARY KEY (id)
 );
@@ -290,7 +290,7 @@ create table operation_record_log
     color             VARCHAR2(20) not null,
     context           CLOB not null,
     operator          VARCHAR2(200) not null,
-    operation_time    date not null,
+    operation_time    timestamp(3) not null,
     operation_type    VARCHAR2(60) DEFAULT 'update' not null
 );
 -- Add comments to the columns
@@ -324,8 +324,8 @@ create table app_auth
     ext_info     VARCHAR2(1024),
     open         NUMBER(3) not null,
     enabled      NUMBER(3) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -356,8 +356,8 @@ create table auth_param
     auth_id      VARCHAR2(128),
     app_name     VARCHAR2(255) not null,
     app_param    VARCHAR2(255),
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -381,8 +381,8 @@ create table auth_path
     app_name     VARCHAR2(255) not null,
     path         VARCHAR2(255) not null,
     enabled      NUMBER(3) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -411,8 +411,8 @@ create table shenyu_dict
     "desc"       VARCHAR2(255),
     sort         NUMBER(10) not null,
     enabled      NUMBER(3),
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id),
     constraint dict_type_dict_code_dict_name unique (type,dict_code,dict_name)
 );
@@ -443,8 +443,8 @@ create table role
     id           VARCHAR2(128) not null,
     role_name    VARCHAR2(32) not null,
     description  VARCHAR2(255),
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id,role_name)
 );
 -- Add comments to the table
@@ -467,8 +467,8 @@ create table user_role
     id           VARCHAR2(128) not null,
     user_id      VARCHAR2(128) not null,
     role_id      VARCHAR2(128) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the table
@@ -491,8 +491,8 @@ create table permission
     id           VARCHAR2(128) not null,
     object_id    VARCHAR2(128) not null,
     resource_id  VARCHAR2(128) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the table
@@ -525,8 +525,8 @@ create table "resource"
     is_route      NUMBER(10) not null,
     perms         VARCHAR2(64),
     status        NUMBER(10) not null,
-    date_created  DATE default SYSDATE not null,
-    date_updated  DATE default SYSDATE not null,
+    date_created  timestamp(3) default SYSDATE not null,
+    date_updated  timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the table
@@ -570,8 +570,8 @@ create table data_permission
     user_id      VARCHAR2(128) not null,
     data_id      VARCHAR2(128) not null,
     data_type    NUMBER(10) not null,
-    date_created DATE default SYSDATE not null,
-    date_updated DATE default SYSDATE not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 -- Add comments to the table
@@ -832,6 +832,10 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('28', 'mqtt', 'Proxy', 125, '{"port": 9500,"bossGroupThreadCount": 1,"maxPayloadSize": 65536,"workerGroupThreadCount": 12,"userName": "shenyu","password": "shenyu","isEncryptPassword": false,"encryptMode": "","leakDetectorLevel": "DISABLED"}', '0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('29', 'loggingRocketMQ', 'Logging', 170,'{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9876","producerGroup":"shenyu-plugin-logging-rocketmq"}', '0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('30', 'cache', '{"cacheType":"memory"}', 'Cache', 10, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, enabled) VALUES ('31', 'mock', 'Mock', 1, 0);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('32', 'loggingElasticSearch', '{"host":"localhost", "port": "9200"}', 'Logging', 190, 0);
+
+
 
 /*insert plugin_handle data for sentinel*/
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
@@ -1306,6 +1310,38 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 values ('1518229897214468167', '11', 'threadpool', 'threadpool', 3, 3, 3, '{"required":"0","defaultValue":"default","placeholder":"threadpool","rule":""}');
 
 
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1537326008606343168', '31', 'responseContent', 'responseContent', 2, 2, 0, '{"required":"0","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1537325892176658432', '31', 'httpStatusCode', 'httpStatusCode', 1, 2, 0, '{"required":"0","defaultValue":"200","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468168', '32', 'host', 'host', 2, 3, 1, '{"required":"1","defaultValue":"localhost"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468169', '32', 'port', 'port', 2, 3, 2, '{"required":"1","defaultValue":"9200"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468170', '32', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468171', '32', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468172', '32', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468173', '32', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468174', '32', 'index', 'index', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468175', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}');
+
+
+
 /** insert resource for resource */
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"   (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1346775491550474240','','SHENYU.MENU.PLUGIN.LIST','plug','/plug','PluginList','0','0','dashboard','0','0','','1');
 
@@ -1370,6 +1406,14 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1357977745889132544','1355163372527050752','SHENYU.BUTTON.RESOURCE.BUTTON.ADD','','','','2','4','','1','0','system:resource:addButton','1');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1357977912126177280','1355163372527050752','SHENYU.SYSTEM.EDITOR','','','','2','5','','1','0','system:resource:editButton','1');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1357977971827900416','1355163372527050752','SHENYU.SYSTEM.DELETEDATA','','','','2','6','','1','0','system:resource:deleteButton','1');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1534577121923309568', '', 'Document', '', '/document', '', 0, 3, 'file-text', 0, 0, '', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1534585430311051264', '1534577121923309568', 'API document', '', '/document/apidoc', '', 1, 0, 'api', 0, 0, '', 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1534585531108564992', '1534585430311051264', 'send', '', '', '', 2, 0, '', 1, 0, 'document:apirun:send', 1);
+
+
+
+
+
 
 /* default permission */
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1351007708572688384', '1346358560427216896', '1346775491550474240');
@@ -1427,5 +1471,8 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1357977745893326848', '1346358560427216896', '1357977745889132544');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1357977912126177281', '1346358560427216896', '1357977912126177280');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1357977971827900417', '1346358560427216896', '1357977971827900416');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1534577122279825408', '1346358560427216896', '1534577121923309568');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1534585430587875328', '1346358560427216896', '1534585430311051264');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1534585531389583360', '1346358560427216896', '1534585531108564992');
 
 commit;

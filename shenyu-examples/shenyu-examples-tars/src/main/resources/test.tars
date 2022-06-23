@@ -22,4 +22,14 @@ module TestApp
         string hello(int no, string name);
         int helloInt(int no, string name);
     };
+    interface Order
+    {
+        string hello(int no, string name);
+        int helloInt(int no, string name);
+    };
+    interface User
+    {
+        string hello(int no, string name);
+        int helloInt(int no, string name);
+    };
 };

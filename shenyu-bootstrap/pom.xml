@@ -279,6 +279,15 @@
         </dependency>
         <!--shenyu springCloud plugin start-->
 
+
+        <!--shenyu mock plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-mock</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu mock plugin end-->
+
         <!--shenyu  apache dubbo plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -461,6 +470,13 @@
         </dependency>
         <!--shenyu logging-rocketmq plugin end-->
 
+        <!--shenyu logging-elasticsearch plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-elasticsearch</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu logging-elasticsearch plugin end-->
     </dependencies>
     <profiles>
         <profile>
