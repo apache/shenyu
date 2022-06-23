@@ -96,8 +96,10 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 if (CollectionUtils.isEmpty(selectors)) {
                     return handleSelectorIfNull(pluginName, exchange, chain);
                 }
-                selectorData = matchSelector(exchange, selectors);
-                cacheSelectorDataIfEnabled(path, selectorData);
+                Pair<Boolean, SelectorData> matchSelectorData = matchSelector(exchange, selectors);
+                if (matchSelectorData.getLeft()) {
+                    cacheSelectorDataIfEnabled(path, selectorData);
+                }
             }
             if (Objects.isNull(selectorData)) {
                 return handleSelectorIfNull(pluginName, exchange, chain);
@@ -171,13 +173,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return chain.execute(exchange);
     }
 
-    private SelectorData matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
+    private Pair<Boolean, SelectorData> matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
         List<SelectorData> filterCollectors = selectors.stream()
                 .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange)).collect(Collectors.toList());
         if (filterCollectors.size() > 1) {
-            return manyMatchSelector(filterCollectors);
+            return Pair.of(Boolean.FALSE, manyMatchSelector(filterCollectors));
         } else {
-            return filterCollectors.stream().findFirst().orElse(null);
+            return Pair.of(Boolean.TRUE, filterCollectors.stream().findFirst().orElse(null));
         }
     }
 
