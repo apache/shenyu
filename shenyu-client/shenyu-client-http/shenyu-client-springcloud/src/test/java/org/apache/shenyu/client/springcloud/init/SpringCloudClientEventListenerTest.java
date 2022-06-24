@@ -84,7 +84,7 @@ public final class SpringCloudClientEventListenerTest {
         // config with full
         SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClienttEventListener(true);
         springCloudClientEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(0)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
