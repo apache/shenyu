@@ -62,8 +62,6 @@ services:
     depends_on:
       shenyu-redis:
         condition: service_healthy
-      shenyu-elasticsearch:
-        condition: service_healthy
     ports:
       - "9095:9095"
     environment:
