@@ -106,6 +106,9 @@ services:
       test: [ "CMD", "wget", "http://localhost:9200/_cat/health?v" ]
       timeout: 2s
       retries: 30
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
 
 networks:
   shenyu:
