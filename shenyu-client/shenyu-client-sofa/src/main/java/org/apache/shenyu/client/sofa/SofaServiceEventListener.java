@@ -108,12 +108,10 @@ public class SofaServiceEventListener implements ApplicationListener<ContextRefr
         }
         final ShenyuSofaClient beanSofaClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSofaClient.class);
         final String superPath = buildApiSuperPath(beanSofaClient);
-        if (superPath.contains("*")) {
+        if (superPath.contains("*") && Objects.nonNull(beanSofaClient)) {
             Method[] declaredMethods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method declaredMethod : declaredMethods) {
-                if (Objects.nonNull(beanSofaClient)) {
-                    publisher.publishEvent(buildMetaDataDTO(serviceBean, beanSofaClient, declaredMethod, ""));
-                }
+                publisher.publishEvent(buildMetaDataDTO(serviceBean, beanSofaClient, declaredMethod, ""));
             }
             return;
         }

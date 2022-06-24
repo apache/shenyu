@@ -76,9 +76,7 @@ public class MotanServiceEventListener implements ApplicationListener<ContextRef
     private final String port;
 
     private String group;
-
-    private Integer timeout;
-
+    
     public MotanServiceEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
@@ -106,7 +104,7 @@ public class MotanServiceEventListener implements ApplicationListener<ContextRef
         if (group == null) {
             group = ((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getGroup();
         }
-        timeout = Optional.ofNullable(((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getRequestTimeout()).orElse(1000);
+        Integer timeout = Optional.ofNullable(((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getRequestTimeout()).orElse(1000);
         Class<?> clazz = bean.getClass();
         if (AopUtils.isAopProxy(bean)) {
             clazz = AopUtils.getTargetClass(bean);
@@ -114,13 +112,11 @@ public class MotanServiceEventListener implements ApplicationListener<ContextRef
         String superPath = buildApiSuperPath(clazz);
         MotanService service = clazz.getAnnotation(MotanService.class);
         ShenyuMotanClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuMotanClient.class);
-        if (superPath.contains("*")) {
+        if (superPath.contains("*") && Objects.nonNull(beanShenyuClient)) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
-                if (Objects.nonNull(beanShenyuClient)) {
-                    publisher.publishEvent(buildMetaDataDTO(clazz, service, beanShenyuClient, method,
-                            buildRpcExt(method, timeout), superPath));
-                }
+                publisher.publishEvent(buildMetaDataDTO(clazz, service, beanShenyuClient, method,
+                        buildRpcExt(method, timeout), superPath));
             }
             return;
         }
