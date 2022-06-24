@@ -207,10 +207,9 @@ public class UpstreamCheckService {
      * The advantage of adding zombie nodes directly is that only services that
      * pass the health check will be added to the normal service list, and
      * if the health check fails, the service will not be discarded directly.
-     * <p>
      *
-     * Note: This is to be compatible with older versions of clients that do not
-     * register with the gateway by listening to
+     * <p>Note: This is to be compatible with older versions of clients
+     * that do not register with the gateway by listening to
      * {@link org.springframework.context.event.ContextRefreshedEvent},
      * which will cause some problems,
      * check https://github.com/apache/incubator-shenyu/issues/3484 for more details.
