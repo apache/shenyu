@@ -202,6 +202,26 @@ public class UpstreamCheckService {
         executor.execute(() -> updateHandler(selectorId, upstreams, upstreams));
         return true;
     }
+    
+    /**
+     * The advantage of adding zombie nodes directly is that only services that
+     * pass the health check will be added to the normal service list, and
+     * if the health check fails, the service will not be discarded directly.
+     * <p>
+     *
+     * Note: This is to be compatible with older versions of clients that do not
+     * register with the gateway by listening to
+     * {@link org.springframework.context.event.ContextRefreshedEvent},
+     * which will cause some problems,
+     * check https://github.com/apache/incubator-shenyu/issues/3484 for more details.
+     *
+     * @param selectorId     the selector id
+     * @param commonUpstream the common upstream
+     */
+    public void submitZombie(final String selectorId, final CommonUpstream commonUpstream) {
+        ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
+        LOG.error("add zombie node, url={}", commonUpstream.getUpstreamUrl());
+    }
 
     /**
      * Replace.
