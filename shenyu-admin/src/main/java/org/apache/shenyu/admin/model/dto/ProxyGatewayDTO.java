@@ -40,7 +40,7 @@ public class ProxyGatewayDTO {
     /**
      * request bizParam.
      */
-    private String bizParam;
+    private Object bizParam;
 
     /**
      * request httpMethod.
@@ -106,7 +106,7 @@ public class ProxyGatewayDTO {
      *
      * @return bizParam
      */
-    public String getBizParam() {
+    public Object getBizParam() {
         return bizParam;
     }
 
@@ -115,7 +115,7 @@ public class ProxyGatewayDTO {
      *
      * @param bizParam bizParam
      */
-    public void setBizParam(final String bizParam) {
+    public void setBizParam(final Object bizParam) {
         this.bizParam = bizParam;
     }
 

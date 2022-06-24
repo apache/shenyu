@@ -30,12 +30,13 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.admin.utils.ShenyuSignatureUtils;
@@ -44,10 +45,12 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 /**
@@ -63,49 +66,26 @@ public class SandboxController {
     @Resource
     private AppAuthMapper appAuthMapper;
 
-    //    /**
-//     * proxyGateway.
-//     *
-//     * @param proxyGatewayDTO proxyGatewayDTO
-//     * @param request         request
-//     * @param response        response
-//     * @throws IOException IOException
-//     */
-//    @PostMapping(path = "/proxyGateway")
-//    public void proxyGateway(@RequestBody @Valid final ProxyGatewayDTO proxyGatewayDTO,
-//        final HttpServletRequest request,
-//        final HttpServletResponse response) throws IOException {
-    /**
+        /**
      * proxyGateway.
      *
-     * @param requestUrl requestUrl
-     * @param appKey     appKey
-     * @param cookie     cookie
-     * @param bizParam   bizParam
-     * @param httpMethod httpMethod
-     * @param request    request
-     * @param response   response
+     * @param proxyGatewayDTO proxyGatewayDTO
+     * @param request         request
+     * @param response        response
      * @throws IOException IOException
      */
     @PostMapping(path = "/proxyGateway")
-    public void proxyGateway(
-        @RequestParam(required = false) final String requestUrl,
-        @RequestParam(required = false) final String appKey,
-        @RequestParam(required = false) final String cookie,
-        @RequestParam(required = false) final String bizParam,
-        @RequestParam(defaultValue = "get") final String httpMethod,
+    public void proxyGateway(@RequestBody @Valid final ProxyGatewayDTO proxyGatewayDTO,
         final HttpServletRequest request,
         final HttpServletResponse response) throws IOException {
-//        Assert.isTrue(StringUtils.isNotBlank(proxyGatewayDTO), "requestUrl cannot be empty.");
-//        String appKey = proxyGatewayDTO.getAppKey();
-//        String requestUrl = proxyGatewayDTO.getRequestUrl();
+        String appKey = proxyGatewayDTO.getAppKey();
+        String requestUrl = proxyGatewayDTO.getRequestUrl();
 
         // Public request parameters.
         Map<String, String> reqParams = new HashMap<String, String>();
         try {
-//            String bizParamStr = StringEscapeUtils.escapeHtml4(proxyGatewayDTO.getBizParam());
-            String bizParamStr = StringEscapeUtils.escapeHtml4(bizParam);
-            Map<String, String> reqMap = (Map) JsonUtils.toMap(bizParamStr);
+            Object param = proxyGatewayDTO.getBizParam();
+            Map<String, String> reqMap = (Map) JsonUtils.toMap(param);
             LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
             if (Objects.nonNull(reqMap)) {
                 reqParams.putAll(reqMap);
@@ -129,16 +109,15 @@ public class SandboxController {
             .collect(Collectors.toList());
 
         Map<String, String> header = new HashMap<>();
-//        header.put("Cookie", proxyGatewayDTO.getCookie());
-        header.put("Cookie", cookie);
+        header.put("Cookie", proxyGatewayDTO.getCookie());
 
         String signContent = null;
         String sign = null;
         if (StringUtils.isNotEmpty(appKey)) {
             String timestamp = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli());
             String secureKey = getSecureKey(appKey);
-            String[] methodArr = requestUrl.split("/", 2);
-            signContent = ShenyuSignatureUtils.getSignContent(secureKey, timestamp, methodArr[1]);
+            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(requestUrl).build();
+            signContent = ShenyuSignatureUtils.getSignContent(secureKey, timestamp, uriComponents.getPath());
             sign = ShenyuSignatureUtils.generateSign(signContent);
 
             header.put("timestamp", timestamp);
@@ -147,8 +126,7 @@ public class SandboxController {
             header.put("version", ShenyuSignatureUtils.VERSION);
         }
 
-//        Response resp = HTTP_UTILS.requestCall(requestUrl, reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files);
-        Response resp = HTTP_UTILS.requestCall(requestUrl, reqParams, header, HttpUtils.HTTPMethod.fromValue(httpMethod), files);
+        Response resp = HTTP_UTILS.requestCall(requestUrl, reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files);
         ResponseBody body = resp.body();
         if (Objects.isNull(body)) {
             return;
