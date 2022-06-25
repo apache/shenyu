@@ -94,6 +94,22 @@ services:
       timeout: 2s
       retries: 30
 
+  shenyu-elasticsearch:
+    container_name: shenyu-elasticsearch
+    image: elasticsearch:8.2.3
+    restart: always
+    networks:
+      - shenyu
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: [ "CMD", "wget", "http://localhost:9200/_cat/health?v" ]
+      timeout: 2s
+      retries: 30
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+
 networks:
   shenyu:
     name: shenyu
