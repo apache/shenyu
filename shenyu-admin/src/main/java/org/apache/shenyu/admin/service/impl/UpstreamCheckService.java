@@ -205,7 +205,7 @@ public class UpstreamCheckService {
     
     /**
      * If the health check passes, the service will be added to
-     * the normal service list; ff the health check fails, the service
+     * the normal service list; if the health check fails, the service
      * will not be discarded directly and add to the zombie nodes.
      *
      * <p>Note: This is to be compatible with older versions of clients
