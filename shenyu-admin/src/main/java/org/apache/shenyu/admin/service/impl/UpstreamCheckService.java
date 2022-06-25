@@ -204,9 +204,9 @@ public class UpstreamCheckService {
     }
     
     /**
-     * The advantage of adding zombie nodes directly is that only services that
-     * pass the health check will be added to the normal service list, and
-     * if the health check fails, the service will not be discarded directly.
+     * If the health check passes, the service will be added to
+     * the normal service list; ff the health check fails, the service
+     * will not be discarded directly and add to the zombie nodes.
      *
      * <p>Note: This is to be compatible with older versions of clients
      * that do not register with the gateway by listening to
@@ -217,9 +217,14 @@ public class UpstreamCheckService {
      * @param selectorId     the selector id
      * @param commonUpstream the common upstream
      */
-    public void submitZombie(final String selectorId, final CommonUpstream commonUpstream) {
-        ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
-        LOG.error("add zombie node, url={}", commonUpstream.getUpstreamUrl());
+    public void checkAndSubmit(final String selectorId, final CommonUpstream commonUpstream) {
+        final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
+        if (pass) {
+            submit(selectorId, commonUpstream);
+        } else {
+            ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
+            LOG.error("add zombie node, url={}", commonUpstream.getUpstreamUrl());
+        }
     }
 
     /**
