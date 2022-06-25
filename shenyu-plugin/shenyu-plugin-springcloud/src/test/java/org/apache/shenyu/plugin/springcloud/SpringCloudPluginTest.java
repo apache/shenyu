@@ -35,6 +35,7 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.plugin.springcloud.loadbalance.client.ShenyuSpringCloudLoadBalancerClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -74,7 +74,7 @@ import static org.mockito.Mockito.when;
 public final class SpringCloudPluginTest {
 
     @Mock
-    private RibbonLoadBalancerClient loadBalancerClient;
+    private ShenyuSpringCloudLoadBalancerClient loadBalancerClient;
 
     private SpringCloudPlugin springCloudPlugin;
 

@@ -127,12 +127,10 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         }
         final ShenyuDubboClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuDubboClient.class);
         final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
-        if (superPath.contains("*")) {
+        if (superPath.contains("*") && Objects.nonNull(beanShenyuClient)) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
-                if (Objects.nonNull(beanShenyuClient)) {
-                    publisher.publishEvent(buildMetaDataDTO(serviceBean, beanShenyuClient, method, superPath));
-                }
+                publisher.publishEvent(buildMetaDataDTO(serviceBean, beanShenyuClient, method, superPath));
             }
             return;
         }
