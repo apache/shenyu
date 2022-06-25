@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * ApiDoc Controller.
+ * Api Documet Controller.
  */
 @RestController
 @RequestMapping("/apidoc")
@@ -64,8 +64,6 @@ public class ApiDocController {
         docVO.setGatewayUrl(apiDocProperties.getGatewayUrl());
         docVO.setMenuProjects(menuProjects);
         docVO.setEnvProps(apiDocProperties.getEnvProps());
-        docVO.setCookie("Fill in the real cookie value.(signature authentication and login free API ignore this item)");
-        docVO.setAppKey("");
         return ShenyuAdminResult.success(docVO);
     }
 
