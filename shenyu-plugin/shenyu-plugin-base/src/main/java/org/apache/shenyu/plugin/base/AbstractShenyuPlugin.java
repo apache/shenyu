@@ -98,7 +98,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 }
                 Pair<Boolean, SelectorData> matchSelectorData = matchSelector(exchange, selectors);
                 if (matchSelectorData.getLeft()) {
-                    cacheSelectorDataIfEnabled(path, selectorData);
+                    cacheSelectorDataIfEnabled(path, matchSelectorData.getRight());
                 }
             }
             if (Objects.isNull(selectorData)) {
