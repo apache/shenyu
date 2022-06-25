@@ -110,7 +110,6 @@ services:
         source: ./config/prometheus.yml
         target: /etc/prometheus/prometheus.yml
 
-
 networks:
   shenyu:
     name: shenyu
