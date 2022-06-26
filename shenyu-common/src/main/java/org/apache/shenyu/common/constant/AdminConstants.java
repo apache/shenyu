@@ -57,6 +57,8 @@ public final class AdminConstants {
      */
     public static final String DATA_PATH_IS_EXIST = "The path already exists and can't be added repeatedly!";
 
+    public static final String APPKEY_NOT_EXIST= "The appKey does not exist！";
+
     /**
      * The constant PARAMS_ERROR.
      */

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.manager.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -50,6 +51,8 @@ import org.springframework.util.CollectionUtils;
 @Service
 public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     private static final Logger LOG = LoggerFactory.getLogger(LoadServiceDocEntryImpl.class);
+
+    private static final List<String> SUPPORT_SWAGGER_PLUGINS = Arrays.asList("5", "8");
 
     @Resource
     private SelectorService selectorService;
@@ -104,7 +107,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     private List<UpstreamInstance> getAllClusterLastUpdateInstanceList() {
         List<SelectorVO> clusterList = null;
         try {
-            CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery("5", null, new PageParameter(1, Integer.MAX_VALUE)));
+            CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(SUPPORT_SWAGGER_PLUGINS, null, new PageParameter(1, Integer.MAX_VALUE)));
             clusterList = commonPager.getDataList();
         } catch (Exception e) {
             LOG.error("getAllClusterLastUpdateInstanceList fail. error={}", e);
@@ -150,7 +153,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     }
 
     private UpstreamInstance getClusterLastUpdateInstance(final SelectorData selectorData) {
-        if (!selectorData.getPluginId().equals("5")) {
+        if (!SUPPORT_SWAGGER_PLUGINS.contains(selectorData.getPluginId())) {
             LOG.info("getClusterLastUpdateInstance. pluginNae={} does not support pulling API documents.", selectorData.getPluginName());
             return null;
         }

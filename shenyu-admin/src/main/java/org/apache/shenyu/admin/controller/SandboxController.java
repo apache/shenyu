@@ -35,12 +35,14 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
+import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.admin.utils.ShenyuSignatureUtils;
 import org.apache.shenyu.admin.utils.UploadUtils;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,10 +66,10 @@ public class SandboxController {
     private static final HttpUtils HTTP_UTILS = new HttpUtils();
 
     @Resource
-    private AppAuthMapper appAuthMapper;
+    private AppAuthService appAuthService;
 
-        /**
-     * proxyGateway.
+    /**
+     * proxy Gateway.
      *
      * @param proxyGatewayDTO proxyGatewayDTO
      * @param request         request
@@ -92,21 +94,9 @@ public class SandboxController {
             }
         } catch (Exception e) {
             LOG.error("proxyGateway JsonUtils.toMap error={}", e);
-            return;
         }
 
-        Collection<MultipartFile> uploadFiles = UploadUtils.getUploadFiles(request);
-        List<HttpUtils.UploadFile> files = uploadFiles.stream()
-            .map(multipartFile -> {
-                try {
-                    return new HttpUtils.UploadFile(multipartFile.getName(), multipartFile.getOriginalFilename(), multipartFile.getBytes());
-                } catch (IOException e) {
-                    LOG.error("upload file fail", e);
-                    return null;
-                }
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+        List<HttpUtils.UploadFile> files = uploadFiles(request);
 
         Map<String, String> header = new HashMap<>();
         header.put("Cookie", proxyGatewayDTO.getCookie());
@@ -116,6 +106,7 @@ public class SandboxController {
         if (StringUtils.isNotEmpty(appKey)) {
             String timestamp = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli());
             String secureKey = getSecureKey(appKey);
+            Assert.notBlack(secureKey, AdminConstants.APPKEY_NOT_EXIST);
             UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(requestUrl).build();
             signContent = ShenyuSignatureUtils.getSignContent(secureKey, timestamp, uriComponents.getPath());
             sign = ShenyuSignatureUtils.generateSign(signContent);
@@ -131,7 +122,6 @@ public class SandboxController {
         if (Objects.isNull(body)) {
             return;
         }
-        response.addHeader("sandbox-params", UriUtils.encode(buildParamQuery(reqParams), StandardCharsets.UTF_8));
         if (StringUtils.isNotEmpty(appKey)) {
             response.addHeader("sandbox-beforesign", UriUtils.encode(signContent, StandardCharsets.UTF_8));
             response.addHeader("sandbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
@@ -141,19 +131,24 @@ public class SandboxController {
     }
 
     private String getSecureKey(final String appKey) {
-        AppAuthDO appAuthDO = appAuthMapper.findByAppKey(appKey);
-        if (Objects.isNull(appAuthDO) || StringUtils.isEmpty(appAuthDO.getAppSecret())) {
-            throw new RuntimeException("security key not found.");
-        }
-        return appAuthDO.getAppSecret();
+        AppAuthDO appAuthDO = appAuthService.findByAppKey(appKey);
+        return Objects.nonNull(appAuthDO) ? appAuthDO.getAppSecret() : null;
     }
 
-    protected String buildParamQuery(final Map<String, String> params) {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            sb.append("&").append(entry.getKey()).append("=").append(entry.getValue());
-        }
-        return sb.substring(1);
+    private List<HttpUtils.UploadFile> uploadFiles(HttpServletRequest request) {
+        Collection<MultipartFile> uploadFiles = UploadUtils.getUploadFiles(request);
+        List<HttpUtils.UploadFile> files = uploadFiles.stream()
+            .map(multipartFile -> {
+                try {
+                    return new HttpUtils.UploadFile(multipartFile.getName(), multipartFile.getOriginalFilename(), multipartFile.getBytes());
+                } catch (IOException e) {
+                    LOG.error("upload file fail", e);
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+        return files;
     }
 
 }
