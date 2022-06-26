@@ -26,7 +26,7 @@ import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
-import org.apache.dubbo.rpc.model.ApplicationModel;
+import org.apache.dubbo.rpc.model.FrameworkModel;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -105,11 +105,12 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             registryConfig = registryConfigTemp;
         }
         if (Objects.isNull(consumerConfig)) {
-            consumerConfig = ApplicationModel.getConfigManager().getDefaultConsumer().orElseGet(() -> {
-                ConsumerConfig consumerConfig = new ConsumerConfig();
-                consumerConfig.refresh();
-                return consumerConfig;
-            });
+            consumerConfig = FrameworkModel.defaultModel().defaultApplication().getDefaultModule().getConfigManager()
+                    .getDefaultConsumer().orElseGet(() -> {
+                        ConsumerConfig consumerConfig = new ConsumerConfig();
+                        consumerConfig.refresh();
+                        return consumerConfig;
+                    });
             Optional.ofNullable(dubboRegisterConfig.getThreadpool()).ifPresent(consumerConfig::setThreadpool);
             Optional.ofNullable(dubboRegisterConfig.getCorethreads()).ifPresent(consumerConfig::setCorethreads);
             Optional.ofNullable(dubboRegisterConfig.getThreads()).ifPresent(consumerConfig::setThreads);

@@ -28,7 +28,7 @@
     <artifactId>shenyu-examples-alibaba-dubbo-service-annotation</artifactId>
 
     <properties>
-        <curator.version>4.0.1</curator.version>
+        <curator.version>4.3.0</curator.version>
         <alibaba.dubbo.version>2.6.12</alibaba.dubbo.version>
         <zookeeper.version>3.5.6</zookeeper.version>
         <alibaba.spring.version>1.0.5</alibaba.spring.version>
