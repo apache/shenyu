@@ -138,7 +138,7 @@ public enum PluginEnum {
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
 
     /**
-     * Logging RocketMQ plugin enum.
+     * Logging Kafka plugin enum.
      */
     LOGGING_KAFKA(180, 0, "loggingKafka"),
   
