@@ -203,8 +203,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     protected boolean doSubmit(final String selectorId, final List<? extends CommonUpstream> upstreamList) {
         List<CommonUpstream> commonUpstreamList = CommonUpstreamUtils.convertCommonUpstreamList(upstreamList);
-        commonUpstreamList.forEach(upstream -> upstreamCheckService.checkAndSubmit(selectorId, upstream));
-        return true;
+        return commonUpstreamList.stream().map(upstream -> upstreamCheckService.checkAndSubmit(selectorId, upstream))
+                .collect(Collectors.toList()).stream().findAny().orElse(false);
     }
     
     /**

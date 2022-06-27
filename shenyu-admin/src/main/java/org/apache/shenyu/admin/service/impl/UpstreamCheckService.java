@@ -217,14 +217,14 @@ public class UpstreamCheckService {
      * @param selectorId     the selector id
      * @param commonUpstream the common upstream
      */
-    public void checkAndSubmit(final String selectorId, final CommonUpstream commonUpstream) {
+    public boolean checkAndSubmit(final String selectorId, final CommonUpstream commonUpstream) {
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
         if (pass) {
-            submit(selectorId, commonUpstream);
-        } else {
-            ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
-            LOG.error("add zombie node, url={}", commonUpstream.getUpstreamUrl());
+            return submit(selectorId, commonUpstream);
         }
+        ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
+        LOG.error("add zombie node, url={}", commonUpstream.getUpstreamUrl());
+        return true;
     }
 
     /**
