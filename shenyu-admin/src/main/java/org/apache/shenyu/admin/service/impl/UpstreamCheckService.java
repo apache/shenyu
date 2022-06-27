@@ -216,6 +216,7 @@ public class UpstreamCheckService {
      *
      * @param selectorId     the selector id
      * @param commonUpstream the common upstream
+     * @return whether this module handles
      */
     public boolean checkAndSubmit(final String selectorId, final CommonUpstream commonUpstream) {
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
