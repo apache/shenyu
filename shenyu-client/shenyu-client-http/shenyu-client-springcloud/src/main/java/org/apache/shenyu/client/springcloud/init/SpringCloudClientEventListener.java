@@ -105,6 +105,10 @@ public class SpringCloudClientEventListener implements ApplicationListener<Conte
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        // Filter out is not controller out
+        if (Boolean.TRUE.equals(isFull)) {
+            return;
+        }
         Map<String, Object> beans = contextRefreshedEvent.getApplicationContext().getBeansWithAnnotation(Controller.class);
         for (Map.Entry<String, Object> entry : beans.entrySet()) {
             handler(entry.getValue());
@@ -116,11 +120,6 @@ public class SpringCloudClientEventListener implements ApplicationListener<Conte
         if (AopUtils.isAopProxy(bean)) {
             clazz = AopUtils.getTargetClass(bean);
         }
-        // Filter out is not controller out
-        if (Boolean.TRUE.equals(isFull)) {
-            return;
-        }
-
         final ShenyuSpringCloudClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringCloudClient.class);
         final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
         // Compatible with previous versions
@@ -139,10 +138,6 @@ public class SpringCloudClientEventListener implements ApplicationListener<Conte
                 publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath, methodShenyuClient)));
             }
         }
-    }
-    
-    private <A extends Annotation> boolean hasAnnotation(final @NonNull Class<?> clazz, final @NonNull Class<A> annotationType) {
-        return Objects.nonNull(AnnotationUtils.findAnnotation(clazz, annotationType));
     }
     
     private String buildApiPath(@NonNull final Method method, @NonNull final String superPath, final ShenyuSpringCloudClient methodShenyuClient) {

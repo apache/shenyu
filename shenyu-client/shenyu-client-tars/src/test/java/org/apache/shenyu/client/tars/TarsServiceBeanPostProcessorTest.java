@@ -24,37 +24,77 @@ import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.ContextRefreshedEvent;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- * Test case for {@link TarsServiceBeanPostProcessor}.
+ * Test case for {@link TarsServiceBeanEventListener}.
  */
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 public final class TarsServiceBeanPostProcessorTest {
-    private static TarsServiceBeanPostProcessor tarsServiceBeanPostProcessor;
+    private final MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
 
-    @BeforeAll
-    public static void init() {
+    private final TarsDemoService tarsDemoService = new TarsDemoService();
+
+    @Mock
+    private ApplicationContext applicationContext;
+
+    private ContextRefreshedEvent contextRefreshedEvent;
+
+    @BeforeEach
+    public void init() {
+        Map<String, Object> results = new LinkedHashMap();
+        results.put("tarsDemoService", tarsDemoService);
+        when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
+        contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
+
+    }
+
+    @Test
+    public void testPostProcessAfterInitialization() {
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
+        TarsServiceBeanEventListener tarsServiceBeanEventListener = buildTarsServiceBeanEventListener(true);
+        tarsServiceBeanEventListener.onApplicationEvent(contextRefreshedEvent);
+        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        registerUtilsMockedStatic.close();
+    }
+
+    @Test
+    public void testPostProcessNormalBean() {
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
+        TarsServiceBeanEventListener tarsServiceBeanEventListener = buildTarsServiceBeanEventListener(false);
+        tarsServiceBeanEventListener.onApplicationEvent(contextRefreshedEvent);
+        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        registerUtilsMockedStatic.close();
+    }
+
+    private TarsServiceBeanEventListener buildTarsServiceBeanEventListener(final boolean full) {
         Properties properties = new Properties();
         properties.setProperty("contextPath", "/tars");
         properties.setProperty("port", "8080");
         properties.setProperty("host", "localhost");
         properties.setProperty("username", "admin");
         properties.setProperty("password", "123456");
-
         PropertiesConfig config = new PropertiesConfig();
         config.setProps(properties);
 
@@ -62,23 +102,8 @@ public final class TarsServiceBeanPostProcessorTest {
         mockRegisterCenter.setServerLists("http://localhost:58080");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
-        MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
-        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
-        tarsServiceBeanPostProcessor = new TarsServiceBeanPostProcessor(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
-        registerUtilsMockedStatic.close();
-    }
 
-    @Test
-    public void testPostProcessAfterInitialization() {
-        TarsDemoService serviceFactoryBean = new TarsDemoService();
-        tarsServiceBeanPostProcessor
-                .postProcessAfterInitialization(serviceFactoryBean, "ShenyuTarsTest");
-    }
-
-    @Test
-    public void testPostProcessNormalBean() {
-        tarsServiceBeanPostProcessor
-                .postProcessAfterInitialization(new Object(), "normalBean");
+        return new TarsServiceBeanEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
     }
 
     @ShenyuTarsService(serviceName = "testObj")

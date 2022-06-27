@@ -95,6 +95,10 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        // Filter out is not controller out
+        if (Boolean.TRUE.equals(isFull)) {
+            return;
+        }
         Map<String, Object> beans = contextRefreshedEvent.getApplicationContext().getBeansWithAnnotation(ShenyuSpringWebSocketClient.class);
         for (Map.Entry<String, Object> entry : beans.entrySet()) {
             handler(entry.getValue());
@@ -102,17 +106,11 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
     }
 
     private void handler(final Object bean) {
-        Class<?> clazz;
-        clazz = bean.getClass();
+        Class<?> clazz = bean.getClass();
         if (AopUtils.isAopProxy(bean)) {
             clazz = AopUtils.getTargetClass(bean);
         }
-
         final String superPath = buildApiSuperPath(clazz);
-        // Filter out is not controller out
-        if (Boolean.TRUE.equals(isFull)) {
-            return;
-        }
         final ShenyuSpringWebSocketClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuSpringWebSocketClient.class);
         // Compatible with previous versions
         if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {

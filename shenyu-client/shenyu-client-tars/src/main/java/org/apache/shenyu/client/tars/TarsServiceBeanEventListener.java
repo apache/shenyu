@@ -33,8 +33,8 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
@@ -46,12 +46,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * The Tars ServiceBean PostProcessor.
+ * The Tars ServiceBean EventListener.
  */
-public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
+public class TarsServiceBeanEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
@@ -65,7 +66,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final int port;
 
-    public TarsServiceBeanPostProcessor(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public TarsServiceBeanEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
         String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
@@ -80,15 +81,11 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     }
 
     @Override
-    public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
-        Class clazz = bean.getClass();
-        if (AopUtils.isAopProxy(clazz)) {
-            clazz = AopUtils.getTargetClass(clazz);
+    public void onApplicationEvent(final ContextRefreshedEvent event) {
+        Map<String, Object> controllerBeans = event.getApplicationContext().getBeansWithAnnotation(ShenyuTarsService.class);
+        for (Map.Entry<String, Object> entry : controllerBeans.entrySet()) {
+            handler(entry.getValue());
         }
-        if (AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuTarsService.class) != null) {
-            handler(bean);
-        }
-        return bean;
     }
 
     private void handler(final Object serviceBean) {
@@ -132,22 +129,22 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
-                .collect(Collectors.joining(","));
+            .collect(Collectors.joining(","));
         return MetaDataRegisterDTO.builder()
-                .appName(ipAndPort)
-                .serviceName(serviceName)
-                .methodName(methodName)
-                .contextPath(this.contextPath)
-                .path(path)
-                .host(host)
-                .port(port)
-                .ruleName(ruleName)
-                .pathDesc(desc)
-                .parameterTypes(parameterTypes)
-                .rpcType(RpcTypeEnum.TARS.getName())
-                .rpcExt(rpcExt)
-                .enabled(shenyuTarsClient.enabled())
-                .build();
+            .appName(ipAndPort)
+            .serviceName(serviceName)
+            .methodName(methodName)
+            .contextPath(this.contextPath)
+            .path(path)
+            .host(host)
+            .port(port)
+            .ruleName(ruleName)
+            .pathDesc(desc)
+            .parameterTypes(parameterTypes)
+            .rpcType(RpcTypeEnum.TARS.getName())
+            .rpcExt(rpcExt)
+            .enabled(shenyuTarsClient.enabled())
+            .build();
     }
 
     private String pathJoin(@NonNull final String... path) {
