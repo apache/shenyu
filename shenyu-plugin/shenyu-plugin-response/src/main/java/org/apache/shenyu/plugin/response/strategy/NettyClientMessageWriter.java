@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.plugin.response.strategy;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
@@ -65,7 +67,12 @@ public class NettyClientMessageWriter implements MessageWriter {
                     : response.writeWith(body);
         })).doOnCancel(() -> cleanup(exchange));
     }
-
+    
+    @Override
+    public List<String> supportTypes() {
+        return Lists.newArrayList(RpcTypeEnum.HTTP.getName(), RpcTypeEnum.SPRING_CLOUD.getName());
+    }
+    
     private void cleanup(final ServerWebExchange exchange) {
         Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);
         if (Objects.nonNull(connection)) {

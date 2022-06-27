@@ -102,5 +102,6 @@ public class SharedThreadPoolTest extends AbstractPluginDataInit {
         assertEquals(spring, grpc);
         String motan = HttpHelper.INSTANCE.getFromGateway("/shenyu/getFromMotan", String.class);
         assertEquals(spring, motan);
+        // TODO test sofa
     }
 }
