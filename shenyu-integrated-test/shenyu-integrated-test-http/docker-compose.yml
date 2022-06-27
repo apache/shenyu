@@ -110,6 +110,24 @@ services:
         source: ./config/prometheus.yml
         target: /etc/prometheus/prometheus.yml
 
+  shenyu-elasticsearch:
+    container_name: shenyu-elasticsearch
+    image: elasticsearch:8.2.3
+    restart: always
+    networks:
+      - shenyu
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    healthcheck:
+      test: [ "CMD", "wget", "http://localhost:9200/_cat/health?v" ]
+      timeout: 2s
+      retries: 30
+
 networks:
   shenyu:
     name: shenyu
