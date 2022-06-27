@@ -50,7 +50,7 @@ public class ShenyuNettyWebServerConfigurationTest {
             .withPropertyValues(
                 "debug=true",
                 "shenyu.netty.http.accessLog=false",
-                "shenyu.netty.http.webServerFactoryEnabled=false",
+                "shenyu.netty.http.web-server-factory-enabled=false",
                 "shenyu.netty.http.selectCount=10",
                 "shenyu.netty.http.workerCount=2",
                 "shenyu.netty.http.serverSocketChannel.soBacklog=64",
