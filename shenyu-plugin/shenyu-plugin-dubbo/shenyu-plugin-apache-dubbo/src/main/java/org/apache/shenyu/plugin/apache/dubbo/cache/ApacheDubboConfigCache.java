@@ -105,6 +105,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             registryConfig = registryConfigTemp;
         }
         if (Objects.isNull(consumerConfig)) {
+            // upgrade tips dubbo 2.7.15 old code 'ApplicationModel.getConfigManager().getDefaultConsumer()'
             consumerConfig = ApplicationModel.defaultModel().getDefaultModule().getConfigManager()
                     .getDefaultConsumer().orElseGet(() -> {
                         ConsumerConfig consumerConfig = new ConsumerConfig();
