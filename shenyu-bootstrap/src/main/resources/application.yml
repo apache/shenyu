@@ -70,6 +70,10 @@ management:
       enabled: false
 
 shenyu:
+  matchCache:
+    enabled: true
+    # 256 * 1024 * 1024 = 256MB
+    maxFreeMemory: 268435456
   netty:
     http:
       # set to false, user can custom the netty tcp server config.
