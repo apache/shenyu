@@ -131,7 +131,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                 return;
             } catch (Exception e) {
                 LOGGER.error("Register admin url :{} is fail, will retry. cause:{}", server, e.getMessage());
-                if (i == serverList.size()){
+                if (i == serverList.size()) {
                     throw new RuntimeException(e);
                 }
             }
