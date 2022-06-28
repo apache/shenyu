@@ -477,6 +477,12 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu logging-elasticsearch plugin end-->
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-aliyun-sls</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

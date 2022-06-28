@@ -136,6 +136,11 @@ public enum PluginEnum {
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
 
     /**
+     * Logging AliYun sls enums.
+     */
+    LOGGING_ALIYUN_SLS(180, 0, "loggingAliyunSls"),
+
+    /**
      * Logging ElasticSearch plugin enum.
      */
     LOGGING_ElasticSearch(190, 0, "loggingElasticSearch"),

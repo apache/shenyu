@@ -32,5 +32,6 @@
         <module>shenyu-plugin-logging-console</module>
         <module>shenyu-plugin-logging-rocketmq</module>
         <module>shenyu-plugin-logging-elasticsearch</module>
+        <module>shenyu-plugin-logging-aliyun-sls</module>
     </modules>
 </project>
