@@ -18,7 +18,6 @@
 
 package org.apache.shenyu.springboot.starter.plugin.response;
 
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.response.ResponsePlugin;
 import org.apache.shenyu.plugin.response.strategy.MessageWriter;
@@ -30,7 +29,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,18 +48,27 @@ public class ResponsePluginConfiguration {
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin responsePlugin(final ObjectProvider<MessageWriter> httpWriter) {
-        Map<String, MessageWriter> writerMap = new HashMap<>();
-        MessageWriter httpWrite = httpWriter.getIfAvailable();
-        MessageWriter rpcWrite = new RPCMessageWriter();
-        writerMap.put(RpcTypeEnum.HTTP.getName(), httpWrite);
-        writerMap.put(RpcTypeEnum.SPRING_CLOUD.getName(), httpWrite);
-        writerMap.put(RpcTypeEnum.DUBBO.getName(), rpcWrite);
-        writerMap.put(RpcTypeEnum.SOFA.getName(), rpcWrite);
-        writerMap.put(RpcTypeEnum.GRPC.getName(), rpcWrite);
-        writerMap.put(RpcTypeEnum.MOTAN.getName(), rpcWrite);
-        writerMap.put(RpcTypeEnum.TARS.getName(), rpcWrite);
+    public ShenyuPlugin responsePlugin(final ObjectProvider<List<MessageWriter>> httpWriter) {
+        Map<String, MessageWriter> writerMap = new LinkedHashMap<>();
+        List<MessageWriter> writerList = httpWriter.getIfAvailable(ArrayList::new);
+        for (MessageWriter writer : writerList) {
+            List<String> supportTypes = writer.supportTypes();
+            for (String type : supportTypes) {
+                writerMap.put(type, writer);
+            }
+        }
         return new ResponsePlugin(writerMap);
+    }
+    
+    /**
+     * Rpc message writer message writer.
+     *
+     * @return the message writer
+     */
+    @Bean
+    @ConditionalOnProperty(name = "shenyu.plugins.response.rpc-message-writer", havingValue = "true", matchIfMissing = true)
+    public MessageWriter rpcMessageWriter() {
+        return new RPCMessageWriter();
     }
     
     /**

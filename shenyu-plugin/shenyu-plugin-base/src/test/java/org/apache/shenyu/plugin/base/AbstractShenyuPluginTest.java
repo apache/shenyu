@@ -17,20 +17,23 @@
 
 package org.apache.shenyu.plugin.base;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
@@ -59,6 +62,7 @@ public final class AbstractShenyuPluginTest {
 
     @BeforeEach
     public void setUp() {
+        mockShenyuConfig();
         this.ruleData = RuleData.builder().id("1")
                 .selectorId("1").enabled(true)
                 .loged(true).sort(1).build();
@@ -151,6 +155,12 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         BaseDataCache.getInstance().cacheRuleData(ruleData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+    }
+
+    private void mockShenyuConfig() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 
     static class TestShenyuPlugin extends AbstractShenyuPlugin {
