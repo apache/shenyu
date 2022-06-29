@@ -28,10 +28,13 @@ import java.time.temporal.ChronoUnit;
  */
 public class DateUtils {
 
-    private static final String DATE_FORMAT_DATETIME = "yyyy-MM-dd HH:mm:ss";
+    public static final String DATE_FORMAT_DATETIME = "yyyy-MM-dd HH:mm:ss";
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_DATETIME);
 
+    private DateUtils(){
+    }
+    
     /**
      * parse LocalDateTime.
      * out put format: yyyy-MM-dd HH:mm:ss

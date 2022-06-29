@@ -3,6 +3,7 @@ package org.apache.shenyu.admin.model.query;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.shenyu.admin.model.page.condition.BaseExcludedSearchCondition;
 import org.apache.shenyu.admin.model.page.condition.SearchCondition;
+import org.apache.shenyu.common.utils.DateUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -27,16 +28,15 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
      * start time.
      */
     @NotNull
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = DateUtils.DATE_FORMAT_DATETIME)
     private Date startTime;
     
     /**
      * end time.
      */
     @NotNull
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = DateUtils.DATE_FORMAT_DATETIME)
     private Date endTime;
-    
     
     @Override
     public void setKeyword(final String keyword) {
@@ -99,7 +99,7 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
      *
      * @param type type
      */
-    public void setType(String type) {
+    public void setType(final String type) {
         this.type = type;
     }
 }

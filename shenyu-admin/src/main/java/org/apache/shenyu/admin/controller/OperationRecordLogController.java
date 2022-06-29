@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.result.AdminResult;
 import org.apache.shenyu.admin.service.OperationRecordLogService;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.utils.ResultUtil;
+import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
@@ -67,10 +68,9 @@ public class OperationRecordLogController implements PagedController<RecordLogQu
      */
     @DeleteMapping("/clean/{timePoint}")
     @RequiresPermissions("system:role:delete")
-    public AdminResult<Boolean> clean(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date timePoint) {
+    public AdminResult<Boolean> clean(@PathVariable @DateTimeFormat(pattern = DateUtils.DATE_FORMAT_DATETIME) final Date timePoint) {
         return ResultUtil.ok(recordLogService.cleanHistory(timePoint));
     }
-    
     
     @Override
     public PageService<RecordLogQueryCondition, OperationRecordLog> pageService() {
