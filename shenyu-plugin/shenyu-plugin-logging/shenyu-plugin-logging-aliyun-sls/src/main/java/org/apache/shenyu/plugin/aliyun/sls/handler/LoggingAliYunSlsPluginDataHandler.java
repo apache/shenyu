@@ -21,7 +21,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.aliyun.sls.DefaultLogCollector;
-import org.apache.shenyu.plugin.aliyun.sls.AliyunSlsLogCollectClient;
+import org.apache.shenyu.plugin.aliyun.sls.aliyunsls.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.config.LogCollectConfig;
 import org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant;
 import org.apache.shenyu.plugin.aliyun.sls.utils.LogCollectConfigUtils;
@@ -48,16 +48,17 @@ public class LoggingAliYunSlsPluginDataHandler implements PluginDataHandler {
                     LogCollectConfig.GlobalLogConfig.class);
 
             LogCollectConfigUtils.setGlobalConfig(globalLogConfig);
-            // start rocketmq producer
             Properties properties = new Properties();
-            properties.setProperty(LoggingConstant.ACCESS_ID, globalLogConfig.getAccessId());
-            properties.setProperty(LoggingConstant.ACCESS_KEY, globalLogConfig.getAccessKey());
-            properties.setProperty(LoggingConstant.HOST, globalLogConfig.getHost());
-            properties.setProperty(LoggingConstant.PROJECT_NAME, globalLogConfig.getProjectName());
-            properties.setProperty(LoggingConstant.LOG_STORE, globalLogConfig.getLogStoreName());
+            properties.setProperty(LoggingConstant.ACCESS_ID, globalLogConfig.getAccessId().trim());
+            properties.setProperty(LoggingConstant.ACCESS_KEY, globalLogConfig.getAccessKey().trim());
+            properties.setProperty(LoggingConstant.HOST, globalLogConfig.getHost().trim());
+            properties.setProperty(LoggingConstant.PROJECT_NAME, globalLogConfig.getProjectName().trim());
+            properties.setProperty(LoggingConstant.LOG_STORE, globalLogConfig.getLogStoreName().trim());
             properties.setProperty(LoggingConstant.TTL_IN_DAY, String.valueOf(globalLogConfig.getTtlInDay()));
             properties.setProperty(LoggingConstant.SHARD_COUNT, String.valueOf(globalLogConfig.getShardCount()));
-            properties.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic());
+            properties.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic().trim());
+
+            // init Aliyun sls client
             ALIYUN_SLS_LOG_COLLECT_CLIENT.initClient(properties);
             DefaultLogCollector.getInstance().start();
         } else {
@@ -67,12 +68,6 @@ public class LoggingAliYunSlsPluginDataHandler implements PluginDataHandler {
                 LOG.error("close log collector error", e);
             }
         }
-        PluginDataHandler.super.handlerPlugin(pluginData);
-    }
-
-    @Override
-    public void removePlugin(PluginData pluginData) {
-        PluginDataHandler.super.removePlugin(pluginData);
     }
 
     @Override

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.aliyun.sls;
 
+import org.apache.shenyu.plugin.aliyun.sls.aliyunsls.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.entity.ShenyuRequestLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

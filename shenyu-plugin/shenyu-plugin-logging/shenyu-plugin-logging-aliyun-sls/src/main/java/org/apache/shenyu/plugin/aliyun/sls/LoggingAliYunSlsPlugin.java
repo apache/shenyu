@@ -36,7 +36,6 @@ import reactor.core.publisher.Mono;
 import static org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant.HOST;
 import static org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant.USER_AGENT;
 
-// https://help.aliyun.com/document_detail/29008.htm?spm=a2c4g.11186623.0.0.cc7a3de5dJNKOe#reference-wgx-pwq-zdb
 /**
  * LoggingAliYunSlsPlugin send log to aliyun sls service.
  */

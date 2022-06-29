@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.aliyun.sls.body;
 
-import org.apache.shenyu.plugin.aliyun.sls.body.BodyWriter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

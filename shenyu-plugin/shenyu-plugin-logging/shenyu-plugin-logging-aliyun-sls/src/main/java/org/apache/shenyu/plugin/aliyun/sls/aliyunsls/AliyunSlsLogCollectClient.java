@@ -1,4 +1,4 @@
-package org.apache.shenyu.plugin.aliyun.sls;
+package org.apache.shenyu.plugin.aliyun.sls.aliyunsls;
 
 import com.aliyun.openservices.log.Client;
 import com.aliyun.openservices.log.common.LogItem;
@@ -7,7 +7,9 @@ import com.aliyun.openservices.log.exception.LogException;
 import com.aliyun.openservices.log.response.CreateLogStoreResponse;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.aliyun.sls.LogConsumeClient;
 import org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant;
 import org.apache.shenyu.plugin.aliyun.sls.entity.ShenyuRequestLog;
 import org.slf4j.Logger;
@@ -18,6 +20,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Aliyun sls log Collect client.
+ */
 public class AliyunSlsLogCollectClient implements LogConsumeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(AliyunSlsLogCollectClient.class);
@@ -43,6 +48,10 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
         String accessId = props.getProperty(LoggingConstant.ACCESS_ID);
         String accessKey = props.getProperty(LoggingConstant.ACCESS_KEY);
         String host = props.getProperty(LoggingConstant.HOST);
+        if (StringUtils.isBlank(accessId) || StringUtils.isBlank(accessKey) || StringUtils.isBlank(host)) {
+            LOG.error("init aliyun sls client error, please check accessId, accessKey or host");
+            return;
+        }
         client = new Client(host, accessId, accessKey);
 
         // create LogStore
@@ -56,14 +65,13 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
             isStarted.set(true);
             Runtime.getRuntime().addShutdownHook(new Thread(this::close));
             CreateLogStoreResponse res = client.CreateLogStore(projectName, store);
-
         } catch (LogException e) {
             LOG.error("error code:{}, error message:{}, error requestId:{}", e.GetErrorCode(), e.GetErrorMessage(), e.getRequestId());
         }
     }
 
     @Override
-    public void consume(List<ShenyuRequestLog> logs) throws Exception {
+    public void consume(List<ShenyuRequestLog> logs) {
         if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
             return;
         }
@@ -72,11 +80,11 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
             List<LogItem> logGroup = new ArrayList<LogItem>();
             LogItem logItem = new LogItem((int) (System.currentTimeMillis() / 1000));
             logItem.PushBack("level", "info");
-            logItem.PushBack("name", log.getMethod());
+            logItem.PushBack("name", log.getRequestUri());
             logItem.PushBack("message", GsonUtils.getGson().toJson(log));
             logGroup.add(logItem);
             try {
-                client.PutLogs(projectName, logStore, topic, logGroup, "");
+                client.PutLogs(projectName, logStore, topic, logGroup, "shenyu-gateway");
             } catch (LogException e) {
                 LOG.error("error code :{}, error message :{}, error message :{}", e.GetErrorCode(), e.GetErrorMessage(), e.getRequestId());
             }

@@ -30,25 +30,49 @@ public class LogCollectConfig {
      */
     public static class GlobalLogConfig {
 
+        /**
+         * aliyun sls address.
+         * please seee https://help.aliyun.com/document_detail/29008.htm?spm=a2c4g.11186623.0.0.cc7a3de5dJNKOe#reference-wgx-pwq-zdb
+         */
         private String host;
 
+        /**
+         * aliyun access id.
+         */
         private String accessId;
 
+        /**
+         * aliyun accessKey.
+         */
         private String accessKey;
 
+        /**
+         * aliyun sls project name.
+         */
         private String projectName;
 
+        /**
+         * aliyun sls logstore name.
+         */
         private String logStoreName;
 
+        /**
+         * aliyun sls ttl.
+         */
         private Integer ttlInDay = 3;
 
+        /**
+         * aliyun shard.
+         */
         private Integer shardCount = 10;
 
-        private String topic;
+        /**
+         * aliyun sls topic.
+         * aliyun query by topic
+         */
+        private String topic = "shenyu-gateway-topic";
 
         private String sampleRate = "1";
-
-        private String compressAlg;
 
         /**
          * default 512KB.
@@ -78,24 +102,6 @@ public class LogCollectConfig {
          */
         public void setSampleRate(final String sampleRate) {
             this.sampleRate = sampleRate;
-        }
-
-        /**
-         * whether compress.
-         *
-         * @return compress or not
-         */
-        public String getCompressAlg() {
-            return compressAlg;
-        }
-
-        /**
-         * set compress.
-         *
-         * @param compressAlg compress alg.
-         */
-        public void setCompressAlg(final String compressAlg) {
-            this.compressAlg = compressAlg;
         }
 
         /**
@@ -170,58 +176,128 @@ public class LogCollectConfig {
             this.host = host;
         }
 
+        /**
+         * get access id.
+         *
+         * @return accessId
+         */
         public String getAccessId() {
             return accessId;
         }
 
+        /**
+         * set accessId.
+         *
+         * @param accessId accessId
+         */
         public void setAccessId(String accessId) {
             this.accessId = accessId;
         }
 
+        /**
+         * get accessKey.
+         *
+         * @return accessKey
+         */
         public String getAccessKey() {
             return accessKey;
         }
 
+        /**
+         * set accessKey.
+         *
+         * @param accessKey accessKey
+         */
         public void setAccessKey(String accessKey) {
             this.accessKey = accessKey;
         }
 
+        /**
+         * get project name.
+         *
+         * @return project name
+         */
         public String getProjectName() {
             return projectName;
         }
 
+        /**
+         * set project.
+         *
+         * @param projectName project name
+         */
         public void setProjectName(String projectName) {
             this.projectName = projectName;
         }
 
+        /**
+         * get logStore name.
+         *
+         * @return logStore name
+         */
         public String getLogStoreName() {
             return logStoreName;
         }
 
+        /**
+         * set logStore name.
+         *
+         * @param logStoreName logStoreName
+         */
         public void setLogStoreName(String logStoreName) {
             this.logStoreName = logStoreName;
         }
 
+        /**
+         * get ttl.
+         *
+         * @return ttl
+         */
         public Integer getTtlInDay() {
             return ttlInDay;
         }
 
+        /**
+         * set ttl.
+         *
+         * @param ttlInDay ttl
+         */
         public void setTtlInDay(Integer ttlInDay) {
             this.ttlInDay = ttlInDay;
         }
 
+        /**
+         * get aliyun shard.
+         *
+         * @return shard count
+         */
         public Integer getShardCount() {
             return shardCount;
         }
 
+        /**
+         * set aliyun shard.
+         *
+         * @param shardCount shardCount
+         */
         public void setShardCount(Integer shardCount) {
             this.shardCount = shardCount;
         }
 
+        /**
+         * get aliyun search topic.
+         *
+         * @return topic
+         */
         public String getTopic() {
             return topic;
         }
 
+        /**
+         * set aliyun search toic.
+         *
+         * @param topic topic
+         */
         public void setTopic(String topic) {
             this.topic = topic;
         }
