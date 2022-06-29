@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.plugin.logging.elasticsearch.body.LoggingElasticSearchServerHttpRequest;
 import org.apache.shenyu.plugin.logging.elasticsearch.body.LoggingElasticSearchServerResponse;
+import org.apache.shenyu.plugin.logging.elasticsearch.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectUtils;
@@ -74,7 +75,7 @@ public class LoggingElasticSearchPlugin extends AbstractShenyuPlugin {
     /**
      * get plugin order.
      *
-     * @return order
+     * @return plugin order
      */
     @Override
     public int getOrder() {

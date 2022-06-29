@@ -15,24 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.elasticsearch;
+package org.apache.shenyu.plugin.logging.rocketmq.client;
 
-import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.rocketmq.entity.ShenyuRequestLog;
+
+import java.util.List;
 
 /**
- * Collect logs and put into buffer queue.
+ * Used to collect logs, which can be stored in remote or local files or databases, or others.
  */
-public interface LogCollector extends AutoCloseable {
-
+public interface LogConsumeClient extends AutoCloseable {
+    
     /**
-     * start log collector.
-     */
-    void start();
-
-    /**
-     * collect log.
+     * collect logs.
      *
-     * @param log access log
+     * @param logs list of log
+     * @throws Exception produce exception
      */
-    void collect(ShenyuRequestLog log);
+    void consume(List<ShenyuRequestLog> logs) throws Exception;
 }

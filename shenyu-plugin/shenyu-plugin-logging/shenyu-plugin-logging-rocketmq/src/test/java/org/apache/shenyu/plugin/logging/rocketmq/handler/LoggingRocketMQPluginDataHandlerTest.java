@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.logging.rocketmq.handler;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.logging.rocketmq.rocketmq.RocketMQLogCollectClient;
+import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

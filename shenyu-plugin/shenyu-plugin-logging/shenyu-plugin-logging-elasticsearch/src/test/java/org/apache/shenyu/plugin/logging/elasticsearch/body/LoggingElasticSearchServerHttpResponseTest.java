@@ -23,7 +23,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
-import org.apache.shenyu.plugin.logging.elasticsearch.DefaultLogCollector;
+import org.apache.shenyu.plugin.logging.elasticsearch.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectUtils;
