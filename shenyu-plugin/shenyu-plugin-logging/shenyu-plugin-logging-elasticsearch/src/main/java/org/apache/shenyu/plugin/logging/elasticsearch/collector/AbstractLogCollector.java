@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.elasticsearch;
+package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 
 import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
@@ -23,6 +23,7 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.ThreadUtils;
+import org.apache.shenyu.plugin.logging.elasticsearch.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectConfigUtils;
 import org.slf4j.Logger;

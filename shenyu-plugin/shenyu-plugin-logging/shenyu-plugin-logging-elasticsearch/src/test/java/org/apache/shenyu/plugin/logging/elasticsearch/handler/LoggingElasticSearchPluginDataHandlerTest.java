@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.logging.elasticsearch.handler;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.logging.elasticsearch.elasticsearch.ElasticSearchLogCollectClient;
+import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

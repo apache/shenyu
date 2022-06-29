@@ -15,28 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.elasticsearch;
+package org.apache.shenyu.plugin.logging.rocketmq.collector;
 
-import org.apache.shenyu.plugin.logging.elasticsearch.handler.LoggingElasticSearchPluginDataHandler;
+import org.apache.shenyu.plugin.logging.rocketmq.entity.ShenyuRequestLog;
 
 /**
- * default log collector，depend a LogConsumeClient for consume logs.
+ * Collect logs and put into buffer queue.
  */
-public class DefaultLogCollector extends AbstractLogCollector {
-
-    private static final LogCollector INSTANCE = new DefaultLogCollector();
+public interface LogCollector extends AutoCloseable {
 
     /**
-     * get LogCollector instance.
-     *
-     * @return LogCollector instance
+     * start log collector.
      */
-    public static LogCollector getInstance() {
-        return INSTANCE;
-    }
+    void start();
 
-    @Override
-    protected LogConsumeClient getLogConsumeClient() {
-        return LoggingElasticSearchPluginDataHandler.getElasticSearchLogCollectClient();
-    }
+    /**
+     * collect log.
+     *
+     * @param log access log
+     */
+    void collect(ShenyuRequestLog log);
 }

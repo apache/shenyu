@@ -23,7 +23,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
-import org.apache.shenyu.plugin.logging.rocketmq.DefaultLogCollector;
+import org.apache.shenyu.plugin.logging.rocketmq.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.rocketmq.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.rocketmq.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.rocketmq.utils.LogCollectUtils;

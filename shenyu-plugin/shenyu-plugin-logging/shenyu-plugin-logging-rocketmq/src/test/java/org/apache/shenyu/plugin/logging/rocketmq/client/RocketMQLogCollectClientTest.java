@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.rocketmq.rocketmq;
+package org.apache.shenyu.plugin.logging.rocketmq.client;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
