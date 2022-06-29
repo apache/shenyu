@@ -37,6 +37,12 @@
         operation_type
     </sql>
 
+    <delete id="deleteByBefore">
+        delete
+        from operation_record_log
+        where operation_time <![CDATA[<]]> #{time}
+    </delete>
+
     <select id="selectLimit" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
@@ -50,6 +56,23 @@
         <include refid="Base_Column_List"/>
         FROM operation_record_log
         where rownum <![CDATA[<=]]> #{limit}
+        order by operation_time desc
+    </select>
+
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.OperationRecordLog">
+        select
+        <include refid="Base_Column_List"/>
+        from operation_record_log
+        where operation_time between #{condition.startTime} and #{condition.endTime}
+        <if test="condition.keyword != null and condition.keyword != ''">
+            and context like concat('%',#{condition.keyword},'%')
+        </if>
+        <if test="condition.excluded != null and condition.excluded != ''">
+            and context not like concat('%',#{condition.excluded},'%')
+        </if>
+        <if test="condition.type != null">
+            and operation_type = #{condition.type}
+        </if>
         order by operation_time desc
     </select>
 

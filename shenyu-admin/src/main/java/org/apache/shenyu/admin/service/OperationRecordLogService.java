@@ -18,13 +18,15 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.entity.OperationRecordLog;
+import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
 
+import java.util.Date;
 import java.util.List;
 
 /**
  * OperationRecordLogService.
  */
-public interface OperationRecordLogService {
+public interface OperationRecordLogService extends PageService<RecordLogQueryCondition, OperationRecordLog> {
     
     /**
      * list.
@@ -32,4 +34,12 @@ public interface OperationRecordLogService {
      * @return list
      */
     List<OperationRecordLog> list();
+    
+    /**
+     * clean history.
+     *
+     * @param date before time point
+     * @return is success
+     */
+    boolean cleanHistory(Date date);
 }

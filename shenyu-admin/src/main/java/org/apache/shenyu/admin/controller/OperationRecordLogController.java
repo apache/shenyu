@@ -18,14 +18,21 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.model.entity.OperationRecordLog;
+import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
 import org.apache.shenyu.admin.model.result.AdminResult;
 import org.apache.shenyu.admin.service.OperationRecordLogService;
+import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.utils.ResultUtil;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -34,7 +41,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/operation-record/log")
-public class OperationRecordLogController {
+public class OperationRecordLogController implements PagedController<RecordLogQueryCondition, OperationRecordLog> {
     
     private final OperationRecordLogService recordLogService;
     
@@ -50,5 +57,23 @@ public class OperationRecordLogController {
     @GetMapping("/list")
     public AdminResult<List<OperationRecordLog>> list() {
         return ResultUtil.ok(recordLogService.list());
+    }
+    
+    /**
+     * clean.
+     *
+     * @param timePoint before time point
+     * @return list
+     */
+    @DeleteMapping("/clean/{timePoint}")
+    @RequiresPermissions("system:role:delete")
+    public AdminResult<Boolean> clean(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date timePoint) {
+        return ResultUtil.ok(recordLogService.cleanHistory(timePoint));
+    }
+    
+    
+    @Override
+    public PageService<RecordLogQueryCondition, OperationRecordLog> pageService() {
+        return recordLogService;
     }
 }
