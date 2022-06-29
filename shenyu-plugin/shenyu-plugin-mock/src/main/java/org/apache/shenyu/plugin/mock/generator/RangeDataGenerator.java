@@ -15,27 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator.impl;
+package org.apache.shenyu.plugin.mock.generator;
 
+import java.util.Arrays;
 import java.util.List;
-import org.apache.shenyu.plugin.mock.generator.Generator;
+import java.util.stream.Collectors;
+import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.plugin.mock.util.RandomUtil;
 import org.apache.shenyu.spi.Join;
 
 /**
- * Boolean Generator.
+ * Specify the in-list data generator.
  */
 @Join
-public class BoolGenerator implements Generator<Boolean> {
+public class RangeDataGenerator implements Generator<String> {
+    
+    private List<String> data;
     
     @Override
     public String getName() {
-        return "bool";
+        return "list";
     }
     
     @Override
-    public Boolean generate() {
-        return RandomUtil.randomInt(0, 1) == 1;
+    public String generate() {
+        return data.get(RandomUtil.randomInt(0, data.size() - 1));
     }
     
     @Override
@@ -45,10 +49,20 @@ public class BoolGenerator implements Generator<Boolean> {
     
     @Override
     public void initParam(final List<String> params) {
+        String rangeData = params.get(0).replaceAll("\\[(.+)]", "$1");
+        data = Arrays.stream(rangeData.split("(?<!\\\\),"))
+            .map(data -> data.replace("\\,", ","))
+            .collect(Collectors.toList());
     }
     
     @Override
     public boolean match(final String rule) {
-        return rule.matches("^bool$");
+        boolean matches = rule.matches("^list\\|\\[.+]$");
+        if (matches) {
+            String candidateData = rule.substring(6, rule.length() - 1);
+            return !candidateData.matches("^\\s+$");
+        }
+        return false;
     }
 }
+

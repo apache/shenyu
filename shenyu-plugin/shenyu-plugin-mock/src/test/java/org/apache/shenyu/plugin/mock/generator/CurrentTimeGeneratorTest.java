@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.mock.generator;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import org.apache.shenyu.plugin.mock.generator.impl.CurrentTimeGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

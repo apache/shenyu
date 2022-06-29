@@ -15,52 +15,43 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator.impl;
+package org.apache.shenyu.plugin.mock.generator;
 
-import java.util.List;
-import java.util.Random;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.shenyu.plugin.mock.generator.Generator;
+import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomInt;
+import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomLowerLetterString;
+
+import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.spi.Join;
 
 /**
- * Random length Chinese string generator.
+ * Random email address generator.
  */
 @Join
-public class ZhStringGenerator implements Generator<String> {
+public class EmailGenerator implements Generator<String> {
     
-    private int min;
-    
-    private int max;
+    private static final String[] DOMAIN_SUFFIX = {"com", "org", "cn", "com.cn", "top", "edu",
+        "io"};
     
     @Override
     public String getName() {
-        return "zh";
+        return "email";
     }
     
     @Override
     public String generate() {
-        Random random = new Random();
-        int len = random.nextInt(max - min - 1) + min;
-        return RandomStringUtils.random(len, 0x4e00, 0x9fa5, false, false);
+        return String.format("%s@%s.%s",
+            randomLowerLetterString(randomInt(5, 10)),
+            randomLowerLetterString(randomInt(3, 8)),
+            DOMAIN_SUFFIX[randomInt(0, DOMAIN_SUFFIX.length - 1)]);
     }
     
     @Override
     public int getParamSize() {
-        return 1;
-    }
-    
-    @Override
-    public void initParam(final List<String> params) {
-        String[] range = params.get(0).split("-");
-        min = Integer.parseInt(range[0]);
-        max = Integer.parseInt(range[1]);
+        return 0;
     }
     
     @Override
     public boolean match(final String rule) {
-        return rule.matches("^zh\\|\\d+-\\d+$");
+        return rule.matches("^email$");
     }
-    
 }
-

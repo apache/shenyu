@@ -18,10 +18,10 @@
 package org.apache.shenyu.plugin.mock.generator;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.apache.shenyu.plugin.mock.generator.impl.RandomDoubleGenerator;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -32,7 +32,7 @@ public class RandomDoubleGeneratorTest {
     private final RandomDoubleGenerator generator = new RandomDoubleGenerator();
     
     @Test
-    public void generate() {
+    void generate() {
         generator.parseRule("double|10.5-12.0");
         String doubleValue = generator.generate();
         assertNotNull(doubleValue);
@@ -46,7 +46,13 @@ public class RandomDoubleGeneratorTest {
     }
     
     @Test
-    public void match() {
-    
+    void match() {
+        assertTrue(generator.match("double|10-15"));
+        assertTrue(generator.match("double|10.1-15"));
+        assertTrue(generator.match("double|10.1-15.2"));
+        assertTrue(generator.match("double|10.1-15.2|"));
+        assertTrue(generator.match("double|10.1-15.2|%.2f"));
+        assertFalse(generator.match("double"));
+        assertFalse(generator.match("double|10.2.1-"));
     }
 }

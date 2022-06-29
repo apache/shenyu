@@ -15,62 +15,52 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator.impl;
+package org.apache.shenyu.plugin.mock.generator;
 
-import java.time.DateTimeException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import org.apache.shenyu.plugin.mock.generator.Generator;
+import java.util.Random;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.spi.Join;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * current time generator.
+ * Random length Chinese string generator.
  */
 @Join
-public class CurrentTimeGenerator implements Generator<String> {
+public class ZhStringGenerator implements Generator<String> {
     
-    private static final String DEFAULT_FORMAT = "YYYY-MM-dd HH:mm:ss";
+    private int min;
     
-    private static final Logger LOG = LoggerFactory.getLogger(CurrentTimeGenerator.class);
-    
-    private String format;
+    private int max;
     
     @Override
     public String getName() {
-        return "current";
+        return "zh";
     }
     
     @Override
     public String generate() {
-        LocalDateTime now = LocalDateTime.now();
-        try {
-            return DateTimeFormatter.ofPattern(format).format(now);
-        } catch (DateTimeException e) {
-            LOG.warn("format fail,use default format :{}", DEFAULT_FORMAT);
-            return DateTimeFormatter.ofPattern(DEFAULT_FORMAT).format(now);
-        }
-        
+        Random random = new Random();
+        int len = random.nextInt(max - min - 1) + min;
+        return RandomStringUtils.random(len, 0x4e00, 0x9fa5, false, false);
     }
     
     @Override
     public int getParamSize() {
-        return 0;
+        return 1;
     }
     
     @Override
     public void initParam(final List<String> params) {
-        if (params.size() >= 1) {
-            format = params.get(0);
-        } else {
-            format = DEFAULT_FORMAT;
-        }
+        String[] range = params.get(0).split("-");
+        min = Integer.parseInt(range[0]);
+        max = Integer.parseInt(range[1]);
     }
     
     @Override
     public boolean match(final String rule) {
-        return rule.matches("^current(\\|.+)?");
+        return rule.matches("^zh\\|\\d+-\\d+$");
     }
+    
 }
+

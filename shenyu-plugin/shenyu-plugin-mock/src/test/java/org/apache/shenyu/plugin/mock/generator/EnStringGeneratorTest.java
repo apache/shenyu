@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.mock.generator;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.apache.shenyu.plugin.mock.generator.impl.EnStringGenerator;
 import org.junit.jupiter.api.Test;
 
 /**

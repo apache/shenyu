@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator;
+package org.apache.shenyu.plugin.base.mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,9 +57,12 @@ public interface Generator<T> {
      */
     default void parseRule(final String rule) {
         List<String> params = new ArrayList<>();
-        String[] split = rule.split("\\|");
+        String[] split = rule.split("(?<!\\\\)\\|");
         if (split.length >= getParamSize() + 1) {
-            params.addAll(Arrays.stream(split).skip(1).collect(Collectors.toList()));
+            params.addAll(Arrays.stream(split)
+                .map(p -> p.replaceAll("\\\\\\|", "|"))
+                .skip(1)
+                .collect(Collectors.toList()));
         }
         initParam(params);
     }
@@ -69,7 +72,9 @@ public interface Generator<T> {
      *
      * @param params rule params.
      */
-    void initParam(List<String> params);
+    default void initParam(List<String> params) {
+    
+    }
     
     /**
      * Determine whether the rule meets the format requirements.

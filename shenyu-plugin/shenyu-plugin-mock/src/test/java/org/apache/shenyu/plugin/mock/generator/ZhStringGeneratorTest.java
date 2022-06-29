@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.apache.shenyu.plugin.mock.generator.impl.ZhStringGenerator;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,5 +42,9 @@ class ZhStringGeneratorTest {
     
     @Test
     void match() {
+        assertTrue(generator.match("zh|10-15"));
+        assertFalse(generator.match("zh"));
+        assertFalse(generator.match("zh|"));
+        assertFalse(generator.match("zh|10.1-15"));
     }
 }

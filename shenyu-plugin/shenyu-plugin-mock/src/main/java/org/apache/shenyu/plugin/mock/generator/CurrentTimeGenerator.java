@@ -15,48 +15,62 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator.impl;
+package org.apache.shenyu.plugin.mock.generator;
 
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import org.apache.shenyu.plugin.mock.generator.Generator;
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Random int value generator in the specified range.
+ * current time generator.
  */
 @Join
-public class RandomIntGenerator implements Generator<Integer> {
+public class CurrentTimeGenerator implements Generator<String> {
     
-    private int min;
+    private static final String DEFAULT_FORMAT = "YYYY-MM-dd HH:mm:ss";
     
-    private int max;
+    private static final Logger LOG = LoggerFactory.getLogger(CurrentTimeGenerator.class);
+    
+    private String format;
     
     @Override
     public String getName() {
-        return "int";
+        return "current";
     }
     
     @Override
-    public Integer generate() {
-        return RandomUtil.randomInt(min, max);
+    public String generate() {
+        LocalDateTime now = LocalDateTime.now();
+        try {
+            return DateTimeFormatter.ofPattern(format).format(now);
+        } catch (DateTimeException e) {
+            LOG.warn("format fail,use default format :{}", DEFAULT_FORMAT);
+            return DateTimeFormatter.ofPattern(DEFAULT_FORMAT).format(now);
+        }
+        
     }
     
     @Override
     public int getParamSize() {
-        return 1;
+        return 0;
     }
     
     @Override
     public void initParam(final List<String> params) {
-        String[] range = params.get(0).split("-");
-        min = Integer.parseInt(range[0]);
-        max = Integer.parseInt(range[1]);
+        if (params.size() >= 1) {
+            format = params.get(0);
+        } else {
+            format = DEFAULT_FORMAT;
+        }
     }
     
     @Override
     public boolean match(final String rule) {
-        return rule.matches("^int\\|\\d+-\\d+$");
+        return rule.matches("^current(\\|.+)?");
     }
-    
 }

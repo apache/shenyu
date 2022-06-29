@@ -17,16 +17,20 @@
 
 package org.apache.shenyu.plugin.mock.util;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.shenyu.plugin.mock.generator.Generator;
+import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.spi.ExtensionLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * GenerateUtil.
  */
-public class GenerateUtil {
+public final class GenerateUtil {
     
     /**
      * Regular expression to extract placeholders.
@@ -34,14 +38,34 @@ public class GenerateUtil {
     private static final Pattern RULE_PATTERN = Pattern
         .compile("(\\$\\{.+?})", Pattern.MULTILINE);
     
+    private static final Logger LOG = LoggerFactory.getLogger(GenerateUtil.class);
+    
     /**
      * Regular expression to extract rule content.
      */
     private static final Pattern RULE_CONTENT_PATTERN = Pattern
         .compile("^\\$\\{(.+?)}$", Pattern.MULTILINE);
     
-    private static Generator<?> getGenerator(final String ruleName) {
-        return ExtensionLoader.getExtensionLoader(Generator.class).getJoin(ruleName);
+    /**
+     * cache of generators.
+     */
+    private static final Map<String, Generator<?>> GENERATORS = new ConcurrentHashMap<>();
+    
+    private GenerateUtil() {
+    }
+    
+    private static Generator<?> getGenerator(final String ruleName, final String rule) {
+        Generator<?> generator = GENERATORS.get(ruleName);
+        if (generator == null) {
+            try {
+                generator = ExtensionLoader.getExtensionLoader(Generator.class).getJoin(ruleName);
+                GENERATORS.put(ruleName, generator);
+                return generator;
+            } catch (IllegalArgumentException e) {
+                LOG.warn("{} can not parse,please check", rule);
+            }
+        }
+        return generator;
     }
     
     private static Object generate(final String rule) {
@@ -49,7 +73,7 @@ public class GenerateUtil {
         if (matcher.find()) {
             String ruleContent = matcher.group(1);
             String ruleName = ruleContent.split("\\|")[0];
-            Generator<?> generator = getGenerator(ruleName);
+            Generator<?> generator = getGenerator(ruleName, rule);
             if (generator == null || !generator.match(ruleContent)) {
                 return rule;
             }

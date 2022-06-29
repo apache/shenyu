@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator.impl;
+package org.apache.shenyu.plugin.mock.generator;
 
-import java.util.List;
-import org.apache.shenyu.plugin.mock.generator.Generator;
+import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.plugin.mock.util.RandomUtil;
 import org.apache.shenyu.spi.Join;
 
@@ -46,11 +45,6 @@ public class PhoneGenerator implements Generator<String> {
     @Override
     public int getParamSize() {
         return 0;
-    }
-    
-    @Override
-    public void initParam(final List<String> params) {
-    
     }
     
     @Override

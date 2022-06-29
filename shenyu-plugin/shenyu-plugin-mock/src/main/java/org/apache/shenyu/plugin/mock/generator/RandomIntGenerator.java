@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator.impl;
+package org.apache.shenyu.plugin.mock.generator;
 
 import java.util.List;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.shenyu.plugin.mock.generator.Generator;
+import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.plugin.mock.util.RandomUtil;
 import org.apache.shenyu.spi.Join;
 
 /**
- * Random english string generator.
+ * Random int value generator in the specified range.
  */
 @Join
-public class EnStringGenerator implements Generator<String> {
+public class RandomIntGenerator implements Generator<Integer> {
     
     private int min;
     
@@ -35,12 +34,12 @@ public class EnStringGenerator implements Generator<String> {
     
     @Override
     public String getName() {
-        return "zh";
+        return "int";
     }
     
     @Override
-    public String generate() {
-        return RandomStringUtils.random(RandomUtil.randomInt(min, max), 5, 129, true, false);
+    public Integer generate() {
+        return RandomUtil.randomInt(min, max);
     }
     
     @Override
@@ -57,7 +56,7 @@ public class EnStringGenerator implements Generator<String> {
     
     @Override
     public boolean match(final String rule) {
-        return rule.matches("^en\\|\\d+-\\d+$");
+        return rule.matches("^int\\|\\d+-\\d+$");
     }
     
 }

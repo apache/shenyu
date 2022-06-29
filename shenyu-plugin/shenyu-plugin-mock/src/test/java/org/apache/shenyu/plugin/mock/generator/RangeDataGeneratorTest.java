@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Objects;
-import org.apache.shenyu.plugin.mock.generator.impl.RangeDataGenerator;
 import org.junit.jupiter.api.Test;
 
 /**

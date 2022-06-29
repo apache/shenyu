@@ -15,54 +15,57 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator.impl;
+package org.apache.shenyu.plugin.mock.generator;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import org.apache.shenyu.plugin.mock.generator.Generator;
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import java.util.Objects;
+import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.spi.Join;
 
 /**
- * Specify the in-list data generator.
+ * Random double value generator in the specified range.
  */
 @Join
-public class RangeDataGenerator implements Generator<String> {
+public class RandomDoubleGenerator implements Generator<String> {
     
-    private List<String> data;
+    private Double min;
+    
+    private Double max;
+    
+    private String format;
     
     @Override
     public String getName() {
-        return "list";
+        return "double";
     }
     
     @Override
     public String generate() {
-        return data.get(RandomUtil.randomInt(0, data.size() - 1));
+        Double result = (Math.random() * (max - min)) + min;
+        if (format != null) {
+            return String.format(format, result);
+        }
+        return String.valueOf(result);
     }
     
     @Override
     public int getParamSize() {
-        return 0;
+        return 1;
     }
     
     @Override
     public void initParam(final List<String> params) {
-        String rangeData = params.get(0).replaceAll("\\[(.+)]", "$1");
-        data = Arrays.stream(rangeData.split("(?<!\\\\),"))
-            .map(data -> data.replace("\\,", ","))
-            .collect(Collectors.toList());
+        String[] range = params.get(0).split("-");
+        min = Double.parseDouble(range[0]);
+        max = Double.parseDouble(range[1]);
+        if (params.size() == 2) {
+            format = Objects.equals(params.get(1), "") ? null : params.get(1);
+        }
     }
     
     @Override
     public boolean match(final String rule) {
-        boolean matches = rule.matches("^list\\|\\[.+]$");
-        if (matches) {
-            String candidateData = rule.substring(6, rule.length() - 1);
-            return !candidateData.matches("^\\s+$");
-        }
-        return false;
+        return rule.matches("^double\\|\\d+(?:\\.\\d+)?-\\d+(?:\\.\\d+)?.*");
     }
 }
 
