@@ -116,7 +116,9 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     }
     
     private <T> void doRegister(final T t, final String path, final String type) {
+        int i = 0;
         for (String server : serverList) {
+            i++;
             String concat = server.concat(path);
             try {
                 if (StringUtils.isBlank(accessToken)) {
@@ -129,7 +131,9 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                 return;
             } catch (Exception e) {
                 LOGGER.error("Register admin url :{} is fail, will retry. cause:{}", server, e.getMessage());
-                throw new RuntimeException(e);
+                if (i == serverList.size()) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }

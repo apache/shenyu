@@ -67,15 +67,16 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
         LOG.info("init ElasticSearchLogCollectClient success");
+        if (!existsIndex(LoggingConstant.INDEX)) {
+            createIndex(LoggingConstant.INDEX);
+            LOG.info("create index success");
+        }
         isStarted.set(true);
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
     @Override
     public void consume(final List<ShenyuRequestLog> logs) throws Exception {
-        if (!existsIndex(LoggingConstant.INDEX)) {
-            createIndex(LoggingConstant.INDEX);
-        }
         if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
             return;
         }
@@ -107,7 +108,7 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
     }
 
     /**
-     * create elasticsearch client.
+     * create elasticsearch index.
      *
      * @param indexName index name
      * @return true or false
