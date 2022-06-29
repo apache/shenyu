@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -183,6 +184,30 @@ public final class DefaultSignServiceTest {
     }
 
     @Test
+    public void fillParamPath() {
+        this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+        AppAuthData authData = SignAuthDataCache.getInstance().obtainAuthData(appKey);
+        AuthParamData authParamData = new AuthParamData();
+        authParamData.setAppParam("appParam");
+        authParamData.setAppName("appParam");
+        authData.setParamDataList(Collections.singletonList(authParamData));
+        SignAuthDataCache.getInstance().cacheAuthData(authData);
+
+        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, Pair.of(true, ""));
+    }
+
+    @Test
+    public void emptyParamPath() {
+        this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+        AppAuthData authData = SignAuthDataCache.getInstance().obtainAuthData(appKey);
+        SignAuthDataCache.getInstance().cacheAuthData(authData);
+
+        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, Pair.of(true, ""));
+    }
+
+    @Test
     public void errorAuthPath() {
         this.passed.setPath("errorPath");
         this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath()));
@@ -198,6 +223,15 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
+    }
+    @Test
+    public void bodySign() {
+        this.passed.setSign("errorSign");
+        this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
+        requestBody.put("data", "data");
+        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody);
         assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
     }
 

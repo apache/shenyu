@@ -17,11 +17,19 @@
 
 package org.apache.shenyu.plugin.sign;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.sign.api.SignService;
+import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
+import org.apache.shenyu.plugin.sign.handler.SignRuleHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,12 +37,22 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.io.IOException;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -51,19 +69,98 @@ public final class SignPluginTest {
 
     private SignPlugin signPlugin;
 
+    private RuleData ruleData;
+
+    private SignService signService;
+
+
+    private SignPluginDataHandler signPluginDataHandler;
+
     @BeforeEach
     public void setup() {
-        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        SignService signService = mock(SignService.class);
-        when(signService.signVerify(exchange)).thenReturn(Pair.of(true, ""));
+
+        this.ruleData = new RuleData();
+        this.ruleData.setSelectorId("test-sign");
+        this.ruleData.setName("test-sign-plugin");
+        this.signPluginDataHandler = new SignPluginDataHandler();
+        signService = mock(SignService.class);
         this.signPlugin = new SignPlugin(signService);
+
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        assertEquals(signPlugin.getOrder(), PluginEnum.SIGN.getCode());
+        assertEquals(signPlugin.named(), PluginEnum.SIGN.getName());
+        assertEquals(signPluginDataHandler.pluginNamed(), PluginEnum.SIGN.getName());
+
+        SignRuleHandler signRuleHandler = new SignRuleHandler();
+        signRuleHandler.setSignRequestBody(true);
+        assertTrue(signRuleHandler.toString().contains("signRequestBody"));
+        assertTrue(signRuleHandler.getSignRequestBody());
     }
 
     @Test
-    public void testSignPlugin() {
+    public void testSignPluginSimple() {
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+
+        when(signService.signVerify(exchange)).thenReturn(Pair.of(true, ""));
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(signPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
     }
+    @Test
+    public void testSignPluginSimple2() {
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+
+        when(signService.signVerify(exchange)).thenReturn(Pair.of(false, ""));
+        RuleData data = mock(RuleData.class);
+        SelectorData selectorData = mock(SelectorData.class);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        StepVerifier.create(signPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testSignPluginSignBody() {
+        this.ruleData.setHandle("{\"signRequestBody\": true}");
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.POST, "/test")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body("{\"data\": "
+                        + "\"3\""
+                        + "}"));
+        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
+        requestBody.put("data", "3");
+        when(signService.signVerify(exchange, requestBody)).thenReturn(Pair.of(true, ""));
+        when(this.chain.execute(any())).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        signPluginDataHandler.handlerRule(ruleData);
+        StepVerifier.create(signPlugin.doExecute(this.exchange, this.chain, selectorData, this.ruleData)).expectSubscription().verifyComplete();
+
+    }
+    @Test
+    public void testSignPluginSignBody2() {
+        this.ruleData.setHandle("{\"signRequestBody\": true}");
+
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.POST, "/test")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body("{\"data\": "
+                        + "\"4\""
+                        + "}"));
+        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
+        requestBody.put("data", "4");
+        when(signService.signVerify(exchange, requestBody)).thenReturn(Pair.of(false, ""));
+        when(this.chain.execute(any())).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        signPluginDataHandler.handlerRule(ruleData);
+        StepVerifier.create(signPlugin.doExecute(this.exchange, this.chain, selectorData, this.ruleData)).expectSubscription().verifyComplete();
+
+    }
+
+    @AfterEach
+    public void clean() throws IOException {
+        signPluginDataHandler.removeRule(this.ruleData);
+    }
+
 }

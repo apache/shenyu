@@ -35,6 +35,7 @@ import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.time.LocalDateTime;
@@ -53,13 +54,13 @@ public class DefaultSignService implements SignService {
     private int delay;
 
     @Override
-    public Pair<Boolean, String> signVerify(final ServerWebExchange exchange) {
+    public Pair<Boolean, String> signVerify(final ServerWebExchange exchange, Map<String, Object> requestBody) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        return verify(shenyuContext, exchange);
+        return verify(shenyuContext, exchange, requestBody);
     }
 
-    private Pair<Boolean, String> verify(final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
+    private Pair<Boolean, String> verify(final ShenyuContext shenyuContext, final ServerWebExchange exchange, final Map<String, Object> requestBody) {
         if (StringUtils.isBlank(shenyuContext.getAppKey())
                 || StringUtils.isBlank(shenyuContext.getSign())
                 || StringUtils.isBlank(shenyuContext.getTimestamp())) {
@@ -72,7 +73,8 @@ public class DefaultSignService implements SignService {
         if (between > delay) {
             return Pair.of(Boolean.FALSE, String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay));
         }
-        return sign(shenyuContext, exchange);
+
+        return sign(shenyuContext, exchange, requestBody);
     }
 
     /**
@@ -81,7 +83,7 @@ public class DefaultSignService implements SignService {
      * @param shenyuContext {@linkplain ShenyuContext}
      * @return result : True is pass, False is not pass.
      */
-    private Pair<Boolean, String> sign(final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
+    private Pair<Boolean, String> sign(final ShenyuContext shenyuContext, final ServerWebExchange exchange, final Map<String, Object> requestBody) {
         final AppAuthData appAuthData = SignAuthDataCache.getInstance().obtainAuthData(shenyuContext.getAppKey());
         if (Objects.isNull(appAuthData) || Boolean.FALSE.equals(appAuthData.getEnabled())) {
             LOG.error("sign APP_kEY does not exist or has been disabled,{}", shenyuContext.getAppKey());
@@ -101,7 +103,7 @@ public class DefaultSignService implements SignService {
                 return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
             }
         }
-        String sigKey = ShenyuSignProviderWrap.generateSign(appAuthData.getAppSecret(), buildParamsMap(shenyuContext));
+        String sigKey = ShenyuSignProviderWrap.generateSign(appAuthData.getAppSecret(), buildParamsMap(shenyuContext, requestBody));
         boolean result = Objects.equals(sigKey, shenyuContext.getSign());
         if (!result) {
             LOG.error("the SignUtils generated signature value is:{},the accepted value is:{}", sigKey, shenyuContext.getSign());
@@ -121,11 +123,16 @@ public class DefaultSignService implements SignService {
         return Pair.of(Boolean.TRUE, "");
     }
 
-    private Map<String, String> buildParamsMap(final ShenyuContext shenyuContext) {
+    private Map<String, String> buildParamsMap(final ShenyuContext shenyuContext, Map<String, Object> requestBody) {
         Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
         map.put(Constants.TIMESTAMP, shenyuContext.getTimestamp());
         map.put(Constants.PATH, shenyuContext.getPath());
         map.put(Constants.VERSION, "1.0.0");
+        if (!ObjectUtils.isEmpty(requestBody)) {
+            requestBody.forEach((key, value) -> {
+                map.putIfAbsent(key, Objects.toString(value, null));
+            });
+        }
         return map;
     }
 }

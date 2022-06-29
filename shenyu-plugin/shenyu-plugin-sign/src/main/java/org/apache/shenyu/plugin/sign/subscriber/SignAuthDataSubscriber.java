@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.plugin.sign.subscriber;
 
+import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
-import org.apache.shenyu.common.dto.AppAuthData;
 
 /**
  * The type Sign auth data subscriber.

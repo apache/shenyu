@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.springboot.starter.plugin.sign;
 
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
 import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.sign.api.SignProvider;
 import org.apache.shenyu.plugin.sign.SignPlugin;
+import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
 import org.apache.shenyu.plugin.sign.service.DefaultSignService;
 import org.apache.shenyu.plugin.sign.subscriber.SignAuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -79,5 +81,15 @@ public class SignPluginConfiguration {
     @Bean
     public AuthDataSubscriber signAuthDataSubscriber() {
         return new SignAuthDataSubscriber();
+    }
+
+    /**
+     * sign plugin data handler.
+     *
+     * @return the plugin data handler
+     */
+    @Bean
+    public PluginDataHandler signPluginDataHandler() {
+        return new SignPluginDataHandler();
     }
 }
