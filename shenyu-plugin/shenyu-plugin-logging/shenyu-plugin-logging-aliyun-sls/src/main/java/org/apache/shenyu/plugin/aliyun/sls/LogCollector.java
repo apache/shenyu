@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.aliyun.sls;
 
-
 import org.apache.shenyu.plugin.aliyun.sls.entity.ShenyuRequestLog;
 
 /**

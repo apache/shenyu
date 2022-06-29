@@ -41,7 +41,7 @@ public class LoggingAliYunSlsPluginDataHandler implements PluginDataHandler {
     private static final AliyunSlsLogCollectClient ALIYUN_SLS_LOG_COLLECT_CLIENT = new AliyunSlsLogCollectClient();
 
     @Override
-    public void handlerPlugin(PluginData pluginData) {
+    public void handlerPlugin(final PluginData pluginData) {
         LOG.info("AliYun sls plugin data: {}", GsonUtils.getGson().toJson(pluginData));
         if (pluginData.getEnabled()) {
             LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),

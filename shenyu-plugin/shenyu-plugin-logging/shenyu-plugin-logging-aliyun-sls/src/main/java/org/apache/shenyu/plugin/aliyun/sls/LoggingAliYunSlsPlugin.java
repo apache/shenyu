@@ -22,7 +22,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.aliyun.sls.body.LoggingServerHttpRequest;
 import org.apache.shenyu.plugin.aliyun.sls.body.LoggingServerHttpResponse;
-import org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant;
 import org.apache.shenyu.plugin.aliyun.sls.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.aliyun.sls.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.aliyun.sls.utils.LogCollectUtils;
@@ -42,7 +41,8 @@ import static org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant.USER_
 public class LoggingAliYunSlsPlugin extends AbstractShenyuPlugin {
 
     @Override
-    protected Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                   final SelectorData selector, final RuleData rule) {
         ServerHttpRequest request = exchange.getRequest();
         // control sampling
         if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {

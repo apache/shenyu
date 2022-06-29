@@ -53,8 +53,8 @@ public class AliyunSlsLogCollectClientTest {
     public void setup() {
         this.aliyunSlsLogCollectClient = new AliyunSlsLogCollectClient();
         pluginData.setEnabled(true);
-        pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"accessId\":\"test\", \"accessKey\":\"test\", " +
-                "\"host\":\"cn-guangzhou.log.aliyuncs.com\", \"projectName\":\"shenyu-test\", \"logStoreName\":\"shenyu-test-logstore\"}");
+        pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"accessId\":\"test\", \"accessKey\":\"test\", "
+                + "\"host\":\"cn-guangzhou.log.aliyuncs.com\", \"projectName\":\"shenyu-test\", \"logStoreName\":\"shenyu-test-logstore\"}");
         globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                 LogCollectConfig.GlobalLogConfig.class);
         props.setProperty(LoggingConstant.HOST, globalLogConfig.getHost());

@@ -39,8 +39,8 @@ public class LoggingAliYunSlsPluginDataHandlerTest {
     public void setUp() {
         this.loggingAliYunSlsPluginDataHandler = new LoggingAliYunSlsPluginDataHandler();
         pluginData.setEnabled(true);
-        pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"accessId\":\"test\", \"accessKey\":\"test\", " +
-                "\"host\":\"cn-guangzhou.log.aliyuncs.com\", \"projectName\":\"shenyu-test\", \"logStoreName\":\"shenyu-test-logstore\"}");
+        pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"accessId\":\"test\", \"accessKey\":\"test\", "
+                + "\"host\":\"cn-guangzhou.log.aliyuncs.com\", \"projectName\":\"shenyu-test\", \"logStoreName\":\"shenyu-test-logstore\"}");
     }
 
     @Test

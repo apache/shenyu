@@ -19,8 +19,6 @@ package org.apache.shenyu.plugin.aliyun.sls.body;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.aliyun.sls.DefaultLogCollector;
-import org.apache.shenyu.plugin.aliyun.sls.body.BodyWriter;
-import org.apache.shenyu.plugin.aliyun.sls.body.LoggingServerHttpResponse;
 import org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant;
 import org.apache.shenyu.plugin.aliyun.sls.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.aliyun.sls.utils.LogCollectUtils;
