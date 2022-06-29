@@ -64,7 +64,7 @@ public final class DateUtils {
      * @param start this is start date.
      * @param end   this is start date.
      * @return The number of days between start and end, if end is after start,
-     * returns a positive number, otherwise returns a negative number.
+     *     returns a positive number, otherwise returns a negative number.
      */
     public static long acquireMinutesBetween(final LocalDateTime start, final LocalDateTime end) {
         return start.until(end, ChronoUnit.MINUTES);
