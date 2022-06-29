@@ -104,12 +104,13 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
         }
 
         logs.forEach(log -> {
-            List<LogItem> logGroup = new ArrayList<LogItem>();
+            final List<LogItem> logGroup = new ArrayList<LogItem>();
             LogItem logItem = new LogItem((int) (System.currentTimeMillis() / 1000));
             logItem.PushBack("level", "info");
             logItem.PushBack("name", log.getRequestUri());
             logItem.PushBack("message", GsonUtils.getGson().toJson(log));
             logGroup.add(logItem);
+
             try {
                 client.PutLogs(projectName, logStore, topic, logGroup, "shenyu-gateway");
             } catch (LogException e) {
