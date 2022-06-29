@@ -114,7 +114,6 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
      * create elasticsearch index.
      *
      * @param indexName index name
-     * @return true or false
      */
     public void createIndex(final String indexName) {
         try {

@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 
-import org.apache.shenyu.plugin.logging.elasticsearch.collector.AbstractLogCollector;
-import org.apache.shenyu.plugin.logging.elasticsearch.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
 import org.apache.shenyu.plugin.logging.elasticsearch.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
