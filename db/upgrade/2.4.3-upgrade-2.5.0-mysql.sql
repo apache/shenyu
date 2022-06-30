@@ -85,3 +85,17 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172880', '32', 'maxRequestBody
 INSERT INTO `plugin_handle` VALUES ('1529402613204172881', '32', 'compressAlg', 'compressAlg', 3, 3, 6, '{\"required\":\"0\",\"defaultValue\":\"none\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172882', '32', 'index', 'index', 2, 1, 1, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172883', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+
+/* insert plugin for loggingAliyunSls */
+INSERT INTO `plugin` VALUES ('33', 'loggingAliyunSls','{\"accessId\":\"accessId\", \"accessKey\": \"accessKey\", \"host\": \"cn-guangzhou.log.aliyuncs.com\", \"projectName\": \"shenyu\", \"logStoreName\": \"shenyu-logstore\, \"topic\": \"shenyu-topic\"}', 'Logging', 175, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+
+/* insert plugin_handle data for plugin loggingAliyunSls */
+INSERT INTO `plugin_handle` VALUES ('1529402613204172884', '33', 'accessId', 'accessId', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172885', '33', 'accessKey', 'accessKey', 2, 3, 1, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172886', '33', 'host', 'host', 2, 3, 2, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172887', '33', 'projectName', 'projectName', 2, 3, 3, '{\"required\":\"1\",\"defaultValue\":\"shenyu\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172888', '33', 'logStoreName', 'logStoreName', 2, 3, 4, '{\"required\":\"1\",\"defaultValue\":\"shenyu-logstore\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172889', '33', 'topic', 'topic', 2, 3, 5, '{\"required\":\"1\",\"defaultValue\":\"shenyu-topic\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172890', '33', 'sampleRate', 'sampleRate', 2, 3, 6, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172891', '33', 'maxRequestBody', 'maxRequestBody', 1, 3, 7, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172892', '33', 'maxResponseBody', 'maxResponseBody', 1, 3, 8, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
