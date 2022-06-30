@@ -66,12 +66,12 @@ public class LogCollectConfig {
         /**
          * aliyun sls project name.
          */
-        private String projectName;
+        private String projectName = "shenyu-gateway";
 
         /**
          * aliyun sls logstore name.
          */
-        private String logStoreName;
+        private String logStoreName = "shenyu-gateway-logstore";
 
         /**
          * aliyun sls ttl.
