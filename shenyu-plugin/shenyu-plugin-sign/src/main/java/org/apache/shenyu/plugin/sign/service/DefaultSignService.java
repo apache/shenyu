@@ -54,7 +54,7 @@ public class DefaultSignService implements SignService {
     private int delay;
 
     @Override
-    public Pair<Boolean, String> signVerify(final ServerWebExchange exchange, Map<String, Object> requestBody) {
+    public Pair<Boolean, String> signVerify(final ServerWebExchange exchange, final Map<String, Object> requestBody) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         return verify(shenyuContext, exchange, requestBody);
@@ -123,7 +123,7 @@ public class DefaultSignService implements SignService {
         return Pair.of(Boolean.TRUE, "");
     }
 
-    private Map<String, String> buildParamsMap(final ShenyuContext shenyuContext, Map<String, Object> requestBody) {
+    private Map<String, String> buildParamsMap(final ShenyuContext shenyuContext, final Map<String, Object> requestBody) {
         Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
         map.put(Constants.TIMESTAMP, shenyuContext.getTimestamp());
         map.put(Constants.PATH, shenyuContext.getPath());
