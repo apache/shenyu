@@ -374,11 +374,6 @@
                 </exclusions>
                 <version>${zookeeper.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.101tec</groupId>
-                <artifactId>zkclient</artifactId>
-                <version>${zkclient.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>com.github.pagehelper</groupId>
