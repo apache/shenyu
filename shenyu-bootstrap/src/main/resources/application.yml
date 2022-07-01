@@ -159,6 +159,7 @@ shenyu:
     enabled: true
     allowedHeaders:
     allowedMethods: "*"
+    allowedAnyOrigin: false
     allowedOrigin:
       domain: apache.org
       prefixes:
