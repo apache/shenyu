@@ -65,6 +65,8 @@ public class AliyunSlsLogCollectClientTest {
         props.setProperty(LoggingConstant.TTL_IN_DAY, String.valueOf(globalLogConfig.getTtlInDay()));
         props.setProperty(LoggingConstant.SHARD_COUNT, String.valueOf(globalLogConfig.getShardCount()));
         props.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic().trim());
+        props.setProperty(LoggingConstant.SEND_THREAD_COUNT, String.valueOf(globalLogConfig.getSendThreadCount()));
+        props.setProperty(LoggingConstant.IO_THREAD_COUNT, String.valueOf(globalLogConfig.getIoThreadCount()));
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
         logs.add(shenyuRequestLog);
