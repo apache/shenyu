@@ -49,6 +49,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 /**
  * decorate ServerHttpResponse for read body.
@@ -110,7 +111,7 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
     private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        if (getStatusCode() != null) {
+        if (Objects.nonNull(getStatusCode())) {
             logInfo.setStatus(getStatusCode().value());
         }
         logInfo.setResponseHeader(LogCollectUtils.getHeaders(getHeaders()));
@@ -151,7 +152,7 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
             logInfo.setResponseBody(body);
         }
         // collect log
-        if (logCollector != null) {
+        if (Objects.nonNull(logCollector)) {
             logCollector.collect(logInfo);
         }
     }
@@ -166,7 +167,7 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
         assert shenyuContext != null;
         if (RpcTypeEnum.HTTP.getName().equals(shenyuContext.getRpcType())) {
             URI uri = exchange.getAttribute(Constants.HTTP_URI);
-            if (uri != null) {
+            if (Objects.nonNull(uri)) {
                 return uri.getHost();
             } else {
                 return getUpstreamIpFromHttpDomain();

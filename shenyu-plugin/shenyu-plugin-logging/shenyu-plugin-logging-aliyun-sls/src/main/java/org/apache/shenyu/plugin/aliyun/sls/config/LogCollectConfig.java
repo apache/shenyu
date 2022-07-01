@@ -89,6 +89,16 @@ public class LogCollectConfig {
          */
         private String topic = "shenyu-gateway-topic";
 
+        /**
+         * send thread.
+         */
+        private Integer sendThreadCount = 1;
+
+        /**
+         * ioThread.
+         */
+        private Integer ioThreadCount = 1;
+
         private String sampleRate = "1";
 
         /**
@@ -317,6 +327,42 @@ public class LogCollectConfig {
          */
         public void setTopic(final String topic) {
             this.topic = topic;
+        }
+
+        /**
+         * get send thread count.
+         *
+         * @return send thread count
+         */
+        public Integer getSendThreadCount() {
+            return sendThreadCount;
+        }
+
+        /**
+         * send thread count.
+         *
+         * @param sendThreadCount send thread count
+         */
+        public void setSendThreadCount(final Integer sendThreadCount) {
+            this.sendThreadCount = sendThreadCount;
+        }
+
+        /**
+         * get io thread count.
+         *
+         * @return io thread count
+         */
+        public Integer getIoThreadCount() {
+            return ioThreadCount;
+        }
+
+        /**
+         * set send thread count.
+         *
+         * @param ioThreadCount io thread count.
+         */
+        public void setIoThreadCount(final Integer ioThreadCount) {
+            this.ioThreadCount = ioThreadCount;
         }
     }
 }

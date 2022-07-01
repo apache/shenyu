@@ -395,6 +395,8 @@ The text of each license is the standard Apache 2.0 license.
     kafka-clients 3.2.0: https://kafka.apache.org/, Apache 2.0
     elasticsearch-java 8.2.3: https://github.com/elastic/elasticsearch-java, Apache 2.0
     elasticsearch-rest-client 8.2.3: https://github.com/elastic/elasticsearch, Apache 2.0
+    aliyun-log 0.6.70 https://github.com/aliyun/aliyun-log-java-sdk, Apache 2.0
+    aliyun-log-producer https://github.com/aliyun/aliyun-log-java-producer, Apache 2.0
 
 ========================================================================
 BSD licenses

@@ -71,4 +71,29 @@ public final class LoggingConstant {
      */
     public static final String TOPIC = "Topic";
 
+    /**
+     * send thread config.
+     */
+    public static final String SEND_THREAD_COUNT = "sendThreadCount";
+
+    /**
+     * io thread count.
+     */
+    public static final String IO_THREAD_COUNT = "ioThreadCount";
+
+    /**
+     * system default, max threads.
+     */
+    public static final Integer MAX_ALLOW_THREADS = 500;
+
+    /**
+     * max queue.
+     */
+    public static final Integer MAX_QUEUE_NUMBER = 10000;
+
+    /**
+     * default source.
+     */
+    public static final String DEFAULT_SOURCE = "shenyu-gateway";
+
 }

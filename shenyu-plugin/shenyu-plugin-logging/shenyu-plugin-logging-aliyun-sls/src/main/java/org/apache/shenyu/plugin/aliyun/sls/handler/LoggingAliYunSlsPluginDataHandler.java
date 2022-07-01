@@ -18,8 +18,10 @@
 package org.apache.shenyu.plugin.aliyun.sls.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.aliyun.sls.DefaultLogCollector;
 import org.apache.shenyu.plugin.aliyun.sls.aliyunsls.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.config.LogCollectConfig;
@@ -29,6 +31,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -43,24 +46,33 @@ public class LoggingAliYunSlsPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         LOG.info("AliYun sls plugin data: {}", GsonUtils.getGson().toJson(pluginData));
-        if (pluginData.getEnabled()) {
+        if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
             LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                     LogCollectConfig.GlobalLogConfig.class);
+            LogCollectConfig.GlobalLogConfig exist = Singleton.INST.get(LogCollectConfig.GlobalLogConfig.class);
+            if (Objects.isNull(globalLogConfig)) {
+                return;
+            }
+            if (Objects.isNull(exist) || !globalLogConfig.equals(exist)) {
+                // no data, init client
+                LogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+                Properties properties = new Properties();
+                properties.setProperty(LoggingConstant.ACCESS_ID, globalLogConfig.getAccessId().trim());
+                properties.setProperty(LoggingConstant.ACCESS_KEY, globalLogConfig.getAccessKey().trim());
+                properties.setProperty(LoggingConstant.HOST, globalLogConfig.getHost().trim());
+                properties.setProperty(LoggingConstant.PROJECT_NAME, globalLogConfig.getProjectName().trim());
+                properties.setProperty(LoggingConstant.LOG_STORE, globalLogConfig.getLogStoreName().trim());
+                properties.setProperty(LoggingConstant.TTL_IN_DAY, String.valueOf(globalLogConfig.getTtlInDay()));
+                properties.setProperty(LoggingConstant.SHARD_COUNT, String.valueOf(globalLogConfig.getShardCount()));
+                properties.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic().trim());
+                properties.setProperty(LoggingConstant.SEND_THREAD_COUNT, String.valueOf(globalLogConfig.getSendThreadCount()));
+                properties.setProperty(LoggingConstant.IO_THREAD_COUNT, String.valueOf(globalLogConfig.getIoThreadCount()));
 
-            LogCollectConfigUtils.setGlobalConfig(globalLogConfig);
-            Properties properties = new Properties();
-            properties.setProperty(LoggingConstant.ACCESS_ID, globalLogConfig.getAccessId().trim());
-            properties.setProperty(LoggingConstant.ACCESS_KEY, globalLogConfig.getAccessKey().trim());
-            properties.setProperty(LoggingConstant.HOST, globalLogConfig.getHost().trim());
-            properties.setProperty(LoggingConstant.PROJECT_NAME, globalLogConfig.getProjectName().trim());
-            properties.setProperty(LoggingConstant.LOG_STORE, globalLogConfig.getLogStoreName().trim());
-            properties.setProperty(LoggingConstant.TTL_IN_DAY, String.valueOf(globalLogConfig.getTtlInDay()));
-            properties.setProperty(LoggingConstant.SHARD_COUNT, String.valueOf(globalLogConfig.getShardCount()));
-            properties.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic().trim());
-
-            // init Aliyun sls client
-            ALIYUN_SLS_LOG_COLLECT_CLIENT.initClient(properties);
-            DefaultLogCollector.getInstance().start();
+                // init aliyun sls client
+                ALIYUN_SLS_LOG_COLLECT_CLIENT.initClient(properties);
+                DefaultLogCollector.getInstance().start();
+            }
+            Singleton.INST.single(MotanRegisterConfig.class, globalLogConfig);
         } else {
             try {
                 DefaultLogCollector.getInstance().close();
