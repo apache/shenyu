@@ -92,7 +92,6 @@ public final class CrossFilterTest {
         allowedOriginConfig.setPrefixes(new HashSet<String>() {
             {
                 add("a");
-                add("b");
             }
         });
         filterConfig.setAllowedOrigin(allowedOriginConfig);
