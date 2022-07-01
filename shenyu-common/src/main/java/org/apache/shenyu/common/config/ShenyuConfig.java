@@ -1124,6 +1124,8 @@ public class ShenyuConfig {
 
             /**
              * Gets the domain.
+             *
+             * @return the value of domain
              */
             public String getDomain() {
                 return domain;
@@ -1140,6 +1142,8 @@ public class ShenyuConfig {
 
             /**
              * Gets the prefixes.
+             *
+             * @return the value of prefixes
              */
             public Set<String> getPrefixes() {
                 if (Objects.isNull(prefixes)) {
