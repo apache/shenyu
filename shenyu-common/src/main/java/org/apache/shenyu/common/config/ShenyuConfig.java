@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -964,9 +965,9 @@ public class ShenyuConfig {
          */
         private String allowedMethods = "*";
 
-        private String allowedOrigin = "*";
+        private AllowedOriginConfig allowedOrigin = new AllowedOriginConfig();
 
-        private String allowedExpose = "*";
+        private String allowedExpose = "";
 
         private String maxAge = "18000";
 
@@ -1045,7 +1046,7 @@ public class ShenyuConfig {
          *
          * @return the value of allowedOrigin
          */
-        public String getAllowedOrigin() {
+        public AllowedOriginConfig getAllowedOrigin() {
             return allowedOrigin;
         }
     
@@ -1054,7 +1055,7 @@ public class ShenyuConfig {
          *
          * @param allowedOrigin allowedOrigin
          */
-        public void setAllowedOrigin(final String allowedOrigin) {
+        public void setAllowedOrigin(final AllowedOriginConfig allowedOrigin) {
             this.allowedOrigin = allowedOrigin;
         }
     
@@ -1110,6 +1111,55 @@ public class ShenyuConfig {
          */
         public void setAllowCredentials(final boolean allowCredentials) {
             this.allowCredentials = allowCredentials;
+        }
+
+        /**
+         * the cors allowedOrigin config.
+         */
+        public static class AllowedOriginConfig {
+
+            private String domain;
+
+            private Set<String> prefixes = new HashSet<>();
+
+            /**
+             * Gets the domain.
+             *
+             * @return the value of domain
+             */
+            public String getDomain() {
+                return domain;
+            }
+
+            /**
+             * Sets the enabled.
+             *
+             * @param domain enabled
+             */
+            public void setDomain(final String domain) {
+                this.domain = domain;
+            }
+
+            /**
+             * Gets the prefixes.
+             *
+             * @return the value of prefixes
+             */
+            public Set<String> getPrefixes() {
+                if (Objects.isNull(prefixes)) {
+                    prefixes = new HashSet<>();
+                }
+                return prefixes;
+            }
+
+            /**
+             * Sets the enabled.
+             *
+             * @param prefixes enabled
+             */
+            public void setPrefixes(final Set<String> prefixes) {
+                this.prefixes = prefixes;
+            }
         }
     }
     
