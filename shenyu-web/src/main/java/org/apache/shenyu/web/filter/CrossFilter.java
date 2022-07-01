@@ -59,21 +59,21 @@ public class CrossFilter implements WebFilter {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders headers = response.getHeaders();
             // "Access-Control-Allow-Origin"
-            String allowedOrigin = request.getHeaders().getOrigin();
             if (Objects.nonNull(this.filterConfig.getAllowedOrigin())
                     && CollectionUtils.isNotEmpty(this.filterConfig.getAllowedOrigin().getPrefixes())) {
                 final String scheme = exchange.getRequest().getURI().getScheme();
-                Set<String> allowedOriginSet = this.filterConfig.getAllowedOrigin().getPrefixes()
+                Set<String> allowedOrigin = this.filterConfig.getAllowedOrigin().getPrefixes()
                         .stream()
                         .filter(StringUtils::isNoneBlank)
-                        // prefix.domain
+                        // scheme://prefix.domain
                         .map(prefix -> String.format("%s://%s.%s", scheme, prefix.trim(), this.filterConfig.getAllowedOrigin().getDomain()))
                         .collect(Collectors.toSet());
-                if (!allowedOriginSet.contains(allowedOrigin)) {
-                    allowedOrigin = String.join(",", allowedOriginSet);
+                String origin = request.getHeaders().getOrigin();
+                if (allowedOrigin.contains(origin)) {
+                    origin = String.join(",", allowedOrigin);
+                    headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
                 }
             }
-            headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, allowedOrigin);
             // "Access-Control-Allow-Methods"
             this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
                     this.filterConfig.getAllowedMethods());

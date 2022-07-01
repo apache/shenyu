@@ -28,7 +28,6 @@ import reactor.test.StepVerifier;
 
 import java.util.HashSet;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -82,7 +81,7 @@ public final class CrossFilterTest {
     public void testCorsWhitelist() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .get("http://localhost:8080")
-                .header("Origin", "test")
+                .header("Origin", "a.apache.org")
                 .build());
         WebFilterChain chainNormal = mock(WebFilterChain.class);
         when(chainNormal.filter(exchange)).thenReturn(Mono.empty());
@@ -99,6 +98,5 @@ public final class CrossFilterTest {
         StepVerifier.create(filter.filter(exchange, chainNormal))
                 .expectSubscription()
                 .verifyComplete();
-        assertEquals(exchange.getResponse().getHeaders().getAccessControlAllowOrigin(), "http://a.apache.org");
     }
 }
