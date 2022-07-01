@@ -89,7 +89,7 @@ public final class CrossFilterTest {
         final CrossFilterConfig filterConfig = new CrossFilterConfig();
         CrossFilterConfig.AllowedOriginConfig allowedOriginConfig = new CrossFilterConfig.AllowedOriginConfig();
         allowedOriginConfig.setDomain("apache.org");
-        allowedOriginConfig.setPrefixes(new HashSet<String>(){
+        allowedOriginConfig.setPrefixes(new HashSet<String>() {
             {
                 add("a");
                 add("b");
