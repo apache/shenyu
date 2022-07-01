@@ -967,6 +967,8 @@ public class ShenyuConfig {
 
         private AllowedOriginConfig allowedOrigin = new AllowedOriginConfig();
 
+        private boolean allowedAnyOrigin = false;
+
         private String allowedExpose = "";
 
         private String maxAge = "18000";
@@ -1058,7 +1060,25 @@ public class ShenyuConfig {
         public void setAllowedOrigin(final AllowedOriginConfig allowedOrigin) {
             this.allowedOrigin = allowedOrigin;
         }
-    
+
+        /**
+         * Gets the value of allowedAnyOrigin.
+         *
+         * @return the value of allowedAnyOrigin
+         */
+        public boolean isAllowedAnyOrigin() {
+            return allowedAnyOrigin;
+        }
+
+        /**
+         * Sets the allowedExpose.
+         *
+         * @param allowedAnyOrigin allowedExpose
+         */
+        public void setAllowedAnyOrigin(final boolean allowedAnyOrigin) {
+            this.allowedAnyOrigin = allowedAnyOrigin;
+        }
+
         /**
          * Gets the value of allowedExpose.
          *
