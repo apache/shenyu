@@ -967,7 +967,7 @@ public class ShenyuConfig {
 
         private AllowedOriginConfig allowedOrigin = new AllowedOriginConfig();
 
-        private boolean allowedAnyOrigin = false;
+        private boolean allowedAnyOrigin;
 
         private String allowedExpose = "";
 
