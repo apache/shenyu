@@ -33,7 +33,6 @@ import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -165,7 +164,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
                 }.getType());
         assertEquals("signature value is error!", rejectedErrorRequestBodyRespFuture.getMessage());
 
-        String errorTime = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0 ")).toEpochMilli() - 360000);
+        String errorTime = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli() - 360000);
         Map<String, Object> errorTimestampHeaders = buildHeadersMapRequestBody(errorTime, path, APP_KEY, APP_SECRET, version, requestBody);
         AdminResponse<Object> rejectedErrorTimestampRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
                 errorTimestampHeaders,
@@ -235,6 +234,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         conditionData.setParamValue("/http/test/path/456");
         return Collections.singletonList(conditionData);
     }
+
     private static List<ConditionData> buildSelectorConditionListOpenRequestBody() {
         ConditionData conditionData2 = new ConditionData();
         conditionData2.setParamType(ParamTypeEnum.URI.getName());
@@ -253,6 +253,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         ruleLocalData.setRuleHandler("{\"signRequestBody\": false}");
         return Collections.singletonList(ruleLocalData);
     }
+
     private static List<RuleLocalData> buildRuleLocalDataListRequestBody() {
         final RuleLocalData ruleLocalData2 = new RuleLocalData();
         ConditionData conditionData2 = new ConditionData();
