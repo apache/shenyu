@@ -61,14 +61,6 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
     }
 
     @Test
-    public void testHandlerPlugin() throws NoSuchFieldException, IllegalAccessException {
-        loggingElasticSearchPluginDataHandler.handlerPlugin(pluginData);
-        Field field = loggingElasticSearchPluginDataHandler.getClass().getDeclaredField("ELASTICSEARCH_LOG_COLLECT_CLIENT");
-        field.setAccessible(true);
-        Assertions.assertEquals(field.get(loggingElasticSearchPluginDataHandler).getClass(), ElasticSearchLogCollectClient.class);
-    }
-
-    @Test
     public void testHandlerSelector() throws NoSuchFieldException, IllegalAccessException {
         loggingElasticSearchPluginDataHandler.handlerSelector(selectorData);
         Field field1 = loggingElasticSearchPluginDataHandler.getClass().getDeclaredField("SELECT_ID_URI_LIST_MAP");

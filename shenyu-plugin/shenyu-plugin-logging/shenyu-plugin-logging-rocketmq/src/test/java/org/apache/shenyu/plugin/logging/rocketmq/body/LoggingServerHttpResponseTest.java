@@ -34,12 +34,15 @@ import org.mockito.Mockito;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
 
@@ -62,8 +65,10 @@ public class LoggingServerHttpResponseTest {
 
     private LocalDateTime startDateTime = LocalDateTime.now();
 
+    private MockServerHttpResponse response;
+
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws URISyntaxException {
         MockServerHttpRequest request = MockServerHttpRequest
                 .post("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
@@ -79,11 +84,11 @@ public class LoggingServerHttpResponseTest {
         this.exchange = Mockito.spy(MockServerWebExchange.from(request));
         Mockito.lenient().when(context.getBean(RemoteAddressResolver.class)).thenReturn(remoteAddressResolver);
         Mockito.lenient().when(context.getBean(ShenyuResult.class)).thenReturn(shenyuResult);
-        ShenyuContext shenyuContext = new ShenyuContext();
-        shenyuContext.setStartDateTime(startDateTime);
-        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        ShenyuContext shenyuContext1 = new ShenyuContext();
+        shenyuContext1.setStartDateTime(startDateTime);
+        shenyuContext1.setMethod("test");
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext1);
         exchange.getAttributes().put(LoggingConstant.SHENYU_AGENT_TRACE_ID, "shenyu-agent-trace-id");
-        exchange.getAttributes().put(Constants.HTTP_DOMAIN, "http://localhost:9195/http/order/path/123/name");
         this.serverHttpRequest = exchange.getRequest();
         requestInfo.setRequestUri(serverHttpRequest.getURI().toString());
         requestInfo.setMethod(serverHttpRequest.getMethodValue());
@@ -94,10 +99,21 @@ public class LoggingServerHttpResponseTest {
         requestInfo.setHost(serverHttpRequest.getHeaders().getFirst(host));
         requestInfo.setPath(serverHttpRequest.getURI().getPath());
         this.loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(), requestInfo, DefaultLogCollector.getInstance());
+        response = new MockServerHttpResponse();
     }
 
     @Test
-    public void testSetExchange() throws NoSuchFieldException, IllegalAccessException {
+    public void testWriteWith() throws Exception {
+        loggingServerHttpResponse.setExchange(exchange);
+        loggingServerHttpResponse.writeWith(response.getBody());
+        Field field = loggingServerHttpResponse.getClass().getDeclaredField("logInfo");
+        field.setAccessible(true);
+        ShenyuRequestLog logInfo = (ShenyuRequestLog) field.get(loggingServerHttpResponse);
+        Assertions.assertEquals(logInfo.getResponseHeader(), "{}");
+    }
+
+    @Test
+    public void testSetExchange() throws Exception {
         loggingServerHttpResponse.setExchange(exchange);
         Field field = loggingServerHttpResponse.getClass().getDeclaredField("exchange");
         field.setAccessible(true);
@@ -117,23 +133,58 @@ public class LoggingServerHttpResponseTest {
     @Test
     public void testGetUpstreamIp() throws Exception {
         loggingServerHttpResponse.setExchange(exchange);
-        Method method = loggingServerHttpResponse.getClass().getDeclaredMethod("getUpstreamIp");
-        method.setAccessible(true);
-        String upstreamIp = (String) method.invoke(loggingServerHttpResponse);
-        Assertions.assertEquals(upstreamIp, "localhost");
+        Method method1 = loggingServerHttpResponse.getClass().getDeclaredMethod("getUpstreamIp");
+        method1.setAccessible(true);
+        String upstreamIp1 = (String) method1.invoke(loggingServerHttpResponse);
+        Assertions.assertEquals(upstreamIp1, "");
+        exchange.getAttributes().put(Constants.HTTP_DOMAIN, "http://localhost:9195/http/order/path/123/name");
+        loggingServerHttpResponse.setExchange(exchange);
+        Method method2 = loggingServerHttpResponse.getClass().getDeclaredMethod("getUpstreamIp");
+        method2.setAccessible(true);
+        String upstreamIp2 = (String) method2.invoke(loggingServerHttpResponse);
+        Assertions.assertEquals(upstreamIp2, "localhost");
+        ShenyuContext shenyuContext2 = new ShenyuContext();
+        shenyuContext2.setRpcType("http");
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext2);
+        loggingServerHttpResponse.setExchange(exchange);
+        Method method3 = loggingServerHttpResponse.getClass().getDeclaredMethod("getUpstreamIp");
+        method3.setAccessible(true);
+        String upstreamIp3 = (String) method3.invoke(loggingServerHttpResponse);
+        Assertions.assertEquals(upstreamIp3, "localhost");
+        exchange.getAttributes().put(Constants.HTTP_URI, new URI("test", "localhost", "/test", "test"));
+        loggingServerHttpResponse.setExchange(exchange);
+        Method method4 = loggingServerHttpResponse.getClass().getDeclaredMethod("getUpstreamIp");
+        method4.setAccessible(true);
+        String uri = (String) method4.invoke(loggingServerHttpResponse);
+        Assertions.assertEquals(uri, "localhost");
     }
 
     @Test
     public void testGetUpstreamIpFromHttpDomain() throws Exception {
+        exchange.getAttributes().put(Constants.HTTP_DOMAIN, "http://localhost:9195/http/order/path/123/name");
         loggingServerHttpResponse.setExchange(exchange);
-        Method method = loggingServerHttpResponse.getClass().getDeclaredMethod("getUpstreamIpFromHttpDomain");
-        method.setAccessible(true);
-        String upstreamIpFromHttpDomain = (String) method.invoke(loggingServerHttpResponse);
-        Assertions.assertEquals(upstreamIpFromHttpDomain, "localhost");
+        Method method1 = loggingServerHttpResponse.getClass().getDeclaredMethod("getUpstreamIpFromHttpDomain");
+        method1.setAccessible(true);
+        String upstreamIpFromHttpDomain1 = (String) method1.invoke(loggingServerHttpResponse);
+        Assertions.assertEquals(upstreamIpFromHttpDomain1, "localhost");
+        exchange = Mockito.mock(ServerWebExchange.class);
+        ShenyuContext shenyuContext2 = new ShenyuContext();
+        shenyuContext2.setRpcType("http");
+        shenyuContext2.setStartDateTime(startDateTime);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext2);
+        loggingServerHttpResponse.setExchange(exchange);
+        Method method2 = loggingServerHttpResponse.getClass().getDeclaredMethod("getUpstreamIpFromHttpDomain");
+        method2.setAccessible(true);
+        String upstreamIpFromHttpDomain2 = (String) method2.invoke(loggingServerHttpResponse);
+        Assertions.assertEquals(upstreamIpFromHttpDomain2, "");
     }
 
     @Test
     public void testLogError() throws NoSuchFieldException, IllegalAccessException {
+        ShenyuContext shenyuContext2 = new ShenyuContext();
+        shenyuContext2.setRpcType("http");
+        shenyuContext2.setStartDateTime(startDateTime);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext2);
         loggingServerHttpResponse.setExchange(exchange);
         Throwable throwable = new Throwable("error");
         DefaultLogCollector.getInstance().start();
@@ -152,12 +203,25 @@ public class LoggingServerHttpResponseTest {
         String sendString = "hello, shenyu";
         ByteBuffer byteBuffer = ByteBuffer.wrap(sendString.getBytes("UTF-8"));
         writer.write(byteBuffer.asReadOnlyBuffer());
-        Method method = loggingServerHttpResponse.getClass().getDeclaredMethod("logResponse", ShenyuContext.class, BodyWriter.class);
-        method.setAccessible(true);
-        method.invoke(loggingServerHttpResponse, exchange.getAttribute(Constants.CONTEXT), writer);
-        Field field = loggingServerHttpResponse.getClass().getDeclaredField("logInfo");
-        field.setAccessible(true);
-        ShenyuRequestLog log = (ShenyuRequestLog) field.get(loggingServerHttpResponse);
-        Assertions.assertEquals(log.getResponseBody(), "hello, shenyu");
+        Method method1 = loggingServerHttpResponse.getClass().getDeclaredMethod("logResponse", ShenyuContext.class, BodyWriter.class);
+        method1.setAccessible(true);
+        method1.invoke(loggingServerHttpResponse, exchange.getAttribute(Constants.CONTEXT), writer);
+        Field field1 = loggingServerHttpResponse.getClass().getDeclaredField("logInfo");
+        field1.setAccessible(true);
+        ShenyuRequestLog log1 = (ShenyuRequestLog) field1.get(loggingServerHttpResponse);
+        Assertions.assertEquals(log1.getResponseBody(), "hello, shenyu");
+        ShenyuContext shenyuContext2 = new ShenyuContext();
+        shenyuContext2.setRpcType("http");
+        shenyuContext2.setStartDateTime(startDateTime);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext2);
+        exchange.getAttributes().put(Constants.HTTP_DOMAIN, "http://localhost:9195/http/order/path/123/name");
+        loggingServerHttpResponse.setExchange(exchange);
+        Method method2 = loggingServerHttpResponse.getClass().getDeclaredMethod("logResponse", ShenyuContext.class, BodyWriter.class);
+        method2.setAccessible(true);
+        method2.invoke(loggingServerHttpResponse, exchange.getAttribute(Constants.CONTEXT), writer);
+        Field field2 = loggingServerHttpResponse.getClass().getDeclaredField("logInfo");
+        field2.setAccessible(true);
+        ShenyuRequestLog log2 = (ShenyuRequestLog) field2.get(loggingServerHttpResponse);
+        Assertions.assertEquals(log2.getUpstreamIp(), "localhost");
     }
 }
