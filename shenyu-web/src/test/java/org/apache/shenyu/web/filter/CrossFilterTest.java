@@ -19,7 +19,6 @@ package org.apache.shenyu.web.filter;
 
 import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -88,15 +87,19 @@ public final class CrossFilterTest {
         WebFilterChain chainNormal = mock(WebFilterChain.class);
         when(chainNormal.filter(exchange)).thenReturn(Mono.empty());
         final CrossFilterConfig filterConfig = new CrossFilterConfig();
-        CrossFilterConfig.WhitelistConfig whitelistConfig = new CrossFilterConfig.WhitelistConfig();
-        whitelistConfig.setEnabled(true);
-        whitelistConfig.setDomain("apache.org");
-        whitelistConfig.setPrefixes(new HashSet<String>(){{ add("a"); }});
-        filterConfig.setWhitelist(whitelistConfig);
+        CrossFilterConfig.AllowedOriginConfig allowedOriginConfig = new CrossFilterConfig.AllowedOriginConfig();
+        allowedOriginConfig.setDomain("apache.org");
+        allowedOriginConfig.setPrefixes(new HashSet<String>(){
+            {
+                add("a");
+                add("b");
+            }
+        });
+        filterConfig.setAllowedOrigin(allowedOriginConfig);
         CrossFilter filter = new CrossFilter(filterConfig);
         StepVerifier.create(filter.filter(exchange, chainNormal))
                 .expectSubscription()
                 .verifyComplete();
-        assertEquals(exchange.getResponse().getStatusCode(), HttpStatus.FORBIDDEN);
+        assertEquals(exchange.getResponse().getHeaders().getAccessControlAllowOrigin(), "http://a.apache.org");
     }
 }

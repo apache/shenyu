@@ -965,15 +965,13 @@ public class ShenyuConfig {
          */
         private String allowedMethods = "*";
 
-        private String allowedOrigin = "*";
+        private AllowedOriginConfig allowedOrigin = new AllowedOriginConfig();
 
         private String allowedExpose = "";
 
         private String maxAge = "18000";
 
         private boolean allowCredentials;
-
-        private WhitelistConfig whitelist = new WhitelistConfig();
 
         /**
          * wrapper the headers.
@@ -1048,7 +1046,7 @@ public class ShenyuConfig {
          *
          * @return the value of allowedOrigin
          */
-        public String getAllowedOrigin() {
+        public AllowedOriginConfig getAllowedOrigin() {
             return allowedOrigin;
         }
     
@@ -1057,7 +1055,7 @@ public class ShenyuConfig {
          *
          * @param allowedOrigin allowedOrigin
          */
-        public void setAllowedOrigin(final String allowedOrigin) {
+        public void setAllowedOrigin(final AllowedOriginConfig allowedOrigin) {
             this.allowedOrigin = allowedOrigin;
         }
     
@@ -1116,49 +1114,13 @@ public class ShenyuConfig {
         }
 
         /**
-         * Gets the value of whitelist.
-         *
-         * @return the value of whitelist
+         * the cors allowedOrigin config.
          */
-        public WhitelistConfig getWhitelist() {
-            return whitelist;
-        }
-
-        /**
-         * Sets the whitelist.
-         *
-         * @param whitelist whitelist
-         */
-        public void setWhitelist(final WhitelistConfig whitelist) {
-            this.whitelist = whitelist;
-        }
-
-        /**
-         * the cors whitelist config.
-         */
-        public static class WhitelistConfig {
-
-            private boolean enabled;
+        public static class AllowedOriginConfig {
 
             private String domain;
 
             private Set<String> prefixes = new HashSet<>();
-
-            /**
-             * Gets the enabled.
-             */
-            public boolean isEnabled() {
-                return enabled;
-            }
-
-            /**
-             * Sets the enabled.
-             *
-             * @param enabled enabled
-             */
-            public void setEnabled(final boolean enabled) {
-                this.enabled = enabled;
-            }
 
             /**
              * Gets the domain.

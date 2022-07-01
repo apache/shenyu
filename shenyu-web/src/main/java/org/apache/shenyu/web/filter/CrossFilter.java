@@ -59,13 +59,20 @@ public class CrossFilter implements WebFilter {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders headers = response.getHeaders();
             // "Access-Control-Allow-Origin"
-            // if the allowed origin is empty use the request 's origin
-            if (StringUtils.isBlank(this.filterConfig.getAllowedOrigin())) {
-                headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, request.getHeaders().getOrigin());
-            } else {
-                this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-                        this.filterConfig.getAllowedOrigin());
+            String allowedOrigin = request.getHeaders().getOrigin();
+            if (Objects.nonNull(this.filterConfig.getAllowedOrigin())) {
+                final String scheme = exchange.getRequest().getURI().getScheme();
+                Set<String> allowedOriginSet = this.filterConfig.getAllowedOrigin().getPrefixes()
+                        .stream()
+                        .filter(StringUtils::isNoneBlank)
+                        // prefix.domain
+                        .map(prefix -> String.format("%s://%s.%s", scheme, prefix.trim(), this.filterConfig.getAllowedOrigin().getDomain()))
+                        .collect(Collectors.toSet());
+                if (!allowedOriginSet.contains(allowedOrigin)) {
+                    allowedOrigin = String.join(",", allowedOriginSet);
+                }
             }
+            headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, allowedOrigin);
             // "Access-Control-Allow-Methods"
             this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
                     this.filterConfig.getAllowedMethods());
@@ -81,19 +88,6 @@ public class CrossFilter implements WebFilter {
             // "Access-Control-Allow-Credentials"
             this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
                     String.valueOf(this.filterConfig.isAllowCredentials()));
-            // whitelist
-            if (Objects.nonNull(this.filterConfig.getWhitelist()) && this.filterConfig.getWhitelist().isEnabled()) {
-                final Set<String> prefixes = this.filterConfig.getWhitelist().getPrefixes()
-                        .stream()
-                        .filter(StringUtils::isNoneBlank)
-                        // prefix.domain
-                        .map(prefix -> String.format("%s.%s", prefix.trim(), this.filterConfig.getWhitelist().getDomain()))
-                        .collect(Collectors.toSet());
-                if (CollectionUtils.isNotEmpty(prefixes) && !prefixes.contains(request.getHeaders().getOrigin())) {
-                    response.setStatusCode(HttpStatus.FORBIDDEN);
-                    return Mono.empty();
-                }
-            }
             if (request.getMethod() == HttpMethod.OPTIONS) {
                 response.setStatusCode(HttpStatus.OK);
                 return Mono.empty();
