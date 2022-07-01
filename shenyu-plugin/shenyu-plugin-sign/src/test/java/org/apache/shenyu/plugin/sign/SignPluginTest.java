@@ -73,7 +73,6 @@ public final class SignPluginTest {
 
     private SignService signService;
 
-
     private SignPluginDataHandler signPluginDataHandler;
 
     @BeforeEach
@@ -109,6 +108,7 @@ public final class SignPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         StepVerifier.create(signPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
     }
+
     @Test
     public void testSignPluginSimple2() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -138,6 +138,7 @@ public final class SignPluginTest {
         StepVerifier.create(signPlugin.doExecute(this.exchange, this.chain, selectorData, this.ruleData)).expectSubscription().verifyComplete();
 
     }
+
     @Test
     public void testSignPluginSignBody2() {
         this.ruleData.setHandle("{\"signRequestBody\": true}");

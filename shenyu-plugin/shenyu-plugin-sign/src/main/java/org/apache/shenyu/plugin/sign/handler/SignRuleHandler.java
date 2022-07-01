@@ -38,14 +38,13 @@ public class SignRuleHandler implements RuleHandle {
      * set signRequestBody.
      * @param signRequestBody signRequestBody
      */
-    public void setSignRequestBody(boolean signRequestBody) {
+    public void setSignRequestBody(final boolean signRequestBody) {
         this.signRequestBody = signRequestBody;
     }
 
     @Override
     public String toString() {
-        return "SignRuleHandler{" +
-                "signRequestBody=" + signRequestBody +
-                '}';
+        return "SignRuleHandler{"
+                + "signRequestBody=" + signRequestBody + '}';
     }
 }

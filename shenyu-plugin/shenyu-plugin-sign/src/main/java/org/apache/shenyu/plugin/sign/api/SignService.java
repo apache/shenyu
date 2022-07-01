@@ -42,5 +42,5 @@ public interface SignService {
      */
     default Pair<Boolean, String> signVerify(ServerWebExchange exchange) {
         return signVerify(exchange, null);
-    };
+    }
 }

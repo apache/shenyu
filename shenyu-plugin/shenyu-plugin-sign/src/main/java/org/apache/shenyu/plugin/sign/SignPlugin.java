@@ -58,9 +58,10 @@ import java.util.function.Function;
  */
 public class SignPlugin extends AbstractShenyuPlugin {
 
+    private static final List<HttpMessageReader<?>> MESSAGE_READERS = HandlerStrategies.builder().build().messageReaders();
+
     private final SignService signService;
 
-    private static final List<HttpMessageReader<?>> MESSAGE_READERS = HandlerStrategies.builder().build().messageReaders();
     /**
      * Instantiates a new Sign plugin.
      *
@@ -108,13 +109,12 @@ public class SignPlugin extends AbstractShenyuPlugin {
 
     }
 
-
     @SuppressWarnings("rawtypes")
     private Mono signBody(final String originalBody, final ServerWebExchange exchange) {
         // get url params
         MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
         // get post body
-        Map<String, Object> requestBody = StringUtils.isBlank(originalBody) ?  Maps.newHashMapWithExpectedSize(4) : JsonUtils.jsonToMap(originalBody);
+        Map<String, Object> requestBody = StringUtils.isBlank(originalBody) ? Maps.newHashMapWithExpectedSize(4) : JsonUtils.jsonToMap(originalBody);
         requestBody.putAll(queryParams.toSingleValueMap());
         Pair<Boolean, String> result = signService.signVerify(exchange, requestBody);
         if (Boolean.FALSE.equals(result.getLeft())) {

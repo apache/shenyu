@@ -225,6 +225,7 @@ public final class DefaultSignServiceTest {
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
     }
+
     @Test
     public void bodySign() {
         this.passed.setSign("errorSign");
