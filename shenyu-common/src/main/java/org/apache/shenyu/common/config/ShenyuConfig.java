@@ -967,7 +967,7 @@ public class ShenyuConfig {
 
         private String allowedOrigin = "*";
 
-        private String allowedExpose = "*";
+        private String allowedExpose = "";
 
         private String maxAge = "18000";
 
