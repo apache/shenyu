@@ -25,8 +25,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.elasticsearch.DefaultLogCollector;
-import org.apache.shenyu.plugin.logging.elasticsearch.LogCollector;
+import org.apache.shenyu.plugin.logging.elasticsearch.collector.DefaultLogCollector;
+import org.apache.shenyu.plugin.logging.elasticsearch.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectUtils;
@@ -51,7 +51,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * decorate ServerHttpResponse for read org.apache.shenyu.plugin.logging.body.
+ * decorate ServerHttpResponse for read org.apache.shenyu.plugin.logging-elasticsearch.body.
  */
 public class LoggingElasticSearchServerResponse extends ServerHttpResponseDecorator {
 
@@ -66,7 +66,7 @@ public class LoggingElasticSearchServerResponse extends ServerHttpResponseDecora
     private final LogCollector logCollector;
 
     /**
-     * Constructor LoggingServerHttpResponse.
+     * Constructor LoggingElasticSearchServerHttpResponse.
      *
      * @param delegate     delegate ServerHttpResponse
      * @param logInfo      access log
@@ -91,7 +91,7 @@ public class LoggingElasticSearchServerResponse extends ServerHttpResponseDecora
     /**
      * write with a publisher.
      *
-     * @param body response org.apache.shenyu.plugin.logging.body
+     * @param body response org.apache.shenyu.plugin.logging-elasticsearch.body
      * @return Mono
      */
     @Override

@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.logging.rocketmq.handler;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.logging.rocketmq.rocketmq.RocketMQLogCollectClient;
+import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,14 +58,6 @@ public class LoggingRocketMQPluginDataHandlerTest {
         selectorData.setConditionList(list);
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"topic\":\"test\", \"namesrvAddr\":\"test\", \"producerGroup\":\"test\"}");
-    }
-
-    @Test
-    public void testHandlerPlugin() throws NoSuchFieldException, IllegalAccessException {
-        loggingRocketMQPluginDataHandler.handlerPlugin(pluginData);
-        Field field = loggingRocketMQPluginDataHandler.getClass().getDeclaredField("ROCKET_MQ_LOG_COLLECT_CLIENT");
-        field.setAccessible(true);
-        Assertions.assertEquals(field.get(loggingRocketMQPluginDataHandler).getClass(), RocketMQLogCollectClient.class);
     }
 
     @Test

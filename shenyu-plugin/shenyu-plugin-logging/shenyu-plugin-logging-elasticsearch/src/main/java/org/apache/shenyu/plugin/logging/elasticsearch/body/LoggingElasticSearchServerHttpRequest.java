@@ -28,7 +28,7 @@ import reactor.core.publisher.Flux;
 import reactor.util.annotation.NonNull;
 
 /**
- * decorate ServerHttpRequest for read org.apache.shenyu.plugin.logging.body.
+ * decorate ServerHttpRequest for read org.apache.shenyu.plugin.logging-elasticsearch.body.
  */
 public class LoggingElasticSearchServerHttpRequest extends ServerHttpRequestDecorator {
     
@@ -40,7 +40,7 @@ public class LoggingElasticSearchServerHttpRequest extends ServerHttpRequestDeco
     }
 
     /**
-     * get request org.apache.shenyu.plugin.logging.body.
+     * get request org.apache.shenyu.plugin.logging-elasticsearch.body.
      *
      * @return Flux
      */

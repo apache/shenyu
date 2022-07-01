@@ -202,6 +202,31 @@ public class UpstreamCheckService {
         executor.execute(() -> updateHandler(selectorId, upstreams, upstreams));
         return true;
     }
+    
+    /**
+     * If the health check passes, the service will be added to
+     * the normal service list; if the health check fails, the service
+     * will not be discarded directly and add to the zombie nodes.
+     *
+     * <p>Note: This is to be compatible with older versions of clients
+     * that do not register with the gateway by listening to
+     * {@link org.springframework.context.event.ContextRefreshedEvent},
+     * which will cause some problems,
+     * check https://github.com/apache/incubator-shenyu/issues/3484 for more details.
+     *
+     * @param selectorId     the selector id
+     * @param commonUpstream the common upstream
+     * @return whether this module handles
+     */
+    public boolean checkAndSubmit(final String selectorId, final CommonUpstream commonUpstream) {
+        final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
+        if (pass) {
+            return submit(selectorId, commonUpstream);
+        }
+        ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
+        LOG.error("add zombie node, url={}", commonUpstream.getUpstreamUrl());
+        return true;
+    }
 
     /**
      * Replace.
