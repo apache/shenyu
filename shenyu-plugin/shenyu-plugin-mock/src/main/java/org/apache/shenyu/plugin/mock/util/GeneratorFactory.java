@@ -17,9 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.util;
 
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.shenyu.plugin.base.mock.Generator;
@@ -28,9 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * GenerateUtil.
+ * GeneratorFactory.
  */
-public final class GenerateUtil {
+public final class GeneratorFactory {
     
     /**
      * Regular expression to extract placeholders.
@@ -38,7 +36,7 @@ public final class GenerateUtil {
     private static final Pattern RULE_PATTERN = Pattern
         .compile("(\\$\\{.+?})", Pattern.MULTILINE);
     
-    private static final Logger LOG = LoggerFactory.getLogger(GenerateUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GeneratorFactory.class);
     
     /**
      * Regular expression to extract rule content.
@@ -46,26 +44,23 @@ public final class GenerateUtil {
     private static final Pattern RULE_CONTENT_PATTERN = Pattern
         .compile("^\\$\\{(.+?)}$", Pattern.MULTILINE);
     
-    /**
-     * cache of generators.
-     */
-    private static final Map<String, Generator<?>> GENERATORS = new ConcurrentHashMap<>();
-    
-    private GenerateUtil() {
+    private GeneratorFactory() {
     }
     
-    private static Generator<?> getGenerator(final String ruleName, final String rule) {
-        Generator<?> generator = GENERATORS.get(ruleName);
-        if (generator == null) {
-            try {
-                generator = ExtensionLoader.getExtensionLoader(Generator.class).getJoin(ruleName);
-                GENERATORS.put(ruleName, generator);
-                return generator;
-            } catch (IllegalArgumentException e) {
-                LOG.warn("{} can not parse,please check", rule);
-            }
+    /**
+     * New instance mock data generator.
+     *
+     * @param ruleName rule name
+     * @param rule     full rule content
+     * @return generator
+     */
+    public static Generator<?> newInstance(final String ruleName, final String rule) {
+        try {
+            return ExtensionLoader.getExtensionLoader(Generator.class).getJoin(ruleName);
+        } catch (IllegalArgumentException e) {
+            LOG.warn("{} can not parse,please check", rule);
         }
-        return generator;
+        return null;
     }
     
     private static Object generate(final String rule) {
@@ -73,7 +68,7 @@ public final class GenerateUtil {
         if (matcher.find()) {
             String ruleContent = matcher.group(1);
             String ruleName = ruleContent.split("\\|")[0];
-            Generator<?> generator = getGenerator(ruleName, rule);
+            Generator<?> generator = newInstance(ruleName, rule);
             if (generator == null || !generator.match(ruleContent)) {
                 return rule;
             }
@@ -108,8 +103,4 @@ public final class GenerateUtil {
         }
         return afterDeal;
     }
-    
 }
-
-
-

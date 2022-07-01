@@ -26,7 +26,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.mock.handler.MockPluginHandler;
-import org.apache.shenyu.plugin.mock.util.GenerateUtil;
+import org.apache.shenyu.plugin.mock.util.GeneratorFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
@@ -44,7 +44,7 @@ public class MockPlugin extends AbstractShenyuPlugin {
         final RuleData rule) {
         MockHandle mockHandle = MockPluginHandler.CACHED_HANDLE.get()
             .obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        String replaceContent = GenerateUtil.dealRule(mockHandle.getResponseContent());
+        String replaceContent = GeneratorFactory.dealRule(mockHandle.getResponseContent());
         
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
         exchange.getResponse().setStatusCode(HttpStatus.valueOf(mockHandle.getHttpStatusCode()));

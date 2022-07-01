@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 /**
  * The test case for {@link BoolGenerator}.
  */
-public class BoolGeneratorTest {
+public final class BoolGeneratorTest {
     
     private final BoolGenerator boolGenerator = new BoolGenerator();
     

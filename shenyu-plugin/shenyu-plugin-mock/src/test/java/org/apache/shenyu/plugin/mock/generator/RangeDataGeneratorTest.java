@@ -26,26 +26,26 @@ import org.junit.jupiter.api.Test;
 /**
  * The test case for {@link RangeDataGenerator}.
  */
-class RangeDataGeneratorTest {
+public final class RangeDataGeneratorTest {
     
     private final RangeDataGenerator generator = new RangeDataGenerator();
     
     @Test
-    void generate() {
+    public void generate() {
         generator.parseRule("list|[shenyu,gateway]");
         String rangeData = generator.generate();
         assertTrue(Objects.equals("shenyu", rangeData) || Objects.equals("gateway", rangeData));
     }
     
     @Test
-    void testListDataContainComma() {
+    public void testListDataContainComma() {
         generator.parseRule("list|[shen\\,yu,gate\\,way]");
         String rangeData = generator.generate();
         assertTrue(Objects.equals("shen,yu", rangeData) || Objects.equals("gate,way", rangeData));
     }
     
     @Test
-    void match() {
+    public void match() {
         assertTrue(generator.match("list|[shen\\,yu,gate\\,way]"));
         assertTrue(generator.match("list|[shenyu,gateway]"));
         assertFalse(generator.match("list|[shenyu,gateway"));

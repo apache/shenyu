@@ -24,14 +24,15 @@ import org.junit.jupiter.api.Test;
 
 /**
  * The test case for {@link ZhStringGenerator}.
+ *
  * @date 2022/6/20 15:44
  */
-class ZhStringGeneratorTest {
+public final class ZhStringGeneratorTest {
     
     private final ZhStringGenerator generator = new ZhStringGenerator();
     
     @Test
-    void generate() {
+    public void generate() {
         int minLength = 10;
         int maxLength = 20;
         generator.parseRule(String.format("zh|%d-%d", minLength, maxLength));
@@ -41,7 +42,7 @@ class ZhStringGeneratorTest {
     }
     
     @Test
-    void match() {
+    public void match() {
         assertTrue(generator.match("zh|10-15"));
         assertFalse(generator.match("zh"));
         assertFalse(generator.match("zh|"));

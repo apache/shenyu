@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * current time generator.
+ * Current time generator.
  */
 @Join
 public class CurrentTimeGenerator implements Generator<String> {

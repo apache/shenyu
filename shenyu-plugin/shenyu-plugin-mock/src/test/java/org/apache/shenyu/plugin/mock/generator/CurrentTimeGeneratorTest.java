@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 /**
  * The test case for {@link CurrentTimeGenerator}.
  */
-public class CurrentTimeGeneratorTest {
+public final class CurrentTimeGeneratorTest {
     
     private final CurrentTimeGenerator generator = new CurrentTimeGenerator();
     

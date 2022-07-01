@@ -27,12 +27,12 @@ import org.junit.jupiter.api.Test;
 /**
  * The test case for {@link RandomDoubleGenerator}.
  */
-public class RandomDoubleGeneratorTest {
+public final class RandomDoubleGeneratorTest {
     
     private final RandomDoubleGenerator generator = new RandomDoubleGenerator();
     
     @Test
-    void generate() {
+    public void generate() {
         generator.parseRule("double|10.5-12.0");
         String doubleValue = generator.generate();
         assertNotNull(doubleValue);
@@ -46,7 +46,7 @@ public class RandomDoubleGeneratorTest {
     }
     
     @Test
-    void match() {
+    public void match() {
         assertTrue(generator.match("double|10-15"));
         assertTrue(generator.match("double|10.1-15"));
         assertTrue(generator.match("double|10.1-15.2"));

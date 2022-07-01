@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 /**
  * The test case for {@link EnStringGenerator}.
  */
-class EnStringGeneratorTest {
+public final class EnStringGeneratorTest {
     
     private final EnStringGenerator generator = new EnStringGenerator();
     

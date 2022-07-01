@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
  *
  * @date 2022/6/20 14:48
  */
-class PhoneGeneratorTest {
+public final class PhoneGeneratorTest {
     
     private final PhoneGenerator generator = new PhoneGenerator();
     

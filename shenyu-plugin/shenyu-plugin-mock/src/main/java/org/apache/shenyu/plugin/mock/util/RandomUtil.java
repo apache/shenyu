@@ -17,15 +17,13 @@
 
 package org.apache.shenyu.plugin.mock.util;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  * Random Util.
  */
 public class RandomUtil {
-    
-    private static final Random RANDOM = new Random();
     
     /**
      * Randomly generate integers.
@@ -35,7 +33,8 @@ public class RandomUtil {
      * @return random int
      */
     public static int randomInt(final int min, final int max) {
-        return RANDOM.nextInt(max - min + 1) + min;
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        return random.nextInt(max - min + 1) + min;
     }
     
     /**

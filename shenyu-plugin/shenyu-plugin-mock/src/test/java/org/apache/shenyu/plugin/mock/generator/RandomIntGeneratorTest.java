@@ -25,12 +25,12 @@ import org.junit.jupiter.api.Test;
 /**
  * The test case for {@link RandomIntGenerator}.
  */
-class RandomIntGeneratorTest {
+public final class RandomIntGeneratorTest {
     
     private final RandomIntGenerator generator = new RandomIntGenerator();
     
     @Test
-    void generate() {
+    public void generate() {
         int min = 10;
         int max = 15;
         generator.parseRule(String.format("int|%d-%d", min, max));
@@ -39,7 +39,7 @@ class RandomIntGeneratorTest {
     }
     
     @Test
-    void match() {
+    public void match() {
         assertTrue(generator.match("int|10-15"));
         assertFalse(generator.match("int|10.0-15"));
         assertFalse(generator.match("int"));

@@ -25,22 +25,20 @@ import org.junit.jupiter.api.Test;
 
 /**
  * The test case for {@link EmailGenerator}.
- *
- * @date 2022/6/20 14:29
  */
-class EmailGeneratorTest {
+public final class EmailGeneratorTest {
     
     private final EmailGenerator generator = new EmailGenerator();
     
     @Test
-    void testGenerate() {
+    public void testGenerate() {
         generator.parseRule("email");
         String email = generator.generate();
         assertNotNull(email);
     }
     
     @Test
-    void match() {
+    public void match() {
         assertTrue(generator.match("email"));
         assertFalse(generator.match("mail"));
         assertFalse(generator.match("Email"));
