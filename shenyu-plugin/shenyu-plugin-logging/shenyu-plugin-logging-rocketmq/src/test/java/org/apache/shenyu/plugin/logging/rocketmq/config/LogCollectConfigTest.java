@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq.config;
 
+import org.apache.shenyu.plugin.logging.rocketmq.config.LogCollectConfig.GlobalLogConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -88,5 +89,19 @@ public class LogCollectConfigTest {
         LogCollectConfig.GlobalLogConfig globalLogConfig = new LogCollectConfig.GlobalLogConfig();
         logCollectConfig.setGlobalLogConfig(globalLogConfig);
         Assertions.assertEquals(logCollectConfig.getGlobalLogConfig(), globalLogConfig);
+    }
+
+    @Test
+    public void testtCompressAlg() {
+        LogCollectConfig.GlobalLogConfig globalLogConfig = new LogCollectConfig.GlobalLogConfig();
+        globalLogConfig.setCompressAlg("LZ4");
+        Assertions.assertEquals(globalLogConfig.getCompressAlg(), "LZ4");
+    }
+
+    @Test
+    public void testBufferQueueSize() {
+        GlobalLogConfig globalLogConfig = new GlobalLogConfig();
+        globalLogConfig.setBufferQueueSize(50000);
+        Assertions.assertEquals(globalLogConfig.getBufferQueueSize(), 50000);
     }
 }
