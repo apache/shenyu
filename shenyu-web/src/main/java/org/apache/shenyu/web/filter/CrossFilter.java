@@ -60,7 +60,8 @@ public class CrossFilter implements WebFilter {
             HttpHeaders headers = response.getHeaders();
             // "Access-Control-Allow-Origin"
             String allowedOrigin = request.getHeaders().getOrigin();
-            if (Objects.nonNull(this.filterConfig.getAllowedOrigin())) {
+            if (Objects.nonNull(this.filterConfig.getAllowedOrigin())
+                    && CollectionUtils.isNotEmpty(this.filterConfig.getAllowedOrigin().getPrefixes())) {
                 final String scheme = exchange.getRequest().getURI().getScheme();
                 Set<String> allowedOriginSet = this.filterConfig.getAllowedOrigin().getPrefixes()
                         .stream()
