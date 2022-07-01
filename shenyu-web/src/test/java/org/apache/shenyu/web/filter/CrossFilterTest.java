@@ -19,6 +19,7 @@ package org.apache.shenyu.web.filter;
 
 import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -26,6 +27,9 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.HashSet;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -72,4 +76,27 @@ public final class CrossFilterTest {
                 .verifyComplete();
     }
 
+    /**
+     * test method for {@link CrossFilter#filter(ServerWebExchange, WebFilterChain)}.
+     */
+    @Test
+    public void testCorsWhitelist() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("http://localhost:8080")
+                .header("Origin", "test")
+                .build());
+        WebFilterChain chainNormal = mock(WebFilterChain.class);
+        when(chainNormal.filter(exchange)).thenReturn(Mono.empty());
+        final CrossFilterConfig filterConfig = new CrossFilterConfig();
+        CrossFilterConfig.WhitelistConfig whitelistConfig = new CrossFilterConfig.WhitelistConfig();
+        whitelistConfig.setEnabled(true);
+        whitelistConfig.setDomain("apache.org");
+        whitelistConfig.setPrefixes(new HashSet<String>(){{ add("a"); }});
+        filterConfig.setWhitelist(whitelistConfig);
+        CrossFilter filter = new CrossFilter(filterConfig);
+        StepVerifier.create(filter.filter(exchange, chainNormal))
+                .expectSubscription()
+                .verifyComplete();
+        assertEquals(exchange.getResponse().getStatusCode(), HttpStatus.FORBIDDEN);
+    }
 }

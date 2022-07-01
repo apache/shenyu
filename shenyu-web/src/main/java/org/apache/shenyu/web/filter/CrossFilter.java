@@ -33,6 +33,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -80,6 +81,19 @@ public class CrossFilter implements WebFilter {
             // "Access-Control-Allow-Credentials"
             this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
                     String.valueOf(this.filterConfig.isAllowCredentials()));
+            // whitelist
+            if (Objects.nonNull(this.filterConfig.getWhitelist()) && this.filterConfig.getWhitelist().isEnabled()) {
+                final Set<String> prefixes = this.filterConfig.getWhitelist().getPrefixes()
+                        .stream()
+                        .filter(StringUtils::isNoneBlank)
+                        // prefix.domain
+                        .map(prefix -> String.format("%s.%s", prefix.trim(), this.filterConfig.getWhitelist().getDomain()))
+                        .collect(Collectors.toSet());
+                if (CollectionUtils.isNotEmpty(prefixes) && !prefixes.contains(request.getHeaders().getOrigin())) {
+                    response.setStatusCode(HttpStatus.FORBIDDEN);
+                    return Mono.empty();
+                }
+            }
             if (request.getMethod() == HttpMethod.OPTIONS) {
                 response.setStatusCode(HttpStatus.OK);
                 return Mono.empty();

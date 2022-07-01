@@ -972,6 +972,8 @@ public class ShenyuConfig {
 
         private boolean allowCredentials;
 
+        private WhitelistConfig whitelist = new WhitelistConfig();
+
         /**
          * wrapper the headers.
          *
@@ -1110,6 +1112,60 @@ public class ShenyuConfig {
          */
         public void setAllowCredentials(final boolean allowCredentials) {
             this.allowCredentials = allowCredentials;
+        }
+
+        /**
+         * Gets the value of whitelist.
+         *
+         * @return the value of whitelist
+         */
+        public WhitelistConfig getWhitelist() {
+            return whitelist;
+        }
+
+        /**
+         * Sets the whitelist.
+         *
+         * @param whitelist whitelist
+         */
+        public void setWhitelist(final WhitelistConfig whitelist) {
+            this.whitelist = whitelist;
+        }
+
+        /**
+         * the cors whitelist config.
+         */
+        public static class WhitelistConfig {
+
+            private boolean enabled;
+
+            private String domain;
+
+            private Set<String> prefixes;
+
+            public boolean isEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(final boolean enabled) {
+                this.enabled = enabled;
+            }
+
+            public String getDomain() {
+                return domain;
+            }
+
+            public void setDomain(final String domain) {
+                this.domain = domain;
+            }
+
+            public Set<String> getPrefixes() {
+                return prefixes;
+            }
+
+            public void setPrefixes(final Set<String> prefixes) {
+                this.prefixes = prefixes;
+            }
         }
     }
     
