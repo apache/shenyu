@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.rocketmq;
+package org.apache.shenyu.plugin.logging.elasticsearch.client;
 
-import org.apache.shenyu.plugin.logging.rocketmq.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 
 import java.util.List;
 

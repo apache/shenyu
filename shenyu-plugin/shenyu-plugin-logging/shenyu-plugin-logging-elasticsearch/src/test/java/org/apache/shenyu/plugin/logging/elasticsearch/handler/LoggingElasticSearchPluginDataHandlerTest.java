@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.logging.elasticsearch.handler;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.logging.elasticsearch.elasticsearch.ElasticSearchLogCollectClient;
+import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,14 +58,6 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
         selectorData.setConditionList(list);
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"host\":\"localhost\", \"port\":\"9200\"}");
-    }
-
-    @Test
-    public void testHandlerPlugin() throws NoSuchFieldException, IllegalAccessException {
-        loggingElasticSearchPluginDataHandler.handlerPlugin(pluginData);
-        Field field = loggingElasticSearchPluginDataHandler.getClass().getDeclaredField("ELASTICSEARCH_LOG_COLLECT_CLIENT");
-        field.setAccessible(true);
-        Assertions.assertEquals(field.get(loggingElasticSearchPluginDataHandler).getClass(), ElasticSearchLogCollectClient.class);
     }
 
     @Test

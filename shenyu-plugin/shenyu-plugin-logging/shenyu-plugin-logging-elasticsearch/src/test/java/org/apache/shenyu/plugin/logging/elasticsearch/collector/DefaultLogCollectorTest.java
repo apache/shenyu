@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.rocketmq;
+package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 
-import org.apache.shenyu.plugin.logging.rocketmq.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.rocketmq.rocketmq.RocketMQLogCollectClient;
+import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
+import org.apache.shenyu.plugin.logging.elasticsearch.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ import java.lang.reflect.Field;
 /**
  * The Test Case For DefaultLogCollector.
  */
-public class DefaultLogCollectorTest {
+public final class DefaultLogCollectorTest {
 
     private ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
@@ -54,6 +55,6 @@ public class DefaultLogCollectorTest {
     @Test
     public void testGetLogConsumeClient() {
         LogConsumeClient logConsumeClient = new DefaultLogCollector().getLogConsumeClient();
-        Assertions.assertEquals(RocketMQLogCollectClient.class, logConsumeClient.getClass());
+        Assertions.assertEquals(ElasticSearchLogCollectClient.class, logConsumeClient.getClass());
     }
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.rocketmq.rocketmq;
+package org.apache.shenyu.plugin.logging.rocketmq.client;
 
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
@@ -25,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.plugin.logging.rocketmq.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.rocketmq.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.rocketmq.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.rocketmq.entity.ShenyuRequestLog;

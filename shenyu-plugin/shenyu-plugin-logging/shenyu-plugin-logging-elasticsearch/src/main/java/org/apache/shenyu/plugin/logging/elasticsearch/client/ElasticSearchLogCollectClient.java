@@ -15,19 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.elasticsearch.elasticsearch;
+package org.apache.shenyu.plugin.logging.elasticsearch.client;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
-import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpHost;
-import org.apache.shenyu.plugin.logging.elasticsearch.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 import org.elasticsearch.client.RestClient;
@@ -67,15 +64,17 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
         LOG.info("init ElasticSearchLogCollectClient success");
+        // Determine whether the index exists, and create it if it does not exist
+        if (!existsIndex(LoggingConstant.INDEX)) {
+            createIndex(LoggingConstant.INDEX);
+            LOG.info("create index success");
+        }
         isStarted.set(true);
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
     @Override
     public void consume(final List<ShenyuRequestLog> logs) throws Exception {
-        if (!existsIndex(LoggingConstant.INDEX)) {
-            createIndex(LoggingConstant.INDEX);
-        }
         if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
             return;
         }
@@ -84,10 +83,15 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
             try {
                 bulkOperations.add(new BulkOperation.Builder().create(d -> d.document(log).index(LoggingConstant.INDEX)).build());
             } catch (Exception e) {
-                LOG.error("elasticsearch store logs error", e);
+                LOG.error("add logs error", e);
             }
         });
-        BulkResponse response = client.bulk(e -> e.index(LoggingConstant.INDEX).operations(bulkOperations));
+        // Bulk storage
+        try {
+            client.bulk(e -> e.index(LoggingConstant.INDEX).operations(bulkOperations));
+        } catch (Exception e) {
+            LOG.error("elasticsearch store logs error", e);
+        }
     }
 
     /**
@@ -107,19 +111,16 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
     }
 
     /**
-     * create elasticsearch client.
+     * create elasticsearch index.
      *
      * @param indexName index name
-     * @return true or false
      */
-    public boolean createIndex(final String indexName) {
+    public void createIndex(final String indexName) {
         try {
-            CreateIndexResponse createIndexResponse = client.indices().create(c -> c.index(indexName));
-            return createIndexResponse.acknowledged();
+            client.indices().create(c -> c.index(indexName));
         } catch (IOException e) {
             LOG.error("create index error");
         }
-        return true;
     }
 
     /**

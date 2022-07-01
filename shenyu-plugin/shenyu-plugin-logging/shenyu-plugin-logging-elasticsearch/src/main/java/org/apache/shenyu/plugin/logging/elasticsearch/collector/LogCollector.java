@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.elasticsearch;
+package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 
 import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 
-import java.util.List;
-
 /**
- * Used to collect logs, which can be stored in remote or local files or databases, or others.
+ * Collect logs and put into buffer queue.
  */
-public interface LogConsumeClient extends AutoCloseable {
-    
+public interface LogCollector extends AutoCloseable {
+
     /**
-     * collect logs.
-     *
-     * @param logs list of log
-     * @throws Exception produce exception
+     * start log collector.
      */
-    void consume(List<ShenyuRequestLog> logs) throws Exception;
+    void start();
+
+    /**
+     * collect log.
+     *
+     * @param log access log
+     */
+    void collect(ShenyuRequestLog log);
 }

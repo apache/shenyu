@@ -15,9 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.rocketmq;
+package org.apache.shenyu.plugin.logging.rocketmq.collector;
 
+import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.ThreadUtils;
+import org.apache.shenyu.plugin.logging.rocketmq.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.rocketmq.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.rocketmq.utils.LogCollectConfigUtils;
 import org.slf4j.Logger;
@@ -27,9 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -48,11 +53,18 @@ public abstract class AbstractLogCollector implements LogCollector {
 
     private final AtomicBoolean started = new AtomicBoolean(true);
 
+    private final ShenyuConfig config = new ShenyuConfig();
+
     @Override
     public void start() {
         bufferSize = LogCollectConfigUtils.getGlobalLogConfig().getBufferQueueSize();
         bufferQueue = new LinkedBlockingDeque<>(bufferSize);
-        ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
+        final ShenyuConfig.SharedPool sharedPool = config.getSharedPool();
+        ShenyuThreadPoolExecutor threadExecutor = new ShenyuThreadPoolExecutor(sharedPool.getCorePoolSize(),
+                sharedPool.getMaximumPoolSize(), sharedPool.getKeepAliveTime(), TimeUnit.MILLISECONDS,
+                new MemorySafeTaskQueue<>(Constants.THE_256_MB),
+                ShenyuThreadFactory.create(config.getSharedPool().getPrefix(), true),
+                new ThreadPoolExecutor.AbortPolicy());
         started.set(true);
         threadExecutor.execute(this::consume);
     }

@@ -49,16 +49,11 @@ public final class LogCollectConfigUtilsTest {
 
     private ServerHttpRequest request;
 
-    private Map<String, String> uriSampleMap = new HashMap<>();
-
     private Map<String, String> apiTopicMap = new HashMap<>();
 
     @BeforeEach
     public void setUp() {
         config.setBufferQueueSize(5000);
-        LogCollectConfigUtils.setGlobalConfig(config);
-        uriSampleMap.put("const", "1");
-        apiTopicMap.put("topic", "shenyu-access-logging");
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
@@ -84,34 +79,53 @@ public final class LogCollectConfigUtilsTest {
 
     @Test
     public void testSetSampler() throws IllegalAccessException, NoSuchFieldException {
+        Map<String, String> uriSampleMap = new HashMap<>();
+        uriSampleMap.put("const", "");
         LogCollectConfigUtils.setSampler(uriSampleMap);
-        Field field = LogCollectConfigUtils.class.getDeclaredField("apiSamplerMap");
-        field.setAccessible(true);
-        Assertions.assertEquals(field.get("const").toString(), "{const=" + Sampler.ALWAYS_SAMPLE + "}");
+        Field field1 = LogCollectConfigUtils.class.getDeclaredField("apiSamplerMap");
+        field1.setAccessible(true);
+        Assertions.assertEquals(field1.get("const").toString(), "{const=" + Sampler.ALWAYS_SAMPLE + "}");
+        uriSampleMap.put("const", "1");
+        LogCollectConfigUtils.setSampler(uriSampleMap);
+        Field field2 = LogCollectConfigUtils.class.getDeclaredField("apiSamplerMap");
+        field2.setAccessible(true);
+        Assertions.assertEquals(field2.get("const").toString(), "{const=" + Sampler.ALWAYS_SAMPLE + "}");
     }
 
     @Test
     public void testIsSampled() {
-        assertEquals(LogCollectConfigUtils.isSampled(request), false);
+        assertEquals(LogCollectConfigUtils.isSampled(request), true);
+        Map<String, String> uriSampleMap = new HashMap<>();
+        uriSampleMap.put("localhost", "1");
+        LogCollectConfigUtils.setSampler(uriSampleMap);
+        assertEquals(LogCollectConfigUtils.isSampled(request), true);
     }
 
     @Test
     public void testIsRequestBodyTooLarge() {
+        LogCollectConfigUtils.setGlobalConfig(null);
+        assertEquals(LogCollectConfigUtils.isRequestBodyTooLarge(524289), false);
+        assertEquals(LogCollectConfigUtils.isRequestBodyTooLarge(524288), false);
+        LogCollectConfigUtils.setGlobalConfig(config);
         assertEquals(LogCollectConfigUtils.isRequestBodyTooLarge(524289), true);
         assertEquals(LogCollectConfigUtils.isRequestBodyTooLarge(524288), false);
     }
 
     @Test
     public void testIsResponseBodyTooLarge() {
+        LogCollectConfigUtils.setGlobalConfig(null);
+        assertEquals(LogCollectConfigUtils.isResponseBodyTooLarge(524289), false);
+        assertEquals(LogCollectConfigUtils.isResponseBodyTooLarge(524288), false);
+        LogCollectConfigUtils.setGlobalConfig(config);
         assertEquals(LogCollectConfigUtils.isResponseBodyTooLarge(524289), true);
         assertEquals(LogCollectConfigUtils.isResponseBodyTooLarge(524288), false);
     }
 
     @Test
     public void testSetGlobalSampler() throws NoSuchFieldException, IllegalAccessException {
-        LogCollectConfigUtils.setGlobalSampler("0");
+        LogCollectConfigUtils.setGlobalSampler("1");
         Field field = LogCollectConfigUtils.class.getDeclaredField("globalSampler");
         field.setAccessible(true);
-        assertEquals(field.get("const"), Sampler.NEVER_SAMPLE);
+        assertEquals(field.get("const"), Sampler.ALWAYS_SAMPLE);
     }
 }
