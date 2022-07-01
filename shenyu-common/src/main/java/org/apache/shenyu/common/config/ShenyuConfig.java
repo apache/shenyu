@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -1141,28 +1142,55 @@ public class ShenyuConfig {
 
             private String domain;
 
-            private Set<String> prefixes;
+            private Set<String> prefixes = new HashSet<>();
 
+            /**
+             * Gets the enabled.
+             */
             public boolean isEnabled() {
                 return enabled;
             }
 
+            /**
+             * Sets the enabled.
+             *
+             * @param enabled enabled
+             */
             public void setEnabled(final boolean enabled) {
                 this.enabled = enabled;
             }
 
+            /**
+             * Gets the domain.
+             */
             public String getDomain() {
                 return domain;
             }
 
+            /**
+             * Sets the enabled.
+             *
+             * @param domain enabled
+             */
             public void setDomain(final String domain) {
                 this.domain = domain;
             }
 
+            /**
+             * Gets the prefixes.
+             */
             public Set<String> getPrefixes() {
+                if (Objects.isNull(prefixes)) {
+                    prefixes = new HashSet<>();
+                }
                 return prefixes;
             }
 
+            /**
+             * Sets the enabled.
+             *
+             * @param prefixes enabled
+             */
             public void setPrefixes(final Set<String> prefixes) {
                 this.prefixes = prefixes;
             }
