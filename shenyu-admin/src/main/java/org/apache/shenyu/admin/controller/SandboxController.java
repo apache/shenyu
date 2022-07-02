@@ -33,6 +33,7 @@ import javax.validation.Valid;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
@@ -83,7 +84,7 @@ public class SandboxController {
         final HttpServletRequest request,
         final HttpServletResponse response) throws IOException {
         String appKey = proxyGatewayDTO.getAppKey();
-        String requestUrl = proxyGatewayDTO.getRequestUrl();
+        String requestUrl = StringEscapeUtils.escapeHtml4(proxyGatewayDTO.getRequestUrl());
 
         // Public request parameters.
         Map<String, String> reqParams = new HashMap<String, String>();
