@@ -33,6 +33,7 @@ import javax.validation.Valid;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
@@ -85,7 +86,9 @@ public class SandboxController {
         // Public request parameters.
         Map<String, Object> reqParams = new HashMap<>();
         try {
-            Map<String, String> reqMap = (Map) JsonUtils.toMap(proxyGatewayDTO.getBizParam());
+            String reqJson = JsonUtils.toJson(proxyGatewayDTO.getBizParam());
+            reqJson = StringEscapeUtils.escapeHtml4(reqJson);
+            Map<String, Object> reqMap = JsonUtils.toMap(reqJson);
             LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
             if (Objects.nonNull(reqMap)) {
                 reqParams.putAll(reqMap);
