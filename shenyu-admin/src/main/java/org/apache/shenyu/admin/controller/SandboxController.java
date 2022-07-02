@@ -33,7 +33,6 @@ import javax.validation.Valid;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
@@ -83,14 +82,10 @@ public class SandboxController {
     public void proxyGateway(@RequestBody @Valid final ProxyGatewayDTO proxyGatewayDTO,
         final HttpServletRequest request,
         final HttpServletResponse response) throws IOException {
-        String appKey = proxyGatewayDTO.getAppKey();
-        String requestUrl = StringEscapeUtils.escapeHtml4(proxyGatewayDTO.getRequestUrl());
-
         // Public request parameters.
-        Map<String, String> reqParams = new HashMap<String, String>();
+        Map<String, Object> reqParams = new HashMap<>();
         try {
-            Object param = proxyGatewayDTO.getBizParam();
-            Map<String, String> reqMap = (Map) JsonUtils.toMap(param);
+            Map<String, String> reqMap = (Map) JsonUtils.toMap(proxyGatewayDTO.getBizParam());
             LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
             if (Objects.nonNull(reqMap)) {
                 reqParams.putAll(reqMap);
@@ -99,18 +94,17 @@ public class SandboxController {
             LOG.error("proxyGateway JsonUtils.toMap error={}", e);
         }
 
-        List<HttpUtils.UploadFile> files = uploadFiles(request);
-
         Map<String, String> header = new HashMap<>();
         header.put("Cookie", proxyGatewayDTO.getCookie());
 
+        String appKey = proxyGatewayDTO.getAppKey();
+        UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(proxyGatewayDTO.getRequestUrl()).build();
         String signContent = null;
         String sign = null;
         if (StringUtils.isNotEmpty(appKey)) {
             String timestamp = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli());
             String secureKey = getSecureKey(appKey);
             Assert.notBlack(secureKey, Constants.SIGN_APP_KEY_IS_NOT_EXIST);
-            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(requestUrl).build();
             signContent = ShenyuSignatureUtils.getSignContent(secureKey, timestamp, uriComponents.getPath());
             sign = ShenyuSignatureUtils.generateSign(signContent);
 
@@ -120,7 +114,8 @@ public class SandboxController {
             header.put("version", ShenyuSignatureUtils.VERSION);
         }
 
-        Response resp = HTTP_UTILS.requestCall(requestUrl, reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files);
+        List<HttpUtils.UploadFile> files = uploadFiles(request);
+        Response resp = HTTP_UTILS.requestCall(uriComponents.toUriString(), reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files);
         ResponseBody body = resp.body();
         if (Objects.isNull(body)) {
             return;
