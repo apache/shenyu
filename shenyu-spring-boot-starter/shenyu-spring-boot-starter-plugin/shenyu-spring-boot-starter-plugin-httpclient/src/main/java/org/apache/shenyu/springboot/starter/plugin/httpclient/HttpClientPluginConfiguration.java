@@ -192,14 +192,12 @@ public class HttpClientPluginConfiguration {
                 final ObjectProvider<HttpClient> httpClient) {
             WebClient.Builder builder = WebClient.builder();
             if (properties.getMaxInMemorySize() != 0) {
+                // fix Exceeded limit on max bytes to buffer
+                // detail see https://stackoverflow.com/questions/59326351/configure-spring-codec-max-in-memory-size-when-using-reactiveelasticsearchclient
                 ExchangeStrategies strategies = ExchangeStrategies.builder()
                         .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(properties.getMaxInMemorySize()))
                         .build();
-                WebClient webClient = builder
-                        .exchangeStrategies(strategies)
-                        .clientConnector(new ReactorClientHttpConnector(Objects.requireNonNull(httpClient.getIfAvailable())))
-                        .build();
-                return new WebClientPlugin(webClient);
+                builder = builder.exchangeStrategies(strategies);
             }
 
             WebClient webClient = builder
