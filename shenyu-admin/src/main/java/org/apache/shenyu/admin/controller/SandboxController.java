@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -42,7 +41,7 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.admin.utils.ShenyuSignatureUtils;
 import org.apache.shenyu.admin.utils.UploadUtils;
-import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +64,11 @@ public class SandboxController {
 
     private static final HttpUtils HTTP_UTILS = new HttpUtils();
 
-    @Resource
-    private AppAuthService appAuthService;
+    private final AppAuthService appAuthService;
+
+    public SandboxController(final AppAuthService appAuthService) {
+        this.appAuthService = appAuthService;
+    }
 
     /**
      * proxy Gateway.
@@ -106,7 +108,7 @@ public class SandboxController {
         if (StringUtils.isNotEmpty(appKey)) {
             String timestamp = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli());
             String secureKey = getSecureKey(appKey);
-            Assert.notBlack(secureKey, AdminConstants.APPKEY_NOT_EXIST);
+            Assert.notBlack(secureKey, Constants.SIGN_APP_KEY_IS_NOT_EXIST);
             UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(requestUrl).build();
             signContent = ShenyuSignatureUtils.getSignContent(secureKey, timestamp, uriComponents.getPath());
             sign = ShenyuSignatureUtils.generateSign(signContent);
@@ -135,7 +137,7 @@ public class SandboxController {
         return Objects.nonNull(appAuthDO) ? appAuthDO.getAppSecret() : null;
     }
 
-    private List<HttpUtils.UploadFile> uploadFiles(HttpServletRequest request) {
+    private List<HttpUtils.UploadFile> uploadFiles(final HttpServletRequest request) {
         Collection<MultipartFile> uploadFiles = UploadUtils.getUploadFiles(request);
         List<HttpUtils.UploadFile> files = uploadFiles.stream()
             .map(multipartFile -> {

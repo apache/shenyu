@@ -143,7 +143,7 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
      * @param appKey the app key
      * @return the app auth do
      */
-    AppAuthDO findByAppKey(final String appKey);
+    AppAuthDO findByAppKey(String appKey);
 
 
     /**

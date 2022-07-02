@@ -96,7 +96,7 @@ public class SelectorQuery extends FilterQuery {
      *
      * @param pluginIds pluginIds
      */
-    public void setPluginIds(List<String> pluginIds) {
+    public void setPluginIds(final List<String> pluginIds) {
         this.pluginIds = pluginIds;
     }
 
