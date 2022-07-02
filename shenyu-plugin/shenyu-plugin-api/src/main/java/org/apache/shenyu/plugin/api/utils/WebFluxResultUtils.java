@@ -23,7 +23,6 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -35,15 +34,15 @@ import java.util.Objects;
  * The type Shenyu result utils.
  */
 public final class WebFluxResultUtils {
-
+    
     /**
      * result utils log.
      */
     private static final Logger LOG = LoggerFactory.getLogger(WebFluxResultUtils.class);
-
+    
     private WebFluxResultUtils() {
     }
-
+    
     /**
      * Response result.
      *
@@ -63,7 +62,6 @@ public final class WebFluxResultUtils {
             mediaType = shenyuResult.contentType(exchange, resultData);
         }
         exchange.getResponse().getHeaders().setContentType(mediaType);
-
         final Object responseData = shenyuResult.result(exchange, resultData);
         assert null != responseData;
         final byte[] bytes = (responseData instanceof byte[])
@@ -72,21 +70,7 @@ public final class WebFluxResultUtils {
             .bufferFactory().wrap(bytes))
             .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
     }
-
-    /**
-     * Response result and support specify the http status code .
-     *
-     * @param exchange   the exchange
-     * @param result     the result
-     * @param httpStatus the http status
-     * @return the result
-     */
-    public static Mono<Void> resultCustomStatusCode(final ServerWebExchange exchange, final Object result, final HttpStatus httpStatus) {
-        exchange.getResponse().setStatusCode(httpStatus);
-        return result(exchange, result);
-
-    }
-
+    
     /**
      * get no selector result.
      *
@@ -99,7 +83,7 @@ public final class WebFluxResultUtils {
         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SELECTOR_NOT_FOUND.getCode(), pluginName + ":" + ShenyuResultEnum.SELECTOR_NOT_FOUND.getMsg(), null);
         return WebFluxResultUtils.result(exchange, error);
     }
-
+    
     /**
      * get no rule result.
      *
