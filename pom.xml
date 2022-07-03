@@ -153,6 +153,7 @@
         <jaxb.api.version>2.3.1</jaxb.api.version>
         <mail.version>1.6.2</mail.version>
         <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
+        <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
         <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
         <spring-cloud-netflix-ribbon.version>2.2.10.RELEASE</spring-cloud-netflix-ribbon.version>
@@ -373,11 +374,6 @@
                     </exclusion>
                 </exclusions>
                 <version>${zookeeper.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.101tec</groupId>
-                <artifactId>zkclient</artifactId>
-                <version>${zkclient.version}</version>
             </dependency>
 
             <dependency>
