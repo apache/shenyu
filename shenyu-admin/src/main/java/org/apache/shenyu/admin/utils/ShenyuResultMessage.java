@@ -48,6 +48,8 @@ public final class ShenyuResultMessage {
 
     public static final String DASHBOARD_QUERY_ERROR = "user info is empty";
 
+    public static final String DASHBOARD_MODIFY_PASSWORD_ERROR = "can not modify other user password";
+
     public static final String DASHBOARD_CREATE_USER_ERROR = "empty user info, please confirm";
 
     public static final String PLATFORM_LOGIN_SUCCESS = "login dashboard user success";
