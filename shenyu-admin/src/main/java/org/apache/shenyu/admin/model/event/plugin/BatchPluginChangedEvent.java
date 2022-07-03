@@ -34,9 +34,10 @@ public class BatchPluginChangedEvent extends BatchChangedEvent {
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
-     * @param source Current plugin state
-     * @param before Before the change plugin state
-     * @param type   event type
+     * @param source   Current plugin state
+     * @param before   Before the change plugin state
+     * @param type     event type
+     * @param operator operator
      */
     public BatchPluginChangedEvent(final Collection<PluginDO> source, final Collection<PluginDO> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);

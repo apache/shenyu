@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 import java.util.Date;
 
@@ -29,6 +31,7 @@ public class OperationRecordLog {
     /**
      * id.
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     
     /**
