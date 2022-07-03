@@ -92,17 +92,17 @@
         SElECT
                 <include refid="Base_Column_List"/>
           FROM meta_data
-                <if test="appName != null and appName != ''">
-                    <bind name="appNameLike" value="('%' + appName + '%')"/>
-                        WHERE app_name LIKE #{appNameLike,jdbcType=VARCHAR}
+                <if test="path != null and path != ''">
+                    <bind name="pathLike" value="('%' + path + '%')"/>
+                        WHERE path LIKE #{pathLike,jdbcType=VARCHAR}
                 </if>
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.MetaDataQuery" resultType="java.lang.Integer">
         SElECT COUNT(1)
           FROM meta_data
-                <if test="appName != null">
-                    WHERE app_name = #{appName,jdbcType=VARCHAR}
+                <if test="path != null">
+                    WHERE path = #{path,jdbcType=VARCHAR}
                 </if>
     </select>
 
