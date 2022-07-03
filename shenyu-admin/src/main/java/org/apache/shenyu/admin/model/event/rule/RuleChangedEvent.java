@@ -33,9 +33,10 @@ public class RuleChangedEvent extends AdminDataModelChangedEvent {
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
-     * @param source Current rule state
-     * @param before Before the change rule state
-     * @param type   event type
+     * @param source   Current rule state
+     * @param before   Before the change rule state
+     * @param type     event type
+     * @param operator operator
      */
     public RuleChangedEvent(final RuleDO source, final RuleDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);

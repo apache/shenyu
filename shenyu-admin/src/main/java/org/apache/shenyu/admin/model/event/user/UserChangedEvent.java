@@ -33,9 +33,10 @@ public class UserChangedEvent extends AdminDataModelChangedEvent {
     /**
      * Create a new {@code UserChangedEvent}.operator is unknown.
      *
-     * @param source Current user state
-     * @param before Before the change user state
-     * @param type   event type
+     * @param source   Current user state
+     * @param before   Before the change user state
+     * @param type     event type
+     * @param operator operator
      */
     public UserChangedEvent(final DashboardUserDO source, final DashboardUserDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
@@ -81,7 +82,7 @@ public class UserChangedEvent extends AdminDataModelChangedEvent {
         if (!Objects.equals(before.getEnabled(), after.getEnabled())) {
             builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
         }
-
+        
         return builder.toString();
     }
     

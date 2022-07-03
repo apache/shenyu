@@ -33,6 +33,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,12 +59,21 @@ public class CrossFilter implements WebFilter {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders headers = response.getHeaders();
             // "Access-Control-Allow-Origin"
-            // if the allowed origin is empty use the request 's origin
-            if (StringUtils.isBlank(this.filterConfig.getAllowedOrigin())) {
-                headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, request.getHeaders().getOrigin());
-            } else {
-                this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-                        this.filterConfig.getAllowedOrigin());
+            final String origin = request.getHeaders().getOrigin();
+            if (this.filterConfig.isAllowedAnyOrigin()) {
+                headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+            } else if (Objects.nonNull(this.filterConfig.getAllowedOrigin())
+                    && CollectionUtils.isNotEmpty(this.filterConfig.getAllowedOrigin().getPrefixes())) {
+                final String scheme = exchange.getRequest().getURI().getScheme();
+                Set<String> allowedOrigin = this.filterConfig.getAllowedOrigin().getPrefixes()
+                        .stream()
+                        .filter(StringUtils::isNoneBlank)
+                        // scheme://prefix.domain
+                        .map(prefix -> String.format("%s://%s.%s", scheme, prefix.trim(), this.filterConfig.getAllowedOrigin().getDomain()))
+                        .collect(Collectors.toSet());
+                if (allowedOrigin.contains(origin)) {
+                    headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                }
             }
             // "Access-Control-Allow-Methods"
             this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,

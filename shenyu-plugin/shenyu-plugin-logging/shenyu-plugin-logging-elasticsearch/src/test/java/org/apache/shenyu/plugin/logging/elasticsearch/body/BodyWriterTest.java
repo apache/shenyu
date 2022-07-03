@@ -22,7 +22,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The Test Case For BodyWriter.
@@ -43,11 +45,15 @@ public final class BodyWriterTest {
     }
 
     @Test
-    public void testWrite() throws UnsupportedEncodingException {
+    public void testWrite() throws Exception {
         ByteBuffer byteBuffer = ByteBuffer.wrap(sendString.getBytes("UTF-8"));
+        Field field = writer.getClass().getDeclaredField("isClosed");
+        field.setAccessible(true);
+        AtomicBoolean isClosed = (AtomicBoolean) field.get(writer);
         writer.write(byteBuffer.asReadOnlyBuffer());
         String res = writer.output();
         Assertions.assertEquals(res, "hello, shenyu");
+        Assertions.assertEquals(isClosed.toString(), "true");
     }
 
     @Test

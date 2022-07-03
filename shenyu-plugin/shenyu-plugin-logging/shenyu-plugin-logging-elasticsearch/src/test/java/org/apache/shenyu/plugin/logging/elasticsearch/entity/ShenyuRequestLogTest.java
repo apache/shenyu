@@ -83,4 +83,46 @@ public final class ShenyuRequestLogTest {
         shenyuRequestLog.setUpstreamIp("0.0.0.0");
         Assertions.assertEquals(shenyuRequestLog.getUpstreamIp(), "0.0.0.0");
     }
+
+    @Test
+    public void testRequestHeader() {
+        shenyuRequestLog.setRequestHeader("{}");
+        Assertions.assertEquals(shenyuRequestLog.getRequestHeader(), "{}");
+    }
+
+    @Test
+    public void testQueryParams() {
+        shenyuRequestLog.setQueryParams("{\"id\"=\"1\"}");
+        Assertions.assertEquals(shenyuRequestLog.getQueryParams(), "{\"id\"=\"1\"}");
+    }
+
+    @Test
+    public void testRequestUri() {
+        shenyuRequestLog.setRequestUri("/http/post/hi");
+        Assertions.assertEquals(shenyuRequestLog.getRequestUri(), "/http/post/hi");
+    }
+
+    @Test
+    public void testRpcType() {
+        shenyuRequestLog.setRpcType("Dubbo");
+        Assertions.assertEquals(shenyuRequestLog.getRpcType(), "Dubbo");
+    }
+
+    @Test
+    public void testUpstreamResponseTime() {
+        shenyuRequestLog.setUpstreamResponseTime(111111);
+        Assertions.assertEquals(shenyuRequestLog.getUpstreamResponseTime(), 111111);
+    }
+
+    @Test
+    public void testTraceId() {
+        shenyuRequestLog.setTraceId("shenyu-agent-trace-id");
+        Assertions.assertEquals(shenyuRequestLog.getTraceId(), "shenyu-agent-trace-id");
+    }
+
+    @Test
+    public void testPath() {
+        shenyuRequestLog.setPath("/shenyu/plugin");
+        Assertions.assertEquals(shenyuRequestLog.getPath(), "/shenyu/plugin");
+    }
 }

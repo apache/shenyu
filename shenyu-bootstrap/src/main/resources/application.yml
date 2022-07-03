@@ -159,10 +159,16 @@ shenyu:
     enabled: true
     allowedHeaders:
     allowedMethods: "*"
-    allowedOrigin: "*"
-    allowedExpose: "*"
+    allowedAnyOrigin: false
+    allowedOrigin:
+      domain: apache.org
+      prefixes:
+        - a # a.apache.org
+        - b # b.apache.org
+    allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
+
   switchConfig:
     local: true
   file:

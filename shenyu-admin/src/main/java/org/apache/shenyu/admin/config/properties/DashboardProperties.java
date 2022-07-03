@@ -34,6 +34,14 @@ public class DashboardProperties {
     @Value("${shenyu.dashboard.core.record-log-limit:12}")
     private Integer recordLogLimit;
     
+    
+    /**
+     * Only supports deleting logs older than a certain day.
+     * default is 3.
+     */
+    @Value("${shenyu.dashboard.core.record-log-only-clean-days:3}")
+    private Integer onlyCleanDays;
+    
     /**
      * get recordLogLimit.
      *
@@ -50,5 +58,23 @@ public class DashboardProperties {
      */
     public void setRecordLogLimit(final Integer recordLogLimit) {
         this.recordLogLimit = recordLogLimit;
+    }
+    
+    /**
+     * get onlyCleanDays.
+     *
+     * @return days
+     */
+    public Integer getOnlyCleanDays() {
+        return onlyCleanDays;
+    }
+    
+    /**
+     * set onlyCleanDays.
+     *
+     * @param onlyCleanDays days
+     */
+    public void setOnlyCleanDays(final Integer onlyCleanDays) {
+        this.onlyCleanDays = onlyCleanDays;
     }
 }
