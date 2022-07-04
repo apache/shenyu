@@ -162,6 +162,9 @@ shenyu:
     allowedMethods: "*"
     allowedAnyOrigin: false
     allowedOrigin:
+      # format : schema://prefix spacer domain
+      # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
+      spacer: "."
       domain: apache.org
       prefixes:
         - a # a.apache.org
