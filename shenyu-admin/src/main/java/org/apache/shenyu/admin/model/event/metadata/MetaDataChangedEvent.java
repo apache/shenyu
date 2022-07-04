@@ -33,9 +33,10 @@ public class MetaDataChangedEvent extends AdminDataModelChangedEvent {
     /**
      * Create a new {@code PluginChangedEvent}.operator is unknown.
      *
-     * @param source Current plugin state
-     * @param before Before the change plugiin state
-     * @param type   event type
+     * @param source   Current plugin state
+     * @param before   Before the change plugiin state
+     * @param type     event type
+     * @param operator operator
      */
     public MetaDataChangedEvent(final MetaDataDO source, final MetaDataDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
