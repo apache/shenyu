@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -42,7 +41,6 @@ import org.apache.shenyu.admin.model.bean.DocModule;
 import org.apache.shenyu.admin.model.bean.DocParameter;
 import org.apache.shenyu.admin.service.manager.DocParser;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -161,9 +159,7 @@ public class SwaggerDocParser implements DocParser {
         }
         String moduleName = this.buildModuleName(docInfo, docRoot, basePath);
         docItem.setModule(moduleName);
-        List<DocParameter> docParameterList = this.buildRequestParameterList(docInfo, docRoot);
-        docItem.setRequestParameters(docParameterList);
-
+        this.buildRequestParameterList(docItem, docInfo, docRoot);
         List<DocParameter> responseParameterList = this.buildResponseParameterList(docInfo, docRoot);
         docItem.setResponseParameters(responseParameterList);
         return docItem;
@@ -177,10 +173,12 @@ public class SwaggerDocParser implements DocParser {
         return Optional.ofNullable(docRoot.getAsJsonObject("info")).map(jsonObject -> jsonObject.get("title").getAsString()).orElse(basePath);
     }
 
-    protected List<DocParameter> buildRequestParameterList(final JsonObject docInfo, final JsonObject docRoot) {
+    protected void buildRequestParameterList(final DocItem docItem, final JsonObject docInfo,
+        final JsonObject docRoot) {
         Optional<JsonArray> parametersOptional = Optional.ofNullable(docInfo.getAsJsonArray("parameters"));
         JsonArray parameters = parametersOptional.orElse(new JsonArray());
-        List<DocParameter> docParameterList = new ArrayList<>();
+        List<DocParameter> docRequestParameterList = new ArrayList<>();
+        List<DocParameter> docHeaderParameterList = new ArrayList<>();
         for (int i = 0; i < parameters.size(); i++) {
             JsonObject fieldJson = parameters.get(i).getAsJsonObject();
             JsonObject schema = fieldJson.getAsJsonObject("schema");
@@ -188,40 +186,20 @@ public class SwaggerDocParser implements DocParser {
                 RefInfo refInfo = getRefInfo(schema);
                 if (Objects.nonNull(refInfo)) {
                     List<DocParameter> parameterList = this.buildDocParameters(refInfo.ref, docRoot, true);
-                    docParameterList.addAll(parameterList);
+                    docRequestParameterList.addAll(parameterList);
                 }
             } else {
                 DocParameter docParameter = GsonUtils.getInstance().fromJson(fieldJson, DocParameter.class);
-                docParameterList.add(docParameter);
+                JsonElement inElement = fieldJson.get("in");
+                if (Objects.nonNull(inElement) && "header".equals(inElement.getAsString())) {
+                    docHeaderParameterList.add(docParameter);
+                } else {
+                    docRequestParameterList.add(docParameter);
+                }
             }
         }
-
-        Map<String, List<DocParameter>> collect = docParameterList.stream()
-            .filter(docParameter -> docParameter.getName().contains("."))
-            .map(docParameter -> {
-                String name = docParameter.getName();
-                int index = name.indexOf('.');
-                String module = name.substring(0, index);
-                String newName = name.substring(index + 1);
-                DocParameter ret = new DocParameter();
-                BeanUtils.copyProperties(docParameter, ret);
-                ret.setName(newName);
-                ret.setModule(module);
-                return ret;
-            })
-            .collect(Collectors.groupingBy(DocParameter::getModule));
-
-        collect.forEach((key, value) -> {
-            DocParameter moduleDoc = new DocParameter();
-            moduleDoc.setName(key);
-            moduleDoc.setType("object");
-            moduleDoc.setRefs(value);
-            docParameterList.add(moduleDoc);
-        });
-
-        return docParameterList.stream()
-            .filter(docParameter -> !docParameter.getName().contains("."))
-            .collect(Collectors.toList());
+        docItem.setRequestParameters(docRequestParameterList);
+        docItem.setRequestHeaders(docHeaderParameterList);
     }
 
     protected List<DocParameter> buildResponseParameterList(final JsonObject docInfo, final JsonObject docRoot) {
@@ -242,7 +220,8 @@ public class SwaggerDocParser implements DocParser {
         return respParameterList;
     }
 
-    protected List<DocParameter> buildDocParameters(final String ref, final JsonObject docRoot, final boolean doSubRef) {
+    protected List<DocParameter> buildDocParameters(final String ref, final JsonObject docRoot,
+        final boolean doSubRef) {
         JsonObject responseObject = docRoot.getAsJsonObject("definitions").getAsJsonObject(ref);
         String className = responseObject.get("title").getAsString();
         JsonObject extProperties = docRoot.getAsJsonObject(className);
