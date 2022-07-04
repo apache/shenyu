@@ -873,6 +873,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524925', '32', 'maxRe
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524926', '32', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524927', '32', 'index', 'index', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524928', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524929', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}', '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 
 -- ----------------------------
 -- Table structure for resource
@@ -1514,7 +1515,8 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302096', 'cacheType', '
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302097', 'cacheType', 'CACHE_TYPE_REDIS', 'redis', 'redis', 'use redis to cache data', 1, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302093', 'table', 'INIT_FLAG', 'status', 'true', 'table(resource,permission) init status', 0, 0, '2022-05-25 18:08:02', '2022-05-25 18:08:07.275');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302098', 'threadpool', 'THREADPOOL', 'default', 'default', '', 5, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
-
+INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302099', 'signRequestBody', 'SIGN_REQUEST_BODY', 'close', 'false', 'close', 1, 1, '2022-06-29 10:08:02', '2022-06-29 10:08:02');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302100', 'signRequestBody', 'SIGN_REQUEST_BODY', 'open', 'true', 'open', 0, 1, '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 
 -- ----------------------------
 -- Table structure for user_role
