@@ -85,12 +85,12 @@ public class AppAuthServiceImpl implements AppAuthService {
         this.authParamMapper = authParamMapper;
         this.authPathMapper = authPathMapper;
     }
-    
+
     @Override
     public List<AppAuthVO> searchByCondition(final AppAuthQuery condition) {
         return appAuthMapper.selectByCondition(condition);
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ShenyuAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
@@ -419,6 +419,11 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public ShenyuAdminResult updateAppSecretByAppKey(final String appKey, final String appSecret) {
         return ShenyuAdminResult.success(appAuthMapper.updateAppSecretByAppKey(appKey, appSecret));
+    }
+
+    @Override
+    public AppAuthDO findByAppKey(final String appKey) {
+        return appAuthMapper.findByAppKey(appKey);
     }
 
     private AppAuthData buildByEntity(final AppAuthDO appAuthDO) {
