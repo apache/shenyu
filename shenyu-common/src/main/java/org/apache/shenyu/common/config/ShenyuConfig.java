@@ -1138,9 +1138,29 @@ public class ShenyuConfig {
          */
         public static class AllowedOriginConfig {
 
+            private String spacer = ".";
+
             private String domain;
 
             private Set<String> prefixes = new HashSet<>();
+
+            /**
+             * Gets the spacer.
+             *
+             * @return the value of spacer
+             */
+            public String getSpacer() {
+                return spacer;
+            }
+
+            /**
+             * Sets the spacer.
+             *
+             * @param spacer spacer
+             */
+            public void setSpacer(final String spacer) {
+                this.spacer = spacer;
+            }
 
             /**
              * Gets the domain.

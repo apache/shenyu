@@ -65,11 +65,15 @@ public class CrossFilter implements WebFilter {
             } else if (Objects.nonNull(this.filterConfig.getAllowedOrigin())
                     && CollectionUtils.isNotEmpty(this.filterConfig.getAllowedOrigin().getPrefixes())) {
                 final String scheme = exchange.getRequest().getURI().getScheme();
-                Set<String> allowedOrigin = this.filterConfig.getAllowedOrigin().getPrefixes()
+                final CrossFilterConfig.AllowedOriginConfig allowedOriginConfig = this.filterConfig.getAllowedOrigin();
+                Set<String> allowedOrigin = allowedOriginConfig.getPrefixes()
                         .stream()
                         .filter(StringUtils::isNoneBlank)
-                        // scheme://prefix.domain
-                        .map(prefix -> String.format("%s://%s.%s", scheme, prefix.trim(), this.filterConfig.getAllowedOrigin().getDomain()))
+                        // scheme://prefix spacer domain
+                        .map(prefix -> String.format("%s://%s%s%s",
+                                scheme, prefix.trim(),
+                                StringUtils.defaultString(allowedOriginConfig.getSpacer(), ".").trim(),
+                                StringUtils.defaultString(allowedOriginConfig.getDomain(), "").trim()))
                         .collect(Collectors.toSet());
                 if (allowedOrigin.contains(origin)) {
                     headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
