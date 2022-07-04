@@ -67,6 +67,9 @@ public class LogCollectConfig {
          */
         private int maxRequestBody = 524288;
 
+        /**
+         * default 50000.
+         */
         private int bufferQueueSize = 50000;
 
         /**
