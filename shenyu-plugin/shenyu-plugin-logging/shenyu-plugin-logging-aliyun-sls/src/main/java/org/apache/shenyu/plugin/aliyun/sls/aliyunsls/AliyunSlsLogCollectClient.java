@@ -181,8 +181,13 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
      * @return {@linkplain Producer}
      */
     private static Producer createProducer(final Properties props, final ProjectConfig projectConfig) {
+        int ioThreadCount = Integer.parseInt(props.getProperty(LoggingConstant.IO_THREAD_COUNT));
+        if (ioThreadCount > LoggingConstant.MAX_ALLOW_THREADS) {
+            LOG.warn("io thread count number too large!");
+            ioThreadCount = LoggingConstant.MAX_ALLOW_THREADS;
+        }
         ProducerConfig producerConfig = new ProducerConfig();
-        producerConfig.setIoThreadCount(Integer.parseInt(props.getProperty(LoggingConstant.IO_THREAD_COUNT)));
+        producerConfig.setIoThreadCount(ioThreadCount);
         producerConfig.setLogFormat(ProducerConfig.LogFormat.JSON);
         Producer producer = new LogProducer(producerConfig);
         producer.putProjectConfig(projectConfig);
@@ -198,10 +203,10 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
     private static ThreadPoolExecutor createThreadPoolExecutor(final Properties props) {
         int sendThreadCount = Integer.parseInt(props.getProperty(LoggingConstant.SEND_THREAD_COUNT));
         if (sendThreadCount > LoggingConstant.MAX_ALLOW_THREADS) {
-            LOG.info("send thread too large!");
+            LOG.warn("send thread count number too large!");
             sendThreadCount = LoggingConstant.MAX_ALLOW_THREADS;
         }
-        return new ThreadPoolExecutor(sendThreadCount, LoggingConstant.MAX_ALLOW_THREADS, 6000L, TimeUnit.MICROSECONDS,
+        return new ThreadPoolExecutor(sendThreadCount, LoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MICROSECONDS,
                 new LinkedBlockingQueue<>(LoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-aliyun-sls", true),
                 new ThreadPoolExecutor.AbortPolicy());
     }
