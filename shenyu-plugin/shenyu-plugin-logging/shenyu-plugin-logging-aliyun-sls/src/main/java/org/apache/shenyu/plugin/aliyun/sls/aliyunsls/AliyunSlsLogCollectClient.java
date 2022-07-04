@@ -112,7 +112,7 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
             Runtime.getRuntime().addShutdownHook(new Thread(this::close));
             client.CreateLogStore(projectName, store);
         } catch (LogException e) {
-            LOG.warn("error code:{}, error message:{}, error requestId:{}", e.GetErrorCode(), e.GetErrorMessage(), e.getRequestId());
+            LOG.warn("error code:{}, error message:{}", e.GetErrorCode(), e.GetErrorMessage());
         }
     }
 

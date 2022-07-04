@@ -50,18 +50,6 @@
 
         <dependency>
             <groupId>com.aliyun.openservices</groupId>
-            <artifactId>aliyun-log</artifactId>
-            <version>${aliyun-log.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.protobuf</groupId>
-                    <artifactId>protobuf-java</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>com.aliyun.openservices</groupId>
             <artifactId>aliyun-log-producer</artifactId>
             <version>${aliyun-log-producer.version}</version>
         </dependency>
