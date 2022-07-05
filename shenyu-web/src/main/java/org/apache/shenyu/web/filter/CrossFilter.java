@@ -32,7 +32,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -66,8 +66,7 @@ public class CrossFilter implements WebFilter {
             if (!allowCors && Objects.nonNull(this.filterConfig.getAllowedOrigin())) {
                 final String scheme = exchange.getRequest().getURI().getScheme();
                 final CrossFilterConfig.AllowedOriginConfig allowedOriginConfig = this.filterConfig.getAllowedOrigin();
-                Set<String> allowedOrigin = new HashSet<>();
-                allowedOrigin = Optional.ofNullable(allowedOriginConfig.getPrefixes()).orElse(allowedOrigin)
+                Set<String> allowedOrigin = Optional.ofNullable(allowedOriginConfig.getPrefixes()).orElse(Collections.emptySet())
                         .stream()
                         .filter(StringUtils::isNoneBlank)
                         // scheme://prefix spacer domain
@@ -80,13 +79,13 @@ public class CrossFilter implements WebFilter {
                 allowedOrigin.addAll(Stream.of(StringUtils.defaultString(allowedOriginConfig.getOrigins(), "").split(","))
                         .filter(StringUtils::isNoneBlank)
                         .map(oneOrigin -> {
-                            if (oneOrigin.startsWith(String.format("%s://", scheme))) {
+                            if (ALL.equals(oneOrigin) || oneOrigin.startsWith(String.format("%s://", scheme))) {
                                 return oneOrigin.trim();
                             }
                             return String.format("%s://%s", scheme, oneOrigin.trim());
                         })
                         .collect(Collectors.toSet()));
-                allowCors = allowedOrigin.contains(origin);
+                allowCors = allowedOrigin.contains(origin) || allowedOrigin.contains(ALL);
             }
             if (allowCors) {
                 // "Access-Control-Allow-Origin"

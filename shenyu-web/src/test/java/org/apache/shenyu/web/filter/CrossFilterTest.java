@@ -93,7 +93,7 @@ public final class CrossFilterTest {
                 add("a");
             }
         });
-        allowedOriginConfig.setOrigins("b.apache.org,c.apache.org,http://d.apache.org");
+        allowedOriginConfig.setOrigins("b.apache.org,c.apache.org,http://d.apache.org,*");
         filterConfig.setAllowedOrigin(allowedOriginConfig);
         CrossFilter filter = new CrossFilter(filterConfig);
         StepVerifier.create(filter.filter(exchange, chainNormal))
