@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.common.entity;
 
-import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
