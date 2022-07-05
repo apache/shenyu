@@ -83,6 +83,4 @@ public class ElasticSearchLogCollectClientTest {
         elasticSearchLogCollectClient.initClient(properties);
         elasticSearchLogCollectClient.createIndex("test");
     }
-
-
 }

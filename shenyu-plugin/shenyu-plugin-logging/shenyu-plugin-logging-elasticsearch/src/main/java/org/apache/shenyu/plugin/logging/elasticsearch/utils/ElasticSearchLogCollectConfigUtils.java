@@ -26,7 +26,6 @@ import java.util.Optional;
  */
 public class ElasticSearchLogCollectConfigUtils {
 
-
     private static LogCollectConfig.GlobalLogConfig globalLogConfig;
 
     private static final LogCollectConfig.GlobalLogConfig DEFAULT_GLOBAL_LOG_CONFIG =
