@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.elasticsearch.config;
 
+import org.apache.shenyu.plugin.logging.elasticsearch.config.LogCollectConfig.LogApiConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -74,5 +75,19 @@ public final class LogCollectConfigTest {
         LogCollectConfig.GlobalLogConfig globalLogConfig = new LogCollectConfig.GlobalLogConfig();
         logCollectConfig.setGlobalLogConfig(globalLogConfig);
         Assertions.assertEquals(logCollectConfig.getGlobalLogConfig(), globalLogConfig);
+    }
+
+    @Test
+    public void testtCompressAlg() {
+        LogCollectConfig.GlobalLogConfig globalLogConfig = new LogCollectConfig.GlobalLogConfig();
+        globalLogConfig.setCompressAlg("LZ4");
+        Assertions.assertEquals(globalLogConfig.getCompressAlg(), "LZ4");
+    }
+
+    @Test
+    public void testIndex() {
+        LogCollectConfig.LogApiConfig logApiConfig = new LogApiConfig();
+        logApiConfig.setIndex("shenyu-access-logging");
+        Assertions.assertEquals(logApiConfig.getIndex(), "shenyu-access-logging");
     }
 }

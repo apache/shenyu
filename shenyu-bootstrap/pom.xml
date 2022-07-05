@@ -266,17 +266,6 @@
             <artifactId>spring-cloud-commons</artifactId>
             <version>${spring-cloud-commons.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-            <version>${spring-cloud-netflix-ribbon.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <!--shenyu springCloud plugin start-->
 
 
@@ -470,6 +459,14 @@
         </dependency>
         <!--shenyu logging-rocketmq plugin end-->
 
+        <!--shenyu logging-kafka plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-kafka</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu logging-kafka plugin end-->
+      
         <!--shenyu logging-elasticsearch plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -477,6 +474,7 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu logging-elasticsearch plugin end-->
+
     </dependencies>
     <profiles>
         <profile>

@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.annotation.Resource;
 import org.apache.shenyu.admin.config.properties.ApiDocProperties;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.DocItem;
@@ -31,23 +30,26 @@ import org.apache.shenyu.admin.model.vo.MenuDocItem;
 import org.apache.shenyu.admin.model.vo.MenuModule;
 import org.apache.shenyu.admin.model.vo.MenuProject;
 import org.apache.shenyu.admin.service.manager.DocManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * ApiDoc Controller.
+ * Api Documet Controller.
  */
 @RestController
 @RequestMapping("/apidoc")
 public class ApiDocController {
 
-    @Autowired
-    private DocManager docManager;
+    private final DocManager docManager;
 
-    @Resource
-    private ApiDocProperties apiDocProperties;
+    private final ApiDocProperties apiDocProperties;
+
+    public ApiDocController(final DocManager docManager,
+                            final ApiDocProperties apiDocProperties) {
+        this.docManager = docManager;
+        this.apiDocProperties = apiDocProperties;
+    }
 
     /**
      * Menu list of documents.
@@ -64,8 +66,6 @@ public class ApiDocController {
         docVO.setGatewayUrl(apiDocProperties.getGatewayUrl());
         docVO.setMenuProjects(menuProjects);
         docVO.setEnvProps(apiDocProperties.getEnvProps());
-        docVO.setCookie("Fill in the real cookie value.(signature authentication and login free API ignore this item)");
-        docVO.setAppKey("");
         return ShenyuAdminResult.success(docVO);
     }
 

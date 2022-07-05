@@ -32,7 +32,10 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,29 +60,53 @@ public class CrossFilter implements WebFilter {
         if (CorsUtils.isCorsRequest(request)) {
             ServerHttpResponse response = exchange.getResponse();
             HttpHeaders headers = response.getHeaders();
-            // "Access-Control-Allow-Origin"
-            // if the allowed origin is empty use the request 's origin
-            if (StringUtils.isBlank(this.filterConfig.getAllowedOrigin())) {
-                headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, request.getHeaders().getOrigin());
-            } else {
-                this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-                        this.filterConfig.getAllowedOrigin());
+            // finger allow origins
+            final String origin = request.getHeaders().getOrigin();
+            boolean allowCors = this.filterConfig.isAllowedAnyOrigin();
+            if (!allowCors && Objects.nonNull(this.filterConfig.getAllowedOrigin())) {
+                final String scheme = exchange.getRequest().getURI().getScheme();
+                final CrossFilterConfig.AllowedOriginConfig allowedOriginConfig = this.filterConfig.getAllowedOrigin();
+                Set<String> allowedOrigin = Optional.ofNullable(allowedOriginConfig.getPrefixes()).orElse(Collections.emptySet())
+                        .stream()
+                        .filter(StringUtils::isNoneBlank)
+                        // scheme://prefix spacer domain
+                        .map(prefix -> String.format("%s://%s%s%s",
+                                scheme, prefix.trim(),
+                                StringUtils.defaultString(allowedOriginConfig.getSpacer(), ".").trim(),
+                                StringUtils.defaultString(allowedOriginConfig.getDomain(), "").trim()))
+                        .collect(Collectors.toSet());
+                // add all origin domains
+                allowedOrigin.addAll(Optional.ofNullable(allowedOriginConfig.getOrigins()).orElse(Collections.emptySet())
+                        .stream()
+                        .filter(StringUtils::isNoneBlank)
+                        .map(oneOrigin -> {
+                            if (ALL.equals(oneOrigin) || oneOrigin.startsWith(String.format("%s://", scheme))) {
+                                return oneOrigin.trim();
+                            }
+                            return String.format("%s://%s", scheme, oneOrigin.trim());
+                        })
+                        .collect(Collectors.toSet()));
+                allowCors = allowedOrigin.contains(origin) || allowedOrigin.contains(ALL);
             }
-            // "Access-Control-Allow-Methods"
-            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
-                    this.filterConfig.getAllowedMethods());
-            // "Access-Control-Max-Age"
-            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_MAX_AGE,
-                    this.filterConfig.getMaxAge());
-            // "Access-Control-Allow-Headers"
-            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
-                    this.filterConfig.getAllowedHeaders());
-            // "Access-Control-Expose-Headers"
-            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,
-                    this.filterConfig.getAllowedExpose());
-            // "Access-Control-Allow-Credentials"
-            this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
-                    String.valueOf(this.filterConfig.isAllowCredentials()));
+            if (allowCors) {
+                // "Access-Control-Allow-Origin"
+                headers.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                // "Access-Control-Allow-Methods"
+                this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+                        this.filterConfig.getAllowedMethods());
+                // "Access-Control-Max-Age"
+                this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_MAX_AGE,
+                        this.filterConfig.getMaxAge());
+                // "Access-Control-Allow-Headers"
+                this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
+                        this.filterConfig.getAllowedHeaders());
+                // "Access-Control-Expose-Headers"
+                this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,
+                        this.filterConfig.getAllowedExpose());
+                // "Access-Control-Allow-Credentials"
+                this.filterSameHeader(headers, HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
+                        String.valueOf(this.filterConfig.isAllowCredentials()));
+            }
             if (request.getMethod() == HttpMethod.OPTIONS) {
                 response.setStatusCode(HttpStatus.OK);
                 return Mono.empty();

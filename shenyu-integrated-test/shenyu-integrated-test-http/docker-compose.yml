@@ -87,10 +87,44 @@ services:
         condition: service_healthy
     ports:
       - "9195:9195"
+      - "8090:8090"
     networks:
       - shenyu
     healthcheck:
       test: [ "CMD", "wget", "http://shenyu-integrated-test-http:9195/actuator/health" ]
+      timeout: 2s
+      retries: 30
+
+  shenyu-prometheus:
+    image: prom/prometheus:v2.35.0
+    container_name: shenyu-prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      shenyu-integrated-test-http:
+        condition: service_healthy
+    networks:
+      - shenyu
+    volumes:
+      - type: bind
+        source: ./config/prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+
+  shenyu-elasticsearch:
+    container_name: shenyu-elasticsearch
+    image: elasticsearch:8.2.3
+    restart: always
+    networks:
+      - shenyu
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    healthcheck:
+      test: [ "CMD", "wget", "http://localhost:9200/_cat/health?v" ]
       timeout: 2s
       retries: 30
 

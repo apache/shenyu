@@ -33,9 +33,10 @@ public class RoleChangedEvent extends AdminDataModelChangedEvent {
     /**
      * Create a new {@code RoleChangedEvent}.operator is unknown.
      *
-     * @param source Current role state
-     * @param before Before the change role state
-     * @param type   event type
+     * @param source   Current role state
+     * @param before   Before the change role state
+     * @param type     event type
+     * @param operator operator
      */
     public RoleChangedEvent(final RoleDO source, final RoleDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);
