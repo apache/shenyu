@@ -79,11 +79,11 @@ public class CrossFilter implements WebFilter {
                 // add all origin domains
                 allowedOrigin.addAll(Stream.of(StringUtils.defaultString(allowedOriginConfig.getOrigins(), "").split(","))
                         .filter(StringUtils::isNoneBlank)
-                        .map(originItem -> {
-                            if (originItem.startsWith(String.format("%s://", scheme))) {
-                                return originItem;
+                        .map(oneOrigin -> {
+                            if (oneOrigin.startsWith(String.format("%s://", scheme))) {
+                                return oneOrigin.trim();
                             }
-                            return String.format("%s://%s", scheme, originItem);
+                            return String.format("%s://%s", scheme, oneOrigin.trim());
                         })
                         .collect(Collectors.toSet()));
                 allowCors = allowedOrigin.contains(origin);
