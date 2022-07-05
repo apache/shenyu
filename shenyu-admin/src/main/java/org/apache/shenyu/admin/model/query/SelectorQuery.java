@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.query;
 
+import java.util.List;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 import java.util.Objects;
@@ -32,6 +33,11 @@ public class SelectorQuery extends FilterQuery {
      * plugin id.
      */
     private String pluginId;
+
+    /**
+     * plugin ids.
+     */
+    private List<String> pluginIds;
 
     /**
      * selector name.
@@ -52,6 +58,12 @@ public class SelectorQuery extends FilterQuery {
         this.pageParameter = pageParameter;
     }
 
+    public SelectorQuery(final List<String> pluginIds, final String name, final PageParameter pageParameter) {
+        this.pluginIds = pluginIds;
+        this.name = name;
+        this.pageParameter = pageParameter;
+    }
+
     /**
      * Gets the value of pluginId.
      *
@@ -68,6 +80,24 @@ public class SelectorQuery extends FilterQuery {
      */
     public void setPluginId(final String pluginId) {
         this.pluginId = pluginId;
+    }
+
+    /**
+     * Gets the value of pluginIds.
+     *
+     * @return the value of pluginIds
+     */
+    public List<String> getPluginIds() {
+        return pluginIds;
+    }
+
+    /**
+     * Sets the pluginIds.
+     *
+     * @param pluginIds pluginIds
+     */
+    public void setPluginIds(final List<String> pluginIds) {
+        this.pluginIds = pluginIds;
     }
 
     /**

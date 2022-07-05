@@ -15,32 +15,36 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sign.api;
+package org.apache.shenyu.plugin.sign.handler;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.web.server.ServerWebExchange;
-
-import java.util.Map;
+import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 
 /**
- * The interface Sign service.
+ * Sign rule handle.
  */
-public interface SignService {
+public class SignRuleHandler implements RuleHandle {
+
+    private boolean signRequestBody;
 
     /**
-     * Sign verify pair.
-     * @param exchange   the exchange
-     * @param requestBody the requestBody
-     * @return the pair
+     * get getSignRequestBody.
+     * @return boolean
      */
-    Pair<Boolean, String> signVerify(ServerWebExchange exchange, Map<String, Object> requestBody);
+    public boolean getSignRequestBody() {
+        return signRequestBody;
+    }
 
     /**
-     * Sign verify pair.
-     * @param exchange   the exchange
-     * @return the pair
+     * set signRequestBody.
+     * @param signRequestBody signRequestBody
      */
-    default Pair<Boolean, String> signVerify(ServerWebExchange exchange) {
-        return signVerify(exchange, null);
+    public void setSignRequestBody(final boolean signRequestBody) {
+        this.signRequestBody = signRequestBody;
+    }
+
+    @Override
+    public String toString() {
+        return "SignRuleHandler{"
+                + "signRequestBody=" + signRequestBody + '}';
     }
 }
