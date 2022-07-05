@@ -1143,7 +1143,7 @@ public class ShenyuConfig {
 
             private Set<String> prefixes = new HashSet<>();
 
-            private String origins;
+            private Set<String> origins;
 
             /**
              * Gets the spacer.
@@ -1204,7 +1204,7 @@ public class ShenyuConfig {
              *
              * @return the value of prefixes
              */
-            public String getOrigins() {
+            public Set<String> getOrigins() {
                 return origins;
             }
 
@@ -1213,7 +1213,7 @@ public class ShenyuConfig {
              *
              * @param origins origins
              */
-            public void setOrigins(final String origins) {
+            public void setOrigins(final Set<String> origins) {
                 this.origins = origins;
             }
         }
