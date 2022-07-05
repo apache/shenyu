@@ -25,7 +25,7 @@ import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpHost;
-import org.apache.shenyu.plugin.logging.common.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
 import org.elasticsearch.client.RestClient;

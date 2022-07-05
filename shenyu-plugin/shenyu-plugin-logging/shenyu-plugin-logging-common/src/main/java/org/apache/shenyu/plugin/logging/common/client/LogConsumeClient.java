@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common;
+package org.apache.shenyu.plugin.logging.common.client;
 
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 

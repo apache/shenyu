@@ -17,14 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.elasticsearch.client;
 
-import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.elasticsearch.handler.LoggingElasticSearchPluginDataHandler;
 import org.apache.shenyu.plugin.logging.elasticsearch.utils.ElasticSearchLogCollectConfigUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,12 +38,6 @@ public class ElasticSearchLogCollectClientTest {
 
     private ElasticSearchLogCollectClient elasticSearchLogCollectClient;
 
-    private LoggingElasticSearchPluginDataHandler loggingElasticSearchPluginDataHandler;
-
-    private SelectorData selectorData = new SelectorData();
-
-    private ConditionData conditionData = new ConditionData();
-
     private PluginData pluginData = new PluginData();
 
     private Properties properties = new Properties();
@@ -60,20 +51,9 @@ public class ElasticSearchLogCollectClientTest {
     @BeforeEach
     public void setUp() {
         this.elasticSearchLogCollectClient = new ElasticSearchLogCollectClient();
-        this.loggingElasticSearchPluginDataHandler = new LoggingElasticSearchPluginDataHandler();
-        selectorData.setId("1");
-        selectorData.setType(1);
-        selectorData.setHandle("{\"index\":\"test\", \"sampleRate\":\"1\"}");
-        conditionData.setParamName("id");
-        conditionData.setParamType("uri");
-        conditionData.setParamValue("11");
-        conditionData.setOperator("=");
-        List<ConditionData> list = new ArrayList<>();
-        list.add(conditionData);
-        selectorData.setConditionList(list);
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"host\":\"localhost\", \"port\":\"9200\"}");
-        LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
+        globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                 LogCollectConfig.GlobalLogConfig.class);
         properties.setProperty(LoggingConstant.HOST, globalLogConfig.getHost());
         properties.setProperty(LoggingConstant.PORT, globalLogConfig.getPort());

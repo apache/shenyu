@@ -17,14 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq.client;
 
-import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.rocketmq.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.rocketmq.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
 import org.apache.shenyu.plugin.logging.rocketmq.utils.RocketLogCollectConfigUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,10 +38,6 @@ public class RocketMQLogCollectClientTest {
 
     private RocketMQLogCollectClient rocketMQLogCollectClient;
 
-    private SelectorData selectorData = new SelectorData();
-
-    private ConditionData conditionData = new ConditionData();
-
     private PluginData pluginData = new PluginData();
 
     private Properties properties = new Properties();
@@ -58,16 +51,6 @@ public class RocketMQLogCollectClientTest {
     @BeforeEach
     public void setUp() {
         this.rocketMQLogCollectClient = new RocketMQLogCollectClient();
-        selectorData.setId("1");
-        selectorData.setType(1);
-        selectorData.setHandle("{\"topic\":\"test\", \"sampleRate\":\"1\"}");
-        conditionData.setParamName("id");
-        conditionData.setParamType("uri");
-        conditionData.setParamValue("11");
-        conditionData.setOperator("=");
-        List<ConditionData> list = new ArrayList<>();
-        list.add(conditionData);
-        selectorData.setConditionList(list);
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"topic\":\"test\", \"namesrvAddr\":\"test\", \"producerGroup\":\"test\"}");
 
