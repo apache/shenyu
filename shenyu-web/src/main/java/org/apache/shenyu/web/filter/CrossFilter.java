@@ -76,7 +76,8 @@ public class CrossFilter implements WebFilter {
                                 StringUtils.defaultString(allowedOriginConfig.getDomain(), "").trim()))
                         .collect(Collectors.toSet());
                 // add all origin domains
-                allowedOrigin.addAll(Stream.of(StringUtils.defaultString(allowedOriginConfig.getOrigins(), "").split(","))
+                allowedOrigin.addAll(Optional.ofNullable(allowedOriginConfig.getOrigins()).orElse(Collections.emptySet())
+                        .stream()
                         .filter(StringUtils::isNoneBlank)
                         .map(oneOrigin -> {
                             if (ALL.equals(oneOrigin) || oneOrigin.startsWith(String.format("%s://", scheme))) {
