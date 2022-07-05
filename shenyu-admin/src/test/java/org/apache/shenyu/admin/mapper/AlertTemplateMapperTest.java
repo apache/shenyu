@@ -60,24 +60,19 @@ public final class AlertTemplateMapperTest extends AbstractSpringIntegrationTest
 
     @Test
     public void deleteByIdSet() {
-
         List<AlertTemplateVO> alertTemplateVOS = alertTemplateMapper.selectAll();
         List<String> idList = alertTemplateVOS.stream().map(item -> String.valueOf(item.getId())).collect(Collectors.toList());
         int result = alertTemplateMapper.deleteByIds(idList);
         assertThat(result, comparesEqualTo(idList.size()));
     }
 
-
     private AlertTemplateDTO buildAlertTemplateDTO() {
-
         AlertTemplateDTO alertTemplateDTO = new AlertTemplateDTO();
         alertTemplateDTO.setId(1L);
         alertTemplateDTO.setName("testName");
         alertTemplateDTO.setStrategyName("testStrategyName");
         alertTemplateDTO.setContent("testContent");
         return alertTemplateDTO;
-
     }
-
 
 }
