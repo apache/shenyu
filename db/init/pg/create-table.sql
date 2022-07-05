@@ -670,18 +670,19 @@ INSERT INTO "public"."plugin" VALUES ('28', 'mqtt', '{"port": 9500,"bossGroupThr
 INSERT INTO "public"."plugin" VALUES ('29', 'loggingRocketMQ', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9876","producerGroup":"shenyu-plugin-logging-rocketmq"}', 'Logging', 170, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin" VALUES ('30', 'cache', '{"cacheType":"memory"}', 'Cache', 10, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin" VALUES ('31', 'mock', null, 'Mock', 1, 0, '2022-06-16 14:40:35', '2022-06-16 14:40:55');
-INSERT INTO "public"."plugin" VALUES ('32', 'loggingElasticSearch','{"host":"localhost", "port": "9200"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-
+INSERT INTO "public"."plugin" VALUES ('32', 'loggingElasticSearch', '{"host":"localhost", "port": "9200"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO "public"."plugin" VALUES ('50', 'loggingKafka', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:8082"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 -- ----------------------------
 -- Table structure for plugin_handle
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."plugin_handle";
-CREATE TABLE "public"."plugin_handle" (
-  "id" varchar(128) NOT NULL DEFAULT nextval('plugin_handle_id_seq'::regclass),
-  "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "field" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
-  "label" varchar(100) COLLATE "pg_catalog"."default",
-  "data_type" int2 NOT NULL,
+CREATE TABLE "public"."plugin_handle"
+(
+    "id"         varchar(128)                                NOT NULL DEFAULT nextval('plugin_handle_id_seq'::regclass),
+    "plugin_id"  varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "field"      varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+    "label"      varchar(100) COLLATE "pg_catalog"."default",
+    "data_type"  int2                                        NOT NULL,
   "type" int2,
   "sort" int4,
   "ext_obj" varchar(1024) COLLATE "pg_catalog"."default",
@@ -874,16 +875,25 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524926', '32', 'compr
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524927', '32', 'index', 'index', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524928', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524929', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}', '2022-06-29 10:08:02', '2022-06-29 10:08:02');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524950', '50', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524951', '50', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:8082"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524952', '50', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524953', '50', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524954', '50', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524955', '50', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524956', '50', 'topic', 'topic', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524957', '50', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."resource";
-CREATE TABLE "public"."resource" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "parent_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "title" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+CREATE TABLE "public"."resource"
+(
+    "id"          varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "parent_id"   varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "title"       varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name"        varchar(32) COLLATE "pg_catalog"."default"  NOT NULL,
   "url" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
   "component" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
   "resource_type" int4 NOT NULL,
