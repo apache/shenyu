@@ -169,6 +169,10 @@ shenyu:
       prefixes:
         - a # a.apache.org
         - b # b.apache.org
+      origins:
+        - c.apache.org
+        - d.apache.org
+        - http://e.apache.org
     allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
