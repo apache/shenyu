@@ -26,11 +26,12 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.rocketmq.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.rocketmq.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.rocketmq.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
-import org.apache.shenyu.plugin.logging.rocketmq.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.rocketmq.utils.RocketLogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,7 @@ public class LoggingRocketMQPluginDataHandler implements PluginDataHandler {
             LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                     LogCollectConfig.GlobalLogConfig.class);
 
-            LogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+            RocketLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
             // start rocketmq producer
             Properties properties = new Properties();
             properties.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic());

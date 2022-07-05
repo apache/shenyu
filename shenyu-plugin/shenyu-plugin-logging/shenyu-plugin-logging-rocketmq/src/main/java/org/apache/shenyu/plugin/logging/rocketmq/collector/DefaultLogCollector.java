@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq.collector;
 
-import org.apache.shenyu.plugin.logging.rocketmq.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
 
 /**

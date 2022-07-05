@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq.collector;
 
-import org.apache.shenyu.plugin.logging.rocketmq.client.LogConsumeClient;
-import org.apache.shenyu.plugin.logging.rocketmq.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.common.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

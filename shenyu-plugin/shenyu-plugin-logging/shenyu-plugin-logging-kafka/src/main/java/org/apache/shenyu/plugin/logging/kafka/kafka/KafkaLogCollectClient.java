@@ -33,11 +33,11 @@ import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.OutOfOrderSequenceException;
 import org.apache.kafka.common.errors.ProducerFencedException;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.plugin.logging.kafka.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.kafka.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.kafka.entity.LZ4CompressData;
-import org.apache.shenyu.plugin.logging.kafka.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.kafka.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.kafka.utils.KafkaLogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,7 +106,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
             return;
         }
         logs.forEach(log -> {
-            String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath()), topic);
+            String logTopic = StringUtils.defaultIfBlank(KafkaLogCollectConfigUtils.getTopic(log.getPath()), topic);
             try {
                 producer.send(toProducerRecord(logTopic, log));
             } catch (Exception e) {
@@ -117,7 +117,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
 
     private ProducerRecord<String, String> toProducerRecord(final String logTopic, final ShenyuRequestLog log) {
         byte[] bytes = JsonUtils.toJson(log).getBytes(StandardCharsets.UTF_8);
-        String compressAlg = StringUtils.defaultIfBlank(LogCollectConfigUtils.getGlobalLogConfig().getCompressAlg(), "");
+        String compressAlg = StringUtils.defaultIfBlank(KafkaLogCollectConfigUtils.getGlobalLogConfig().getCompressAlg(), "");
         if ("LZ4".equalsIgnoreCase(compressAlg.trim())) {
             LZ4CompressData lz4CompressData = new LZ4CompressData(bytes.length, compressedByte(bytes));
             return new ProducerRecord<>(logTopic, JsonUtils.toJson(lz4CompressData));
