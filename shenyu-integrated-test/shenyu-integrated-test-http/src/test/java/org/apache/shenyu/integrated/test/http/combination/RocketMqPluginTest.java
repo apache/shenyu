@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.logging.rocketmq.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.apache.shenyu.plugin.logging.rocketmq.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.rocketmq.utils.RocketLogCollectConfigUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,4 +81,8 @@ public final class RocketMqPluginTest extends AbstractPluginDataInit {
         rocketMQLogCollectClient.close();
     }
 
+    @AfterAll
+    public static void clean() throws IOException {
+        cleanPluginData(PluginEnum.LOGGING_ROCKETMQ.getName());
+    }
 }
