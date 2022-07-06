@@ -81,7 +81,7 @@ services:
         limits:
           memory: 2048M
     environment:
-      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket          
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
     depends_on:
       shenyu-admin:
         condition: service_healthy
@@ -127,6 +127,47 @@ services:
       test: [ "CMD", "wget", "http://localhost:9200/_cat/health?v" ]
       timeout: 2s
       retries: 30
+
+  shenyu-rocketmq:
+    image: rocketmqinc/rocketmq:4.3.2
+    container_name: shenyu-rocketmq
+    restart: always
+    depends_on:
+      shenyu-integrated-test-http:
+        condition: service_healthy
+    ports:
+      - "9876:9876"
+    environment:
+      JAVA_OPT_EXT: "-server -Xms1g -Xmx1g"
+    volumes:
+      - ./logs:/root/logs
+    command: sh mqnamesrv
+    networks:
+      shenyu:
+        aliases:
+          -  shenyu-rocketmq
+
+  shenyu-rmqbroker:
+    image: rocketmqinc/rocketmq:4.3.2
+    container_name: shenyu-rmqbroker
+    restart: always
+    depends_on:
+      - shenyu-rocketmq
+    ports:
+      - 10909:10909
+      - 10911:10911
+    volumes:
+      - ./logs:/root/logs
+      - ./store:/root/store
+      - ./config/broker.conf:/opt/rocketmq-4.4.0/conf/broker.conf
+    command: sh mqbroker  -c /opt/rocketmq-4.4.0/conf/broker.conf
+    environment:
+      NAMESRV_ADDR: "shenyu-rocketmq:9876"
+      JAVA_OPT_EXT: "-server -Xms1g -Xmx1g -Xmn1g"
+    networks:
+      shenyu:
+        aliases:
+          - shenyu-rmqbroker
 
 networks:
   shenyu:
