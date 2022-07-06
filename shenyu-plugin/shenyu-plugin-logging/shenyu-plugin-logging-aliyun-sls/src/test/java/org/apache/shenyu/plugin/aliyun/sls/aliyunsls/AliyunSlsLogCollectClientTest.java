@@ -21,8 +21,8 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.aliyun.sls.config.LogCollectConfig;
 import org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant;
-import org.apache.shenyu.plugin.aliyun.sls.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.aliyun.sls.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.aliyun.sls.utils.AliyunSlsLogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,7 +87,7 @@ public class AliyunSlsLogCollectClientTest {
     @Test
     public void testConsume() {
         String msg = "";
-        LogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+        AliyunSlsLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
         aliyunSlsLogCollectClient.initClient(props);
         try {
             aliyunSlsLogCollectClient.consume(logs);

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.aliyun.sls.config;
 
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
+
 /**
  * LogCollectConfig.
  */
@@ -45,7 +47,7 @@ public class LogCollectConfig {
     /**
      * global log config.
      */
-    public static class GlobalLogConfig {
+    public static class GlobalLogConfig extends GenericGlobalConfig {
 
         /**
          * aliyun sls address.
@@ -66,12 +68,12 @@ public class LogCollectConfig {
         /**
          * aliyun sls project name.
          */
-        private String projectName = "shenyu-gateway";
+        private String projectName = "shenyu";
 
         /**
          * aliyun sls logstore name.
          */
-        private String logStoreName = "shenyu-gateway-logstore";
+        private String logStoreName = "shenyu-logstore";
 
         /**
          * aliyun sls ttl.
@@ -87,7 +89,7 @@ public class LogCollectConfig {
          * aliyun sls topic.
          * aliyun query by topic
          */
-        private String topic = "shenyu-gateway-topic";
+        private String topic = "shenyu-topic";
 
         /**
          * send thread.
@@ -98,92 +100,6 @@ public class LogCollectConfig {
          * ioThread.
          */
         private Integer ioThreadCount = 1;
-
-        private String sampleRate = "1";
-
-        /**
-         * default 512KB.
-         */
-        private int maxResponseBody = 524288;
-
-        /**
-         * default 512kb.
-         */
-        private int maxRequestBody = 524288;
-
-        private int bufferQueueSize = 50000;
-
-        /**
-         * get sample rate.
-         *
-         * @return sample
-         */
-        public String getSampleRate() {
-            return sampleRate;
-        }
-
-        /**
-         * set sample rate.
-         *
-         * @param sampleRate rate
-         */
-        public void setSampleRate(final String sampleRate) {
-            this.sampleRate = sampleRate;
-        }
-
-        /**
-         * get max response org.apache.shenyu.plugin.logging.body.
-         *
-         * @return get max response org.apache.shenyu.plugin.logging.body
-         */
-        public int getMaxResponseBody() {
-            return maxResponseBody;
-        }
-
-        /**
-         * set max response org.apache.shenyu.plugin.logging.body.
-         *
-         * @param maxResponseBody max response org.apache.shenyu.plugin.logging.body
-         */
-        public void setMaxResponseBody(final int maxResponseBody) {
-            this.maxResponseBody = maxResponseBody;
-        }
-
-        /**
-         * get max request org.apache.shenyu.plugin.logging.body.
-         *
-         * @return max request org.apache.shenyu.plugin.logging.body
-         */
-        public int getMaxRequestBody() {
-            return maxRequestBody;
-        }
-
-        /**
-         * set max request org.apache.shenyu.plugin.logging.body.
-         *
-         * @param maxRequestBody max request org.apache.shenyu.plugin.logging.body
-         */
-        public void setMaxRequestBody(final int maxRequestBody) {
-            this.maxRequestBody = maxRequestBody;
-        }
-
-        /**
-         * get buffer queue size.
-         *
-         * @return buffer queue size
-         */
-        public int getBufferQueueSize() {
-            return bufferQueueSize;
-        }
-
-        /**
-         * set buffer queue size.
-         *
-         * @param bufferQueueSize buffer queue size
-         */
-        public void setBufferQueueSize(final int bufferQueueSize) {
-            this.bufferQueueSize = bufferQueueSize;
-        }
 
         /**
          * get host.

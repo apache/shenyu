@@ -38,9 +38,9 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.aliyun.sls.LogConsumeClient;
 import org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant;
-import org.apache.shenyu.plugin.aliyun.sls.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,8 +165,6 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
                 LOG.error("The logs exceeds the maximum batch count, e={}", e.getMessage());
             } else if (e instanceof LogSizeTooLargeException) {
                 LOG.error("The size of log is larger than the maximum allowable size, e={}", e.getMessage());
-            } else if (e instanceof TimeoutException) {
-                LOG.error("The time taken for allocating memory for the logs has surpassed., e={}", e.getMessage());
             } else {
                 LOG.error("Failed to send logs, e={}", e.getMessage());
             }
