@@ -23,6 +23,8 @@ import org.apache.shenyu.admin.model.entity.OperationRecordLog;
 import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
 import org.apache.shenyu.admin.service.OperationRecordLogService;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.SessionUtil;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -48,6 +50,9 @@ public class OperationRecordLogServiceImpl implements OperationRecordLogService 
     public void doConditionPreProcessing(final RecordLogQueryCondition condition) {
         condition.init();
         Assert.isTrue(condition.getEndTime().getTime() > condition.getStartTime().getTime(), "end time must be greater than start time");
+        if (!AdminConstants.ADMIN_NAME.equals(SessionUtil.visitorName())) {
+            condition.setUsername(SessionUtil.visitorName());
+        }
     }
     
     @Override
@@ -56,8 +61,11 @@ public class OperationRecordLogServiceImpl implements OperationRecordLogService 
     }
     
     @Override
-    public List<OperationRecordLog> list() {
-        return recordLogMapper.selectLimit(dashboardProperties.getRecordLogLimit());
+    public List<OperationRecordLog> list() { // 用户隔离User isolation
+        if (AdminConstants.ADMIN_NAME.equals(SessionUtil.visitorName())) {
+            return recordLogMapper.selectLimit(null, dashboardProperties.getRecordLogLimit());
+        }
+        return recordLogMapper.selectLimit(SessionUtil.visitorName(), dashboardProperties.getRecordLogLimit());
     }
     
     @Override
