@@ -26,6 +26,8 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.HashSet;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -72,4 +74,37 @@ public final class CrossFilterTest {
                 .verifyComplete();
     }
 
+    /**
+     * test method for {@link CrossFilter#filter(ServerWebExchange, WebFilterChain)}.
+     */
+    @Test
+    public void testCorsWhitelist() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("http://localhost:8080")
+                .header("Origin", "a.apache.org")
+                .build());
+        WebFilterChain chainNormal = mock(WebFilterChain.class);
+        when(chainNormal.filter(exchange)).thenReturn(Mono.empty());
+        final CrossFilterConfig filterConfig = new CrossFilterConfig();
+        CrossFilterConfig.AllowedOriginConfig allowedOriginConfig = new CrossFilterConfig.AllowedOriginConfig();
+        allowedOriginConfig.setDomain("apache.org");
+        allowedOriginConfig.setPrefixes(new HashSet<String>() {
+            {
+                add("a");
+            }
+        });
+        allowedOriginConfig.setOrigins(new HashSet<String>() {
+            {
+                add("b.apache.org");
+                add("c.apache.org");
+                add("http://d.apache.org");
+                add("*");
+            }
+        });
+        filterConfig.setAllowedOrigin(allowedOriginConfig);
+        CrossFilter filter = new CrossFilter(filterConfig);
+        StepVerifier.create(filter.filter(exchange, chainNormal))
+                .expectSubscription()
+                .verifyComplete();
+    }
 }

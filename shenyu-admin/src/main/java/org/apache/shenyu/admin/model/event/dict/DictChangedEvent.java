@@ -33,9 +33,10 @@ public class DictChangedEvent extends AdminDataModelChangedEvent {
     /**
      * Create a new {@code DictChangedEvent}.operator is unknown.
      *
-     * @param source Current dict state
-     * @param before Before the change dict state
-     * @param type   event type
+     * @param source   Current dict state
+     * @param before   Before the change dict state
+     * @param type     event type
+     * @param operator operator
      */
     public DictChangedEvent(final ShenyuDictDO source, final ShenyuDictDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);

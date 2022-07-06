@@ -143,7 +143,7 @@ public enum PluginEnum {
     LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
 
     /**
-     * Logging RocketMQ plugin enum.
+     * Logging Kafka plugin enum.
      */
     LOGGING_KAFKA(180, 0, "loggingKafka"),
 
