@@ -61,7 +61,7 @@ public class OperationRecordLogServiceImpl implements OperationRecordLogService 
     }
     
     @Override
-    public List<OperationRecordLog> list() { // 用户隔离User isolation
+    public List<OperationRecordLog> list() {
         if (AdminConstants.ADMIN_NAME.equals(SessionUtil.visitorName())) {
             return recordLogMapper.selectLimit(null, dashboardProperties.getRecordLogLimit());
         }

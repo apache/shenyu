@@ -54,6 +54,7 @@ public class PrintApiLogAspect {
      *
      * @param point point {@link ProceedingJoinPoint}
      * @return result {@link Object}
+     * @throws Throwable Throwable
      */
     @Around("pointCut()")
     public Object logAround(final ProceedingJoinPoint point) throws Throwable {
@@ -69,7 +70,8 @@ public class PrintApiLogAspect {
     
     private void postLog(final ProceedingJoinPoint point, final long start) {
         if (Boolean.TRUE.equals(properties.getEnablePrintApiLog())) {
-            LOG.info("{} exec: method [{}.{}] over, time cost: {}", SessionUtil.visitorName(), point.getTarget().getClass().getSimpleName(), point.getSignature().getName(), System.currentTimeMillis() - start);
+            LOG.info("{} exec: method [{}.{}] over, time cost: {}", SessionUtil.visitorName(),
+                    point.getTarget().getClass().getSimpleName(), point.getSignature().getName(), System.currentTimeMillis() - start);
         }
     }
     
