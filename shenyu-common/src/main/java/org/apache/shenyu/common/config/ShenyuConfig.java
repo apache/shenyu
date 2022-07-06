@@ -23,7 +23,6 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -1144,6 +1143,8 @@ public class ShenyuConfig {
 
             private Set<String> prefixes = new HashSet<>();
 
+            private Set<String> origins;
+
             /**
              * Gets the spacer.
              *
@@ -1174,7 +1175,7 @@ public class ShenyuConfig {
             /**
              * Sets the enabled.
              *
-             * @param domain enabled
+             * @param domain domain
              */
             public void setDomain(final String domain) {
                 this.domain = domain;
@@ -1186,19 +1187,34 @@ public class ShenyuConfig {
              * @return the value of prefixes
              */
             public Set<String> getPrefixes() {
-                if (Objects.isNull(prefixes)) {
-                    prefixes = new HashSet<>();
-                }
                 return prefixes;
             }
 
             /**
              * Sets the enabled.
              *
-             * @param prefixes enabled
+             * @param prefixes prefixes
              */
             public void setPrefixes(final Set<String> prefixes) {
                 this.prefixes = prefixes;
+            }
+
+            /**
+             * Gets the prefixes.
+             *
+             * @return the value of prefixes
+             */
+            public Set<String> getOrigins() {
+                return origins;
+            }
+
+            /**
+             * Sets the origins.
+             *
+             * @param origins origins
+             */
+            public void setOrigins(final Set<String> origins) {
+                this.origins = origins;
             }
         }
     }

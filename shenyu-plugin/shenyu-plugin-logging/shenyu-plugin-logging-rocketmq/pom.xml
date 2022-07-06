@@ -28,7 +28,7 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-base</artifactId>
+            <artifactId>shenyu-plugin-logging-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
