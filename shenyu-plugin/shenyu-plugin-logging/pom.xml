@@ -33,5 +33,6 @@
         <module>shenyu-plugin-logging-rocketmq</module>
         <module>shenyu-plugin-logging-kafka</module>
         <module>shenyu-plugin-logging-elasticsearch</module>
+        <module>shenyu-plugin-logging-common</module>
     </modules>
 </project>

@@ -25,10 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.rocketmq.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.rocketmq.entity.LZ4CompressData;
-import org.apache.shenyu.plugin.logging.rocketmq.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.rocketmq.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
+import org.apache.shenyu.plugin.logging.rocketmq.utils.RocketLogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,7 +99,7 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
             return;
         }
         logs.forEach(log -> {
-            String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath()), topic);
+            String logTopic = StringUtils.defaultIfBlank(RocketLogCollectConfigUtils.getTopic(log.getPath()), topic);
             try {
                 producer.sendOneway(toMessage(logTopic, log));
             } catch (Exception e) {
@@ -109,7 +110,7 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
 
     private Message toMessage(final String logTopic, final ShenyuRequestLog log) {
         byte[] bytes = JsonUtils.toJson(log).getBytes(StandardCharsets.UTF_8);
-        String compressAlg = StringUtils.defaultIfBlank(LogCollectConfigUtils.getGlobalLogConfig().getCompressAlg(), "");
+        String compressAlg = StringUtils.defaultIfBlank(RocketLogCollectConfigUtils.getGlobalLogConfig().getCompressAlg(), "");
         if ("LZ4".equalsIgnoreCase(compressAlg.trim())) {
             LZ4CompressData lz4CompressData = new LZ4CompressData(bytes.length, compressedByte(bytes));
             return new Message(logTopic, JsonUtils.toJson(lz4CompressData).getBytes(StandardCharsets.UTF_8));
