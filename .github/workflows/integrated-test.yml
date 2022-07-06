@@ -20,8 +20,6 @@ on:
   push:
     branches:
       - master
-      - addRocketMqTest
-
 jobs:
   build:
     strategy:
