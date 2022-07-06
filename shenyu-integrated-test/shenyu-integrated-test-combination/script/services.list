@@ -16,4 +16,9 @@
 
 http://localhost:9095/actuator/health
 http://localhost:8189/test/path/123?name=tom
+http://localhost:8011/actuator/health
+http://localhost:55290/test/grpc/hello
+http://localhost:8081/actuator/health
+http://localhost:8002/actuator/health
+http://localhost:28011/actuator/health
 http://localhost:9195/actuator/health

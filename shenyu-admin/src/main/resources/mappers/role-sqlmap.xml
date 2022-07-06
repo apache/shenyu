@@ -82,6 +82,15 @@
          WHERE id = #{id}
          LIMIT 1
     </select>
+    <select id="selectByIds" resultType="org.apache.shenyu.admin.model.entity.RoleDO">
+        select
+            <include refid="Base_Column_List"/>
+        FROM role
+        WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.RoleDO">
         INSERT INTO role

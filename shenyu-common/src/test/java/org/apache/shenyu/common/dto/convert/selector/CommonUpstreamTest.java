@@ -47,8 +47,8 @@ public class CommonUpstreamTest {
     
     @Test
     public void testEqualsAndHashCode() {
-        CommonUpstream upstream1 = new CommonUpstream("protocol", "host", "url", true);
-        CommonUpstream upstream2 = new CommonUpstream("protocol", "host", "url", true);
+        CommonUpstream upstream1 = new CommonUpstream("protocol", "host", "url", true, System.currentTimeMillis());
+        CommonUpstream upstream2 = new CommonUpstream("protocol", "host", "url", true, System.currentTimeMillis());
         
         assertThat(ImmutableSet.of(upstream1, upstream2), hasSize(1));
     }

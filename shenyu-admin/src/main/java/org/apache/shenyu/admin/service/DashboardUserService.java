@@ -24,7 +24,7 @@ import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * this is dashboard user service.
@@ -38,6 +38,22 @@ public interface DashboardUserService {
      * @return rows
      */
     int createOrUpdate(DashboardUserDTO dashboardUserDTO);
+    
+    /**
+     * create dashboard user.
+     *
+     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
+     * @return rows
+     */
+    int create(DashboardUserDTO dashboardUserDTO);
+    
+    /**
+     *  update dashboard user.
+     *
+     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
+     * @return rows
+     */
+    int update(DashboardUserDTO dashboardUserDTO);
 
     /**
      * delete dashboard users.
@@ -45,7 +61,7 @@ public interface DashboardUserService {
      * @param ids primary key.
      * @return rows
      */
-    int delete(List<String> ids);
+    int delete(Set<String> ids);
 
     /**
      * find dashboard user by id.

@@ -33,6 +33,14 @@ management:
       enabled: false
 
 shenyu:
+  metrics:
+    enabled: true
+    name: prometheus
+    host: 0.0.0.0
+    port: 8090
+    jmxConfig:
+    props:
+      jvm_enabled: true
   switchConfig:
     local: true
   cross:

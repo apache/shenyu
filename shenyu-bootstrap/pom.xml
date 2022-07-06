@@ -28,7 +28,6 @@
     <properties>
         <nacos-discovery.version>2021.0.1.0</nacos-discovery.version>
         <eureka-client.version>3.1.2</eureka-client.version>
-        <curator.version>4.0.1</curator.version>
     </properties>
 
     <dependencies>
@@ -267,18 +266,16 @@
             <artifactId>spring-cloud-commons</artifactId>
             <version>${spring-cloud-commons.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-            <version>${spring-cloud-netflix-ribbon.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <!--shenyu springCloud plugin start-->
+
+
+        <!--shenyu mock plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-mock</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu mock plugin end-->
 
         <!--shenyu  apache dubbo plugin start-->
         <dependency>
@@ -462,23 +459,21 @@
         </dependency>
         <!--shenyu logging-rocketmq plugin end-->
 
-        <!-- curator start -->
+        <!--shenyu logging-kafka plugin start-->
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-client</artifactId>
-            <version>${curator.version}</version>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-kafka</artifactId>
+            <version>${project.version}</version>
         </dependency>
+        <!--shenyu logging-kafka plugin end-->
+      
+        <!--shenyu logging-elasticsearch plugin start-->
         <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>${curator.version}</version>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-elasticsearch</artifactId>
+            <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>${curator.version}</version>
-        </dependency>
-        <!-- curator end -->
+        <!--shenyu logging-elasticsearch plugin end-->
 
     </dependencies>
     <profiles>

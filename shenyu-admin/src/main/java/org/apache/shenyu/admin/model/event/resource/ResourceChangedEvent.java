@@ -33,9 +33,10 @@ public class ResourceChangedEvent extends AdminDataModelChangedEvent {
     /**
      * Create a new {@code ResourceChangedEvent}.operator is unknown.
      *
-     * @param source Current rule state
-     * @param before Before the change rule state
-     * @param type   event type
+     * @param source   Current rule state
+     * @param before   Before the change rule state
+     * @param type     event type
+     * @param operator operator
      */
     public ResourceChangedEvent(final ResourceDO source, final ResourceDO before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);

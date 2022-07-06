@@ -70,6 +70,10 @@ management:
       enabled: false
 
 shenyu:
+  matchCache:
+    enabled: true
+    # 256 * 1024 * 1024 = 256MB
+    maxFreeMemory: 268435456
   netty:
     http:
       # set to false, user can custom the netty tcp server config.
@@ -117,6 +121,7 @@ shenyu:
 #    writeTimeout: 3000
 #    wiretap: false
 #    keepAlive: false
+#    maxInMemorySize: 16 * 1024 * 1024
 #    pool:
 #      type: ELASTIC
 #      name: proxy
@@ -155,10 +160,23 @@ shenyu:
     enabled: true
     allowedHeaders:
     allowedMethods: "*"
-    allowedOrigin: "*"
-    allowedExpose: "*"
+    allowedAnyOrigin: true # the same of Access-Control-Allow-Origin: "*"
+#    allowedOrigin:
+      # format : schema://prefix spacer domain
+      # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
+#      spacer: "."
+#      domain: apache.org
+#      prefixes:
+#        - a # a.apache.org
+#        - b # b.apache.org
+#      origins:
+#        - c.apache.org
+#        - d.apache.org
+#        - http://e.apache.org
+    allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
+
   switchConfig:
     local: true
   file:

@@ -32,8 +32,6 @@ import org.apache.zookeeper.CreateMode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,9 +40,7 @@ import java.util.List;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.mock;
 
-@ExtendWith(MockitoExtension.class)
 public final class ZookeeperSyncDataServiceTest {
 
     private static final String MOCK_PLUGIN_PARENT_PATH = "/shenyu/plugin";
@@ -83,7 +79,6 @@ public final class ZookeeperSyncDataServiceTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        zkClient = mock(ZookeeperClient.class);
         TestingServer server = new TestingServer();
         ZookeeperConfig config = new ZookeeperConfig(server.getConnectString());
         zkClient = new ZookeeperClient(config);

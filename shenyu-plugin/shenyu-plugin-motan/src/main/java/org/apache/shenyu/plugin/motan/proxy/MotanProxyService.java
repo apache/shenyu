@@ -149,4 +149,13 @@ public class MotanProxyService {
                         queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
         }
     }
+
+    /**
+     * get thread pool, just for integrated test.
+     *
+     * @return the thread pool
+     */
+    public ExecutorService getThreadPool() {
+        return threadPool;
+    }
 }
