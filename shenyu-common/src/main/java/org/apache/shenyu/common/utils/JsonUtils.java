@@ -108,6 +108,22 @@ public final class JsonUtils {
     }
 
     /**
+     * String to Map.
+     *
+     * @param json the object
+     * @return the converted map
+     */
+    public static Map<String, Object> jsonToMap(final String json) {
+        try {
+            final MapType mapType = MAPPER.getTypeFactory().constructMapType(LinkedHashMap.class, String.class, Object.class);
+            return MAPPER.readValue(json, mapType);
+        } catch (IOException e) {
+            LOG.warn("write to map error: " + json, e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    /**
      * Remove class object.
      *
      * @param object the object

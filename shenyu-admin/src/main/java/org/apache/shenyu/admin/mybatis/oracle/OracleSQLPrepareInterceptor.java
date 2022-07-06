@@ -71,8 +71,8 @@ public class OracleSQLPrepareInterceptor implements Interceptor {
                     .replace("from resource", "from \"resource\"")
                     .replace("update resource", "update \"resource\"");
         }
-        // replace insert into
-        if (replaceSql.contains("insert into") && !replaceSql.contains("insert into operation_record_log")) {
+        // replace batch insert into
+        if (replaceSql.contains("insert into") && replaceSql.split("\\(").length > 3) {
             replaceSql = replaceSql.replaceAll("\r|\n|\\s", "")
                     .replace("insertinto", "insert into ")
                     .replace("values", " SELECT * FROM (")
@@ -80,6 +80,7 @@ public class OracleSQLPrepareInterceptor implements Interceptor {
                     .replace("),", " FROM dual UNION ALL")
                     .replace("?)", " ? FROM dual)");
         }
+
         // replace limit 1
         if (replaceSql.contains("select")) {
             if (replaceSql.contains("where")) {

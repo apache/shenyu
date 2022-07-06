@@ -171,7 +171,7 @@ public class CommonUpstreamUtils {
         return Optional.ofNullable(upstreamList)
                 .orElse(Collections.emptyList())
                 .stream()
-                .map(upstream -> new CommonUpstream(upstream.getProtocol(), upstream.getUpstreamHost(), upstream.getUpstreamUrl(), upstream.isStatus()))
+                .map(upstream -> new CommonUpstream(upstream.getProtocol(), upstream.getUpstreamHost(), upstream.getUpstreamUrl(), upstream.isStatus(), upstream.getTimestamp()))
                 .collect(Collectors.toList());
     }
     

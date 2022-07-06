@@ -30,7 +30,7 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.AfterAll;

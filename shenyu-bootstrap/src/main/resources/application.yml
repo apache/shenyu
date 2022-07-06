@@ -121,6 +121,7 @@ shenyu:
 #    writeTimeout: 3000
 #    wiretap: false
 #    keepAlive: false
+#    maxInMemorySize: 16 * 1024 * 1024
 #    pool:
 #      type: ELASTIC
 #      name: proxy
@@ -159,12 +160,19 @@ shenyu:
     enabled: true
     allowedHeaders:
     allowedMethods: "*"
-    allowedAnyOrigin: false
-    allowedOrigin:
-      domain: apache.org
-      prefixes:
-        - a # a.apache.org
-        - b # b.apache.org
+    allowedAnyOrigin: true # the same of Access-Control-Allow-Origin: "*"
+#    allowedOrigin:
+      # format : schema://prefix spacer domain
+      # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
+#      spacer: "."
+#      domain: apache.org
+#      prefixes:
+#        - a # a.apache.org
+#        - b # b.apache.org
+#      origins:
+#        - c.apache.org
+#        - d.apache.org
+#        - http://e.apache.org
     allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
