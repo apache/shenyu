@@ -129,7 +129,7 @@ services:
       retries: 30
 
   shenyu-rocketmq:
-    image: rocketmqinc/rocketmq:4.3.2
+    image: apache/rocketmq:4.9.3
     container_name: shenyu-rocketmq
     restart: always
     depends_on:
@@ -148,7 +148,7 @@ services:
           -  shenyu-rocketmq
 
   shenyu-rmqbroker:
-    image: rocketmqinc/rocketmq:4.3.2
+    image: apache/rocketmq:4.9.3
     container_name: shenyu-rmqbroker
     restart: always
     depends_on:
