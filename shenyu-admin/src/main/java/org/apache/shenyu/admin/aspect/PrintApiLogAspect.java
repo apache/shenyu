@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.aspect;
 
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.utils.SessionUtil;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -54,14 +55,15 @@ public class PrintApiLogAspect {
      *
      * @param point point {@link ProceedingJoinPoint}
      * @return result {@link Object}
-     * @throws Throwable Throwable
      */
     @Around("pointCut()")
-    public Object logAround(final ProceedingJoinPoint point) throws Throwable {
+    public Object logAround(final ProceedingJoinPoint point) {
         final long start = System.currentTimeMillis();
         try {
             preLog(point);
             return point.proceed();
+        } catch (Throwable throwable) {
+            throw new ShenyuException(throwable);
         } finally {
             postLog(point, start);
             SessionUtil.clean();
