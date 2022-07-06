@@ -45,15 +45,15 @@
 
     <select id="selectLimit" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         SELECT
-        <include refid="Base_Column_List"/>
-        FROM operation_record_log
-        <where>
-            <if test="username != null">
-                operator = #{username}
-            </if>
-        </where>
-        order by operation_time desc
-        limit #{limit}
+               <include refid="Base_Column_List"/>
+          FROM operation_record_log
+          <where>
+              <if test="username != null">
+                  operator = #{username}
+              </if>
+          </where>
+         order by operation_time desc
+         limit #{limit}
     </select>
 
     <select id="selectLimit" parameterType="java.lang.Integer" resultMap="BaseResultMap" databaseId="oracle">

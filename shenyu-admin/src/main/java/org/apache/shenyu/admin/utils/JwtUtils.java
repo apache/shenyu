@@ -58,7 +58,7 @@ public final class JwtUtils {
      */
     public static String getIssuer(final String token) {
         DecodedJWT jwt = JWT.decode(token);
-        return Optional.ofNullable(jwt).map(item -> item.getClaim("userName").asString()).orElse("");
+        return Optional.of(jwt).map(item -> item.getClaim("userName").asString()).orElse("");
     }
 
     /**
