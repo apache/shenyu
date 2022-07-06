@@ -192,9 +192,10 @@ public interface PluginMapper extends ExistProvider {
     /**
      * active plugin snapshot.
      *
+     * @param userId user Id
      * @return plugin list
      */
-    List<PluginSnapshotVO> activePluginSnapshot();
+    List<PluginSnapshotVO> activePluginSnapshot(@Param("userId")String userId);
     
     /**
      * search by condition.
