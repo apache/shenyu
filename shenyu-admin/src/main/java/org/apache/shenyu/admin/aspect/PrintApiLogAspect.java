@@ -62,7 +62,7 @@ public class PrintApiLogAspect {
         try {
             preLog(point);
             return point.proceed();
-        } catch (Throwable throwable) {
+        } catch (final Throwable throwable) {
             throw new ShenyuException(throwable);
         } finally {
             postLog(point, start);
