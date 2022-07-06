@@ -26,7 +26,5 @@ public final class LoggingConstant {
 
     public static final String NAMESERVER_ADDRESS = "namesrvAddr";
 
-    public static final String SHENYU_AGENT_TRACE_ID = "shenyu-agent-trace-id";
-
 }
 

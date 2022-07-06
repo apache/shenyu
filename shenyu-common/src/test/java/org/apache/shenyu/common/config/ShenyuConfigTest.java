@@ -258,7 +258,7 @@ public class ShenyuConfigTest {
 
         String allowedExpose = cross.getAllowedExpose();
         String allowedHeaders = cross.getAllowedHeaders();
-        String allowedOrigin = cross.getAllowedOrigin();
+        ShenyuConfig.CrossFilterConfig.AllowedOriginConfig allowedOrigin = cross.getAllowedOrigin();
         Boolean enabled = cross.getEnabled();
         String maxAge = cross.getMaxAge();
         String allowedMethods = cross.getAllowedMethods();

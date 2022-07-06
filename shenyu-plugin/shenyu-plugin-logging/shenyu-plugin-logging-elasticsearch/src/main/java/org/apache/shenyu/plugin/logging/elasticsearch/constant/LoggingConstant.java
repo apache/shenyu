@@ -28,5 +28,4 @@ public class LoggingConstant {
 
     public static final String PORT = "port";
 
-    public static final String SHENYU_AGENT_TRACE_ID = "shenyu-agent-trace-id";
 }

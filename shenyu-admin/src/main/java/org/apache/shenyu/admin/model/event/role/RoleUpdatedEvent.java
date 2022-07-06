@@ -32,9 +32,10 @@ public class RoleUpdatedEvent extends RoleChangedEvent {
     /**
      * Create a new {@code RoleUpdatedEvent}.operator is unknown.
      *
-     * @param source   Current role state
-     * @param before   before role state
-     * @param operator operator
+     * @param source        Current role state
+     * @param before        before role state
+     * @param operator      operator
+     * @param newPermission newPermission
      */
     public RoleUpdatedEvent(final RoleDO source, final RoleDO before, final String operator, final List<String> newPermission) {
         super(source, before, EventTypeEnum.ROLE_UPDATE, operator);

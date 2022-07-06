@@ -22,11 +22,12 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
-import org.apache.shenyu.plugin.logging.elasticsearch.body.LoggingElasticSearchServerHttpRequest;
-import org.apache.shenyu.plugin.logging.elasticsearch.body.LoggingElasticSearchServerResponse;
-import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectConfigUtils;
-import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectUtils;
+import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
+import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
+import org.apache.shenyu.plugin.logging.elasticsearch.collector.DefaultLogCollector;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -61,8 +62,8 @@ public class LoggingElasticSearchPlugin extends AbstractShenyuPlugin {
         requestInfo.setHost(request.getHeaders().getFirst(HOST));
         requestInfo.setPath(request.getURI().getPath());
 
-        LoggingElasticSearchServerHttpRequest loggingElasticSearchServerHttpRequest = new LoggingElasticSearchServerHttpRequest(request, requestInfo);
-        LoggingElasticSearchServerResponse loggingElasticSearchServerResponse = new LoggingElasticSearchServerResponse(exchange.getResponse(),
+        LoggingServerHttpRequest loggingElasticSearchServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
+        LoggingServerHttpResponse loggingElasticSearchServerResponse = new LoggingServerHttpResponse(exchange.getResponse(),
                 requestInfo, DefaultLogCollector.getInstance());
         ServerWebExchange webExchange = exchange.mutate().request(loggingElasticSearchServerHttpRequest)
                 .response(loggingElasticSearchServerResponse).build();
@@ -74,7 +75,7 @@ public class LoggingElasticSearchPlugin extends AbstractShenyuPlugin {
     /**
      * get plugin order.
      *
-     * @return order
+     * @return plugin order
      */
     @Override
     public int getOrder() {

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.logging.elasticsearch.config;
 
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
+
 /**
  * log collect config, include elasticsearch config.
  * Host and port must be included, and others are optional.
@@ -47,45 +49,13 @@ public class LogCollectConfig {
     /**
      * global log config.
      */
-    public static class GlobalLogConfig {
+    public static class GlobalLogConfig extends GenericGlobalConfig {
 
         private String host;
 
         private String port;
 
-        private String sampleRate = "1";
-
         private String compressAlg;
-
-        /**
-         * default 512KB.
-         */
-        private int maxResponseBody = 524288;
-
-        /**
-         * default 512kb.
-         */
-        private int maxRequestBody = 524288;
-
-        private int bufferQueueSize = 50000;
-
-        /**
-         * get sample rate.
-         *
-         * @return sample
-         */
-        public String getSampleRate() {
-            return sampleRate;
-        }
-
-        /**
-         * set sample rate.
-         *
-         * @param sampleRate rate
-         */
-        public void setSampleRate(final String sampleRate) {
-            this.sampleRate = sampleRate;
-        }
 
         /**
          * whether compress.
@@ -103,60 +73,6 @@ public class LogCollectConfig {
          */
         public void setCompressAlg(final String compressAlg) {
             this.compressAlg = compressAlg;
-        }
-
-        /**
-         * get max response org.apache.shenyu.plugin.logging.body.
-         *
-         * @return get max response org.apache.shenyu.plugin.logging.body
-         */
-        public int getMaxResponseBody() {
-            return maxResponseBody;
-        }
-
-        /**
-         * set max response org.apache.shenyu.plugin.logging.body.
-         *
-         * @param maxResponseBody max response org.apache.shenyu.plugin.logging.body
-         */
-        public void setMaxResponseBody(final int maxResponseBody) {
-            this.maxResponseBody = maxResponseBody;
-        }
-
-        /**
-         * get max request org.apache.shenyu.plugin.logging.body.
-         *
-         * @return max request org.apache.shenyu.plugin.logging.body
-         */
-        public int getMaxRequestBody() {
-            return maxRequestBody;
-        }
-
-        /**
-         * set max request org.apache.shenyu.plugin.logging.body.
-         *
-         * @param maxRequestBody max request org.apache.shenyu.plugin.logging.body
-         */
-        public void setMaxRequestBody(final int maxRequestBody) {
-            this.maxRequestBody = maxRequestBody;
-        }
-
-        /**
-         * get buffer queue size.
-         *
-         * @return buffer queue size
-         */
-        public int getBufferQueueSize() {
-            return bufferQueueSize;
-        }
-
-        /**
-         * set buffer queue size.
-         *
-         * @param bufferQueueSize buffer queue size
-         */
-        public void setBufferQueueSize(final int bufferQueueSize) {
-            this.bufferQueueSize = bufferQueueSize;
         }
 
         /**

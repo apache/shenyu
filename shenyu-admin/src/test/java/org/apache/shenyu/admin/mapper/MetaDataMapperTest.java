@@ -120,7 +120,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count, comparesEqualTo(1));
 
         MetaDataQuery metaDataQuery = new MetaDataQuery();
-        metaDataQuery.setAppName(metaDataDO.getAppName());
+        metaDataQuery.setPath(metaDataDO.getPath());
         metaDataQuery.setPageParameter(new PageParameter());
 
         List<MetaDataDO> result = metaDataMapper.selectByQuery(metaDataQuery);
@@ -146,7 +146,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count, comparesEqualTo(1));
 
         MetaDataQuery metaDataQuery = new MetaDataQuery();
-        metaDataQuery.setAppName(metaDataDO.getAppName());
+        metaDataQuery.setPath(metaDataDO.getPath());
         metaDataQuery.setPageParameter(new PageParameter());
 
         count = metaDataMapper.countByQuery(metaDataQuery);

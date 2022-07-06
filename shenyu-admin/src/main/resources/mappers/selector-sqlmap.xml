@@ -89,6 +89,12 @@
             <if test="pluginId != null">
                 plugin_id = #{pluginId, jdbcType=VARCHAR}
             </if>
+            <if test="pluginIds != null and pluginIds.size > 0">
+                AND plugin_id IN
+                <foreach item="pluginId" collection="pluginIds" open="(" separator="," close=")">
+                    #{pluginId, jdbcType=VARCHAR}
+                </foreach>
+            </if>
             <if test="name != null and name != ''">
                 <bind name="nameLike" value="('%' + name + '%')"/>
                  AND name LIKE #{nameLike, jdbcType=VARCHAR}
