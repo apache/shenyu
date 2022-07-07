@@ -20,28 +20,56 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>shenyu-plugin-logging</artifactId>
         <groupId>org.apache.shenyu</groupId>
+        <artifactId>shenyu-plugin-logging</artifactId>
         <version>2.5.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
+    <artifactId>shenyu-plugin-logging-aliyun-sls</artifactId>
 
-    <artifactId>shenyu-plugin-logging-common</artifactId>
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <aliyun-log.version>0.6.70</aliyun-log.version>
+        <protobuf-java.version>3.19.2</protobuf-java.version>
+        <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-base</artifactId>
+            <artifactId>shenyu-plugin-logging-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.aliyun.openservices</groupId>
+            <artifactId>aliyun-log-producer</artifactId>
+            <version>${aliyun-log-producer.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf-java.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
