@@ -120,7 +120,7 @@ shenyu:
 #    writeTimeout: 3000
 #    wiretap: false
 #    keepAlive: false
-#    maxInMemorySize: 16 #16mb
+#    maxInMemorySize: 1 #1mb
 #    pool:
 #      type: ELASTIC
 #      name: proxy
