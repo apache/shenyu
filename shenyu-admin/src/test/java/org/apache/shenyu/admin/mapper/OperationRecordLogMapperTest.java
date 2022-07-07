@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.mapper;
 
-
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.OperationRecordLog;
 import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
