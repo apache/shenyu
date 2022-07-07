@@ -104,7 +104,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      *
      * @param extPlugins the ext plugins
      */
-    public synchronized void putExtPlugins(final List<ShenyuPlugin> extPlugins) {
+    public void putExtPlugins(final List<ShenyuPlugin> extPlugins) {
         if (CollectionUtils.isEmpty(extPlugins)) {
             return;
         }
