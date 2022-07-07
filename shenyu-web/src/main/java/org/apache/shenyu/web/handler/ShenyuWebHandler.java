@@ -182,8 +182,11 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      * handle removed or disabled plugin.
      * @param pluginData plugin data
      */
-    private void onPluginRemoved(final PluginData pluginData) {
-        this.plugins.removeIf(plugin -> plugin.named().equals(pluginData.getName()));
+    private synchronized void onPluginRemoved(final PluginData pluginData) {
+        // copy a new plugin list.
+        List<ShenyuPlugin> newPluginList = new ArrayList<>(this.plugins);
+        newPluginList.removeIf(plugin -> plugin.named().equals(pluginData.getName()));
+        this.plugins = newPluginList;
     }
 
     private static class DefaultShenyuPluginChain implements ShenyuPluginChain {
