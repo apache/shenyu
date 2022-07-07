@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -533,7 +534,10 @@ public class ShenyuConfig {
 
         private boolean enabled;
 
-        private Integer maxFreeMemory = 256 * 1024 * 1024;
+        /**
+         * Max free memory, unit mb.
+         */
+        private Integer maxFreeMemory = 256;
 
         /**
          * Gets enabled.

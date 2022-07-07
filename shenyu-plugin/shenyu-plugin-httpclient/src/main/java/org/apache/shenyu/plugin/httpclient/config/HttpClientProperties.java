@@ -117,9 +117,9 @@ public class HttpClientProperties {
     private boolean keepAlive;
 
     /**
-     * body max memory size, unit byte.
+     * body max memory size, unit mb.
      */
-    private int maxInMemorySize;
+    private Integer maxInMemorySize = 16;
 
     /**
      * Gets strategy.
@@ -378,7 +378,7 @@ public class HttpClientProperties {
      * get maxInMemorySize.
      * @return maxInMemorySize
      */
-    public int getMaxInMemorySize() {
+    public Integer getMaxInMemorySize() {
         return maxInMemorySize;
     }
 
@@ -386,7 +386,7 @@ public class HttpClientProperties {
      * set maxInMemorySize.
      * @param maxInMemorySize maxInMemorySize
      */
-    public void setMaxInMemorySize(final int maxInMemorySize) {
+    public void setMaxInMemorySize(final Integer maxInMemorySize) {
         this.maxInMemorySize = maxInMemorySize;
     }
 
