@@ -72,8 +72,7 @@ management:
 shenyu:
   matchCache:
     enabled: true
-    # 256 * 1024 * 1024 = 256MB
-    maxFreeMemory: 268435456
+    maxFreeMemory: 256 # 256MB
   netty:
     http:
       # set to false, user can custom the netty tcp server config.
@@ -121,7 +120,7 @@ shenyu:
 #    writeTimeout: 3000
 #    wiretap: false
 #    keepAlive: false
-#    maxInMemorySize: 16 * 1024 * 1024
+#    maxInMemorySize: 1 #1mb
 #    pool:
 #      type: ELASTIC
 #      name: proxy
