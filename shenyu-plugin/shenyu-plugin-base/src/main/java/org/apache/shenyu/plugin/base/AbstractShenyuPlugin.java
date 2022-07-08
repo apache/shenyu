@@ -136,17 +136,21 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private void cacheSelectorDataIfEnabled(final String path, final SelectorData selectorData) {
         if (matchCacheConfig.getEnabled()) {
             if (Objects.isNull(selectorData)) {
-                MatchDataCache.getInstance().cacheSelectorData(path, defaultSelectorData, matchCacheConfig.getMaxFreeMemory());
+                MatchDataCache.getInstance().cacheSelectorData(path, defaultSelectorData, getMaxFreeMemory());
             } else {
                 List<ConditionData> conditionList = selectorData.getConditionList();
                 if (CollectionUtils.isNotEmpty(conditionList)) {
                     boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
                     if (isUriCondition) {
-                        MatchDataCache.getInstance().cacheSelectorData(path, selectorData, matchCacheConfig.getMaxFreeMemory());
+                        MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getMaxFreeMemory());
                     }
                 }
             }
         }
+    }
+
+    private Integer getMaxFreeMemory() {
+        return matchCacheConfig.getMaxFreeMemory() * 1024 * 1024;
     }
 
     private Pair<Boolean, SelectorData> obtainSelectorDataCacheIfEnabled(final ServerWebExchange exchange) {

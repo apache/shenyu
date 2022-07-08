@@ -533,7 +533,10 @@ public class ShenyuConfig {
 
         private boolean enabled;
 
-        private Integer maxFreeMemory = 256 * 1024 * 1024;
+        /**
+         * Max free memory, unit mb.
+         */
+        private Integer maxFreeMemory = 256;
 
         /**
          * Gets enabled.

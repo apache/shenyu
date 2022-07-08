@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.query;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.shenyu.admin.model.page.condition.BaseExcludedSearchCondition;
 import org.apache.shenyu.admin.model.page.condition.SearchCondition;
 import org.apache.shenyu.common.utils.DateUtils;
@@ -54,6 +55,12 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
     @NotNull
     @JsonFormat(pattern = DateUtils.DATE_FORMAT_DATETIME)
     private Date endTime;
+    
+    /**
+     * username.
+     */
+    @JsonIgnore
+    private String username;
     
     @Override
     public void setKeyword(final String keyword) {
@@ -118,5 +125,23 @@ public class RecordLogQueryCondition extends BaseExcludedSearchCondition impleme
      */
     public void setType(final String type) {
         this.type = type;
+    }
+    
+    /**
+     * get username.
+     *
+     * @return username
+     */
+    public String getUsername() {
+        return username;
+    }
+    
+    /**
+     * set username.
+     *
+     * @param username username
+     */
+    public void setUsername(final String username) {
+        this.username = username;
     }
 }
