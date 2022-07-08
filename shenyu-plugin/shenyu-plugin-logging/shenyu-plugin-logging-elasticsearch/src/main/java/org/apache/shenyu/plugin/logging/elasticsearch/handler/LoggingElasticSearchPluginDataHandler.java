@@ -30,7 +30,7 @@ import org.apache.shenyu.plugin.logging.elasticsearch.collector.DefaultLogCollec
 import org.apache.shenyu.plugin.logging.elasticsearch.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
-import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.elasticsearch.utils.ElasticSearchLogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class LoggingElasticSearchPluginDataHandler implements PluginDataHandler 
             LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                     LogCollectConfig.GlobalLogConfig.class);
 
-            LogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+            ElasticSearchLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
             Properties properties = new Properties();
             properties.setProperty(LoggingConstant.HOST, globalLogConfig.getHost());
             properties.setProperty(LoggingConstant.PORT, globalLogConfig.getPort());

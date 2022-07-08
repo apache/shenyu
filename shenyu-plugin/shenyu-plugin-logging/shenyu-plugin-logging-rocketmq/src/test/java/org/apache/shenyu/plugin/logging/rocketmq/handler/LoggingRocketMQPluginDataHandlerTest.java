@@ -61,6 +61,16 @@ public class LoggingRocketMQPluginDataHandlerTest {
     }
 
     @Test
+    public void testHandlerPlugin() throws NoSuchFieldException, IllegalAccessException {
+        loggingRocketMQPluginDataHandler.handlerPlugin(pluginData);
+        Field field = loggingRocketMQPluginDataHandler.getClass().getDeclaredField("ROCKET_MQ_LOG_COLLECT_CLIENT");
+        field.setAccessible(true);
+        Assertions.assertEquals(field.get(loggingRocketMQPluginDataHandler).getClass(), RocketMQLogCollectClient.class);
+        pluginData.setEnabled(false);
+        loggingRocketMQPluginDataHandler.handlerPlugin(pluginData);
+    }
+
+    @Test
     public void testHandlerSelector() throws NoSuchFieldException, IllegalAccessException {
         loggingRocketMQPluginDataHandler.handlerSelector(selectorData);
         Field field1 = loggingRocketMQPluginDataHandler.getClass().getDeclaredField("SELECT_ID_URI_LIST_MAP");
