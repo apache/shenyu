@@ -19,12 +19,16 @@ package org.apache.shenyu.plugin.logging.elasticsearch.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Optional;
+
 /**
  * log collect config, include elasticsearch config.
  * Host and port must be included, and others are optional.
  * We should operate the configuration through admin instead of the configuration file.
  */
 public class LogCollectConfig {
+
+    public static final LogCollectConfig INSTANCE = new LogCollectConfig();
 
     private GlobalLogConfig globalLogConfig;
 
@@ -34,7 +38,7 @@ public class LogCollectConfig {
      * @return global log config
      */
     public GlobalLogConfig getGlobalLogConfig() {
-        return globalLogConfig;
+        return Optional.ofNullable(globalLogConfig).orElse(new GlobalLogConfig());
     }
 
     /**

@@ -37,7 +37,6 @@ import org.apache.shenyu.plugin.logging.kafka.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.kafka.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.kafka.kafka.KafkaLogCollectClient;
-import org.apache.shenyu.plugin.logging.kafka.utils.KafkaLogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +92,7 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
             LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                 LogCollectConfig.GlobalLogConfig.class);
 
-            KafkaLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+            LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
             // start kafka producer
             Properties properties = new Properties();
             properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());

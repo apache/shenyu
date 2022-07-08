@@ -70,7 +70,7 @@ public final class RocketMqPluginTest extends AbstractPluginDataInit {
         logs.add(shenyuRequestLog);
 
         String msg = "";
-        RocketLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+        LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
         rocketMQLogCollectClient.initProducer(properties);
         try {
             rocketMQLogCollectClient.consume(logs);

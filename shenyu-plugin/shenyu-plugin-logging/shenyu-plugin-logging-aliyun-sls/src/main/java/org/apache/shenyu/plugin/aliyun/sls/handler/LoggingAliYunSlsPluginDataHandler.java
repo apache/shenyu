@@ -26,7 +26,6 @@ import org.apache.shenyu.plugin.aliyun.sls.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.aliyun.sls.aliyunsls.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.config.LogCollectConfig;
 import org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant;
-import org.apache.shenyu.plugin.aliyun.sls.utils.AliyunSlsLogCollectConfigUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +54,7 @@ public class LoggingAliYunSlsPluginDataHandler implements PluginDataHandler {
             }
             if (Objects.isNull(exist) || !globalLogConfig.equals(exist)) {
                 // no data, init client
-                AliyunSlsLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+                LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
                 Properties properties = new Properties();
                 properties.setProperty(LoggingConstant.ACCESS_ID, globalLogConfig.getAccessId().trim());
                 properties.setProperty(LoggingConstant.ACCESS_KEY, globalLogConfig.getAccessKey().trim());

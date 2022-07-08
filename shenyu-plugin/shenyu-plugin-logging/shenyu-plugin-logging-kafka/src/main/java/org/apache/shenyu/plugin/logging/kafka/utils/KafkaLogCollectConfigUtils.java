@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.plugin.logging.kafka.utils;
 
-import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * kafka log collect config utils.
@@ -33,30 +31,7 @@ public class KafkaLogCollectConfigUtils {
 
     private static Map<String, String> apiTopicMap = new HashMap<>();
 
-    private static LogCollectConfig.GlobalLogConfig globalLogConfig;
-
-    private static final LogCollectConfig.GlobalLogConfig DEFAULT_GLOBAL_LOG_CONFIG =
-            new LogCollectConfig.GlobalLogConfig();
-
     public KafkaLogCollectConfigUtils() {
-    }
-
-    /**
-     * set global config.
-     *
-     * @param config global config
-     */
-    public static void setGlobalConfig(final LogCollectConfig.GlobalLogConfig config) {
-        globalLogConfig = config;
-    }
-
-    /**
-     * get global config.
-     *
-     * @return {@linkplain LogCollectConfig.GlobalLogConfig}
-     */
-    public static LogCollectConfig.GlobalLogConfig getGlobalLogConfig() {
-        return Optional.ofNullable(globalLogConfig).orElse(DEFAULT_GLOBAL_LOG_CONFIG);
     }
 
     /**
