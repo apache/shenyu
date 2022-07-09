@@ -79,7 +79,12 @@ public enum OperatorEnum {
     /**
      * Time after operator enum.
      */
-    TIME_AFTER("TimeAfter", true);
+    TIME_AFTER("TimeAfter", true),
+    
+    /**
+     * Contains operator enum.
+     */
+    KMP_CONTAINS("containsV2", true),;
 
     private final String alias;
 
