@@ -36,7 +36,6 @@
     <properties>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
-        <dockerfile-maven-plugin.version>1.4.6</dockerfile-maven-plugin.version>
         <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
     </properties>
 
