@@ -18,10 +18,14 @@
 package org.apache.shenyu.plugin.metrics.prometheus;
 
 import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
 import org.apache.shenyu.common.utils.ReflectUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -62,5 +66,40 @@ public final class PrometheusMetricsRegisterTest {
         assertThat(histogramMap.size(), is(2));
         Histogram histogram = histogramMap.get(name);
         assertThat(histogram.labels(labelNames).get().sum, is(1000.0));
+    }
+
+    @Test
+    public void testRegisterGauge() throws Exception {
+        String name = "request_throw_total";
+        String[] labelNames = new String[] {"name1", "name2"};
+        prometheusMetricsRegister.registerGauge(name, labelNames, "shenyu request total count");
+        Field field = prometheusMetricsRegister.getClass().getDeclaredField("GAUGE_MAP");
+        field.setAccessible(true);
+        Map<String, Gauge> map = (Map<String, Gauge>) field.get(prometheusMetricsRegister);
+        Assertions.assertEquals(map.get(name).describe().toString(),
+                "[Name: request_throw_total Unit: Type: GAUGE Help: shenyu request total count Samples: []]");
+        Gauge gauge = map.get(name);
+        prometheusMetricsRegister.gaugeIncrement(name, labelNames);
+        Assertions.assertEquals(gauge.labels(labelNames).get(), 1.0);
+        prometheusMetricsRegister.gaugeDecrement(name, labelNames);
+        Assertions.assertEquals(gauge.labels(labelNames).get(), 0.0);
+        prometheusMetricsRegister.clean();
+    }
+
+    @Test
+    public void testClean() throws Exception {
+        prometheusMetricsRegister.clean();
+        Field field1 = prometheusMetricsRegister.getClass().getDeclaredField("COUNTER_MAP");
+        field1.setAccessible(true);
+        Map<String, Counter> map1 = (Map<String, Counter>) field1.get(prometheusMetricsRegister);
+        Assertions.assertTrue(CollectionUtils.isEmpty(map1));
+        Field field2 = prometheusMetricsRegister.getClass().getDeclaredField("GAUGE_MAP");
+        field2.setAccessible(true);
+        Map<String, Gauge> map2 = (Map<String, Gauge>) field2.get(prometheusMetricsRegister);
+        Assertions.assertTrue(CollectionUtils.isEmpty(map2));
+        Field field3 = prometheusMetricsRegister.getClass().getDeclaredField("HISTOGRAM_MAP");
+        field3.setAccessible(true);
+        Map<String, Histogram> map3 = (Map<String, Histogram>) field3.get(prometheusMetricsRegister);
+        Assertions.assertTrue(CollectionUtils.isEmpty(map3));
     }
 }

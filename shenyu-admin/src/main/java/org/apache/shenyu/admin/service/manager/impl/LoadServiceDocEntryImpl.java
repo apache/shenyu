@@ -17,32 +17,38 @@
 
 package org.apache.shenyu.admin.service.manager.impl;
 
+import com.alibaba.nacos.shaded.com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Resource;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
+import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
+import org.apache.shenyu.admin.service.manager.ServiceDocManager;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Load Service Doc Entry.
@@ -51,11 +57,25 @@ import org.springframework.util.CollectionUtils;
 public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     private static final Logger LOG = LoggerFactory.getLogger(LoadServiceDocEntryImpl.class);
 
-    @Resource
-    private SelectorService selectorService;
+    private static Map<String, String> supportSwaggePluginMap = Collections.EMPTY_MAP;
 
-    @Resource
-    private ServiceDocManagerImpl serviceDocManager;
+    private final SelectorService selectorService;
+
+    private final SelectorHandleConverterFactor converterFactor;
+
+    private final PluginMapper pluginMapper;
+
+    private final ServiceDocManager serviceDocManager;
+
+    public LoadServiceDocEntryImpl(final SelectorService selectorService,
+                                   final SelectorHandleConverterFactor converterFactor,
+                                   final PluginMapper pluginMapper,
+                                   final ServiceDocManager serviceDocManager) {
+        this.selectorService = selectorService;
+        this.converterFactor = converterFactor;
+        this.pluginMapper = pluginMapper;
+        this.serviceDocManager = serviceDocManager;
+    }
 
     @Override
     public synchronized void loadApiDocument() {
@@ -102,13 +122,17 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
      * @return List
      */
     private List<UpstreamInstance> getAllClusterLastUpdateInstanceList() {
-        List<SelectorVO> clusterList = null;
-        try {
-            CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery("5", null, new PageParameter(1, Integer.MAX_VALUE)));
-            clusterList = commonPager.getDataList();
-        } catch (Exception e) {
-            LOG.error("getAllClusterLastUpdateInstanceList fail. error={}", e);
+        List<String> pluginNames = new ArrayList<>();
+        RpcTypeEnum.acquireSupportSwaggers().forEach(rpcTypeEnum -> pluginNames.add(PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName())));
+        final List<PluginDO> pluginDOList = pluginMapper.selectByNames(pluginNames);
+        if (CollectionUtils.isEmpty(pluginDOList)) {
+            return Collections.EMPTY_LIST;
         }
+        supportSwaggePluginMap = pluginDOList.stream().filter(Objects::nonNull)
+            .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
+
+        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(Lists.newArrayList(supportSwaggePluginMap.keySet()), null, new PageParameter(1, Integer.MAX_VALUE)));
+        List<SelectorVO> clusterList = commonPager.getDataList();
         if (CollectionUtils.isEmpty(clusterList)) {
             LOG.info("getAllClusterLastUpdateInstanceList, Not loaded into available backend services.");
             return Collections.EMPTY_LIST;
@@ -122,60 +146,21 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     }
 
     private UpstreamInstance getClusterLastUpdateInstance(final SelectorVO selectorVO) {
-        List<UpstreamInstance> allInstances = null;
-        // Get service instance.
-        String handle = selectorVO.getHandle();
-        if (StringUtils.isNotEmpty(handle)) {
-            allInstances = new ArrayList<>();
-            try {
-                List<CommonUpstream> upstreamList = this.convert(handle);
-                for (CommonUpstream upstream : upstreamList) {
-                    String[] upstreamUrlArr = upstream.getUpstreamUrl().split(":");
-                    UpstreamInstance instance = new UpstreamInstance();
-                    instance.setContextPath(selectorVO.getName());
-                    instance.setIp(upstreamUrlArr[0]);
-                    instance.setPort(Integer.parseInt(upstreamUrlArr[1]));
-                    instance.setEnabled(selectorVO.getEnabled());
-                    instance.setHealthy(true);
-                    instance.setStartupTime(upstream.getTimestamp());
-                    allInstances.add(instance);
-                }
-            } catch (Exception e) {
-                LOG.error("Error getting cluster instance list. serviceName={} error={}", selectorVO.getName(), e);
-                return null;
-            }
+        List<UpstreamInstance> allInstances = getInstances(selectorVO.getPluginId(), selectorVO.getHandle(), selectorVO.getName(), selectorVO.getEnabled());
+        if (CollectionUtils.isEmpty(allInstances)) {
+            return null;
         }
-
         return getClusterLastUpdateInstance(allInstances);
     }
 
     private UpstreamInstance getClusterLastUpdateInstance(final SelectorData selectorData) {
-        if (!selectorData.getPluginId().equals("5")) {
+        if (!supportSwaggePluginMap.keySet().contains(selectorData.getPluginId())) {
             LOG.info("getClusterLastUpdateInstance. pluginNae={} does not support pulling API documents.", selectorData.getPluginName());
             return null;
         }
-        List<UpstreamInstance> allInstances = null;
-        // Get service instance.
-        String handle = selectorData.getHandle();
-        if (StringUtils.isNotEmpty(handle)) {
-            allInstances = new ArrayList<>();
-            try {
-                List<CommonUpstream> upstreamList = this.convert(handle);
-                for (CommonUpstream upstream : upstreamList) {
-                    String[] upstreamUrlArr = upstream.getUpstreamUrl().split(":");
-                    UpstreamInstance instance = new UpstreamInstance();
-                    instance.setContextPath(selectorData.getName());
-                    instance.setIp(upstreamUrlArr[0]);
-                    instance.setPort(Integer.parseInt(upstreamUrlArr[1]));
-                    instance.setEnabled(selectorData.getEnabled());
-                    instance.setHealthy(true);
-                    instance.setStartupTime(upstream.getTimestamp());
-                    allInstances.add(instance);
-                }
-            } catch (Exception e) {
-                LOG.error("Error getting cluster instance list. serviceName={} error={}", selectorData.getName(), e);
-                return null;
-            }
+        List<UpstreamInstance> allInstances = getInstances(selectorData.getPluginId(), selectorData.getHandle(), selectorData.getName(), selectorData.getEnabled());
+        if (Objects.isNull(allInstances)) {
+            return null;
         }
         return getClusterLastUpdateInstance(allInstances);
     }
@@ -191,8 +176,38 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             .orElse(null);
     }
 
-    private List<CommonUpstream> convert(final String handle) {
-        return GsonUtils.getInstance().fromList(handle, CommonUpstream.class);
+    private List<UpstreamInstance> getInstances(final String pluginId, final String handle, final String contextPath,
+        final boolean enabled) {
+        List<UpstreamInstance> allInstances = null;
+        // Get service instance.
+        if (StringUtils.isNotEmpty(handle)) {
+            allInstances = new ArrayList<>();
+            try {
+                List<CommonUpstream> upstreamList = this.convert(pluginId, handle);
+                for (CommonUpstream upstream : upstreamList) {
+                    UpstreamInstance instance = new UpstreamInstance();
+                    instance.setContextPath(contextPath);
+                    String[] upstreamUrlArr = upstream.getUpstreamUrl().split(":");
+                    instance.setIp(upstreamUrlArr[0]);
+                    instance.setPort(upstreamUrlArr.length == 1 ? 80 : Integer.parseInt(upstreamUrlArr[1]));
+                    instance.setEnabled(enabled);
+                    instance.setHealthy(true);
+                    instance.setStartupTime(upstream.getTimestamp());
+                    allInstances.add(instance);
+                }
+            } catch (Exception e) {
+                LOG.error("Error getting cluster instance list. contextPath={} error={}", contextPath, e);
+                return null;
+            }
+        }
+        return allInstances;
+    }
+
+    private List<CommonUpstream> convert(final String pluginId, final String handle) {
+        String pluginName = supportSwaggePluginMap.get(pluginId);
+        return converterFactor.newInstance(pluginName).convertUpstream(handle)
+            .stream().filter(upstream -> upstream.isStatus())
+            .collect(Collectors.toList());
     }
 
 }

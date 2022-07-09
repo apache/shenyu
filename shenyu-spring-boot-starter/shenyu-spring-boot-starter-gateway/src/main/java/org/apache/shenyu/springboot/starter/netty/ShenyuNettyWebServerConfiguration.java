@@ -55,7 +55,7 @@ public class ShenyuNettyWebServerConfiguration {
      * @return the netty reactive web server factory
      */
     @Bean
-    @ConditionalOnProperty(value = "shenyu.netty.http.webServerFactoryEnabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(value = "shenyu.netty.http.web-server-factory-enabled", havingValue = "true", matchIfMissing = true)
     public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyHttpProperties> properties) {
         NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
         NettyHttpProperties nettyHttpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyHttpProperties());

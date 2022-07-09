@@ -44,6 +44,8 @@ public class ShenyuConfig {
     private FallbackPath fallback = new FallbackPath();
     
     private ExtPlugin extPlugin = new ExtPlugin();
+
+    private MatchCache matchCache = new MatchCache();
     
     private Scheduler scheduler = new Scheduler();
     
@@ -223,6 +225,24 @@ public class ShenyuConfig {
      */
     public void setExtPlugin(final ExtPlugin extPlugin) {
         this.extPlugin = extPlugin;
+    }
+
+    /**
+     * Gets match cache.
+     *
+     * @return the match cache
+     */
+    public MatchCache getMatchCache() {
+        return matchCache;
+    }
+
+    /**
+     * Sets match cache.
+     *
+     * @param matchCache the match cache
+     */
+    public void setMatchCache(final MatchCache matchCache) {
+        this.matchCache = matchCache;
     }
     
     /**
@@ -503,6 +523,55 @@ public class ShenyuConfig {
          */
         public void setScheduleDelay(final Integer scheduleDelay) {
             this.scheduleDelay = scheduleDelay;
+        }
+    }
+
+    /**
+     * the match cache.
+     */
+    public static class MatchCache {
+
+        private boolean enabled;
+
+        /**
+         * Max free memory, unit mb.
+         */
+        private Integer maxFreeMemory = 256;
+
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        /**
+         * Gets maxFreeMemory.
+         *
+         * @return the maxFreeMemory
+         */
+        public Integer getMaxFreeMemory() {
+            return maxFreeMemory;
+        }
+
+        /**
+         * Sets maxFreeMemory.
+         *
+         * @param maxFreeMemory the maxFreeMemory
+         */
+        public void setMaxFreeMemory(final Integer maxFreeMemory) {
+            this.maxFreeMemory = maxFreeMemory;
         }
     }
     
@@ -898,9 +967,11 @@ public class ShenyuConfig {
          */
         private String allowedMethods = "*";
 
-        private String allowedOrigin = "*";
+        private AllowedOriginConfig allowedOrigin = new AllowedOriginConfig();
 
-        private String allowedExpose = "*";
+        private boolean allowedAnyOrigin;
+
+        private String allowedExpose = "";
 
         private String maxAge = "18000";
 
@@ -979,7 +1050,7 @@ public class ShenyuConfig {
          *
          * @return the value of allowedOrigin
          */
-        public String getAllowedOrigin() {
+        public AllowedOriginConfig getAllowedOrigin() {
             return allowedOrigin;
         }
     
@@ -988,10 +1059,28 @@ public class ShenyuConfig {
          *
          * @param allowedOrigin allowedOrigin
          */
-        public void setAllowedOrigin(final String allowedOrigin) {
+        public void setAllowedOrigin(final AllowedOriginConfig allowedOrigin) {
             this.allowedOrigin = allowedOrigin;
         }
-    
+
+        /**
+         * Gets the value of allowedAnyOrigin.
+         *
+         * @return the value of allowedAnyOrigin
+         */
+        public boolean isAllowedAnyOrigin() {
+            return allowedAnyOrigin;
+        }
+
+        /**
+         * Sets the allowedExpose.
+         *
+         * @param allowedAnyOrigin allowedExpose
+         */
+        public void setAllowedAnyOrigin(final boolean allowedAnyOrigin) {
+            this.allowedAnyOrigin = allowedAnyOrigin;
+        }
+
         /**
          * Gets the value of allowedExpose.
          *
@@ -1044,6 +1133,92 @@ public class ShenyuConfig {
          */
         public void setAllowCredentials(final boolean allowCredentials) {
             this.allowCredentials = allowCredentials;
+        }
+
+        /**
+         * the cors allowedOrigin config.
+         */
+        public static class AllowedOriginConfig {
+
+            private String spacer = ".";
+
+            private String domain;
+
+            private Set<String> prefixes = new HashSet<>();
+
+            private Set<String> origins;
+
+            /**
+             * Gets the spacer.
+             *
+             * @return the value of spacer
+             */
+            public String getSpacer() {
+                return spacer;
+            }
+
+            /**
+             * Sets the spacer.
+             *
+             * @param spacer spacer
+             */
+            public void setSpacer(final String spacer) {
+                this.spacer = spacer;
+            }
+
+            /**
+             * Gets the domain.
+             *
+             * @return the value of domain
+             */
+            public String getDomain() {
+                return domain;
+            }
+
+            /**
+             * Sets the enabled.
+             *
+             * @param domain domain
+             */
+            public void setDomain(final String domain) {
+                this.domain = domain;
+            }
+
+            /**
+             * Gets the prefixes.
+             *
+             * @return the value of prefixes
+             */
+            public Set<String> getPrefixes() {
+                return prefixes;
+            }
+
+            /**
+             * Sets the enabled.
+             *
+             * @param prefixes prefixes
+             */
+            public void setPrefixes(final Set<String> prefixes) {
+                this.prefixes = prefixes;
+            }
+
+            /**
+             * Gets the prefixes.
+             *
+             * @return the value of prefixes
+             */
+            public Set<String> getOrigins() {
+                return origins;
+            }
+
+            /**
+             * Sets the origins.
+             *
+             * @param origins origins
+             */
+            public void setOrigins(final Set<String> origins) {
+                this.origins = origins;
+            }
         }
     }
     

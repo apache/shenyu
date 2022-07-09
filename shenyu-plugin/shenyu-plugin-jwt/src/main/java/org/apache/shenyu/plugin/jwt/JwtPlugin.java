@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.jwt;
 
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtParser;
+import io.jsonwebtoken.JwtParserBuilder;
 import io.jsonwebtoken.Jwts;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
@@ -123,10 +124,12 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         if (StringUtils.isEmpty(authorization)) {
             return null;
         }
-        JwtParser jwtParser = Jwts.parser();
+        JwtParserBuilder jwtParserBuilder = Jwts.parserBuilder();
+        JwtParser jwtParser = jwtParserBuilder.build();
         if (jwtParser.isSigned(authorization)) {
-            jwtParser.setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8));
-            Jwt jwt = ThrowingFunction.wrap(() -> jwtParser.parse(authorization));
+            jwtParserBuilder.setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8));
+            JwtParser jwtParserExec = jwtParserBuilder.build();
+            Jwt jwt = ThrowingFunction.wrap(() -> jwtParserExec.parse(authorization));
             if (jwt == null) {
                 return null;
             }

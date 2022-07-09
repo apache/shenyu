@@ -20,7 +20,10 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.OperationRecordLog;
+import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
+import org.springframework.lang.Nullable;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -32,10 +35,11 @@ public interface OperationRecordLogMapper {
     /**
      * select limit.
      *
-     * @param limit limit
+     * @param username username
+     * @param limit    limit
      * @return list
      */
-    List<OperationRecordLog> selectLimit(@Param("limit") Integer limit);
+    List<OperationRecordLog> selectLimit(@Nullable @Param("username") String username, @Param("limit") Integer limit);
     
     /**
      * insert.
@@ -44,4 +48,21 @@ public interface OperationRecordLogMapper {
      * @return count change
      */
     int insert(OperationRecordLog recordLog);
+    
+    /**
+     * select by condition.
+     *
+     * @param condition condition
+     * @return list
+     */
+    List<OperationRecordLog> selectByCondition(@Param("condition") RecordLogQueryCondition condition);
+    
+    
+    /**
+     * delete data before time.
+     *
+     * @param time time
+     * @return time
+     */
+    int deleteByBefore(@Param("time") Date time);
 }

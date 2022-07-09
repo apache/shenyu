@@ -17,6 +17,7 @@
 package org.apache.shenyu.examples.apache.dubbo.service.impl;
 
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
+import org.apache.shenyu.examples.common.aop.Log;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 import org.apache.shenyu.examples.dubbo.api.service.DubboTestService;
@@ -33,6 +34,7 @@ public class DubboTestServiceImpl implements DubboTestService {
     
     @Override
     @ShenyuDubboClient("/findById")
+    @Log
     public DubboTest findById(final String id) {
         return new DubboTest(id, "hello world shenyu Apache, findById");
     }

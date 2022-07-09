@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 
 import com.google.gson.JsonObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.bean.DocModule;
@@ -66,12 +67,15 @@ public class DocManagerImpl implements DocManager {
     /**
      * add docInfo.
      *
-     * @param clusterName   clusterName
+     * @param clusterName clusterName
      * @param docInfoJson docInfoJson
      * @param callback    callback
      */
     @Override
     public void addDocInfo(final String clusterName, final String docInfoJson, final Consumer<DocInfo> callback) {
+        if (StringUtils.isEmpty(docInfoJson)) {
+            return;
+        }
         String newMd5 = DigestUtils.md5DigestAsHex(docInfoJson.getBytes(StandardCharsets.UTF_8));
         String oldMd5 = CLUSTER_MD5_MAP.get(clusterName);
         if (Objects.equals(newMd5, oldMd5)) {

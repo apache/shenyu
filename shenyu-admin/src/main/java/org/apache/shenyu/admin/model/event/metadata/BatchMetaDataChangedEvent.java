@@ -34,9 +34,10 @@ public class BatchMetaDataChangedEvent extends BatchChangedEvent {
     /**
      * Create a new {@code BatchMetaDataChangedEvent}.operator is unknown.
      *
-     * @param source Current metadata state
-     * @param before Before the change metadata state
-     * @param type   event type
+     * @param source   Current metadata state
+     * @param before   Before the change metadata state
+     * @param type     event type
+     * @param operator operator
      */
     public BatchMetaDataChangedEvent(final Collection<MetaDataDO> source, final Collection<MetaDataDO> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);

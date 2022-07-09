@@ -34,5 +34,13 @@
         <module>shenyu-example-spring-reactive-websocket</module>
     </modules>
 
-
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-examples-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

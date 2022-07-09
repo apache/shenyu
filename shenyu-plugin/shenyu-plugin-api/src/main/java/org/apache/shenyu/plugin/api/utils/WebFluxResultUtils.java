@@ -42,7 +42,7 @@ public final class WebFluxResultUtils {
     
     private WebFluxResultUtils() {
     }
-
+    
     /**
      * Response result.
      *
@@ -65,12 +65,12 @@ public final class WebFluxResultUtils {
         final Object responseData = shenyuResult.result(exchange, resultData);
         assert null != responseData;
         final byte[] bytes = (responseData instanceof byte[])
-                ? (byte[]) responseData : responseData.toString().getBytes(StandardCharsets.UTF_8);
+            ? (byte[]) responseData : responseData.toString().getBytes(StandardCharsets.UTF_8);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                        .bufferFactory().wrap(bytes))
-                .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
+            .bufferFactory().wrap(bytes))
+            .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
     }
-
+    
     /**
      * get no selector result.
      *
@@ -83,7 +83,7 @@ public final class WebFluxResultUtils {
         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SELECTOR_NOT_FOUND.getCode(), pluginName + ":" + ShenyuResultEnum.SELECTOR_NOT_FOUND.getMsg(), null);
         return WebFluxResultUtils.result(exchange, error);
     }
-
+    
     /**
      * get no rule result.
      *

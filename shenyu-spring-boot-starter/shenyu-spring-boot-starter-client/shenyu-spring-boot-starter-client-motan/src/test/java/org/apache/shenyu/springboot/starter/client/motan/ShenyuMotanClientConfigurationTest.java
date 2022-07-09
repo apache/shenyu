@@ -18,7 +18,7 @@
 
 package org.apache.shenyu.springboot.starter.client.motan;
 
-import org.apache.shenyu.client.motan.MotanServiceBeanPostProcessor;
+import org.apache.shenyu.client.motan.MotanServiceEventListener;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.mockStatic;
 public class ShenyuMotanClientConfigurationTest {
 
     @Test
-    public void testMotanServiceBeanPostProcessor() {
+    public void testMotanServiceEventListener() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         new ApplicationContextRunner()
@@ -59,8 +59,8 @@ public class ShenyuMotanClientConfigurationTest {
                 "shenyu.client.motan.props[port]=8081"
             )
             .run(context -> {
-                MotanServiceBeanPostProcessor processor = context.getBean("motanServiceBeanPostProcessor", MotanServiceBeanPostProcessor.class);
-                assertNotNull(processor);
+                MotanServiceEventListener motanServiceEventListener = context.getBean("motanServiceEventListener", MotanServiceEventListener.class);
+                assertNotNull(motanServiceEventListener);
             });
         registerUtilsMockedStatic.close();
     }

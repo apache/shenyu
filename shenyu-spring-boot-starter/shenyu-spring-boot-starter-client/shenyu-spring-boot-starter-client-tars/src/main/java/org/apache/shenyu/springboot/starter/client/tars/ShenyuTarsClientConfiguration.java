@@ -19,7 +19,7 @@
 package org.apache.shenyu.springboot.starter.client.tars;
 
 import org.apache.shenyu.client.tars.TarsContextRefreshedEventListener;
-import org.apache.shenyu.client.tars.TarsServiceBeanPostProcessor;
+import org.apache.shenyu.client.tars.TarsServiceBeanEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
@@ -34,19 +34,19 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuTarsClientConfiguration {
-    
+
     /**
      * Tars service bean post processor.
      *
-     * @param clientConfig the client config
+     * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the tars service bean post processor
      */
     @Bean
-    public TarsServiceBeanPostProcessor tarsServiceBeanPostProcessor(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new TarsServiceBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.TARS.getName()), shenyuClientRegisterRepository);
+    public TarsServiceBeanEventListener tarsServiceBeanEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        return new TarsServiceBeanEventListener(clientConfig.getClient().get(RpcTypeEnum.TARS.getName()), shenyuClientRegisterRepository);
     }
-    
+
     /**
      * Tars context refreshed event listener.
      *
