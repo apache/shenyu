@@ -26,49 +26,49 @@ import org.apache.shenyu.spi.Join;
 @Join
 public class KMPContainsPredicateJudge implements PredicateJudge {
 
-	@Override
-	public Boolean judge(final ConditionData conditionData, final String realData) {
-		return KMP.contains(realData, conditionData.getParamValue().trim());
-	}
+    @Override
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        return KMP.contains(realData, conditionData.getParamValue().trim());
+    }
 
-	/**
-	 * KMP algorithm
-	 */
-	static class KMP {
+    /**
+     * KMP algorithm.
+     */
+    static class KMP {
 
-		public static boolean contains(String source, CharSequence target) {
-			int[] next = genNext(target);
+        public static boolean contains(final String source, final CharSequence target) {
+            int[] next = genNext(target);
 
-			for (int i = 0, j = 0; i < source.length(); i++) {
-				while (j > 0 && source.charAt(i) != target.charAt(j)) {
-					j = next[j - 1];
-				}
-				if (source.charAt(i) == target.charAt(j)) {
-					j++;
-				}
-				if (j == target.length()) {
-					return true;
-				}
-			}
-			return false;
-		}
-		
-		private static int[] genNext(CharSequence target) {
-			int[] next = new int[target.length()];
-			
-			for (int i = 1, j = 0; i < target.length(); i++) {
-				while (j > 0 && target.charAt(i) != target.charAt(j)) {
-					j = next[j - 1];
-				}
-				if (target.charAt(i) == target.charAt(j)) {
-					j++;
-				}
-				next[i] = j;
-			}
+            for (int i = 0, j = 0; i < source.length(); i++) {
+                while (j > 0 && source.charAt(i) != target.charAt(j)) {
+                    j = next[j - 1];
+                }
+                if (source.charAt(i) == target.charAt(j)) {
+                    j++;
+                }
+                if (j == target.length()) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
-			return next;
-		}
-		
-	}
-	
+        private static int[] genNext(final CharSequence target) {
+            int[] next = new int[target.length()];
+
+            for (int i = 1, j = 0; i < target.length(); i++) {
+                while (j > 0 && target.charAt(i) != target.charAt(j)) {
+                    j = next[j - 1];
+                }
+                if (target.charAt(i) == target.charAt(j)) {
+                    j++;
+                }
+                next[i] = j;
+            }
+
+            return next;
+        }
+
+    }
+
 }
