@@ -42,6 +42,11 @@
         <dependencies>
             <dependency>
                 <groupId>org.apache.shenyu</groupId>
+                <artifactId>shenyu-examples-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shenyu</groupId>
                 <artifactId>shenyu-examples-dubbo-api</artifactId>
                 <version>${project.version}</version>
             </dependency>

@@ -63,17 +63,17 @@ public class MetaDataController {
     /**
      * Query metadata list.
      *
-     * @param appName     the app name
+     * @param path     the path
      * @param currentPage the current page
      * @param pageSize    the page size
      * @return the shenyu result
      */
     @GetMapping("/queryList")
     @RequiresPermissions("system:meta:list")
-    public ShenyuAdminResult queryList(final String appName,
+    public ShenyuAdminResult queryList(final String path,
                                        @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
                                        @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
-        CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(appName, new PageParameter(currentPage, pageSize)));
+        CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(path, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 

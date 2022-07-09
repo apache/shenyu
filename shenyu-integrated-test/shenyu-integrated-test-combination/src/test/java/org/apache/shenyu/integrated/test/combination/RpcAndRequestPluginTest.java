@@ -31,7 +31,6 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -213,12 +212,6 @@ public final class RpcAndRequestPluginTest extends AbstractPluginDataInit {
 
     private void cleanRateLimiter() throws IOException {
         String res = cleanPluginData(PluginEnum.RATE_LIMITER.getName());
-        assertThat(res, is("success"));
-    }
-
-    @AfterAll
-    public static void cleanAll() throws IOException {
-        String res = cleanPluginData(PluginEnum.DUBBO.getName());
         assertThat(res, is("success"));
     }
 }

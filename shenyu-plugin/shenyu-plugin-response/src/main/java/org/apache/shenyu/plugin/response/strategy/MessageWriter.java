@@ -21,11 +21,13 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * The interface Message writer.
  */
 public interface MessageWriter {
-
+    
     /**
      * Write with exchange and shenyu plugin chain.
      *
@@ -34,4 +36,11 @@ public interface MessageWriter {
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     Mono<Void> writeWith(ServerWebExchange exchange, ShenyuPluginChain chain);
+    
+    /**
+     * Support type list.
+     *
+     * @return the list
+     */
+    List<String> supportTypes();
 }

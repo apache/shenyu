@@ -18,7 +18,7 @@
 package org.apache.shenyu.register.client.zookeeper;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -126,7 +126,7 @@ class ZookeeperClientTest {
 
     @Test
     void getCache() {
-        CuratorCache cache = client.getCache("/test");
+        TreeCache cache = client.getCache("/test");
         assertNull(cache);
 
         client.addCache("/test");
@@ -137,7 +137,7 @@ class ZookeeperClientTest {
     @Test
     void addCache() {
         client.addCache("/test");
-        CuratorCache cache = client.getCache("/test");
+        TreeCache cache = client.getCache("/test");
         assertNotNull(cache);
     }
 }

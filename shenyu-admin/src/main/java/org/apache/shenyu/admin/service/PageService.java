@@ -39,6 +39,7 @@ public interface PageService<Q, R> {
      * @return list
      */
     default PageInfo<R> searchByPage(final PageCondition<Q> pageCondition) {
+        doConditionPreProcessing(pageCondition.getCondition());
         PageHelper.startPage(pageCondition.getPageNum(), pageCondition.getPageSize());
         return new PageInfo<>(searchByCondition(pageCondition.getCondition()));
     }
@@ -64,6 +65,15 @@ public interface PageService<Q, R> {
     default List<R> searchByCondition(final Q condition) {
         // default is empty list, if paged used DB query.
         return new ArrayList<>();
+    }
+    
+    /**
+     * condition preprocessing.
+     *
+     * @param condition condition
+     */
+    default void doConditionPreProcessing(final Q condition) {
+        // default is nothing, override condition.
     }
     
 }

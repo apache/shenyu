@@ -34,9 +34,10 @@ public class BatchDictChangedEvent extends BatchChangedEvent {
     /**
      * Create a new {@code BatchDictChangedEvent}.operator is unknown.
      *
-     * @param source Current dict state
-     * @param before Before the change dict state
-     * @param type   event type
+     * @param source   Current dict state
+     * @param before   Before the change dict state
+     * @param type     event type
+     * @param operator operator
      */
     public BatchDictChangedEvent(final Collection<ShenyuDictDO> source, final Collection<ShenyuDictDO> before, final EventTypeEnum type, final String operator) {
         super(source, before, type, operator);

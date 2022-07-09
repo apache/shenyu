@@ -97,10 +97,10 @@ public final class MetaDataControllerTest {
         final CommonPager<MetaDataVO> commonPager = new CommonPager<>();
         commonPager.setPage(pageParameter);
         commonPager.setDataList(metaDataVOS);
-        final MetaDataQuery metaDataQuery = new MetaDataQuery("appName", pageParameter);
+        final MetaDataQuery metaDataQuery = new MetaDataQuery("path", pageParameter);
         given(this.metaDataService.listByPage(metaDataQuery)).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/queryList")
-                .param("appName", "appName")
+                .param("path", "path")
                 .param("currentPage", pageParameter.getCurrentPage() + "")
                 .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())

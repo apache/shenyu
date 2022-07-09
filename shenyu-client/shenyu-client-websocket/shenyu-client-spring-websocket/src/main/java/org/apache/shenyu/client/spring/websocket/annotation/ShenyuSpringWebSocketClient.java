@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * The interface shenyu client.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target(ElementType.TYPE)
 public @interface ShenyuSpringWebSocketClient {
 
     /**
