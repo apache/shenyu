@@ -22,7 +22,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.elasticsearch.utils.ElasticSearchLogCollectConfigUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,7 +65,7 @@ public class ElasticSearchLogCollectClientTest {
     @Test
     public void testConsume() {
         String msg = "";
-        ElasticSearchLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+        LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
         elasticSearchLogCollectClient.initClient(properties);
         try {
             elasticSearchLogCollectClient.consume(logs);
@@ -79,7 +78,7 @@ public class ElasticSearchLogCollectClientTest {
 
     @Test
     public void testCreateIndex() {
-        ElasticSearchLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+        LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
         elasticSearchLogCollectClient.initClient(properties);
         elasticSearchLogCollectClient.createIndex("test");
     }

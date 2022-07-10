@@ -30,7 +30,6 @@ import org.apache.shenyu.plugin.logging.rocketmq.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.rocketmq.config.LogCollectConfig;
 import org.apache.shenyu.plugin.logging.rocketmq.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
-import org.apache.shenyu.plugin.logging.rocketmq.utils.RocketLogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +64,7 @@ public class LoggingRocketMQPluginDataHandler implements PluginDataHandler {
             LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                     LogCollectConfig.GlobalLogConfig.class);
 
-            RocketLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+            LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
             // start rocketmq producer
             Properties properties = new Properties();
             properties.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic());

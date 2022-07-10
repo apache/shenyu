@@ -19,10 +19,14 @@ package org.apache.shenyu.plugin.aliyun.sls.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Optional;
+
 /**
  * LogCollectConfig.
  */
 public class LogCollectConfig {
+
+    public static final LogCollectConfig INSTANCE = new LogCollectConfig();
 
     private GlobalLogConfig globalLogConfig;
 
@@ -32,7 +36,7 @@ public class LogCollectConfig {
      * @return global log config
      */
     public GlobalLogConfig getGlobalLogConfig() {
-        return globalLogConfig;
+        return Optional.ofNullable(globalLogConfig).orElse(new GlobalLogConfig());
     }
 
     /**
