@@ -19,9 +19,9 @@ package org.apache.shenyu.plugin.logging.elasticsearch.client;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.config.LogCollectConfig;
-import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,15 +37,15 @@ public class ElasticSearchLogCollectClientTest {
 
     private ElasticSearchLogCollectClient elasticSearchLogCollectClient;
 
-    private PluginData pluginData = new PluginData();
+    private final PluginData pluginData = new PluginData();
 
-    private Properties properties = new Properties();
+    private final Properties properties = new Properties();
 
     private LogCollectConfig.GlobalLogConfig globalLogConfig;
 
-    private List<ShenyuRequestLog> logs = new ArrayList<>();
+    private final List<ShenyuRequestLog> logs = new ArrayList<>();
 
-    private ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
+    private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
     @BeforeEach
     public void setUp() {
@@ -54,9 +54,8 @@ public class ElasticSearchLogCollectClientTest {
         pluginData.setConfig("{\"host\":\"localhost\", \"port\":\"9200\"}");
         globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                 LogCollectConfig.GlobalLogConfig.class);
-        properties.setProperty(LoggingConstant.HOST, globalLogConfig.getHost());
-        properties.setProperty(LoggingConstant.PORT, globalLogConfig.getPort());
-
+        properties.setProperty(GenericLoggingConstant.HOST, globalLogConfig.getHost());
+        properties.setProperty(GenericLoggingConstant.PORT, globalLogConfig.getPort());
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
         logs.add(shenyuRequestLog);

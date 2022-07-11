@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.kafka.collector;
 
-import java.lang.reflect.Field;
-
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
@@ -27,12 +25,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+
 /**
  * The Test Case For DefaultLogCollector.
  */
 public class DefaultLogCollectorTest {
 
-    private ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
+    private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
     @BeforeEach
     public void setUp() {

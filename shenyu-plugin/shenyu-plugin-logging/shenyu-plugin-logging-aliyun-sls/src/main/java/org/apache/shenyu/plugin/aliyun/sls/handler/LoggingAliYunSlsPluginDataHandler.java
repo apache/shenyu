@@ -22,11 +22,11 @@ import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.plugin.aliyun.sls.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.aliyun.sls.aliyunsls.AliyunSlsLogCollectClient;
+import org.apache.shenyu.plugin.aliyun.sls.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.aliyun.sls.config.LogCollectConfig;
-import org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,16 +56,16 @@ public class LoggingAliYunSlsPluginDataHandler implements PluginDataHandler {
                 // no data, init client
                 LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
                 Properties properties = new Properties();
-                properties.setProperty(LoggingConstant.ACCESS_ID, globalLogConfig.getAccessId().trim());
-                properties.setProperty(LoggingConstant.ACCESS_KEY, globalLogConfig.getAccessKey().trim());
-                properties.setProperty(LoggingConstant.HOST, globalLogConfig.getHost().trim());
-                properties.setProperty(LoggingConstant.PROJECT_NAME, globalLogConfig.getProjectName().trim());
-                properties.setProperty(LoggingConstant.LOG_STORE, globalLogConfig.getLogStoreName().trim());
-                properties.setProperty(LoggingConstant.TTL_IN_DAY, String.valueOf(globalLogConfig.getTtlInDay()));
-                properties.setProperty(LoggingConstant.SHARD_COUNT, String.valueOf(globalLogConfig.getShardCount()));
-                properties.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic().trim());
-                properties.setProperty(LoggingConstant.SEND_THREAD_COUNT, String.valueOf(globalLogConfig.getSendThreadCount()));
-                properties.setProperty(LoggingConstant.IO_THREAD_COUNT, String.valueOf(globalLogConfig.getIoThreadCount()));
+                properties.setProperty(GenericLoggingConstant.ACCESS_ID, globalLogConfig.getAccessId().trim());
+                properties.setProperty(GenericLoggingConstant.ACCESS_KEY, globalLogConfig.getAccessKey().trim());
+                properties.setProperty(GenericLoggingConstant.HOST, globalLogConfig.getHost().trim());
+                properties.setProperty(GenericLoggingConstant.PROJECT_NAME, globalLogConfig.getProjectName().trim());
+                properties.setProperty(GenericLoggingConstant.LOG_STORE, globalLogConfig.getLogStoreName().trim());
+                properties.setProperty(GenericLoggingConstant.TTL_IN_DAY, String.valueOf(globalLogConfig.getTtlInDay()));
+                properties.setProperty(GenericLoggingConstant.SHARD_COUNT, String.valueOf(globalLogConfig.getShardCount()));
+                properties.setProperty(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic().trim());
+                properties.setProperty(GenericLoggingConstant.SEND_THREAD_COUNT, String.valueOf(globalLogConfig.getSendThreadCount()));
+                properties.setProperty(GenericLoggingConstant.IO_THREAD_COUNT, String.valueOf(globalLogConfig.getIoThreadCount()));
 
                 // init aliyun sls client
                 ALIYUN_SLS_LOG_COLLECT_CLIENT.initClient(properties);

@@ -88,11 +88,11 @@ public final class LoggingElasticSearchPluginTest {
 
     @Test
     public void testGetOrder() {
-        Assertions.assertEquals(loggingElasticSearchPlugin.getOrder(), PluginEnum.LOGGING_ElasticSearch.getCode());
+        Assertions.assertEquals(loggingElasticSearchPlugin.getOrder(), PluginEnum.LOGGING_ELASTIC_SEARCH.getCode());
     }
 
     @Test
     public void testNamed() {
-        Assertions.assertEquals(loggingElasticSearchPlugin.named(), PluginEnum.LOGGING_ElasticSearch.getName());
+        Assertions.assertEquals(loggingElasticSearchPlugin.named(), PluginEnum.LOGGING_ELASTIC_SEARCH.getName());
     }
 }

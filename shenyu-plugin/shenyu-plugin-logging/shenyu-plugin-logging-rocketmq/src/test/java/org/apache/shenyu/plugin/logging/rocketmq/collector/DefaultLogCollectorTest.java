@@ -32,7 +32,7 @@ import java.lang.reflect.Field;
  */
 public class DefaultLogCollectorTest {
 
-    private ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
+    private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
     @BeforeEach
     public void setUp() {

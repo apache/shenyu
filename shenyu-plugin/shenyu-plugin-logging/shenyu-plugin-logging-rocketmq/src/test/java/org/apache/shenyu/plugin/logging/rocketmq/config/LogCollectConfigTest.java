@@ -26,8 +26,6 @@ import org.junit.jupiter.api.Test;
  */
 public class LogCollectConfigTest {
 
-    private LogCollectConfig logCollectConfig = new LogCollectConfig();
-
     @Test
     public void testSetLogApiConfigTopic() {
         LogCollectConfig.LogApiConfig logApiConfig = new LogCollectConfig.LogApiConfig();
@@ -86,13 +84,14 @@ public class LogCollectConfigTest {
 
     @Test
     public void testGetGlobalLogConfig() {
+        LogCollectConfig logCollectConfig = new LogCollectConfig();
         LogCollectConfig.GlobalLogConfig globalLogConfig = new LogCollectConfig.GlobalLogConfig();
         logCollectConfig.setGlobalLogConfig(globalLogConfig);
         Assertions.assertEquals(logCollectConfig.getGlobalLogConfig(), globalLogConfig);
     }
 
     @Test
-    public void testtCompressAlg() {
+    public void testCompressAlg() {
         LogCollectConfig.GlobalLogConfig globalLogConfig = new LogCollectConfig.GlobalLogConfig();
         globalLogConfig.setCompressAlg("LZ4");
         Assertions.assertEquals(globalLogConfig.getCompressAlg(), "LZ4");

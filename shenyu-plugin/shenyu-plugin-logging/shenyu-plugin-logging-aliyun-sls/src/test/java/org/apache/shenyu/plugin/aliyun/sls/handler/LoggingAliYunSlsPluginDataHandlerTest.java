@@ -33,7 +33,7 @@ public class LoggingAliYunSlsPluginDataHandlerTest {
 
     private LoggingAliYunSlsPluginDataHandler loggingAliYunSlsPluginDataHandler;
 
-    private PluginData pluginData = new PluginData();
+    private final PluginData pluginData = new PluginData();
 
     @BeforeEach
     public void setUp() {

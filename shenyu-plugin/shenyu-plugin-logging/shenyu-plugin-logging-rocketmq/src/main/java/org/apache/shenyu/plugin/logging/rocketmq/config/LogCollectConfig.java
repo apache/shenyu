@@ -183,5 +183,4 @@ public class LogCollectConfig {
             this.topic = topic;
         }
     }
-
 }
