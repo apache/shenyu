@@ -94,14 +94,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         // set the http url
         String domain = upstream.buildDomain();
-        exchange.getAttributes().put(Constants.HTTP_DOMAIN,  StringUtils.defaultString(domain));
+        exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
         // set retry strategy stuff
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultString(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultString(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
-        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID,  selector.getId());
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
         return chain.execute(exchange);
     }
 
