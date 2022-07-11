@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.divide;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -91,14 +92,15 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         // set the http url
         String domain = upstream.buildDomain();
-        exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
+
+        exchange.getAttributes().put(Constants.HTTP_DOMAIN,  StringUtils.defaultString(domain));
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
         // set retry strategy stuff
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, ruleHandle.getRetryStrategy());
         exchange.getAttributes().put(Constants.LOAD_BALANCE, ruleHandle.getLoadBalance());
-        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID,  StringUtils.defaultString(selector.getId()));
         return chain.execute(exchange);
     }
 
