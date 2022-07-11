@@ -92,7 +92,6 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         // set the http url
         String domain = upstream.buildDomain();
-
         exchange.getAttributes().put(Constants.HTTP_DOMAIN,  StringUtils.defaultString(domain));
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
