@@ -20,6 +20,7 @@ package org.apache.shenyu.common.concurrent;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * {@link java.lang.Runtime#freeMemory()} technology is used to calculate the
@@ -32,16 +33,26 @@ public class MemoryLimitCalculator {
 
     private static volatile long maxAvailable;
 
-    private static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor();
+    private static final AtomicBoolean REFRESH_STARTED = new AtomicBoolean(false);
 
-    static {
-        // immediately refresh when this class is loaded to prevent maxAvailable from being 0
-        refresh();
-        // check every 50 ms to improve performance
-        SCHEDULER.scheduleWithFixedDelay(MemoryLimitCalculator::refresh, 50, 50, TimeUnit.MILLISECONDS);
-        Runtime.getRuntime().addShutdownHook(new Thread(SCHEDULER::shutdown));
+    private static void checkAndScheduleRefresh() {
+        if (!REFRESH_STARTED.get()) {
+            // see https://github.com/apache/dubbo/pull/10178
+            refresh();
+            if (REFRESH_STARTED.compareAndSet(false, true)) {
+                ScheduledExecutorService scheduledExecutorService =
+                        Executors.newSingleThreadScheduledExecutor(ShenyuThreadFactory.create("Shenyu-Memory-Calculator-", false));
+                // check every 50 ms to improve performance
+                scheduledExecutorService.scheduleWithFixedDelay(MemoryLimitCalculator::refresh, 50, 50, TimeUnit.MILLISECONDS);
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    REFRESH_STARTED.set(false);
+                    scheduledExecutorService.shutdown();
+                }
+                ));
+            }
+        }
     }
-
+    
     private static void refresh() {
         maxAvailable = Runtime.getRuntime().freeMemory();
     }
@@ -52,6 +63,7 @@ public class MemoryLimitCalculator {
      * @return maximum available memory
      */
     public static long maxAvailable() {
+        checkAndScheduleRefresh();
         return maxAvailable;
     }
 
@@ -66,6 +78,7 @@ public class MemoryLimitCalculator {
         if (percentage <= 0 || percentage > 1) {
             throw new IllegalArgumentException();
         }
+        checkAndScheduleRefresh();
         return (long) (maxAvailable() * percentage);
     }
 
@@ -75,6 +88,7 @@ public class MemoryLimitCalculator {
      * @return available memory
      */
     public static long defaultLimit() {
+        checkAndScheduleRefresh();
         return (long) (maxAvailable() * 0.8);
     }
 }

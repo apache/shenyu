@@ -29,6 +29,7 @@ import com.coreos.jetcd.options.GetOption;
 import com.coreos.jetcd.options.WatchOption;
 import com.coreos.jetcd.watch.WatchResponse;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,10 +66,7 @@ public class EtcdClient {
                 DEFAULT_CORE_POOL_SIZE, DEFAULT_CORE_POOL_SIZE * 2,
                 0L, TimeUnit.NANOSECONDS,
                 new ArrayBlockingQueue<>(DEFAULT_QUEUE_SIZE),
-                new ThreadFactoryBuilder()
-                        .setNameFormat("etcd register center watch-%d")
-                        .setDaemon(true)
-                        .build());
+                ShenyuThreadFactory.create("etcd register center watch-", true));
 
         this.client = Client.builder().endpoints(urls.split(",")).build();
 
