@@ -247,7 +247,7 @@ create table meta_data
     id              VARCHAR2(128) not null,
     app_name        VARCHAR2(255) not null,
     path            VARCHAR2(255) not null,
-    path_desc       VARCHAR2(255) not null,
+    path_desc       VARCHAR2(255),
     rpc_type        VARCHAR2(64) not null,
     service_name    VARCHAR2(255),
     method_name     VARCHAR2(255),
