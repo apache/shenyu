@@ -37,11 +37,11 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
 
     private LoggingElasticSearchPluginDataHandler loggingElasticSearchPluginDataHandler;
 
-    private SelectorData selectorData = new SelectorData();
+    private final SelectorData selectorData = new SelectorData();
 
-    private ConditionData conditionData = new ConditionData();
+    private final ConditionData conditionData = new ConditionData();
 
-    private PluginData pluginData = new PluginData();
+    private final PluginData pluginData = new PluginData();
 
     @BeforeEach
     public void setUp() {

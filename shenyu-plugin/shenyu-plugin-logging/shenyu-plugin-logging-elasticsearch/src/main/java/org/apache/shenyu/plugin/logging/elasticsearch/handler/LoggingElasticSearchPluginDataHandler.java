@@ -26,10 +26,10 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
 import org.apache.shenyu.plugin.logging.elasticsearch.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.elasticsearch.config.LogCollectConfig;
-import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * The type logging elasticsearch plugin data handler.
  */
 public class LoggingElasticSearchPluginDataHandler implements PluginDataHandler {
+    
     private static final Logger LOG = LoggerFactory.getLogger(LoggingElasticSearchPluginDataHandler.class);
 
     private static final ElasticSearchLogCollectClient ELASTICSEARCH_LOG_COLLECT_CLIENT = new ElasticSearchLogCollectClient();
@@ -65,8 +66,8 @@ public class LoggingElasticSearchPluginDataHandler implements PluginDataHandler 
 
             LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
             Properties properties = new Properties();
-            properties.setProperty(LoggingConstant.HOST, globalLogConfig.getHost());
-            properties.setProperty(LoggingConstant.PORT, globalLogConfig.getPort());
+            properties.setProperty(GenericLoggingConstant.HOST, globalLogConfig.getHost());
+            properties.setProperty(GenericLoggingConstant.PORT, globalLogConfig.getPort());
             ELASTICSEARCH_LOG_COLLECT_CLIENT.initClient(properties);
             DefaultLogCollector.getInstance().start();
         } else {
@@ -89,7 +90,6 @@ public class LoggingElasticSearchPluginDataHandler implements PluginDataHandler 
                 || CollectionUtils.isEmpty(selectorData.getConditionList())) {
             return;
         }
-
         LogCollectConfig.LogApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson,
                 LogCollectConfig.LogApiConfig.class);
         if (StringUtils.isBlank(logApiConfig.getIndex()) || StringUtils.isBlank(logApiConfig.getSampleRate())) {
@@ -115,12 +115,12 @@ public class LoggingElasticSearchPluginDataHandler implements PluginDataHandler 
 
     @Override
     public String pluginNamed() {
-        return PluginEnum.LOGGING_ElasticSearch.getName();
+        return PluginEnum.LOGGING_ELASTIC_SEARCH.getName();
     }
 
     /**
      * get elasticsearch log collect client.
-     * @return elastcisearch log collect client.
+     * @return elasticsearch log collect client.
      */
     public static ElasticSearchLogCollectClient getElasticSearchLogCollectClient() {
         return ELASTICSEARCH_LOG_COLLECT_CLIENT;

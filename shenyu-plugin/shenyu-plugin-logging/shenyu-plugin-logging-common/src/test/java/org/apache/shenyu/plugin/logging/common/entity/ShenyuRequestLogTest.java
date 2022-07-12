@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
  */
 public class ShenyuRequestLogTest {
 
-    private ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
+    private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
     @Test
     public void testGetModule() {

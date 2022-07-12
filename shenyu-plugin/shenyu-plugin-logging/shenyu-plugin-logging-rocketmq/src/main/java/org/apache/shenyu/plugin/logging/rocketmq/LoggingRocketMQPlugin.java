@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.logging.rocketmq;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
@@ -32,16 +33,13 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import static org.apache.shenyu.common.enums.PluginEnum.LOGGING_ROCKETMQ;
+import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.HOST;
+import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.USER_AGENT;
 
 /**
  * Integrated rocketmq collect log.
  */
 public class LoggingRocketMQPlugin extends AbstractShenyuPlugin {
-
-    private static final String USER_AGENT = "User-Agent";
-
-    private static final String HOST = "Host";
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
@@ -51,7 +49,6 @@ public class LoggingRocketMQPlugin extends AbstractShenyuPlugin {
         if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
             return chain.execute(exchange);
         }
-
         ShenyuRequestLog requestInfo = new ShenyuRequestLog();
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethodValue());
@@ -61,14 +58,12 @@ public class LoggingRocketMQPlugin extends AbstractShenyuPlugin {
         requestInfo.setUserAgent(request.getHeaders().getFirst(USER_AGENT));
         requestInfo.setHost(request.getHeaders().getFirst(HOST));
         requestInfo.setPath(request.getURI().getPath());
-
         LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
         LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
                 requestInfo, DefaultLogCollector.getInstance());
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
                 .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);
-
         return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
     }
 
@@ -79,7 +74,7 @@ public class LoggingRocketMQPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public int getOrder() {
-        return LOGGING_ROCKETMQ.getCode();
+        return PluginEnum.LOGGING_ROCKETMQ.getCode();
     }
 
     /**
@@ -89,6 +84,6 @@ public class LoggingRocketMQPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public String named() {
-        return LOGGING_ROCKETMQ.getName();
+        return PluginEnum.LOGGING_ROCKETMQ.getName();
     }
 }

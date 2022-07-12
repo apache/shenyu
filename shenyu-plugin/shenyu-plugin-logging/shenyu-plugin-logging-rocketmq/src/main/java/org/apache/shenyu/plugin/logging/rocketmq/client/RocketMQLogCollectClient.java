@@ -26,16 +26,17 @@ import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.rocketmq.config.LogCollectConfig;
-import org.apache.shenyu.plugin.logging.rocketmq.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.rocketmq.utils.RocketLogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -67,9 +68,9 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
         if (isStarted.get()) {
             close();
         }
-        String topic = props.getProperty(LoggingConstant.TOPIC);
-        String nameserverAddress = props.getProperty(LoggingConstant.NAMESERVER_ADDRESS);
-        String producerGroup = props.getProperty(LoggingConstant.PRODUCER_GROUP, DEFAULT_PRODUCER_GROUP);
+        String topic = props.getProperty(GenericLoggingConstant.TOPIC);
+        String nameserverAddress = props.getProperty(GenericLoggingConstant.NAMESERVER_ADDRESS);
+        String producerGroup = props.getProperty(GenericLoggingConstant.PRODUCER_GROUP, DEFAULT_PRODUCER_GROUP);
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init RocketMQLogCollectClient error, please check topic or nameserverAddress");
             return;
@@ -132,7 +133,7 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
      */
     @Override
     public void close() {
-        if (producer != null && isStarted.get()) {
+        if (Objects.nonNull(producer) && isStarted.get()) {
             producer.shutdown();
             isStarted.set(false);
         }

@@ -35,13 +35,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class LoggingRocketMQPluginDataHandlerTest {
 
+    private final SelectorData selectorData = new SelectorData();
+
+    private final ConditionData conditionData = new ConditionData();
+
+    private final PluginData pluginData = new PluginData();
+    
     private LoggingRocketMQPluginDataHandler loggingRocketMQPluginDataHandler;
-
-    private SelectorData selectorData = new SelectorData();
-
-    private ConditionData conditionData = new ConditionData();
-
-    private PluginData pluginData = new PluginData();
 
     @BeforeEach
     public void setUp() {

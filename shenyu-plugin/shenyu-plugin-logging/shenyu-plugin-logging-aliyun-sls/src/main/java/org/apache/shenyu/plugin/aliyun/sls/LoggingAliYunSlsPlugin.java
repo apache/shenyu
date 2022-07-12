@@ -33,8 +33,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import static org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant.HOST;
-import static org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant.USER_AGENT;
+import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.HOST;
+import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.USER_AGENT;
 
 /**
  * LoggingAliYunSlsPlugin send log to aliyun sls service.
@@ -49,7 +49,6 @@ public class LoggingAliYunSlsPlugin extends AbstractShenyuPlugin {
         if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
             return chain.execute(exchange);
         }
-
         ShenyuRequestLog requestInfo = new ShenyuRequestLog();
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethodValue());
@@ -59,14 +58,12 @@ public class LoggingAliYunSlsPlugin extends AbstractShenyuPlugin {
         requestInfo.setUserAgent(request.getHeaders().getFirst(USER_AGENT));
         requestInfo.setHost(request.getHeaders().getFirst(HOST));
         requestInfo.setPath(request.getURI().getPath());
-
         LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
         LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
                 requestInfo, DefaultLogCollector.getInstance());
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
                 .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);
-
         return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
     }
 

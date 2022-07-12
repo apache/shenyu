@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * The Test Case For BodyWriter.
@@ -39,12 +40,12 @@ public class BodyWriterTest {
     public void setUp() throws UnsupportedEncodingException {
         this.writer = new BodyWriter();
         this.sendString = "hello, shenyu";
-        byteBuffer = ByteBuffer.wrap(sendString.getBytes("UTF-8"));
+        byteBuffer = ByteBuffer.wrap(sendString.getBytes(StandardCharsets.UTF_8));
     }
 
     @Test
-    public void testWrite() throws UnsupportedEncodingException {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(sendString.getBytes("UTF-8"));
+    public void testWrite() {
+        ByteBuffer byteBuffer = ByteBuffer.wrap(sendString.getBytes(StandardCharsets.UTF_8));
         writer.write(byteBuffer.asReadOnlyBuffer());
         String res = writer.output();
         Assertions.assertEquals(res, "hello, shenyu");
@@ -52,7 +53,7 @@ public class BodyWriterTest {
 
     @Test
     public void testIsEmpty() {
-        Assertions.assertEquals(writer.isEmpty(), true);
+        Assertions.assertTrue(writer.isEmpty());
     }
 
     @Test

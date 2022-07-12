@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -47,31 +48,31 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
 
-    private static final String TEST_LOGGINGELASTICSEARCH_PATH = "/http/post/hi";
+    private static final String LOGGING_ELASTIC_SEARCH_PATH = "/http/post/hi";
 
-    private RestClient restClient;
+    private static RestClient restClient;
 
-    private ElasticsearchTransport transport;
+    private static ElasticsearchTransport transport;
 
-    private ElasticsearchClient client;
+    private static ElasticsearchClient client;
 
     @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.LOGGING_ElasticSearch.getName(), "{\"host\":\"shenyu-elasticsearch\", \"port\": \"9200\"}");
+        String pluginResult = initPlugin(PluginEnum.LOGGING_ELASTIC_SEARCH.getName(), "{\"host\":\"shenyu-elasticsearch\", \"port\": \"9200\"}");
         assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.LOGGING_ElasticSearch.getName(),
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.LOGGING_ELASTIC_SEARCH.getName(),
                 "", buildSelectorConditionList(), buildRuleLocalDataList());
         assertThat(selectorAndRulesResult, is("success"));
-    }
-
-    @Test
-    public void testElasticSearchPlugin() throws Exception {
         restClient = RestClient
                 .builder(new HttpHost("localhost", 9200))
                 .build();
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
-        String result = HttpHelper.INSTANCE.postGateway(TEST_LOGGINGELASTICSEARCH_PATH, String.class);
+    }
+
+    @Test
+    public void testElasticSearchPlugin() throws Exception {
+        String result = HttpHelper.INSTANCE.postGateway(LOGGING_ELASTIC_SEARCH_PATH, String.class);
         assertNotNull(result);
         Thread.sleep(3000);
         BooleanResponse existsResponse = client.indices().exists(c -> c.index("shenyu-access-logging"));
@@ -79,7 +80,7 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
         SearchResponse<ShenyuRequestLog> searchResponse = client.search(a -> a.index("shenyu-access-logging"), ShenyuRequestLog.class);
         ShenyuRequestLog shenyuRequestLog = searchResponse.hits().hits()
                 .get(searchResponse.hits().hits().size() - 1).source();
-        assertThat(shenyuRequestLog.getMethod(), is("/http/post/hi"));
+        assertThat(Objects.requireNonNull(shenyuRequestLog).getMethod(), is("/http/post/hi"));
     }
 
     private static List<ConditionData> buildSelectorConditionList() {
@@ -102,6 +103,8 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
 
     @AfterAll
     public static void clean() throws IOException {
-        cleanPluginData(PluginEnum.LOGGING_ElasticSearch.getName());
+        restClient.close();
+        transport.close();
+        cleanPluginData(PluginEnum.LOGGING_ELASTIC_SEARCH.getName());
     }
 }

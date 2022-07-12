@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
  */
 public class LogCollectConfigTest {
 
-    private LogCollectConfig.GlobalLogConfig globalLogConfig = new LogCollectConfig.GlobalLogConfig();
+    private final LogCollectConfig.GlobalLogConfig globalLogConfig = new LogCollectConfig.GlobalLogConfig();
 
     @Test
     public void testLogCollectorConfigHost() {

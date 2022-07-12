@@ -38,8 +38,8 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -87,20 +88,20 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
         if (isStarted.get()) {
             close();
         }
-        String accessId = props.getProperty(LoggingConstant.ACCESS_ID);
-        String accessKey = props.getProperty(LoggingConstant.ACCESS_KEY);
-        String host = props.getProperty(LoggingConstant.HOST);
+        String accessId = props.getProperty(GenericLoggingConstant.ACCESS_ID);
+        String accessKey = props.getProperty(GenericLoggingConstant.ACCESS_KEY);
+        String host = props.getProperty(GenericLoggingConstant.HOST);
         if (StringUtils.isBlank(accessId) || StringUtils.isBlank(accessKey) || StringUtils.isBlank(host)) {
             LOG.error("init aliyun sls client error, please check accessId, accessKey or host");
             return;
         }
         client = new Client(host, accessId, accessKey);
         // create LogStore, if you don't create logStore, shenyu will do it.
-        projectName = props.getProperty(LoggingConstant.PROJECT_NAME);
-        topic = props.getProperty(LoggingConstant.TOPIC);
-        logStore = props.getProperty(LoggingConstant.LOG_STORE);
-        int ttlInDay = Integer.parseInt(props.getProperty(LoggingConstant.TTL_IN_DAY));
-        int shardCount = Integer.parseInt(props.getProperty(LoggingConstant.SHARD_COUNT));
+        projectName = props.getProperty(GenericLoggingConstant.PROJECT_NAME);
+        topic = props.getProperty(GenericLoggingConstant.TOPIC);
+        logStore = props.getProperty(GenericLoggingConstant.LOG_STORE);
+        int ttlInDay = Integer.parseInt(props.getProperty(GenericLoggingConstant.TTL_IN_DAY));
+        int shardCount = Integer.parseInt(props.getProperty(GenericLoggingConstant.SHARD_COUNT));
         // init projectConfig, producer, logStore
         ProjectConfig projectConfig = new ProjectConfig(projectName, host, accessId, accessKey);
         producer = createProducer(props, projectConfig);
@@ -130,7 +131,7 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
 
     @Override
     public void close() {
-        if (client != null && isStarted.get()) {
+        if (Objects.nonNull(client) && isStarted.get()) {
             isStarted.set(false);
             client.shutdown();
             try {
@@ -147,15 +148,14 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
      * @param log log
      */
     private void sendLog(final ShenyuRequestLog log) {
-        final List<LogItem> logGroup = new ArrayList<LogItem>();
+        final List<LogItem> logGroup = new ArrayList<>();
         LogItem logItem = new LogItem((int) (System.currentTimeMillis() / 1000));
         logItem.PushBack("level", "info");
         logItem.PushBack("name", log.getRequestUri());
         logItem.PushBack("message", GsonUtils.getGson().toJson(log));
         logGroup.add(logItem);
-
         try {
-            ListenableFuture<Result> f = producer.send(projectName, logStore, topic, LoggingConstant.DEFAULT_SOURCE, logGroup);
+            ListenableFuture<Result> f = producer.send(projectName, logStore, topic, GenericLoggingConstant.DEFAULT_SOURCE, logGroup);
             Futures.addCallback(f, new ProducerFutureCallback(projectName, logStore), threadExecutor);
         } catch (InterruptedException e) {
             LOG.warn("The current thread has been interrupted during send logs.");
@@ -178,10 +178,10 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
      * @return {@linkplain Producer}
      */
     private static Producer createProducer(final Properties props, final ProjectConfig projectConfig) {
-        int ioThreadCount = Integer.parseInt(props.getProperty(LoggingConstant.IO_THREAD_COUNT));
-        if (ioThreadCount > LoggingConstant.MAX_ALLOW_THREADS) {
+        int ioThreadCount = Integer.parseInt(props.getProperty(GenericLoggingConstant.IO_THREAD_COUNT));
+        if (ioThreadCount > GenericLoggingConstant.MAX_ALLOW_THREADS) {
             LOG.warn("io thread count number too large!");
-            ioThreadCount = LoggingConstant.MAX_ALLOW_THREADS;
+            ioThreadCount = GenericLoggingConstant.MAX_ALLOW_THREADS;
         }
         ProducerConfig producerConfig = new ProducerConfig();
         producerConfig.setIoThreadCount(ioThreadCount);
@@ -198,13 +198,13 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
      * @return ThreadPoolExecutor
      */
     private static ThreadPoolExecutor createThreadPoolExecutor(final Properties props) {
-        int sendThreadCount = Integer.parseInt(props.getProperty(LoggingConstant.SEND_THREAD_COUNT));
-        if (sendThreadCount > LoggingConstant.MAX_ALLOW_THREADS) {
+        int sendThreadCount = Integer.parseInt(props.getProperty(GenericLoggingConstant.SEND_THREAD_COUNT));
+        if (sendThreadCount > GenericLoggingConstant.MAX_ALLOW_THREADS) {
             LOG.warn("send thread count number too large!");
-            sendThreadCount = LoggingConstant.MAX_ALLOW_THREADS;
+            sendThreadCount = GenericLoggingConstant.MAX_ALLOW_THREADS;
         }
-        return new ThreadPoolExecutor(sendThreadCount, LoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MICROSECONDS,
-                new LinkedBlockingQueue<>(LoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-aliyun-sls", true),
+        return new ThreadPoolExecutor(sendThreadCount, GenericLoggingConstant.MAX_ALLOW_THREADS, 60000L, TimeUnit.MICROSECONDS,
+                new LinkedBlockingQueue<>(GenericLoggingConstant.MAX_QUEUE_NUMBER), ShenyuThreadFactory.create("shenyu-aliyun-sls", true),
                 new ThreadPoolExecutor.AbortPolicy());
     }
 
@@ -230,12 +230,12 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
         }
 
         @Override
-        public void onFailure(final Throwable t) {
-            if (t instanceof ResultFailedException) {
-                Result result = ((ResultFailedException) t).getResult();
+        public void onFailure(final Throwable throwable) {
+            if (throwable instanceof ResultFailedException) {
+                Result result = ((ResultFailedException) throwable).getResult();
                 LOGGER.error("Failed to send logs, project={}, logStore={}, result={}", project, logStore, result);
             } else {
-                LOGGER.error("Failed to send log, e={}", t.getMessage());
+                LOGGER.error("Failed to send log, e={}", throwable.getMessage());
             }
         }
     }
