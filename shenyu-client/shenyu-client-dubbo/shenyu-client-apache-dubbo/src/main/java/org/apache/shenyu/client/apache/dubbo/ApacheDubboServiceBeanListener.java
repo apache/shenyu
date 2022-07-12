@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.apache.dubbo;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.spring.ServiceBean;
