@@ -15,16 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.mock;
+package org.apache.shenyu.plugin.mock.generator;
+
+import org.apache.shenyu.spi.SPI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.shenyu.spi.SPI;
 
 /**
- * Abstract generator.
+ * Context generator.
  */
 @SPI
 public interface Generator<T> {

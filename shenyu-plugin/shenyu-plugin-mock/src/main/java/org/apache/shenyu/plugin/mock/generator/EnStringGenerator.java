@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.plugin.mock.util.RandomUtil;
 import org.apache.shenyu.spi.Join;
+
+import java.util.List;
 
 /**
  * Random english string generator.
