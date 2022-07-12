@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.util;
+package org.apache.shenyu.plugin.mock.generator;
+
+import org.apache.shenyu.spi.ExtensionLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.shenyu.plugin.base.mock.Generator;
-import org.apache.shenyu.spi.ExtensionLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * GeneratorFactory.

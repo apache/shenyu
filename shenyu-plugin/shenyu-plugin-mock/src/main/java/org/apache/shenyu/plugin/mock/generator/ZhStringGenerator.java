@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.shenyu.spi.Join;
+
 import java.util.List;
 import java.util.Random;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.shenyu.plugin.base.mock.Generator;
-import org.apache.shenyu.spi.Join;
 
 /**
  * Random length Chinese string generator.

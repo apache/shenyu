@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.mock;
 
-import java.nio.charset.StandardCharsets;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.MockHandle;
@@ -25,12 +24,14 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.mock.generator.GeneratorFactory;
 import org.apache.shenyu.plugin.mock.handler.MockPluginHandler;
-import org.apache.shenyu.plugin.mock.util.GeneratorFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * MockPlugin.
@@ -38,17 +39,12 @@ import reactor.core.publisher.Mono;
 public class MockPlugin extends AbstractShenyuPlugin {
     
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange,
-        final ShenyuPluginChain chain,
-        final SelectorData selector,
-        final RuleData rule) {
-        MockHandle mockHandle = MockPluginHandler.CACHED_HANDLE.get()
-            .obtainHandle(CacheKeyUtils.INST.getKey(rule));
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                   final SelectorData selector, final RuleData rule) {
+        MockHandle mockHandle = MockPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         String replaceContent = GeneratorFactory.dealRule(mockHandle.getResponseContent());
-        
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
         exchange.getResponse().setStatusCode(HttpStatus.valueOf(mockHandle.getHttpStatusCode()));
-        
         final byte[] bytes = replaceContent.getBytes(StandardCharsets.UTF_8);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
             .bufferFactory().wrap(bytes))
@@ -65,5 +61,4 @@ public class MockPlugin extends AbstractShenyuPlugin {
     public String named() {
         return PluginEnum.MOCK.getName();
     }
-    
 }

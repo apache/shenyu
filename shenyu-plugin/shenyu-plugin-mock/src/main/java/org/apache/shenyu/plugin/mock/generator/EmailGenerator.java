@@ -17,11 +17,10 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.spi.Join;
+
 import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomInt;
 import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomLowerLetterString;
-
-import org.apache.shenyu.plugin.base.mock.Generator;
-import org.apache.shenyu.spi.Join;
 
 /**
  * Random email address generator.
@@ -29,8 +28,7 @@ import org.apache.shenyu.spi.Join;
 @Join
 public class EmailGenerator implements Generator<String> {
     
-    private static final String[] DOMAIN_SUFFIX = {"com", "org", "cn", "com.cn", "top", "edu",
-        "io"};
+    private static final String[] DOMAIN_SUFFIX = {"com", "org", "cn", "com.cn", "top", "edu", "io"};
     
     @Override
     public String getName() {
