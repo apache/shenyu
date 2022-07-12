@@ -17,12 +17,18 @@
 
 package org.apache.shenyu.plugin.logging.kafka.config;
 
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
+
+import java.util.Optional;
+
 /**
  * log collect config, include kafka config.
  * Topic and nameserver must be included, and others are optional.
  * We should operate the configuration through admin instead of the configuration file.
  */
 public class LogCollectConfig {
+
+    public static final LogCollectConfig INSTANCE = new LogCollectConfig();
 
     private GlobalLogConfig globalLogConfig;
 
@@ -32,7 +38,7 @@ public class LogCollectConfig {
      * @return global log config
      */
     public GlobalLogConfig getGlobalLogConfig() {
-        return globalLogConfig;
+        return Optional.ofNullable(globalLogConfig).orElse(new GlobalLogConfig());
     }
 
     /**
@@ -47,46 +53,14 @@ public class LogCollectConfig {
     /**
      * global log config.
      */
-    public static class GlobalLogConfig {
+    public static class GlobalLogConfig extends GenericGlobalConfig {
         private String topic;
 
         private String namesrvAddr;
 
         private String producerGroup;
 
-        private String sampleRate = "1";
-
         private String compressAlg;
-
-        /**
-         * default 512KB.
-         */
-        private int maxResponseBody = 524288;
-
-        /**
-         * default 512kb.
-         */
-        private int maxRequestBody = 524288;
-
-        private int bufferQueueSize = 50000;
-
-        /**
-         * get sample rate.
-         *
-         * @return sample
-         */
-        public String getSampleRate() {
-            return sampleRate;
-        }
-
-        /**
-         * set sample rate.
-         *
-         * @param sampleRate rate
-         */
-        public void setSampleRate(final String sampleRate) {
-            this.sampleRate = sampleRate;
-        }
 
         /**
          * whether compress.
@@ -122,60 +96,6 @@ public class LogCollectConfig {
          */
         public void setTopic(final String topic) {
             this.topic = topic;
-        }
-
-        /**
-         * get max response body.
-         *
-         * @return get max response body
-         */
-        public int getMaxResponseBody() {
-            return maxResponseBody;
-        }
-
-        /**
-         * set max response body.
-         *
-         * @param maxResponseBody max response body
-         */
-        public void setMaxResponseBody(final int maxResponseBody) {
-            this.maxResponseBody = maxResponseBody;
-        }
-
-        /**
-         * get max request body.
-         *
-         * @return max request body
-         */
-        public int getMaxRequestBody() {
-            return maxRequestBody;
-        }
-
-        /**
-         * set max request body.
-         *
-         * @param maxRequestBody max request body
-         */
-        public void setMaxRequestBody(final int maxRequestBody) {
-            this.maxRequestBody = maxRequestBody;
-        }
-
-        /**
-         * get buffer queue size.
-         *
-         * @return buffer queue size
-         */
-        public int getBufferQueueSize() {
-            return bufferQueueSize;
-        }
-
-        /**
-         * set buffer queue size.
-         *
-         * @param bufferQueueSize buffer queue size
-         */
-        public void setBufferQueueSize(final int bufferQueueSize) {
-            this.bufferQueueSize = bufferQueueSize;
         }
 
         /**

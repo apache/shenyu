@@ -594,6 +594,8 @@ INSERT INTO `plugin` VALUES ('6', 'dubbo', '{\"register\":\"zookeeper://localhos
 INSERT INTO `plugin` VALUES ('8', 'springCloud', NULL, 'Proxy', 200, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('9', 'hystrix', NULL, 'FaultTolerance', 130, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('32', 'loggingElasticSearch','{\"host\":\"localhost\", \"port\": \"9200\"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin` VALUES ('33', 'loggingKafka','{\"host\":\"localhost\", \"port\": \"8082\"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-02 22:00:00');
+INSERT INTO `plugin` VALUES ('34', 'loggingAliyunSls','{\"projectName\": \"shenyu\", \"logStoreName\": \"shenyu-logstore\, \"topic\": \"shenyu-topic\"}', 'Logging', 175, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
 -- ----------------------------
 -- Table structure for plugin_handle
@@ -788,8 +790,27 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172880', '32', 'maxRequestBody
 INSERT INTO `plugin_handle` VALUES ('1529402613204172881', '32', 'compressAlg', 'compressAlg', 3, 3, 6, '{\"required\":\"0\",\"defaultValue\":\"none\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172882', '32', 'index', 'index', 2, 1, 1, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172883', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{\"required\":\"0\",\"defaultValue\":\"\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-
-
+INSERT INTO `plugin_handle` VALUES ('1529402613204172884', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}', '2022-06-29 10:08:02', '2022-06-29 10:08:02');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172885', '33', 'topic', 'topic', 2, 3, 1, '{\"required\":\"1\",\"defaultValue\":\"shenyu-access-logging\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172886', '33', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{\"required\":\"1\",\"defaultValue\":\"localhost:8082\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172887', '33', 'sampleRate', 'sampleRate', 2, 3, 4, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172888', '33', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172889', '33', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172890', '33', 'compressAlg', 'compressAlg', 3, 3, 7, '{\"required\":\"0\",\"defaultValue\":\"none\"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172892', '34', 'accessId', 'accessId', 2, 3, 0, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172893', '34', 'accessKey', 'accessKey', 2, 3, 1, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172894', '34', 'host', 'host', 2, 3, 2, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172895', '34', 'projectName', 'projectName', 2, 3, 3, '{\"required\":\"0\",\"defaultValue\":\"shenyu\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172896', '34', 'logStoreName', 'logStoreName', 2, 3, 4, '{\"required\":\"0\",\"defaultValue\":\"shenyu-logstore\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172897', '34', 'topic', 'topic', 2, 3, 5, '{\"required\":\"0\",\"defaultValue\":\"shenyu-topic\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172898', '34', 'ttlInDay', 'ttlInDay', 1, 3, 6, '{\"required\":\"0\",\"defaultValue\":3,\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172899', '34', 'shardCount', 'shardCount', 1, 3, 7, '{\"required\":\"0\",\"defaultValue\":10,\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172900', '34', 'sendThreadCount', 'sendThreadCount', 1, 3, 8, '{\"required\":\"0\",\"defaultValue\":1,\"placeholder\":\"1-500\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172901', '34', 'ioThreadCount', 'ioThreadCount', 1, 3, 9, '{\"required\":\"0\",\"defaultValue\":1,\"placeholder\":\"1-500\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172902', '34', 'sampleRate', 'sampleRate', 2, 3, 10, '{\"required\":\"0\",\"defaultValue\":\"1\",\"placeholder\":\"optional,0,0.01~1\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172903', '34', 'maxRequestBody', 'maxRequestBody', 1, 3, 11, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172904', '34', 'maxResponseBody', 'maxResponseBody', 1, 3, 12, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172905', '34', 'bufferQueueSize', 'bufferQueueSize', 1, 3, 13, '{\"required\":\"0\",\"defaultValue\":50000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
@@ -1361,6 +1382,8 @@ INSERT INTO `shenyu_dict` VALUES ('1529402613195784243', 'compressAlg', 'COMPRES
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784244', 'cacheType', 'CACHE_TYPE_MEMORY', 'memory', 'memory', 'use memory to cache data', 0, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784245', 'cacheType', 'CACHE_TYPE_REDIS', 'redis', 'redis', 'use redis to cache data', 1, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784246', 'threadpool', 'THREADPOOL', 'default', 'default', '', 5, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `shenyu_dict` VALUES ('1529402613195784247', 'signRequestBody', 'SIGN_REQUEST_BODY', 'close', 'false', 'close', 1, 1, '2022-06-29 10:08:02', '2022-06-29 10:08:02');
+INSERT INTO `shenyu_dict` VALUES ('1529402613195784248', 'signRequestBody', 'SIGN_REQUEST_BODY', 'open', 'true', 'open', 0, 1, '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 
 -- ----------------------------
 -- Table structure for user_role

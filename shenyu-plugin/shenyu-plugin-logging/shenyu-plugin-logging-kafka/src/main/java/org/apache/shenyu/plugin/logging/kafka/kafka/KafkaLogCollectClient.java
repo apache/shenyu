@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.kafka.kafka;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,13 +29,20 @@ import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.OutOfOrderSequenceException;
 import org.apache.kafka.common.errors.ProducerFencedException;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.plugin.logging.kafka.LogConsumeClient;
-import org.apache.shenyu.plugin.logging.kafka.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.kafka.entity.LZ4CompressData;
-import org.apache.shenyu.plugin.logging.kafka.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.kafka.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig;
+import org.apache.shenyu.plugin.logging.kafka.utils.KafkaLogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * queue-based logging collector.
@@ -67,19 +70,15 @@ public class KafkaLogCollectClient implements LogConsumeClient {
         if (isStarted.get()) {
             close();
         }
-        String topic = props.getProperty(LoggingConstant.TOPIC);
+        String topic = props.getProperty(GenericLoggingConstant.TOPIC);
         String nameserverAddress = props.getProperty("bootstrap.servers");
-
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init kafkaLogCollectClient error, please check topic or nameserverAddress");
             return;
         }
         this.topic = topic;
-
-        producer = new KafkaProducer<String, String>(props);
-
+        producer = new KafkaProducer<>(props);
         ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, "shenyu-access-logging");
-
         try {
             producer.send(record);
             LOG.info("init kafkaLogCollectClient success");
@@ -106,7 +105,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
             return;
         }
         logs.forEach(log -> {
-            String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath()), topic);
+            String logTopic = StringUtils.defaultIfBlank(KafkaLogCollectConfigUtils.getTopic(log.getPath()), topic);
             try {
                 producer.send(toProducerRecord(logTopic, log));
             } catch (Exception e) {
@@ -117,7 +116,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
 
     private ProducerRecord<String, String> toProducerRecord(final String logTopic, final ShenyuRequestLog log) {
         byte[] bytes = JsonUtils.toJson(log).getBytes(StandardCharsets.UTF_8);
-        String compressAlg = StringUtils.defaultIfBlank(LogCollectConfigUtils.getGlobalLogConfig().getCompressAlg(), "");
+        String compressAlg = StringUtils.defaultIfBlank(LogCollectConfig.INSTANCE.getGlobalLogConfig().getCompressAlg(), "");
         if ("LZ4".equalsIgnoreCase(compressAlg.trim())) {
             LZ4CompressData lz4CompressData = new LZ4CompressData(bytes.length, compressedByte(bytes));
             return new ProducerRecord<>(logTopic, JsonUtils.toJson(lz4CompressData));
@@ -139,7 +138,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
      */
     @Override
     public void close() {
-        if (producer != null && isStarted.get()) {
+        if (Objects.nonNull(producer) && isStarted.get()) {
             producer.close();
             isStarted.set(false);
         }

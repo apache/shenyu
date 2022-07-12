@@ -178,6 +178,14 @@
         </dependency>
         <!--shenyu logging-elasticsearch plugin end-->
 
+        <!--shenyu logging-rocketmq plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-rocketmq</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu logging-rocketmq plugin end-->
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>
@@ -188,6 +196,11 @@
     <profiles>
         <profile>
             <id>it</id>
+            <properties>
+                <docker.buildArg.APP_NAME>shenyu-integrated-test-http</docker.buildArg.APP_NAME>
+                <docker.image.tag.repo>apache/shenyu-integrated-test-http</docker.image.tag.repo>
+                <docker.image.tag.tagName>latest</docker.image.tag.tagName>
+            </properties>
             <build>
                 <finalName>shenyu-integrated-test-http</finalName>
                 <plugins>
@@ -209,25 +222,29 @@
                         </configuration>
                     </plugin>
                     <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>dockerfile-maven-plugin</artifactId>
-                        <version>${dockerfile-maven-plugin.version}</version>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker-maven-plugin.version}</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>apache/shenyu-integrated-test-http</name>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
                         <executions>
                             <execution>
-                                <id>shenyu-integrated-test-http</id>
+                                <id>start</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <repository>apache/shenyu-integrated-test-http</repository>
-                            <tag>latest</tag>
-                            <buildArgs>
-                                <APP_NAME>shenyu-integrated-test-http</APP_NAME>
-                            </buildArgs>
-                        </configuration>
                     </plugin>
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>

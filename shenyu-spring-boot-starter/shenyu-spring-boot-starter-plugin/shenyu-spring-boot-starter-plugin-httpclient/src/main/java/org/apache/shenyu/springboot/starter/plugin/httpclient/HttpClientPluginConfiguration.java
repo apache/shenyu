@@ -35,6 +35,7 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -233,8 +234,15 @@ public class HttpClientPluginConfiguration {
          * @return the shenyu plugin
          */
         @Bean
-        public ShenyuPlugin webClientPlugin(final ObjectProvider<HttpClient> httpClient) {
+        public ShenyuPlugin webClientPlugin(
+                final HttpClientProperties properties,
+                final ObjectProvider<HttpClient> httpClient) {
             WebClient webClient = WebClient.builder()
+                    // fix Exceeded limit on max bytes to buffer
+                    // detail see https://stackoverflow.com/questions/59326351/configure-spring-codec-max-in-memory-size-when-using-reactiveelasticsearchclient
+                    .exchangeStrategies(ExchangeStrategies.builder()
+                            .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(properties.getMaxInMemorySize() * 1024 * 1024))
+                            .build())
                     .clientConnector(new ReactorClientHttpConnector(Objects.requireNonNull(httpClient.getIfAvailable())))
                     .build();
             return new WebClientPlugin(webClient);

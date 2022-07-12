@@ -26,11 +26,10 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.apache.shenyu.plugin.logging.rocketmq.collector.DefaultLogCollector;
 import org.apache.shenyu.plugin.logging.rocketmq.config.LogCollectConfig;
-import org.apache.shenyu.plugin.logging.rocketmq.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
-import org.apache.shenyu.plugin.logging.rocketmq.utils.LogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,13 +63,12 @@ public class LoggingRocketMQPluginDataHandler implements PluginDataHandler {
         if (pluginData.getEnabled()) {
             LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                     LogCollectConfig.GlobalLogConfig.class);
-
-            LogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+            LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
             // start rocketmq producer
             Properties properties = new Properties();
-            properties.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic());
-            properties.setProperty(LoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getNamesrvAddr());
-            properties.setProperty(LoggingConstant.PRODUCER_GROUP, globalLogConfig.getProducerGroup());
+            properties.setProperty(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
+            properties.setProperty(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getNamesrvAddr());
+            properties.setProperty(GenericLoggingConstant.PRODUCER_GROUP, globalLogConfig.getProducerGroup());
             ROCKET_MQ_LOG_COLLECT_CLIENT.initProducer(properties);
             DefaultLogCollector.getInstance().start();
         } else {
@@ -93,7 +91,6 @@ public class LoggingRocketMQPluginDataHandler implements PluginDataHandler {
                 || CollectionUtils.isEmpty(selectorData.getConditionList())) {
             return;
         }
-
         LogCollectConfig.LogApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson,
                 LogCollectConfig.LogApiConfig.class);
         if (StringUtils.isBlank(logApiConfig.getTopic()) || StringUtils.isBlank(logApiConfig.getSampleRate())) {

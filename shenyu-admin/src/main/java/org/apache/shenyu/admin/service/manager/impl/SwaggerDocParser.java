@@ -170,12 +170,11 @@ public class SwaggerDocParser implements DocParser {
     }
 
     protected String buildModuleName(final JsonObject docInfo, final JsonObject docRoot, final String basePath) {
-        final String title = Optional.ofNullable(docRoot.getAsJsonObject("info")).map(jsonObject -> jsonObject.get("title").getAsString()).orElse(basePath);
         JsonArray tags = docInfo.getAsJsonArray("tags");
         if (Objects.nonNull(tags) && tags.size() > 0) {
             return tags.get(0).getAsString();
         }
-        return title;
+        return Optional.ofNullable(docRoot.getAsJsonObject("info")).map(jsonObject -> jsonObject.get("title").getAsString()).orElse(basePath);
     }
 
     protected List<DocParameter> buildRequestParameterList(final JsonObject docInfo, final JsonObject docRoot) {

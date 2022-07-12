@@ -35,13 +35,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class LoggingRocketMQPluginDataHandlerTest {
 
+    private final SelectorData selectorData = new SelectorData();
+
+    private final ConditionData conditionData = new ConditionData();
+
+    private final PluginData pluginData = new PluginData();
+    
     private LoggingRocketMQPluginDataHandler loggingRocketMQPluginDataHandler;
-
-    private SelectorData selectorData = new SelectorData();
-
-    private ConditionData conditionData = new ConditionData();
-
-    private PluginData pluginData = new PluginData();
 
     @BeforeEach
     public void setUp() {
@@ -58,6 +58,16 @@ public class LoggingRocketMQPluginDataHandlerTest {
         selectorData.setConditionList(list);
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"topic\":\"test\", \"namesrvAddr\":\"test\", \"producerGroup\":\"test\"}");
+    }
+
+    @Test
+    public void testHandlerPlugin() throws NoSuchFieldException, IllegalAccessException {
+        loggingRocketMQPluginDataHandler.handlerPlugin(pluginData);
+        Field field = loggingRocketMQPluginDataHandler.getClass().getDeclaredField("ROCKET_MQ_LOG_COLLECT_CLIENT");
+        field.setAccessible(true);
+        Assertions.assertEquals(field.get(loggingRocketMQPluginDataHandler).getClass(), RocketMQLogCollectClient.class);
+        pluginData.setEnabled(false);
+        loggingRocketMQPluginDataHandler.handlerPlugin(pluginData);
     }
 
     @Test

@@ -17,9 +17,10 @@
 
 package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 
+import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
-import org.apache.shenyu.plugin.logging.elasticsearch.client.LogConsumeClient;
-import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ import java.lang.reflect.Field;
  */
 public final class DefaultLogCollectorTest {
 
-    private ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
+    private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
     @BeforeEach
     public void setUp() {

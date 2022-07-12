@@ -19,29 +19,27 @@ package org.apache.shenyu.plugin.logging.elasticsearch;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
-import org.apache.shenyu.plugin.logging.elasticsearch.body.LoggingElasticSearchServerHttpRequest;
-import org.apache.shenyu.plugin.logging.elasticsearch.body.LoggingElasticSearchServerResponse;
+import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
+import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
 import org.apache.shenyu.plugin.logging.elasticsearch.collector.DefaultLogCollector;
-import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectConfigUtils;
-import org.apache.shenyu.plugin.logging.elasticsearch.utils.LogCollectUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import static org.apache.shenyu.common.enums.PluginEnum.LOGGING_ElasticSearch;
+import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.HOST;
+import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.USER_AGENT;
 
 /**
  * Integrated elasticsearch collect log.
  */
 public class LoggingElasticSearchPlugin extends AbstractShenyuPlugin {
-
-    private static final String USER_AGENT = "User-Agent";
-
-    private static final String HOST = "Host";
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
@@ -51,7 +49,6 @@ public class LoggingElasticSearchPlugin extends AbstractShenyuPlugin {
         if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
             return chain.execute(exchange);
         }
-
         ShenyuRequestLog requestInfo = new ShenyuRequestLog();
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethodValue());
@@ -61,14 +58,12 @@ public class LoggingElasticSearchPlugin extends AbstractShenyuPlugin {
         requestInfo.setUserAgent(request.getHeaders().getFirst(USER_AGENT));
         requestInfo.setHost(request.getHeaders().getFirst(HOST));
         requestInfo.setPath(request.getURI().getPath());
-
-        LoggingElasticSearchServerHttpRequest loggingElasticSearchServerHttpRequest = new LoggingElasticSearchServerHttpRequest(request, requestInfo);
-        LoggingElasticSearchServerResponse loggingElasticSearchServerResponse = new LoggingElasticSearchServerResponse(exchange.getResponse(),
+        LoggingServerHttpRequest loggingElasticSearchServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
+        LoggingServerHttpResponse loggingElasticSearchServerResponse = new LoggingServerHttpResponse(exchange.getResponse(),
                 requestInfo, DefaultLogCollector.getInstance());
         ServerWebExchange webExchange = exchange.mutate().request(loggingElasticSearchServerHttpRequest)
                 .response(loggingElasticSearchServerResponse).build();
         loggingElasticSearchServerResponse.setExchange(webExchange);
-
         return chain.execute(webExchange).doOnError(loggingElasticSearchServerResponse::logError);
     }
 
@@ -79,7 +74,7 @@ public class LoggingElasticSearchPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public int getOrder() {
-        return LOGGING_ElasticSearch.getCode();
+        return PluginEnum.LOGGING_ELASTIC_SEARCH.getCode();
     }
 
     /**
@@ -89,6 +84,6 @@ public class LoggingElasticSearchPlugin extends AbstractShenyuPlugin {
      */
     @Override
     public String named() {
-        return LOGGING_ElasticSearch.getName();
+        return PluginEnum.LOGGING_ELASTIC_SEARCH.getName();
     }
 }
