@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.apache.dubbo;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.spring.ServiceBean;
@@ -26,6 +25,7 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -92,7 +92,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         this.appName = appName;
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
-        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-apache-dubbo-client-thread-pool-%d").build());
+        executorService = Executors.newSingleThreadExecutor(ShenyuThreadFactory.create("shenyu-apache-dubbo-client-thread-pool", false));
         publisher.start(shenyuClientRegisterRepository);
     }
 
