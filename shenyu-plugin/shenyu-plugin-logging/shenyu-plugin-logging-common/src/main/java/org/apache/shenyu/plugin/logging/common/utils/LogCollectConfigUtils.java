@@ -143,7 +143,8 @@ public final class LogCollectConfigUtils {
     }
 
     /**
-     * get message queue topic
+     * get message queue topic.
+     *
      * @param path        uri path
      * @param apiTopicMap api topic map
      * @return topic

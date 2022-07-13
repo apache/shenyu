@@ -53,7 +53,8 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
                                                final ServerHttpRequest request, final ShenyuRequestLog requestInfo);
 
     @Override
-    protected Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                   final SelectorData selector, final RuleData rule) {
         ServerHttpRequest request = exchange.getRequest();
         // control sampling
         if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
