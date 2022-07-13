@@ -48,9 +48,9 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
      * @param requestInfo request information
      * @return
      */
-    protected abstract Mono<Void> doLogExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                               final SelectorData selector, final RuleData rule,
-                                               final ServerHttpRequest request, final ShenyuRequestLog requestInfo);
+    protected abstract Mono<Void> doLogExecute(ServerWebExchange exchange, ShenyuPluginChain chain,
+                                               SelectorData selector, RuleData rule,
+                                               ServerHttpRequest request, ShenyuRequestLog requestInfo);
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
