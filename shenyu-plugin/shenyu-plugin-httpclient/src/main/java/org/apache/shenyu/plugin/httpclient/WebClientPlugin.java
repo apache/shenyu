@@ -54,14 +54,13 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
         // springWebflux5.3 mark #exchange() deprecated. because #echange maybe make memory leak.
         // https://github.com/spring-projects/spring-framework/issues/25751
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
+        // exchangeToMono have two important bug:
+        // 1.exchangeToMono can cause NPE when response body is null
+        // 2.download file with exchangeToMono can't open
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> headers.addAll(httpHeaders))
                 .body(BodyInserters.fromDataBuffers(body))
-                .exchangeToMono(res -> res.bodyToMono(String.class)
-                        .map(responseBody -> ClientResponse.create(res.statusCode())
-                                .headers(headers -> headers.addAll(res.headers().asHttpHeaders()))
-                                .body(responseBody)
-                                .build()))
+                .exchange()
                 .doOnSuccess(res -> {
                     if (res.statusCode().is2xxSuccessful()) {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
