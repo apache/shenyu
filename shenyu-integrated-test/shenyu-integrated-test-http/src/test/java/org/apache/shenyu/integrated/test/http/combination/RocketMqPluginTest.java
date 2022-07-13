@@ -23,7 +23,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.rocketmq.config.LogCollectConfig;
+import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -59,7 +59,7 @@ public final class RocketMqPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testPass() {
-        final LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), LogCollectConfig.GlobalLogConfig.class);
+        final RocketMQLogCollectConfig.RocketMQLogConfig rocketMQLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RocketMQLogCollectConfig.RocketMQLogConfig.class);
         properties.setProperty(GenericLoggingConstant.TOPIC, "shenyu-access-logging");
         properties.setProperty(GenericLoggingConstant.NAMESERVER_ADDRESS, "shenyu-rocketmq:9876");
         properties.setProperty(GenericLoggingConstant.PRODUCER_GROUP, "shenyu-plugin-logging-rocketmq");
@@ -69,7 +69,7 @@ public final class RocketMqPluginTest extends AbstractPluginDataInit {
         logs.add(shenyuRequestLog);
 
         String msg = "";
-        LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
+        RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(rocketMQLogConfig);
         rocketMQLogCollectClient.initProducer(properties);
         try {
             rocketMQLogCollectClient.consume(logs);

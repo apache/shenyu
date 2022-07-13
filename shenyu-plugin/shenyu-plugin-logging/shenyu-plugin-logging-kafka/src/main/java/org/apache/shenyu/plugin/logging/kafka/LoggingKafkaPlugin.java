@@ -21,48 +21,27 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
+import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
-import org.apache.shenyu.plugin.logging.kafka.collector.DefaultLogCollector;
+import org.apache.shenyu.plugin.logging.kafka.collector.KafkaLogCollector;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.HOST;
-import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.USER_AGENT;
-
 /**
  * Integrated kafka collect log.
  */
-public class LoggingKafkaPlugin extends AbstractShenyuPlugin {
+public class LoggingKafkaPlugin extends AbstractLoggingPlugin {
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                   final SelectorData selector, final RuleData rule) {
-        ServerHttpRequest request = exchange.getRequest();
-        // control sampling
-        if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
-            return chain.execute(exchange);
-        }
-        ShenyuRequestLog requestInfo = new ShenyuRequestLog();
-        requestInfo.setRequestUri(request.getURI().toString());
-        requestInfo.setMethod(request.getMethodValue());
-        requestInfo.setRequestHeader(LogCollectUtils.getHeaders(request.getHeaders()));
-        requestInfo.setQueryParams(request.getURI().getQuery());
-        requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
-        requestInfo.setUserAgent(request.getHeaders().getFirst(USER_AGENT));
-        requestInfo.setHost(request.getHeaders().getFirst(HOST));
-        requestInfo.setPath(request.getURI().getPath());
+    public Mono<Void> doLogExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule, ServerHttpRequest request, ShenyuRequestLog requestInfo) {
         LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
         LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
-            requestInfo, DefaultLogCollector.getInstance());
+                requestInfo, KafkaLogCollector.getInstance());
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
-            .response(loggingServerHttpResponse).build();
+                .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);
         return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
     }

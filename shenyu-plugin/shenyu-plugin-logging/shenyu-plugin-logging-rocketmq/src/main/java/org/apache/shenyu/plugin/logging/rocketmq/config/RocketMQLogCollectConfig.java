@@ -26,34 +26,34 @@ import java.util.Optional;
  * Topic and nameserver must be included, and others are optional.
  * We should operate the configuration through admin instead of the configuration file.
  */
-public class LogCollectConfig {
+public class RocketMQLogCollectConfig {
 
-    public static final LogCollectConfig INSTANCE = new LogCollectConfig();
+    public static final RocketMQLogCollectConfig INSTANCE = new RocketMQLogCollectConfig();
 
-    private GlobalLogConfig globalLogConfig;
+    private RocketMQLogConfig rocketMQLogConfig;
 
     /**
      * get global log config.
      *
      * @return global log config
      */
-    public GlobalLogConfig getGlobalLogConfig() {
-        return Optional.ofNullable(globalLogConfig).orElse(new GlobalLogConfig());
+    public RocketMQLogConfig getRocketMQLogConfig() {
+        return Optional.ofNullable(rocketMQLogConfig).orElse(new RocketMQLogConfig());
     }
 
     /**
      * set global log config.
      *
-     * @param globalLogConfig global log config.
+     * @param rocketMQLogConfig global log config.
      */
-    public void setGlobalLogConfig(final GlobalLogConfig globalLogConfig) {
-        this.globalLogConfig = globalLogConfig;
+    public void setRocketMQLogConfig(final RocketMQLogConfig rocketMQLogConfig) {
+        this.rocketMQLogConfig = rocketMQLogConfig;
     }
 
     /**
      * global log config.
      */
-    public static class GlobalLogConfig extends GenericGlobalConfig {
+    public static class RocketMQLogConfig extends GenericGlobalConfig {
 
         private String compressAlg;
 

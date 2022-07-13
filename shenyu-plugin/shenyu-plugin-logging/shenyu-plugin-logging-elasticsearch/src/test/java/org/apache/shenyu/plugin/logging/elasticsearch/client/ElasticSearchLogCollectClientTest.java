@@ -21,7 +21,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.elasticsearch.config.LogCollectConfig;
+import org.apache.shenyu.plugin.logging.elasticsearch.config.ElasticSearchLogCollectConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ public class ElasticSearchLogCollectClientTest {
 
     private final Properties properties = new Properties();
 
-    private LogCollectConfig.GlobalLogConfig globalLogConfig;
+    private ElasticSearchLogCollectConfig.ElasticSearchLogConfig elasticSearchLogConfig;
 
     private final List<ShenyuRequestLog> logs = new ArrayList<>();
 
@@ -52,10 +52,10 @@ public class ElasticSearchLogCollectClientTest {
         this.elasticSearchLogCollectClient = new ElasticSearchLogCollectClient();
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"host\":\"localhost\", \"port\":\"9200\"}");
-        globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                LogCollectConfig.GlobalLogConfig.class);
-        properties.setProperty(GenericLoggingConstant.HOST, globalLogConfig.getHost());
-        properties.setProperty(GenericLoggingConstant.PORT, globalLogConfig.getPort());
+        elasticSearchLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
+                ElasticSearchLogCollectConfig.ElasticSearchLogConfig.class);
+        properties.setProperty(GenericLoggingConstant.HOST, elasticSearchLogConfig.getHost());
+        properties.setProperty(GenericLoggingConstant.PORT, elasticSearchLogConfig.getPort());
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
         logs.add(shenyuRequestLog);
@@ -64,7 +64,7 @@ public class ElasticSearchLogCollectClientTest {
     @Test
     public void testConsume() {
         String msg = "";
-        LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
+        ElasticSearchLogCollectConfig.INSTANCE.setElasticSearchLogConfig(elasticSearchLogConfig);
         elasticSearchLogCollectClient.initClient(properties);
         try {
             elasticSearchLogCollectClient.consume(logs);
@@ -77,7 +77,7 @@ public class ElasticSearchLogCollectClientTest {
 
     @Test
     public void testCreateIndex() {
-        LogCollectConfig.INSTANCE.setGlobalLogConfig(globalLogConfig);
+        ElasticSearchLogCollectConfig.INSTANCE.setElasticSearchLogConfig(elasticSearchLogConfig);
         elasticSearchLogCollectClient.initClient(properties);
         elasticSearchLogCollectClient.createIndex("test");
     }

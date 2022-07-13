@@ -21,46 +21,25 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
+import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
-import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
-import org.apache.shenyu.plugin.logging.elasticsearch.collector.DefaultLogCollector;
+import org.apache.shenyu.plugin.logging.elasticsearch.collector.ElasticSearchLogCollector;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.HOST;
-import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.USER_AGENT;
-
 /**
  * Integrated elasticsearch collect log.
  */
-public class LoggingElasticSearchPlugin extends AbstractShenyuPlugin {
+public class LoggingElasticSearchPlugin extends AbstractLoggingPlugin {
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                   final SelectorData selector, final RuleData rule) {
-        ServerHttpRequest request = exchange.getRequest();
-        // control sampling
-        if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
-            return chain.execute(exchange);
-        }
-        ShenyuRequestLog requestInfo = new ShenyuRequestLog();
-        requestInfo.setRequestUri(request.getURI().toString());
-        requestInfo.setMethod(request.getMethodValue());
-        requestInfo.setRequestHeader(LogCollectUtils.getHeaders(request.getHeaders()));
-        requestInfo.setQueryParams(request.getURI().getQuery());
-        requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
-        requestInfo.setUserAgent(request.getHeaders().getFirst(USER_AGENT));
-        requestInfo.setHost(request.getHeaders().getFirst(HOST));
-        requestInfo.setPath(request.getURI().getPath());
+    public Mono<Void> doLogExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule, ServerHttpRequest request, ShenyuRequestLog requestInfo) {
         LoggingServerHttpRequest loggingElasticSearchServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
         LoggingServerHttpResponse loggingElasticSearchServerResponse = new LoggingServerHttpResponse(exchange.getResponse(),
-                requestInfo, DefaultLogCollector.getInstance());
+                requestInfo, ElasticSearchLogCollector.getInstance());
         ServerWebExchange webExchange = exchange.mutate().request(loggingElasticSearchServerHttpRequest)
                 .response(loggingElasticSearchServerResponse).build();
         loggingElasticSearchServerResponse.setExchange(webExchange);

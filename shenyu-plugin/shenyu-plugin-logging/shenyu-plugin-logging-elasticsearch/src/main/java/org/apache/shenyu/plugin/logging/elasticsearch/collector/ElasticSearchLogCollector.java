@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.kafka.collector;
+package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
-import org.apache.shenyu.plugin.logging.kafka.handler.LoggingKafkaPluginDataHandler;
+import org.apache.shenyu.plugin.logging.elasticsearch.handler.LoggingElasticSearchPluginDataHandler;
 
 /**
- * default log collector，depend a LogConsumeClient for consume logs.
+ * elastic search log collector，depend a LogConsumeClient for consume logs.
  */
-public class DefaultLogCollector extends AbstractLogCollector {
+public class ElasticSearchLogCollector extends AbstractLogCollector {
 
-    private static final LogCollector INSTANCE = new DefaultLogCollector();
+    private static final LogCollector INSTANCE = new ElasticSearchLogCollector();
 
     /**
      * get LogCollector instance.
@@ -40,6 +40,6 @@ public class DefaultLogCollector extends AbstractLogCollector {
 
     @Override
     protected LogConsumeClient getLogConsumeClient() {
-        return LoggingKafkaPluginDataHandler.getKafkaLogCollectClient();
+        return LoggingElasticSearchPluginDataHandler.getElasticSearchLogCollectClient();
     }
 }

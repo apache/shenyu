@@ -33,7 +33,7 @@ import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig;
+import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
 import org.apache.shenyu.plugin.logging.kafka.utils.KafkaLogCollectConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,7 +116,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
 
     private ProducerRecord<String, String> toProducerRecord(final String logTopic, final ShenyuRequestLog log) {
         byte[] bytes = JsonUtils.toJson(log).getBytes(StandardCharsets.UTF_8);
-        String compressAlg = StringUtils.defaultIfBlank(LogCollectConfig.INSTANCE.getGlobalLogConfig().getCompressAlg(), "");
+        String compressAlg = StringUtils.defaultIfBlank(KafkaLogCollectConfig.INSTANCE.getKafkaLogConfig().getCompressAlg(), "");
         if ("LZ4".equalsIgnoreCase(compressAlg.trim())) {
             LZ4CompressData lz4CompressData = new LZ4CompressData(bytes.length, compressedByte(bytes));
             return new ProducerRecord<>(logTopic, JsonUtils.toJson(lz4CompressData));
