@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.threadpool;
 
-import com.alibaba.dubbo.common.URL;
+import org.apache.dubbo.common.URL;
 import org.apache.shenyu.common.concurrent.MemorySafeTaskQueue;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -61,7 +61,7 @@ public final class SharedThreadPoolTest {
         assertEquals(sharedThreadPool.getExecutor(URL.valueOf("localhost")), shenyuThreadPoolExecutor);
 
         when(SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class)).thenThrow(new NoSuchBeanDefinitionException("not bean"));
-        assertThrows(ShenyuException.class, ()-> sharedThreadPool.getExecutor(URL.valueOf("localhost")));
+        assertThrows(ShenyuException.class, () -> sharedThreadPool.getExecutor(URL.valueOf("localhost")));
     }
 
 }

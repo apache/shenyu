@@ -76,12 +76,13 @@ public class AbstractDubboPluginTest {
         plugin = new AbstractDubboPlugin() {
 
             @Override
-            protected Mono<Void> doDubboInvoker(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule, MetaData metaData, String param) {
+            protected Mono<Void> doDubboInvoker(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                                final SelectorData selector, final RuleData rule, final MetaData metaData, final String param) {
                 return Mono.empty();
             }
 
             @Override
-            protected void transmitRpcContext(Map<String, String> rpcContext) {
+            protected void transmitRpcContext(final Map<String, String> rpcContext) {
 
             }
         };

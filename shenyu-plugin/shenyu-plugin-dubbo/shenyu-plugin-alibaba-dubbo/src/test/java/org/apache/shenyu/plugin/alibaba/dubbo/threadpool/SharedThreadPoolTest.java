@@ -61,7 +61,7 @@ public final class SharedThreadPoolTest {
         assertEquals(sharedThreadPool.getExecutor(URL.valueOf("localhost")), shenyuThreadPoolExecutor);
 
         when(SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class)).thenThrow(new NoSuchBeanDefinitionException("not bean"));
-        assertThrows(ShenyuException.class, ()-> sharedThreadPool.getExecutor(URL.valueOf("localhost")));
+        assertThrows(ShenyuException.class, () -> sharedThreadPool.getExecutor(URL.valueOf("localhost")));
     }
 
 }

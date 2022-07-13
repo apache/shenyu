@@ -45,7 +45,7 @@ public class AbstractDubboPluginDataHandlerTest {
     public void setUp() {
         handler = new AbstractDubboPluginDataHandler() {
             @Override
-            protected void initConfigCache(DubboRegisterConfig dubboRegisterConfig) {
+            protected void initConfigCache(final DubboRegisterConfig dubboRegisterConfig) {
             }
         };
     }
