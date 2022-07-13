@@ -37,8 +37,9 @@ public class LoggingRocketMQPlugin extends AbstractLoggingPlugin {
 
 
     @Override
-    public Mono<Void> doLogExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector,
-                                      RuleData rule, ServerHttpRequest request, ShenyuRequestLog requestInfo) {
+    public Mono<Void> doLogExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                   final SelectorData selector, final RuleData rule,
+                                   final ServerHttpRequest request, final ShenyuRequestLog requestInfo) {
         LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
         LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
                 requestInfo, RocketMQLogCollector.getInstance());

@@ -36,7 +36,9 @@ import reactor.core.publisher.Mono;
 public class LoggingElasticSearchPlugin extends AbstractLoggingPlugin {
 
     @Override
-    public Mono<Void> doLogExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule, ServerHttpRequest request, ShenyuRequestLog requestInfo) {
+    public Mono<Void> doLogExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                   final SelectorData selector, final RuleData rule,
+                                   final ServerHttpRequest request, final ShenyuRequestLog requestInfo) {
         LoggingServerHttpRequest loggingElasticSearchServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
         LoggingServerHttpResponse loggingElasticSearchServerResponse = new LoggingServerHttpResponse(exchange.getResponse(),
                 requestInfo, ElasticSearchLogCollector.getInstance());
