@@ -44,7 +44,7 @@ public class AliyunLogCollectConfig {
      *
      * @param aliyunSlsLogConfig aliyun sls log config.
      */
-    public void setAliyunSlsLogConfig(AliyunSlsLogConfig aliyunSlsLogConfig) {
+    public void setAliyunSlsLogConfig(final AliyunSlsLogConfig aliyunSlsLogConfig) {
         this.aliyunSlsLogConfig = aliyunSlsLogConfig;
     }
 
