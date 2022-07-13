@@ -118,9 +118,11 @@ public final class ApacheDubboConfigCacheTest {
         dubboParamExtInfo.setUrl("http://192.168.55.113/dubbo");
         MetaData metaData = new MetaData();
         metaData.setRpcExt(GsonUtils.getInstance().toJson(dubboParamExtInfo));
-        ApacheDubboConfigCache apacheDubboConfigCacheMock = mock(ApacheDubboConfigCache.class);
-        when(apacheDubboConfigCacheMock.build(metaData))
-                .thenReturn(new ReferenceConfig<>());
+        ApacheDubboConfigCache apacheDubboConfigCacheMock = new ApacheDubboConfigCache();
+        DubboRegisterConfig dubboRegisterConfig = new DubboRegisterConfig();
+        dubboRegisterConfig.setRegister("zookeeper://127.0.0.1:2181");
+        dubboRegisterConfig.setProtocol("dubbo");
+        apacheDubboConfigCacheMock.init(dubboRegisterConfig);
         assertNotNull(apacheDubboConfigCacheMock.build(metaData));
     }
 
