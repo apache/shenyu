@@ -49,6 +49,8 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQLogCollectClient.class);
 
+    private static Map<String, String> apiTopicMap = new HashMap<>();
+
     private static final String DEFAULT_PRODUCER_GROUP = "shenyu-plugin-logging-rocketmq";
 
     private DefaultMQProducer producer;
@@ -56,8 +58,6 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
     private String topic;
 
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
-
-    private static Map<String, String> apiTopicMap = new HashMap<>();
 
     /**
      * init producer.

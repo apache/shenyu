@@ -35,7 +35,6 @@ import reactor.core.publisher.Mono;
  */
 public class LoggingRocketMQPlugin extends AbstractLoggingPlugin {
 
-
     @Override
     public Mono<Void> doLogExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule,

@@ -53,13 +53,13 @@ public class KafkaLogCollectClient implements LogConsumeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaLogCollectClient.class);
 
+    private static Map<String, String> apiTopicMap = new HashMap<>();
+
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
     private KafkaProducer<String, String> producer;
 
     private String topic;
-
-    private static Map<String, String> apiTopicMap = new HashMap<>();
 
     /**
      * init producer.
