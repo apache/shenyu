@@ -48,7 +48,6 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
         this.webClient = webClient;
     }
 
-    @D
     @Override
     protected Mono<ClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
                                              final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
