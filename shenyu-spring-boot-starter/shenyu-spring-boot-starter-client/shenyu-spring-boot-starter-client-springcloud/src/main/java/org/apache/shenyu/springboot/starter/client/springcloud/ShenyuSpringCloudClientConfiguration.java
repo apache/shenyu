@@ -34,7 +34,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
  */
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
-@ConditionalOnProperty(value = "spring.cloud.consul.service-registry.auto-registration.enabled",
+@ConditionalOnProperty(value = "shenyu.register.enabled",
         matchIfMissing = true)
 public class ShenyuSpringCloudClientConfiguration {
     
