@@ -27,12 +27,15 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
  * The type shenyu spring cloud client configuration.
  */
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
+@ConditionalOnProperty(value = "shenyu.register.enabled",
+        matchIfMissing = true, havingValue = "true")
 public class ShenyuSpringCloudClientConfiguration {
     
     /**
