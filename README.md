@@ -72,17 +72,14 @@ He is known as one of the three greatest kings of ancient China, along with Yao 
 
 # Features
 
-   * Apache ShenYu provides ability such as current limiting, fusing, forwarding, routing, monitoring and so on by its plugins.
-   
-   * Support HTTP, RESTFul, WebSocket, Dubbo, gRPC, Tars and Spring Cloud Proxy.
-   
-   * Plugin hot plug, users can customize the development.
-   
-   * Selectors and rules are dynamically configured for flexible matching.
-
-   * Support for cluster deployment.
-   
-   * Support A/B test and grayscale publishing.
+* Proxy: Support for Apache® Dubbo™, Spring Cloud, gRPC, Motan, SOFA, TARS, WebSocket, MQTT
+* Security: Sign, OAuth 2.0, JSON Web Tokens, WAF plugin
+* API governance: Request, response, parameter mapping, Hystrix, RateLimiter plugin
+* Observability: Tracing, metrics, logging plugin
+* Dashboard: Dynamic traffic control, visual backend for user menu permissions
+* Extensions: Plugin hot-swapping, dynamic loading
+* Cluster: NGINX, Docker, Kubernetes
+* Language: provides .NET, Python, Go, Java client for API register
    
 ---  
 
