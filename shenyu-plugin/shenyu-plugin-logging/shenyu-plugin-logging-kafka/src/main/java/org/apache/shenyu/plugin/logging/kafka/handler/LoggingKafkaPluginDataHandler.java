@@ -31,7 +31,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.kafka.collector.KafkaLogCollector;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
-import org.apache.shenyu.plugin.logging.kafka.kafka.KafkaLogCollectClient;
+import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

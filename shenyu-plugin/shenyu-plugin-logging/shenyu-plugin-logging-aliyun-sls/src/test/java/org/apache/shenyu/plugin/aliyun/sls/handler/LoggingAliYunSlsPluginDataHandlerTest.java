@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.aliyun.sls.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.aliyun.sls.aliyunsls.AliyunSlsLogCollectClient;
+import org.apache.shenyu.plugin.aliyun.sls.client.AliyunSlsLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

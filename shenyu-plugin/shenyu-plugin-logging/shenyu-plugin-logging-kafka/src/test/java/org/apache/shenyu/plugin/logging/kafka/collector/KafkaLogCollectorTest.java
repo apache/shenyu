@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.logging.kafka.collector;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.kafka.kafka.KafkaLogCollectClient;
+import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

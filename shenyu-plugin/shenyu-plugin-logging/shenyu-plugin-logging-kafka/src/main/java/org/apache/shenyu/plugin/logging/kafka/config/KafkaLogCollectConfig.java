@@ -54,6 +54,7 @@ public class KafkaLogCollectConfig {
      * global log config.
      */
     public static class KafkaLogConfig extends GenericGlobalConfig {
+        
         private String topic;
 
         private String namesrvAddr;
@@ -185,5 +186,4 @@ public class KafkaLogCollectConfig {
             this.topic = topic;
         }
     }
-
 }

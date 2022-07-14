@@ -36,17 +36,17 @@ import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingCon
  * abstract logging plugin.
  */
 public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
-
+    
     /**
      * log collector execute.
      *
-     * @param exchange    web exchange
-     * @param chain       shenyu plugin chain
-     * @param selector    selector data
-     * @param rule        rule data
-     * @param request     server http request
+     * @param exchange web exchange
+     * @param chain shenyu plugin chain
+     * @param selector selector data
+     * @param rule rule data
+     * @param request server http request
      * @param requestInfo request information
-     * @return
+     * @return mono
      */
     protected abstract Mono<Void> doLogExecute(ServerWebExchange exchange, ShenyuPluginChain chain,
                                                SelectorData selector, RuleData rule,
@@ -71,5 +71,4 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
         requestInfo.setPath(request.getURI().getPath());
         return this.doLogExecute(exchange, chain, selector, rule, request, requestInfo);
     }
-
 }
