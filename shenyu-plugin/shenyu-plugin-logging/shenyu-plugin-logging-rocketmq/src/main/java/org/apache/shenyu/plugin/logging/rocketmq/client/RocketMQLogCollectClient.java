@@ -29,13 +29,15 @@ import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.rocketmq.config.LogCollectConfig;
-import org.apache.shenyu.plugin.logging.rocketmq.utils.RocketLogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,6 +48,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RocketMQLogCollectClient implements LogConsumeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQLogCollectClient.class);
+
+    private static Map<String, String> apiTopicMap = new HashMap<>();
 
     private static final String DEFAULT_PRODUCER_GROUP = "shenyu-plugin-logging-rocketmq";
 
@@ -101,7 +105,7 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
             return;
         }
         logs.forEach(log -> {
-            String logTopic = StringUtils.defaultIfBlank(RocketLogCollectConfigUtils.getTopic(log.getPath()), topic);
+            String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath(), apiTopicMap), topic);
             try {
                 producer.sendOneway(toMessage(logTopic, log));
             } catch (Exception e) {
@@ -112,7 +116,7 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
 
     private Message toMessage(final String logTopic, final ShenyuRequestLog log) {
         byte[] bytes = JsonUtils.toJson(log).getBytes(StandardCharsets.UTF_8);
-        String compressAlg = StringUtils.defaultIfBlank(LogCollectConfig.INSTANCE.getGlobalLogConfig().getCompressAlg(), "");
+        String compressAlg = StringUtils.defaultIfBlank(RocketMQLogCollectConfig.INSTANCE.getRocketMQLogConfig().getCompressAlg(), "");
         if ("LZ4".equalsIgnoreCase(compressAlg.trim())) {
             LZ4CompressData lz4CompressData = new LZ4CompressData(bytes.length, compressedByte(bytes));
             return new Message(logTopic, JsonUtils.toJson(lz4CompressData).getBytes(StandardCharsets.UTF_8));
@@ -127,6 +131,13 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
         return compressor.compress(srcByte);
     }
 
+    /**
+     * set api topic map.
+     * @param uriTopicMap api topic map
+     */
+    public static void setTopic(final Map<String, String> uriTopicMap) {
+        apiTopicMap = uriTopicMap;
+    }
 
     /**
      * close producer.

@@ -15,49 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.elasticsearch.config;
+package org.apache.shenyu.plugin.logging.kafka.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
 import java.util.Optional;
 
 /**
- * log collect config, include elasticsearch config.
- * Host and port must be included, and others are optional.
+ * log collect config, include kafka config.
+ * Topic and nameserver must be included, and others are optional.
  * We should operate the configuration through admin instead of the configuration file.
  */
-public class LogCollectConfig {
+public class KafkaLogCollectConfig {
 
-    public static final LogCollectConfig INSTANCE = new LogCollectConfig();
+    public static final KafkaLogCollectConfig INSTANCE = new KafkaLogCollectConfig();
 
-    private GlobalLogConfig globalLogConfig;
+    private KafkaLogConfig kafkaLogConfig;
 
     /**
-     * get global log config.
+     * get kafka log config.
      *
-     * @return global log config
+     * @return kafka log config
      */
-    public GlobalLogConfig getGlobalLogConfig() {
-        return Optional.ofNullable(globalLogConfig).orElse(new GlobalLogConfig());
+    public KafkaLogConfig getKafkaLogConfig() {
+        return Optional.ofNullable(kafkaLogConfig).orElse(new KafkaLogConfig());
     }
 
     /**
-     * set global log config.
+     * set kafka log config.
      *
-     * @param globalLogConfig global log config.
+     * @param kafkaLogConfig kafka log config.
      */
-    public void setGlobalLogConfig(final GlobalLogConfig globalLogConfig) {
-        this.globalLogConfig = globalLogConfig;
+    public void setKafkaLogConfig(final KafkaLogConfig kafkaLogConfig) {
+        this.kafkaLogConfig = kafkaLogConfig;
     }
 
     /**
      * global log config.
      */
-    public static class GlobalLogConfig extends GenericGlobalConfig {
+    public static class KafkaLogConfig extends GenericGlobalConfig {
+        private String topic;
 
-        private String host;
+        private String namesrvAddr;
 
-        private String port;
+        private String producerGroup;
 
         private String compressAlg;
 
@@ -80,41 +81,57 @@ public class LogCollectConfig {
         }
 
         /**
-         * get host.
+         * get message queue topic.
          *
-         * @return host
+         * @return message queue topic
          */
-        public String getHost() {
-            return host;
+        public String getTopic() {
+            return topic;
         }
 
         /**
-         * set host.
+         * topic,used for message queue.
          *
-         * @param host host name
+         * @param topic mq topic
          */
-        public void setHost(final String host) {
-            this.host = host;
+        public void setTopic(final String topic) {
+            this.topic = topic;
         }
 
         /**
-         * get port.
+         * get kafka nameserver address.
          *
-         * @return port
+         * @return kafka nameserver address
          */
-        public String getPort() {
-            return port;
+        public String getNamesrvAddr() {
+            return namesrvAddr;
         }
 
         /**
-         * set port.
-         *
-         * @param port port name
+         * set kafka nameserver address.
+         * @param namesrvAddr kafka nameserver address
          */
-        public void setPort(final String port) {
-            this.port = port;
+        public void setNamesrvAddr(final String namesrvAddr) {
+            this.namesrvAddr = namesrvAddr;
         }
 
+        /**
+         * get producer group.
+         *
+         * @return producer group
+         */
+        public String getProducerGroup() {
+            return producerGroup;
+        }
+
+        /**
+         * set producer group.
+         *
+         * @param producerGroup producer group
+         */
+        public void setProducerGroup(final String producerGroup) {
+            this.producerGroup = producerGroup;
+        }
     }
 
     /**
@@ -122,12 +139,15 @@ public class LogCollectConfig {
      */
     public static class LogApiConfig {
 
-        private String index;
-
         /**
          * 0 means never sample, 1 means always sample. Minimum probability is 0.01, or 1% of logging
          */
         private String sampleRate;
+
+        /**
+         * This topic is useful if you use message queuing to collect logs.
+         */
+        private String topic;
 
         /**
          * get sample rate.
@@ -148,23 +168,22 @@ public class LogCollectConfig {
         }
 
         /**
-         * get index name.
+         * get mq topic.
          *
-         * @return index name
+         * @return mq topic
          */
-        public String getIndex() {
-            return index;
+        public String getTopic() {
+            return topic;
         }
 
         /**
-         * set index name.
+         * set  mq topic.
          *
-         * @param index index name
+         * @param topic mq topic
          */
-        public void setIndex(final String index) {
-            this.index = index;
+        public void setTopic(final String topic) {
+            this.topic = topic;
         }
-
     }
 
 }

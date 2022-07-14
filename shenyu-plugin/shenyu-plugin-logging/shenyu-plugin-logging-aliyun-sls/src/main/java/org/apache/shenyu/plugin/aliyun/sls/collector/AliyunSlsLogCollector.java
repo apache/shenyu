@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.rocketmq.collector;
+package org.apache.shenyu.plugin.aliyun.sls.collector;
 
+import org.apache.shenyu.plugin.aliyun.sls.handler.LoggingAliYunSlsPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
-import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
 
 /**
- * default log collector，depend a LogConsumeClient for consume logs.
+ * aliyun sls log collector，depend a LogConsumeClient for consume logs.
  */
-public class DefaultLogCollector extends AbstractLogCollector {
+public class AliyunSlsLogCollector extends AbstractLogCollector {
 
-    private static final LogCollector INSTANCE = new DefaultLogCollector();
+    private static final LogCollector INSTANCE = new AliyunSlsLogCollector();
 
     /**
      * get LogCollector instance.
@@ -40,6 +40,6 @@ public class DefaultLogCollector extends AbstractLogCollector {
 
     @Override
     protected LogConsumeClient getLogConsumeClient() {
-        return LoggingRocketMQPluginDataHandler.getRocketMqLogCollectClient();
+        return LoggingAliYunSlsPluginDataHandler.getAliyunSlsLogCollectClient();
     }
 }

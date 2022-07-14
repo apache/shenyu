@@ -15,50 +15,49 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.kafka.config;
+package org.apache.shenyu.plugin.logging.elasticsearch.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
 import java.util.Optional;
 
 /**
- * log collect config, include kafka config.
- * Topic and nameserver must be included, and others are optional.
+ * log collect config, include elasticsearch config.
+ * Host and port must be included, and others are optional.
  * We should operate the configuration through admin instead of the configuration file.
  */
-public class LogCollectConfig {
+public class ElasticSearchLogCollectConfig {
 
-    public static final LogCollectConfig INSTANCE = new LogCollectConfig();
+    public static final ElasticSearchLogCollectConfig INSTANCE = new ElasticSearchLogCollectConfig();
 
-    private GlobalLogConfig globalLogConfig;
+    private ElasticSearchLogConfig elasticSearchLogConfig;
 
     /**
-     * get global log config.
+     * get elastic search log config.
      *
-     * @return global log config
+     * @return log config
      */
-    public GlobalLogConfig getGlobalLogConfig() {
-        return Optional.ofNullable(globalLogConfig).orElse(new GlobalLogConfig());
+    public ElasticSearchLogConfig getElasticSearchLogConfig() {
+        return Optional.ofNullable(elasticSearchLogConfig).orElse(new ElasticSearchLogConfig());
     }
 
     /**
-     * set global log config.
+     * set elastic search log config.
      *
-     * @param globalLogConfig global log config.
+     * @param elasticSearchLogConfig log config.
      */
-    public void setGlobalLogConfig(final GlobalLogConfig globalLogConfig) {
-        this.globalLogConfig = globalLogConfig;
+    public void setElasticSearchLogConfig(final ElasticSearchLogConfig elasticSearchLogConfig) {
+        this.elasticSearchLogConfig = elasticSearchLogConfig;
     }
 
     /**
-     * global log config.
+     * elastic search log config.
      */
-    public static class GlobalLogConfig extends GenericGlobalConfig {
-        private String topic;
+    public static class ElasticSearchLogConfig extends GenericGlobalConfig {
 
-        private String namesrvAddr;
+        private String host;
 
-        private String producerGroup;
+        private String port;
 
         private String compressAlg;
 
@@ -81,57 +80,41 @@ public class LogCollectConfig {
         }
 
         /**
-         * get message queue topic.
+         * get host.
          *
-         * @return message queue topic
+         * @return host
          */
-        public String getTopic() {
-            return topic;
+        public String getHost() {
+            return host;
         }
 
         /**
-         * topic,used for message queue.
+         * set host.
          *
-         * @param topic mq topic
+         * @param host host name
          */
-        public void setTopic(final String topic) {
-            this.topic = topic;
+        public void setHost(final String host) {
+            this.host = host;
         }
 
         /**
-         * get kafka nameserver address.
+         * get port.
          *
-         * @return kafka nameserver address
+         * @return port
          */
-        public String getNamesrvAddr() {
-            return namesrvAddr;
+        public String getPort() {
+            return port;
         }
 
         /**
-         * set kafka nameserver address.
-         * @param namesrvAddr kafka nameserver address
+         * set port.
+         *
+         * @param port port name
          */
-        public void setNamesrvAddr(final String namesrvAddr) {
-            this.namesrvAddr = namesrvAddr;
+        public void setPort(final String port) {
+            this.port = port;
         }
 
-        /**
-         * get producer group.
-         *
-         * @return producer group
-         */
-        public String getProducerGroup() {
-            return producerGroup;
-        }
-
-        /**
-         * set producer group.
-         *
-         * @param producerGroup producer group
-         */
-        public void setProducerGroup(final String producerGroup) {
-            this.producerGroup = producerGroup;
-        }
     }
 
     /**
@@ -139,15 +122,12 @@ public class LogCollectConfig {
      */
     public static class LogApiConfig {
 
+        private String index;
+
         /**
          * 0 means never sample, 1 means always sample. Minimum probability is 0.01, or 1% of logging
          */
         private String sampleRate;
-
-        /**
-         * This topic is useful if you use message queuing to collect logs.
-         */
-        private String topic;
 
         /**
          * get sample rate.
@@ -168,22 +148,23 @@ public class LogCollectConfig {
         }
 
         /**
-         * get mq topic.
+         * get index name.
          *
-         * @return mq topic
+         * @return index name
          */
-        public String getTopic() {
-            return topic;
+        public String getIndex() {
+            return index;
         }
 
         /**
-         * set  mq topic.
+         * set index name.
          *
-         * @param topic mq topic
+         * @param index index name
          */
-        public void setTopic(final String topic) {
-            this.topic = topic;
+        public void setIndex(final String index) {
+            this.index = index;
         }
+
     }
 
 }

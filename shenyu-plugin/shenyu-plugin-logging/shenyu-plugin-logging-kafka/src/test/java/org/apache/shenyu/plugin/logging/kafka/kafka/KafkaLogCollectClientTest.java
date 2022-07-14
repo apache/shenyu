@@ -23,7 +23,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig.GlobalLogConfig;
+import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
 import org.junit.Ignore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +50,7 @@ public class KafkaLogCollectClientTest {
         this.kafkaLogCollectClient = new KafkaLogCollectClient();
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\":\"localhost:8082\"}");
-        GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), GlobalLogConfig.class);
+        KafkaLogCollectConfig.KafkaLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), KafkaLogCollectConfig.KafkaLogConfig.class);
         globalLogConfig.setCompressAlg("LZ4");
         props.put("bootstrap.servers", globalLogConfig.getNamesrvAddr());
         props.put(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getNamesrvAddr());

@@ -141,4 +141,21 @@ public final class LogCollectConfigUtils {
     public static void setGenericGlobalConfig(final GenericGlobalConfig config) {
         genericGlobalConfig = config;
     }
+
+    /**
+     * get message queue topic.
+     *
+     * @param path        uri path
+     * @param apiTopicMap api topic map
+     * @return topic
+     */
+    public static String getTopic(final String path, final Map<String, String> apiTopicMap) {
+        for (Map.Entry<String, String> entry : apiTopicMap.entrySet()) {
+            String pattern = entry.getKey();
+            if (MATCHER.match(pattern, path)) {
+                return entry.getValue();
+            }
+        }
+        return "";
+    }
 }

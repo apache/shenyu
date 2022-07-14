@@ -30,7 +30,7 @@ import java.lang.reflect.Field;
 /**
  * The Test Case For DefaultLogCollector.
  */
-public class DefaultLogCollectorTest {
+public class KafkaLogCollectorTest {
 
     private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
@@ -42,20 +42,20 @@ public class DefaultLogCollectorTest {
 
     @Test
     public void testAbstractLogCollector() throws Exception {
-        DefaultLogCollector.getInstance().start();
+        KafkaLogCollector.getInstance().start();
         Field field1 = AbstractLogCollector.class.getDeclaredField("started");
         field1.setAccessible(true);
-        Assertions.assertEquals(field1.get(DefaultLogCollector.getInstance()).toString(), "true");
-        DefaultLogCollector.getInstance().collect(shenyuRequestLog);
-        DefaultLogCollector.getInstance().close();
+        Assertions.assertEquals(field1.get(KafkaLogCollector.getInstance()).toString(), "true");
+        KafkaLogCollector.getInstance().collect(shenyuRequestLog);
+        KafkaLogCollector.getInstance().close();
         Field field2 = AbstractLogCollector.class.getDeclaredField("started");
         field2.setAccessible(true);
-        Assertions.assertEquals(field2.get(DefaultLogCollector.getInstance()).toString(), "false");
+        Assertions.assertEquals(field2.get(KafkaLogCollector.getInstance()).toString(), "false");
     }
 
     @Test
     public void testGetLogConsumeClient() {
-        LogConsumeClient logConsumeClient = new DefaultLogCollector().getLogConsumeClient();
+        LogConsumeClient logConsumeClient = new KafkaLogCollector().getLogConsumeClient();
         Assertions.assertEquals(KafkaLogCollectClient.class, logConsumeClient.getClass());
     }
 }

@@ -33,13 +33,15 @@ import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig;
-import org.apache.shenyu.plugin.logging.kafka.utils.KafkaLogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -50,6 +52,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class KafkaLogCollectClient implements LogConsumeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaLogCollectClient.class);
+
+    private static Map<String, String> apiTopicMap = new HashMap<>();
 
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
@@ -105,7 +109,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
             return;
         }
         logs.forEach(log -> {
-            String logTopic = StringUtils.defaultIfBlank(KafkaLogCollectConfigUtils.getTopic(log.getPath()), topic);
+            String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath(), apiTopicMap), topic);
             try {
                 producer.send(toProducerRecord(logTopic, log));
             } catch (Exception e) {
@@ -116,7 +120,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
 
     private ProducerRecord<String, String> toProducerRecord(final String logTopic, final ShenyuRequestLog log) {
         byte[] bytes = JsonUtils.toJson(log).getBytes(StandardCharsets.UTF_8);
-        String compressAlg = StringUtils.defaultIfBlank(LogCollectConfig.INSTANCE.getGlobalLogConfig().getCompressAlg(), "");
+        String compressAlg = StringUtils.defaultIfBlank(KafkaLogCollectConfig.INSTANCE.getKafkaLogConfig().getCompressAlg(), "");
         if ("LZ4".equalsIgnoreCase(compressAlg.trim())) {
             LZ4CompressData lz4CompressData = new LZ4CompressData(bytes.length, compressedByte(bytes));
             return new ProducerRecord<>(logTopic, JsonUtils.toJson(lz4CompressData));
@@ -132,6 +136,13 @@ public class KafkaLogCollectClient implements LogConsumeClient {
         return compressor.compress(srcByte);
     }
 
+    /**
+     * set api topic map.
+     * @param uriTopicMap api topic map
+     */
+    public static void setTopic(final Map<String, String> uriTopicMap) {
+        apiTopicMap = uriTopicMap;
+    }
 
     /**
      * close producer.

@@ -24,34 +24,34 @@ import java.util.Optional;
 /**
  * LogCollectConfig.
  */
-public class LogCollectConfig {
+public class AliyunLogCollectConfig {
 
-    public static final LogCollectConfig INSTANCE = new LogCollectConfig();
+    public static final AliyunLogCollectConfig INSTANCE = new AliyunLogCollectConfig();
 
-    private GlobalLogConfig globalLogConfig;
+    private AliyunSlsLogConfig aliyunSlsLogConfig;
 
     /**
-     * get global log config.
+     * get aliyun sls log config.
      *
      * @return global log config
      */
-    public GlobalLogConfig getGlobalLogConfig() {
-        return Optional.ofNullable(globalLogConfig).orElse(new GlobalLogConfig());
+    public AliyunSlsLogConfig getAliyunSlsLogConfig() {
+        return Optional.ofNullable(aliyunSlsLogConfig).orElse(new AliyunSlsLogConfig());
     }
 
     /**
-     * set global log config.
+     * set aliyun sls log config.
      *
-     * @param globalLogConfig global log config.
+     * @param aliyunSlsLogConfig aliyun sls log config.
      */
-    public void setGlobalLogConfig(final GlobalLogConfig globalLogConfig) {
-        this.globalLogConfig = globalLogConfig;
+    public void setAliyunSlsLogConfig(final AliyunSlsLogConfig aliyunSlsLogConfig) {
+        this.aliyunSlsLogConfig = aliyunSlsLogConfig;
     }
 
     /**
      * global log config.
      */
-    public static class GlobalLogConfig extends GenericGlobalConfig {
+    public static class AliyunSlsLogConfig extends GenericGlobalConfig {
 
         /**
          * aliyun sls address.

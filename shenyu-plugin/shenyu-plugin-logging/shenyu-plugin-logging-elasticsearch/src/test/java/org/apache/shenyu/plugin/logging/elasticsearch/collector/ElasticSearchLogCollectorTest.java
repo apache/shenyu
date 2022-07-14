@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.rocketmq.collector;
+package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
+import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ import java.lang.reflect.Field;
 /**
  * The Test Case For DefaultLogCollector.
  */
-public class DefaultLogCollectorTest {
+public final class ElasticSearchLogCollectorTest {
 
     private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
@@ -42,20 +42,20 @@ public class DefaultLogCollectorTest {
 
     @Test
     public void testAbstractLogCollector() throws Exception {
-        DefaultLogCollector.getInstance().start();
+        ElasticSearchLogCollector.getInstance().start();
         Field field1 = AbstractLogCollector.class.getDeclaredField("started");
         field1.setAccessible(true);
-        Assertions.assertEquals(field1.get(DefaultLogCollector.getInstance()).toString(), "true");
-        DefaultLogCollector.getInstance().collect(shenyuRequestLog);
-        DefaultLogCollector.getInstance().close();
+        Assertions.assertEquals(field1.get(ElasticSearchLogCollector.getInstance()).toString(), "true");
+        ElasticSearchLogCollector.getInstance().collect(shenyuRequestLog);
+        ElasticSearchLogCollector.getInstance().close();
         Field field2 = AbstractLogCollector.class.getDeclaredField("started");
         field2.setAccessible(true);
-        Assertions.assertEquals(field2.get(DefaultLogCollector.getInstance()).toString(), "false");
+        Assertions.assertEquals(field2.get(ElasticSearchLogCollector.getInstance()).toString(), "false");
     }
 
     @Test
     public void testGetLogConsumeClient() {
-        LogConsumeClient logConsumeClient = new DefaultLogCollector().getLogConsumeClient();
-        Assertions.assertEquals(RocketMQLogCollectClient.class, logConsumeClient.getClass());
+        LogConsumeClient logConsumeClient = new ElasticSearchLogCollector().getLogConsumeClient();
+        Assertions.assertEquals(ElasticSearchLogCollectClient.class, logConsumeClient.getClass());
     }
 }
