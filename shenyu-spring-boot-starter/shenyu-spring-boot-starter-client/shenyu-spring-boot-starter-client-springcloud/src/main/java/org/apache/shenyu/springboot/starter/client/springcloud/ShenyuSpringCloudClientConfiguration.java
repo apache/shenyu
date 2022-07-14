@@ -35,7 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 @ConditionalOnProperty(value = "shenyu.register.enabled",
-        matchIfMissing = true)
+        matchIfMissing = true, havingValue = "true")
 public class ShenyuSpringCloudClientConfiguration {
     
     /**
