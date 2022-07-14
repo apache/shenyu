@@ -23,6 +23,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
 import org.junit.Ignore;
 import org.junit.jupiter.api.Assertions;

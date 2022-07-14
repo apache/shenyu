@@ -22,7 +22,7 @@ import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.plugin.aliyun.sls.aliyunsls.AliyunSlsLogCollectClient;
+import org.apache.shenyu.plugin.aliyun.sls.client.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.collector.AliyunSlsLogCollector;
 import org.apache.shenyu.plugin.aliyun.sls.config.AliyunLogCollectConfig;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;

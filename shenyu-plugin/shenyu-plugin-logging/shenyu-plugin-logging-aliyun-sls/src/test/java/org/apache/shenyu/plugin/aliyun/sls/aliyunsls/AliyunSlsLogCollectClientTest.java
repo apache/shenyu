@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.aliyun.sls.aliyunsls;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.aliyun.sls.client.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.config.AliyunLogCollectConfig;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;

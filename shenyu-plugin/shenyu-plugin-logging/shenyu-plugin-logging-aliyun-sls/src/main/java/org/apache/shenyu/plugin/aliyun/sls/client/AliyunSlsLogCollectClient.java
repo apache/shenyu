@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.aliyun.sls.aliyunsls;
+package org.apache.shenyu.plugin.aliyun.sls.client;
 
 import com.aliyun.openservices.aliyun.log.producer.LogProducer;
 import com.aliyun.openservices.aliyun.log.producer.Producer;

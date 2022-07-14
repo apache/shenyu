@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.aliyun.sls.collector;
 
-import org.apache.shenyu.plugin.aliyun.sls.aliyunsls.AliyunSlsLogCollectClient;
+import org.apache.shenyu.plugin.aliyun.sls.client.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
