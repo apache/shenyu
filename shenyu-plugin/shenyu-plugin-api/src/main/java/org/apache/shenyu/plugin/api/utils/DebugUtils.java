@@ -44,7 +44,7 @@ public class DebugUtils {
     public static void write(final ServerWebExchange exchange) {
         final Environment env = SpringBeanUtils.getInstance().getBean(Environment.class);
         //here, you can combine Nacos for dynamic configuration
-        final Boolean enable = env.getProperty("shenyu.debug.enable", boolean.class, false);
+        final Boolean enable = Optional.ofNullable(env.getProperty("shenyu.debug.enable", Boolean.class)).orElse(false);
         if (!enable) {
             //gateway not enable debug
             return;
