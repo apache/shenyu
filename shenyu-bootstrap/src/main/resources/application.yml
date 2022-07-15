@@ -70,6 +70,8 @@ management:
       enabled: false
 
 shenyu:
+#  debug:
+#    enable: true
   matchCache:
     enabled: true
     maxFreeMemory: 256 # 256MB

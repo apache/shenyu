@@ -33,6 +33,8 @@ management:
       enabled: false
 
 shenyu:
+  debug:
+    enable: true
   metrics:
     enabled: true
     name: prometheus

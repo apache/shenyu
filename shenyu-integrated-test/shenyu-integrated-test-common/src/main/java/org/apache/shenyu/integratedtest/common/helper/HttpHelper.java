@@ -89,7 +89,7 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public <S, Q> S postGateway(final String path, final Map<String, Object> headers, final Q req, final Type respType) throws IOException {
-        String respBody = post(path, headers, req);
+        String respBody = postThenParse(path, headers, req);
         LOG.info("postGateway({}) resp({})", path, respBody);
         try {
             return GSON.fromJson(respBody, respType);
@@ -140,7 +140,7 @@ public class HttpHelper {
      * @throws IOException IO exception
      */
     public <S, Q> S postGateway(final String path, final Map<String, Object> headers, final Q req, final Class<S> respType) throws IOException {
-        String respBody = post(path, headers, req);
+        String respBody = postThenParse(path, headers, req);
         LOG.info("postGateway({}) resp({})", path, respBody);
         try {
             return GSON.fromJson(respBody, respType);
@@ -170,13 +170,26 @@ public class HttpHelper {
         }
     }
 
-    private <Q> String post(final String path, final Map<String, Object> headers, final Q req) throws IOException {
+    private <Q> String postThenParse(final String path, final Map<String, Object> headers, final Q req) throws IOException {
+        return Objects.requireNonNull(post(path, headers, req).body()).string();
+    }
+
+    /**
+     * Send a post http request to shenyu gateway with header.
+     *
+     * @param <Q>     type of request object
+     * @param path    path
+     * @param headers http header
+     * @param req     request body as an object
+     * @return original response
+     * @throws IOException IO exception
+     */
+    public <Q> Response post(final String path, final Map<String, Object> headers, final Q req) throws IOException {
         Request.Builder requestBuilder = new Request.Builder().post(RequestBody.create(GSON.toJson(req), JSON)).url(GATEWAY_END_POINT + path).addHeader(Constants.LOCAL_KEY, localKey);
         if (!CollectionUtils.isEmpty(headers)) {
             headers.forEach((key, value) -> requestBuilder.addHeader(key, String.valueOf(value)));
         }
-        Response response = client.newCall(requestBuilder.build()).execute();
-        return Objects.requireNonNull(response.body()).string();
+        return client.newCall(requestBuilder.build()).execute();
     }
 
     /**
