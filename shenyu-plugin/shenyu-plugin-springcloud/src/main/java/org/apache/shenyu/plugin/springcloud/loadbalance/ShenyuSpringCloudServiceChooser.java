@@ -44,9 +44,9 @@ import static org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoa
  */
 public final class ShenyuSpringCloudServiceChooser implements ServiceInstanceChooser {
 
-    private final static String UPSTREAM_URL = "upstreamUrl";
+    private static final String UPSTREAM_URL = "upstreamUrl";
 
-    private final static String PROTOCOL_PREFIX = "protocolPrefix";
+    private static final String PROTOCOL_PREFIX = "protocolPrefix";
 
     private final DiscoveryClient discoveryClient;
 
