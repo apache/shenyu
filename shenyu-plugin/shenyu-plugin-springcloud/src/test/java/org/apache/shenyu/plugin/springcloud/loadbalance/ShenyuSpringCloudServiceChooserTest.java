@@ -29,6 +29,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClient;
@@ -47,7 +49,7 @@ import java.util.Map;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ShenyuSpringCloudServiceChooserTest {
 
-    private SimpleDiscoveryClient discoveryClient;
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuSpringCloudServiceChooserTest.class);
 
     private ShenyuSpringCloudServiceChooser serviceChooser;
 
@@ -67,7 +69,7 @@ public class ShenyuSpringCloudServiceChooserTest {
         Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
         serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
         simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-        discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
+        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
         serviceChooser = new ShenyuSpringCloudServiceChooser(discoveryClient);
     }
 
@@ -139,10 +141,7 @@ public class ShenyuSpringCloudServiceChooserTest {
         final SimpleDiscoveryClient simpleDiscoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
         final ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser(simpleDiscoveryClient);
 
-        LoadBalanceKey loadBalanceKey = new LoadBalanceKey();
-        loadBalanceKey.setIp("127.0.0.1");
-        loadBalanceKey.setSelectorId("1");
-        loadBalanceKey.setLoadBalance("roundRobin");
+        LoadBalanceKey loadBalanceKey = buildDefaultLoadBalanceKey();
         LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
                 .serviceId("serviceId")
@@ -155,6 +154,8 @@ public class ShenyuSpringCloudServiceChooserTest {
         springCloudPluginDataHandler.handlerSelector(selectorData);
         ServiceInstance serviceInstance = shenyuServiceChoose.choose("serviceId");
         ServiceInstance serviceInstance2 = shenyuServiceChoose.choose("serviceId");
+        LOG.info(String.valueOf(serviceInstance));
+        LOG.info(String.valueOf(serviceInstance2));
         // if roundRobin, serviceInstance not equals serviceInstance2
         Assertions.assertNotEquals(serviceInstance, serviceInstance2);
     }
