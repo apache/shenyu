@@ -40,6 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -76,7 +77,7 @@ public class GrpcPluginTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
-
+        when(context.getBean(Environment.class)).thenReturn(mock(Environment.class));
         when(selector.getName()).thenReturn("/grpc");
     }
 
