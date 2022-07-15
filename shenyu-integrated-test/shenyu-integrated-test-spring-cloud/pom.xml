@@ -59,10 +59,6 @@
             <version>${spring-cloud.version}</version>
             <exclusions>
                 <exclusion>
-                    <artifactId>spring-cloud-starter</artifactId>
-                    <groupId>org.springframework.cloud</groupId>
-                </exclusion>
-                <exclusion>
                     <groupId>org.springframework.cloud</groupId>
                     <artifactId>spring-cloud-starter-loadbalancer</artifactId>
                 </exclusion>
