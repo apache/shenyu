@@ -23,7 +23,6 @@ import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
