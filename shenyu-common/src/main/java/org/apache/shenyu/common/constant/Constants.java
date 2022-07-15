@@ -48,6 +48,16 @@ public interface Constants {
     String META_DATA = "metaData";
 
     /**
+     * The constant SELECTOR.
+     */
+    String SELECTOR = "selector";
+
+    /**
+     * The constant RULE.
+     */
+    String RULE = "rule";
+
+    /**
      * The constant CLIENT_RESPONSE_ATTR.
      */
     String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
@@ -511,6 +521,12 @@ public interface Constants {
      * transmitHeaderToGeneralContext.
      */
     String TRANSMIT_HEADER_TO_GENERAL_CONTEXT_TYPE = "transmitHeaderToGeneralContext";
+
+    /**
+     * debug header, when set "true" or "enable", some
+     * debug message will be write to the response header.
+     */
+    String HEADER_DEBUG = "debug";
 
     /**
      * When register by http, the meta register path.

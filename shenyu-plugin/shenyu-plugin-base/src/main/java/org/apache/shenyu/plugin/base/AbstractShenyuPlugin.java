@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -86,6 +87,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         initMatchCacheConfig();
         String pluginName = named();
+        final Map<String, Object> attributes = exchange.getAttributes();
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
             final String path = exchange.getRequest().getURI().getPath();
@@ -105,6 +107,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (Objects.isNull(selectorData)) {
                 return handleSelectorIfNull(pluginName, exchange, chain);
             }
+            attributes.put(Constants.SELECTOR, selectorData);
             selectorLog(selectorData, pluginName);
 
             List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
@@ -121,6 +124,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (Objects.isNull(rule)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
             }
+            attributes.put(Constants.RULE, rule);
             ruleLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         }
