@@ -136,8 +136,8 @@ public class ShenyuSpringCloudServiceChooserTest {
         Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
         serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstances);
         simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-        SimpleDiscoveryClient simpleDiscoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-        ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser(simpleDiscoveryClient);
+        final SimpleDiscoveryClient simpleDiscoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
+        final ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser(simpleDiscoveryClient);
 
         LoadBalanceKey loadBalanceKey = new LoadBalanceKey();
         loadBalanceKey.setIp("127.0.0.1");
