@@ -36,6 +36,11 @@ public class DebugUtils {
     
     private static final String ENABLE = "enable";
     
+    /**
+     * write debug headers.
+     *
+     * @param exchange the exchange
+     */
     public static void write(final ServerWebExchange exchange) {
         final Environment env = SpringBeanUtils.getInstance().getBean(Environment.class);
         //here, you can combine Nacos for dynamic configuration
