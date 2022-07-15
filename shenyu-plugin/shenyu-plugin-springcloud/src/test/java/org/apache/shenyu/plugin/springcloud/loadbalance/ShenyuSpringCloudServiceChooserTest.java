@@ -15,20 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.springcloud.loadbalance.client;
+package org.apache.shenyu.plugin.springcloud.loadbalance;
 
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
-import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKey;
-import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKeyHolder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -36,7 +33,6 @@ import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClient;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryProperties;
-import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -49,13 +45,9 @@ import java.util.Map;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class ShenyuSpringCloudLoadBalancerClientTest {
-    @Mock
-    private ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory;
+public class ShenyuSpringCloudServiceChooserTest {
 
-    private SimpleDiscoveryClient discoveryClient;
-
-    private ShenyuSpringCloudLoadBalancerClient loadBalancerClient;
+    private ShenyuSpringCloudServiceChooser serviceChooser;
 
     private final SpringCloudPluginDataHandler springCloudPluginDataHandler = new SpringCloudPluginDataHandler();
 
@@ -73,20 +65,18 @@ public class ShenyuSpringCloudLoadBalancerClientTest {
         Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
         serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
         simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-        discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-        loadBalancerClient = new ShenyuSpringCloudLoadBalancerClient(discoveryClient, loadBalancerClientFactory);
+        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
+        serviceChooser = new ShenyuSpringCloudServiceChooser(discoveryClient);
     }
 
     @Test
     public void testChoose() {
-        LoadBalanceKey loadBalanceKey = new LoadBalanceKey();
-        loadBalanceKey.setIp("0.0.0.0");
-        loadBalanceKey.setSelectorId("1");
-        loadBalanceKey.setLoadBalance("roundRobin");
+        LoadBalanceKey loadBalanceKey = buildDefaultLoadBalanceKey();
+
         LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
 
         // serviceInstance is null
-        ServiceInstance serviceInstanceIsNull = loadBalancerClient.choose("test");
+        ServiceInstance serviceInstanceIsNull = serviceChooser.choose("test");
         Assertions.assertNull(serviceInstanceIsNull);
 
         // not gray flow
@@ -105,7 +95,7 @@ public class ShenyuSpringCloudLoadBalancerClientTest {
                 .id("1")
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorData);
-        ServiceInstance serviceInstance = loadBalancerClient.choose("serviceId");
+        ServiceInstance serviceInstance = serviceChooser.choose("serviceId");
         Assertions.assertNotNull(serviceInstance);
         Assertions.assertEquals(serviceInstance.getInstanceId(), "serviceId");
 
@@ -116,36 +106,9 @@ public class ShenyuSpringCloudLoadBalancerClientTest {
                 .id("1")
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorDataGray);
-        ServiceInstance serviceInstanceGray = loadBalancerClient.choose("serviceId");
+        ServiceInstance serviceInstanceGray = serviceChooser.choose("serviceId");
         Assertions.assertNotNull(serviceInstanceGray);
         Assertions.assertEquals(serviceInstanceGray.getHost(), "localhost");
-    }
-
-    @Test
-    public void testReconstructURI() {
-        LoadBalanceKey loadBalanceKey = new LoadBalanceKey();
-        loadBalanceKey.setIp("0.0.0.0");
-        loadBalanceKey.setSelectorId("1");
-        loadBalanceKey.setLoadBalance("roundRobin");
-        LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
-        List<DivideUpstream> divideUpstreams = new ArrayList<>();
-        DivideUpstream divideUpstream = DivideUpstream.builder()
-                .upstreamUrl("localhost:8080")
-                .build();
-        divideUpstreams.add(divideUpstream);
-        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
-                .serviceId("serviceId")
-                .divideUpstreams(divideUpstreams)
-                .gray(false)
-                .build();
-        final SelectorData selectorData = SelectorData.builder()
-                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
-                .id("1")
-                .build();
-        springCloudPluginDataHandler.handlerSelector(selectorData);
-        ServiceInstance serviceInstance = loadBalancerClient.choose("serviceId");
-        URI uri = loadBalancerClient.reconstructURI(serviceInstance, URI.create("/test"));
-        Assertions.assertEquals(uri.toString(), "http://localhost:8080/test");
     }
 
     @Test
@@ -171,22 +134,13 @@ public class ShenyuSpringCloudLoadBalancerClientTest {
         Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
         serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstances);
         simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-        discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-        loadBalancerClient = new ShenyuSpringCloudLoadBalancerClient(discoveryClient, loadBalancerClientFactory);
+        final SimpleDiscoveryClient simpleDiscoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
+        final ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser(simpleDiscoveryClient);
 
-        LoadBalanceKey loadBalanceKey = new LoadBalanceKey();
-        loadBalanceKey.setIp("0.0.0.0");
-        loadBalanceKey.setSelectorId("1");
-        loadBalanceKey.setLoadBalance("roundRobin");
+        LoadBalanceKey loadBalanceKey = buildDefaultLoadBalanceKey();
         LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
-        List<DivideUpstream> divideUpstreams = new ArrayList<>();
-        DivideUpstream divideUpstream = DivideUpstream.builder()
-                .upstreamUrl("localhost:8080")
-                .build();
-        divideUpstreams.add(divideUpstream);
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
                 .serviceId("serviceId")
-                .divideUpstreams(divideUpstreams)
                 .gray(false)
                 .build();
         final SelectorData selectorData = SelectorData.builder()
@@ -194,9 +148,18 @@ public class ShenyuSpringCloudLoadBalancerClientTest {
                 .id("1")
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorData);
-        ServiceInstance serviceInstance = loadBalancerClient.choose("serviceId");
-        ServiceInstance serviceInstance2 = loadBalancerClient.choose("serviceId");
+        ServiceInstance serviceInstance = shenyuServiceChoose.choose("serviceId");
+        ServiceInstance serviceInstance2 = shenyuServiceChoose.choose("serviceId");
         // if roundRobin, serviceInstance not equals serviceInstance2
         Assertions.assertNotEquals(serviceInstance, serviceInstance2);
+    }
+
+    private static LoadBalanceKey buildDefaultLoadBalanceKey() {
+        LoadBalanceKey loadBalanceKey = new LoadBalanceKey();
+        loadBalanceKey.setIp("0.0.0.0");
+        loadBalanceKey.setSelectorId("1");
+        loadBalanceKey.setLoadBalance("roundRobin");
+        LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
+        return loadBalanceKey;
     }
 }
