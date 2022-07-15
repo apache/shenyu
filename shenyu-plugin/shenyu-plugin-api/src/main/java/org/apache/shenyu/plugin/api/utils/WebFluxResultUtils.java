@@ -66,7 +66,6 @@ public final class WebFluxResultUtils {
         assert null != responseData;
         final byte[] bytes = (responseData instanceof byte[])
             ? (byte[]) responseData : responseData.toString().getBytes(StandardCharsets.UTF_8);
-        //todo add integrated test
         DebugUtils.write(exchange);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
             .bufferFactory().wrap(bytes))
