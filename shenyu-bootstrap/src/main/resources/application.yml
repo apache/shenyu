@@ -26,9 +26,6 @@ spring:
   codec:
     max-in-memory-size: 2MB
   cloud:
-    loadbalancer:
-      ribbon:
-        enabled: false
     discovery:
       enabled: false
     nacos:
