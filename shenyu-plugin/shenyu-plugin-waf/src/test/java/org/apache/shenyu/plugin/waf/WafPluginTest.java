@@ -32,6 +32,7 @@ import org.apache.shenyu.plugin.waf.handler.WafPluginDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -61,6 +62,7 @@ public final class WafPluginTest {
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        when(context.getBean(Environment.class)).thenReturn(mock(Environment.class));
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setApplicationContext(context);
 
