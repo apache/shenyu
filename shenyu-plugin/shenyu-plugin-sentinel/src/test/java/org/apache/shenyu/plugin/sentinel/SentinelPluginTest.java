@@ -38,6 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -87,6 +88,7 @@ public final class SentinelPluginTest {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        when(applicationContext.getBean(Environment.class)).thenReturn(mock(Environment.class));
 
         sentinelPlugin = new SentinelPlugin(sentinelFallbackHandler);
     }

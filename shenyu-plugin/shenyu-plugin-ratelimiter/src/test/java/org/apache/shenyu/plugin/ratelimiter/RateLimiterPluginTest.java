@@ -36,6 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -100,6 +101,7 @@ public final class RateLimiterPluginTest {
                 Mono.just(new RateLimiterResponse(false, 1)));
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        when(context.getBean(Environment.class)).thenReturn(mock(Environment.class));
         SpringBeanUtils.getInstance().setApplicationContext(context);
         Mono<Void> result = rateLimiterPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();

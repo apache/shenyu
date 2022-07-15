@@ -38,6 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -88,6 +89,7 @@ public final class SignPluginTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        when(context.getBean(Environment.class)).thenReturn(mock(Environment.class));
         assertEquals(signPlugin.getOrder(), PluginEnum.SIGN.getCode());
         assertEquals(signPlugin.named(), PluginEnum.SIGN.getName());
         assertEquals(signPluginDataHandler.pluginNamed(), PluginEnum.SIGN.getName());
