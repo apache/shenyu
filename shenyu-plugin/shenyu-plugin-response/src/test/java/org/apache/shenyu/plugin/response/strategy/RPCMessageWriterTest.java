@@ -31,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -58,6 +59,7 @@ public class RPCMessageWriterTest {
     public void setUp() {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        when(applicationContext.getBean(Environment.class)).thenReturn(mock(Environment.class));
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setApplicationContext(applicationContext);
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
