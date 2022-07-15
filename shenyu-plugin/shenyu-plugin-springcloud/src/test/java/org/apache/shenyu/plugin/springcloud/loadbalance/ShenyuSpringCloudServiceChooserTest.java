@@ -49,8 +49,6 @@ import java.util.Map;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ShenyuSpringCloudServiceChooserTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShenyuSpringCloudServiceChooserTest.class);
-
     private ShenyuSpringCloudServiceChooser serviceChooser;
 
     private final SpringCloudPluginDataHandler springCloudPluginDataHandler = new SpringCloudPluginDataHandler();
@@ -154,8 +152,6 @@ public class ShenyuSpringCloudServiceChooserTest {
         springCloudPluginDataHandler.handlerSelector(selectorData);
         ServiceInstance serviceInstance = shenyuServiceChoose.choose("serviceId");
         ServiceInstance serviceInstance2 = shenyuServiceChoose.choose("serviceId");
-        LOG.info(String.valueOf(serviceInstance));
-        LOG.info(String.valueOf(serviceInstance2));
         // if roundRobin, serviceInstance not equals serviceInstance2
         Assertions.assertNotEquals(serviceInstance, serviceInstance2);
     }
