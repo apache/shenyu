@@ -23,6 +23,7 @@ import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -136,8 +137,8 @@ public class ShenyuSpringCloudServiceChooserTest {
         Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
         serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstances);
         simpleDiscoveryProperties.setInstances(serviceInstanceMap);
-        discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
-        serviceChooser = new ShenyuSpringCloudServiceChooser(discoveryClient);
+        SimpleDiscoveryClient simpleDiscoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
+        ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser(simpleDiscoveryClient);
 
         LoadBalanceKey loadBalanceKey = new LoadBalanceKey();
         loadBalanceKey.setIp("127.0.0.1");
@@ -153,8 +154,8 @@ public class ShenyuSpringCloudServiceChooserTest {
                 .id("1")
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorData);
-        ServiceInstance serviceInstance = serviceChooser.choose("serviceId");
-        ServiceInstance serviceInstance2 = serviceChooser.choose("serviceId");
+        ServiceInstance serviceInstance = shenyuServiceChoose.choose("serviceId");
+        ServiceInstance serviceInstance2 = shenyuServiceChoose.choose("serviceId");
         // if roundRobin, serviceInstance not equals serviceInstance2
         Assertions.assertNotEquals(serviceInstance, serviceInstance2);
     }
