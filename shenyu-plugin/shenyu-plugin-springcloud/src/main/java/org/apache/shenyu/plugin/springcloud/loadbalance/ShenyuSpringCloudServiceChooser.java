@@ -191,7 +191,7 @@ public final class ShenyuSpringCloudServiceChooser implements ServiceInstanceCho
                 .protocol(protocol)
                 .weight(50)
                 .warmup(10)
-                .timestamp(System.currentTimeMillis())
+                .timestamp(0)
                 .build();
     }
 }
