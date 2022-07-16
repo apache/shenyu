@@ -26,6 +26,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -43,6 +44,10 @@ public class DebugUtils {
      */
     public static void write(final ServerWebExchange exchange) {
         final Environment env = SpringBeanUtils.getInstance().getBean(Environment.class);
+        if (Objects.isNull(env)) {
+            //should only happens in mock test
+            return;
+        }
         //here, you can combine Nacos for dynamic configuration
         final Boolean enable = Optional.ofNullable(env.getProperty("shenyu.debug.enable", Boolean.class)).orElse(false);
         if (!enable) {
