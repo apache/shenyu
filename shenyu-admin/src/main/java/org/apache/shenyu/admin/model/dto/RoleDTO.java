@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -41,7 +41,7 @@ public class RoleDTO implements Serializable {
     /**
      * role name.
      */
-    @NotNull
+    @NotBlank
     private String roleName;
     
     /**
@@ -57,7 +57,7 @@ public class RoleDTO implements Serializable {
     public RoleDTO() {
     }
     
-    public RoleDTO(final String id, @NotNull final String roleName, final String description, final List<String> currentPermissionIds) {
+    public RoleDTO(final String id, @NotBlank final String roleName, final String description, final List<String> currentPermissionIds) {
         this.id = id;
         this.roleName = roleName;
         this.description = description;

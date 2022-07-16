@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -37,7 +38,7 @@ public class DashboardUserDTO implements Serializable {
     /**
      * user name.
      */
-    @NotNull
+    @NotBlank
     private String userName;
 
     /**
