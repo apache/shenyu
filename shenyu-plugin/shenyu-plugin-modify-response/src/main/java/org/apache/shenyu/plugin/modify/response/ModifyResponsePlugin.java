@@ -147,6 +147,7 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             return ClientResponse.create(statusCode)
                     .rawStatusCode(rowStatusCode)
                     .headers(headers -> headers.addAll(httpHeaders))
+                    .cookies(cookies -> cookies.addAll(this.getCookies()))
                     .body(Flux.from(body)).build();
         }
 

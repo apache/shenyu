@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.spi.Join;
+
 import java.util.List;
 import java.util.Objects;
-import org.apache.shenyu.plugin.base.mock.Generator;
-import org.apache.shenyu.spi.Join;
 
 /**
  * Random double value generator in the specified range.

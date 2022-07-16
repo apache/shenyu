@@ -44,10 +44,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class LogCollectConfigUtilsTest {
 
-    private GenericGlobalConfig config = new GenericGlobalConfig();
-
-    private ServerWebExchange exchange;
-
+    private final GenericGlobalConfig config = new GenericGlobalConfig();
+    
     private ServerHttpRequest request;
 
     @BeforeEach
@@ -59,7 +57,7 @@ public class LogCollectConfigUtilsTest {
                 .header("X-source", "mock test")
                 .queryParam("queryParam", "Hello,World")
                 .build();
-        this.exchange = Mockito.spy(MockServerWebExchange.from(request));
+        ServerWebExchange exchange = Mockito.spy(MockServerWebExchange.from(request));
         ShenyuContext shenyuContext = Mockito.mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         this.request = exchange.getRequest();

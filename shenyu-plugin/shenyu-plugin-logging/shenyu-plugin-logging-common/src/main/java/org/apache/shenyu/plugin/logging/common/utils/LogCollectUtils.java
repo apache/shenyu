@@ -58,5 +58,4 @@ public class LogCollectUtils {
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(",", entry.getValue())));
         return JsonUtils.toJson(map);
     }
-
 }

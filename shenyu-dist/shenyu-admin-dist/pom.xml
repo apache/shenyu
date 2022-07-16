@@ -92,41 +92,42 @@
 
         <profile>
             <id>docker</id>
+            <properties>
+                <docker.buildArg.APP_NAME>apache-shenyu-incubating-${project.version}-admin-bin</docker.buildArg.APP_NAME>
+            </properties>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>dockerfile-maven-plugin</artifactId>
-                        <version>${dockerfile-maven-plugin.version}</version>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker-maven-plugin.version}</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>apache/shenyu-admin:latest</name>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                    </build>
+                                </image>
+                                <image>
+                                    <name>apache/shenyu-admin:${project.version}</name>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
                         <executions>
                             <execution>
-                                <id>tag-latest</id>
+                                <id>start</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
-                                <configuration>
-                                    <tag>latest</tag>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>tag-version</id>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                                <configuration>
-                                    <tag>${project.version}</tag>
-                                </configuration>
                             </execution>
                         </executions>
-                        <configuration>
-                            <repository>apache/shenyu-admin</repository>
-                            <buildArgs>
-                                <APP_NAME>apache-shenyu-incubating-${project.version}-admin-bin</APP_NAME>
-                            </buildArgs>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>

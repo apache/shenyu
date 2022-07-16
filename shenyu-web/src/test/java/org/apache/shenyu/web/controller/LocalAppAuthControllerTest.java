@@ -48,6 +48,8 @@ import static org.mockito.Mockito.verify;
 public final class LocalAppAuthControllerTest {
 
     private MockMvc mockMvc;
+
+    private MockMvc mockMvcSubscribersNull;
     
     private AppAuthData appAuthData;
     
@@ -60,6 +62,8 @@ public final class LocalAppAuthControllerTest {
         subscribers.add(mock(AuthDataSubscriber.class));
         LocalAppAuthController appAuthController = new LocalAppAuthController(new TestObjectProvider<>(subscribers));
         this.mockMvc = MockMvcBuilders.standaloneSetup(appAuthController).build();
+        LocalAppAuthController appAuthControllerSubNull = new LocalAppAuthController(new TestObjectProvider<>(null));
+        this.mockMvcSubscribersNull = MockMvcBuilders.standaloneSetup(appAuthControllerSubNull).build();
         appAuthData = initAppAuthDataList();
     }
 
@@ -71,6 +75,12 @@ public final class LocalAppAuthControllerTest {
                 .andReturn().getResponse();
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
         subscribers.forEach(subscriber -> verify(subscriber).onSubscribe(appAuthData));
+
+        final MockHttpServletResponse responseError = this.mockMvcSubscribersNull.perform(MockMvcRequestBuilders.post("/shenyu/auth/saveOrUpdate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(appAuthData)))
+                .andReturn().getResponse();
+        assertThat(responseError.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
     @Test
@@ -84,6 +94,11 @@ public final class LocalAppAuthControllerTest {
         AppAuthData appAuthData = new AppAuthData();
         appAuthData.setAppKey(appKey);
         subscribers.forEach(subscriber -> verify(subscriber).unSubscribe(appAuthData));
+        final MockHttpServletResponse responseError = this.mockMvcSubscribersNull.perform(MockMvcRequestBuilders.get("/shenyu/auth/delete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .queryParam("appKey", appKey))
+                .andReturn().getResponse();
+        assertThat(responseError.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
     private AppAuthData initAppAuthDataList() {

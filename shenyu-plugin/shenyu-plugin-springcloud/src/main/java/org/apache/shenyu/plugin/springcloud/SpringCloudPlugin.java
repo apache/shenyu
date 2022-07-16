@@ -36,7 +36,8 @@ import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler
 import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKey;
 import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKeyHolder;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
+import org.springframework.cloud.client.loadbalancer.ServiceInstanceChooser;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -48,15 +49,15 @@ import java.util.Objects;
  */
 public class SpringCloudPlugin extends AbstractShenyuPlugin {
 
-    private final LoadBalancerClient loadBalancer;
+    private final ServiceInstanceChooser serviceInstanceChooser;
 
     /**
      * Instantiates a new Spring cloud plugin.
      *
-     * @param loadBalancer the load balancer
+     * @param serviceInstanceChooser the load balancer
      */
-    public SpringCloudPlugin(final LoadBalancerClient loadBalancer) {
-        this.loadBalancer = loadBalancer;
+    public SpringCloudPlugin(final ServiceInstanceChooser serviceInstanceChooser) {
+        this.serviceInstanceChooser = serviceInstanceChooser;
     }
 
     @Override
@@ -80,7 +81,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         try {
             LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
             // async choose or custom loadbalancer
-            serviceInstance = loadBalancer.choose(serviceId);
+            serviceInstance = serviceInstanceChooser.choose(serviceId);
         } finally {
             LoadBalanceKeyHolder.resetLoadBalanceKey();
         }
@@ -88,7 +89,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR);
             return WebFluxResultUtils.result(exchange, error);
         }
-        URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(shenyuContext.getRealUrl()));
+        URI uri = LoadBalancerUriTools.reconstructURI(serviceInstance, URI.create(shenyuContext.getRealUrl()));
         setDomain(uri, exchange);
         //set time out.
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());

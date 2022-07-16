@@ -19,10 +19,9 @@ package org.apache.shenyu.plugin.logging.rocketmq.client;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.rocketmq.config.LogCollectConfig;
-import org.apache.shenyu.plugin.logging.rocketmq.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.rocketmq.utils.RocketLogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,29 +35,27 @@ import java.util.Properties;
  */
 public class RocketMQLogCollectClientTest {
 
+    private final PluginData pluginData = new PluginData();
+
+    private final Properties properties = new Properties();
+
+    private final List<ShenyuRequestLog> logs = new ArrayList<>();
+
+    private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
+    
+    private RocketMQLogCollectConfig.RocketMQLogConfig rocketMQLogConfig;
+    
     private RocketMQLogCollectClient rocketMQLogCollectClient;
-
-    private PluginData pluginData = new PluginData();
-
-    private Properties properties = new Properties();
-
-    private LogCollectConfig.GlobalLogConfig globalLogConfig;
-
-    private List<ShenyuRequestLog> logs = new ArrayList<>();
-
-    private ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
     @BeforeEach
     public void setUp() {
         this.rocketMQLogCollectClient = new RocketMQLogCollectClient();
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"topic\":\"test\", \"namesrvAddr\":\"test\", \"producerGroup\":\"test\"}");
-
-        globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), LogCollectConfig.GlobalLogConfig.class);
-        properties.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic());
-        properties.setProperty(LoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getNamesrvAddr());
-        properties.setProperty(LoggingConstant.PRODUCER_GROUP, globalLogConfig.getProducerGroup());
-
+        rocketMQLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RocketMQLogCollectConfig.RocketMQLogConfig.class);
+        properties.setProperty(GenericLoggingConstant.TOPIC, rocketMQLogConfig.getTopic());
+        properties.setProperty(GenericLoggingConstant.NAMESERVER_ADDRESS, rocketMQLogConfig.getNamesrvAddr());
+        properties.setProperty(GenericLoggingConstant.PRODUCER_GROUP, rocketMQLogConfig.getProducerGroup());
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
         logs.add(shenyuRequestLog);
@@ -67,7 +64,7 @@ public class RocketMQLogCollectClientTest {
     @Test
     public void testConsume() {
         String msg = "";
-        RocketLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+        RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(rocketMQLogConfig);
         rocketMQLogCollectClient.initProducer(properties);
         try {
             rocketMQLogCollectClient.consume(logs);

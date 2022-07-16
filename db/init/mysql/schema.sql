@@ -566,13 +566,13 @@ CREATE TABLE `plugin`  (
 INSERT INTO `plugin` VALUES ('1', 'sign', NULL, 'Authentication', 20, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('31', 'mock', null, 'Mock', 1, 0, '2022-06-16 14:40:35', '2022-06-16 14:40:55');
 INSERT INTO `plugin` VALUES ('10', 'sentinel', NULL, 'FaultTolerance', 140, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin` VALUES ('11', 'sofa', '{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin` VALUES ('11', 'sofa', '{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\",\"threadpool\":\"shared\"}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('12', 'resilience4j', NULL, 'FaultTolerance', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin` VALUES ('13', 'tars', '{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\"}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin` VALUES ('13', 'tars', '{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('14', 'contextPath', NULL, 'HttpProcess', 80, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin` VALUES ('15', 'grpc', '{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"cached\"}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin` VALUES ('15', 'grpc', '{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\",\"threadpool\":\"shared\"}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('16', 'redirect', NULL, 'HttpProcess', 110, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin` VALUES ('17', 'motan', '{\"register\":\"127.0.0.1:2181\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"cached\"}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin` VALUES ('17', 'motan', '{\"register\":\"127.0.0.1:2181\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0,\"threadpool\":\"shared\"}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('18', 'loggingConsole', NULL, 'Logging', 160, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('19', 'jwt', '{\"secretKey\":\"key\"}', 'Authentication', 30, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('2', 'waf', '{\"model\":\"black\"}', 'Authentication', 50, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -590,7 +590,7 @@ INSERT INTO `plugin` VALUES ('3', 'rewrite', NULL, 'HttpProcess', 90, 0, '2022-0
 INSERT INTO `plugin` VALUES ('30', 'cache', '{\"cacheType\":\"memory\"}', 'Cache', 10, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('4', 'rateLimiter', '{\"master\":\"mymaster\",\"mode\":\"standalone\",\"url\":\"192.168.1.1:6379\",\"password\":\"abc\"}', 'FaultTolerance', 60, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('5', 'divide', '{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\"}', 'Proxy', 200, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin` VALUES ('6', 'dubbo', '{\"register\":\"zookeeper://localhost:2181\",\"multiSelectorHandle\":\"1\",\"threadpool\":\"cached\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin` VALUES ('6', 'dubbo', '{\"register\":\"zookeeper://localhost:2181\",\"multiSelectorHandle\":\"1\",\"threadpool\":\"shared\",\"corethreads\":0,\"threads\":2147483647,\"queues\":0}', 'Proxy', 310, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('8', 'springCloud', NULL, 'Proxy', 200, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('9', 'hystrix', NULL, 'FaultTolerance', 130, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin` VALUES ('32', 'loggingElasticSearch','{\"host\":\"localhost\", \"port\": \"9200\"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00');

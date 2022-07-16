@@ -91,7 +91,7 @@ public class ShenyuThreadPoolConfiguration {
      * @return the shenyu thread pool executor
      */
     @Bean
-    @ConditionalOnProperty(name = "shenyu.shared-pool.enable", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.shared-pool.enable", havingValue = "true", matchIfMissing = true)
     public ShenyuThreadPoolExecutor shenyuThreadPoolExecutor(final ShenyuConfig shenyuConfig,
                                                              final ObjectProvider<TaskQueue<Runnable>> provider) {
         final ShenyuConfig.SharedPool sharedPool = shenyuConfig.getSharedPool();

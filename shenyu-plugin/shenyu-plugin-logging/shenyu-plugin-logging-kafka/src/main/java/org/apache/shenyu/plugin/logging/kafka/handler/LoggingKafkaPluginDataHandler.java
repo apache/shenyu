@@ -17,11 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.kafka.handler;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -33,13 +28,18 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.logging.kafka.collector.DefaultLogCollector;
-import org.apache.shenyu.plugin.logging.kafka.config.LogCollectConfig;
-import org.apache.shenyu.plugin.logging.kafka.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.kafka.kafka.KafkaLogCollectClient;
-import org.apache.shenyu.plugin.logging.kafka.utils.KafkaLogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.kafka.collector.KafkaLogCollector;
+import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
+import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The type logging kafka plugin data handler.
@@ -54,7 +54,7 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
 
     private static final Map<String, List<String>> SELECT_ID_URI_LIST_MAP = new ConcurrentHashMap<>();
 
-    private static final Map<String, LogCollectConfig.LogApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
+    private static final Map<String, KafkaLogCollectConfig.LogApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
 
     /**
      * get kafka log collect client.
@@ -79,7 +79,7 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
      *
      * @return select api config map
      */
-    public static Map<String, LogCollectConfig.LogApiConfig> getSelectApiConfigMap() {
+    public static Map<String, KafkaLogCollectConfig.LogApiConfig> getSelectApiConfigMap() {
         return SELECT_API_CONFIG_MAP;
     }
 
@@ -90,22 +90,22 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
     public void handlerPlugin(final PluginData pluginData) {
         LOG.info("handler loggingKafka Plugin data:{}", GsonUtils.getGson().toJson(pluginData));
         if (pluginData.getEnabled()) {
-            LogCollectConfig.GlobalLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                LogCollectConfig.GlobalLogConfig.class);
+            KafkaLogCollectConfig.KafkaLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
+                KafkaLogCollectConfig.KafkaLogConfig.class);
 
-            KafkaLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+            KafkaLogCollectConfig.INSTANCE.setKafkaLogConfig(globalLogConfig);
             // start kafka producer
             Properties properties = new Properties();
             properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
             properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
             properties.put("bootstrap.servers", globalLogConfig.getNamesrvAddr());
-            properties.put(LoggingConstant.TOPIC, globalLogConfig.getTopic());
-            properties.put(LoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getTopic());
+            properties.put(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
+            properties.put(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getTopic());
             KAFKA_LOG_COLLECT_CLIENT.initProducer(properties);
-            DefaultLogCollector.getInstance().start();
+            KafkaLogCollector.getInstance().start();
         } else {
             try {
-                DefaultLogCollector.getInstance().close();
+                KafkaLogCollector.getInstance().close();
             } catch (Exception e) {
                 LOG.error("close log collector error", e);
             }
@@ -123,9 +123,8 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
             || CollectionUtils.isEmpty(selectorData.getConditionList())) {
             return;
         }
-
-        LogCollectConfig.LogApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson,
-            LogCollectConfig.LogApiConfig.class);
+        KafkaLogCollectConfig.LogApiConfig logApiConfig = GsonUtils.getInstance().fromJson(handleJson,
+            KafkaLogCollectConfig.LogApiConfig.class);
         if (StringUtils.isBlank(logApiConfig.getTopic()) || StringUtils.isBlank(logApiConfig.getSampleRate())) {
             return;
         }
