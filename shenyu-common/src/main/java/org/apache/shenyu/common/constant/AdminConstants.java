@@ -226,4 +226,9 @@ public final class AdminConstants {
      * The constant URI_SUFFIX.
      */
     public static final String URI_SUFFIX = "/**";
+
+    /**
+     * The constant URI_SLASH_SUFFIX.
+     */
+    public static final String URI_SLASH_SUFFIX = "/";
 }
