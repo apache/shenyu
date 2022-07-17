@@ -28,9 +28,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import sun.misc.BASE64Decoder;
 
-import java.io.IOException;
+import java.util.Base64;
 import java.util.Optional;
 
 /**
@@ -77,25 +76,20 @@ public class PlatformController {
      */
     @GetMapping("/basicAuth")
     public ShenyuAdminResult httpBasicAuth(@RequestHeader("Authorization") final String authorization) {
-        Optional.ofNullable(authorization).map(auth -> {
-            String[] userAndPass;
-            try {
-                userAndPass = new String(new BASE64Decoder().decodeBuffer(authorization.split(" ")[1])).split(":");
-                LoginDashboardUserVO loginVO = dashboardUserService.login(userAndPass[0], userAndPass[1]);
-                return Optional.ofNullable(loginVO)
-                        .map(loginStatus -> {
-                            if (loginStatus.getEnabled()) {
-                                return ShenyuAdminResult.success(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
-                            }
-                            return ShenyuAdminResult.error(ShenyuResultMessage.LOGIN_USER_DISABLE_ERROR);
-                        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
-            } catch (IOException e) {
-                LOG.error("base64 decoder error", e);
-                return ShenyuAdminResult.error(ShenyuResultMessage.BASIC_AUTH_EXCEPTION);
+        String[] userAndPass = new String(Base64.getDecoder().decode(authorization.split(" ")[1])).split(":");
+        return Optional.of(userAndPass).map(s -> {
+            if (s.length < 2) {
+                return ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR);
             }
-        });
-
-        return ShenyuAdminResult.success();
+            LoginDashboardUserVO loginVO = dashboardUserService.login(userAndPass[0], userAndPass[1]);
+            return Optional.ofNullable(loginVO)
+                    .map(loginStatus -> {
+                        if (loginStatus.getEnabled()) {
+                            return ShenyuAdminResult.success(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
+                        }
+                        return ShenyuAdminResult.error(ShenyuResultMessage.LOGIN_USER_DISABLE_ERROR);
+                    }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
+        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
     }
 
     /**
