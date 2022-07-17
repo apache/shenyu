@@ -22,8 +22,6 @@ import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,8 +36,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/platform")
 public class PlatformController {
-    private static final Logger LOG = LoggerFactory.getLogger(PlatformController.class);
-
     private final DashboardUserService dashboardUserService;
 
     private final EnumService enumService;
