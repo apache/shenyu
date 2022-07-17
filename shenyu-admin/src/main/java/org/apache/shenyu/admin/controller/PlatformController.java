@@ -78,7 +78,7 @@ public class PlatformController {
     @GetMapping("/basicAuth")
     public ShenyuAdminResult httpBasicAuth(@RequestHeader("Authorization") final String authorization) {
         Optional.ofNullable(authorization).map(auth -> {
-            String[] userAndPass = new String[0];
+            String[] userAndPass;
             try {
                 userAndPass = new String(new BASE64Decoder().decodeBuffer(authorization.split(" ")[1])).split(":");
                 LoginDashboardUserVO loginVO = dashboardUserService.login(userAndPass[0], userAndPass[1]);
