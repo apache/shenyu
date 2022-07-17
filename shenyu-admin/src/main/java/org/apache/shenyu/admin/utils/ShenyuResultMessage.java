@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.utils;
 
 /**
- *  result message.
+ * result message.
  */
 public final class ShenyuResultMessage {
 
@@ -77,4 +77,6 @@ public final class ShenyuResultMessage {
     public static final String SAVE_SUCCESS = "save success";
 
     public static final String NOT_FOUND_EXCEPTION = "not found exception";
+
+    public static final String BASIC_AUTH_EXCEPTION = "basic auth exception";
 }
