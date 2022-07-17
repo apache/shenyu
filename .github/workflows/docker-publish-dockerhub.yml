@@ -13,20 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: docker-publish-ghcr
+name: docker-publish-dockerhub
 
 on:
-  push:
-    branches: [ "master" ]
-    tags: [ 'v*.*.*' ]
+  release:
+    type: ["published"]
 
 env:
-  REGISTRY: ghcr.io
   REPOSITORY: ${{ github.repository }}
-  TAG: ${{ github.sha }}
+  TAG: ${{ github.ref_name }}
 
 jobs:
-  build:
+  dockerhub:
+    # pre-release or draft status don't trigger this job.
+    # this job called if and only if pre-release -> release or release directly.
+    if: "!github.event.release.prerelease && !github.event.release.draft"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,13 +42,11 @@ jobs:
       - name: Set Skip Env Var
         uses: ./.github/actions/skip-ci
 
-      - name: Login to GitHub Container Registry
+      - name: Login to DockerHub
         uses: docker/login-action@v2
-        if: env.SKIP_CI != 'true'
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -79,7 +78,7 @@ jobs:
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
 
-      - name: Build and push (admin) (ghcr.io)
+      - name: Build and push (admin) (dockerhub)
         uses: docker/build-push-action@v3
         if: env.SKIP_CI != 'true'
         with:
@@ -88,10 +87,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/admin:latest
-            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/admin:${{ env.TAG }}
+            ${{ env.REPOSITORY }}/admin:latest
+            ${{ env.REPOSITORY }}/admin:${{ env.TAG }}
 
-      - name: Build and push (bootstrap) (ghcr.io)
+      - name: Build and push (bootstrap) (dockerhub)
         uses: docker/build-push-action@v3
         if: env.SKIP_CI != 'true'
         with:
@@ -100,5 +99,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/bootstrap:latest
-            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/bootstrap:${{ env.TAG }}
+            ${{ env.REPOSITORY }}/bootstrap:latest
+            ${{ env.REPOSITORY }}/bootstrap:${{ env.TAG }}
