@@ -19,7 +19,7 @@ on:
   release:
     # pre-release or draft status don't trigger this job.
     # this job called if and only if pre-release -> release or release directly.
-    type: ["released"]
+    types: ["released"]
 
 env:
   REPOSITORY: ${{ github.repository }}
