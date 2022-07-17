@@ -116,4 +116,3 @@ logging:
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
     org.apache.shenyu: info
-
