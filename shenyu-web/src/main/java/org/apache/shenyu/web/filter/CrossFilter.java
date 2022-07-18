@@ -63,7 +63,7 @@ public class CrossFilter implements WebFilter {
             HttpHeaders headers = response.getHeaders();
             // finger allow origins
             final String origin = request.getHeaders().getOrigin();
-            boolean allowCors = this.filterConfig.isAllowedAnyOrigin() || (StringUtils.isNoneBlank(this.filterConfig.getOriginRegex()) && StringUtils.isNoneBlank(origin) && Pattern.matches(this.filterConfig.getOriginRegex(),origin));
+            boolean allowCors = this.filterConfig.isAllowedAnyOrigin() || (StringUtils.isNoneBlank(origin) && Pattern.matches(this.filterConfig.getOriginRegex() , origin));
             if (!allowCors && Objects.nonNull(this.filterConfig.getAllowedOrigin())) {
                 final String scheme = exchange.getRequest().getURI().getScheme();
                 final CrossFilterConfig.AllowedOriginConfig allowedOriginConfig = this.filterConfig.getAllowedOrigin();
