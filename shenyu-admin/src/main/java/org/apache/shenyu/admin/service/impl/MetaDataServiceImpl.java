@@ -87,7 +87,7 @@ public class MetaDataServiceImpl implements MetaDataService {
             metaDataMapper.update(metaDataDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
-        // publish MetaData's event  TODO
+        // publish MetaData's event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
     }
