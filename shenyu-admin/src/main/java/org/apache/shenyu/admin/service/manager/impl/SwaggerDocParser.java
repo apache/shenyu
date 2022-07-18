@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -41,6 +42,7 @@ import org.apache.shenyu.admin.model.bean.DocModule;
 import org.apache.shenyu.admin.model.bean.DocParameter;
 import org.apache.shenyu.admin.service.manager.DocParser;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -198,7 +200,35 @@ public class SwaggerDocParser implements DocParser {
                 }
             }
         }
-        docItem.setRequestParameters(docRequestParameterList);
+
+        Map<String, List<DocParameter>> collect = docRequestParameterList.stream()
+            .filter(docParameter -> docParameter.getName().contains("."))
+            .map(docParameter -> {
+                String name = docParameter.getName();
+                int index = name.indexOf('.');
+                String module = name.substring(0, index);
+                String newName = name.substring(index + 1);
+                DocParameter ret = new DocParameter();
+                BeanUtils.copyProperties(docParameter, ret);
+                ret.setName(newName);
+                ret.setModule(module);
+                return ret;
+            })
+            .collect(Collectors.groupingBy(DocParameter::getModule));
+
+        collect.forEach((key, value) -> {
+            DocParameter moduleDoc = new DocParameter();
+            moduleDoc.setName(key);
+            moduleDoc.setType("object");
+            moduleDoc.setRefs(value);
+            docRequestParameterList.add(moduleDoc);
+        });
+
+        List<DocParameter> requestParameterList = docRequestParameterList.stream()
+            .filter(docParameter -> !docParameter.getName().contains("."))
+            .collect(Collectors.toList());
+
+        docItem.setRequestParameters(requestParameterList);
         docItem.setRequestHeaders(docHeaderParameterList);
     }
 
@@ -220,8 +250,7 @@ public class SwaggerDocParser implements DocParser {
         return respParameterList;
     }
 
-    protected List<DocParameter> buildDocParameters(final String ref, final JsonObject docRoot,
-        final boolean doSubRef) {
+    protected List<DocParameter> buildDocParameters(final String ref, final JsonObject docRoot, final boolean doSubRef) {
         JsonObject responseObject = docRoot.getAsJsonObject("definitions").getAsJsonObject(ref);
         String className = responseObject.get("title").getAsString();
         JsonObject extProperties = docRoot.getAsJsonObject(className);
