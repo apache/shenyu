@@ -1017,14 +1017,18 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public String getOriginRegex() { return originRegex; }
-
+        public String getOriginRegex() {
+            return originRegex;
+        }
         /**
          * Sets originRegex.
          *
          * @return the enabled
          */
-        public void setOriginRegex(String originRegex) { this.originRegex = originRegex; }
+        public void setOriginRegex(String originRegex) {
+            this.originRegex = originRegex;
+        }
+
         /**
          * Gets the value of allowedHeaders.
          *
