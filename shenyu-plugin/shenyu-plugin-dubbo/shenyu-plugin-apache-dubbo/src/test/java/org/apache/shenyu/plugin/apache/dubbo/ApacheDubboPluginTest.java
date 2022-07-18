@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.apache.dubbo;
 
+import com.google.common.collect.Maps;
+import org.apache.dubbo.rpc.RpcContext;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -37,6 +39,8 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.test.StepVerifier;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -141,5 +145,13 @@ public final class ApacheDubboPluginTest {
     public void getOrder() {
         final int result = apacheDubboPlugin.getOrder();
         assertEquals(PluginEnum.DUBBO.getCode(), result);
+    }
+
+    @Test
+    public void testTransmitRpcContext() {
+        Map<String, String> stringStringMap = Maps.newHashMapWithExpectedSize(1);
+        stringStringMap.put("test", "test");
+        apacheDubboPlugin.transmitRpcContext(stringStringMap);
+        assertEquals(RpcContext.getContext().getAttachment("test"), "test");
     }
 }

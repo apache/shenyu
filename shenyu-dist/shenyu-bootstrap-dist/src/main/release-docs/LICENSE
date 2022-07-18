@@ -361,7 +361,6 @@ The text of each license is the standard Apache 2.0 license.
     eureka-client 1.9.13 https://github.com/Netflix/eureka, Apache 2.0
     eureka-core 1.9.13 https://github.com/Netflix/eureka, Apache 2.0
     evictor 1.0.0 https://github.com/stoyanr/Evictor, Apache 2.0
-    fastjson 1.2.70 https://github.com/alibaba/fastjson, Apache 2.0
     guice 4.1.0 https://github.com/google/guice, Apache 2.0
     javax.inject 1: https://mvnrepository.com/artifact/javax.inject/javax.inject/1, Apache 2.0
     jjwt 0.9.0 https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt/0.9.0, Apache 2.0
@@ -395,6 +394,7 @@ The text of each license is the standard Apache 2.0 license.
     kafka-clients 3.2.0: https://kafka.apache.org/, Apache 2.0
     elasticsearch-java 8.2.3: https://github.com/elastic/elasticsearch-java, Apache 2.0
     elasticsearch-rest-client 8.2.3: https://github.com/elastic/elasticsearch, Apache 2.0
+    aliyun-log-producer 0.3.10: https://github.com/aliyun/aliyun-log-java-producer, Apache 2.0
 
 ========================================================================
 BSD licenses

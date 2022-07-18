@@ -41,11 +41,6 @@ public enum SerializeEnum {
     HESSIAN("hessian"),
 
     /**
-     * Fast json serialize enum.
-     */
-    FAST_JSON("fastJson"),
-
-    /**
      * Protostuff serialize protocol enum.
      */
     PROTOSTUFF("protostuff");

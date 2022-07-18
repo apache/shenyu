@@ -42,6 +42,14 @@ public class DashboardProperties {
     @Value("${shenyu.dashboard.core.record-log-only-clean-days:3}")
     private Integer onlyCleanDays;
     
+    
+    /**
+     * enable print api log..
+     * default is false.
+     */
+    @Value("${shenyu.dashboard.core.enable-print-api-log:false}")
+    private Boolean enablePrintApiLog;
+    
     /**
      * get recordLogLimit.
      *
@@ -76,5 +84,23 @@ public class DashboardProperties {
      */
     public void setOnlyCleanDays(final Integer onlyCleanDays) {
         this.onlyCleanDays = onlyCleanDays;
+    }
+    
+    /**
+     * get enablePrintApiLog.
+     *
+     * @return enablePrintApiLog
+     */
+    public Boolean getEnablePrintApiLog() {
+        return enablePrintApiLog;
+    }
+    
+    /**
+     * set enablePrintApiLog.
+     *
+     * @param enablePrintApiLog enablePrintApiLog
+     */
+    public void setEnablePrintApiLog(final Boolean enablePrintApiLog) {
+        this.enablePrintApiLog = enablePrintApiLog;
     }
 }

@@ -26,8 +26,14 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
+import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +43,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -48,10 +55,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -91,11 +100,17 @@ public final class DividePluginTest {
                 .collect(Collectors.toList());
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
+                .header("test", "test")
+                .header("Content-Length", "50")
                 .build());
         this.postExchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost?param=1")
                 .remoteAddress(new InetSocketAddress(8090))
                 .build());
         this.dividePlugin = new DividePlugin();
+
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
 
         // mock static
         mockCheckUtils = mockStatic(UpstreamCheckUtils.class);
@@ -116,6 +131,29 @@ public final class DividePluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
+        DivideRuleHandle divideRuleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        divideRuleHandle.setHeaderMaxSize(1);
+        // hit `ruleHandle.getHeaderMaxSize() > 0`
+        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        divideRuleHandle.setHeaderMaxSize(1);
+        // hit `ruleHandle.getRequestMaxSize() > 0`
+        divideRuleHandle.setHeaderMaxSize(0);
+        divideRuleHandle.setRequestMaxSize(1);
+        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        // hit `CollectionUtils.isEmpty(upstreamList)`
+        divideRuleHandle.setRequestMaxSize(0);
+        UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
+        when(selectorData.getHandle()).thenReturn(null);
+        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        // hit `Objects.isNull(upstream)`
+        MockedStatic<LoadBalancerFactory> loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
+        loadBalancerFactoryMockedStatic.when(() -> LoadBalancerFactory.selector(any(), any(), any()))
+                .thenReturn(null);
+        dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        // hit `assert shenyuContext != null`
+        exchange.getAttributes().remove(Constants.CONTEXT);
+        assertThrows(AssertionError.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData));
     }
 
     /**
@@ -134,6 +172,22 @@ public final class DividePluginTest {
     @Test
     public void skip() {
         assertTrue(dividePlugin.skip(exchange));
+    }
+
+    /**
+     * handleSelectorIfNull.
+     */
+    @Test
+    public void handleSelectorIfNullTest() {
+        assertTrue(dividePlugin.handleSelectorIfNull(PluginEnum.DIVIDE.getName(), exchange, chain) != null);
+    }
+
+    /**
+     * handleRuleIfNull.
+     */
+    @Test
+    public void handleRuleIfNullTest() {
+        assertTrue(dividePlugin.handleRuleIfNull(PluginEnum.DIVIDE.getName(), exchange, chain) != null);
     }
 
     /**

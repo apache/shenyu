@@ -253,12 +253,24 @@
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
             <version>${nacos-discovery.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-loadbalancer</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
             <version>${eureka-client.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -474,6 +486,14 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu logging-elasticsearch plugin end-->
+
+        <!-- shenyu logging-aliyunsls plugin start -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-aliyun-sls</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu logging-aliyunsls plugin end -->
 
     </dependencies>
     <profiles>

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.plugin.mock.util.RandomUtil;
 import org.apache.shenyu.spi.Join;
 

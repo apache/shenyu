@@ -22,6 +22,7 @@ import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
 import org.apache.shenyu.plugin.resilience4j.factory.Resilience4JRegistryFactory;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.concurrent.TimeUnit;
@@ -40,9 +41,10 @@ public class CombinedExecutor implements Executor {
     public <T> Mono<T> run(final Mono<T> run, final Function<Throwable, Mono<T>> fallback, final Resilience4JConf resilience4JConf) {
         RateLimiter rateLimiter = Resilience4JRegistryFactory.rateLimiter(resilience4JConf.getId(), resilience4JConf.getRateLimiterConfig());
         CircuitBreaker circuitBreaker = Resilience4JRegistryFactory.circuitBreaker(resilience4JConf.getId(), resilience4JConf.getCircuitBreakerConfig());
+        final Duration timeoutDuration = resilience4JConf.getTimeLimiterConfig().getTimeoutDuration();
         Mono<T> to = run.transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
                 .transformDeferred(RateLimiterOperator.of(rateLimiter))
-                .timeout(resilience4JConf.getTimeLimiterConfig().getTimeoutDuration())
+                .timeout(timeoutDuration, Mono.error(new TimeoutException("Response took longer than timeout: " + timeoutDuration)))
                 .doOnError(TimeoutException.class, t -> circuitBreaker.onError(
                         resilience4JConf.getTimeLimiterConfig().getTimeoutDuration().toMillis(),
                         TimeUnit.MILLISECONDS,

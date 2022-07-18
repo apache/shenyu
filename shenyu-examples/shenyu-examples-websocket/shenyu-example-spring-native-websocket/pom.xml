@@ -93,30 +93,38 @@
     <profiles>
         <profile>
             <id>example</id>
+            <properties>
+                <docker.buildArg.APP_NAME>shenyu-example-spring-native-websocket</docker.buildArg.APP_NAME>
+                <docker.image.tag.repo>shenyu-example-spring-native-websocket</docker.image.tag.repo>
+                <docker.image.tag.tagName>latest</docker.image.tag.tagName>
+            </properties>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>dockerfile-maven-plugin</artifactId>
-                        <version>${dockerfile-maven-plugin.version}</version>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker-maven-plugin.version}</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>shenyu-example-spring-native-websocket</name>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
                         <executions>
                             <execution>
-                                <id>shenyu-example-spring-native-websocket</id>
+                                <id>start</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <repository>shenyu-example-spring-native-websocket</repository>
-                            <tag>latest</tag>
-                            <buildArgs>
-                                <APP_NAME>shenyu-example-spring-native-websocket</APP_NAME>
-                            </buildArgs>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>

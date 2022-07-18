@@ -35,6 +35,7 @@ import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
@@ -184,7 +185,7 @@ public class PluginServiceImpl implements PluginService {
     
     @Override
     public List<PluginSnapshotVO> activePluginSnapshot() {
-        return pluginMapper.activePluginSnapshot();
+        return pluginMapper.activePluginSnapshot(AdminConstants.ADMIN_NAME.equals(SessionUtil.visitorName()) ? null : SessionUtil.visitor().getUserId());
     }
     
     /**
