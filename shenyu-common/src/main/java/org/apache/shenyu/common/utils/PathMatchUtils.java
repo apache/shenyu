@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.common.utils;
 
-import com.google.common.base.Splitter;
-import org.springframework.util.AntPathMatcher;
+import org.springframework.http.server.PathContainer;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,8 +28,6 @@ import java.util.regex.Pattern;
  * The type Path match utils.
  */
 public class PathMatchUtils {
-
-    private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
     /**
      * replace url {id} to real param.
@@ -45,16 +44,12 @@ public class PathMatchUtils {
     /**
      * Match boolean.
      *
-     * @param matchUrls to ignore urls
-     * @param path      the path
+     * @param matchUrls the path patter
+     * @param path      the real path
      * @return the boolean
      */
     public static boolean match(final String matchUrls, final String path) {
-        return Splitter.on(",").omitEmptyStrings().trimResults().splitToList(matchUrls).stream().anyMatch(url -> reg(url, path));
+        PathPattern pattern = PathPatternParser.defaultInstance.parse(matchUrls);
+        return pattern.matches(PathContainer.parsePath(path));
     }
-
-    private static boolean reg(final String pattern, final String path) {
-        return MATCHER.match(pattern, path);
-    }
-
 }
