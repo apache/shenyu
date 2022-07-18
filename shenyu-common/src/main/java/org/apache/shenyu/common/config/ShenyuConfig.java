@@ -1023,7 +1023,7 @@ public class ShenyuConfig {
         /**
          * Sets originRegex.
          *
-         * @return the enabled
+         * @param originRegex originRegex
          */
         public void setOriginRegex(String originRegex) {
             this.originRegex = originRegex;
