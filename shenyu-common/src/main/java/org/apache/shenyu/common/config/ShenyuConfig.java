@@ -977,6 +977,9 @@ public class ShenyuConfig {
 
         private boolean allowCredentials;
 
+        private String originRegex;
+
+
         /**
          * wrapper the headers.
          *
@@ -990,7 +993,15 @@ public class ShenyuConfig {
             }
             return String.join(",", headerSet);
         }
-    
+
+        public String getOriginRegex() {
+            return originRegex;
+        }
+
+        public void setOriginRegex(String originRegex) {
+            this.originRegex = originRegex;
+        }
+
         /**
          * Gets enabled.
          *

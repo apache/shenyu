@@ -102,6 +102,7 @@ public final class CrossFilterTest {
             }
         });
         filterConfig.setAllowedOrigin(allowedOriginConfig);
+        filterConfig.setOriginRegex("((http|https)\\:\\/\\/)?[a-zA-Z0-9\\.\\/\\?\\:@\\-_=#]+\\.([a-zA-Z0-9\\&\\.\\/\\?\\:@\\-_=#])*");
         CrossFilter filter = new CrossFilter(filterConfig);
         StepVerifier.create(filter.filter(exchange, chainNormal))
                 .expectSubscription()

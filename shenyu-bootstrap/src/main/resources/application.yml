@@ -172,7 +172,7 @@ shenyu:
     allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
-
+    originRegex: ((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z0-9\&\.\/\?\:@\-_=#])*
   switchConfig:
     local: true
   file:
