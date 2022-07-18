@@ -1025,7 +1025,7 @@ public class ShenyuConfig {
          *
          * @param originRegex originRegex
          */
-        public void setOriginRegex(String originRegex) {
+        public void setOriginRegex(final String originRegex) {
             this.originRegex = originRegex;
         }
 
