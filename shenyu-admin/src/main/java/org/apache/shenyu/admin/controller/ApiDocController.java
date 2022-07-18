@@ -49,7 +49,7 @@ public class ApiDocController {
     private final ShenyuDictService shenyuDictService;
 
     public ApiDocController(final DocManager docManager,
-                            final ShenyuDictService shenyuDictService) {
+                            ShenyuDictService shenyuDictService) {
         this.docManager = docManager;
         this.shenyuDictService = shenyuDictService;
     }
