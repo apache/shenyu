@@ -1020,6 +1020,7 @@ public class ShenyuConfig {
         public String getOriginRegex() {
             return originRegex;
         }
+
         /**
          * Sets originRegex.
          *
