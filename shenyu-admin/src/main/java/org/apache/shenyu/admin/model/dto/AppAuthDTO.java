@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.List;
@@ -66,9 +67,11 @@ public class AppAuthDTO implements Serializable {
      * whether enabled.
      */
     private Boolean enabled;
-    
+
+    @Valid
     private List<AuthParamDTO> authParamDTOList;
-    
+
+    @Valid
     private List<AuthPathDTO> authPathDTOList;
     
     /**
