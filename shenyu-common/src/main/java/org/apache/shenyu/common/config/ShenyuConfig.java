@@ -994,14 +994,6 @@ public class ShenyuConfig {
             return String.join(",", headerSet);
         }
 
-        public String getOriginRegex() {
-            return originRegex;
-        }
-
-        public void setOriginRegex(String originRegex) {
-            this.originRegex = originRegex;
-        }
-
         /**
          * Gets enabled.
          *
@@ -1019,7 +1011,20 @@ public class ShenyuConfig {
         public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
-    
+
+        /**
+         * Gets originRegex.
+         *
+         * @return the enabled
+         */
+        public String getOriginRegex() { return originRegex; }
+
+        /**
+         * Sets originRegex.
+         *
+         * @return the enabled
+         */
+        public void setOriginRegex(String originRegex) { this.originRegex = originRegex; }
         /**
          * Gets the value of allowedHeaders.
          *
