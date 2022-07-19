@@ -25,10 +25,9 @@ import org.apache.shenyu.spi.Join;
 import java.util.Objects;
 
 /**
- * 1. it used org.springframework.web.util.pattern.PathPattern
+ * 1. it used {@linkplain org.springframework.web.util.pattern.PathPattern}
  * 2. not support '/api / ** /xxx'.
- * 3. better performance than org.springframework.util.AntPathMatcher
- * 
+ * 3. better performance than {@linkplain org.springframework.util.AntPathMatcher}
  * Path pattern predicate judge.
  */
 @Join
