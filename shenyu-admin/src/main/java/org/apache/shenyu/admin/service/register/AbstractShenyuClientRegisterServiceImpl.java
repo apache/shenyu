@@ -152,7 +152,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             throw new ShenyuException("doRegister Failed to execute,wait to retry.");
         }
         // fetch UPSTREAM_MAP data from db
-        //upstreamCheckService.fetchUpstreamData(); todo
+        //upstreamCheckService.fetchUpstreamData();
         //update upstream
         List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
         String handler = buildHandle(validUriList, selectorDO);
