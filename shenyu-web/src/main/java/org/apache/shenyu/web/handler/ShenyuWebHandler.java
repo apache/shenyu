@@ -165,7 +165,6 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     /**
      * handle enabled plugins.
      * @param pluginData plugin data
-     * @return enabled plugins
      */
     private synchronized void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
