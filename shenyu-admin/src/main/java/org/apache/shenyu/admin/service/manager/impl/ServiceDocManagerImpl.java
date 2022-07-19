@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.manager.impl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Resource;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
@@ -86,7 +87,7 @@ public class ServiceDocManagerImpl implements ServiceDocManager {
     private boolean canPull(final UpstreamInstance instance) {
         boolean canPull = false;
         Long cacheLastStartUpTime = CLUSTER_LASTSTARTUPTIME_MAP.get(instance.getClusterName());
-        if (cacheLastStartUpTime == null || instance.getStartupTime() > cacheLastStartUpTime) {
+        if (Objects.isNull(cacheLastStartUpTime) || instance.getStartupTime() > cacheLastStartUpTime) {
             canPull = true;
         }
         return canPull;
