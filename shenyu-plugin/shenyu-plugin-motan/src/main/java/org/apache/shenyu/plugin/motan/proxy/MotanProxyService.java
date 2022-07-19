@@ -45,7 +45,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
@@ -124,7 +123,10 @@ public class MotanProxyService {
         MotanRegisterConfig config = Singleton.INST.get(MotanRegisterConfig.class);
         if (Objects.isNull(config)) {
             // should not execute to here
-            threadPool = Executors.newCachedThreadPool(factory);
+            threadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                    60L, TimeUnit.SECONDS,
+                    new SynchronousQueue<Runnable>(),
+                    factory);
             return;
         }
         final String threadpool = Optional.ofNullable(config.getThreadpool()).orElse(Constants.CACHED);

@@ -36,9 +36,9 @@ import java.util.Properties;
 /**
  * LoggingAliYunSlsPluginDataHandler aliyun sls plugin data handler.
  */
-public class LoggingAliYunSlsPluginDataHandler implements PluginDataHandler {
+public class LoggingAliyunSlsPluginDataHandler implements PluginDataHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingAliYunSlsPluginDataHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LoggingAliyunSlsPluginDataHandler.class);
 
     private static final AliyunSlsLogCollectClient ALIYUN_SLS_LOG_COLLECT_CLIENT = new AliyunSlsLogCollectClient();
 
