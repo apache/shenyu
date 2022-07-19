@@ -41,5 +41,4 @@ public class PathMatchUtils {
     private static boolean reg(final String pattern, final String path) {
         return MATCHER.match(pattern, path);
     }
-
 }
