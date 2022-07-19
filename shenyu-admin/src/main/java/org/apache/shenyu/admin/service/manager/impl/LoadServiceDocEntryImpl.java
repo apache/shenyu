@@ -73,10 +73,10 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     private final ShenyuDictService shenyuDictService;
 
     public LoadServiceDocEntryImpl(final SelectorService selectorService,
-        final SelectorHandleConverterFactor converterFactor,
-        final PluginMapper pluginMapper,
-        final ServiceDocManager serviceDocManager,
-        final ShenyuDictService shenyuDictService) {
+                                   final SelectorHandleConverterFactor converterFactor,
+                                   final PluginMapper pluginMapper,
+                                   final ServiceDocManager serviceDocManager,
+                                   final ShenyuDictService shenyuDictService) {
         this.selectorService = selectorService;
         this.converterFactor = converterFactor;
         this.pluginMapper = pluginMapper;
