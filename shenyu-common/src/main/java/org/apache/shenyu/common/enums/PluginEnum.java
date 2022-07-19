@@ -138,14 +138,19 @@ public enum PluginEnum {
     LOGGING_ROCKETMQ(170, 0, "loggingRocketMQ"),
 
     /**
-     * Logging RocketMQ plugin enum.
+     * Logging AliYun sls enums.
+     */
+    LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
+
+    /**
+     * Logging Kafka plugin enum.
      */
     LOGGING_KAFKA(180, 0, "loggingKafka"),
-  
+
     /**
      * Logging ElasticSearch plugin enum.
      */
-    LOGGING_ElasticSearch(190, 0, "loggingElasticSearch"),
+    LOGGING_ELASTIC_SEARCH(190, 0, "loggingElasticSearch"),
     
     /**
      * Divide plugin enum.

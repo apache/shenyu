@@ -51,7 +51,7 @@ public final class AlibabaDubboMetaDataSubscriberTest {
         metaData.setServiceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService");
         metaData.setMethodName("findAll");
         metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
-        metaData.setRpcExt("{\"group\":\"Group\",\"version\":\"2.6.5\",\"url\":\"http://192.168.55.113/dubbo\"}");
+        metaData.setRpcExt("{\"group\":\"Group\",\"version\":\"2.6.5\",\"url\":\"http://192.168.55.113/dubbo\",\"cluster\":\"failover\"}");
         metaData.setParameterTypes("parameterTypes");
     }
 
@@ -65,11 +65,13 @@ public final class AlibabaDubboMetaDataSubscriberTest {
                 .serviceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService")
                 .methodName("findById")
                 .rpcType(RpcTypeEnum.DUBBO.getName())
-                .rpcExt("{\"group\":\"Group\",\"version\":\"2.6.5\",\"loadbalance\":\"roundrobin\",\"url\":\"http://192.168.55.113/dubbo\"}")
+                .rpcExt("{\"group\":\"Group\",\"version\":\"2.6.5\",\"url\":\"http://192.168.55.113/dubbo\",\"cluster\":\"failover\"}")
                 .parameterTypes("parameterTypes").build();
         AlibabaDubboMetaDataSubscriber alibabaDubboMetaDataSubscriberMock = mock(AlibabaDubboMetaDataSubscriber.class);
         doNothing().when(alibabaDubboMetaDataSubscriberMock).onSubscribe(metaData);
         alibabaDubboMetaDataSubscriberMock.onSubscribe(metaData);
+        // hit else
+        alibabaDubboMetaDataSubscriber.onSubscribe(metaData);
         alibabaDubboMetaDataSubscriber.unSubscribe(metaData);
     }
 }

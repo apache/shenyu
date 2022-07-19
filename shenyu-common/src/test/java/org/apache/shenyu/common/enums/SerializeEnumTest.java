@@ -34,7 +34,6 @@ public final class SerializeEnumTest {
         assertEquals(SerializeEnum.JDK.getSerialize(), "jdk");
         assertEquals(SerializeEnum.KRYO.getSerialize(), "kryo");
         assertEquals(SerializeEnum.HESSIAN.getSerialize(), "hessian");
-        assertEquals(SerializeEnum.FAST_JSON.getSerialize(), "fastJson");
         assertEquals(SerializeEnum.PROTOSTUFF.getSerialize(), "protostuff");
     }
 
@@ -47,7 +46,6 @@ public final class SerializeEnumTest {
         assertEquals(SerializeEnum.acquire("jdk"), SerializeEnum.JDK);
         assertEquals(SerializeEnum.acquire("kryo"), SerializeEnum.KRYO);
         assertEquals(SerializeEnum.acquire("hessian"), SerializeEnum.HESSIAN);
-        assertEquals(SerializeEnum.acquire("fastJson"), SerializeEnum.FAST_JSON);
         assertEquals(SerializeEnum.acquire("protostuff"), SerializeEnum.PROTOSTUFF);
     }
 }

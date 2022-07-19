@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Objects;
@@ -40,7 +41,7 @@ public class PluginDTO implements Serializable {
     /**
      * plugin name.
      */
-    @NotNull
+    @NotBlank
     private String name;
     
     /**
@@ -51,7 +52,7 @@ public class PluginDTO implements Serializable {
     /**
      * plugin role.
      */
-    @NotNull
+    @NotBlank
     private String role;
     
     /**

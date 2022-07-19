@@ -25,8 +25,9 @@ import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpHost;
-import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.elasticsearch.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -59,14 +61,14 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
      */
     public void initClient(final Properties props) {
         restClient = RestClient
-                .builder(new HttpHost(props.getProperty(LoggingConstant.HOST), Integer.parseInt(props.getProperty(LoggingConstant.PORT))))
+                .builder(new HttpHost(props.getProperty(GenericLoggingConstant.HOST), Integer.parseInt(props.getProperty(GenericLoggingConstant.PORT))))
                 .build();
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
         LOG.info("init ElasticSearchLogCollectClient success");
         // Determine whether the index exists, and create it if it does not exist
-        if (!existsIndex(LoggingConstant.INDEX)) {
-            createIndex(LoggingConstant.INDEX);
+        if (!existsIndex(GenericLoggingConstant.INDEX)) {
+            createIndex(GenericLoggingConstant.INDEX);
             LOG.info("create index success");
         }
         isStarted.set(true);
@@ -74,21 +76,21 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
     }
 
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) throws Exception {
+    public void consume(final List<ShenyuRequestLog> logs) {
         if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
             return;
         }
         List<BulkOperation> bulkOperations = new ArrayList<>();
         logs.forEach(log -> {
             try {
-                bulkOperations.add(new BulkOperation.Builder().create(d -> d.document(log).index(LoggingConstant.INDEX)).build());
+                bulkOperations.add(new BulkOperation.Builder().create(d -> d.document(log).index(GenericLoggingConstant.INDEX)).build());
             } catch (Exception e) {
                 LOG.error("add logs error", e);
             }
         });
         // Bulk storage
         try {
-            client.bulk(e -> e.index(LoggingConstant.INDEX).operations(bulkOperations));
+            client.bulk(e -> e.index(GenericLoggingConstant.INDEX).operations(bulkOperations));
         } catch (Exception e) {
             LOG.error("elasticsearch store logs error", e);
         }
@@ -128,19 +130,18 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
      */
     @Override
     public void close() {
-        if (restClient != null && isStarted.get()) {
+        if (Objects.nonNull(restClient) && isStarted.get()) {
             try {
                 transport.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error("transport close has IOException : ", e);
             }
             try {
                 restClient.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error("restClient close has IOException : ", e);
             }
             isStarted.set(false);
         }
     }
-
 }

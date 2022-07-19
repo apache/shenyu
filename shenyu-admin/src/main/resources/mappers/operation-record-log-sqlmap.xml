@@ -47,6 +47,11 @@
         SELECT
                <include refid="Base_Column_List"/>
           FROM operation_record_log
+          <where>
+              <if test="username != null">
+                  operator = #{username}
+              </if>
+          </where>
          order by operation_time desc
          limit #{limit}
     </select>
@@ -56,6 +61,9 @@
         <include refid="Base_Column_List"/>
         FROM operation_record_log
         where rownum <![CDATA[<=]]> #{limit}
+        <if test="username != null">
+            and operator = #{username}
+        </if>
         order by operation_time desc
     </select>
 
@@ -72,6 +80,9 @@
         </if>
         <if test="condition.type != null">
             and operation_type = #{condition.type}
+        </if>
+        <if test="condition.username != null">
+            and operator = #{condition.username}
         </if>
         order by operation_time desc
     </select>

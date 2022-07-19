@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 
 public class AlertTemplateDTO {
 
@@ -29,19 +29,19 @@ public class AlertTemplateDTO {
     /**
      * alert template name.
      */
-    @NotNull
+    @NotBlank
     private String name;
 
     /**
      * alert template strategyName.
      */
-    @NotNull
+    @NotBlank
     private String strategyName;
 
     /**
      * alert template content.
      */
-    @NotNull
+    @NotBlank
     private String content;
 
     /**
