@@ -25,3 +25,4 @@ regex=org.apache.shenyu.plugin.base.condition.judge.RegexPredicateJudge
 TimeAfter=org.apache.shenyu.plugin.base.condition.judge.TimerAfterPredicateJudge
 TimeBefore=org.apache.shenyu.plugin.base.condition.judge.TimerBeforePredicateJudge
 exclude=org.apache.shenyu.plugin.base.condition.judge.ExcludePredicateJudge
+pathPatter=org.apache.shenyu.plugin.base.condition.judge.PathPatternPredicateJudge

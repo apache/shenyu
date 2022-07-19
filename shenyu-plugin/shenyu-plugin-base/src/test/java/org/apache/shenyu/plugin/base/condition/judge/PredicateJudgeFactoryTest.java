@@ -76,6 +76,16 @@ public final class PredicateJudgeFactoryTest {
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**/test"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
     }
+    
+    @Test
+    public void testPathPatternJudge() {
+        conditionData.setOperator(OperatorEnum.PATH_PATTER.getAlias());
+        conditionData.setParamValue("/http/**");
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**"));
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));
+        assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test/test"));
+        assertFalse(PredicateJudgeFactory.judge(conditionData, "/http1/**"));
+    }
 
     @Test
     public void testRegexJudge() {
@@ -139,5 +149,4 @@ public final class PredicateJudgeFactoryTest {
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/test/http/**"));
         assertFalse(PredicateJudgeFactory.judge(conditionData, "/**/http1/"));
     }
-
 }
