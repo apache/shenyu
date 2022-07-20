@@ -17,15 +17,20 @@
 
 package org.apache.shenyu.plugin.cache;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 /**
  * ICache.
  */
 public interface ICache {
+
+    Logger LOG = LoggerFactory.getLogger(ICache.class);
 
     /**
      * Cache the data with the key.
@@ -34,21 +39,21 @@ public interface ICache {
      * @param timeoutSeconds value valid time
      * @return success or not
      */
-    boolean cacheData(String key, byte[] bytes, long timeoutSeconds);
+    Mono<Boolean> cacheData(String key, byte[] bytes, long timeoutSeconds);
 
     /**
      * Check the cache is existed or not.
      * @param key the cache key
      * @return true exist
      */
-    boolean isExist(String key);
+    Mono<Boolean> isExist(String key);
 
     /**
      * Get data with the key.
      * @param key the cache key
      * @return the data
      */
-    byte[] getData(String key);
+    Mono<byte[]> getData(String key);
 
     /**
      * cache the content type.
@@ -57,8 +62,8 @@ public interface ICache {
      * @param timeoutSeconds value valid time
      * @return success or not
      */
-    default boolean cacheContentType(final String key, final MediaType mediaType, final long timeoutSeconds) {
-        return cacheData(key, mediaTypeToBytes(mediaType), timeoutSeconds);
+    default void cacheContentType(final String key, final MediaType mediaType, final long timeoutSeconds) {
+       cacheData(key, mediaTypeToBytes(mediaType), timeoutSeconds).subscribeOn(Schedulers.boundedElastic()).subscribe();
     }
 
     /**
@@ -75,12 +80,23 @@ public interface ICache {
      * @param key the content type key
      * @return content type
      */
-    default MediaType getContentType(final String key) {
-        final byte[] data = getData(key);
-        if (Objects.isNull(data) || data.length == 0) {
-            return MediaType.APPLICATION_JSON;
-        }
-        return MediaType.valueOf(new String(data, StandardCharsets.UTF_8));
+    default Mono<MediaType> getContentType(final String key) {
+        return getData(key).map(v -> {
+            if (v.length == 0) {
+                return MediaType.APPLICATION_JSON;
+            } else {
+                return MediaType.valueOf(new String(v, StandardCharsets.UTF_8));
+            }
+        });
+
+        // return MediaType.APPLICATION_JSON;
+
+
+        // final byte[] data = getData(key);
+        // if (Objects.isNull(data) || data.length == 0) {
+        //     return MediaType.APPLICATION_JSON;
+        // }
+        // return MediaType.valueOf(new String(data, StandardCharsets.UTF_8));
     }
 
     /**
