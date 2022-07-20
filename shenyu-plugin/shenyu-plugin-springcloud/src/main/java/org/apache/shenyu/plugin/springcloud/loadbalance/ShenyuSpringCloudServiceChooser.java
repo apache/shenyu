@@ -43,6 +43,15 @@ public final class ShenyuSpringCloudServiceChooser  {
         this.discoveryClient = discoveryClient;
     }
 
+    /**
+     * choose service instance.
+     *
+     * @param serviceId service id
+     * @param selectorId selector id
+     * @param ip ip
+     * @param loadbalancer load balancer
+     * @return Upstream
+     */
     public Upstream choose(final String serviceId, final String selectorId,
                            final String ip, final String loadbalancer) {
         // load service instance by serviceId
@@ -82,7 +91,7 @@ public final class ShenyuSpringCloudServiceChooser  {
      * @param serviceId serviceId
      * @return ServiceInstance
      */
-    private Upstream doSelect(final String serviceId, final String ip , final String loadbalancer) {
+    private Upstream doSelect(final String serviceId, final String ip, final String loadbalancer) {
         List<Upstream> choose = this.buildUpstream(serviceId);
         return this.doSelect(choose, loadbalancer, ip);
     }

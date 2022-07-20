@@ -30,7 +30,6 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -73,13 +72,13 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID);
             return WebFluxResultUtils.result(exchange, error);
         }
-        String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-        Upstream upstream = serviceChooser.choose(serviceId, selector.getId(), ip, ruleHandle.getLoadBalance());
+        final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
+        final Upstream upstream = serviceChooser.choose(serviceId, selector.getId(), ip, ruleHandle.getLoadBalance());
         if (Objects.isNull(upstream)) {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR);
             return WebFluxResultUtils.result(exchange, error);
         }
-        String domain = upstream.buildDomain();
+        final String domain = upstream.buildDomain();
         setDomain(URI.create(domain + shenyuContext.getRealUrl()), exchange);
         //set time out.
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
