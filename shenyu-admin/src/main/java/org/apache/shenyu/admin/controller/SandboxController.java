@@ -81,8 +81,8 @@ public class SandboxController {
      */
     @PostMapping(path = "/proxyGateway")
     public void proxyGateway(@RequestBody @Valid final ProxyGatewayDTO proxyGatewayDTO,
-        final HttpServletRequest request,
-        final HttpServletResponse response) throws IOException {
+                            final HttpServletRequest request,
+                            final HttpServletResponse response) throws IOException {
         // Public request headers.
         Map<String, String> header = this.buildReqHeaders(proxyGatewayDTO);
 

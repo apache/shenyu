@@ -25,57 +25,57 @@ import java.util.stream.Collectors;
  * OperatorEnum.
  */
 public enum OperatorEnum {
-    
+
     /**
      * Match operator enum.
      */
     MATCH("match", true),
-    
+
     /**
      * Eq operator enum.
      */
     EQ("=", true),
-    
+
     /**
      * Regex operator enum.
      */
     REGEX("regex", true),
-    
+
     /**
      * Gt operator enum.
      */
     GT(">", false),
-    
+
     /**
      * Lt operator enum.
      */
     LT("<", false),
-    
+
     /**
      * Contains operator enum.
      */
     CONTAINS("contains", true),
-    
+
     /**
      * Starts with operator enum.
      */
     STARTS_WITH("startsWith", true),
-    
+
     /**
      * Ends with operator enum.
      */
     ENDS_WITH("endsWith", true),
-    
+
     /**
      * Time before operator enum.
      */
     TIME_BEFORE("TimeBefore", true),
-    
+
     /**
      * Exclude operator enum.
      */
     EXCLUDE("exclude", true),
-    
+
     /**
      * Time after operator enum.
      */
@@ -100,7 +100,7 @@ public enum OperatorEnum {
         this.alias = alias;
         this.support = support;
     }
-    
+
     /**
      * get alias.
      *
@@ -109,7 +109,7 @@ public enum OperatorEnum {
     public String getAlias() {
         return alias;
     }
-    
+
     /**
      * get support.
      *
@@ -118,7 +118,7 @@ public enum OperatorEnum {
     public Boolean getSupport() {
         return support;
     }
-    
+
     /**
      * acquire operator supports.
      *
@@ -127,7 +127,7 @@ public enum OperatorEnum {
     public static List<OperatorEnum> acquireSupport() {
         return Arrays.stream(OperatorEnum.values()).filter(e -> e.support).collect(Collectors.toList());
     }
-    
+
     /**
      * get operator enum by alias.
      *

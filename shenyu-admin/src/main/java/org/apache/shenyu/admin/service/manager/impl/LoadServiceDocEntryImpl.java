@@ -36,10 +36,13 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.admin.service.manager.ServiceDocManager;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -67,25 +70,32 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
 
     private final ServiceDocManager serviceDocManager;
 
+    private final ShenyuDictService shenyuDictService;
+
     public LoadServiceDocEntryImpl(final SelectorService selectorService,
                                    final SelectorHandleConverterFactor converterFactor,
                                    final PluginMapper pluginMapper,
-                                   final ServiceDocManager serviceDocManager) {
+                                   final ServiceDocManager serviceDocManager,
+                                   final ShenyuDictService shenyuDictService) {
         this.selectorService = selectorService;
         this.converterFactor = converterFactor;
         this.pluginMapper = pluginMapper;
         this.serviceDocManager = serviceDocManager;
+        this.shenyuDictService = shenyuDictService;
     }
 
     @Override
     public synchronized void loadApiDocument() {
+        if (!isEnabledLoad()) {
+            return;
+        }
         List<UpstreamInstance> serviceList = this.getAllClusterLastUpdateInstanceList();
         if (CollectionUtils.isEmpty(serviceList)) {
-            LOG.info("loadApiDocument No service registered.");
+            LOG.info("load api document No service registered.");
             return;
         }
         final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-        LOG.info("loadApiDocument  serviceList={}", JsonUtils.toJson(currentServices));
+        LOG.info("load api document  serviceList={}", JsonUtils.toJson(currentServices));
         serviceDocManager.pullApiDocument(currentServices);
     }
 
@@ -94,13 +104,25 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         if (Objects.nonNull(eventType) && (eventType == DataEventTypeEnum.CREATE || eventType == DataEventTypeEnum.UPDATE)) {
             List<UpstreamInstance> serviceList = this.getLastUpdateInstanceList(changedList);
             if (CollectionUtils.isEmpty(serviceList)) {
-                LOG.info("loadApiDocument No service registered.");
+                LOG.info("load api document, no service registered.");
+                return;
+            }
+            if (!isEnabledLoad()) {
                 return;
             }
             final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
             LOG.info("loadDocOnSelectorChanged serviceList={}", JsonUtils.toJson(currentServices));
             serviceDocManager.pullApiDocument(currentServices);
         }
+    }
+
+    private boolean isEnabledLoad() {
+        ShenyuDictVO shenyuInitData = shenyuDictService.findByDictCodeName(AdminConstants.DICT_API_DOC_FLAG_DICTCODE, AdminConstants.DICT_API_DOC_FLAG_DICTNAME);
+        if (Objects.nonNull(shenyuInitData) && Boolean.TRUE.toString().equals(shenyuInitData.getDictValue())) {
+            return true;
+        }
+        LOG.info("load api document global switch is close.");
+        return false;
     }
 
     private List<UpstreamInstance> getLastUpdateInstanceList(final List<SelectorData> changedList) {
