@@ -27,7 +27,6 @@ import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudService
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.client.loadbalancer.ServiceInstanceChooser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -52,10 +51,11 @@ public class SpringCloudPluginConfiguration {
     /**
      * init springCloud plugin.
      *
+     * @param serviceChooser service chooser
      * @return {@linkplain SpringCloudPlugin}
      */
     @Bean
-    public ShenyuPlugin springCloudPlugin(ObjectProvider<ShenyuSpringCloudServiceChooser> serviceChooser) {
+    public ShenyuPlugin springCloudPlugin(final ObjectProvider<ShenyuSpringCloudServiceChooser> serviceChooser) {
         return new SpringCloudPlugin(serviceChooser.getIfAvailable());
     }
 
