@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 /**
  * spring cloud plugin loadbalancer.
  */
-public final class ShenyuSpringCloudServiceChooser  {
+public final class ShenyuSpringCloudServiceChooser {
 
     private final DiscoveryClient discoveryClient;
 
