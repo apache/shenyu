@@ -45,19 +45,18 @@ public class SpringCloudPluginConfiguration {
      * @return {@linkplain ServiceInstanceChooser}
      */
     @Bean
-    public ServiceInstanceChooser shenyuSpringCloudLoadBalancerClient(final ObjectProvider<DiscoveryClient> discoveryClient) {
+    public ShenyuSpringCloudServiceChooser shenyuSpringCloudLoadBalancerClient(final ObjectProvider<DiscoveryClient> discoveryClient) {
         return new ShenyuSpringCloudServiceChooser(discoveryClient.getIfAvailable());
     }
 
     /**
      * init springCloud plugin.
      *
-     * @param serviceInstanceChoosers the load balancer client
      * @return {@linkplain SpringCloudPlugin}
      */
     @Bean
-    public ShenyuPlugin springCloudPlugin(final ObjectProvider<ServiceInstanceChooser> serviceInstanceChoosers) {
-        return new SpringCloudPlugin(serviceInstanceChoosers.getIfAvailable());
+    public ShenyuPlugin springCloudPlugin(ObjectProvider<ShenyuSpringCloudServiceChooser> serviceChooser) {
+        return new SpringCloudPlugin(serviceChooser.getIfAvailable());
     }
 
     /**
