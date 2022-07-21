@@ -54,7 +54,7 @@ public class CachePlugin extends AbstractShenyuPlugin {
                     .flatMap(data -> Mono.just(Optional.of(data)))
                     .defaultIfEmpty(Optional.empty())
                     .flatMap(dataFlg -> {
-                        if (dataFlg.isPresent()){
+                        if (dataFlg.isPresent()) {
                             byte[] bytes = dataFlg.get().getT1();
                             byte[] contentTypeBytes = dataFlg.get().getT2();
                             cache.setContentType(exchange, contentTypeBytes);
