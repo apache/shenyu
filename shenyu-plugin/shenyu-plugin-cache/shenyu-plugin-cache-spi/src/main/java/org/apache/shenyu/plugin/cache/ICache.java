@@ -59,7 +59,7 @@ public interface ICache {
      * @param timeoutSeconds value valid time
      */
     default void cacheContentType(final String key, final MediaType mediaType, final long timeoutSeconds) {
-       cacheData(key, mediaTypeToBytes(mediaType), timeoutSeconds).subscribeOn(Schedulers.boundedElastic()).subscribe();
+        cacheData(key, mediaTypeToBytes(mediaType), timeoutSeconds).subscribeOn(Schedulers.boundedElastic()).subscribe();
     }
 
     /**
