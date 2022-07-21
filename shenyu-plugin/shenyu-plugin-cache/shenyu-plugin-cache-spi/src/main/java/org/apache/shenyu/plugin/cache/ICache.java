@@ -57,7 +57,6 @@ public interface ICache {
      * @param key the key
      * @param mediaType the media type
      * @param timeoutSeconds value valid time
-     * @return success or not
      */
     default void cacheContentType(final String key, final MediaType mediaType, final long timeoutSeconds) {
        cacheData(key, mediaTypeToBytes(mediaType), timeoutSeconds).subscribeOn(Schedulers.boundedElastic()).subscribe();
