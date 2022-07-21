@@ -82,7 +82,6 @@ public class CachePluginDataHandlerTest {
         ICache cache = CacheUtils.getCache();
         assert null != cache;
         cache.isExist(testKey).subscribe(v -> assertEquals(Boolean.FALSE, v));
-        // boolean flag = cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 10);
         cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 10)
                 .subscribe(v -> assertEquals(Boolean.TRUE, v));
         cache.isExist(testKey).subscribe(v -> assertEquals(Boolean.TRUE, v));

@@ -80,11 +80,12 @@ public final class MemoryCache implements ICache {
      */
     @Override
     public Mono<byte[]> getData(final String key) {
-        // if (!isExist(key)) {
-        //     return null;
-        // }
-        return Mono.fromCallable(() -> this.mainCache.get(key).asMap().get(key)).subscribeOn(Schedulers.boundedElastic());
-        // return Mono.justOrEmpty(this.mainCache.get(key).asMap().get(key));
+        return isExist(key).mapNotNull(exist -> {
+            if (exist) {
+                return this.mainCache.get(key).asMap().get(key);
+            }
+            return null;
+        });
     }
 
     /**

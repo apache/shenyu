@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.plugin.cache;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -29,8 +28,6 @@ import java.nio.charset.StandardCharsets;
  * ICache.
  */
 public interface ICache {
-
-    Logger LOG = LoggerFactory.getLogger(ICache.class);
 
     /**
      * Cache the data with the key.
@@ -76,27 +73,17 @@ public interface ICache {
     }
 
     /**
-     * Get content type.
-     * @param key the content type key
-     * @return content type
+     * set content type.
+     *
+     * @param exchange exchange
+     * @param contentTypeBytes contentType
      */
-    default Mono<MediaType> getContentType(final String key) {
-        return getData(key).map(v -> {
-            if (v.length == 0) {
-                return MediaType.APPLICATION_JSON;
-            } else {
-                return MediaType.valueOf(new String(v, StandardCharsets.UTF_8));
-            }
-        });
-
-        // return MediaType.APPLICATION_JSON;
-
-
-        // final byte[] data = getData(key);
-        // if (Objects.isNull(data) || data.length == 0) {
-        //     return MediaType.APPLICATION_JSON;
-        // }
-        // return MediaType.valueOf(new String(data, StandardCharsets.UTF_8));
+    default void setContentType(final ServerWebExchange exchange, final byte[] contentTypeBytes) {
+        if (contentTypeBytes.length == 0) {
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        } else {
+            exchange.getResponse().getHeaders().setContentType(MediaType.valueOf(new String(contentTypeBytes, StandardCharsets.UTF_8)));
+        }
     }
 
     /**

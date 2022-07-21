@@ -48,8 +48,6 @@ public final class RedisCache implements ICache {
      */
     @Override
     public Mono<Boolean> cacheData(final String key, final byte[] bytes, final long timeoutSeconds) {
-        // return Mono.defer(() -> this.redisTemplate.opsForValue().set(key, bytes, Duration.ofSeconds(timeoutSeconds)))
-        //         .publishOn(Schedulers.boundedElastic());
         return this.redisTemplate.opsForValue().set(key, bytes, Duration.ofSeconds(timeoutSeconds));
     }
 
