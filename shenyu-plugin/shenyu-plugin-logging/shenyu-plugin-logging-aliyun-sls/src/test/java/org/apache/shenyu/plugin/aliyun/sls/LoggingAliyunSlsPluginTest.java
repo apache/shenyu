@@ -47,9 +47,9 @@ import java.net.InetSocketAddress;
  * The Test Case For LoggingRocketMQPlugin.
  */
 @ExtendWith(MockitoExtension.class)
-public final class LoggingAliYunSlsPluginTest {
+public final class LoggingAliyunSlsPluginTest {
 
-    private LoggingAliYunSlsPlugin loggingAliYunSlsPlugin;
+    private LoggingAliyunSlsPlugin loggingAliYunSlsPlugin;
 
     private ServerWebExchange exchange;
 
@@ -65,7 +65,7 @@ public final class LoggingAliYunSlsPluginTest {
 
     @BeforeEach
     public void setUp() {
-        this.loggingAliYunSlsPlugin = new LoggingAliYunSlsPlugin();
+        this.loggingAliYunSlsPlugin = new LoggingAliyunSlsPlugin();
         this.ruleData = Mockito.mock(RuleData.class);
         this.chain = Mockito.mock(ShenyuPluginChain.class);
         this.selectorData = Mockito.mock(SelectorData.class);
