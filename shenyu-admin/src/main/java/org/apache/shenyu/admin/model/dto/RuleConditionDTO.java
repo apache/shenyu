@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -41,25 +41,25 @@ public final class RuleConditionDTO implements Serializable {
     /**
      * parameter type.
      */
-    @NotNull
+    @NotBlank
     private String paramType;
 
     /**
      * match operator.
      */
-    @NotNull
+    @NotBlank
     private String operator;
 
     /**
      * parameter name.
      */
-    @NotNull
+    @NotBlank
     private String paramName;
 
     /**
      * parameter value.
      */
-    @NotNull
+    @NotBlank
     private String paramValue;
 
     public RuleConditionDTO() {
@@ -67,10 +67,10 @@ public final class RuleConditionDTO implements Serializable {
 
     public RuleConditionDTO(final String id,
                             final String ruleId,
-                            @NotNull final String paramType,
-                            @NotNull final String operator,
-                            @NotNull final String paramName,
-                            @NotNull final String paramValue) {
+                            @NotBlank final String paramType,
+                            @NotBlank final String operator,
+                            @NotBlank final String paramName,
+                            @NotBlank final String paramValue) {
         this.id = id;
         this.ruleId = ruleId;
         this.paramType = paramType;

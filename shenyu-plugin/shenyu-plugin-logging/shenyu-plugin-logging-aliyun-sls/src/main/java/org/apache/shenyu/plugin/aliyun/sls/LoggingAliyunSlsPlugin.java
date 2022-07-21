@@ -33,7 +33,7 @@ import reactor.core.publisher.Mono;
 /**
  * LoggingAliYunSlsPlugin send log to aliyun sls service.
  */
-public class LoggingAliYunSlsPlugin extends AbstractLoggingPlugin {
+public class LoggingAliyunSlsPlugin extends AbstractLoggingPlugin {
 
     @Override
     public Mono<Void> doLogExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,

@@ -46,6 +46,18 @@ public final class PathMatchUtilsTest {
         assertTrue(PathMatchUtils.match("/**", "/testing/testing"));
         assertTrue(PathMatchUtils.match("/test/**", "/test/test"));
     }
+    
+    @Test
+    public void testPathPattern() {
+        // test matching with *'s
+        assertTrue(PathMatchUtils.pathPattern("*", "test"));
+        assertTrue(PathMatchUtils.pathPattern("test*", "test"));
+        assertTrue(PathMatchUtils.pathPattern("test*", "testTest"));
+        assertFalse(PathMatchUtils.pathPattern("test*aaa", "testblaaab"));
+        // test matching with **'s
+        assertTrue(PathMatchUtils.pathPattern("/**", "/testing/testing"));
+        assertTrue(PathMatchUtils.pathPattern("/test/**", "/test/test"));
+    }
 
     @Test
     public void testPathVariableHandle() {

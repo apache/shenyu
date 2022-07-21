@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.validation.annotation.Existed;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -45,14 +46,14 @@ public final class SelectorDTO implements Serializable {
     /**
      * plugin id.
      */
-    @NotNull
+    @NotBlank
     @Existed(provider = PluginMapper.class, message = "plugin is not existed")
     private String pluginId;
     
     /**
      * selector name.
      */
-    @NotNull
+    @NotBlank
     private String name;
     
     /**
@@ -106,8 +107,8 @@ public final class SelectorDTO implements Serializable {
     }
     
     public SelectorDTO(final String id,
-                       @NotNull final String pluginId,
-                       @NotNull final String name,
+                       @NotBlank final String pluginId,
+                       @NotBlank final String name,
                        final Integer matchMode,
                        @NotNull final Integer type,
                        @NotNull final Integer sort,

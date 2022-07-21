@@ -79,7 +79,12 @@ public enum OperatorEnum {
     /**
      * Time after operator enum.
      */
-    TIME_AFTER("TimeAfter", true);
+    TIME_AFTER("TimeAfter", true),
+    
+    /**
+     * Path patter operator enum.
+     */
+    PATH_PATTER("pathPatter", true);
 
     private final String alias;
 
@@ -99,7 +104,7 @@ public enum OperatorEnum {
     /**
      * get alias.
      *
-     * @return alias
+     * @return alias alias
      */
     public String getAlias() {
         return alias;
@@ -108,7 +113,7 @@ public enum OperatorEnum {
     /**
      * get support.
      *
-     * @return support
+     * @return support support
      */
     public Boolean getSupport() {
         return support;
