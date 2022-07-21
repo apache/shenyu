@@ -19,10 +19,9 @@ package org.apache.shenyu.plugin.logging.elasticsearch.client;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.elasticsearch.config.LogCollectConfig;
-import org.apache.shenyu.plugin.logging.elasticsearch.constant.LoggingConstant;
-import org.apache.shenyu.plugin.logging.elasticsearch.utils.ElasticSearchLogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.elasticsearch.config.ElasticSearchLogCollectConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,26 +37,25 @@ public class ElasticSearchLogCollectClientTest {
 
     private ElasticSearchLogCollectClient elasticSearchLogCollectClient;
 
-    private PluginData pluginData = new PluginData();
+    private final PluginData pluginData = new PluginData();
 
-    private Properties properties = new Properties();
+    private final Properties properties = new Properties();
 
-    private LogCollectConfig.GlobalLogConfig globalLogConfig;
+    private ElasticSearchLogCollectConfig.ElasticSearchLogConfig elasticSearchLogConfig;
 
-    private List<ShenyuRequestLog> logs = new ArrayList<>();
+    private final List<ShenyuRequestLog> logs = new ArrayList<>();
 
-    private ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
+    private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
     @BeforeEach
     public void setUp() {
         this.elasticSearchLogCollectClient = new ElasticSearchLogCollectClient();
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"host\":\"localhost\", \"port\":\"9200\"}");
-        globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                LogCollectConfig.GlobalLogConfig.class);
-        properties.setProperty(LoggingConstant.HOST, globalLogConfig.getHost());
-        properties.setProperty(LoggingConstant.PORT, globalLogConfig.getPort());
-
+        elasticSearchLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
+                ElasticSearchLogCollectConfig.ElasticSearchLogConfig.class);
+        properties.setProperty(GenericLoggingConstant.HOST, elasticSearchLogConfig.getHost());
+        properties.setProperty(GenericLoggingConstant.PORT, elasticSearchLogConfig.getPort());
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
         logs.add(shenyuRequestLog);
@@ -66,7 +64,7 @@ public class ElasticSearchLogCollectClientTest {
     @Test
     public void testConsume() {
         String msg = "";
-        ElasticSearchLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+        ElasticSearchLogCollectConfig.INSTANCE.setElasticSearchLogConfig(elasticSearchLogConfig);
         elasticSearchLogCollectClient.initClient(properties);
         try {
             elasticSearchLogCollectClient.consume(logs);
@@ -79,7 +77,7 @@ public class ElasticSearchLogCollectClientTest {
 
     @Test
     public void testCreateIndex() {
-        ElasticSearchLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+        ElasticSearchLogCollectConfig.INSTANCE.setElasticSearchLogConfig(elasticSearchLogConfig);
         elasticSearchLogCollectClient.initClient(properties);
         elasticSearchLogCollectClient.createIndex("test");
     }

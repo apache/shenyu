@@ -25,17 +25,13 @@ import org.junit.jupiter.api.Test;
  * The Test Case For LZ4CompressData.
  */
 public class LZ4CompressDataTest {
-
-    private int length;
-
-    private byte[] compressedData;
-
+    
     private LZ4CompressData lz4CompressData;
 
     @BeforeEach
     public void setUp() {
-        this.length = 5;
-        this.compressedData = new byte[]{'h', 'e', 'l', 'l', 'o'};
+        int length = 5;
+        byte[] compressedData = new byte[]{'h', 'e', 'l', 'l', 'o'};
         this.lz4CompressData = new LZ4CompressData(length, compressedData);
     }
 

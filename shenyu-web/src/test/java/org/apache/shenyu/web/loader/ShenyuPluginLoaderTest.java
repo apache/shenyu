@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test for  ShenyuPluginLoader.
  */
-public class ShenyuPluginLoaderTest {
+public final class ShenyuPluginLoaderTest {
     
     @TempDir
     private static Path folder;
@@ -70,7 +70,6 @@ public class ShenyuPluginLoaderTest {
         when(mockApplication.containsBean("dividePlugin")).thenReturn(true);
         SpringBeanUtils instance = SpringBeanUtils.getInstance();
         instance.setApplicationContext(mockApplication);
-        
     }
     
     @Test

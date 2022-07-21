@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import org.apache.shenyu.spi.Join;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.shenyu.plugin.base.mock.Generator;
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
-import org.apache.shenyu.spi.Join;
 
 /**
  * Specify the in-list data generator.

@@ -230,7 +230,6 @@ The text of each license is the standard Apache 2.0 license.
     error_prone_annotations 2.5.1: https://github.com/google/error-prone, Apache 2.0
     failsafe 2.3.3: https://github.com/jhalterman/failsafe, Apache 2.0
     failureaccess 1.0.1:https://github.com/google/guava, Apache 2.0
-    fastjson 1.2.80: https://github.com/alibaba/fastjson, Apache 2.0
     grpc-all 1.33.1 https://github.com/grpc/grpc, Apache 2.0
     grpc-context 1.27.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-core 1.9.1: https://github.com/grpc/grpc, Apache 2.0

@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
@@ -37,31 +38,31 @@ public class ResourceDTO {
     /**
      * resource parent key.
      */
-    @NotNull
+    @NotBlank
     private String parentId;
     
     /**
      * resource title.
      */
-    @NotNull
+    @NotBlank
     private String title;
     
     /**
      * resource name.
      */
-    @NotNull
+    @NotBlank
     private String name;
     
     /**
      * resource url.
      */
-    @NotNull
+    @NotBlank
     private String url;
     
     /**
      * resource component.
      */
-    @NotNull
+    @NotBlank
     private String component;
     
     /**
@@ -79,7 +80,7 @@ public class ResourceDTO {
     /**
      * resource icon.
      */
-    @NotNull
+    @NotBlank
     private String icon;
     
     /**
@@ -97,7 +98,7 @@ public class ResourceDTO {
     /**
      * resource perms.
      */
-    @NotNull
+    @NotBlank
     private String perms;
     
     /**
@@ -111,8 +112,8 @@ public class ResourceDTO {
     
     public ResourceDTO(final String id,
                        final String parentId,
-                       @NotNull final String title,
-                       @NotNull final String name,
+                       @NotBlank final String title,
+                       @NotBlank final String name,
                        final String url,
                        final String component,
                        @NotNull final Integer resourceType,

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.divide.handler;
 
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -53,6 +55,9 @@ import static org.mockito.Mockito.when;
 public final class DividePluginDataHandlerTest {
 
     private SelectorData selectorData;
+
+    @Mock
+    private RuleData ruleData;
 
     private DividePluginDataHandler dividePluginDataHandler;
 
@@ -88,6 +93,9 @@ public final class DividePluginDataHandlerTest {
         dividePluginDataHandler.handlerSelector(selectorData);
         List<Upstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
         assertEquals(GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class).get(0).getUpstreamUrl(), result.get(0).getUrl());
+        SelectorData selectorDataNull = new SelectorData();
+        selectorDataNull.setHandle("[]");
+        dividePluginDataHandler.handlerSelector(selectorDataNull);
     }
 
     /**
@@ -107,5 +115,13 @@ public final class DividePluginDataHandlerTest {
     @Test
     public void pluginNamedTest() {
         assertEquals(dividePluginDataHandler.pluginNamed(), PluginEnum.DIVIDE.getName());
+    }
+
+    /**
+     * Plugin named test.
+     */
+    @Test
+    public void removeRuleTest() {
+        dividePluginDataHandler.removeRule(ruleData);
     }
 }

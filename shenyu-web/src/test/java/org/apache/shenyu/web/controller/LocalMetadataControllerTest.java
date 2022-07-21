@@ -46,6 +46,8 @@ public final class LocalMetadataControllerTest {
 
     private MockMvc mockMvc;
 
+    private MockMvc mockMvcSubscribersNull;
+
     private MetaData metaData;
 
     private List<MetaDataSubscriber> subscribers;
@@ -57,6 +59,8 @@ public final class LocalMetadataControllerTest {
         subscribers.add(mock(MetaDataSubscriber.class));
         LocalMetadataController metadataController = new LocalMetadataController(new TestObjectProvider<>(subscribers));
         this.mockMvc = MockMvcBuilders.standaloneSetup(metadataController).build();
+        LocalMetadataController appAuthControllerSubNull = new LocalMetadataController(new TestObjectProvider<>(null));
+        this.mockMvcSubscribersNull = MockMvcBuilders.standaloneSetup(appAuthControllerSubNull).build();
         metaData = initMetaData();
     }
 
@@ -68,6 +72,11 @@ public final class LocalMetadataControllerTest {
                 .andReturn().getResponse();
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
         subscribers.forEach(subscriber -> verify(subscriber).onSubscribe(metaData));
+        final MockHttpServletResponse subNullResponse = this.mockMvcSubscribersNull.perform(MockMvcRequestBuilders.post("/shenyu/meta/saveOrUpdate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(metaData)))
+                .andReturn().getResponse();
+        assertThat(subNullResponse.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
     @Test
@@ -82,6 +91,12 @@ public final class LocalMetadataControllerTest {
         metaData.setPath("path");
         metaData.setRpcType("rpcType");
         subscribers.forEach(subscriber -> verify(subscriber).unSubscribe(metaData));
+        final MockHttpServletResponse subNullResponse = this.mockMvcSubscribersNull.perform(MockMvcRequestBuilders.get("/shenyu/meta/delete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("path", "path")
+                .param("rpcType", "rpcType"))
+                .andReturn().getResponse();
+        assertThat(subNullResponse.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
     private MetaData initMetaData() {

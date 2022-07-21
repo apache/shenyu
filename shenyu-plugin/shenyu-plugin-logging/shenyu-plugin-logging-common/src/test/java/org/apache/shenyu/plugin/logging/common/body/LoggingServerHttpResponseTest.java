@@ -42,6 +42,7 @@ import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.mock;
@@ -51,19 +52,13 @@ import static org.mockito.Mockito.mock;
  */
 public class LoggingServerHttpResponseTest {
 
-    private ShenyuRequestLog requestInfo = new ShenyuRequestLog();
-
+    private final ShenyuRequestLog requestInfo = new ShenyuRequestLog();
+    
+    private final LocalDateTime startDateTime = LocalDateTime.now();
+    
     private ServerWebExchange exchange;
-
+    
     private LoggingServerHttpResponse loggingServerHttpResponse;
-
-    private ServerHttpRequest serverHttpRequest;
-
-    private String userAgent = "User-Agent";
-
-    private String host = "Host";
-
-    private LocalDateTime startDateTime = LocalDateTime.now();
 
     private LogCollector logCollector;
 
@@ -90,14 +85,14 @@ public class LoggingServerHttpResponseTest {
         shenyuContext1.setMethod("test");
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext1);
         exchange.getAttributes().put(GenericLoggingConstant.SHENYU_AGENT_TRACE_ID, "shenyu-agent-trace-id");
-        this.serverHttpRequest = exchange.getRequest();
+        ServerHttpRequest serverHttpRequest = exchange.getRequest();
         requestInfo.setRequestUri(serverHttpRequest.getURI().toString());
         requestInfo.setMethod(serverHttpRequest.getMethodValue());
         requestInfo.setRequestHeader(LogCollectUtils.getHeaders(serverHttpRequest.getHeaders()));
         requestInfo.setQueryParams(serverHttpRequest.getURI().getQuery());
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
-        requestInfo.setUserAgent(serverHttpRequest.getHeaders().getFirst(userAgent));
-        requestInfo.setHost(serverHttpRequest.getHeaders().getFirst(host));
+        requestInfo.setUserAgent(serverHttpRequest.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
+        requestInfo.setHost(serverHttpRequest.getHeaders().getFirst(GenericLoggingConstant.HOST));
         requestInfo.setPath(serverHttpRequest.getURI().getPath());
         this.loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(), requestInfo, logCollector);
     }
@@ -189,7 +184,7 @@ public class LoggingServerHttpResponseTest {
         loggingServerHttpResponse.setExchange(exchange);
         BodyWriter writer = new BodyWriter();
         String sendString = "hello, shenyu";
-        ByteBuffer byteBuffer = ByteBuffer.wrap(sendString.getBytes("UTF-8"));
+        ByteBuffer byteBuffer = ByteBuffer.wrap(sendString.getBytes(StandardCharsets.UTF_8));
         writer.write(byteBuffer.asReadOnlyBuffer());
         Method method1 = loggingServerHttpResponse.getClass().getDeclaredMethod("logResponse", ShenyuContext.class, BodyWriter.class);
         method1.setAccessible(true);

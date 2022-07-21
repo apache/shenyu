@@ -18,7 +18,9 @@
 package org.apache.shenyu.plugin.alibaba.dubbo;
 
 import com.alibaba.dubbo.remoting.exchange.support.SimpleFuture;
+import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.RpcResult;
+import com.google.common.collect.Maps;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -45,6 +47,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -142,5 +145,13 @@ public final class AlibabaDubboPluginTest {
             Mono<Void> voidMono = alibabaDubboPluginUnderTest.doExecute(exchange, chain, selectorData, data);
             StepVerifier.create(voidMono).expectSubscription().verifyComplete();
         }
+    }
+
+    @Test
+    public void testTransmitRpcContext() {
+        Map<String, String> stringStringMap = Maps.newHashMapWithExpectedSize(1);
+        stringStringMap.put("test", "test");
+        alibabaDubboPluginUnderTest.transmitRpcContext(stringStringMap);
+        assertEquals(RpcContext.getContext().getAttachment("test"), "test");
     }
 }
