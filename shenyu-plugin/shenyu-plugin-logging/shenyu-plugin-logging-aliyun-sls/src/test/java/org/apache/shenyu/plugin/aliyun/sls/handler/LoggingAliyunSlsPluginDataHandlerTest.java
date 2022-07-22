@@ -29,15 +29,15 @@ import java.lang.reflect.Field;
 /**
  * The Test Case For LoggingAliYunSlsPluginDataHandler.
  */
-public class LoggingAliYunSlsPluginDataHandlerTest {
+public class LoggingAliyunSlsPluginDataHandlerTest {
 
-    private LoggingAliYunSlsPluginDataHandler loggingAliYunSlsPluginDataHandler;
+    private LoggingAliyunSlsPluginDataHandler loggingAliYunSlsPluginDataHandler;
 
     private final PluginData pluginData = new PluginData();
 
     @BeforeEach
     public void setUp() {
-        this.loggingAliYunSlsPluginDataHandler = new LoggingAliYunSlsPluginDataHandler();
+        this.loggingAliYunSlsPluginDataHandler = new LoggingAliyunSlsPluginDataHandler();
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"accessId\":\"test\", \"accessKey\":\"test\", "
                 + "\"host\":\"cn-guangzhou.log.aliyuncs.com\", \"projectName\":\"shenyu-test\", \"logStoreName\":\"shenyu-test-logstore\"}");
@@ -60,6 +60,6 @@ public class LoggingAliYunSlsPluginDataHandlerTest {
 
     @Test
     public void testGetAliyunSlsLogCollectClient() {
-        Assertions.assertEquals(LoggingAliYunSlsPluginDataHandler.getAliyunSlsLogCollectClient().getClass(), AliyunSlsLogCollectClient.class);
+        Assertions.assertEquals(LoggingAliyunSlsPluginDataHandler.getAliyunSlsLogCollectClient().getClass(), AliyunSlsLogCollectClient.class);
     }
 }

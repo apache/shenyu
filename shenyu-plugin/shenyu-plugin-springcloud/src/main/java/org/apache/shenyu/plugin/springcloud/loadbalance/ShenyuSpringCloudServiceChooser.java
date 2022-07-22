@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.springcloud.loadbalance;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -26,27 +25,17 @@ import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.client.loadbalancer.Request;
-import org.springframework.cloud.client.loadbalancer.ServiceInstanceChooser;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Properties;
 import java.util.stream.Collectors;
-
-import static org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer.REQUEST;
 
 /**
  * spring cloud plugin loadbalancer.
  */
-public final class ShenyuSpringCloudServiceChooser implements ServiceInstanceChooser {
-
-    private static final String UPSTREAM_URL = "upstreamUrl";
-
-    private static final String PROTOCOL_PREFIX = "protocolPrefix";
+public final class ShenyuSpringCloudServiceChooser {
 
     private final DiscoveryClient discoveryClient;
 
@@ -54,78 +43,67 @@ public final class ShenyuSpringCloudServiceChooser implements ServiceInstanceCho
         this.discoveryClient = discoveryClient;
     }
 
-    @Override
-    public ServiceInstance choose(final String serviceId) {
-        return choose(serviceId, REQUEST);
-    }
-
-    @Override
-    public <T> ServiceInstance choose(final String serviceId, final Request<T> request) {
+    /**
+     * choose service instance.
+     *
+     * @param serviceId service id
+     * @param selectorId selector id
+     * @param ip ip
+     * @param loadbalancer load balancer
+     * @return Upstream
+     */
+    public Upstream choose(final String serviceId, final String selectorId,
+                           final String ip, final String loadbalancer) {
         // load service instance by serviceId
         List<ServiceInstance> available = this.getServiceInstance(serviceId);
         if (CollectionUtils.isEmpty(available)) {
             return null;
         }
-        final LoadBalanceKey loadBalanceKey = LoadBalanceKeyHolder.getLoadBalanceKey();
-        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudPluginDataHandler.SELECTOR_CACHED.get().obtainHandle(loadBalanceKey.getSelectorId());
+        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudPluginDataHandler.SELECTOR_CACHED.get().obtainHandle(selectorId);
         // not gray flow
         if (!springCloudSelectorHandle.getGray()) {
-            return this.doSelect(serviceId);
+            // load service from register center
+            return this.doSelect(serviceId, ip, loadbalancer);
         }
-        List<Upstream> divideUpstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(loadBalanceKey.getSelectorId());
+        List<Upstream> divideUpstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
         // gray flow,but upstream is null
         if (CollectionUtils.isEmpty(divideUpstreams)) {
-            return this.doSelect(serviceId);
+            return this.doSelect(serviceId, ip, loadbalancer);
         }
-        //select server from available to choose
+        // select server from available to choose
         final List<Upstream> choose = new ArrayList<>(available.size());
         for (ServiceInstance serviceInstance : available) {
             divideUpstreams.stream()
                     .filter(Upstream::isStatus)
-                    .filter(upstream -> Objects.equals(upstream.getUrl(),
-                            splitUrl(String.valueOf(serviceInstance.getUri())).getProperty(UPSTREAM_URL)))
+                    .filter(upstream -> Objects.equals(upstream.getUrl(), serviceInstance.getUri().getRawAuthority()))
                     .findFirst().ifPresent(choose::add);
         }
         if (CollectionUtils.isEmpty(choose)) {
-            return this.doSelect(serviceId);
+            return this.doSelect(serviceId, ip, loadbalancer);
         }
         // select by divideUpstreams
-        return this.doSelect(serviceId, choose);
+        return this.doSelect(choose, loadbalancer, ip);
     }
 
     /**
-     * select serviceInstance by shenyu loadbalancer.
+     * select serviceInstance by shenyu loadbalancer from register center.
      *
      * @param serviceId serviceId
      * @return ServiceInstance
      */
-    private ServiceInstance doSelect(final String serviceId) {
+    private Upstream doSelect(final String serviceId, final String ip, final String loadbalancer) {
         List<Upstream> choose = this.buildUpstream(serviceId);
-        return this.doSelect(serviceId, choose);
+        return this.doSelect(choose, loadbalancer, ip);
     }
 
     /**
      * execute loadbalancer by shenyu loadbalancer.
      *
-     * @param serviceId serviceId
      * @param upstreamList upstream list
      * @return ServiceInstance
      */
-    private ServiceInstance doSelect(final String serviceId, final List<Upstream> upstreamList) {
-        final LoadBalanceKey loadBalanceKey = LoadBalanceKeyHolder.getLoadBalanceKey();
-        // default loadbalancer
-        if (StringUtils.isEmpty(loadBalanceKey.getLoadBalance())) {
-            loadBalanceKey.setLoadBalance("roundRobin");
-        }
-        Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalanceKey.getLoadBalance(), loadBalanceKey.getIp());
-        List<ServiceInstance> instances = this.getServiceInstance(serviceId);
-
-        Optional<ServiceInstance> serviceInstance = instances.stream().filter(x -> {
-            // check serviceInstance ip:port equal upstream ip:port
-            Properties props = splitUrl(String.valueOf(x.getUri()));
-            return Objects.equals(upstream.getUrl(), props.getProperty(UPSTREAM_URL));
-        }).findFirst();
-        return serviceInstance.orElse(null);
+    private Upstream doSelect(final List<Upstream> upstreamList, final String loadbalancer, final String ip) {
+        return LoadBalancerFactory.selector(upstreamList, loadbalancer, ip);
     }
 
     /**
@@ -153,30 +131,11 @@ public final class ShenyuSpringCloudServiceChooser implements ServiceInstanceCho
         if (serviceInstanceList.isEmpty()) {
             return Collections.emptyList();
         }
-        return serviceInstanceList.stream().map(x -> {
-            String uri = x.getUri().toString();
-            Properties props = splitUrl(uri);
-            String upstreamUrl = props.getProperty(UPSTREAM_URL);
-            String protocolPrefix = props.getProperty(PROTOCOL_PREFIX);
-            String protocol = protocolPrefix + "://";
-            return buildDefaultSpringCloudUpstream(upstreamUrl, protocol);
-        }).distinct().collect(Collectors.toList());
-    }
-
-    /**
-     * split url.
-     *
-     * @param url url
-     * @return properties
-     */
-    private static Properties splitUrl(final String url) {
-        String[] urlPart = url.split("\\:\\//");
-        String protocolPrefix = urlPart[0];
-        String upstreamUrl = urlPart[1];
-        Properties properties = new Properties();
-        properties.setProperty(UPSTREAM_URL, upstreamUrl);
-        properties.setProperty(PROTOCOL_PREFIX, protocolPrefix);
-        return properties;
+        return serviceInstanceList.stream()
+                .map(serviceInstance -> buildDefaultSpringCloudUpstream(serviceInstance.getUri().getRawAuthority(),
+                        serviceInstance.getScheme() + "://"))
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     /**

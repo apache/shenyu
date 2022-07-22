@@ -59,13 +59,11 @@ public class RedisCacheTest {
     public void testRedisCache() {
         final String testKey = "testRedisCache";
         final ICache cache = new RedisCache(getConfig());
-        assertEquals(Boolean.FALSE, cache.isExist(testKey));
-        boolean flag = cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);
-        assertEquals(Boolean.TRUE, flag);
-        assertEquals(Boolean.TRUE, cache.isExist(testKey));
-        final byte[] value = cache.getData(testKey);
-        assert null != value;
-        assertEquals(testKey, new String(value, StandardCharsets.UTF_8));
+        cache.isExist(testKey).subscribe(v -> assertEquals(Boolean.FALSE, v));
+        cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000)
+                .subscribe(v -> assertEquals(Boolean.TRUE, v));
+        cache.isExist(testKey).subscribe(s -> assertEquals(Boolean.TRUE, s));
+        cache.getData(testKey).subscribe(data -> assertEquals(testKey, new String(data, StandardCharsets.UTF_8)));
     }
 
     @Test
@@ -73,13 +71,11 @@ public class RedisCacheTest {
         final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin("redis");
         ICache cache = cacheBuilder.builderCache(GsonUtils.getInstance().toJson(getConfig()));
         final String testKey = "testLoadRedisCache";
-        assertEquals(Boolean.FALSE, cache.isExist(testKey));
-        boolean flag = cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);
-        assertEquals(Boolean.TRUE, flag);
-        assertEquals(Boolean.TRUE, cache.isExist(testKey));
-        final byte[] value = cache.getData(testKey);
-        assert null != value;
-        assertEquals(testKey, new String(value, StandardCharsets.UTF_8));
+        cache.isExist(testKey).subscribe(v -> assertEquals(Boolean.FALSE, v));
+        cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000)
+                .subscribe(v -> assertEquals(Boolean.TRUE, v));
+        cache.isExist(testKey).subscribe(s -> assertEquals(Boolean.TRUE, s));
+        cache.getData(testKey).subscribe(s -> assertEquals(testKey, new String(s, StandardCharsets.UTF_8)));
     }
 
     private RedisConfigProperties getConfig() {

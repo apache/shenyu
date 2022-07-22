@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -33,11 +34,7 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
-import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKey;
-import org.apache.shenyu.plugin.springcloud.loadbalance.LoadBalanceKeyHolder;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
-import org.springframework.cloud.client.loadbalancer.ServiceInstanceChooser;
+import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -49,20 +46,20 @@ import java.util.Objects;
  */
 public class SpringCloudPlugin extends AbstractShenyuPlugin {
 
-    private final ServiceInstanceChooser serviceInstanceChooser;
+    private final ShenyuSpringCloudServiceChooser serviceChooser;
 
     /**
      * Instantiates a new Spring cloud plugin.
      *
      * @param serviceInstanceChooser the load balancer
      */
-    public SpringCloudPlugin(final ServiceInstanceChooser serviceInstanceChooser) {
-        this.serviceInstanceChooser = serviceInstanceChooser;
+    public SpringCloudPlugin(final ShenyuSpringCloudServiceChooser serviceInstanceChooser) {
+        this.serviceChooser = serviceInstanceChooser;
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
-                                   final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                   final SelectorData selector, final RuleData rule) {
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
@@ -75,22 +72,14 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID);
             return WebFluxResultUtils.result(exchange, error);
         }
-        String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-        LoadBalanceKey loadBalanceKey = new LoadBalanceKey(ip, selector.getId(), ruleHandle.getLoadBalance());
-        ServiceInstance serviceInstance;
-        try {
-            LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
-            // async choose or custom loadbalancer
-            serviceInstance = serviceInstanceChooser.choose(serviceId);
-        } finally {
-            LoadBalanceKeyHolder.resetLoadBalanceKey();
-        }
-        if (Objects.isNull(serviceInstance)) {
+        final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
+        final Upstream upstream = serviceChooser.choose(serviceId, selector.getId(), ip, ruleHandle.getLoadBalance());
+        if (Objects.isNull(upstream)) {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR);
             return WebFluxResultUtils.result(exchange, error);
         }
-        URI uri = LoadBalancerUriTools.reconstructURI(serviceInstance, URI.create(shenyuContext.getRealUrl()));
-        setDomain(uri, exchange);
+        final String domain = upstream.buildDomain();
+        setDomain(URI.create(domain + shenyuContext.getRealUrl()), exchange);
         //set time out.
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         return chain.execute(exchange);

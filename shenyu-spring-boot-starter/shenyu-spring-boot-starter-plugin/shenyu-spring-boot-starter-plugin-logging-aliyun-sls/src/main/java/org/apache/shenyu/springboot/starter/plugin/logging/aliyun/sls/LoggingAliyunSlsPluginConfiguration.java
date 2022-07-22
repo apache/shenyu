@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.springboot.starter.plugin.logging.aliyun.sls;
 
-import org.apache.shenyu.plugin.aliyun.sls.LoggingAliYunSlsPlugin;
-import org.apache.shenyu.plugin.aliyun.sls.handler.LoggingAliYunSlsPluginDataHandler;
+import org.apache.shenyu.plugin.aliyun.sls.LoggingAliyunSlsPlugin;
+import org.apache.shenyu.plugin.aliyun.sls.handler.LoggingAliyunSlsPluginDataHandler;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,7 +38,7 @@ public class LoggingAliyunSlsPluginConfiguration {
      */
     @Bean
     public PluginDataHandler loggingAliyunSlsPluginDataHandler() {
-        return new LoggingAliYunSlsPluginDataHandler();
+        return new LoggingAliyunSlsPluginDataHandler();
     }
 
     /**
@@ -47,6 +47,6 @@ public class LoggingAliyunSlsPluginConfiguration {
      */
     @Bean
     public ShenyuPlugin loggingAliyunSlsPlugin() {
-        return new LoggingAliYunSlsPlugin();
+        return new LoggingAliyunSlsPlugin();
     }
 }
