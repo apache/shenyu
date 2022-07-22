@@ -96,7 +96,8 @@ public final class MetaDataCache {
     public void remove(final MetaData data) {
         META_UPDATE_MAP.remove(data.getId());
         clean(data.getPath());
-
+        // delete by path to META_DATA_MAP
+        META_DATA_MAP.remove(data.getPath());
         // forEach all meta
         META_UPDATE_MAP.forEach((id, metaData) -> META_DATA_MAP.put(metaData.getPath(), metaData));
     }
