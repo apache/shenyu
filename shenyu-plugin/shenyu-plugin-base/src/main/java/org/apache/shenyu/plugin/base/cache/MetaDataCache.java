@@ -45,6 +45,11 @@ public final class MetaDataCache {
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
+    /**
+     * id -> MetaData.
+     */
+    private static final ConcurrentMap<String, MetaData> META_UPDATE_MAP = Maps.newConcurrentMap();
+
     private static final MemorySafeLRUMap<String, MetaData> CACHE = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
 
     /**
@@ -70,11 +75,19 @@ public final class MetaDataCache {
      * @param data the data
      */
     public void cache(final MetaData data) {
-        META_DATA_MAP.put(data.getPath(), data);
-        // the update is also need to clean, but there is
-        // no way to distinguish between crate and update,
-        // so it is always clean
-        clean(data.getPath());
+        // clean old path data
+        if (META_UPDATE_MAP.containsKey(data.getId())) {
+            // the update is also need to clean, but there is
+            // no way to distinguish between crate and update,
+            // so it is always clean
+            clean(META_UPDATE_MAP.get(data.getId()).getPath());
+        }
+        META_UPDATE_MAP.put(data.getId(), data);
+
+        // forEach all meta
+        META_UPDATE_MAP.forEach((id, metaData)-> {
+            META_DATA_MAP.put(metaData.getPath(), metaData);
+        });
     }
 
     /**
@@ -83,8 +96,13 @@ public final class MetaDataCache {
      * @param data the data
      */
     public void remove(final MetaData data) {
-        META_DATA_MAP.remove(data.getPath());
+        META_UPDATE_MAP.remove(data.getId());
         clean(data.getPath());
+
+        // forEach all meta
+        META_UPDATE_MAP.forEach((id, metaData)-> {
+            META_DATA_MAP.put(metaData.getPath(), metaData);
+        });
     }
 
     private void clean(final String key) {
