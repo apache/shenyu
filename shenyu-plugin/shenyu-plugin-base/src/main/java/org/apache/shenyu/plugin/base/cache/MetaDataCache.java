@@ -85,9 +85,7 @@ public final class MetaDataCache {
         META_UPDATE_MAP.put(data.getId(), data);
 
         // forEach all meta
-        META_UPDATE_MAP.forEach((id, metaData)-> {
-            META_DATA_MAP.put(metaData.getPath(), metaData);
-        });
+        META_UPDATE_MAP.forEach((id, metaData) -> META_DATA_MAP.put(metaData.getPath(), metaData));
     }
 
     /**
@@ -100,9 +98,7 @@ public final class MetaDataCache {
         clean(data.getPath());
 
         // forEach all meta
-        META_UPDATE_MAP.forEach((id, metaData)-> {
-            META_DATA_MAP.put(metaData.getPath(), metaData);
-        });
+        META_UPDATE_MAP.forEach((id, metaData) -> META_DATA_MAP.put(metaData.getPath(), metaData));
     }
 
     private void clean(final String key) {
