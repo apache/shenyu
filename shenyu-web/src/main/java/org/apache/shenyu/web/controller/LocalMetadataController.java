@@ -70,7 +70,7 @@ public class LocalMetadataController {
             return Mono.just(Constants.SUCCESS);
         }
         LOG.info("delete apache shenyu local meta data");
-        MetaData metaData = MetaData.builder().rpcType(rpcType).path(path).build();
+        MetaData metaData = MetaData.builder().id("1").rpcType(rpcType).path(path).build();
         subscribers.forEach(metaDataSubscriber -> metaDataSubscriber.unSubscribe(metaData));
         return Mono.just(Constants.SUCCESS);
     }
