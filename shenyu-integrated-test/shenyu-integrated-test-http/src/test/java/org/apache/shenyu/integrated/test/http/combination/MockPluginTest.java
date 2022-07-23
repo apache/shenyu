@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
+import com.google.gson.Gson;
 import org.apache.shenyu.common.dto.ConditionData;
 
+import org.apache.shenyu.common.dto.convert.rule.MockHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -43,6 +45,8 @@ import static org.hamcrest.Matchers.is;
 
 public class MockPluginTest extends AbstractPluginDataInit {
     
+    private static final Gson GSON = new Gson();
+    
     @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.MOCK.getName(), "");
@@ -53,14 +57,14 @@ public class MockPluginTest extends AbstractPluginDataInit {
     
     @Test
     public void testFixContentMock() throws IOException {
-        final String testPath = "/http/test/fix";
+        final String testPath = "/http/mock/fix";
         Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(testPath, new HashMap<>(), Map.class);
         assertThat(correctResponse.get("user"), is("test"));
     }
     
     @Test
     public void testPlaceholderContentMock() throws IOException {
-        final String testPath = "/http/test/placeholder";
+        final String testPath = "/http/mock/placeholder";
         Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(testPath, new HashMap<>(), Map.class);
         assertThat(correctResponse.get("number"), new BaseMatcher<Object>() {
             @Override
@@ -83,27 +87,34 @@ public class MockPluginTest extends AbstractPluginDataInit {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/http/**");
+        conditionData.setParamValue("/http/mock/**");
         return Collections.singletonList(conditionData);
     }
     
     private static List<LocalPluginController.RuleLocalData> buildRuleLocalDataList() {
         List<LocalPluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
-        ruleLocalDataList.add(buildRuleLocalData("/http/test/fix",
-                "{\"httpStatusCode\":200,\"responseContent\":\"{\\\"user\\\":\\\"test\\\"}\"}"));
-        ruleLocalDataList.add(buildRuleLocalData("/http/test/placeholder",
-                "{\"httpStatusCode\":200,\"responseContent\":\"{\\\"number\\\":${int|10-20}}\"}"));
+        
+        MockHandle fixMockHandle = new MockHandle();
+        fixMockHandle.setHttpStatusCode(200);
+        fixMockHandle.setResponseContent("{\"user\":\"test\"}");
+        ruleLocalDataList.add(buildRuleLocalData("/http/mock/fix", fixMockHandle));
+        
+        MockHandle placeholderMockHandler = new MockHandle();
+        placeholderMockHandler.setHttpStatusCode(200);
+        placeholderMockHandler.setResponseContent("{\"number\":${int|10-20}}");
+        ruleLocalDataList.add(buildRuleLocalData("/http/mock/placeholder", placeholderMockHandler));
+        
         return ruleLocalDataList;
     }
     
-    private static LocalPluginController.RuleLocalData buildRuleLocalData(final String paramValue, final String ruleHandle) {
+    private static LocalPluginController.RuleLocalData buildRuleLocalData(final String paramValue, final MockHandle ruleHandle) {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
         conditionData.setParamValue(paramValue);
         LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        ruleLocalData.setRuleHandler(ruleHandle);
+        ruleLocalData.setRuleHandler(GSON.toJson(ruleHandle));
         return ruleLocalData;
     }
     
