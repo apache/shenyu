@@ -59,7 +59,7 @@ public final class DataRefreshFactory {
      * @return the boolean
      */
     public boolean executor(final JsonObject data) {
-        List<Boolean> result = ENUM_MAP.values().parallelStream()
+        List<Boolean> result = ENUM_MAP.values().stream()
                 .map(dataRefresh -> dataRefresh.refresh(data))
                 .collect(Collectors.toList());
         return result.stream().anyMatch(Boolean.TRUE::equals);
