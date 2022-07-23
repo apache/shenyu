@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
-
 import org.apache.shenyu.common.dto.ConditionData;
+
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -32,13 +32,17 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 public class MockPluginTest extends AbstractPluginDataInit {
-
+    
     @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.MOCK.getName(), "");
@@ -46,26 +50,26 @@ public class MockPluginTest extends AbstractPluginDataInit {
         String selectorAndRulesResult = initSelectorAndRules(PluginEnum.MOCK.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
         assertThat(selectorAndRulesResult, is("success"));
     }
-
+    
     @Test
     public void testFixContentMock() throws IOException {
         final String testPath = "/http/test/fix";
         Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(testPath, new HashMap<>(), Map.class);
         assertThat(correctResponse.get("user"), is("test"));
     }
-
+    
     @Test
     public void testPlaceholderContentMock() throws IOException {
         final String testPath = "/http/test/placeholder";
         Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(testPath, new HashMap<>(), Map.class);
-        assertThat(correctResponse.get("number"),   new BaseMatcher<Object>() {
+        assertThat(correctResponse.get("number"), new BaseMatcher<Object>() {
             @Override
-            public void describeTo(Description description) {
-
+            public void describeTo(final Description description) {
+            
             }
-
+            
             @Override
-            public boolean matches(Object o) {
+            public boolean matches(final Object o) {
                 if (!(o instanceof Integer)) {
                     return false;
                 }
@@ -74,8 +78,7 @@ public class MockPluginTest extends AbstractPluginDataInit {
             }
         });
     }
-
-
+    
     private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
@@ -83,7 +86,7 @@ public class MockPluginTest extends AbstractPluginDataInit {
         conditionData.setParamValue("/http/**");
         return Collections.singletonList(conditionData);
     }
-
+    
     private static List<LocalPluginController.RuleLocalData> buildRuleLocalDataList() {
         List<LocalPluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
         ruleLocalDataList.add(buildRuleLocalData("/http/test/fix",
@@ -92,7 +95,7 @@ public class MockPluginTest extends AbstractPluginDataInit {
                 "{\"httpStatusCode\":200,\"responseContent\":\"{\\\"number\\\":${int|10-20}}\"}"));
         return ruleLocalDataList;
     }
-
+    
     private static LocalPluginController.RuleLocalData buildRuleLocalData(final String paramValue, final String ruleHandle) {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
@@ -103,10 +106,9 @@ public class MockPluginTest extends AbstractPluginDataInit {
         ruleLocalData.setRuleHandler(ruleHandle);
         return ruleLocalData;
     }
-
+    
     @AfterAll
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.MOCK.getName());
     }
-
 }
