@@ -509,6 +509,19 @@
         </dependency>
     </dependencies>
 
+<!--    <distributionManagement>-->
+<!--        <repository>-->
+<!--            <id>releases</id>-->
+<!--            <name>releases</name>-->
+<!--            <url>http://nexus.dmall.com:8081/nexus/repository/releases/</url>-->
+<!--        </repository>-->
+<!--        <snapshotRepository>-->
+<!--            <id>snapshots</id>-->
+<!--            <name>snapshots</name>-->
+<!--            <url>http://nexus.dmall.com:8081/nexus/repository/snapshots/</url>-->
+<!--        </snapshotRepository>-->
+<!--    </distributionManagement>-->
+
     <build>
         <plugins>
             <plugin>

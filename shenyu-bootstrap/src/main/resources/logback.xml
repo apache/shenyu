@@ -42,55 +42,55 @@
         <appender-ref ref="STDOUT"/>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_HOME}/${LOG_APP_NAME}.log</file>
-        <append>true</append>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/${LOG_APP_NAME}.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
-            <maxFileSize>${MAX_SINGLE_LOG_FILE_SIZE}</maxFileSize>
-            <maxHistory>${MAX_LOG_FILE_HISTORY}</maxHistory>
-            <totalSizeCap>${LOG_FILE_TOTAL_CAPACITY}</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
-        </encoder>
-    </appender>
+<!--    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--        <file>${LOG_HOME}/${LOG_APP_NAME}.log</file>-->
+<!--        <append>true</append>-->
+<!--        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">-->
+<!--            <fileNamePattern>${LOG_HOME}/${LOG_APP_NAME}.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>-->
+<!--            <maxFileSize>${MAX_SINGLE_LOG_FILE_SIZE}</maxFileSize>-->
+<!--            <maxHistory>${MAX_LOG_FILE_HISTORY}</maxHistory>-->
+<!--            <totalSizeCap>${LOG_FILE_TOTAL_CAPACITY}</totalSizeCap>-->
+<!--        </rollingPolicy>-->
+<!--        <encoder>-->
+<!--            <pattern>${LOG_PATTERN}</pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
 
-    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>
-        <queueSize>${ASYNC_LOG_QUEUE_SIZE}</queueSize>
-        <includeCallerData>true</includeCallerData>
-        <appender-ref ref="FILE"/>
-    </appender>
+<!--    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">-->
+<!--        <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>-->
+<!--        <queueSize>${ASYNC_LOG_QUEUE_SIZE}</queueSize>-->
+<!--        <includeCallerData>true</includeCallerData>-->
+<!--        <appender-ref ref="FILE"/>-->
+<!--    </appender>-->
 
-    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>ERROR</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>DENY</onMismatch>
-        </filter>
-        <file>${LOG_HOME}/${LOG_APP_NAME}-error.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/${LOG_APP_NAME}.%d{yyyy-MM-dd}-error.%i.log.zip</fileNamePattern>
-            <maxFileSize>${MAX_SINGLE_LOG_FILE_SIZE}</maxFileSize>
-            <maxHistory>${MAX_LOG_FILE_HISTORY}</maxHistory>
-            <totalSizeCap>${LOG_FILE_TOTAL_CAPACITY}</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
-        </encoder>
-    </appender>
+<!--    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--        <filter class="ch.qos.logback.classic.filter.LevelFilter">-->
+<!--            <level>ERROR</level>-->
+<!--            <onMatch>ACCEPT</onMatch>-->
+<!--            <onMismatch>DENY</onMismatch>-->
+<!--        </filter>-->
+<!--        <file>${LOG_HOME}/${LOG_APP_NAME}-error.log</file>-->
+<!--        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">-->
+<!--            <fileNamePattern>${LOG_HOME}/${LOG_APP_NAME}.%d{yyyy-MM-dd}-error.%i.log.zip</fileNamePattern>-->
+<!--            <maxFileSize>${MAX_SINGLE_LOG_FILE_SIZE}</maxFileSize>-->
+<!--            <maxHistory>${MAX_LOG_FILE_HISTORY}</maxHistory>-->
+<!--            <totalSizeCap>${LOG_FILE_TOTAL_CAPACITY}</totalSizeCap>-->
+<!--        </rollingPolicy>-->
+<!--        <encoder>-->
+<!--            <pattern>${LOG_PATTERN}</pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
 
-    <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>
-        <queueSize>${ASYNC_LOG_QUEUE_SIZE}</queueSize>
-        <includeCallerData>true</includeCallerData>
-        <appender-ref ref="ERROR_FILE"/>
-    </appender>
+<!--    <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">-->
+<!--        <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>-->
+<!--        <queueSize>${ASYNC_LOG_QUEUE_SIZE}</queueSize>-->
+<!--        <includeCallerData>true</includeCallerData>-->
+<!--        <appender-ref ref="ERROR_FILE"/>-->
+<!--    </appender>-->
 
     <root level="INFO">
         <appender-ref ref="ASYNC_STDOUT"/>
-        <appender-ref ref="ASYNC_FILE"/>
-        <appender-ref ref="ASYNC_ERROR_FILE"/>
+<!--        <appender-ref ref="ASYNC_FILE"/>-->
+<!--        <appender-ref ref="ASYNC_ERROR_FILE"/>-->
     </root>
 </configuration>

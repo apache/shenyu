@@ -148,12 +148,12 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         LOG.info("request configs: [{}]", url);
         String json;
         try {
-            Optional<Object> token = accessToken.apply(server);
-            if (!token.isPresent()) {
-                throw new ShenyuException("get token from server : [" + server + " ] error");
-            }
+//            Optional<Object> token = accessToken.apply(server);
+//            if (!token.isPresent()) {
+//                throw new ShenyuException("get token from server : [" + server + " ] error");
+//            }
             HttpHeaders headers = new HttpHeaders();
-            headers.set(Constants.X_ACCESS_TOKEN, String.valueOf(token.get()));
+//            headers.set(Constants.X_ACCESS_TOKEN, String.valueOf(token.get()));
             HttpEntity<String> httpEntity = new HttpEntity<>(headers);
             json = this.httpClient.exchange(url, HttpMethod.GET, httpEntity, String.class).getBody();
         } catch (RestClientException e) {

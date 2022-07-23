@@ -19,7 +19,7 @@ server:
 
 spring:
   profiles:
-    active: h2
+    active: mysql
   thymeleaf:
     cache: true
     encoding: utf-8
@@ -44,29 +44,10 @@ shenyu:
       nacosNameSpace: ShenyuRegisterCenter
   sync:
     websocket:
-      enabled: true
+      enabled: false
       messageMaxSize: 10240
-#      zookeeper:
-#        url: localhost:2181
-#        sessionTimeout: 5000
-#        connectionTimeout: 2000
-#      http:
-#        enabled: true
-#      nacos:
-#        url: localhost:8848
-#        namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-#        username:
-#        password:
-#        acm:
-#          enabled: false
-#          endpoint: acm.aliyun.com
-#          namespace:
-#          accessKey:
-#          secretKey:
-#    etcd:
-#      url: http://localhost:2379
-#    consul:
-#      url: http://localhost:8500
+    http:
+      enabled: true
   ldap:
     enabled: false
     url: ldap://xxxx:xxx
@@ -92,6 +73,7 @@ shenyu:
       - /swagger-resources/**
       - /v2/api-docs
       - /csrf
+      - /configs/**
   swagger:
     enable: true
   apidoc:
