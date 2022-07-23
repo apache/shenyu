@@ -90,11 +90,13 @@ public class RedirectPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
+        LOG.error("can not match selector data: {}", pluginName);
+        return chain.execute(exchange);
     }
 
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return WebFluxResultUtils.noRuleResult(pluginName, exchange);
+        LOG.error("can not match rule data: {}", pluginName);
+        return chain.execute(exchange);
     }
 }
