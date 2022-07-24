@@ -19,7 +19,6 @@ package org.apache.shenyu.integrated.test.http.combination;
 
 import com.google.gson.Gson;
 import org.apache.shenyu.common.dto.ConditionData;
-
 import org.apache.shenyu.common.dto.convert.rule.MockHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -29,8 +28,8 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -47,7 +46,7 @@ public class MockPluginTest extends AbstractPluginDataInit {
     
     private static final Gson GSON = new Gson();
     
-    @BeforeAll
+    @BeforeEach
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.MOCK.getName(), "");
         assertThat(pluginResult, is("success"));
@@ -118,7 +117,7 @@ public class MockPluginTest extends AbstractPluginDataInit {
         return ruleLocalData;
     }
     
-    @AfterAll
+    @AfterEach
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.MOCK.getName());
     }
