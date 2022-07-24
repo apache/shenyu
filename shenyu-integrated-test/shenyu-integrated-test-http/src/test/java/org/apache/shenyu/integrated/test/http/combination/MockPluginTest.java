@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
-import com.google.gson.Gson;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.MockHandle;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController;
@@ -44,7 +44,10 @@ import static org.hamcrest.Matchers.is;
 
 public class MockPluginTest extends AbstractPluginDataInit {
     
-    private static final Gson GSON = new Gson();
+    private static final String TEST_FIXED_MOCK = "/http/mock/fix";
+    
+    private static final String TEST_PLACEHOLDER_MOCK = "/http/mock/placeholder";
+    
     
     @BeforeEach
     public static void setup() throws IOException {
@@ -56,15 +59,13 @@ public class MockPluginTest extends AbstractPluginDataInit {
     
     @Test
     public void testFixContentMock() throws IOException {
-        final String testPath = "/http/mock/fix";
-        Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(testPath, new HashMap<>(), Map.class);
+        Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(TEST_FIXED_MOCK, new HashMap<>(), Map.class);
         assertThat(correctResponse.get("user"), is("test"));
     }
     
     @Test
     public void testPlaceholderContentMock() throws IOException {
-        final String testPath = "/http/mock/placeholder";
-        Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(testPath, new HashMap<>(), Map.class);
+        Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(TEST_PLACEHOLDER_MOCK, new HashMap<>(), Map.class);
         assertThat(correctResponse.get("number"), new BaseMatcher<Object>() {
             @Override
             public void describeTo(final Description description) {
@@ -96,12 +97,12 @@ public class MockPluginTest extends AbstractPluginDataInit {
         MockHandle fixMockHandle = new MockHandle();
         fixMockHandle.setHttpStatusCode(200);
         fixMockHandle.setResponseContent("{\"user\":\"test\"}");
-        ruleLocalDataList.add(buildRuleLocalData("/http/mock/fix", fixMockHandle));
+        ruleLocalDataList.add(buildRuleLocalData(TEST_FIXED_MOCK, fixMockHandle));
         
         MockHandle placeholderMockHandler = new MockHandle();
         placeholderMockHandler.setHttpStatusCode(200);
         placeholderMockHandler.setResponseContent("{\"number\":${int|10-20}}");
-        ruleLocalDataList.add(buildRuleLocalData("/http/mock/placeholder", placeholderMockHandler));
+        ruleLocalDataList.add(buildRuleLocalData(TEST_PLACEHOLDER_MOCK, placeholderMockHandler));
         
         return ruleLocalDataList;
     }
@@ -113,7 +114,7 @@ public class MockPluginTest extends AbstractPluginDataInit {
         conditionData.setParamValue(paramValue);
         LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
         ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        ruleLocalData.setRuleHandler(GSON.toJson(ruleHandle));
+        ruleLocalData.setRuleHandler(JsonUtils.toJson(ruleHandle));
         return ruleLocalData;
     }
     

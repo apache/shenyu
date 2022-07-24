@@ -31,12 +31,16 @@ import java.util.regex.Pattern;
 public final class GeneratorFactory {
     
     private static final Logger LOG = LoggerFactory.getLogger(GeneratorFactory.class);
-    
+    /**
+     * If expression parsing fails, the ${} placeholder
+     * will be replaced with the following.
+     */
+    private static final String ERROR_PARSE = "\"[#ERROR EXPRESSION#]\"";
     /**
      * Regular expression to extract rule content.
      */
     private static final Pattern RULE_CONTENT_PATTERN = Pattern
-        .compile("^\\$\\{(.+?)}$", Pattern.MULTILINE);
+            .compile("^\\$\\{(.+?)}$", Pattern.MULTILINE);
     
     private GeneratorFactory() {
     }
@@ -69,7 +73,7 @@ public final class GeneratorFactory {
             String[] prefixAndSuffix = generator.getPrefixAndSuffix();
             generator.parseRule(ruleContent);
             Object generateData = generator.generate();
-            return String.format("%s%s%s", prefixAndSuffix[0], generateData, prefixAndSuffix[1]);
+            return String.join("", prefixAndSuffix[0], generateData.toString(), prefixAndSuffix[1]);
         } else {
             return rule;
         }
@@ -87,7 +91,7 @@ public final class GeneratorFactory {
         while (placeHolder != null) {
             Object generateData = generate(placeHolder);
             if (Objects.equals(generateData, placeHolder)) {
-                generateData = "[#ERRPR EXPRESSION#]";
+                generateData = ERROR_PARSE;
             }
             String toString = String.valueOf(generateData);
             placeHolder = placeHolder.replaceAll("([$|{}\\]\\[])", "\\\\$1");
