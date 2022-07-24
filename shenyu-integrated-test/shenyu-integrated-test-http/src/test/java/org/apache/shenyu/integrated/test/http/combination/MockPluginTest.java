@@ -48,7 +48,6 @@ public class MockPluginTest extends AbstractPluginDataInit {
     
     private static final String TEST_PLACEHOLDER_MOCK = "/http/mock/placeholder";
     
-    
     @BeforeEach
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.MOCK.getName(), "");
