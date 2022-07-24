@@ -160,16 +160,20 @@ public class UpstreamInstance {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         UpstreamInstance that = (UpstreamInstance) o;
-        return port == that.port &&
-                healthy == that.healthy &&
-                enabled == that.enabled &&
-                Objects.equals(contextPath, that.contextPath) &&
-                Objects.equals(ip, that.ip) &&
-                Objects.equals(startupTime, that.startupTime);
+        return port == that.port
+                && healthy == that.healthy
+                && enabled == that.enabled
+                && Objects.equals(contextPath, that.contextPath)
+                && Objects.equals(ip, that.ip)
+                && Objects.equals(startupTime, that.startupTime);
     }
 
     @Override
