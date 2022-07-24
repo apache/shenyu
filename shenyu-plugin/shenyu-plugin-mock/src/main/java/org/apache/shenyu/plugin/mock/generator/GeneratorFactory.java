@@ -31,11 +31,13 @@ import java.util.regex.Pattern;
 public final class GeneratorFactory {
     
     private static final Logger LOG = LoggerFactory.getLogger(GeneratorFactory.class);
+    
     /**
      * If expression parsing fails, the ${} placeholder
      * will be replaced with the following.
      */
     private static final String ERROR_PARSE = "\"[#ERROR EXPRESSION#]\"";
+    
     /**
      * Regular expression to extract rule content.
      */
