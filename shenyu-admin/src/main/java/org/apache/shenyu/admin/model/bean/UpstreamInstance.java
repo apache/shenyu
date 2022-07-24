@@ -19,6 +19,8 @@ package org.apache.shenyu.admin.model.bean;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Objects;
+
 /**
  * UpstreamInstance.
  */
@@ -155,5 +157,23 @@ public class UpstreamInstance {
      */
     public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UpstreamInstance that = (UpstreamInstance) o;
+        return port == that.port &&
+                healthy == that.healthy &&
+                enabled == that.enabled &&
+                Objects.equals(contextPath, that.contextPath) &&
+                Objects.equals(ip, that.ip) &&
+                Objects.equals(startupTime, that.startupTime);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(contextPath, ip, port, startupTime, healthy, enabled);
     }
 }
