@@ -41,7 +41,7 @@ public final class MetaDataCache {
     private static final MetaDataCache INSTANCE = new MetaDataCache();
 
     /**
-     * path -> MetaData.
+     * id -> MetaData.
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
@@ -70,11 +70,18 @@ public final class MetaDataCache {
      * @param data the data
      */
     public void cache(final MetaData data) {
-        META_DATA_MAP.put(data.getPath(), data);
-        // the update is also need to clean, but there is
-        // no way to distinguish between crate and update,
-        // so it is always clean
+        // clean old path data
+        if (META_DATA_MAP.containsKey(data.getId())) {
+            // the update is also need to clean, but there is
+            // no way to distinguish between crate and update,
+            // so it is always clean
+            clean(META_DATA_MAP.get(data.getId()).getPath());
+        }
+        META_DATA_MAP.put(data.getId(), data);
         clean(data.getPath());
+        clean(DIVIDE_CACHE_KEY);
+        // put cacheMap
+        cacheMap(data.getPath(), data, data.getPath());
     }
 
     /**
@@ -83,7 +90,7 @@ public final class MetaDataCache {
      * @param data the data
      */
     public void remove(final MetaData data) {
-        META_DATA_MAP.remove(data.getPath());
+        META_DATA_MAP.remove(data.getId());
         clean(data.getPath());
     }
 
@@ -111,30 +118,37 @@ public final class MetaDataCache {
      * @return the meta data
      */
     public MetaData obtain(final String path) {
-        final MetaData metaData = Optional.ofNullable(META_DATA_MAP.get(path))
+        final MetaData metaData = Optional.ofNullable(CACHE.get(path))
                 .orElseGet(() -> {
-                    final MetaData exist = CACHE.get(path);
-                    if (Objects.nonNull(exist)) {
-                        return exist;
-                    }
-                    final String key = META_DATA_MAP.keySet()
+                    final MetaData value = META_DATA_MAP.values()
                             .stream()
-                            .filter(k -> PathMatchUtils.match(k, path))
+                            .filter(data -> PathMatchUtils.match(data.getPath(), path))
                             .findFirst()
-                            .orElse(DIVIDE_CACHE_KEY);
-                    final MetaData value = META_DATA_MAP.get(key);
-                    // The extreme case will lead to OOM, that's why use LRU
-                    CACHE.put(path, Objects.isNull(value) ? NULL : value);
-
-                    Set<String> paths = MAPPING.get(key);
-                    if (Objects.isNull(paths)) {
-                        MAPPING.putIfAbsent(key, new ConcurrentSkipListSet<>());
-                        paths = MAPPING.get(key);
-                    }
-                    paths.add(path);
-
+                            .orElse(null);
+                    final String metaPath = Objects.isNull(value) ? DIVIDE_CACHE_KEY : value.getPath();
+                    // put cacheMap
+                    cacheMap(path, value, metaPath);
                     return value;
                 });
         return NULL.equals(metaData) ? null : metaData;
+    }
+
+    /**
+     * cacheMap.
+     *
+     * @param path the path
+     * @param value the MetaData
+     * @param metaPath the metaPath
+     */
+    public void cacheMap(final String path, final MetaData value, final String metaPath) {
+        // The extreme case will lead to OOM, that's why use LRU
+        CACHE.put(path, Optional.ofNullable(value).orElse(NULL));
+        // spring/** -> Collections 'spring/A', 'spring/B'
+        Set<String> paths = MAPPING.get(metaPath);
+        if (Objects.isNull(paths)) {
+            MAPPING.putIfAbsent(metaPath, new ConcurrentSkipListSet<>());
+            paths = MAPPING.get(metaPath);
+        }
+        paths.add(path);
     }
 }
