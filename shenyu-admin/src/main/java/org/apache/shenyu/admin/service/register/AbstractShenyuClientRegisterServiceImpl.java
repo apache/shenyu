@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -203,7 +204,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     protected boolean doSubmit(final String selectorId, final List<? extends CommonUpstream> upstreamList) {
         List<CommonUpstream> commonUpstreamList = CommonUpstreamUtils.convertCommonUpstreamList(upstreamList);
-        return commonUpstreamList.stream().map(upstream -> upstreamCheckService.submit(selectorId, upstream))
+        return commonUpstreamList.stream().map(upstream -> upstreamCheckService.checkAndSubmit(selectorId, upstream))
                 .collect(Collectors.toList()).stream().findAny().orElse(false);
     }
     
@@ -239,7 +240,9 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                 .paramName("/")
                 .paramValue(path)
                 .build();
-        if (path.indexOf("*") > 1) {
+        if (path.endsWith(AdminConstants.URI_SLASH_SUFFIX)) {
+            ruleConditionDTO.setOperator(OperatorEnum.STARTS_WITH.getAlias());
+        } else if (path.indexOf("*") > 1) {
             ruleConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
         } else {
             ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());

@@ -25,11 +25,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-springcloud</artifactId>
 
-    <properties>
-        <spring-cloud-commons.version>2.2.0.RELEASE</spring-cloud-commons.version>
-        <spring-cloud-starter-netflix-ribbon.version>2.2.0.RELEASE</spring-cloud-starter-netflix-ribbon.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -49,6 +44,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter</artifactId>
+            <version>${spring-cloud.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
@@ -62,11 +62,6 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-loadbalancer</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-            <version>${spring-cloud-starter-netflix-ribbon.version}</version>
         </dependency>
     </dependencies>
 </project>

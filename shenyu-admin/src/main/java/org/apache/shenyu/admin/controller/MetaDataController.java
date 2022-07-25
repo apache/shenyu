@@ -18,10 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
@@ -44,6 +41,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 /**
  * The type Meta data controller.
  */
@@ -61,17 +63,17 @@ public class MetaDataController {
     /**
      * Query metadata list.
      *
-     * @param appName     the app name
+     * @param path     the path
      * @param currentPage the current page
      * @param pageSize    the page size
      * @return the shenyu result
      */
     @GetMapping("/queryList")
     @RequiresPermissions("system:meta:list")
-    public ShenyuAdminResult queryList(final String appName,
+    public ShenyuAdminResult queryList(final String path,
                                        @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
                                        @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
-        CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(appName, new PageParameter(currentPage, pageSize)));
+        CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(path, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 

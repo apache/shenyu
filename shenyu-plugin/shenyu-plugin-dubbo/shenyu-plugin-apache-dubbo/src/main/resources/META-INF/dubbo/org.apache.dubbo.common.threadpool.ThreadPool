@@ -16,3 +16,4 @@
  */
 
 shared=org.apache.shenyu.plugin.apache.dubbo.threadpool.SharedThreadPool
+default=org.apache.dubbo.common.threadpool.support.cached.CachedThreadPool

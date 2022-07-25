@@ -43,9 +43,9 @@ public class ShenyuNettyWebServerConfiguration {
      * @return the netty tcp config
      */
     @Bean
-    @ConfigurationProperties(prefix = "shenyu.netty.tcp")
-    public NettyTcpProperties nettyTcpProperties() {
-        return new NettyTcpProperties();
+    @ConfigurationProperties(prefix = "shenyu.netty.http")
+    public NettyHttpProperties nettyTcpProperties() {
+        return new NettyHttpProperties();
     }
     
     /**
@@ -55,56 +55,63 @@ public class ShenyuNettyWebServerConfiguration {
      * @return the netty reactive web server factory
      */
     @Bean
-    @ConditionalOnProperty(value = "shenyu.netty.tcp.webServerFactoryEnabled", havingValue = "true", matchIfMissing = true)
-    public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyTcpProperties> properties) {
+    @ConditionalOnProperty(value = "shenyu.netty.http.web-server-factory-enabled", havingValue = "true", matchIfMissing = true)
+    public NettyReactiveWebServerFactory nettyReactiveWebServerFactory(final ObjectProvider<NettyHttpProperties> properties) {
         NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
-        NettyTcpProperties nettyTcpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyTcpProperties());
-        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyTcpProperties));
+        NettyHttpProperties nettyHttpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyHttpProperties());
+        webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyHttpProperties));
         return webServerFactory;
     }
 
     private static class EventLoopNettyCustomizer implements NettyServerCustomizer {
 
-        private final NettyTcpProperties nettyTcpProperties;
+        private final NettyHttpProperties nettyHttpProperties;
     
         /**
          * Instantiates a new Event loop netty customizer.
          *
-         * @param nettyTcpProperties the netty tcp config
+         * @param nettyHttpProperties the netty tcp config
          */
-        EventLoopNettyCustomizer(final NettyTcpProperties nettyTcpProperties) {
-            this.nettyTcpProperties = nettyTcpProperties;
+        EventLoopNettyCustomizer(final NettyHttpProperties nettyHttpProperties) {
+            this.nettyHttpProperties = nettyHttpProperties;
         }
 
         @Override
         public HttpServer apply(final HttpServer httpServer) {
-            return httpServer
-                    .tcpConfiguration(tcpServer -> tcpServer
-                            .runOn(LoopResources.create("shenyu-netty", nettyTcpProperties.getSelectCount(), nettyTcpProperties.getWorkerCount(), true))
-                            .selectorOption(ChannelOption.SO_BACKLOG, nettyTcpProperties.getServerSocketChannel().getSoBacklog())
-                            .selectorOption(ChannelOption.SO_REUSEADDR, nettyTcpProperties.getServerSocketChannel().isSoReuseAddr())
-                            .selectorOption(ChannelOption.SO_RCVBUF, nettyTcpProperties.getServerSocketChannel().getSoRcvBuf())
-                            .selectorOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpProperties.getServerSocketChannel().getConnectTimeoutMillis())
-                            .selectorOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpProperties.getServerSocketChannel().getWriteBufferLowWaterMark(),
-                                    nettyTcpProperties.getServerSocketChannel().getWriteBufferHighWaterMark()))
-                            .selectorOption(ChannelOption.WRITE_SPIN_COUNT, nettyTcpProperties.getServerSocketChannel().getWriteSpinCount())
-                            .selectorOption(ChannelOption.AUTO_READ, nettyTcpProperties.getServerSocketChannel().isAutoRead())
-                            .selectorOption(ChannelOption.ALLOCATOR, nettyTcpProperties.getServerSocketChannel().getAllocator())
+            return httpServer.runOn(LoopResources.create("shenyu-netty", nettyHttpProperties.getSelectCount(), nettyHttpProperties.getWorkerCount(), true))
+                    .accessLog(nettyHttpProperties.getAccessLog())
+                    // server socket channel parameters
+                    .option(ChannelOption.SO_BACKLOG, nettyHttpProperties.getServerSocketChannel().getSoBacklog())
+                    .option(ChannelOption.SO_REUSEADDR, nettyHttpProperties.getServerSocketChannel().isSoReuseAddr())
+                    .option(ChannelOption.SO_RCVBUF, nettyHttpProperties.getServerSocketChannel().getSoRcvBuf())
+                    // common parameters
+                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyHttpProperties.getServerSocketChannel().getConnectTimeoutMillis())
+                    .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyHttpProperties.getServerSocketChannel().getWriteBufferLowWaterMark(),
+                            nettyHttpProperties.getServerSocketChannel().getWriteBufferHighWaterMark()))
+                    .option(ChannelOption.WRITE_SPIN_COUNT, nettyHttpProperties.getServerSocketChannel().getWriteSpinCount())
+                    .option(ChannelOption.AUTO_READ, nettyHttpProperties.getServerSocketChannel().isAutoRead())
+                    .option(ChannelOption.ALLOCATOR, nettyHttpProperties.getServerSocketChannel().getAllocator())
+                    .option(ChannelOption.MESSAGE_SIZE_ESTIMATOR, nettyHttpProperties.getServerSocketChannel().getMessageSizeEstimatorBuild())
+                    .option(ChannelOption.SINGLE_EVENTEXECUTOR_PER_GROUP, nettyHttpProperties.getServerSocketChannel().getSingleEventExecutorPerGroup())
 
-                            .option(ChannelOption.SO_KEEPALIVE, nettyTcpProperties.getSocketChannel().isSoKeepAlive())
-                            .option(ChannelOption.SO_REUSEADDR, nettyTcpProperties.getSocketChannel().isSoReuseAddr())
-                            .option(ChannelOption.SO_LINGER, nettyTcpProperties.getSocketChannel().getSoLinger())
-                            .option(ChannelOption.TCP_NODELAY, nettyTcpProperties.getSocketChannel().isTcpNoDelay())
-                            .option(ChannelOption.SO_RCVBUF, nettyTcpProperties.getSocketChannel().getSoRcvBuf())
-                            .option(ChannelOption.SO_SNDBUF, nettyTcpProperties.getSocketChannel().getSoSndBuf())
-                            .option(ChannelOption.IP_TOS, nettyTcpProperties.getSocketChannel().getIpTos())
-                            .option(ChannelOption.ALLOW_HALF_CLOSURE, nettyTcpProperties.getSocketChannel().isAllowHalfClosure())
-                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpProperties.getSocketChannel().getConnectTimeoutMillis())
-                            .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpProperties.getSocketChannel().getWriteBufferLowWaterMark(),
-                                    nettyTcpProperties.getSocketChannel().getWriteBufferHighWaterMark()))
-                            .option(ChannelOption.WRITE_SPIN_COUNT, nettyTcpProperties.getSocketChannel().getWriteSpinCount())
-                            .option(ChannelOption.AUTO_READ, nettyTcpProperties.getSocketChannel().isAutoRead())
-                            .option(ChannelOption.ALLOCATOR, nettyTcpProperties.getSocketChannel().getAllocator()));
+                    // socket channel parameters
+                    .childOption(ChannelOption.SO_KEEPALIVE, nettyHttpProperties.getSocketChannel().isSoKeepAlive())
+                    .childOption(ChannelOption.SO_LINGER, nettyHttpProperties.getSocketChannel().getSoLinger())
+                    .childOption(ChannelOption.TCP_NODELAY, nettyHttpProperties.getSocketChannel().isTcpNoDelay())
+                    .childOption(ChannelOption.SO_SNDBUF, nettyHttpProperties.getSocketChannel().getSoSndBuf())
+                    .childOption(ChannelOption.IP_TOS, nettyHttpProperties.getSocketChannel().getIpTos())
+                    .childOption(ChannelOption.ALLOW_HALF_CLOSURE, nettyHttpProperties.getSocketChannel().isAllowHalfClosure())
+                    .childOption(ChannelOption.SO_RCVBUF, nettyHttpProperties.getSocketChannel().getSoRcvBuf())
+                    .childOption(ChannelOption.SO_REUSEADDR, nettyHttpProperties.getSocketChannel().isSoReuseAddr())
+                    // common parameters
+                    .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyHttpProperties.getSocketChannel().getConnectTimeoutMillis())
+                    .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyHttpProperties.getSocketChannel().getWriteBufferLowWaterMark(),
+                    nettyHttpProperties.getSocketChannel().getWriteBufferHighWaterMark()))
+                    .childOption(ChannelOption.WRITE_SPIN_COUNT, nettyHttpProperties.getSocketChannel().getWriteSpinCount())
+                    .childOption(ChannelOption.AUTO_READ, nettyHttpProperties.getSocketChannel().isAutoRead())
+                    .childOption(ChannelOption.ALLOCATOR, nettyHttpProperties.getSocketChannel().getAllocator())
+                    .childOption(ChannelOption.MESSAGE_SIZE_ESTIMATOR, nettyHttpProperties.getSocketChannel().getMessageSizeEstimatorBuild())
+                    .childOption(ChannelOption.SINGLE_EVENTEXECUTOR_PER_GROUP, nettyHttpProperties.getSocketChannel().getSingleEventExecutorPerGroup());
         }
     }
 }

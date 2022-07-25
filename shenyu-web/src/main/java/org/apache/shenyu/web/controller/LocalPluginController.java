@@ -30,6 +30,7 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +94,7 @@ public class LocalPluginController {
         List<SelectorData> selectorData = BaseDataCache.getInstance().obtainSelectorData(name);
         List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
+        MatchDataCache.getInstance().removeSelectorData(name);
         for (String selectorId : selectorIds) {
             BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
         }

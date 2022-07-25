@@ -27,24 +27,24 @@ import java.util.Random;
 /**
  * Sofa single param service.
  */
-@ShenyuSofaClient(path="/demo/**")
+@ShenyuSofaClient("/demo/**")
 @Service
 public class SofaClientSingleParamServiceImpl implements SofaClientSingleParamService {
     
     @Override
-    @ShenyuSofaClient(path = "/findById", desc = "Find by Id")
+    @ShenyuSofaClient("/findById")
     public SofaSimpleTypeBean findById(final String id) {
         return new SofaSimpleTypeBean(id, "hello world shenyu Sofa, findById");
     }
     
     @Override
-    @ShenyuSofaClient(path = "/findAll", desc = "Get all data")
+    @ShenyuSofaClient("/findAll")
     public SofaSimpleTypeBean findAll() {
         return new SofaSimpleTypeBean(String.valueOf(new Random().nextInt()), "hello world shenyu Sofa , findAll");
     }
     
     @Override
-    @ShenyuSofaClient(path = "/insert", desc = "Insert a row of data")
+    @ShenyuSofaClient("/insert")
     public SofaSimpleTypeBean insert(final SofaSimpleTypeBean sofaSimpleTypeBean) {
         sofaSimpleTypeBean.setName("hello world shenyu Sofa: " + sofaSimpleTypeBean.getName());
         return sofaSimpleTypeBean;

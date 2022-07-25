@@ -38,6 +38,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -62,6 +64,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test cases for MetaDataController.
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public final class MetaDataControllerTest {
 
     private MockMvc mockMvc;
@@ -94,10 +97,10 @@ public final class MetaDataControllerTest {
         final CommonPager<MetaDataVO> commonPager = new CommonPager<>();
         commonPager.setPage(pageParameter);
         commonPager.setDataList(metaDataVOS);
-        final MetaDataQuery metaDataQuery = new MetaDataQuery("appName", pageParameter);
+        final MetaDataQuery metaDataQuery = new MetaDataQuery("path", pageParameter);
         given(this.metaDataService.listByPage(metaDataQuery)).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/queryList")
-                .param("appName", "appName")
+                .param("path", "path")
                 .param("currentPage", pageParameter.getCurrentPage() + "")
                 .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())

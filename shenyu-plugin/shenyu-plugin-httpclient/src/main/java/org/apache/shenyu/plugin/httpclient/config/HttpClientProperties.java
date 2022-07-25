@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.plugin.httpclient.config;
 
+import io.netty.handler.ssl.SslProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.springframework.util.ResourceUtils;
 import reactor.netty.ReactorNetty;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.resources.LoopResources;
-import reactor.netty.tcp.SslProvider;
 
 import javax.net.ssl.KeyManagerFactory;
 import java.io.IOException;
@@ -115,6 +115,11 @@ public class HttpClientProperties {
      * set to false, fix java.io.IOException: Connection reset by peer, see https://github.com/reactor/reactor-netty/issues/388.
      */
     private boolean keepAlive;
+
+    /**
+     * body max memory size, unit mb.
+     */
+    private Integer maxInMemorySize = 1;
 
     /**
      * Gets strategy.
@@ -370,6 +375,22 @@ public class HttpClientProperties {
     }
 
     /**
+     * get maxInMemorySize.
+     * @return maxInMemorySize
+     */
+    public Integer getMaxInMemorySize() {
+        return maxInMemorySize;
+    }
+
+    /**
+     * set maxInMemorySize.
+     * @param maxInMemorySize maxInMemorySize
+     */
+    public void setMaxInMemorySize(final Integer maxInMemorySize) {
+        this.maxInMemorySize = maxInMemorySize;
+    }
+
+    /**
      * The type Pool.
      */
     public static class Pool {
@@ -480,7 +501,7 @@ public class HttpClientProperties {
          */
         public Duration getMaxIdleTime() {
             return Optional.ofNullable(maxIdleTime)
-                    .map(it -> Duration.ofMillis(maxIdleTime)).orElse(null);
+                    .map(it -> Duration.ofMillis(maxIdleTime)).orElse(Duration.ZERO);
         }
 
         /**
@@ -789,9 +810,9 @@ public class HttpClientProperties {
         private String keyPassword;
 
         /**
-         * The default ssl configuration type. Defaults to TCP.
+         * The default ssl configuration type. Defaults to JDK Provider.
          */
-        private SslProvider.DefaultConfigurationType defaultConfigurationType = SslProvider.DefaultConfigurationType.TCP;
+        private SslProvider defaultConfigurationType = SslProvider.JDK;
     
         /**
          * Is use insecure trust manager boolean.
@@ -888,7 +909,7 @@ public class HttpClientProperties {
          *
          * @return the default configuration type
          */
-        public SslProvider.DefaultConfigurationType getDefaultConfigurationType() {
+        public SslProvider getDefaultConfigurationType() {
             return defaultConfigurationType;
         }
     
@@ -897,7 +918,7 @@ public class HttpClientProperties {
          *
          * @param defaultConfigurationType the default configuration type
          */
-        public void setDefaultConfigurationType(final SslProvider.DefaultConfigurationType defaultConfigurationType) {
+        public void setDefaultConfigurationType(final SslProvider defaultConfigurationType) {
             this.defaultConfigurationType = defaultConfigurationType;
         }
     

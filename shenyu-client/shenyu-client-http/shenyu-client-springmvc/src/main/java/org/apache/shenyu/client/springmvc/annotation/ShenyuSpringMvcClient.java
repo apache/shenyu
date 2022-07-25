@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.client.springmvc.annotation;
 
+import org.springframework.core.annotation.AliasFor;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -34,8 +36,16 @@ public @interface ShenyuSpringMvcClient {
      *
      * @return the string
      */
+    @AliasFor(attribute = "path")
+    String value() default "";
+
+    /**
+     * Path string.
+     *
+     * @return the string
+     */
+    @AliasFor(attribute = "value")
     String path() default "";
-    
     /**
      * Rule name string.
      *

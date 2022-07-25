@@ -18,6 +18,7 @@ package org.apache.shenyu.examples.spring.cloud.dubbo.service.annotation.impl;
 
 import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
+import org.apache.shenyu.examples.common.aop.Log;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 import org.apache.shenyu.examples.dubbo.api.service.DubboTestService;
@@ -32,26 +33,27 @@ import java.util.Random;
 public class TestServiceImpl implements DubboTestService {
     
     @Override
-    @ShenyuDubboClient(path = "/findById", desc = "Query by Id")
+    @ShenyuDubboClient("/findById")
+    @Log
     public DubboTest findById(final String id) {
         return new DubboTest(id, "hello world shenyu Apache, findById");
     }
 
     @Override
-    @ShenyuDubboClient(path = "/findAll", desc = "Get all data")
+    @ShenyuDubboClient("/findAll")
     public DubboTest findAll() {
         return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Apache, findAll");
     }
 
     @Override
-    @ShenyuDubboClient(path = "/insert", desc = "Insert a row of data")
+    @ShenyuDubboClient("/insert")
     public DubboTest insert(final DubboTest dubboTest) {
         dubboTest.setName("hello world shenyu Apache Dubbo: " + dubboTest.getName());
         return dubboTest;
     }
 
     @Override
-    @ShenyuDubboClient(path = "/findList", desc = "Find list")
+    @ShenyuDubboClient("/findList")
     public ListResp findList() {
         return new ListResp(1, Collections.singletonList(new DubboTest("1", "test")));
     }

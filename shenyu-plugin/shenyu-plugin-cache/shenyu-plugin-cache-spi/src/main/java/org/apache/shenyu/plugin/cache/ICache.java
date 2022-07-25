@@ -18,9 +18,11 @@
 package org.apache.shenyu.plugin.cache;
 
 import org.springframework.http.MediaType;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 /**
  * ICache.
@@ -34,31 +36,30 @@ public interface ICache {
      * @param timeoutSeconds value valid time
      * @return success or not
      */
-    boolean cacheData(String key, byte[] bytes, long timeoutSeconds);
+    Mono<Boolean> cacheData(String key, byte[] bytes, long timeoutSeconds);
 
     /**
      * Check the cache is existed or not.
      * @param key the cache key
      * @return true exist
      */
-    boolean isExist(String key);
+    Mono<Boolean> isExist(String key);
 
     /**
      * Get data with the key.
      * @param key the cache key
      * @return the data
      */
-    byte[] getData(String key);
+    Mono<byte[]> getData(String key);
 
     /**
      * cache the content type.
      * @param key the key
      * @param mediaType the media type
      * @param timeoutSeconds value valid time
-     * @return success or not
      */
-    default boolean cacheContentType(final String key, final MediaType mediaType, final long timeoutSeconds) {
-        return cacheData(key, mediaTypeToBytes(mediaType), timeoutSeconds);
+    default void cacheContentType(final String key, final MediaType mediaType, final long timeoutSeconds) {
+        cacheData(key, mediaTypeToBytes(mediaType), timeoutSeconds).subscribeOn(Schedulers.boundedElastic()).subscribe();
     }
 
     /**
@@ -71,16 +72,17 @@ public interface ICache {
     }
 
     /**
-     * Get content type.
-     * @param key the content type key
-     * @return content type
+     * set content type.
+     *
+     * @param exchange exchange
+     * @param contentTypeBytes contentType
      */
-    default MediaType getContentType(final String key) {
-        final byte[] data = getData(key);
-        if (Objects.isNull(data) || data.length == 0) {
-            return MediaType.APPLICATION_JSON;
+    default void setContentType(final ServerWebExchange exchange, final byte[] contentTypeBytes) {
+        if (contentTypeBytes.length == 0) {
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        } else {
+            exchange.getResponse().getHeaders().setContentType(MediaType.valueOf(new String(contentTypeBytes, StandardCharsets.UTF_8)));
         }
-        return MediaType.valueOf(new String(data, StandardCharsets.UTF_8));
     }
 
     /**

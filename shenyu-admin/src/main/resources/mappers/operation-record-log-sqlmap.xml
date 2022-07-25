@@ -37,15 +37,68 @@
         operation_type
     </sql>
 
+    <delete id="deleteByBefore">
+        delete
+        from operation_record_log
+        where operation_time <![CDATA[<]]> #{time}
+    </delete>
+
     <select id="selectLimit" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
           FROM operation_record_log
+          <where>
+              <if test="username != null">
+                  operator = #{username}
+              </if>
+          </where>
          order by operation_time desc
          limit #{limit}
     </select>
 
-    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.OperationRecordLog"  useGeneratedKeys="true" keyProperty="id">
+    <select id="selectLimit" parameterType="java.lang.Integer" resultMap="BaseResultMap" databaseId="oracle">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM operation_record_log
+        where rownum <![CDATA[<=]]> #{limit}
+        <if test="username != null">
+            and operator = #{username}
+        </if>
+        order by operation_time desc
+    </select>
+
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.OperationRecordLog">
+        select
+        <include refid="Base_Column_List"/>
+        from operation_record_log
+        where operation_time between #{condition.startTime} and #{condition.endTime}
+        <if test="condition.keyword != null and condition.keyword != ''">
+            and context like concat('%',#{condition.keyword},'%')
+        </if>
+        <if test="condition.excluded != null and condition.excluded != ''">
+            and context not like concat('%',#{condition.excluded},'%')
+        </if>
+        <if test="condition.type != null">
+            and operation_type = #{condition.type}
+        </if>
+        <if test="condition.username != null">
+            and operator = #{condition.username}
+        </if>
+        order by operation_time desc
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.OperationRecordLog">
+
+        <!-- Generate before inserting non auto increment PK -->
+        <selectKey keyProperty="id" resultType="java.lang.Long" order="BEFORE" databaseId="oracle">
+            select operation_record_log_seq.nextval from dual
+        </selectKey>
+
+        <!-- Generated after auto increment primary key is inserted -->
+        <selectKey keyProperty="id" resultType="java.lang.Long" order="AFTER">
+            select LAST_INSERT_ID()
+        </selectKey>
+
         insert into operation_record_log(
         <if test="id != null">
             id,

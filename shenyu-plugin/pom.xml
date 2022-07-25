@@ -61,5 +61,6 @@
         <module>shenyu-plugin-metrics</module>
         <module>shenyu-plugin-cache</module>
         <module>shenyu-plugin-logging</module>
+        <module>shenyu-plugin-mock</module>
     </modules>
 </project>

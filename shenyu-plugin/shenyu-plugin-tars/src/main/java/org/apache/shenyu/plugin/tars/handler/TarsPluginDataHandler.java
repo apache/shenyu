@@ -43,8 +43,9 @@ public class TarsPluginDataHandler implements PluginDataHandler {
             }
             if (Objects.isNull(exist) || !tarsRegisterConfig.equals(exist)) {
                 // If it is null, cache it
-                Singleton.INST.single(TarsRegisterConfig.class, tarsRegisterConfig);
+                ApplicationConfigCache.getInstance().init(tarsRegisterConfig);
             }
+            Singleton.INST.single(TarsRegisterConfig.class, tarsRegisterConfig);
         }
     }
     

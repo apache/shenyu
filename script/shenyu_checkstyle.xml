@@ -22,6 +22,7 @@
     <property name="severity" value="error"/>
     <property name="fileExtensions" value="java, properties, xml"/>
     <module name="Header">
+        <property name="headerFile" value="${checkstyle.header.file}"/>
         <property name="fileExtensions" value="java"/>
     </module>
     <module name="FileTabCharacter">
@@ -73,7 +74,9 @@
         </module>
 
         <!-- Size Violations -->
-        <module name="AnonInnerLength"/>
+        <module name="AnonInnerLength">
+            <property name="max" value="30"/>
+        </module>
         <module name="MethodLength">
             <property name="tokens" value="METHOD_DEF" />
             <property name="max" value="80" />

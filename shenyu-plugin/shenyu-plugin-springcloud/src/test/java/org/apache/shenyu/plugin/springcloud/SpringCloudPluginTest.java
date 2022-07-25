@@ -35,15 +35,17 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
+import org.springframework.cloud.client.DefaultServiceInstance;
+import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClient;
+import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -55,8 +57,12 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,9 +78,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class SpringCloudPluginTest {
-
-    @Mock
-    private RibbonLoadBalancerClient loadBalancerClient;
 
     private SpringCloudPlugin springCloudPlugin;
 
@@ -100,7 +103,21 @@ public final class SpringCloudPluginTest {
         when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         chain = mock(ShenyuPluginChain.class);
-        selector = mock(SelectorData.class);
+        selector = SelectorData.builder().id("1").enabled(true).build();
+        final List<DefaultServiceInstance> serviceInstanceList = new ArrayList<>();
+        DefaultServiceInstance defaultServiceInstance = new DefaultServiceInstance();
+        defaultServiceInstance.setServiceId("serviceId");
+        defaultServiceInstance.setUri(URI.create("http://localhost:8080"));
+        defaultServiceInstance.setInstanceId("serviceId");
+        defaultServiceInstance.setPort(8080);
+        defaultServiceInstance.setHost("localhost");
+        serviceInstanceList.add(defaultServiceInstance);
+        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
+        Map<String, List<DefaultServiceInstance>> serviceInstanceMap = new HashMap<>();
+        serviceInstanceMap.put(defaultServiceInstance.getInstanceId(), serviceInstanceList);
+        simpleDiscoveryProperties.setInstances(serviceInstanceMap);
+        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
+        ShenyuSpringCloudServiceChooser loadBalancerClient = new ShenyuSpringCloudServiceChooser(discoveryClient);
         springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
     }
 
@@ -111,6 +128,7 @@ public final class SpringCloudPluginTest {
                 .serviceId("serviceId")
                 .build();
         final SelectorData selectorData = SelectorData.builder()
+                .id("1")
                 .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
                 .build();
         SpringCloudPluginDataHandler.SELECTOR_CACHED.get().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
@@ -119,6 +137,7 @@ public final class SpringCloudPluginTest {
         springCloudRuleHandle.setPath("/springcloud");
         springCloudRuleHandle.setTimeout(1000L);
         final RuleData rule = RuleData.builder()
+                .id("1")
                 .handle(GsonUtils.getInstance().toJson(springCloudRuleHandle))
                 .build();
         SpringCloudPluginDataHandler.RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
@@ -129,6 +148,9 @@ public final class SpringCloudPluginTest {
         assertThrows(NullPointerException.class, () -> {
             StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete();
         });
+
+        Mono<Void> complete = springCloudPlugin.doExecute(exchange, chain, selector, rule);
+        assertThrows(NullPointerException.class, () -> StepVerifier.create(complete).expectSubscription().verifyComplete());
     }
 
     @Test

@@ -38,6 +38,11 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-examples-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
@@ -72,30 +77,38 @@
     <profiles>
         <profile>
             <id>example</id>
+            <properties>
+                <docker.buildArg.APP_NAME>shenyu-examples-motan</docker.buildArg.APP_NAME>
+                <docker.image.tag.repo>shenyu-examples-motan</docker.image.tag.repo>
+                <docker.image.tag.tagName>latest</docker.image.tag.tagName>
+            </properties>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>dockerfile-maven-plugin</artifactId>
-                        <version>${dockerfile-maven-plugin.version}</version>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker-maven-plugin.version}</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>shenyu-examples-motan</name>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
                         <executions>
                             <execution>
-                                <id>shenyu-examples-motan</id>
+                                <id>start</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <repository>shenyu-examples-motan</repository>
-                            <tag>latest</tag>
-                            <buildArgs>
-                                <APP_NAME>shenyu-examples-motan</APP_NAME>
-                            </buildArgs>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>

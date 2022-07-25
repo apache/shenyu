@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.plugin.response.strategy;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
@@ -38,7 +40,12 @@ import java.util.Objects;
  */
 public class NettyClientMessageWriter implements MessageWriter {
 
-    private final List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_STREAM_JSON);
+    /**
+     * stream media type: from APPLICATION_STREAM_JSON upgrade to APPLICATION_STREAM_JSON_VALUE.
+     * Both of the above have expired.
+     * latest version: {@linkplain MediaType#APPLICATION_NDJSON}
+     */
+    private final List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_NDJSON);
 
     @Override
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
@@ -60,7 +67,12 @@ public class NettyClientMessageWriter implements MessageWriter {
                     : response.writeWith(body);
         })).doOnCancel(() -> cleanup(exchange));
     }
-
+    
+    @Override
+    public List<String> supportTypes() {
+        return Lists.newArrayList(RpcTypeEnum.HTTP.getName(), RpcTypeEnum.SPRING_CLOUD.getName());
+    }
+    
     private void cleanup(final ServerWebExchange exchange) {
         Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);
         if (Objects.nonNull(connection)) {

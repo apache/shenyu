@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.logging.rocketmq.handler;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.logging.rocketmq.rocketmq.RocketMQLogCollectClient;
+import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,13 +35,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class LoggingRocketMQPluginDataHandlerTest {
 
+    private final SelectorData selectorData = new SelectorData();
+
+    private final ConditionData conditionData = new ConditionData();
+
+    private final PluginData pluginData = new PluginData();
+    
     private LoggingRocketMQPluginDataHandler loggingRocketMQPluginDataHandler;
-
-    private SelectorData selectorData = new SelectorData();
-
-    private ConditionData conditionData = new ConditionData();
-
-    private PluginData pluginData = new PluginData();
 
     @BeforeEach
     public void setUp() {
@@ -66,6 +66,8 @@ public class LoggingRocketMQPluginDataHandlerTest {
         Field field = loggingRocketMQPluginDataHandler.getClass().getDeclaredField("ROCKET_MQ_LOG_COLLECT_CLIENT");
         field.setAccessible(true);
         Assertions.assertEquals(field.get(loggingRocketMQPluginDataHandler).getClass(), RocketMQLogCollectClient.class);
+        pluginData.setEnabled(false);
+        loggingRocketMQPluginDataHandler.handlerPlugin(pluginData);
     }
 
     @Test

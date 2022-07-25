@@ -22,6 +22,7 @@ import org.apache.shenyu.plugin.cache.redis.serializer.ShenyuRedisSerializationC
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -46,9 +47,8 @@ public final class RedisCache implements ICache {
      * @return success or not
      */
     @Override
-    public boolean cacheData(final String key, final byte[] bytes, final long timeoutSeconds) {
-        this.redisTemplate.opsForValue().set(key, bytes, Duration.ofSeconds(timeoutSeconds)).subscribe();
-        return true;
+    public Mono<Boolean> cacheData(final String key, final byte[] bytes, final long timeoutSeconds) {
+        return this.redisTemplate.opsForValue().set(key, bytes, Duration.ofSeconds(timeoutSeconds));
     }
 
     /**
@@ -57,8 +57,8 @@ public final class RedisCache implements ICache {
      * @return true exist
      */
     @Override
-    public boolean isExist(final String key) {
-        return Boolean.TRUE.equals(this.redisTemplate.hasKey(key).block());
+    public Mono<Boolean> isExist(final String key) {
+        return this.redisTemplate.hasKey(key);
     }
 
     /**
@@ -67,8 +67,8 @@ public final class RedisCache implements ICache {
      * @return the data
      */
     @Override
-    public byte[] getData(final String key) {
-        return this.redisTemplate.opsForValue().get(key).block();
+    public Mono<byte[]> getData(final String key) {
+        return this.redisTemplate.opsForValue().get(key);
     }
 
     /**

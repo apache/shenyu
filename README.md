@@ -56,7 +56,7 @@
  
 ---- 
 
-# Why named ShenYu
+# Why named Apache ShenYu
 
 ShenYu (神禹) is the honorific name of Chinese ancient monarch Xia Yu (also known in later times as Da Yu), 
 who left behind the touching story of the three times he crossed the Yellow River for the benefit of the people and successfully managed the flooding of the river. 
@@ -72,17 +72,14 @@ He is known as one of the three greatest kings of ancient China, along with Yao 
 
 # Features
 
-   * ShenYu provides ability such as current limiting, fusing, forwarding, routing, monitoring and so on by its plugins.
-   
-   * Support HTTP, RESTFul, WebSocket, Dubbo, gRPC, Tars and Spring Cloud Proxy.
-   
-   * Plugin hot plug, users can customize the development.
-   
-   * Selectors and rules are dynamically configured for flexible matching.
-
-   * Support for cluster deployment.
-   
-   * Support A/B test and grayscale publishing.
+* Proxy: Support for Apache® Dubbo™, Spring Cloud, gRPC, Motan, SOFA, TARS, WebSocket, MQTT
+* Security: Sign, OAuth 2.0, JSON Web Tokens, WAF plugin
+* API governance: Request, response, parameter mapping, Hystrix, RateLimiter plugin
+* Observability: Tracing, metrics, logging plugin
+* Dashboard: Dynamic traffic control, visual backend for user menu permissions
+* Extensions: Plugin hot-swapping, dynamic loading
+* Cluster: NGINX, Docker, Kubernetes
+* Language: provides .NET, Python, Go, Java client for API register
    
 ---  
 
@@ -154,9 +151,9 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
 
 # Plugin
 
- Whenever a request comes in, ShenYu will execute it by all enabled plugins through the chain of responsibility.
+ Whenever a request comes in, Apache ShenYu will execute it by all enabled plugins through the chain of responsibility.
  
- As the heart of ShenYu, plugins are extensible and hot-pluggable.
+ As the heart of Apache ShenYu, plugins are extensible and hot-pluggable.
  
  Different plugins do different things.
  
@@ -182,7 +179,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
  
   Since all data have been cached using ConcurrentHashMap in the JVM, it's very fast.
   
-  ShenYu dynamically updates the cache by listening to the ZooKeeper node (or WebSocket push, HTTP long polling) when the user changes configuration information in the background management.
+  Apache ShenYu dynamically updates the cache by listening to the ZooKeeper node (or WebSocket push, HTTP long polling) when the user changes configuration information in the background management.
   
   ![](https://shenyu.apache.org/img/shenyu/dataSync/shenyu-config-processor-en.png)
   
@@ -204,7 +201,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
 
 # Contributor and Support
 
-* [How to Contributor](https://shenyu.apache.org/community/contributor-guide)
+* [How to Contribute](https://shenyu.apache.org/community/contributor-guide)
 * [Mailing Lists](mailto:dev@shenyu.apache.org)
 
 ---  

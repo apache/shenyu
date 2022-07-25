@@ -236,9 +236,9 @@ The text of each license is the standard Apache 2.0 license.
     commons-jxpath 1.3: http://commons.apache.org/jxpath/, Apache 2.0
     commons-math 2.2: https://github.com/apache/commons-math, Apache 2.0
     conscrypt-openjdk-uber 2.5.1: https://conscrypt.org, Apache 2.0
-    curator-client 5.2.1:  https://github.com/apache/curator, Apache 2.0
-    curator-framework 5.2.1:  https://github.com/apache/curator, Apache 2.0
-    curator-recipes 5.2.1:  https://github.com/apache/curator, Apache 2.0
+    curator-client 4.3.0:  https://github.com/apache/curator, Apache 2.0
+    curator-framework 4.3.0:  https://github.com/apache/curator, Apache 2.0
+    curator-recipes 4.3.0:  https://github.com/apache/curator, Apache 2.0
     dubbo 2.6.5: https://github.com/apache/dubbo, Apache 2.0
     error_prone_annotations 2.5.1: https://github.com/google/error-prone, Apache 2.0
     failsafe 2.3.3: https://github.com/jhalterman/failsafe, Apache 2.0
@@ -262,7 +262,7 @@ The text of each license is the standard Apache 2.0 license.
     grpc-testing 1.33.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-xds 1.33.1: https://github.com/grpc/grpc, Apache 2.0
     gson 2.8.0: https://github.com/google/gson, Apache 2.0
-    guava 30.1.1-jre: https://github.com/google/guava, Apache 2.0
+    guava 31.1-jre: https://github.com/google/guava, Apache 2.0
     hessian 3.3.7: http://github.com/alipay/sofa-hessian, Apache 2.0
     hibernate-validator 6.0.18.Final: https://github.com/hibernate/hibernate-validator, Apache 2.0
     httpclient 4.5.10: http://hc.apache.org/httpcomponents-client, Apache 2.0
@@ -301,10 +301,10 @@ The text of each license is the standard Apache 2.0 license.
     lookout-api 1.4.1: https://github.com/sofastack/sofa-lookout/lookout-api, Apache 2.0
     lz4-java 1.6.0: https://github.com/jpountz/lz4-java, Apache 2.0
     micrometer-core 1.3.1: https://github.com/micrometer-metrics/micrometer, Apache 2.0
-    motan-core 1.1.9 https://github.com/weibocom/motan, Apache 2.0
-    motan-transport-netty4 1.1.9 https://github.com/weibocom/motan, Apache 2.0
-    motan-registry-zookeeper 1.1.9 https://github.com/weibocom/motan, Apache 2.0
-    motan-springsupport 1.1.9 https://github.com/weibocom/motan, Apache 2.0
+    motan-core 1.1.10 https://github.com/weibocom/motan, Apache 2.0
+    motan-transport-netty4 1.1.10 https://github.com/weibocom/motan, Apache 2.0
+    motan-registry-zookeeper 1.1.10 https://github.com/weibocom/motan, Apache 2.0
+    motan-springsupport 1.1.10 https://github.com/weibocom/motan, Apache 2.0
     msg-simple 1.1: https://github.com/fge/msg-simple, Apache 2.0 and LGPL
     netty-all 4.1.43.Final: https://github.com/netty, Apache 2.0
     nio-multipart-parser 1.1.0: https://github.com/synchronoss/nio-multipart/nio-multipart-parser, Apache 2.0
@@ -353,15 +353,14 @@ The text of each license is the standard Apache 2.0 license.
     vavr 0.10.2: http://vavr.io, Apache 2.0
     vavr-match 0.10.2: http://vavr.io, Apache 2.0
     zkclient 0.10: https://github.com/sgroschupf/zkclient, Apache 2.0
-    zookeeper 3.6.3: https://github.com/apache/zookeeper, Apache 2.0
-    zookeeper-jute 3.6.3: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper 3.5.7: https://github.com/apache/zookeeper, Apache 2.0
+    zookeeper-jute 3.5.7: https://github.com/apache/zookeeper, Apache 2.0
     byte-buddy 1.12.6: https://github.com/raphw/byte-buddy, Apache 2.0
     byte-buddy-agent 1.12.6: https://github.com/raphw/byte-buddy, Apache 2.0
     disruptor 3.4.0 https://github.com/LMAX-Exchange/disruptor, Apache 2.0
     eureka-client 1.9.13 https://github.com/Netflix/eureka, Apache 2.0
     eureka-core 1.9.13 https://github.com/Netflix/eureka, Apache 2.0
     evictor 1.0.0 https://github.com/stoyanr/Evictor, Apache 2.0
-    fastjson 1.2.70 https://github.com/alibaba/fastjson, Apache 2.0
     guice 4.1.0 https://github.com/google/guice, Apache 2.0
     javax.inject 1: https://mvnrepository.com/artifact/javax.inject/javax.inject/1, Apache 2.0
     jjwt 0.9.0 https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt/0.9.0, Apache 2.0
@@ -392,6 +391,10 @@ The text of each license is the standard Apache 2.0 license.
     tomcat-annotations-api 9.0.29: https://tomcat.apache.org/, Apache 2.0
     tomcat-embed-core 9.0.29: https://tomcat.apache.org/, Apache 2.0
     jackson-jr-objects 2.10.1: http://wiki.fasterxml.com/JacksonHome, Apache 2.0
+    kafka-clients 3.2.0: https://kafka.apache.org/, Apache 2.0
+    elasticsearch-java 8.2.3: https://github.com/elastic/elasticsearch-java, Apache 2.0
+    elasticsearch-rest-client 8.2.3: https://github.com/elastic/elasticsearch, Apache 2.0
+    aliyun-log-producer 0.3.10: https://github.com/aliyun/aliyun-log-java-producer, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -461,6 +464,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     logback-classic 1.2.3: https://github.com/qos-ch/logback, EPL 1.0
     logback-core 1.2.3: https://github.com/qos-ch/logback, EPL 1.0
     aspectjweaver 1.9.5: https://mvnrepository.com/artifact/org.aspectj/aspectjweaver/1.9.5, EPL 1.0
+    jakarta.json-api 2.0.1: https://projects.eclipse.org/projects/ee4j.jsonp, EPL 2.0
 
 ========================================================================
 MIT licenses

@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
+import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
@@ -135,6 +136,14 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
      * @return the shenyu result
      */
     ShenyuAdminResult updateAppSecretByAppKey(String appKey, String appSecret);
+
+    /**
+     * Find by app key app auth do.
+     *
+     * @param appKey the app key
+     * @return the app auth do
+     */
+    AppAuthDO findByAppKey(String appKey);
 
 
     /**

@@ -18,12 +18,13 @@
 package org.apache.shenyu.springboot.starter.client.spring.websocket;
 
 import org.apache.shenyu.client.spring.websocket.init.SpringContextRegisterListener;
-import org.apache.shenyu.client.spring.websocket.init.SpringWebSocketClientBeanPostProcessor;
+import org.apache.shenyu.client.spring.websocket.init.SpringWebSocketClientEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,20 +33,21 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
+@ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
 public class ShenyuSpringWebSocketClientConfiguration {
 
     /**
-     * Spring web socket client bean post processor.
+     * Spring web socket client event listener.
      *
      * @param clientConfig                   the client config
      * @param shenyuClientRegisterRepository the shenyu client register repository
-     * @return the spring web socket client bean post processor
+     * @return the spring web socket client event listener
      */
     @Bean
-    public SpringWebSocketClientBeanPostProcessor springWebSocketClientBeanPostProcessor(
+    public SpringWebSocketClientEventListener springWebSocketClientEventListener(
         final ShenyuClientConfig clientConfig,
         final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        return new SpringWebSocketClientBeanPostProcessor(clientConfig.getClient().get(RpcTypeEnum.WEB_SOCKET.getName()), shenyuClientRegisterRepository);
+        return new SpringWebSocketClientEventListener(clientConfig.getClient().get(RpcTypeEnum.WEB_SOCKET.getName()), shenyuClientRegisterRepository);
     }
 
     /**

@@ -20,14 +20,12 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
+    allow-circular-references: true
   application:
     name: shenyu-bootstrap
   codec:
     max-in-memory-size: 2MB
   cloud:
-    loadbalancer:
-      ribbon:
-        enabled: false
     discovery:
       enabled: false
     nacos:
@@ -35,6 +33,11 @@ spring:
         server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
         enabled: false
         namespace: ShenyuRegisterCenter
+
+# if you want use ribbon please config every server.
+#springCloud-test:
+#  ribbon:
+#    NIWSServerListClassName: com.netflix.niws.loadbalancer.DiscoveryEnabledNIWSServerList
 
 eureka:
   client:
@@ -64,12 +67,16 @@ management:
       enabled: false
 
 shenyu:
+  matchCache:
+    enabled: true
+    maxFreeMemory: 256 # 256MB
   netty:
-    tcp:
+    http:
       # set to false, user can custom the netty tcp server config.
       webServerFactoryEnabled: true
       selectCount: 1
       workerCount: 4
+      accessLog: false
       serverSocketChannel:
         soRcvBuf: 87380
         soBackLog: 128
@@ -78,8 +85,10 @@ shenyu:
         writeBufferHighWaterMark: 65536
         writeBufferLowWaterMark: 32768
         writeSpinCount: 16
-        autoRead: true
+        autoRead: false
         allocType: "pooled"
+        messageSizeEstimator: 8
+        singleEventExecutorPerGroup: true
       socketChannel:
         soKeepAlive: false
         soReuseAddr: false
@@ -93,8 +102,10 @@ shenyu:
         writeBufferHighWaterMark: 65536
         writeBufferLowWaterMark: 32768
         writeSpinCount: 16
-        autoRead: true
+        autoRead: false
         allocType: "pooled"
+        messageSizeEstimator: 8
+        singleEventExecutorPerGroup: true
 #  httpclient:
 #    strategy: webClient
 #    connectTimeout: 45000
@@ -106,6 +117,7 @@ shenyu:
 #    writeTimeout: 3000
 #    wiretap: false
 #    keepAlive: false
+#    maxInMemorySize: 1 #1mb
 #    pool:
 #      type: ELASTIC
 #      name: proxy
@@ -144,20 +156,46 @@ shenyu:
     enabled: true
     allowedHeaders:
     allowedMethods: "*"
-    allowedOrigin: "*"
-    allowedExpose: "*"
+    allowedAnyOrigin: true # the same of Access-Control-Allow-Origin: "*"
+#    allowedOrigin:
+      # format : schema://prefix spacer domain
+      # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
+#      spacer: "."
+#      domain: apache.org
+#      prefixes:
+#        - a # a.apache.org
+#        - b # b.apache.org
+#      origins:
+#        - c.apache.org
+#        - d.apache.org
+#        - http://e.apache.org
+    allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
+
   switchConfig:
     local: true
   file:
     enabled: true
     maxSize : 10
   sync:
+<<<<<<< HEAD
     http:
       url: http://localhost:9095
       userName: admin
       password: 123456
+=======
+    websocket:
+      urls: ws://localhost:9095/websocket
+#    zookeeper:
+#      url: localhost:2181
+#      sessionTimeout: 5000
+#      connectionTimeout: 2000
+#    http:
+#      url: http://localhost:9095
+#      username:
+#      password:
+>>>>>>> 782867187a76f8a273ccc8029e53e3db3f23eb6b
 #    nacos:
 #      url: localhost:8848
 #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c

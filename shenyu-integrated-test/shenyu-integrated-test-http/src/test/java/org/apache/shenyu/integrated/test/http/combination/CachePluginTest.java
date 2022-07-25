@@ -27,8 +27,6 @@ import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -39,28 +37,48 @@ import java.util.concurrent.Future;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class CachePluginTest extends AbstractPluginDataInit {
 
     private static final String TEST_CACHE_PATH = "/http/test/cache";
 
-    @BeforeEach
-    public void setup() throws IOException {
+    @Test
+    public void testMemoryModle() throws IOException, ExecutionException, InterruptedException {
         String pluginResult = initPlugin(PluginEnum.CACHE.getName(),
                 "{\"cacheType\":\"memory\"}");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.CACHE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
         assertThat(selectorAndRulesResult, is("success"));
+        assertTrue(testPass());
+        cleanPluginData(PluginEnum.CACHE.getName());
     }
 
     @Test
-    public void testPass() throws ExecutionException, InterruptedException {
+    public void testRedisModle() throws IOException, ExecutionException, InterruptedException {
+        String pluginResult = initPlugin(PluginEnum.CACHE.getName(), "{\"cacheType\":\"redis\","
+                + "\"database\":\"0\","
+                + "\"mode\":\"standalone\","
+                + "\"url\":\"shenyu-redis:6379\","
+                + "\"password\":\"abc\","
+                + "\"maxIdle\":\"8\","
+                + "\"minIdle\":\"0\","
+                + "\"maxActive\":\"8\","
+                + "\"maxWait\":\"-1\"}");
+        assertThat(pluginResult, is("success"));
+        String selectorAndRulesResult =
+                initSelectorAndRules(PluginEnum.CACHE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
+        assertThat(selectorAndRulesResult, is("success"));
+        assertTrue(testPass());
+        cleanPluginData(PluginEnum.CACHE.getName());
+    }
+
+    private boolean testPass() throws ExecutionException, InterruptedException {
         Future<ResultBean> resp0 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_CACHE_PATH, ResultBean.class));
         Thread.sleep(2000);
         Future<ResultBean> resp1 = this.getService().submit(() -> HttpHelper.INSTANCE.getFromGateway(TEST_CACHE_PATH, ResultBean.class));
-        assertEquals(resp0.get().getMsg(), resp1.get().getMsg());
+        return resp0.get().getMsg().equals(resp1.get().getMsg());
     }
 
     private static List<ConditionData> buildSelectorConditionList() {
@@ -85,8 +103,4 @@ public final class CachePluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(ruleLocalData);
     }
 
-    @AfterEach
-    public void clean() throws IOException {
-        cleanPluginData(PluginEnum.CACHE.getName());
-    }
 }

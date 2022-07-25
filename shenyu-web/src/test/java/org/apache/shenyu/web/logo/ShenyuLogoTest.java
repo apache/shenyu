@@ -49,7 +49,7 @@ public final class ShenyuLogoTest {
     public void testOnApplicationEvent() throws NoSuchFieldException, IllegalAccessException {
         SpringApplication application = new SpringApplication();
         ConfigurableEnvironment environment = new MockEnvironment();
-        ApplicationEnvironmentPreparedEvent event = new ApplicationEnvironmentPreparedEvent(application, null, environment);
+        ApplicationEnvironmentPreparedEvent event = new ApplicationEnvironmentPreparedEvent(null, application, null, environment);
         shenyuLogo.onApplicationEvent(event);
         Field field = shenyuLogo.getClass().getDeclaredField("ALREADY_LOG");
         field.setAccessible(true);

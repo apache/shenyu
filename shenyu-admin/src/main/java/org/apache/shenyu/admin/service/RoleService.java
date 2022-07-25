@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.RoleQuery;
@@ -29,15 +30,33 @@ import java.util.List;
  * this is role service.
  */
 public interface RoleService {
-
+    
     /**
      * create or update rule.
      *
      * @param roleDTO {@linkplain RoleDTO}
      * @return rows int
      */
-    int createOrUpdate(RoleDTO roleDTO);
-
+    default int createOrUpdate(RoleDTO roleDTO) {
+        return StringUtils.isBlank(roleDTO.getId()) ? create(roleDTO) : update(roleDTO);
+    }
+    
+    /**
+     * create or update rule.
+     *
+     * @param roleDTO {@linkplain RoleDTO}
+     * @return rows int
+     */
+    int create(RoleDTO roleDTO);
+    
+    /**
+     * create or update rule.
+     *
+     * @param roleDTO {@linkplain RoleDTO}
+     * @return rows int
+     */
+    int update(RoleDTO roleDTO);
+    
     /**
      * delete roles.
      *
@@ -45,7 +64,7 @@ public interface RoleService {
      * @return rows int
      */
     int delete(List<String> ids);
-
+    
     /**
      * find role by id.
      *
@@ -53,7 +72,7 @@ public interface RoleService {
      * @return {@linkplain RoleEditVO}
      */
     RoleEditVO findById(String id);
-
+    
     /**
      * find role by roleName.
      *
@@ -61,7 +80,7 @@ public interface RoleService {
      * @return {@linkplain RoleVO}
      */
     RoleVO findByQuery(String roleName);
-
+    
     /**
      * find page of role by query.
      *
@@ -69,7 +88,7 @@ public interface RoleService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<RoleVO> listByPage(RoleQuery roleQuery);
-
+    
     /**
      * select all roles not super.
      *

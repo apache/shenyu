@@ -28,7 +28,10 @@
     <artifactId>shenyu-examples-eureka</artifactId>
 
     <properties>
-        <spring-cloud.version>Hoxton.SR1</spring-cloud.version>
+        <spring-cloud.version>2021.0.2</spring-cloud.version>
+        <jersey.version>1.19.4</jersey.version>
+        <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
+        <jersey-bom.versoin>3.0.4</jersey-bom.versoin>
     </properties>
 
     <dependencyManagement>
@@ -40,10 +43,20 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
+                <version>${jersey-bom.versoin}</version>
+                <type>pom</type>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
@@ -57,6 +70,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-apache-client4</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
      
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -67,6 +96,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
 
         <dependency>
@@ -98,30 +132,38 @@
     <profiles>
         <profile>
             <id>example</id>
+            <properties>
+                <docker.buildArg.APP_NAME>shenyu-examples-eureka</docker.buildArg.APP_NAME>
+                <docker.image.tag.repo>shenyu-examples-eureka</docker.image.tag.repo>
+                <docker.image.tag.tagName>latest</docker.image.tag.tagName>
+            </properties>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>dockerfile-maven-plugin</artifactId>
-                        <version>${dockerfile-maven-plugin.version}</version>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker-maven-plugin.version}</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>shenyu-examples-eureka</name>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
                         <executions>
                             <execution>
-                                <id>shenyu-examples-eureka</id>
+                                <id>start</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <repository>shenyu-examples-eureka</repository>
-                            <tag>latest</tag>
-                            <buildArgs>
-                                <APP_NAME>shenyu-examples-eureka</APP_NAME>
-                            </buildArgs>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>

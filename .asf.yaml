@@ -16,7 +16,7 @@
 #
 
 github:
-  description: ShenYu is High-Performance Java API Gateway.
+  description: Apache ShenYu is a Java native API Gateway for service proxy, protocol conversion and API governance.
   homepage: https://shenyu.apache.org/
   labels:
     - api-gateway

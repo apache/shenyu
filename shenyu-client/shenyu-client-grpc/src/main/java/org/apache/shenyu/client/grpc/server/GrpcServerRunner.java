@@ -20,7 +20,7 @@ package org.apache.shenyu.client.grpc.server;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerServiceDefinition;
-import org.apache.shenyu.client.grpc.GrpcClientBeanPostProcessor;
+import org.apache.shenyu.client.grpc.GrpcClientEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -38,12 +38,12 @@ public class GrpcServerRunner implements ApplicationRunner {
 
     private final GrpcServerBuilder grpcServerBuilder;
 
-    private final GrpcClientBeanPostProcessor grpcClientBeanPostProcessor;
+    private final GrpcClientEventListener grpcClientEventListener;
 
     public GrpcServerRunner(final GrpcServerBuilder grpcServerBuilder,
-                            final GrpcClientBeanPostProcessor grpcClientBeanPostProcessor) {
+                            final GrpcClientEventListener grpcClientEventListener) {
         this.grpcServerBuilder = grpcServerBuilder;
-        this.grpcClientBeanPostProcessor = grpcClientBeanPostProcessor;
+        this.grpcClientEventListener = grpcClientEventListener;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class GrpcServerRunner implements ApplicationRunner {
     private void startGrpcServer() {
         ServerBuilder<?> serverBuilder = grpcServerBuilder.buildServerBuilder();
 
-        List<ServerServiceDefinition> serviceDefinitions = grpcClientBeanPostProcessor.getServiceDefinitions();
+        List<ServerServiceDefinition> serviceDefinitions = grpcClientEventListener.getServiceDefinitions();
         for (ServerServiceDefinition serviceDefinition : serviceDefinitions) {
             serverBuilder.addService(serviceDefinition);
             LOG.info("{} has been add to grpc server", serviceDefinition.getServiceDescriptor().getName());

@@ -18,6 +18,7 @@
 package org.apache.shenyu.examples.springcloud.controller;
 
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
+import org.apache.shenyu.examples.common.aop.Log;
 import org.apache.shenyu.examples.springcloud.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,6 +54,7 @@ public class TestController {
      * @param userId the user id
      * @return the user dto
      */
+    @Log
     @GetMapping("/findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
         UserDTO userDTO = new UserDTO();

@@ -13,7 +13,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.apache.shenyu.admin.utils;
@@ -23,7 +22,7 @@ import java.sql.SQLException;
 
 import org.apache.shenyu.common.utils.UUIDUtils;
 
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Trigger Base Utils.
@@ -37,7 +36,7 @@ public class BaseTrigger {
      * @throws SQLException {@link SQLException}
      */
     public static void sqlExecute(final Object[] newRow, final PreparedStatement statement) throws SQLException {
-        if (StringUtils.isEmpty(newRow[0])) {
+        if (ObjectUtils.isEmpty(newRow[0])) {
             statement.setObject(1, UUIDUtils.getInstance().generateShortUuid());
             for (int i = 1; i < newRow.length - 2; i++) {
                 statement.setObject(i + 1, newRow[i]);
