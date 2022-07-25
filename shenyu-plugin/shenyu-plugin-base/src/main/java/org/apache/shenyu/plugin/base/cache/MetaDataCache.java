@@ -126,9 +126,8 @@ public final class MetaDataCache {
                             .findFirst()
                             .orElse(null);
                     final String metaPath = Objects.isNull(value) ? DIVIDE_CACHE_KEY : value.getPath();
-
-
-
+                    // put cacheMap
+                    cacheMap(path, value, metaPath);
                     return value;
                 });
         return NULL.equals(metaData) ? null : metaData;
