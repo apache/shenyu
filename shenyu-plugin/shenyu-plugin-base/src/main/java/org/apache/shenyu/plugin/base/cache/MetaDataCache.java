@@ -80,6 +80,8 @@ public final class MetaDataCache {
         META_DATA_MAP.put(data.getId(), data);
         clean(data.getPath());
         clean(DIVIDE_CACHE_KEY);
+        // put cacheMap
+        cacheMap(data.getPath(), data, data.getPath());
     }
 
     /**
@@ -125,18 +127,29 @@ public final class MetaDataCache {
                             .orElse(null);
                     final String metaPath = Objects.isNull(value) ? DIVIDE_CACHE_KEY : value.getPath();
 
-                    // The extreme case will lead to OOM, that's why use LRU
-                    CACHE.put(path, Objects.isNull(value) ? NULL : value);
-                    // spring/** -> Collections 'spring/A', 'spring/B'
-                    Set<String> paths = MAPPING.get(metaPath);
-                    if (Objects.isNull(paths)) {
-                        MAPPING.putIfAbsent(metaPath, new ConcurrentSkipListSet<>());
-                        paths = MAPPING.get(metaPath);
-                    }
-                    paths.add(path);
+
 
                     return value;
                 });
         return NULL.equals(metaData) ? null : metaData;
+    }
+
+    /**
+     * cacheMap.
+     *
+     * @param path the path
+     * @param value the MetaData
+     * @param metaPath the metaPath
+     */
+    public void cacheMap(final String path, final MetaData value, final String metaPath) {
+        // The extreme case will lead to OOM, that's why use LRU
+        CACHE.put(path, Optional.ofNullable(value).orElse(NULL));
+        // spring/** -> Collections 'spring/A', 'spring/B'
+        Set<String> paths = MAPPING.get(metaPath);
+        if (Objects.isNull(paths)) {
+            MAPPING.putIfAbsent(metaPath, new ConcurrentSkipListSet<>());
+            paths = MAPPING.get(metaPath);
+        }
+        paths.add(path);
     }
 }
