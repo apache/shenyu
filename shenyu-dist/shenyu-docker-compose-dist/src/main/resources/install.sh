@@ -53,7 +53,7 @@ cd shenyu-${version}
 mkdir -p {shenyu-bootstrap,shenyu-admin}/{conf,logs}
 
 echo "Downloading docker-compose configuration ..."
-curl -sSl https://raw.githubusercontent.com/apache/incubator-shenyu/master/shenyu-dist/shenyu-docker-compose-dist/src/main/resources/docker-compose.yaml > docker-compose.yaml
+curl -sSl https://raw.githubusercontent.com/apache/shenyu/master/shenyu-dist/shenyu-docker-compose-dist/src/main/resources/docker-compose.yaml > docker-compose.yaml
 
 if [ "$version" != "master" ];then
     check_sed
@@ -71,13 +71,13 @@ echo "Downloading mysql-connector.jar ..."
 
 printf '\n'
 echo "Downloading shenyu-admin configuration ..."
-(cd shenyu-admin/conf/ && curl -OOOO https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-admin/src/main/resources/{application-mysql.yml,application.yml,application-h2.yml,application-pg.yml})
-(cd shenyu-admin/conf/ && curl -O https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-admin-dist/src/main/resources/logback.xml)
+(cd shenyu-admin/conf/ && curl -OOOO https://raw.githubusercontent.com/apache/shenyu/${version}/shenyu-admin/src/main/resources/{application-mysql.yml,application.yml,application-h2.yml,application-pg.yml})
+(cd shenyu-admin/conf/ && curl -O https://raw.githubusercontent.com/apache/shenyu/${version}/shenyu-dist/shenyu-admin-dist/src/main/resources/logback.xml)
 
 printf '\n'
 echo "Downloading shenyu-bootstrap configuration ..."
-(cd shenyu-bootstrap/conf/ && curl -O https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-bootstrap/src/main/resources/application.yml)
-(cd shenyu-bootstrap/conf/ && curl -O https://raw.githubusercontent.com/apache/incubator-shenyu/${version}/shenyu-dist/shenyu-bootstrap-dist/src/main/resources/logback.xml)
+(cd shenyu-bootstrap/conf/ && curl -O https://raw.githubusercontent.com/apache/shenyu/${version}/shenyu-bootstrap/src/main/resources/application.yml)
+(cd shenyu-bootstrap/conf/ && curl -O https://raw.githubusercontent.com/apache/shenyu/${version}/shenyu-dist/shenyu-bootstrap-dist/src/main/resources/logback.xml)
 
 printf '\n'
 echo "Next steps? Please modify the configuration in ./shenyu-${version}"
