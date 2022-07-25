@@ -78,6 +78,8 @@ public final class MetaDataCache {
             clean(META_DATA_MAP.get(data.getId()).getPath());
         }
         META_DATA_MAP.put(data.getId(), data);
+        clean(data.getPath());
+        clean(DIVIDE_CACHE_KEY);
     }
 
     /**
