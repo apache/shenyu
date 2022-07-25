@@ -23,7 +23,6 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.PathMatchUtils;
 
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
