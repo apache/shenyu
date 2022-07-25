@@ -84,7 +84,7 @@ jobs:
         if: env.SKIP_CI != 'true'
         with:
           context: ./shenyu-dist/shenyu-admin-dist
-          build-args: APP_NAME=apache-shenyu-incubating-*-admin-bin
+          build-args: APP_NAME=apache-shenyu-*-admin-bin
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
@@ -96,7 +96,7 @@ jobs:
         if: env.SKIP_CI != 'true'
         with:
           context: ./shenyu-dist/shenyu-bootstrap-dist
-          build-args: APP_NAME=apache-shenyu-incubating-*-bootstrap-bin
+          build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
