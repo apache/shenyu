@@ -33,12 +33,6 @@ public class AlertTemplateDTO {
     private String name;
 
     /**
-     * alert template strategyName.
-     */
-    @NotNull
-    private String strategyName;
-
-    /**
      * alert template content.
      */
     @NotNull
@@ -74,22 +68,6 @@ public class AlertTemplateDTO {
      */
     public void setName(final String name) {
         this.name = name;
-    }
-
-    /**
-     * get alert template strategy name.
-     * @return strategyName
-     */
-    public String getStrategyName() {
-        return strategyName;
-    }
-
-    /**
-     * set alert template strategy name.
-     * @param strategyName strategyName
-     */
-    public void setStrategyName(final String strategyName) {
-        this.strategyName = strategyName;
     }
 
     /**

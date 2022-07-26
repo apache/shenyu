@@ -35,11 +35,6 @@ public class AlertTemplateDO {
     private String name;
 
     /**
-     * alert template strategy name.
-     */
-    private String strategyName;
-
-    /**
      * alert template content.
      */
     private String content;
@@ -84,22 +79,6 @@ public class AlertTemplateDO {
      */
     public void setName(final String name) {
         this.name = name;
-    }
-
-    /**
-     * get strategyName.
-     * @return strategyName
-     */
-    public String getStrategyName() {
-        return strategyName;
-    }
-
-    /**
-     * set strategyName.
-     * @param strategyName strategyName
-     */
-    public void setStrategyName(final String strategyName) {
-        this.strategyName = strategyName;
     }
 
     /**

@@ -28,7 +28,6 @@ DROP TABLE IF EXISTS `alert_template`;
 CREATE TABLE `alert_template`  (
   `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT 'primary key id',
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'alert template name',
-  `strategy_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'alert template strategy name',
   `content` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'alert template content',
   `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
   `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
@@ -36,8 +35,31 @@ CREATE TABLE `alert_template`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of alert_template
+-- Table structure for alert_webhook
 -- ----------------------------
+DROP TABLE IF EXISTS `alert_webhook`;
+CREATE TABLE `alert_webhook`  (
+  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+  `date_created` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'create time',
+  `date_updated` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'update time',
+  `type` tinyint(5) NOT NULL COMMENT 'webhook type',
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'webhook name',
+  `describe` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'webhook describe',
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `alert_template_id` bigint(11) NOT NULL COMMENT 'alert template primary id',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for alert_action
+-- ----------------------------
+DROP TABLE IF EXISTS `alert_action`;
+CREATE TABLE `alert_action`  (
+     `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'primary key id',
+     `action` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'action',
+     `is_enabled` tinyint(2) NOT NULL COMMENT 'whether to open',
+     PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for app_auth

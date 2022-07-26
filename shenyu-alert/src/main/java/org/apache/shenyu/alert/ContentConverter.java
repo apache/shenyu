@@ -27,9 +27,9 @@ public class ContentConverter {
 
     /**
      * message format.
-     * @param message
-     * @param params
-     * @return
+     * @param message message
+     * @param params params
+     * @return parameterized message.
      */
     public static String messageFormat(final String message, final Map<String, Object> params, final String name) {
         VelocityContext context = new VelocityContext();

@@ -25,6 +25,14 @@ import org.apache.shenyu.alert.DingTalkProp;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.spi.Join;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +60,31 @@ public class DingTalkStrategy implements AlertStrategy {
                 .post(body)
                 .build();
         OK_HTTP_CLIENT.newCall(request).execute();
+    }
+
+    private String url(final String secret, final String url) {
+        if (secret == null) {
+            return url;
+        }
+        long timeMillis = System.currentTimeMillis();
+        String sign = sign(secret, timeMillis);
+        if (sign == null) {
+            return url;
+        }
+        return url + "&timestamp=" + timeMillis + "&sign=" + sign;
+    }
+
+    private String sign(final String secret, final long timestamp) {
+
+        String stringToSign = timestamp + "\n" + secret;
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] signData = mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
+            return URLEncoder.encode(Base64.getMimeEncoder().encodeToString(signData),"UTF-8");
+        } catch (NoSuchAlgorithmException | InvalidKeyException | UnsupportedEncodingException ignored) {
+        }
+        return null;
     }
 
     private String toJson(final DingTalkProp prop) {

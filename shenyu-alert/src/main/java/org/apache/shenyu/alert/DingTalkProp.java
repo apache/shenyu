@@ -36,6 +36,8 @@ public class DingTalkProp {
 
     private Boolean isAtAll = false;
 
+    private String secret;
+
     /**
      * get url.
      * @return url
@@ -130,5 +132,21 @@ public class DingTalkProp {
      */
     public void setAtAll(final Boolean atAll) {
         isAtAll = atAll;
+    }
+
+    /**
+     * get secret.
+     * @return sign
+     */
+    public String getSecret() {
+        return secret;
+    }
+
+    /**
+     * set secret.
+     * @param secret secret
+     */
+    public void setSecret(String secret) {
+        this.secret = secret;
     }
 }
