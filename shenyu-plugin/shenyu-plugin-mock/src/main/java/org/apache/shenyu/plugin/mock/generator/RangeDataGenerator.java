@@ -48,11 +48,11 @@ public class RangeDataGenerator implements Generator<String> {
     }
     
     @Override
-    public void initParam(final List<String> params) {
+    public void initParam(final List<String> params, final String rule) {
         String rangeData = params.get(0).replaceAll("\\[(.+)]", "$1");
         data = Arrays.stream(rangeData.split("(?<!\\\\),"))
-            .map(data -> data.replace("\\,", ","))
-            .collect(Collectors.toList());
+                .map(data -> data.replace("\\,", ","))
+                .collect(Collectors.toList());
     }
     
     @Override
@@ -64,5 +64,9 @@ public class RangeDataGenerator implements Generator<String> {
         }
         return false;
     }
+    
+    @Override
+    public String[] getPrefixAndSuffix() {
+        return new String[]{"\"", "\""};
+    }
 }
-

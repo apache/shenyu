@@ -1,7 +1,7 @@
-Welcome to Apache ShenYu (incubating)
+Welcome to Apache ShenYu
 ===============================================================================
 
-Apache ShenYu (incubating) is an asynchronous, high-performance, cross-language, responsive API gateway.
+Apache ShenYu is an asynchronous, high-performance, cross-language, responsive API gateway.
 
 * Support various languages (http protocol), support Dubbo, Spring-Cloud, Grpc, Motan, Sofa, Tars and other protocols.
 * Plugin design idea, plugin hot swap, easy to expand.
@@ -23,7 +23,7 @@ We welcome contributions of all kinds, for details of how you can help
 Find the issue tracker from here
     https://github.com/apache/incubator-shenyu/issues
 
-Please help us make Apache ShenYu (incubating) better - we appreciate any feedback you may have.
+Please help us make Apache ShenYu better - we appreciate any feedback you may have.
 
 Have fun!
 
