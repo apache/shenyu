@@ -148,6 +148,11 @@ public enum PluginEnum {
     LOGGING_KAFKA(180, 0, "loggingKafka"),
 
     /**
+     * Logging Pulsar plugin enum.
+     */
+    LOGGING_PULSAR(185, 0, "loggingPulsar"),
+
+    /**
      * Logging ElasticSearch plugin enum.
      */
     LOGGING_ELASTIC_SEARCH(190, 0, "loggingElasticSearch"),

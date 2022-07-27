@@ -495,6 +495,14 @@
         </dependency>
         <!-- shenyu logging-aliyunsls plugin end -->
 
+        <!-- shenyu logging-pulsar plugin start -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-pulsar</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu logging-pulsar plugin end -->
+
     </dependencies>
     <profiles>
         <profile>
