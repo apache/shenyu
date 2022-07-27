@@ -17,28 +17,33 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
 import org.apache.shenyu.spi.Join;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 /**
- * 11-digit mobile number generator.
+ * Array data generator.
  */
 @Join
-public class PhoneGenerator implements Generator<String> {
+public class ArrayGenerator implements Generator<String> {
+    
+    private Integer length;
+    
+    private String repeatContent;
     
     @Override
     public String getName() {
-        return "phone";
+        return "array";
     }
     
     @Override
     public String generate() {
-        StringBuilder builder = new StringBuilder("1");
-        builder.append(RandomUtil.randomInt(3, 9));
-        for (int i = 0; i < 9; i++) {
-            builder.append(RandomUtil.randomInt(0, 9));
-        }
-        return builder.toString();
+        String replaceContentCopy = repeatContent;
+        return IntStream.rangeClosed(0, length - 1)
+                .mapToObj(i -> GeneratorFactory.dealRule(replaceContentCopy))
+                .collect(Collectors.joining(","));
     }
     
     @Override
@@ -47,12 +52,19 @@ public class PhoneGenerator implements Generator<String> {
     }
     
     @Override
+    public void initParam(final List<String> params, final String rule) {
+        length = Integer.parseInt(rule.substring(rule.lastIndexOf("|") + 1));
+        repeatContent = rule.substring(rule.indexOf("|") + 1, rule.lastIndexOf("|"));
+    }
+    
+    @Override
     public boolean match(final String rule) {
-        return rule.matches("^phone$");
+        return rule.matches("^array\\|.+\\|\\d+$");
     }
     
     @Override
     public String[] getPrefixAndSuffix() {
-        return new String[]{"\"", "\""};
+        return new String[]{"[", "]"};
     }
+    
 }
