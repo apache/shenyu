@@ -26,7 +26,6 @@ import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.springboot.plugin.dubbo.common.DubboCommonConfiguration;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
