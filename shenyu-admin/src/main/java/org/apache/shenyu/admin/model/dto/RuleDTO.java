@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -44,7 +45,7 @@ public final class RuleDTO implements Serializable {
     /**
      * selector id.
      */
-    @NotNull
+    @NotBlank
     @Existed(provider = SelectorMapper.class, message = "selector is not existed")
     private String selectorId;
     
@@ -57,7 +58,7 @@ public final class RuleDTO implements Serializable {
     /**
      * rule name.
      */
-    @NotNull
+    @NotBlank
     private String name;
     
     /**
@@ -94,9 +95,9 @@ public final class RuleDTO implements Serializable {
     }
     
     public RuleDTO(final String id,
-                   @NotNull final String selectorId,
+                   @NotBlank final String selectorId,
                    @NotNull final Integer matchMode,
-                   @NotNull final String name,
+                   @NotBlank final String name,
                    @NotNull final Boolean enabled,
                    final Boolean loged,
                    @NotNull final Integer sort,

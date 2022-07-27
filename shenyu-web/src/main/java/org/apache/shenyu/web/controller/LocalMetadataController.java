@@ -59,18 +59,20 @@ public class LocalMetadataController {
     /**
      * Clean mono.
      *
+     * @param id the rpc id
      * @param rpcType the rpc type
      * @param path the path
      * @return the mono
      */
     @GetMapping("/meta/delete")
-    public Mono<String> clean(@RequestParam("rpcType") final String rpcType,
+    public Mono<String> clean(@RequestParam("id") final String id,
+                              @RequestParam("rpcType") final String rpcType,
                               @RequestParam("path") final String path) {
         if (CollectionUtils.isEmpty(subscribers)) {
             return Mono.just(Constants.SUCCESS);
         }
         LOG.info("delete apache shenyu local meta data");
-        MetaData metaData = MetaData.builder().rpcType(rpcType).path(path).build();
+        MetaData metaData = MetaData.builder().id(id).rpcType(rpcType).path(path).build();
         subscribers.forEach(metaDataSubscriber -> metaDataSubscriber.unSubscribe(metaData));
         return Mono.just(Constants.SUCCESS);
     }

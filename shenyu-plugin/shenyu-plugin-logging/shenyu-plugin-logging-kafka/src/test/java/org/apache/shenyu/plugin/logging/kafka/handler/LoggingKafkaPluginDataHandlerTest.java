@@ -17,30 +17,31 @@
 
 package org.apache.shenyu.plugin.logging.kafka.handler;
 
+import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.logging.kafka.kafka.KafkaLogCollectClient;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 /**
  * The Test Case For LoggingKafkaPluginDataHandler.
  */
 public class LoggingKafkaPluginDataHandlerTest {
 
+    private final SelectorData selectorData = new SelectorData();
+
+    private final ConditionData conditionData = new ConditionData();
+
+    private final PluginData pluginData = new PluginData();
+    
     private LoggingKafkaPluginDataHandler loggingKafkaPluginDataHandler;
-
-    private SelectorData selectorData = new SelectorData();
-
-    private ConditionData conditionData = new ConditionData();
-
-    private PluginData pluginData = new PluginData();
 
     @BeforeEach
     public void setUp() {

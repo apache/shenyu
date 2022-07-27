@@ -38,6 +38,11 @@ public class ProxyGatewayDTO {
     private String cookie;
 
     /**
+     * request header.
+     */
+    private Object headers;
+
+    /**
      * request bizParam.
      */
     private Object bizParam;
@@ -102,7 +107,24 @@ public class ProxyGatewayDTO {
     }
 
     /**
-     * getBizParam.
+     * get header json.
+     * @return header json
+     */
+    public Object getHeaders() {
+        return headers;
+    }
+
+    /**
+     * set headers.
+     *
+     * @param headers headers
+     */
+    public void setHeaders(final Object headers) {
+        this.headers = headers;
+    }
+
+    /**
+     * get bizParam json.
      *
      * @return bizParam
      */
@@ -111,7 +133,7 @@ public class ProxyGatewayDTO {
     }
 
     /**
-     * setBizParam.
+     * set bizParam.
      *
      * @param bizParam bizParam
      */

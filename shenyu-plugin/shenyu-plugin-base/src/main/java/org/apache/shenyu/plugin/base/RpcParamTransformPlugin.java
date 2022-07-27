@@ -38,6 +38,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The param transform plugin.
@@ -73,23 +74,29 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
 
     private Mono<Void> body(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
         return Mono.from(DataBufferUtils.join(serverHttpRequest.getBody())
+                .flatMap(data -> Mono.just(Optional.of(data)))
+                .defaultIfEmpty(Optional.empty())
                 .flatMap(body -> {
-                    exchange.getAttributes().put(Constants.PARAM_TRANSFORM, resolveBodyFromRequest(body));
+                    body.ifPresent(dataBuffer -> exchange.getAttributes().put(Constants.PARAM_TRANSFORM, resolveBodyFromRequest(dataBuffer)));
                     return chain.execute(exchange);
                 }));
     }
 
     private Mono<Void> formData(final ServerWebExchange exchange, final ServerHttpRequest serverHttpRequest, final ShenyuPluginChain chain) {
         return Mono.from(DataBufferUtils.join(serverHttpRequest.getBody())
+                .flatMap(data -> Mono.just(Optional.of(data)))
+                .defaultIfEmpty(Optional.empty())
                 .flatMap(map -> {
-                    String param = resolveBodyFromRequest(map);
-                    LinkedMultiValueMap<String, String> linkedMultiValueMap;
-                    try {
-                        linkedMultiValueMap = BodyParamUtils.buildBodyParams(URLDecoder.decode(param, StandardCharsets.UTF_8.name()));
-                    } catch (UnsupportedEncodingException e) {
-                        return Mono.error(e);
+                    if (map.isPresent()) {
+                        String param = resolveBodyFromRequest(map.get());
+                        LinkedMultiValueMap<String, String> linkedMultiValueMap;
+                        try {
+                            linkedMultiValueMap = BodyParamUtils.buildBodyParams(URLDecoder.decode(param, StandardCharsets.UTF_8.name()));
+                        } catch (UnsupportedEncodingException e) {
+                            return Mono.error(e);
+                        }
+                        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.toMap(() -> linkedMultiValueMap));
                     }
-                    exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.toMap(() -> linkedMultiValueMap));
                     return chain.execute(exchange);
                 }));
     }

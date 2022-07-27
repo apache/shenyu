@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.spi.Join;
+
 import java.util.List;
 import java.util.Objects;
-import org.apache.shenyu.plugin.base.mock.Generator;
-import org.apache.shenyu.spi.Join;
 
 /**
  * Random double value generator in the specified range.
@@ -54,7 +54,7 @@ public class RandomDoubleGenerator implements Generator<String> {
     }
     
     @Override
-    public void initParam(final List<String> params) {
+    public void initParam(final List<String> params, final String rule) {
         String[] range = params.get(0).split("-");
         min = Double.parseDouble(range[0]);
         max = Double.parseDouble(range[1]);
@@ -66,6 +66,11 @@ public class RandomDoubleGenerator implements Generator<String> {
     @Override
     public boolean match(final String rule) {
         return rule.matches("^double\\|\\d+(?:\\.\\d+)?-\\d+(?:\\.\\d+)?.*");
+    }
+    
+    @Override
+    public String[] getPrefixAndSuffix() {
+        return new String[]{"\"", "\""};
     }
 }
 

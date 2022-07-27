@@ -41,9 +41,7 @@ public class CountSamplerTest {
     private CountSampler countSampler;
 
     private ServerHttpRequest request;
-
-    private ServerWebExchange exchange;
-
+    
     @BeforeEach
     public void setUp() {
         this.countSampler = new CountSampler(1);
@@ -53,7 +51,7 @@ public class CountSamplerTest {
                 .header("X-source", "mock test")
                 .queryParam("queryParam", "Hello,World")
                 .build();
-        this.exchange = Mockito.spy(MockServerWebExchange.from(request));
+        ServerWebExchange exchange = Mockito.spy(MockServerWebExchange.from(request));
         ShenyuContext shenyuContext = Mockito.mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         this.request = exchange.getRequest();
@@ -61,7 +59,7 @@ public class CountSamplerTest {
 
     @Test
     public void testIsSampled() {
-        Assertions.assertEquals(countSampler.isSampled(request), true);
+        Assertions.assertTrue(countSampler.isSampled(request));
     }
 
     @Test

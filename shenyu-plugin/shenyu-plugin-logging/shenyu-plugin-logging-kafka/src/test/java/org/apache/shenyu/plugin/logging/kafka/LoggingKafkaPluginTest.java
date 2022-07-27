@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -56,12 +58,18 @@ public final class LoggingKafkaPluginTest {
 
     private SelectorData selectorData;
 
+    private ServerHttpRequest request;
+
+    private ShenyuRequestLog requestLog;
+
     @BeforeEach
     public void setUp() {
         this.loggingKafkaPlugin = new LoggingKafkaPlugin();
         this.ruleData = Mockito.mock(RuleData.class);
         this.chain = Mockito.mock(ShenyuPluginChain.class);
         this.selectorData = Mockito.mock(SelectorData.class);
+        this.request = Mockito.mock(ServerHttpRequest.class);
+        this.requestLog = new ShenyuRequestLog();
         MockServerHttpRequest request = MockServerHttpRequest
             .get("localhost")
             .remoteAddress(new InetSocketAddress(8090))
@@ -81,7 +89,7 @@ public final class LoggingKafkaPluginTest {
     @Test
     public void testDoExecute() {
         Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
-        Mono<Void> result = loggingKafkaPlugin.doExecute(exchange, chain, selectorData, ruleData);
+        Mono<Void> result = loggingKafkaPlugin.doLogExecute(exchange, chain, selectorData, ruleData, request, requestLog);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 

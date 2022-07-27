@@ -66,7 +66,7 @@ def check_common():
 
 def check_name(name):
     if name.find('incubating') == -1:
-        print('ERROR :: ' + name + ' does not contains incubating word')
+        print('YES :: ' + name + ' not contains incubating word')
 
 
 def check_required_files(*names):

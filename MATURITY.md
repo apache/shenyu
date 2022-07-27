@@ -1,4 +1,4 @@
-# Maturity Assessment for Apache ShenYu (incubating)
+# Maturity Assessment for Apache ShenYu
 
 The [Apache Project Maturity Model](https://community.apache.org/apache-way/apache-project-maturity-model.html) provides a suggested framework for evaluating the overall maturity of an Apache project community and the codebase that it maintains.
 

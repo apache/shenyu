@@ -39,6 +39,7 @@ import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,6 +82,13 @@ public final class ShenyuWebHandlerTest {
     }
 
     @Test
+    public void putExtPlugins() {
+        shenyuWebHandler.putExtPlugins(Collections.emptyList());
+        shenyuWebHandler.putExtPlugins(Collections.singletonList(new TestPlugin2()));
+        shenyuWebHandler.putExtPlugins(Collections.singletonList(new TestPlugin3()));
+    }
+
+    @Test
     public void testOnApplicationEvent() {
         PluginData pluginData1 = PluginData.builder().id("1")
                 .name("test-plugin1")
@@ -118,6 +126,9 @@ public final class ShenyuWebHandlerTest {
         assertNotNull(pluginDataSorted);
         assertEquals(pluginDataSorted.get(0), plugin2);
         assertEquals(pluginDataSorted.get(1), plugin1);
+
+        shenyuWebHandler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, pluginData1));
+        assertEquals(pluginDataSorted.get(0), plugin2);
     }
 
     static class TestPlugin1 implements ShenyuPlugin {
@@ -158,6 +169,29 @@ public final class ShenyuWebHandlerTest {
         @Override
         public String named() {
             return "test-plugin2";
+        }
+
+        @Override
+        public boolean skip(final ServerWebExchange exchange) {
+            return ShenyuPlugin.super.skip(exchange);
+        }
+    }
+
+    static class TestPlugin3 implements ShenyuPlugin {
+
+        @Override
+        public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+            return chain.execute(exchange);
+        }
+
+        @Override
+        public int getOrder() {
+            return 3;
+        }
+
+        @Override
+        public String named() {
+            return "test-plugin3";
         }
 
         @Override

@@ -150,7 +150,7 @@ public enum PluginEnum {
     /**
      * Logging ElasticSearch plugin enum.
      */
-    LOGGING_ElasticSearch(190, 0, "loggingElasticSearch"),
+    LOGGING_ELASTIC_SEARCH(190, 0, "loggingElasticSearch"),
     
     /**
      * Divide plugin enum.

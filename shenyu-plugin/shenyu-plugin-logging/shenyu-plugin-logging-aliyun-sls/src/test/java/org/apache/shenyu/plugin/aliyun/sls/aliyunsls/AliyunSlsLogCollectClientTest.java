@@ -19,9 +19,9 @@ package org.apache.shenyu.plugin.aliyun.sls.aliyunsls;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.aliyun.sls.config.LogCollectConfig;
-import org.apache.shenyu.plugin.aliyun.sls.constant.LoggingConstant;
-import org.apache.shenyu.plugin.aliyun.sls.utils.AliyunSlsLogCollectConfigUtils;
+import org.apache.shenyu.plugin.aliyun.sls.client.AliyunSlsLogCollectClient;
+import org.apache.shenyu.plugin.aliyun.sls.config.AliyunLogCollectConfig;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,15 +39,15 @@ public class AliyunSlsLogCollectClientTest {
 
     private AliyunSlsLogCollectClient aliyunSlsLogCollectClient;
 
-    private Properties props = new Properties();
+    private final Properties props = new Properties();
 
-    private PluginData pluginData = new PluginData();
+    private final PluginData pluginData = new PluginData();
 
-    private LogCollectConfig.GlobalLogConfig globalLogConfig;
+    private AliyunLogCollectConfig.AliyunSlsLogConfig aliyunSlsLogConfig;
 
-    private List<ShenyuRequestLog> logs = new ArrayList<>();
+    private final List<ShenyuRequestLog> logs = new ArrayList<>();
 
-    private ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
+    private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
     @BeforeEach
     public void setup() {
@@ -55,18 +55,18 @@ public class AliyunSlsLogCollectClientTest {
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"topic\":\"shenyu-topic-test\", \"accessId\":\"test\", \"accessKey\":\"test\", "
                 + "\"host\":\"cn-guangzhou.log.aliyuncs.com\", \"projectName\":\"shenyu-test\", \"logStoreName\":\"shenyu-test-logstore\"}");
-        globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                LogCollectConfig.GlobalLogConfig.class);
-        props.setProperty(LoggingConstant.HOST, globalLogConfig.getHost());
-        props.setProperty(LoggingConstant.ACCESS_ID, globalLogConfig.getAccessId());
-        props.setProperty(LoggingConstant.ACCESS_KEY, globalLogConfig.getAccessKey());
-        props.setProperty(LoggingConstant.PROJECT_NAME, globalLogConfig.getProjectName().trim());
-        props.setProperty(LoggingConstant.LOG_STORE, globalLogConfig.getLogStoreName().trim());
-        props.setProperty(LoggingConstant.TTL_IN_DAY, String.valueOf(globalLogConfig.getTtlInDay()));
-        props.setProperty(LoggingConstant.SHARD_COUNT, String.valueOf(globalLogConfig.getShardCount()));
-        props.setProperty(LoggingConstant.TOPIC, globalLogConfig.getTopic().trim());
-        props.setProperty(LoggingConstant.SEND_THREAD_COUNT, String.valueOf(globalLogConfig.getSendThreadCount()));
-        props.setProperty(LoggingConstant.IO_THREAD_COUNT, String.valueOf(globalLogConfig.getIoThreadCount()));
+        aliyunSlsLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
+                AliyunLogCollectConfig.AliyunSlsLogConfig.class);
+        props.setProperty(GenericLoggingConstant.HOST, aliyunSlsLogConfig.getHost());
+        props.setProperty(GenericLoggingConstant.ACCESS_ID, aliyunSlsLogConfig.getAccessId());
+        props.setProperty(GenericLoggingConstant.ACCESS_KEY, aliyunSlsLogConfig.getAccessKey());
+        props.setProperty(GenericLoggingConstant.PROJECT_NAME, aliyunSlsLogConfig.getProjectName().trim());
+        props.setProperty(GenericLoggingConstant.LOG_STORE, aliyunSlsLogConfig.getLogStoreName().trim());
+        props.setProperty(GenericLoggingConstant.TTL_IN_DAY, String.valueOf(aliyunSlsLogConfig.getTtlInDay()));
+        props.setProperty(GenericLoggingConstant.SHARD_COUNT, String.valueOf(aliyunSlsLogConfig.getShardCount()));
+        props.setProperty(GenericLoggingConstant.TOPIC, aliyunSlsLogConfig.getTopic().trim());
+        props.setProperty(GenericLoggingConstant.SEND_THREAD_COUNT, String.valueOf(aliyunSlsLogConfig.getSendThreadCount()));
+        props.setProperty(GenericLoggingConstant.IO_THREAD_COUNT, String.valueOf(aliyunSlsLogConfig.getIoThreadCount()));
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
         logs.add(shenyuRequestLog);
@@ -87,7 +87,7 @@ public class AliyunSlsLogCollectClientTest {
     @Test
     public void testConsume() {
         String msg = "";
-        AliyunSlsLogCollectConfigUtils.setGlobalConfig(globalLogConfig);
+        AliyunLogCollectConfig.INSTANCE.setAliyunSlsLogConfig(aliyunSlsLogConfig);
         aliyunSlsLogCollectClient.initClient(props);
         try {
             aliyunSlsLogCollectClient.consume(logs);

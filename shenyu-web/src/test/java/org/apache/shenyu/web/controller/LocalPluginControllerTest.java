@@ -36,6 +36,7 @@ import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.controller.LocalPluginController.SelectorRuleData;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +54,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -286,6 +288,29 @@ public final class LocalPluginControllerTest {
 
         final List<RuleData> selectorId = baseDataCache.obtainRuleData(testSelectorId);
         assertThat(selectorId.get(0).getSelectorId()).isEqualTo(testSelectorId);
+    }
+
+    @Test
+    public void testSelectorAndRules() throws Exception {
+        final LocalPluginController.SelectorRulesData selectorRulesData = new LocalPluginController.SelectorRulesData();
+        selectorRulesData.setPluginName("pluginName");
+        selectorRulesData.setSelectorName("selectorName");
+        selectorRulesData.setSelectorHandler("{}");
+        selectorRulesData.setMatchMode(0);
+        LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
+        ruleLocalData.setRuleName("ruleName");
+        ruleLocalData.setRuleHandler("{}");
+        ruleLocalData.setMatchMode(0);
+        ruleLocalData.setConditionDataList(Collections.emptyList());
+        selectorRulesData.setRuleDataList(Collections.singletonList(ruleLocalData));
+        selectorRulesData.setConditionDataList(Collections.emptyList());
+        this.mockMvc
+                .perform(MockMvcRequestBuilders.post("/shenyu/plugin/selectorAndRules")
+                .content(GsonUtils.getGson().toJson(selectorRulesData))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        Assertions.assertNotNull(baseDataCache.obtainSelectorData(selectorRulesData.getPluginName()));
     }
 
     private void subscribeRuleForTest(final String testSelectorId, final String testId) {
