@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.alibaba.dubbo.subscriber;
+package org.apache.shenyu.plugin.alibaba.dubbo.handler;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -29,21 +29,20 @@ import org.mockito.quality.Strictness;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 
-
 /**
  * The Test Case For AlibabaDubboMetaDataSubscriber.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public final class AlibabaDubboMetaDataSubscriberTest {
+public final class AlibabaDubboMetaDataHandlerTest {
 
-    private AlibabaDubboMetaDataSubscriber alibabaDubboMetaDataSubscriber;
+    private AlibabaDubboMetaDataHandler alibabaDubboMetaDataHandler;
 
     private MetaData metaData;
 
     @BeforeEach
     public void setUp() {
-        alibabaDubboMetaDataSubscriber = new AlibabaDubboMetaDataSubscriber();
+        alibabaDubboMetaDataHandler = new AlibabaDubboMetaDataHandler();
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
         metaData.setAppName("dubbo");
@@ -57,7 +56,7 @@ public final class AlibabaDubboMetaDataSubscriberTest {
 
     @Test
     public void testOnSubscribe() {
-        alibabaDubboMetaDataSubscriber.onSubscribe(metaData);
+        alibabaDubboMetaDataHandler.handle(metaData);
         MetaData metaData = MetaData.builder()
                 .id("1332017966661636096")
                 .appName("dubbo")
@@ -67,11 +66,11 @@ public final class AlibabaDubboMetaDataSubscriberTest {
                 .rpcType(RpcTypeEnum.DUBBO.getName())
                 .rpcExt("{\"group\":\"Group\",\"version\":\"2.6.5\",\"url\":\"http://192.168.55.113/dubbo\",\"cluster\":\"failover\"}")
                 .parameterTypes("parameterTypes").build();
-        AlibabaDubboMetaDataSubscriber alibabaDubboMetaDataSubscriberMock = mock(AlibabaDubboMetaDataSubscriber.class);
-        doNothing().when(alibabaDubboMetaDataSubscriberMock).onSubscribe(metaData);
-        alibabaDubboMetaDataSubscriberMock.onSubscribe(metaData);
+        AlibabaDubboMetaDataHandler alibabaDubboMetaDataHandlerMock = mock(AlibabaDubboMetaDataHandler.class);
+        doNothing().when(alibabaDubboMetaDataHandlerMock).handle(metaData);
+        alibabaDubboMetaDataHandlerMock.handle(metaData);
         // hit else
-        alibabaDubboMetaDataSubscriber.onSubscribe(metaData);
-        alibabaDubboMetaDataSubscriber.unSubscribe(metaData);
+        alibabaDubboMetaDataHandler.handle(metaData);
+        alibabaDubboMetaDataHandler.remove(metaData);
     }
 }

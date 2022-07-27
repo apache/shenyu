@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.apache.dubbo.subscriber;
+package org.apache.shenyu.plugin.apache.dubbo.handler;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -34,15 +34,15 @@ import static org.mockito.Mockito.mock;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public final class ApacheDubboMetaDataSubscriberTest {
+public final class ApacheDubboMetaDataHandlerTest {
 
-    private ApacheDubboMetaDataSubscriber apacheDubboMetaDataSubscriber;
+    private ApacheDubboMetaDataHandler apacheDubboMetaDataHandler;
 
     private MetaData metaData;
 
     @BeforeEach
     public void setUp() {
-        apacheDubboMetaDataSubscriber = new ApacheDubboMetaDataSubscriber();
+        apacheDubboMetaDataHandler = new ApacheDubboMetaDataHandler();
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
         metaData.setAppName("dubbo");
@@ -56,7 +56,7 @@ public final class ApacheDubboMetaDataSubscriberTest {
 
     @Test
     public void testOnSubscribe() {
-        apacheDubboMetaDataSubscriber.onSubscribe(metaData);
+        apacheDubboMetaDataHandler.handle(metaData);
         MetaData metaData = MetaData.builder()
                 .id("1332017966661636096")
                 .appName("dubbo")
@@ -66,9 +66,9 @@ public final class ApacheDubboMetaDataSubscriberTest {
                 .rpcType(RpcTypeEnum.DUBBO.getName())
                 .rpcExt("{\"group\":\"Group\",\"version\":\"2.7.5\",\"loadbalance\":\"Balance\",\"url\":\"http://192.168.55.113/dubbo\"}")
                 .parameterTypes("parameterTypes").build();
-        ApacheDubboMetaDataSubscriber apacheDubboMetaDataSubscriberMock = mock(ApacheDubboMetaDataSubscriber.class);
-        doNothing().when(apacheDubboMetaDataSubscriberMock).onSubscribe(metaData);
-        apacheDubboMetaDataSubscriberMock.onSubscribe(metaData);
-        apacheDubboMetaDataSubscriber.unSubscribe(metaData);
+        ApacheDubboMetaDataHandler apacheDubboMetaDataHandlerMock = mock(ApacheDubboMetaDataHandler.class);
+        doNothing().when(apacheDubboMetaDataHandlerMock).handle(metaData);
+        apacheDubboMetaDataHandlerMock.handle(metaData);
+        apacheDubboMetaDataHandler.remove(metaData);
     }
 }
