@@ -78,10 +78,12 @@ public final class MetaDataCache {
             clean(META_DATA_MAP.get(data.getId()).getPath());
         }
         META_DATA_MAP.put(data.getId(), data);
-        clean(data.getPath());
-        clean(DIVIDE_CACHE_KEY);
-        // put cacheMap
-        cacheMap(data.getPath(), data, data.getPath());
+        final String path = data.getPath();
+        clean(path);
+        if (!path.contains("*")) {
+            // only in this condition, we need to init cache
+            initCache(path, data, path);
+        }
     }
 
     /**
@@ -125,9 +127,11 @@ public final class MetaDataCache {
                             .filter(data -> PathMatchUtils.match(data.getPath(), path))
                             .findFirst()
                             .orElse(null);
-                    final String metaPath = Objects.isNull(value) ? DIVIDE_CACHE_KEY : value.getPath();
-                    // put cacheMap
-                    cacheMap(path, value, metaPath);
+                    final String metaPath = Optional.ofNullable(value)
+                            .map(MetaData::getPath)
+                            .orElse(DIVIDE_CACHE_KEY);
+                    // init cache
+                    initCache(path, value, metaPath);
                     return value;
                 });
         return NULL.equals(metaData) ? null : metaData;
@@ -136,11 +140,11 @@ public final class MetaDataCache {
     /**
      * cacheMap.
      *
-     * @param path the path
-     * @param value the MetaData
+     * @param path     the path
+     * @param value    the MetaData
      * @param metaPath the metaPath
      */
-    public void cacheMap(final String path, final MetaData value, final String metaPath) {
+    public void initCache(final String path, final MetaData value, final String metaPath) {
         // The extreme case will lead to OOM, that's why use LRU
         CACHE.put(path, Optional.ofNullable(value).orElse(NULL));
         // spring/** -> Collections 'spring/A', 'spring/B'

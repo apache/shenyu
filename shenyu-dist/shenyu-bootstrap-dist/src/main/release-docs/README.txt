@@ -21,7 +21,7 @@ We welcome contributions of all kinds, for details of how you can help
     https://shenyu.apache.org/community/contributor/
 
 Find the issue tracker from here
-    https://github.com/apache/incubator-shenyu/issues
+    https://github.com/apache/shenyu/issues
 
 Please help us make Apache ShenYu better - we appreciate any feedback you may have.
 
