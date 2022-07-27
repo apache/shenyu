@@ -25,7 +25,10 @@ import org.springframework.boot.CommandLineRunner;
 
 /**
  * The type Zookeeper data init.
+ *
+ * @deprecated replace with {@link ZookeeperDataChangedInit}
  */
+@Deprecated
 public class ZookeeperDataInit implements CommandLineRunner {
 
 //    private final ZkClient zkClient;

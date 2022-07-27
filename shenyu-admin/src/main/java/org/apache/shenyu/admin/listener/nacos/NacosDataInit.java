@@ -26,11 +26,15 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+
 import java.util.Objects;
 
 /**
  * The type Nacos data init.
+ *
+ * @deprecated replace with {@link NacosDataChangedInit}
  */
+@Deprecated
 public class NacosDataInit implements CommandLineRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(NacosDataInit.class);

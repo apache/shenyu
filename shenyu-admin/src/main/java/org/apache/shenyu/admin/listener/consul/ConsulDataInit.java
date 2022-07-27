@@ -25,7 +25,10 @@ import org.springframework.boot.CommandLineRunner;
 
 /**
  * The type Consul data init.
+ *
+ * @deprecated replace with {@link ConsulDataChangedInit}
  */
+@Deprecated
 public class ConsulDataInit implements CommandLineRunner {
     private final ConsulClient consulClient;
 

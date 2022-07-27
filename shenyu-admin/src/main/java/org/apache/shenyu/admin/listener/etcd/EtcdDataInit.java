@@ -26,7 +26,10 @@ import org.springframework.boot.CommandLineRunner;
 
 /**
  * EtcdDataInit.
+ *
+ * @deprecated replace with {@link EtcdDataChangedInit}
  */
+@Deprecated
 public class EtcdDataInit implements CommandLineRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(EtcdDataInit.class);
