@@ -38,7 +38,7 @@ public class MemorySafeLinkedBlockingQueueTest {
     }
 
     @Test
-    public void test_custom_reject() throws Exception {
+    public void testCustomReject() throws Exception {
         MemorySafeLinkedBlockingQueue<Runnable> queue = new MemorySafeLinkedBlockingQueue<>(Integer.MAX_VALUE);
         queue.setRejector(new AbortPolicy<>());
         assertThrows(RejectException.class, () -> queue.offer(() -> {
