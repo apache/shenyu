@@ -59,7 +59,7 @@ public class SwaggerConfiguration {
 
     private static final String CONTACT_NAME = "ShenYu";
 
-    private static final String CONTACT_URL = "https://github.com/apache/incubator-shenyu";
+    private static final String CONTACT_URL = "https://github.com/apache/shenyu";
 
     private static final String CONTACT_EMAIL = "dev@shenyu.apache.org";
 
