@@ -30,7 +30,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 
 /**
- * The Test Case For ApacheDubboMetaDataSubscriber.
+ * The Test Case For ApacheDubboMetaDataHandler.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

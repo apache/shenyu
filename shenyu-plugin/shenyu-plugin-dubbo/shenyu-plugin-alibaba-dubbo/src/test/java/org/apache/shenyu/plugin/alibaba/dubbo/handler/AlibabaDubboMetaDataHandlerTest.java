@@ -30,7 +30,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 
 /**
- * The Test Case For AlibabaDubboMetaDataSubscriber.
+ * The Test Case For AlibabaDubboMetaDataHandler.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
