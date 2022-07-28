@@ -95,7 +95,7 @@ public class ShenyuConfigurationTest {
     @Test
     public void testCommonPluginDataSubscriber() {
         applicationContextRunner.run(context -> {
-                PluginDataSubscriber subscriber = context.getBean("commonPluginDataSubscriber", PluginDataSubscriber.class);
+                PluginDataSubscriber subscriber = context.getBean("pluginDataSubscriber", PluginDataSubscriber.class);
                 assertNotNull(subscriber);
             }
         );
