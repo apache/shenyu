@@ -21,7 +21,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
