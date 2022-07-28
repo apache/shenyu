@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.starter.plugin.apache.dubbo;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,10 +72,10 @@ public class ApacheDubboPluginConfigurationTest {
     }
 
     @Test
-    public void testApacheDubboMetaDataSubscriber() {
+    public void testApacheDubboMetaDataHandler() {
         applicationContextRunner.run(context -> {
-                MetaDataSubscriber subscriber = context.getBean("apacheDubboMetaDataSubscriber", MetaDataSubscriber.class);
-                assertNotNull(subscriber);
+                MetaDataHandler handler = context.getBean("apacheDubboMetaDataHandler", MetaDataHandler.class);
+                assertNotNull(handler);
             }
         );
     }
