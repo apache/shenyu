@@ -87,7 +87,7 @@ Accept: application/json
 Content-Type: application/json
 
 
-###  example singleFile
+### shengyu getway proxy example singleFile
 POST http://localhost:9195/mvc/upload/singleFile
 Cache-Control: no-cache
 Content-Type: multipart/form-data; boundary=WebAppBoundary
@@ -96,12 +96,12 @@ Content-Type: multipart/form-data; boundary=WebAppBoundary
 Content-Disposition: form-data; name="file"; filename="1.txt"
 Content-Type: multipart/form-data
 # you local path
-< /Users/zhengpeng/Desktop/1.txt
+< /Users/Desktop/1.txt
 
 --WebAppBoundary--
 
 
-###  example files
+### shengyu getway proxy example files
 POST http://localhost:9195/mvc/upload/files
 Cache-Control: no-cache
 Content-Type: multipart/form-data; boundary=WebAppBoundary
@@ -110,7 +110,7 @@ Content-Type: multipart/form-data; boundary=WebAppBoundary
 Content-Disposition: form-data; name="files"; filename="1.txt";
 Content-Type: multipart/form-data
 # you need to change your local path
-< /Users/zhengpeng/Desktop/1.txt
+< /Users/Desktop/1.txt
 
 --WebAppBoundary--
 
@@ -118,6 +118,6 @@ Content-Type: multipart/form-data
 Content-Disposition: form-data; name="files"; filename="2.txt";
 Content-Type: multipart/form-data
 # you need to change your local path
-< /Users/zhengpeng/Desktop/2.txt
+< /Users/Desktop/2.txt
 
 --WebAppBoundary--
