@@ -15,33 +15,40 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.listener.etcd;
+package org.apache.shenyu.plugin.base.handler;
 
-import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
-import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.common.dto.MetaData;
 
 /**
- * The type Etcd data changed init.
- *
- * @since 2.5.0
+ * The interface meta data handler.
  */
-public class EtcdDataChangedInit extends AbstractDataChangedInit {
-
-    private final EtcdClient etcdClient;
+public interface MetaDataHandler {
 
     /**
-     * Instantiates a new Etcd data changed init.
+     * Handle metaData.
      *
-     * @param etcdClient the etcdClient client
+     * @param metaData the meta data
      */
-    public EtcdDataChangedInit(final EtcdClient etcdClient) {
-        this.etcdClient = etcdClient;
+    void handle(MetaData metaData);
+
+    /**
+     * Remove metaData.
+     *
+     * @param metaData the meta data
+     */
+    void remove(MetaData metaData);
+
+    /**
+     * Refresh.
+     */
+    default void refresh() {
     }
 
-    @Override
-    protected boolean notExist() {
-        return !etcdClient.exists(DefaultPathConstants.PLUGIN_PARENT)
-                && !etcdClient.exists(DefaultPathConstants.APP_AUTH_PARENT)
-                && !etcdClient.exists(DefaultPathConstants.META_DATA);
-    }
+    /**
+     * rpc type string.
+     *
+     * @return the rpc type string
+     * @see org.apache.shenyu.common.enums.RpcTypeEnum#getName()
+     */
+    String rpcType();
 }
