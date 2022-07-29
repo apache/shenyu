@@ -24,6 +24,8 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +40,8 @@ public class UploadControllerTest {
     private static final String FILE_PATH_NOE = "1.txt";
 
     private static final String FILE_PATH_TWO = "2.txt";
+
+    private static final Logger LOG = LoggerFactory.getLogger(UploadControllerTest.class);
 
     @BeforeAll
     public static void setup() throws IOException {
@@ -59,7 +63,7 @@ public class UploadControllerTest {
             bufferedWriterTwo.flush();
             bufferedWriterTwo.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error("write file fail", e);
         }
     }
 
