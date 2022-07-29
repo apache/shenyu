@@ -162,8 +162,10 @@ public class DashboardUserController {
                                                     message = "user is not found") final String id,
                                             @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipal();
-        if (Objects.isNull(userInfo) || !userInfo.getUserId().equals(id)
-                && !userInfo.getUserName().equals(dashboardUserDTO.getUserName())) {
+        if (Objects.isNull(userInfo)) {
+            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_USER_LOGIN_ERROR);
+        }
+        if (!userInfo.getUserId().equals(id) && !userInfo.getUserName().equals(dashboardUserDTO.getUserName())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_MODIFY_PASSWORD_ERROR);
         }
         return updateDashboardUser(id, dashboardUserDTO);
