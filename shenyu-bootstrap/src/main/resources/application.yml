@@ -68,7 +68,7 @@ management:
 
 shenyu:
   matchCache:
-    enabled: true
+    enabled: false
     maxFreeMemory: 256 # 256MB
   netty:
     http:
