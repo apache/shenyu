@@ -37,11 +37,11 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
 
     private LoggingElasticSearchPluginDataHandler loggingElasticSearchPluginDataHandler;
 
-    private SelectorData selectorData = new SelectorData();
+    private final SelectorData selectorData = new SelectorData();
 
-    private ConditionData conditionData = new ConditionData();
+    private final ConditionData conditionData = new ConditionData();
 
-    private PluginData pluginData = new PluginData();
+    private final PluginData pluginData = new PluginData();
 
     @BeforeEach
     public void setUp() {
@@ -58,6 +58,16 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
         selectorData.setConditionList(list);
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"host\":\"localhost\", \"port\":\"9200\"}");
+    }
+
+    @Test
+    public void handlerPluginTest() throws IllegalAccessException, NoSuchFieldException {
+        loggingElasticSearchPluginDataHandler.handlerPlugin(pluginData);
+        Field field = loggingElasticSearchPluginDataHandler.getClass().getDeclaredField("ELASTICSEARCH_LOG_COLLECT_CLIENT");
+        field.setAccessible(true);
+        Assertions.assertEquals(field.get(loggingElasticSearchPluginDataHandler).getClass(), ElasticSearchLogCollectClient.class);
+        pluginData.setEnabled(false);
+        loggingElasticSearchPluginDataHandler.handlerPlugin(pluginData);
     }
 
     @Test

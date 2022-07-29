@@ -62,7 +62,7 @@ public final class SessionUtil {
         } catch (Exception e) {
             LOG.warn("get user info error ,not found, used default user ,it unknown");
         }
-        return UserInfo.builder().userId("-1").userName("unknown").build();
+        return defaultUser();
     }
     
     /**
@@ -79,7 +79,8 @@ public final class SessionUtil {
      */
     public static void setLocalVisitorFromAuth() {
         // featureToDo:Adapting app access
-        LOCAL_VISITOR.set(JwtUtils.getUserInfo());
+        final UserInfo userInfo = JwtUtils.getUserInfo();
+        LOCAL_VISITOR.set(Objects.isNull(userInfo) ? defaultUser() : userInfo);
     }
     
     /**
@@ -87,6 +88,10 @@ public final class SessionUtil {
      */
     public static void clean() {
         LOCAL_VISITOR.remove();
+    }
+    
+    private static UserInfo defaultUser() {
+        return UserInfo.builder().userId("-1").userName("unknown").build();
     }
 }
 

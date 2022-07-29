@@ -27,6 +27,7 @@ import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentExcept
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
+import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.utils.PortUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -124,7 +125,7 @@ public class SpringContextRegisterListener implements ApplicationListener<Contex
         return MetaDataRegisterDTO.builder()
             .contextPath(contextPath)
             .appName(appName)
-            .path(contextPath)
+            .path(PathUtils.decoratorPathWithSlash(contextPath))
             .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
             .enabled(true)
             .ruleName(contextPath)

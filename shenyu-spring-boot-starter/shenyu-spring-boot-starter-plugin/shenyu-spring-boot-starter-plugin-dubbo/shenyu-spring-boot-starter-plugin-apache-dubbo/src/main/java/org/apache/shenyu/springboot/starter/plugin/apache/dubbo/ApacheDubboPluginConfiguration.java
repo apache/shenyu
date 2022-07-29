@@ -20,12 +20,12 @@ package org.apache.shenyu.springboot.starter.plugin.apache.dubbo;
 import org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin;
 import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 import org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
-import org.apache.shenyu.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
+import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboMetaDataHandler;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.springboot.plugin.dubbo.common.DubboCommonConfiguration;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -64,12 +64,12 @@ public class ApacheDubboPluginConfiguration {
     }
 
     /**
-     * Apache dubbo meta data subscriber.
+     * Apache dubbo meta data handler.
      *
-     * @return the meta data subscriber
+     * @return the meta data handler
      */
     @Bean
-    public MetaDataSubscriber apacheDubboMetaDataSubscriber() {
-        return new ApacheDubboMetaDataSubscriber();
+    public MetaDataHandler apacheDubboMetaDataHandler() {
+        return new ApacheDubboMetaDataHandler();
     }
 }

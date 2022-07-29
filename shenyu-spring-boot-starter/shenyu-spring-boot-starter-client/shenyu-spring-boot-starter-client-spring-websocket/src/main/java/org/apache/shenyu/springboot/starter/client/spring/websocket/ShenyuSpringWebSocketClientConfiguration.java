@@ -24,6 +24,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
+@ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
 public class ShenyuSpringWebSocketClientConfiguration {
 
     /**

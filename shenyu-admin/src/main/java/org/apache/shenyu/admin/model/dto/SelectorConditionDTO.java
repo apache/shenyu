@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -41,25 +41,25 @@ public class SelectorConditionDTO implements Serializable {
     /**
      * parameter type.
      */
-    @NotNull
+    @NotBlank
     private String paramType;
 
     /**
      * match operator.
      */
-    @NotNull
+    @NotBlank
     private String operator;
 
     /**
      * parameter name.
      */
-    @NotNull
+    @NotBlank
     private String paramName;
 
     /**
      * parameter value.
      */
-    @NotNull
+    @NotBlank
     private String paramValue;
 
     /**

@@ -58,7 +58,7 @@ public class LoggingElasticSearchPluginConfigurationTest {
                     assertNotNull(pluginDataHandler);
                     ShenyuPlugin plugin = context.getBean("loggingElasticSearchPlugin", ShenyuPlugin.class);
                     assertNotNull(plugin);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.LOGGING_ElasticSearch.getName());
+                    assertThat(plugin.named()).isEqualTo(PluginEnum.LOGGING_ELASTIC_SEARCH.getName());
                 });
     }
 }

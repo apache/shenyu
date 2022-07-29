@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.shenyu.spi.Join;
+
 import java.util.List;
 import java.util.Random;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.shenyu.plugin.base.mock.Generator;
-import org.apache.shenyu.spi.Join;
 
 /**
  * Random length Chinese string generator.
@@ -51,7 +51,7 @@ public class ZhStringGenerator implements Generator<String> {
     }
     
     @Override
-    public void initParam(final List<String> params) {
+    public void initParam(final List<String> params, final String rule) {
         String[] range = params.get(0).split("-");
         min = Integer.parseInt(range[0]);
         max = Integer.parseInt(range[1]);
@@ -62,5 +62,8 @@ public class ZhStringGenerator implements Generator<String> {
         return rule.matches("^zh\\|\\d+-\\d+$");
     }
     
+    @Override
+    public String[] getPrefixAndSuffix() {
+        return new String[]{"\"", "\""};
+    }
 }
-

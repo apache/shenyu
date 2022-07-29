@@ -1,5 +1,5 @@
-![Light Logo](https://raw.githubusercontent.com/apache/incubator-shenyu-website/main/static/img/logo-light.svg#gh-dark-mode-only)
-![Dark Logo](https://raw.githubusercontent.com/apache/incubator-shenyu-website/main/static/img/logo.svg#gh-light-mode-only)
+![Light Logo](https://raw.githubusercontent.com/apache/shenyu-website/main/static/img/logo-light.svg#gh-dark-mode-only)
+![Dark Logo](https://raw.githubusercontent.com/apache/shenyu-website/main/static/img/logo.svg#gh-light-mode-only)
 
 <p align="center">
   <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
@@ -39,8 +39,8 @@
    <a target="_blank" href='https://github.com/apache/shenyu'>
         <img src="https://img.shields.io/github/contributors/apache/shenyu.svg" alt="github contributors"/>
    </a>
-   <a target="_blank" href="https://codecov.io/gh/apache/incubator-shenyu">
-        <img src="https://codecov.io/gh/apache/incubator-shenyu/branch/master/graph/badge.svg" />
+   <a target="_blank" href="https://codecov.io/gh/apache/shenyu">
+        <img src="https://codecov.io/gh/apache/shenyu/branch/master/graph/badge.svg" />
    </a>
   <a target="_blank" href="https://hub.docker.com/r/apache/shenyu-bootstrap/tags">
     <image src="https://img.shields.io/docker/pulls/apache/shenyu-bootstrap" alt="Docker Pulls"/>
@@ -72,17 +72,14 @@ He is known as one of the three greatest kings of ancient China, along with Yao 
 
 # Features
 
-   * Apache ShenYu provides ability such as current limiting, fusing, forwarding, routing, monitoring and so on by its plugins.
-   
-   * Support HTTP, RESTFul, WebSocket, Dubbo, gRPC, Tars and Spring Cloud Proxy.
-   
-   * Plugin hot plug, users can customize the development.
-   
-   * Selectors and rules are dynamically configured for flexible matching.
-
-   * Support for cluster deployment.
-   
-   * Support A/B test and grayscale publishing.
+* Proxy: Support for Apache® Dubbo™, Spring Cloud, gRPC, Motan, SOFA, TARS, WebSocket, MQTT
+* Security: Sign, OAuth 2.0, JSON Web Tokens, WAF plugin
+* API governance: Request, response, parameter mapping, Hystrix, RateLimiter plugin
+* Observability: Tracing, metrics, logging plugin
+* Dashboard: Dynamic traffic control, visual backend for user menu permissions
+* Extensions: Plugin hot-swapping, dynamic loading
+* Cluster: NGINX, Docker, Kubernetes
+* Language: provides .NET, Python, Go, Java client for API register
    
 ---  
 
@@ -198,7 +195,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
         
 # Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/apache/incubator-shenyu.svg)](https://starchart.cc/apache/incubator-shenyu.svg)
+[![Stargazers over time](https://starchart.cc/apache/shenyu.svg)](https://starchart.cc/apache/shenyu.svg)
 
 ---  
 
@@ -211,6 +208,6 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
 
 # Known Users
 
-In order of registration, More access companies are welcome to register at [https://github.com/apache/incubator-shenyu/issues/68](https://github.com/apache/incubator-shenyu/issues/68) (For open source users only) .
+In order of registration, More access companies are welcome to register at [https://github.com/apache/shenyu/issues/68](https://github.com/apache/shenyu/issues/68) (For open source users only) .
 
 All Users : [Known Users](https://shenyu.apache.org/community/user-registration)

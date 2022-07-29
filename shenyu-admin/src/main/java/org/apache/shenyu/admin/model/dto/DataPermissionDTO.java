@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -35,13 +35,13 @@ public class DataPermissionDTO implements Serializable {
     /**
      * user id.
      */
-    @NotNull
+    @NotBlank
     private String userId;
 
     /**
      * selector or rule id.
      */
-    @NotNull
+    @NotBlank
     private String dataId;
 
     /**

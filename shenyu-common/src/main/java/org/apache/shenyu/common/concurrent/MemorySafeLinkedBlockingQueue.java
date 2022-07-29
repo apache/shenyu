@@ -32,15 +32,21 @@ public class MemorySafeLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> {
 
     private int maxFreeMemory;
 
+    private Rejector<E> rejector;
+
     public MemorySafeLinkedBlockingQueue(final int maxFreeMemory) {
         super(Integer.MAX_VALUE);
         this.maxFreeMemory = maxFreeMemory;
+        //default as DiscardPolicy to ensure compatibility with the old version
+        this.rejector = new DiscardPolicy<>();
     }
 
     public MemorySafeLinkedBlockingQueue(final Collection<? extends E> c,
                                          final int maxFreeMemory) {
         super(c);
         this.maxFreeMemory = maxFreeMemory;
+        //default as DiscardPolicy to ensure compatibility with the old version
+        this.rejector = new DiscardPolicy<>();
     }
 
     /**
@@ -62,6 +68,15 @@ public class MemorySafeLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> {
     }
 
     /**
+     * set the rejector.
+     *
+     * @param rejector the rejector
+     */
+    public void setRejector(final Rejector<E> rejector) {
+        this.rejector = rejector;
+    }
+
+    /**
      * determine if there is any remaining free memory.
      *
      * @return true if has free memory
@@ -75,15 +90,24 @@ public class MemorySafeLinkedBlockingQueue<E> extends LinkedBlockingQueue<E> {
         if (hasRemainedMemory()) {
             super.put(e);
         }
+        rejector.reject(e, this);
     }
 
     @Override
     public boolean offer(final E e, final long timeout, final TimeUnit unit) throws InterruptedException {
-        return hasRemainedMemory() && super.offer(e, timeout, unit);
+        if (!hasRemainedMemory()) {
+            rejector.reject(e, this);
+            return false;
+        }
+        return super.offer(e, timeout, unit);
     }
 
     @Override
     public boolean offer(final E e) {
-        return hasRemainedMemory() && super.offer(e);
+        if (!hasRemainedMemory()) {
+            rejector.reject(e, this);
+            return false;
+        }
+        return super.offer(e);
     }
 }

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import org.apache.shenyu.plugin.base.mock.Generator;
 import org.apache.shenyu.plugin.mock.util.RandomUtil;
 import org.apache.shenyu.spi.Join;
 
@@ -50,5 +49,10 @@ public class PhoneGenerator implements Generator<String> {
     @Override
     public boolean match(final String rule) {
         return rule.matches("^phone$");
+    }
+    
+    @Override
+    public String[] getPrefixAndSuffix() {
+        return new String[]{"\"", "\""};
     }
 }

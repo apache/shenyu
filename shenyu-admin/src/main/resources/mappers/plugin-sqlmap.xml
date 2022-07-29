@@ -155,6 +155,18 @@
                  left join plugin_handle ph on p.id = ph.plugin_id
                  left join selector s on p.id = s.plugin_id
         where p.enabled = true
+        <if test="userId != null">
+            and p.name in (
+                select r.name
+                from resource r
+                         inner join permission
+                                    on permission.resource_id = r.id
+                where parent_id = '1346775491550474240'
+                  and object_id = (select role_id
+                                   from user_role
+                                   where user_id = #{userId})
+            )
+        </if>
         group by p.id, p.name, config, p.role, p.sort
         order by p.sort, p.id
     </select>
@@ -170,6 +182,18 @@
                  left join plugin_handle ph on p.id = ph.plugin_id
                  left join selector s on p.id = s.plugin_id
         where p.enabled = 1
+        <if test="userId != null">
+            and p.name in (
+                select r.name
+                from resource r
+                         inner join permission
+                                    on permission.resource_id = r.id
+                where parent_id = '1346775491550474240'
+                  and object_id = (select role_id
+                                   from user_role
+                                   where user_id = #{userId})
+            )
+        </if>
         group by p.id, p.name, to_char(config), p.role, p.sort
         order by p.sort, p.id
     </select>

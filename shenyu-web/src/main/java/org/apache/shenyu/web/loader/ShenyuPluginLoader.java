@@ -99,18 +99,14 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      * @param path the path
      * @return the list
      * @throws IOException            the io exception
-     * @throws ClassNotFoundException the class not found exception
-     * @throws InstantiationException the instantiation exception
-     * @throws IllegalAccessException the illegal access exception
      */
-    public List<ShenyuLoaderResult> loadExtendPlugins(final String path) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public List<ShenyuLoaderResult> loadExtendPlugins(final String path) throws IOException {
         File[] jarFiles = ShenyuPluginPathBuilder.getPluginFile(path).listFiles(file -> file.getName().endsWith(".jar"));
-        if (null == jarFiles) {
+        if (Objects.isNull(jarFiles)) {
             return Collections.emptyList();
         }
         List<ShenyuLoaderResult> results = new ArrayList<>();
         for (File each : jarFiles) {
-
             JarFile jar = new JarFile(each, true);
             jars.add(new PluginJar(jar, each));
             Enumeration<JarEntry> entries = jar.entries();
@@ -141,7 +137,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     
     @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
-        if (!ability(name)) {
+        if (ability(name)) {
             return this.getParent().loadClass(name);
         }
         Class<?> clazz = classCache.get(name);
@@ -177,7 +173,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     
     @Override
     protected Enumeration<URL> findResources(final String name) throws IOException {
-        if (!ability(name)) {
+        if (ability(name)) {
             return this.getParent().getResources(name);
         }
         List<URL> resources = Lists.newArrayList();
@@ -195,7 +191,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     
     @Override
     protected URL findResource(final String name) {
-        if (!ability(name)) {
+        if (ability(name)) {
             return this.getParent().getResource(name);
         }
         for (PluginJar each : jars) {
@@ -283,7 +279,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
     
     private boolean ability(final String name) {
-        return names.contains(name);
+        return !names.contains(name);
     }
     
     private static class PluginJar {

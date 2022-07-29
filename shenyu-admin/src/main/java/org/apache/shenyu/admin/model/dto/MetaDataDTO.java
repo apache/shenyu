@@ -35,7 +35,6 @@ public class MetaDataDTO implements Serializable {
     /**
      * appName must is not null.
      */
-    @NotNull
     @NotBlank
     private String appName;
     

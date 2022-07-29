@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.plugin.mock.util;
 
-import java.util.concurrent.ThreadLocalRandom;
 import org.apache.commons.lang3.RandomStringUtils;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Random Util.
@@ -46,5 +47,4 @@ public class RandomUtil {
     public static String randomLowerLetterString(final int length) {
         return RandomStringUtils.random(length, 96, 123, true, false);
     }
-    
 }

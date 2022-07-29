@@ -17,6 +17,13 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.reflect.MethodUtils;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -25,12 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.reflect.MethodUtils;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The type Reflect utils.
@@ -150,11 +151,9 @@ public final class ReflectUtils {
      */
     public static void setFieldValue(final Object obj, final String fieldName, final Object value) {
         Field field = getAccessibleField(obj, fieldName);
-
         if (Objects.isNull(field)) {
             throw new IllegalArgumentException("Could not find field [" + fieldName + "] on target [" + obj + "]");
         }
-
         try {
             field.set(obj, value);
         } catch (IllegalAccessException e) {

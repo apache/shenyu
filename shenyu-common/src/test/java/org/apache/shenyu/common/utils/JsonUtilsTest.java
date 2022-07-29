@@ -85,6 +85,12 @@ public final class JsonUtilsTest {
     }
 
     @Test
+    public void testJsonToMap() {
+        Map<String, Object> stringObjectMap = JsonUtils.jsonToMap(EXPECTED_JSON);
+        assertEquals(stringObjectMap.get("name"), "test object");
+    }
+
+    @Test
     public void removeClass() {
         Map<String, Map<String, String>> testMap = new HashMap<>();
         Map<String, String> testSubMap = new HashMap<>();
