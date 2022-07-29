@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.controller;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
+import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -32,6 +33,7 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.utils.ShaUtils;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,6 +52,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -158,6 +161,13 @@ public class DashboardUserController {
                                             @Existed(provider = DashboardUserMapper.class,
                                                     message = "user is not found") final String id,
                                             @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
+        UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipal();
+        if (Objects.isNull(userInfo)) {
+            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_USER_LOGIN_ERROR);
+        }
+        if (!userInfo.getUserId().equals(id) && !userInfo.getUserName().equals(dashboardUserDTO.getUserName())) {
+            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_MODIFY_PASSWORD_ERROR);
+        }
         return updateDashboardUser(id, dashboardUserDTO);
     }
     
