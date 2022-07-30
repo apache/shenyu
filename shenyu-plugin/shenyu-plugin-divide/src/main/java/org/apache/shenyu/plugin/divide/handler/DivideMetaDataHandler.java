@@ -15,35 +15,37 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.subscriber;
+package org.apache.shenyu.plugin.divide.handler;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 
 /**
- * The type divide meta data subscriber.
+ * The type divide meta data handler.
  */
-public class DivideMetaDataSubscriber implements MetaDataSubscriber {
+public class DivideMetaDataHandler implements MetaDataHandler {
+    
     @Override
-    public void onSubscribe(final MetaData metaData) {
-        if (RpcTypeEnum.HTTP.getName().equals(metaData.getRpcType())) {
-            // the update is also need to clean, but there is no way to
-            // distinguish between crate and update, so it is always clean
-            MetaDataCache.getInstance().clean();
-        }
+    public void handle(final MetaData metaData) {
+        // the update is also need to clean, but there is no way to
+        // distinguish between crate and update, so it is always clean
+        MetaDataCache.getInstance().clean();
     }
-
+    
     @Override
-    public void unSubscribe(final MetaData metaData) {
-        if (RpcTypeEnum.HTTP.getName().equals(metaData.getRpcType())) {
-            MetaDataCache.getInstance().clean();
-        }
+    public void remove(final MetaData metaData) {
+        MetaDataCache.getInstance().clean();
     }
-
+    
     @Override
     public void refresh() {
         MetaDataCache.getInstance().clean();
+    }
+    
+    @Override
+    public String rpcType() {
+        return RpcTypeEnum.HTTP.getName();
     }
 }

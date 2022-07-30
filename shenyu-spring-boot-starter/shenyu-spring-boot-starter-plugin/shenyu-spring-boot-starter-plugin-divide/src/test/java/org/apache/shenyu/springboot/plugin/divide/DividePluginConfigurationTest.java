@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.plugin.divide;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,15 @@ public class DividePluginConfigurationTest {
     public void testDividePluginDataHandler() {
         applicationContextRunner.run(context -> {
                 PluginDataHandler handler = context.getBean("dividePluginDataHandler", PluginDataHandler.class);
+                assertNotNull(handler);
+            }
+        );
+    }
+    
+    @Test
+    public void testDivideMetaDataHandler() {
+        applicationContextRunner.run(context -> {
+                MetaDataHandler handler = context.getBean("divideMetaDataHandler", MetaDataHandler.class);
                 assertNotNull(handler);
             }
         );
