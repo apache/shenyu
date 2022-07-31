@@ -28,7 +28,7 @@ import java.util.Random;
  * Sofa single param service.
  */
 @ShenyuSofaClient("/demo/**")
-@Service
+@Service("sofaClientSingleParamService")
 public class SofaClientSingleParamServiceImpl implements SofaClientSingleParamService {
     
     @Override

@@ -56,7 +56,7 @@ public class SofaPluginTest extends AbstractPluginDataInit {
         sofaSimpleTypeBean.setId(id);
         String name = RandomStringUtils.randomAlphanumeric(2048);
         sofaSimpleTypeBean.setName(name);
-        SofaSimpleTypeBean sofaRet = HttpHelper.INSTANCE.postGateway("/sofa/bigParams", sofaSimpleTypeBean, SofaSimpleTypeBean.class);
+        SofaSimpleTypeBean sofaRet = HttpHelper.INSTANCE.postGateway("/sofa/demo/bigParams", sofaSimpleTypeBean, SofaSimpleTypeBean.class);
         assertEquals(id, sofaRet.getId());
         assertEquals(name, sofaRet.getName());
     }
