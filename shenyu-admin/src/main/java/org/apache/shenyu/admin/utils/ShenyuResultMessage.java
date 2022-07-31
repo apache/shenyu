@@ -46,7 +46,11 @@ public final class ShenyuResultMessage {
 
     public static final String ROLE_CREATE_ERROR = "can not create super role";
 
+    public static final String DASHBOARD_USER_LOGIN_ERROR = "user not login please login first";
+
     public static final String DASHBOARD_QUERY_ERROR = "user info is empty";
+
+    public static final String DASHBOARD_MODIFY_PASSWORD_ERROR = "can not modify other user password";
 
     public static final String DASHBOARD_CREATE_USER_ERROR = "empty user info, please confirm";
 

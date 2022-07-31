@@ -50,9 +50,7 @@ public class ServiceDocManagerImpl implements ServiceDocManager {
 
     @Override
     public void pullApiDocument(final Set<UpstreamInstance> currentServices) {
-        currentServices.forEach(instance -> {
-            this.pullApiDocument(instance);
-        });
+        currentServices.forEach(this::pullApiDocument);
     }
 
     /**
@@ -61,6 +59,7 @@ public class ServiceDocManagerImpl implements ServiceDocManager {
      * @param instance UpstreamInstance.
      */
     @Override
+    @SuppressWarnings("unchecked")
     public void pullApiDocument(final UpstreamInstance instance) {
         String clusterName = instance.getClusterName();
         if (!canPull(instance)) {
@@ -73,10 +72,8 @@ public class ServiceDocManagerImpl implements ServiceDocManager {
             docManager.addDocInfo(
                 clusterName,
                 body,
-                callback -> {
-                    LOG.info("load api document successful，clusterName={}, iPandPort={}",
-                        clusterName, instance.getIp() + ":" + instance.getPort());
-                }
+                callback -> LOG.info("load api document successful，clusterName={}, iPandPort={}",
+                    clusterName, instance.getIp() + ":" + instance.getPort())
             );
             CLUSTER_LASTSTARTUPTIME_MAP.put(clusterName, instance.getStartupTime());
         } catch (Exception e) {

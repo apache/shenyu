@@ -19,9 +19,6 @@ FROM openjdk:8-jre-alpine
 ARG APP_NAME
 ENV LOCAL_PATH /opt/shenyu-bootstrap
 
-ARG SPRING_PROFILES_ACTIVE
-ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-local}
-
 RUN apk --no-cache add procps
 
 ADD target/${APP_NAME}.tar.gz /opt
