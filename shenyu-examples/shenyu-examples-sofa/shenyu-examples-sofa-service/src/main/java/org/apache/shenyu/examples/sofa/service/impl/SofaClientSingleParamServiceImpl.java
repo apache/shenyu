@@ -49,4 +49,10 @@ public class SofaClientSingleParamServiceImpl implements SofaClientSingleParamSe
         sofaSimpleTypeBean.setName("hello world shenyu Sofa: " + sofaSimpleTypeBean.getName());
         return sofaSimpleTypeBean;
     }
+
+    @Override
+    @ShenyuSofaClient("/bigParams")
+    public SofaSimpleTypeBean bigParams(SofaSimpleTypeBean sofaSimpleTypeBean) {
+        return sofaSimpleTypeBean;
+    }
 }

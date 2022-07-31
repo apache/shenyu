@@ -102,4 +102,13 @@ public interface DubboClassMultiParamService {
      * @return the dubbo test
      */
     DubboTest saveComplexBeanTestAndName(ComplexBeanTest complexBeanTest, String name);
+
+
+    /**
+     * save dubbo test for big request body.
+     *
+     * @param dubboTest dubbo test
+     * @return the dubbo test
+     */
+    DubboTest saveBigRequestBody(final DubboTest dubboTest);
 }

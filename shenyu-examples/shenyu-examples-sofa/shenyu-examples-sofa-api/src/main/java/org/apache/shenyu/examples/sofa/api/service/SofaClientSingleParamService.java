@@ -48,5 +48,13 @@ public interface SofaClientSingleParamService {
      * @return SofaSimpleTypeBean
      */
     SofaSimpleTypeBean insert(SofaSimpleTypeBean sofaSimpleTypeBean);
+
+    /**
+     * save big params.
+     *
+     * @param sofaSimpleTypeBean sofa bean
+     * @return sofa bean
+     */
+    SofaSimpleTypeBean bigParams(SofaSimpleTypeBean sofaSimpleTypeBean);
     
 }

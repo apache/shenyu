@@ -18,9 +18,11 @@
 package org.apache.shenyu.integrated.test.sofa;
 
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integrated.test.sofa.dto.SofaTestData;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
+import org.apache.shenyu.integratedtest.common.dto.SofaSimpleTypeBean;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
@@ -30,6 +32,7 @@ import java.io.IOException;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SofaPluginTest extends AbstractPluginDataInit {
 
@@ -44,5 +47,17 @@ public class SofaPluginTest extends AbstractPluginDataInit {
         SofaTestData response = HttpHelper.INSTANCE.getFromGateway("/sofa/findById?id=1001", new TypeToken<SofaTestData>() { }.getType());
         assertThat(response.getName(), is("hello world shenyu Sofa, findById"));
         assertThat(response.getId(), is("1001"));
+    }
+
+    @Test
+    public void testBigParams() throws IOException {
+        SofaSimpleTypeBean sofaSimpleTypeBean = new SofaSimpleTypeBean();
+        String id = RandomStringUtils.randomAlphanumeric(2048);
+        sofaSimpleTypeBean.setId(id);
+        String name = RandomStringUtils.randomAlphanumeric(2048);
+        sofaSimpleTypeBean.setName(name);
+        SofaSimpleTypeBean sofaRet = HttpHelper.INSTANCE.postGateway("/sofa/bigParams", sofaSimpleTypeBean, SofaSimpleTypeBean.class);
+        assertEquals(id, sofaRet.getId());
+        assertEquals(name, sofaRet.getName());
     }
 }
