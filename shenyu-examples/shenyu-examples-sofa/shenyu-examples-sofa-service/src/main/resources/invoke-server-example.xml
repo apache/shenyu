@@ -31,8 +31,4 @@
         <sofa:binding.bolt/>
     </sofa:service>
 
-    <sofa:service ref="sofaClientSingleParamService" interface="org.apache.shenyu.examples.sofa.api.service.SofaClientSingleParamService">
-        <sofa:binding.bolt/>
-    </sofa:service>
-
 </beans>
