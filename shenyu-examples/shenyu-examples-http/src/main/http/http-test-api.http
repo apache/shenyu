@@ -211,6 +211,3 @@ Content-Type: multipart/form-data
 < /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/2.txt
 
 --WebAppBoundary--
-
-### shengyu getway proxy example null response
-POST http://localhost:9195/http/test/nullResponse
