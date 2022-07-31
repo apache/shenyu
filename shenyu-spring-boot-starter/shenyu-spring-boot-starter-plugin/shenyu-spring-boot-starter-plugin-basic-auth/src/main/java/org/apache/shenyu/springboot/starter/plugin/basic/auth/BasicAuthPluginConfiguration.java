@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * The type Jwt plugin configuration.
+ * The type Basic auth plugin configuration.
  */
 @Configuration
 @ConditionalOnProperty(value = {"shenyu.plugins.basic-auth.enabled"}, havingValue = "true", matchIfMissing = true)
