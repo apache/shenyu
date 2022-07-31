@@ -28,7 +28,7 @@ import java.util.Random;
  * Sofa single param service.
  */
 @ShenyuSofaClient("/demo/**")
-@Service("sofaClientSingleParamService")
+@Service
 public class SofaClientSingleParamServiceImpl implements SofaClientSingleParamService {
     
     @Override
@@ -47,12 +47,6 @@ public class SofaClientSingleParamServiceImpl implements SofaClientSingleParamSe
     @ShenyuSofaClient("/insert")
     public SofaSimpleTypeBean insert(final SofaSimpleTypeBean sofaSimpleTypeBean) {
         sofaSimpleTypeBean.setName("hello world shenyu Sofa: " + sofaSimpleTypeBean.getName());
-        return sofaSimpleTypeBean;
-    }
-
-    @Override
-    @ShenyuSofaClient("/bigParams")
-    public SofaSimpleTypeBean bigParams(final SofaSimpleTypeBean sofaSimpleTypeBean) {
         return sofaSimpleTypeBean;
     }
 }
