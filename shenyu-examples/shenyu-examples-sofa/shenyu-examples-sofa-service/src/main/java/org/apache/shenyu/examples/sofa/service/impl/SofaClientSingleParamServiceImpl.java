@@ -52,7 +52,7 @@ public class SofaClientSingleParamServiceImpl implements SofaClientSingleParamSe
 
     @Override
     @ShenyuSofaClient("/bigParams")
-    public SofaSimpleTypeBean bigParams(SofaSimpleTypeBean sofaSimpleTypeBean) {
+    public SofaSimpleTypeBean bigParams(final SofaSimpleTypeBean sofaSimpleTypeBean) {
         return sofaSimpleTypeBean;
     }
 }

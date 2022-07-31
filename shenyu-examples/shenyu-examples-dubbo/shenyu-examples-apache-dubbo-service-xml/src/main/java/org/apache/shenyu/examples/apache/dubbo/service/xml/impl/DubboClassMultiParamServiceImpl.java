@@ -90,7 +90,7 @@ public class DubboClassMultiParamServiceImpl implements DubboClassMultiParamServ
 
     @Override
     @ShenyuDubboClient("/bigRequestBody")
-    public DubboTest saveBigRequestBody(DubboTest dubboTest) {
+    public DubboTest saveBigRequestBody(final DubboTest dubboTest) {
         return dubboTest;
     }
     
