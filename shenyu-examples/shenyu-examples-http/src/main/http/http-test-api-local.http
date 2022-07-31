@@ -167,6 +167,3 @@ Content-Type: multipart/form-data
 < /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/2.txt
 
 --WebAppBoundary--
-
-### example null response
-GET http://localhost:8189/test/nullResponse
