@@ -110,5 +110,5 @@ public interface DubboClassMultiParamService {
      * @param dubboTest dubbo test
      * @return the dubbo test
      */
-    DubboTest saveBigRequestBody(final DubboTest dubboTest);
+    DubboTest saveBigRequestBody(DubboTest dubboTest);
 }
