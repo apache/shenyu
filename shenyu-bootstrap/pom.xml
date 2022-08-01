@@ -33,17 +33,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-basic-auth</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-jwt</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
@@ -163,6 +152,15 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu jwt end-->
+
+        <!--shenyu basic-auth plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-basic-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu basic-auth plugin start-->
+
 
         <!-- shenyu modify response plugin start-->
         <dependency>
