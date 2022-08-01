@@ -18,19 +18,21 @@
 package org.apache.shenyu.examples.websocket.handler;
 
 import org.apache.shenyu.examples.websocket.config.WsSessionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.time.LocalDateTime;
-
 /**
  * HttpAuthHandler.
  */
 @Component
 public class HttpAuthHandler extends TextWebSocketHandler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpAuthHandler.class);
 
     /**
      * socket create a success event.
@@ -61,7 +63,7 @@ public class HttpAuthHandler extends TextWebSocketHandler {
         // Get the message from the client.
         String payload = message.getPayload();
         Object token = session.getAttributes().get("token");
-        System.out.println("server received " + token + " sent " + payload);
+        LOG.info("server received " + token + " sent " + payload);
         session.sendMessage(new TextMessage("apache shenyu server send to " + token + " message : -> " + payload));
     }
 

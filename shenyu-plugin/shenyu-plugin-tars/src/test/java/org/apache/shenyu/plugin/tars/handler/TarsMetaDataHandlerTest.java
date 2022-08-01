@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.tars.subscriber;
+package org.apache.shenyu.plugin.tars.handler;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -25,12 +25,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Test case for {@link TarsMetaDataSubscriber}.
+ * Test case for {@link org.apache.shenyu.plugin.tars.handler.TarsMetaDataHandler}.
  */
 @ExtendWith(MockitoExtension.class)
-public class TarsMetaDataSubscriberTest {
+public class TarsMetaDataHandlerTest {
 
-    private TarsMetaDataSubscriber tarsMetaDataSubscriber;
+    private TarsMetaDataHandler tarsMetaDataHandler;
 
     private MetaData metaData;
 
@@ -40,20 +40,20 @@ public class TarsMetaDataSubscriberTest {
                 "path", RpcTypeEnum.TARS.getName(), "serviceName", "method1",
                 "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":[{\"left\":\"int\",\"right\":\"param1\"},"
                 + "{\"left\":\"java.lang.Integer\",\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}", false);
-        tarsMetaDataSubscriber = new TarsMetaDataSubscriber();
+        tarsMetaDataHandler = new TarsMetaDataHandler();
     }
 
     @Test
     public void testOnSubscribe() {
-        tarsMetaDataSubscriber.onSubscribe(metaData);
+        tarsMetaDataHandler.handle(metaData);
         /**
          * test for cache;
          */
-        tarsMetaDataSubscriber.onSubscribe(metaData);
+        tarsMetaDataHandler.handle(metaData);
     }
 
     @Test
     public void testUnSubscribe() {
-        tarsMetaDataSubscriber.unSubscribe(metaData);
+        tarsMetaDataHandler.remove(metaData);
     }
 }

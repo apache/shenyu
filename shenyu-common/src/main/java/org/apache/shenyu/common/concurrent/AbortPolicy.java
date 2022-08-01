@@ -15,33 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.listener.etcd;
-
-import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
-import org.apache.shenyu.common.constant.DefaultPathConstants;
+package org.apache.shenyu.common.concurrent;
 
 /**
- * The type Etcd data changed init.
- *
- * @since 2.5.0
+ * A handler for rejected element that throws a
+ * {@code RejectException}.
  */
-public class EtcdDataChangedInit extends AbstractDataChangedInit {
-
-    private final EtcdClient etcdClient;
-
-    /**
-     * Instantiates a new Etcd data changed init.
-     *
-     * @param etcdClient the etcdClient client
-     */
-    public EtcdDataChangedInit(final EtcdClient etcdClient) {
-        this.etcdClient = etcdClient;
-    }
+public class AbortPolicy<E> implements Rejector<E> {
 
     @Override
-    protected boolean notExist() {
-        return !etcdClient.exists(DefaultPathConstants.PLUGIN_PARENT)
-                && !etcdClient.exists(DefaultPathConstants.APP_AUTH_PARENT)
-                && !etcdClient.exists(DefaultPathConstants.META_DATA);
+    public void reject(final E e, final MemorySafeLinkedBlockingQueue<E> queue) {
+        throw new RejectException("no more memory can be used !");
     }
 }

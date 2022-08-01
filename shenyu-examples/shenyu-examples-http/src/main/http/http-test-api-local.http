@@ -133,4 +133,37 @@ GET http://localhost:8189/test/request/parameter/pass?requestParameter=test
 Accept: application/json
 Content-Type: application/json
 
-###
+
+###  example webFluxSingle
+POST http://localhost:8189/upload/webFluxSingle
+Cache-Control: no-cache
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="1.txt"
+Content-Type: multipart/form-data
+# you need to change your local path
+< /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/1.txt
+
+--WebAppBoundary--
+
+###  example webFluxFiles
+POST http://localhost:8189/upload/webFluxFiles
+Cache-Control: no-cache
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="1.txt";
+Content-Type: multipart/form-data
+# you need to change your local path
+< /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/1.txt
+
+--WebAppBoundary--
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="2.txt";
+Content-Type: multipart/form-data
+# you need to change your local path
+< /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/2.txt
+
+--WebAppBoundary--

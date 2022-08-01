@@ -15,8 +15,8 @@
 # limitations under the License.
 #
 
-### shengyu getway proxy orderSave
-POST http://localhost:9195/springmvc/order/save
+###  orderSave
+POST http://localhost:8289/order/save
 Accept: application/json
 Content-Type: application/json
 
@@ -25,29 +25,29 @@ Content-Type: application/json
   "name": "order"
 }
 
-### shengyu getway proxy orderSave
-GET http://localhost:9195/springmvc/order/findById?id=123
+###  findById
+GET http://localhost:8289/order/findById?id=123
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy path
-GET http://localhost:9195/springmvc/order/path/123/hahah
+###  path
+GET http://localhost:8289/order/path/123/hahah
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy path
-GET http://localhost:9195/springmvc/order/path/123/name
+###  path
+GET http://localhost:8289/order/path/123/name
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy oauth2
-GET http://localhost:9195/springmvc/order/oauth2/test
+###  oauth2
+GET http://localhost:8289/order/oauth2/test
 Accept: application/json
 Content-Type: application/json
 Authorization:AuthorizationContext
 
-### shengyu getway proxy payment
-POST http://localhost:9195/springmvc/test/payment
+###  payment
+POST http://localhost:8289/test/payment
 Accept: application/json
 Content-Type: application/json
 
@@ -56,39 +56,39 @@ Content-Type: application/json
   "userName": "name"
 }
 
-### shengyu getway proxy findByUserId
-GET http://localhost:9195/springmvc/test/findByUserId?userId=123
+###  findByUserId
+GET http://localhost:8289/test/findByUserId?userId=123
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy path
-GET http://localhost:9195/springmvc/test/path/123?name=haha
+###  path
+GET http://localhost:8289/test/path/123?name=haha
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy path
-GET http://localhost:9195/springmvc/test/path/123/name
+###  path
+GET http://localhost:8289/test/path/123/name
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy waf pass
-POST http://localhost:9195/springmvc/test/waf/pass
+###  waf pass
+POST http://localhost:8289/test/waf/pass
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy waf deny
-POST http://localhost:9195/springmvc/test/waf/deny
+###  waf deny
+POST http://localhost:8289/test/waf/deny
 Accept: application/json
 Content-Type: application/json
 
-### shengyu getway proxy request parameter pass
-GET http://localhost:9195/springmvc/test/request/parameter/pass?requestParameter=test
+###  request parameter pass
+GET http://localhost:8289/test/request/parameter/pass?requestParameter=test
 Accept: application/json
 Content-Type: application/json
 
 
-### shengyu getway prox example singleFile
-POST http://localhost:9195/springmvc/upload/singleFile
+###  example singleFile
+POST http://localhost:8289/upload/singleFile
 Cache-Control: no-cache
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
@@ -101,8 +101,8 @@ Content-Type: multipart/form-data
 --WebAppBoundary--
 
 
-### shengyu getway prox example files
-POST http://localhost:9195/springmvc/upload/files
+###  example files
+POST http://localhost:8289/upload/files
 Cache-Control: no-cache
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 

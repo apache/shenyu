@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.motan.subscriber;
+package org.apache.shenyu.plugin.motan.handler;
 
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,44 +29,44 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * The motan metadata subscribe.
+ * The motan metadata handler.
  */
-public class MotanMetaDataSubscriber implements MetaDataSubscriber {
+public class MotanMetaDataHandler implements MetaDataHandler {
     
     /**
      * logger.
      */
-    private static final Logger LOG = LoggerFactory.getLogger(MotanMetaDataSubscriber.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MotanMetaDataHandler.class);
     
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
     
     @Override
-    public void onSubscribe(final MetaData metaData) {
+    public void handle(final MetaData metaData) {
         try {
-            if (RpcTypeEnum.MOTAN.getName().equals(metaData.getRpcType())) {
-                MetaData exist = META_DATA.get(metaData.getPath());
-                if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getPath()).getRef())) {
-                    // The first initialization
-                    ApplicationConfigCache.getInstance().initRef(metaData);
-                } else {
-                    if (!exist.getServiceName().equals(metaData.getServiceName()) || !exist.getRpcExt().equals(metaData.getRpcExt())) {
-                        // update
-                        ApplicationConfigCache.getInstance().build(metaData);
-                    }
+            MetaData exist = META_DATA.get(metaData.getPath());
+            if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getPath()).getRef())) {
+                // The first initialization
+                ApplicationConfigCache.getInstance().initRef(metaData);
+            } else {
+                if (!exist.getServiceName().equals(metaData.getServiceName()) || !exist.getRpcExt().equals(metaData.getRpcExt())) {
+                    // update
+                    ApplicationConfigCache.getInstance().build(metaData);
                 }
-                META_DATA.put(metaData.getPath(), metaData);
             }
+            META_DATA.put(metaData.getPath(), metaData);
         } catch (Exception e) {
             LOG.error("motan sync metadata is error [{}]", metaData, e);
         }
-        
     }
     
     @Override
-    public void unSubscribe(final MetaData metaData) {
-        if (RpcTypeEnum.MOTAN.getName().equals(metaData.getRpcType())) {
-            ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
-            META_DATA.remove(metaData.getPath());
-        }
+    public void remove(final MetaData metaData) {
+        ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
+        META_DATA.remove(metaData.getPath());
+    }
+    
+    @Override
+    public String rpcType() {
+        return RpcTypeEnum.MOTAN.getName();
     }
 }

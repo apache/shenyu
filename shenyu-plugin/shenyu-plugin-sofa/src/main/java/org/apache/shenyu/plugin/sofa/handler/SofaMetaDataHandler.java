@@ -15,46 +15,47 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sofa.subscriber;
+package org.apache.shenyu.plugin.sofa.handler;
 
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * The sofa metadata subscribe.
+ * The sofa metadata handler.
  */
-public class SofaMetaDataSubscriber implements MetaDataSubscriber {
+public class SofaMetaDataHandler implements MetaDataHandler {
 
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
-
+    
     @Override
-    public void onSubscribe(final MetaData metaData) {
-        if (RpcTypeEnum.SOFA.getName().equals(metaData.getRpcType())) {
-            MetaData exist = META_DATA.get(metaData.getPath());
-            if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getPath()).refer())) {
-                // The first initialization
-                ApplicationConfigCache.getInstance().initRef(metaData);
-            } else {
-                if (!exist.getServiceName().equals(metaData.getServiceName()) || !exist.getRpcExt().equals(metaData.getRpcExt())) {
-                    // update
-                    ApplicationConfigCache.getInstance().build(metaData);
-                }
+    public void handle(final MetaData metaData) {
+        MetaData exist = META_DATA.get(metaData.getPath());
+        if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getPath()).refer())) {
+            // The first initialization
+            ApplicationConfigCache.getInstance().initRef(metaData);
+        } else {
+            if (!exist.getServiceName().equals(metaData.getServiceName()) || !exist.getRpcExt().equals(metaData.getRpcExt())) {
+                // update
+                ApplicationConfigCache.getInstance().build(metaData);
             }
-            META_DATA.put(metaData.getPath(), metaData);
         }
+        META_DATA.put(metaData.getPath(), metaData);
     }
-
+    
     @Override
-    public void unSubscribe(final MetaData metaData) {
-        if (RpcTypeEnum.SOFA.getName().equals(metaData.getRpcType())) {
-            ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
-            META_DATA.remove(metaData.getPath());
-        }
+    public void remove(final MetaData metaData) {
+        ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
+        META_DATA.remove(metaData.getPath());
+    }
+    
+    @Override
+    public String rpcType() {
+        return RpcTypeEnum.SOFA.getName();
     }
 }
