@@ -18,6 +18,8 @@
 package org.apache.shenyu.examples.http.controller;
 
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,9 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class ShenyuClientPathController {
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientPathController.class);
+
     private static final String HELLO_SUFFIX = "I'm Shenyu-Gateway System. Welcome!";
-    
+
     /**
      * hello.
      *
@@ -49,7 +53,7 @@ public class ShenyuClientPathController {
     @RequestMapping("shenyu/client/timeout")
     @ShenyuSpringMvcClient("shenyu/client/timeout")
     public String timeout() {
-        System.out.println("timeout");
+        LOG.info("timeout");
         try {
             Thread.sleep(10000);
         } catch (InterruptedException ignored) {

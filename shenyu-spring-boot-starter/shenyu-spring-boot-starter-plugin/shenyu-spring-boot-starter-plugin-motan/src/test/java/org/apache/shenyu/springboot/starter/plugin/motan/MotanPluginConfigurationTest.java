@@ -18,9 +18,9 @@
 package org.apache.shenyu.springboot.starter.plugin.motan;
 
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.motan.MotanPlugin;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -66,10 +66,10 @@ public class MotanPluginConfigurationTest {
     }
 
     @Test
-    public void testMotanMetaDataSubscriber() {
+    public void testMotanMetaDataHandler() {
         applicationContextRunner.run(context -> {
-                MetaDataSubscriber subscriber = context.getBean("motanMetaDataSubscriber", MetaDataSubscriber.class);
-                assertNotNull(subscriber);
+                MetaDataHandler handler = context.getBean("motanMetaDataHandler", MetaDataHandler.class);
+                assertNotNull(handler);
             }
         );
     }

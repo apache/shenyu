@@ -40,7 +40,7 @@ public class DubboClassTestServiceImpl implements DubboClassTestService {
     
     @Override
     public DubboTest findById(final String id) {
-        LOGGER.info(GsonUtils.getInstance().toJson(RpcContext.getContext().getAttachments()));
+        LOGGER.info(GsonUtils.getInstance().toJson(RpcContext.getContext().getObjectAttachments()));
         return new DubboTest(id, "hello world shenyu Apache, findById");
     }
     

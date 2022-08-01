@@ -19,12 +19,12 @@ package org.apache.shenyu.springboot.starter.plugin.tars;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.tars.TarsPlugin;
 import org.apache.shenyu.plugin.tars.context.TarsShenyuContextDecorator;
 import org.apache.shenyu.plugin.tars.handler.TarsPluginDataHandler;
-import org.apache.shenyu.plugin.tars.subscriber.TarsMetaDataSubscriber;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.apache.shenyu.plugin.tars.handler.TarsMetaDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -49,13 +49,13 @@ public class TarsPluginConfiguration {
     }
 
     /**
-     * Tars meta data subscriber.
+     * Tars meta data handler.
      *
-     * @return the meta data subscriber
+     * @return the meta data handler
      */
     @Bean
-    public MetaDataSubscriber tarsMetaDataSubscriber() {
-        return new TarsMetaDataSubscriber();
+    public MetaDataHandler tarsMetaDataHandler() {
+        return new TarsMetaDataHandler();
     }
 
     /**
