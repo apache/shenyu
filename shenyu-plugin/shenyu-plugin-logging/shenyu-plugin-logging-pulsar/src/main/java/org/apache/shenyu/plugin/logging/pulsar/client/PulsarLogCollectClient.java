@@ -40,6 +40,9 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * queue-based logging collector.
+ */
 public class PulsarLogCollectClient implements LogConsumeClient {
     private static final Logger LOG = LoggerFactory.getLogger(PulsarLogCollectClient.class);
 
@@ -49,6 +52,11 @@ public class PulsarLogCollectClient implements LogConsumeClient {
 
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
+    /**
+     * init producer.
+     * 
+     * @param props pulsar props
+     */
     public void initProducer(final Properties props) {
         if (MapUtils.isEmpty(props)) {
             LOG.error("Pulsar props is empty. Fail to init Pulsar producer.");
@@ -86,7 +94,7 @@ public class PulsarLogCollectClient implements LogConsumeClient {
         });
     }
 
-    private byte[] toBytes(ShenyuRequestLog log) {
+    private byte[] toBytes(final ShenyuRequestLog log) {
         byte[] bytes = JsonUtils.toJson(log).getBytes(StandardCharsets.UTF_8);
         String compressAlg = StringUtils.defaultIfBlank(PulsarLogCollectConfig.INSTANCE.getPulsarLogConfig().getCompressAlg(), "");
         if ("LZ4".equalsIgnoreCase(compressAlg.trim())) {
@@ -102,7 +110,6 @@ public class PulsarLogCollectClient implements LogConsumeClient {
         LZ4Compressor compressor = factory.fastCompressor();
         return compressor.compress(srcByte);
     }
-
 
     @Override
     public void close() {

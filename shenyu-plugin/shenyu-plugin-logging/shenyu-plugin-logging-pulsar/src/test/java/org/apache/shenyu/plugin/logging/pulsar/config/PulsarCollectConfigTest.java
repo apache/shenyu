@@ -71,7 +71,6 @@ public class PulsarCollectConfigTest {
         Assertions.assertEquals(pulsarLogConfig.getServiceUrl(), "test");
     }
 
-
     @Test
     public void testGetGlobalLogConfig() {
         PulsarLogCollectConfig pulsarLogCollectConfig = new PulsarLogCollectConfig();

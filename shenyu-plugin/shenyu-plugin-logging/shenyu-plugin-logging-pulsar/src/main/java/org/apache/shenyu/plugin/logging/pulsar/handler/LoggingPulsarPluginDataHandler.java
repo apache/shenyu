@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
- * The type logging pulsar plugin data handler
+ * The type logging pulsar plugin data handler.
  */
 public class LoggingPulsarPluginDataHandler implements PluginDataHandler {
 
@@ -49,7 +49,7 @@ public class LoggingPulsarPluginDataHandler implements PluginDataHandler {
     private static final Map<String, List<String>> SELECT_ID_URI_LIST_MAP = new ConcurrentHashMap<>();
 
     @Override
-    public void handlerPlugin(PluginData pluginData) {
+    public void handlerPlugin(final PluginData pluginData) {
         LOG.info("handler loggingPulsar Plugin data:{}", GsonUtils.getGson().toJson(pluginData));
         if (pluginData.getEnabled()) {
             PulsarLogCollectConfig.PulsarLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
@@ -71,12 +71,12 @@ public class LoggingPulsarPluginDataHandler implements PluginDataHandler {
     }
 
     @Override
-    public void handlerSelector(SelectorData selectorData) {
+    public void handlerSelector(final SelectorData selectorData) {
         PluginDataHandler.super.handlerSelector(selectorData);
     }
 
     @Override
-    public void removeSelector(SelectorData selectorData) {
+    public void removeSelector(final SelectorData selectorData) {
         PluginDataHandler.super.removeSelector(selectorData);
     }
 
@@ -85,6 +85,10 @@ public class LoggingPulsarPluginDataHandler implements PluginDataHandler {
         return PluginEnum.LOGGING_PULSAR.getName();
     }
 
+    /**
+     * get pulsar log collect client.
+     * @return pulsar log collect client
+     */
     public static PulsarLogCollectClient getPulsarLogCollectClient() {
         return PULSAR_LOG_COLLECT_CLIENT;
     }

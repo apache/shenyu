@@ -67,7 +67,7 @@ public class PulsarLogCollectConfig {
          *
          * @param compressAlg compress alg.
          */
-        public void setCompressAlg(String compressAlg) {
+        public void setCompressAlg(final String compressAlg) {
             this.compressAlg = compressAlg;
         }
 
@@ -85,7 +85,7 @@ public class PulsarLogCollectConfig {
          *
          * @param topic mq topic
          */
-        public void setTopic(String topic) {
+        public void setTopic(final String topic) {
             this.topic = topic;
         }
 
@@ -101,7 +101,7 @@ public class PulsarLogCollectConfig {
          * set pulsar service URL.
          * @param serviceUrl pulsar service URL
          */
-        public void setServiceUrl(String serviceUrl) {
+        public void setServiceUrl(final String serviceUrl) {
             this.serviceUrl = serviceUrl;
         }
     }

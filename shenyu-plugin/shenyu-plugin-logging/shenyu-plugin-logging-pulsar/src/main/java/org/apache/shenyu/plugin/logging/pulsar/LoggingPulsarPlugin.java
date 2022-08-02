@@ -30,6 +30,9 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+/**
+ * Integrated pulsar collect log.
+ */
 public class LoggingPulsarPlugin extends AbstractLoggingPlugin {
 
     @Override
@@ -56,7 +59,7 @@ public class LoggingPulsarPlugin extends AbstractLoggingPlugin {
     }
 
     /**
-     * get plugin name
+     * get plugin name.
      *
      * @return plugin name
      */
