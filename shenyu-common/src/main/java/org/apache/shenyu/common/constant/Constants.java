@@ -53,6 +53,11 @@ public interface Constants {
     String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
 
     /**
+     * The constant RESPONSE_DATA_BUFFER.
+     */
+    String RESPONSE_DATA_BUFFER = "webClientResponseDataBuffer";
+
+    /**
      * The constant DUBBO_RPC_RESULT_EMPTY.
      */
     String DUBBO_RPC_RESULT_EMPTY = "dubbo has not return value!";

@@ -23,6 +23,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -33,6 +34,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Optional;
 
 /**
  * The type Web client plugin.
@@ -67,7 +69,9 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                                 return Mono.just(builder.build());
                             }
                             final DataBufferFactory dataBufferFactory = exchange.getResponse().bufferFactory();
-                            return Mono.just(builder.body(Flux.just(dataBufferFactory.wrap(bytes))).build());
+                            final DataBuffer dataBuffer = dataBufferFactory.wrap(bytes);
+                            exchange.getAttributes().put(Constants.RESPONSE_DATA_BUFFER, dataBuffer);
+                            return Mono.just(builder.body(Flux.just(dataBuffer)).build());
                         }))
                 .doOnSuccess(res -> {
                     if (res.statusCode().is2xxSuccessful()) {
@@ -77,6 +81,11 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                     }
                     exchange.getResponse().setStatusCode(res.statusCode());
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
+                })
+                .doFinally(s -> {
+                    // clean DataBuffer
+                    Optional.ofNullable((DataBuffer) exchange.getAttribute(Constants.RESPONSE_DATA_BUFFER))
+                            .ifPresent(DataBufferUtils::release);
                 });
     }
     
