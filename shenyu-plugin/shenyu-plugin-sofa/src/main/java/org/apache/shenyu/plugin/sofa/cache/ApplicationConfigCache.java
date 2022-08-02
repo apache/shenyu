@@ -224,7 +224,6 @@ public final class ApplicationConfigCache {
             }
         } catch (Exception e) {
             LOG.error("init sofa reference exception", e);
-            e.printStackTrace();
         }
         return reference;
     }
