@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>chat room websocket</title>
+    <link rel="stylesheet" href="bootstrap.css">
+    <script src="jquery-3.2.1.min.js"></script>
+</head>
+<body class="container" style="width: 60%">
+<div class="form-group"></br>
+    <h5>聊天室</h5>
+    <textarea id="message_content" class="form-control" readonly="readonly" cols="50"
+              rows="10"></textarea>
+</div>
+<div class="form-group">
+    <label for="in_user_name">⽤户姓名 &nbsp;</label>
+    <input id="in_user_name" value="" class="form-control"/></br>
+    <label for="in_user_name">房间名 &nbsp;</label>
+    <input id="in_room_id" value="" class="form-control">
+    <button id="user_join" onclick="verificationValue()" class="btn btn-success">加入聊天室</button>
+    <button id="user_exit" onclick="outRoom()" class="btn btn-warning">离开聊天室</button>
+</div>
+<div class="form-group">
+    <label for="in_room_msg">群发消息 &nbsp;</label>
+    <input id="in_room_msg" value="" class="form-control"/></br>
+    <button id="user_send_all" onclick="sendInfo()" class="btn btn-info">发送消息</button>
+</div>
+<script>
+    var socket;//websocket连接
+    var webSocketUrl = 'ws://127.0.0.1:8033/upload/';//websocketi连接地址
+    var roomId = "";//房间号
+    var userName = "";//用户名
+    //创建websocket连接
+    function createWebSocketConnect(roomId) {
+        if (!socket) {//避免重复连接
+            console.log(roomId);
+            socket = new WebSocket(webSocketUrl + roomId);
+            socket.onopen = function () {
+                console.log("websocket已连接");
+                socket.send(userName + "已经成功加入房间");
+            };
+            socket.onmessage = function (e) {
+                //服务端发送的消息
+                $("#message_content").append(e.data + '\n');
+            };
+            socket.onclose = function () {
+                socket.send(userName + "已经退出房间");
+            }
+        }
+    }
+
+    //验证用户名和房间号是否填写
+    function verificationValue() {
+        roomId = $("#in_room_id").val();
+        userName = $("#in_user_name").val();
+        if (roomId === "" || userName === "") {
+            alert("请填写用户名并填写要加入的房间号");
+            return;
+        }
+        createWebSocketConnect(roomId, userName);
+    }
+
+    //群发消息
+    function sendInfo() {
+        let msg = $('#in_room_msg').val();
+        if (socket) {
+            socket.send(userName + ":" + msg)
+        }
+    }
+
+    //离开房间
+    function outRoom() {
+        if (socket) {
+            socket.send(userName + "已退出");
+            socket.close();
+            $("#message_content").append(userName + "已退出");
+        }
+    }
+
+</script>
+</body>
+</html>

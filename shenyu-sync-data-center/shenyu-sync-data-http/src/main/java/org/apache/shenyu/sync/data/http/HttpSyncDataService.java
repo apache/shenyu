@@ -134,17 +134,8 @@ public class HttpSyncDataService implements SyncDataService {
         LOG.info("request configs: [{}]", url);
         String json;
         try {
-<<<<<<< HEAD
-//            Optional<Object> token = accessToken.apply(server);
-//            if (!token.isPresent()) {
-//                throw new ShenyuException("get token from server : [" + server + " ] error");
-//            }
-            HttpHeaders headers = new HttpHeaders();
-//            headers.set(Constants.X_ACCESS_TOKEN, String.valueOf(token.get()));
-=======
             HttpHeaders headers = new HttpHeaders();
             headers.set(Constants.X_ACCESS_TOKEN, this.accessTokenManager.getAccessToken());
->>>>>>> 782867187a76f8a273ccc8029e53e3db3f23eb6b
             HttpEntity<String> httpEntity = new HttpEntity<>(headers);
             json = this.restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class).getBody();
         } catch (RestClientException e) {
