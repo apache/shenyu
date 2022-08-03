@@ -62,7 +62,7 @@ public class WebsocketConfigTest {
 
     @Test
     public void testHashCode() {
-        assertEquals(Objects.hash(websocketConfig.getUrls(),websocketConfig.getAllowOrigin()), websocketConfig.hashCode());
+        assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin()), websocketConfig.hashCode());
     }
 
     @Test
