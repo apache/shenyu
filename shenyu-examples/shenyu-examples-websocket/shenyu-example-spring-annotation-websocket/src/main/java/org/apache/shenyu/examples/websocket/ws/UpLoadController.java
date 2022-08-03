@@ -66,14 +66,13 @@ public class UpLoadController {
 
     @OnMessage
     public void onMessage(byte[] message, Session session) {
-        System.out.println("i am upload");
         File file = (File) session.getUserProperties().get("file");
         try {
             HashMap map = new HashMap();
-            map.put("file",file);
-            saveFile.saveFileFromBytes(message,map);
+            map.put("file", file);
+            saveFile.saveFileFromBytes(message, map);
             session.getBasicRemote().sendText("ok");
-        }catch (Exception e){
+        } catch (Exception e) {
 
         }
     }

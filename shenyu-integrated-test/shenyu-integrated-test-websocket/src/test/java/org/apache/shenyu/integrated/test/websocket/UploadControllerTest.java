@@ -36,7 +36,7 @@ public class UploadControllerTest extends AbstractPluginDataInit {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketPluginTest.class);
 
-    private static final String WEBSOCKET_URI = "ws://localhost:9195/ws-annotation/upload?token=Jack";
+    private static final String WEBSOCKET_URI = "ws://localhost:9195/ws-native/file?token=Jack";
 
     @Test
     public void testWebsocketUpLoad() throws InterruptedException, URISyntaxException {
