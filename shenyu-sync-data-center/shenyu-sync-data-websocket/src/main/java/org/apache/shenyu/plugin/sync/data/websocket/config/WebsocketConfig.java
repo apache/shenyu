@@ -28,6 +28,11 @@ public class WebsocketConfig {
     private String urls;
 
     /**
+     * allowOrigin
+     */
+    private String allowOrigin;
+
+    /**
      * get urls.
      *
      * @return urls
@@ -45,8 +50,16 @@ public class WebsocketConfig {
         this.urls = urls;
     }
 
+    public String getAllowOrigin() {
+        return allowOrigin;
+    }
+
+    public void setAllowOrigin(String allowOrigin) {
+        this.allowOrigin = allowOrigin;
+    }
+
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -54,20 +67,19 @@ public class WebsocketConfig {
             return false;
         }
         WebsocketConfig that = (WebsocketConfig) o;
-        return Objects.equals(urls, that.urls);
+        return Objects.equals(urls, that.urls) && Objects.equals(allowOrigin, that.allowOrigin);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(urls);
+        return Objects.hash(urls, allowOrigin);
     }
 
     @Override
     public String toString() {
-        return "WebsocketConfig{"
-                + "urls='"
-                + urls
-                + '\''
-                + '}';
+        return "WebsocketConfig{" +
+                "urls='" + urls + '\'' +
+                ", allowOrigin='" + allowOrigin + '\'' +
+                '}';
     }
 }
