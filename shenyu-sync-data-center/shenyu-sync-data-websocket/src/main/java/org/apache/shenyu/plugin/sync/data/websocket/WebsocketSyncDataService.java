@@ -46,7 +46,7 @@ public class WebsocketSyncDataService implements SyncDataService {
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketSyncDataService.class);
 
     /**
-     * see https://github.com/apache/tomcat/blob/main/java/org/apache/tomcat/websocket/Constants.java#L99
+     * see https://github.com/apache/tomcat/blob/main/java/org/apache/tomcat/websocket/Constants.java#L99.
      */
     private static final String ORIGIN_HEADER_NAME = "Origin";
     
@@ -67,10 +67,10 @@ public class WebsocketSyncDataService implements SyncDataService {
         String[] urls = StringUtils.split(websocketConfig.getUrls(), ",");
         for (String url : urls) {
             try {
-                if(StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())){
+                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
                     Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
                     clients.add(new ShenyuWebsocketClient(new URI(url), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
-                }else {
+                } else {
                     clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
                 }
             } catch (URISyntaxException e) {

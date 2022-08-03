@@ -77,17 +77,16 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
 
     /**
      * Instantiates a new shenyu websocket client.
-     * @param serverUri
-     * @param headers
-     * @param pluginDataSubscriber
-     * @param metaDataSubscribers
-     * @param authDataSubscribers
+     * @param serverUri the server uri
+     * @param headers the headers
+     * @param pluginDataSubscriber the plugin data subscriber
+     * @param metaDataSubscribers the meta data subscribers
+     * @param authDataSubscribers the auth data subscribers
      */
-    public ShenyuWebsocketClient(final URI serverUri,final Map<String,String> headers, final PluginDataSubscriber pluginDataSubscriber,
-                                 final List<MetaDataSubscriber> metaDataSubscribers,
-                                 final List<AuthDataSubscriber> authDataSubscribers
-    ) {
-        super(serverUri,headers);
+    public ShenyuWebsocketClient(final URI serverUri, final Map<String,String> headers,
+                                 final PluginDataSubscriber pluginDataSubscriber, final List<MetaDataSubscriber> metaDataSubscribers,
+                                 final List<AuthDataSubscriber> authDataSubscribers) {
+        super(serverUri, headers);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
@@ -109,7 +108,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         try {
             success = super.connectBlocking();
         } catch (Exception exception) {
-            LOG.error("websocket connection server[{}] is error.....[{}]", this.getURI().toString() , exception.getMessage());
+            LOG.error("websocket connection server[{}] is error.....[{}]", this.getURI().toString(), exception.getMessage());
         }
         if (success) {
             LOG.info("websocket connection server[{}] is successful.....", this.getURI().toString());
@@ -119,8 +118,6 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         return success;
     }
 
-
-    
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
         if (!alreadySync) {

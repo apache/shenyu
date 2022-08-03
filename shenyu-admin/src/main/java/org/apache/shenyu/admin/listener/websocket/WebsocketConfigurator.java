@@ -59,12 +59,12 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
     }
 
     @Override
-    public boolean checkOrigin(String originHeaderValue) {
+    public boolean checkOrigin(final String originHeaderValue) {
         final WebsocketSyncProperties bean = SpringBeanUtils.getInstance().getBean(WebsocketSyncProperties.class);
-        if(StringUtils.isNotEmpty(bean.getAllowOrigins())){
+        if (StringUtils.isNotEmpty(bean.getAllowOrigins())) {
             String[] split = StringUtils.split(bean.getAllowOrigins(), ";");
             for (String configAllow : split) {
-                if(StringUtils.equals(configAllow,originHeaderValue)){
+                if (StringUtils.equals(configAllow, originHeaderValue)) {
                     return true;
                 }
             }
