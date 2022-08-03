@@ -53,12 +53,12 @@ public class UploadControllerTest extends AbstractPluginDataInit {
             }
 
             @Override
-            public void onClose(final int i, String s, final boolean b) {
+            public void onClose(final int i, final String s, final boolean b) {
 
             }
 
             @Override
-            public void onError(Exception e) {
+            public void onError(final Exception e) {
 
             }
         };
