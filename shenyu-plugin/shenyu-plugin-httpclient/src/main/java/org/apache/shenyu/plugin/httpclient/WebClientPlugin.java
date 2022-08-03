@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
@@ -33,6 +32,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Optional;
 
 /**
  * The type Web client plugin.
@@ -59,15 +59,16 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> headers.addAll(httpHeaders))
                 .body(BodyInserters.fromDataBuffers(body))
-                .exchangeToMono(response -> response.bodyToMono(byte[].class).defaultIfEmpty(new byte[0])
-                        .flatMap(bytes -> {
+                .exchangeToMono(response -> response.bodyToMono(byte[].class)
+                        .flatMap(bytes -> Mono.just(Optional.ofNullable(bytes))).defaultIfEmpty(Optional.empty())
+                        .flatMap(option -> {
                             final ClientResponse.Builder builder = ClientResponse.create(response.statusCode())
                                     .headers(headers -> headers.addAll(response.headers().asHttpHeaders()));
-                            if (ArrayUtils.isEmpty(bytes)) {
-                                return Mono.just(builder.build());
+                            if (option.isPresent()) {
+                                final DataBufferFactory dataBufferFactory = exchange.getResponse().bufferFactory();
+                                return Mono.just(builder.body(Flux.just(dataBufferFactory.wrap(option.get()))).build());
                             }
-                            final DataBufferFactory dataBufferFactory = exchange.getResponse().bufferFactory();
-                            return Mono.just(builder.body(Flux.just(dataBufferFactory.wrap(bytes))).build());
+                            return Mono.just(builder.build());
                         }))
                 .doOnSuccess(res -> {
                     if (res.statusCode().is2xxSuccessful()) {
