@@ -84,7 +84,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      * @param authDataSubscribers the auth data subscribers
      */
     public ShenyuWebsocketClient(final URI serverUri, final Map<String,String> headers,
-                                 final PluginDataSubscriber pluginDataSubscriber, final List<MetaDataSubscriber> metaDataSubscribers,
+                                 final PluginDataSubscriber pluginDataSubscriber,
+                                 final List<MetaDataSubscriber> metaDataSubscribers,
                                  final List<AuthDataSubscriber> authDataSubscribers) {
         super(serverUri, headers);
         this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
