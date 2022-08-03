@@ -160,9 +160,12 @@ public final class WebClientPluginTest {
     }
 
     private WebClient mockWebClientOK() {
+        final ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
+        when(headers.asHttpHeaders()).thenReturn(new HttpHeaders());
+        
         final ClientResponse mockResponse = mock(ClientResponse.class);
         when(mockResponse.statusCode()).thenReturn(HttpStatus.OK);
-        when(mockResponse.headers()).thenReturn(mockHeaders());
+        when(mockResponse.headers()).thenReturn(headers);
         when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just("{\"test\":\"ok\"}".getBytes()));
         when(mockResponse.releaseBody()).thenReturn(Mono.empty());
         given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
@@ -174,9 +177,12 @@ public final class WebClientPluginTest {
     }
 
     private WebClient mockWebClientError() {
+        final ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
+        when(headers.asHttpHeaders()).thenReturn(new HttpHeaders());
+        
         final ClientResponse mockResponse = mock(ClientResponse.class);
         when(mockResponse.statusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
-        when(mockResponse.headers()).thenReturn(mockHeaders());
+        when(mockResponse.headers()).thenReturn(headers);
         when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just(new byte[0]));
         when(mockResponse.releaseBody()).thenReturn(Mono.empty());
         given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
@@ -185,11 +191,5 @@ public final class WebClientPluginTest {
                 .apply(consumer -> consumer.defaultHeader("Accept", "application/json")
                         .defaultCookie("id", "test"))
                 .build();
-    }
-    
-    private ClientResponse.Headers mockHeaders() {
-        final ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
-        when(headers.asHttpHeaders()).thenReturn(new HttpHeaders());
-        return headers;
     }
 }
