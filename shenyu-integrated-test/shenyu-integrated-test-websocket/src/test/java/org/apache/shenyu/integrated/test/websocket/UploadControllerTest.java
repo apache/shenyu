@@ -41,20 +41,19 @@ public class UploadControllerTest extends AbstractPluginDataInit {
     @Test
     public void testWebsocketUpLoad() throws InterruptedException, URISyntaxException {
 
-        ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
         WebSocketClient webSocketClient = new WebSocketClient(new URI(WEBSOCKET_URI)) {
             @Override
-            public void onOpen(ServerHandshake serverHandshake) {
+            public void onOpen(final ServerHandshake serverHandshake) {
 
             }
 
             @Override
-            public void onMessage(String s) {
+            public void onMessage(final String s) {
 
             }
 
             @Override
-            public void onClose(int i, String s, boolean b) {
+            public void onClose(final int i, String s, final boolean b) {
 
             }
 
@@ -67,6 +66,7 @@ public class UploadControllerTest extends AbstractPluginDataInit {
         msg[0] = 1;
         webSocketClient.connectBlocking();
         webSocketClient.send(msg);
+        ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
         String receivedMessage = blockingQueue.poll(10, TimeUnit.SECONDS);
         assertThat(receivedMessage, is("apache shenyu server send to Jack message : -> " + msg));
     }
