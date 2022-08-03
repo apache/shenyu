@@ -23,12 +23,16 @@ import event.EventResponse;
 import event.EventServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @ShenyuGrpcClient("/eventService")
 @Service
 public class EventServiceImpl extends EventServiceGrpc.EventServiceImplBase {
-
+    
+    private static final Logger LOG = LoggerFactory.getLogger(EventServiceImpl.class);
+    
     @ShenyuGrpcClient("/sendEvent")
     @Override
     public void sendEvent(EventRequest request, StreamObserver<EventResponse> responseObserver) {
@@ -51,7 +55,7 @@ public class EventServiceImpl extends EventServiceGrpc.EventServiceImplBase {
 
             @Override
             public void onError(final Throwable t) {
-                t.printStackTrace();
+                LOG.error(t.getMessage());
             }
 
             @Override
