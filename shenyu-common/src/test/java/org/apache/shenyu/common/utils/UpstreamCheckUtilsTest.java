@@ -36,8 +36,6 @@ public final class UpstreamCheckUtilsTest {
     
     private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckUtilsTest.class);
 
-    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckUtilsTest.class);
-
     private volatile int port = -1;
 
     @Test
