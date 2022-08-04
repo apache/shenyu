@@ -54,7 +54,7 @@ public final class UpstreamCheckUtilsTest {
                 Socket socket = serverSocket.accept();
                 socket.close();
             } catch (IOException e) {
-                LOG.error("testSocketConnect error", e);
+                LOG.error(e.getMessage());
             }
         };
         new Thread(runnable).start();
