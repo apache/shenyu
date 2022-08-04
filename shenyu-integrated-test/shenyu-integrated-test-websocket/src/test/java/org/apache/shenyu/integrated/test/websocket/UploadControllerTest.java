@@ -38,8 +38,6 @@ import static org.junit.Assert.assertEquals;
 
 public class UploadControllerTest extends AbstractPluginDataInit {
 
-    private static final Logger LOG = LoggerFactory.getLogger(UploadControllerTest.class);
-
     private static final String FILE_PATH = "1.bin";
 
     @BeforeAll
@@ -48,32 +46,23 @@ public class UploadControllerTest extends AbstractPluginDataInit {
         if (!Files.exists(pathOne)) {
             Files.createFile(pathOne);
         }
-        try {
-            BufferedWriter bufferedWriterOne = Files.newBufferedWriter(pathOne);
-            bufferedWriterOne.write("111");
-            bufferedWriterOne.flush();
-            bufferedWriterOne.close();
-        } catch (IOException e) {
-            LOG.error("write file fail", e);
-        }
+        BufferedWriter bufferedWriterOne = Files.newBufferedWriter(pathOne);
+        bufferedWriterOne.write("111");
+        bufferedWriterOne.flush();
+        bufferedWriterOne.close();
     }
 
     @Test
-    public void testWebsocketUpLoad(){
-        try {
-            File fileOne = new File(FILE_PATH);
-            RequestBody fileBodyOne = RequestBody.create(MediaType.parse("multipart/form-data"), fileOne);
-            MultipartBody requestBody = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("file", FILE_PATH, fileBodyOne)
-                    .build();
-            final String response = HttpHelper.INSTANCE.postGateway("/ws-native/ws/upload", requestBody, String.class);
-            assertEquals(response, "ok");
-        }catch (Exception e){
-            LOG.error("testWebsocketUpLoad error",e);
-        }
+    public void testWebsocketUpLoad() throws IOException {
+        File fileOne = new File(FILE_PATH);
+        RequestBody fileBodyOne = RequestBody.create(MediaType.parse("multipart/form-data"), fileOne);
+        MultipartBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", FILE_PATH, fileBodyOne)
+                .build();
+        final String response = HttpHelper.INSTANCE.postGateway("/ws-native/ws/upload", requestBody, String.class);
+        assertEquals(response, "ok");
     }
-
 
 
 }
