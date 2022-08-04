@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.websocket.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -24,11 +26,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
-
 @Service
 public class SaveFileImpl implements SaveFile {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SaveFileImpl.class);
+
     @Override
-    public boolean saveFileFromBytes(byte[] b, Map<String, Object> map) {
+    public boolean saveFileFromBytes(final byte[] b, final Map<String, Object> map) {
         FileOutputStream fstream = null;
         //从map中获取file对象
         File file = (File) map.get("file");
@@ -40,14 +44,14 @@ public class SaveFileImpl implements SaveFile {
             fstream = new FileOutputStream(file, true);
             fstream.write(b);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("saveFileFromBytes error", e);
             return false;
         } finally {
             if (fstream != null) {
                 try {
                     fstream.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+                } catch (IOException e) {
+                    LOG.error("saveFileFromBytes fstream error", e);
                 }
             }
         }
