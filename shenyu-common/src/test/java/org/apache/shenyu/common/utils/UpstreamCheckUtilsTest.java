@@ -19,6 +19,8 @@ package org.apache.shenyu.common.utils;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -31,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test cases for UpstreamCheckUtils.
  */
 public final class UpstreamCheckUtilsTest {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckUtilsTest.class);
 
     private volatile int port = -1;
 
@@ -50,7 +54,7 @@ public final class UpstreamCheckUtilsTest {
                 Socket socket = serverSocket.accept();
                 socket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage());
             }
         };
         new Thread(runnable).start();

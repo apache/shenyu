@@ -65,7 +65,7 @@ public class WsSessionManager {
             try {
                 session.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("session:{} close failed !", key, e);
             }
         }
     }
