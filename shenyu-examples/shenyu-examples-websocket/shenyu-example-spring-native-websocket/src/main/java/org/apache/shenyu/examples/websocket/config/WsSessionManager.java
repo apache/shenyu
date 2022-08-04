@@ -69,7 +69,7 @@ public class WsSessionManager {
             try {
                 session.close();
             } catch (IOException e) {
-                LOG.error("removeAndClose error", e);
+                log.error("session:{} close failed !", key, e);
             }
         }
     }

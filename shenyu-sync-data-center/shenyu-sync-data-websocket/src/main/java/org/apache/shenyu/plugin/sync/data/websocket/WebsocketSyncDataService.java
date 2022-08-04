@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.plugin.sync.data.websocket.client.ShenyuWebsocketClient;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
@@ -31,6 +32,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -42,6 +44,11 @@ public class WebsocketSyncDataService implements SyncDataService {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketSyncDataService.class);
+
+    /**
+     * see https://github.com/apache/tomcat/blob/main/java/org/apache/tomcat/websocket/Constants.java#L99.
+     */
+    private static final String ORIGIN_HEADER_NAME = "Origin";
     
     private final List<ShenyuWebsocketClient> clients = new ArrayList<>();
     
@@ -60,7 +67,12 @@ public class WebsocketSyncDataService implements SyncDataService {
         String[] urls = StringUtils.split(websocketConfig.getUrls(), ",");
         for (String url : urls) {
             try {
-                clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
+                if (StringUtils.isNotEmpty(websocketConfig.getAllowOrigin())) {
+                    Map<String, String> headers = ImmutableMap.of(ORIGIN_HEADER_NAME, websocketConfig.getAllowOrigin());
+                    clients.add(new ShenyuWebsocketClient(new URI(url), headers, Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
+                } else {
+                    clients.add(new ShenyuWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
+                }
             } catch (URISyntaxException e) {
                 LOG.error("websocket url({}) is error", url, e);
             }

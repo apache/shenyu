@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Test cases for UpstreamCheckUtils.
  */
 public final class UpstreamCheckUtilsTest {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckUtilsTest.class);
 
     private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckUtilsTest.class);
 
