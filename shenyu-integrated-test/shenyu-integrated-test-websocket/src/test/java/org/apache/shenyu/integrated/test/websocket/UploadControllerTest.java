@@ -24,8 +24,6 @@ import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -63,6 +61,5 @@ public class UploadControllerTest extends AbstractPluginDataInit {
         final String response = HttpHelper.INSTANCE.postGateway("/ws-native/ws/upload", requestBody, String.class);
         assertEquals(response, "ok");
     }
-
 
 }
