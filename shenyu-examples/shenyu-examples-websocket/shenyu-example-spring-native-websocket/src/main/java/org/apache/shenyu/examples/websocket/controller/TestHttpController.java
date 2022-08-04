@@ -67,6 +67,6 @@ public class TestHttpController {
         } catch (Exception e) {
 
         }
-        return file.getOriginalFilename();
+        return "ok";
     }
 }

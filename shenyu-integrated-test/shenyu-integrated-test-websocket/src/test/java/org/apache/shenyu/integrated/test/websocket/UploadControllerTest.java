@@ -17,57 +17,63 @@
 
 package org.apache.shenyu.integrated.test.websocket;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
+import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 
 public class UploadControllerTest extends AbstractPluginDataInit {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WebsocketPluginTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UploadControllerTest.class);
 
-    private static final String WEBSOCKET_URI = "ws://localhost:9195/ws-native/file?token=Jack";
+    private static final String FILE_PATH = "1.bin";
+
+    @BeforeAll
+    public static void setup() throws IOException {
+        Path pathOne = Paths.get(FILE_PATH);
+        if (!Files.exists(pathOne)) {
+            Files.createFile(pathOne);
+        }
+        try {
+            BufferedWriter bufferedWriterOne = Files.newBufferedWriter(pathOne);
+            bufferedWriterOne.write("111");
+            bufferedWriterOne.flush();
+            bufferedWriterOne.close();
+        } catch (IOException e) {
+            LOG.error("write file fail", e);
+        }
+    }
 
     @Test
-    public void testWebsocketUpLoad() throws InterruptedException, URISyntaxException {
-
-        WebSocketClient webSocketClient = new WebSocketClient(new URI(WEBSOCKET_URI)) {
-            @Override
-            public void onOpen(final ServerHandshake serverHandshake) {
-
-            }
-
-            @Override
-            public void onMessage(final String s) {
-
-            }
-
-            @Override
-            public void onClose(final int i, final String s, final boolean b) {
-
-            }
-
-            @Override
-            public void onError(final Exception e) {
-
-            }
-        };
-        byte[] msg = new byte[16];
-        msg[0] = 1;
-        webSocketClient.connectBlocking();
-        webSocketClient.send(msg);
-        ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(1);
-        String receivedMessage = blockingQueue.poll(10, TimeUnit.SECONDS);
-        assertThat(receivedMessage, is("apache shenyu server send to Jack message : -> " + msg));
+    public void testWebsocketUpLoad(){
+        try {
+            File fileOne = new File(FILE_PATH);
+            RequestBody fileBodyOne = RequestBody.create(MediaType.parse("multipart/form-data"), fileOne);
+            MultipartBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("file", FILE_PATH, fileBodyOne)
+                    .build();
+            final String response = HttpHelper.INSTANCE.postGateway("/ws-native/ws/upload", requestBody, String.class);
+            assertEquals(response, "ok");
+        }catch (Exception e){
+            LOG.error("testWebsocketUpLoad error",e);
+        }
     }
+
+
+
 }
