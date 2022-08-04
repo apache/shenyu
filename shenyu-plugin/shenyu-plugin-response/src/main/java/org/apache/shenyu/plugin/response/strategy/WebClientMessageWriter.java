@@ -136,6 +136,7 @@ public class WebClientMessageWriter implements MessageWriter {
         // binary => .bin
         // pdf => .pdf
         // octet-stream => octet-stream
+        // force-download => force-download
         Set<String> commonBinaryTypes = new HashSet<String>() {
             {
                 add("image");
@@ -152,6 +153,7 @@ public class WebClientMessageWriter implements MessageWriter {
                 add("binary");
                 add("pdf");
                 add("octet-stream");
+                add("force-download");
             }
         };
         StringJoiner regexBuilder = new StringJoiner("|");

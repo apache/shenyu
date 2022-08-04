@@ -18,6 +18,8 @@
 package org.apache.shenyu.examples.websocket.ws;
 
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.OnClose;
@@ -26,8 +28,6 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * WsServerEndpoint
@@ -37,7 +37,7 @@ import java.util.Map;
 @Component
 public class WsServerEndpoint {
 
-    private static Map<String, Session> onlineUserCache = new HashMap<>();
+    private static final Logger LOG = LoggerFactory.getLogger(WsServerEndpoint.class);
 
     /**
      * connect successful.
@@ -46,7 +46,7 @@ public class WsServerEndpoint {
      */
     @OnOpen
     public void onOpen(Session session) {
-        System.out.println("connect successful");
+        LOG.info("connect successful");
     }
 
     /**
@@ -56,7 +56,7 @@ public class WsServerEndpoint {
      */
     @OnClose
     public void onClose(Session session) {
-        System.out.println("connect closed");
+        LOG.info("connect closed");
     }
 
     /**
