@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -42,6 +46,8 @@ import static org.apache.tomcat.websocket.server.Constants.TEXT_BUFFER_SIZE_SERV
 @Configuration
 public class WebsocketConfigurator extends ServerEndpointConfig.Configurator implements ServletContextInitializer {
 
+    private static final Logger LOG = LoggerFactory.getLogger(WebsocketConfigurator.class);
+
     @Autowired
     private WebsocketSyncProperties websocketSyncProperties;
 
@@ -50,6 +56,22 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
         HttpSession httpSession = (HttpSession) request.getHttpSession();
         sec.getUserProperties().put(WebsocketListener.CLIENT_IP_NAME, httpSession.getAttribute(WebsocketListener.CLIENT_IP_NAME));
         super.modifyHandshake(sec, request, response);
+    }
+
+    @Override
+    public boolean checkOrigin(final String originHeaderValue) {
+        final WebsocketSyncProperties bean = SpringBeanUtils.getInstance().getBean(WebsocketSyncProperties.class);
+        if (StringUtils.isNotEmpty(bean.getAllowOrigins())) {
+            String[] split = StringUtils.split(bean.getAllowOrigins(), ";");
+            for (String configAllow : split) {
+                if (StringUtils.equals(configAllow, originHeaderValue)) {
+                    return true;
+                }
+            }
+            LOG.error("originHeaderValue is forbidden: " + originHeaderValue);
+            return false;
+        }
+        return super.checkOrigin(originHeaderValue);
     }
 
     @Override
