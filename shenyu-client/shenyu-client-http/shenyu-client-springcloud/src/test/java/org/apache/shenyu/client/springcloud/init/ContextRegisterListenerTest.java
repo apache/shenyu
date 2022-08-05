@@ -38,7 +38,9 @@ import org.springframework.core.env.Environment;
 
 import java.util.Properties;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test for {@link ContextRegisterListener}.
@@ -78,12 +80,12 @@ public final class ContextRegisterListenerTest {
     }
 
     @Test
-    public void TestSetBeanFactory() {
+    public void testSetBeanFactory() {
         contextRegisterListener.setBeanFactory(beanFactory);
     }
 
     @Test
-    public void TestOnApplicationEvent() {
+    public void testOnApplicationEvent() {
         MockedStatic<PortUtils> portUtilsMockedStatic = mockStatic(PortUtils.class);
         portUtilsMockedStatic.when(() -> PortUtils.findPort(beanFactory)).thenReturn(8080);
         contextRegisterListener.onApplicationEvent(mock(ContextRefreshedEvent.class));
