@@ -18,6 +18,8 @@
 package org.apache.shenyu.examples.websocket.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
@@ -28,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class WsSessionManager {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WsSessionManager.class);
     /**
      * save the connection session.
      */
