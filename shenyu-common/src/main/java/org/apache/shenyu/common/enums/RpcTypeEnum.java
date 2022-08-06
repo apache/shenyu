@@ -71,8 +71,7 @@ public enum RpcTypeEnum {
     /**
      * brpc.
      */
-    BRPC("brpc", true),
-    ;
+    BRPC("brpc", true);
 
     private final String name;
 
