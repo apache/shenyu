@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.dromara.springboot.starter.client.grpc;
+package org.apache.springboot.starter.client.grpc;
 
 import org.apache.shenyu.client.grpc.GrpcClientEventListener;
 import org.apache.shenyu.client.grpc.GrpcContextRefreshedEventListener;
