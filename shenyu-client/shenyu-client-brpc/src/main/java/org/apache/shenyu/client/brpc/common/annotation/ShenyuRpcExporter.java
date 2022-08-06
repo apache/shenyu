@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
 /**
  * The merged @interface of {@link ShenyuBrpcClient} and {@link RpcExporter}.
  */
-@Target({ElementType.TYPE})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
@@ -104,19 +104,19 @@ public @interface ShenyuRpcExporter {
     String interceptorBeanNames() default "";
     
     /**
-     * Group for naming service
+     * Group for naming service.
      */
     @AliasFor(annotation = RpcExporter.class)
     String group() default "normal";
     
     /**
-     * Version for naming service
+     * Version for naming service.
      */
     @AliasFor(annotation = RpcExporter.class)
     String version() default "1.0.0";
     
     /**
-     * ignore it when failed to register naming service
+     * ignore it when failed to register naming service.
      *
      * @return true, ignore
      */
@@ -124,10 +124,11 @@ public @interface ShenyuRpcExporter {
     boolean ignoreFailOfNamingService() default false;
     
     /**
-     * true: use the shared thread pool
+     * attention here - it is not global share thread pool between multi RpcClient/RpcServer ,
+     * if you want to use global thread pool , see rpc options.
+     *
+     * @return true: use the shared thread pool;
      * false: create individual thread pool for register service
-     * attention here - it is not global share thread pool between multi RpcClient/RpcServer , if you want to use
-     * global thread pool , see rpc options.
      */
     @AliasFor(annotation = RpcExporter.class)
     boolean useServiceSharedThreadPool() default true;
@@ -137,6 +138,8 @@ public @interface ShenyuRpcExporter {
      * <p>
      * This config may have different behavior depending on which NamingService is used,
      * consult documentation of the specific {@link com.baidu.brpc.naming.NamingService} for detailed usage.
+     *
+     * @return Extra naming options
      */
     @AliasFor(annotation = RpcExporter.class)
     NamingOption[] extraOptions() default {};

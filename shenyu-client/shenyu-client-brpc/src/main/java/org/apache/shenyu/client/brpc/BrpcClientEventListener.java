@@ -122,7 +122,8 @@ public class BrpcClientEventListener implements ApplicationListener<ContextRefre
         }
     }
     
-    private MetaDataRegisterDTO buildMetaDataDTO(final Class<?> clazz, final ShenyuBrpcClient shenyuDubboClient, RpcExporter rpcExporter, final Method method, final String superPath) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final Class<?> clazz, final ShenyuBrpcClient shenyuDubboClient,
+                                                 final RpcExporter rpcExporter, final Method method, final String superPath) {
         String path = superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName()) : pathJoin(contextPath, superPath, shenyuDubboClient.path());
         String desc = shenyuDubboClient.desc();
         String configRuleName = shenyuDubboClient.ruleName();
