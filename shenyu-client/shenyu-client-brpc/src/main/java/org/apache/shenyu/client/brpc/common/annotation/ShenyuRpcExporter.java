@@ -139,7 +139,7 @@ public @interface ShenyuRpcExporter {
     /**
      * Extra naming options. This option is effective on service-scope.
      *
-     * <p> This config may have different behavior depending on which NamingService is used,
+     * <p>This config may have different behavior depending on which NamingService is used,
      * consult documentation of the specific {@link com.baidu.brpc.naming.NamingService} for detailed usage.
      *
      * @return Extra naming options
