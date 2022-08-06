@@ -92,7 +92,7 @@ public class BrpcClientEventListenerTest {
         properties.setProperty("contextPath", "/brpc");
         properties.setProperty("ipAndPort", "127.0.0.1:21715");
         properties.setProperty("host", "127.0.0.1");
-        properties.setProperty("port", "8289");
+        properties.setProperty("port", "21715");
         properties.setProperty("username", "admin");
         properties.setProperty("password", "123456");
         PropertiesConfig config = new PropertiesConfig();
