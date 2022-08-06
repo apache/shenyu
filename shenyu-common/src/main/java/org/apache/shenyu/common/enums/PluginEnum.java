@@ -216,6 +216,11 @@ public enum PluginEnum {
      * Motan plugin enum.
      */
     MOTAN(310, 0, "motan"),
+    
+    /**
+     * brpc plugin enum.
+     */
+    BRPC(310, 0, "brpc"),
 
     /**
      * Cryptor response plugin enum.
@@ -295,6 +300,6 @@ public enum PluginEnum {
      * @return List string
      */
     public static List<String> getUpstreamNames() {
-        return Arrays.asList(DIVIDE.name, GRPC.name, TARS.name, SPRING_CLOUD.name, DUBBO.name);
+        return Arrays.asList(DIVIDE.name, GRPC.name, TARS.name, SPRING_CLOUD.name, DUBBO.name, BRPC.name);
     }
 }

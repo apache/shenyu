@@ -34,6 +34,8 @@ public class PluginNameAdapter {
     public static String rpcTypeAdapter(final String rpcType) {
         RpcTypeEnum rpcTypeEnum = RpcTypeEnum.acquireByName(rpcType);
         switch (rpcTypeEnum) {
+            case BRPC:
+                return PluginEnum.BRPC.getName();
             case GRPC:
                 return PluginEnum.GRPC.getName();
             case SPRING_CLOUD:
