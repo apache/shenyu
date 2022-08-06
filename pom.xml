@@ -105,6 +105,7 @@
         <swagger.version>2.9.2</swagger.version>
         <sofa.rpc.version>5.7.6</sofa.rpc.version>
         <tars.version>1.7.2</tars.version>
+        <brpc.version>3.0.4</brpc.version>
         <skipTests>false</skipTests>
         <undertow.version>2.2.2.Final</undertow.version>
         <curator.version>4.3.0</curator.version>
@@ -397,6 +398,12 @@
                 <groupId>com.tencent.tars</groupId>
                 <artifactId>tars-spring-boot-starter</artifactId>
                 <version>${tars.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baidu</groupId>
+                <artifactId>brpc-spring-boot-starter</artifactId>
+                <version>${brpc.version}</version>
             </dependency>
 
             <dependency>

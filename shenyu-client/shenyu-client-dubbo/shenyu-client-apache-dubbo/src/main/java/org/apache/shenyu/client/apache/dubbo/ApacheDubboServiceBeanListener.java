@@ -25,7 +25,6 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
-import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -45,8 +44,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -55,7 +52,6 @@ import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
 /**
  * The Apache Dubbo ServiceBean Listener.
  */
-@SuppressWarnings("all")
 public class ApacheDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
 
     private static final String DEFAULT_CLUSTER = "failover";
@@ -67,15 +63,13 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
 
     private static final Boolean DEFAULT_SENT = Boolean.FALSE;
 
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
-    private ExecutorService executorService;
+    private final String contextPath;
 
-    private String contextPath;
-
-    private String appName;
+    private final String appName;
 
     private final String host;
 
@@ -92,7 +86,6 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         this.appName = appName;
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
-        executorService = Executors.newSingleThreadExecutor(ShenyuThreadFactory.create("shenyu-apache-dubbo-client-thread-pool", false));
         publisher.start(shenyuClientRegisterRepository);
     }
 
@@ -101,14 +94,15 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
      *
      * @param contextRefreshedEvent  spring contextRefreshedEvent
      */
+    @SuppressWarnings("all")
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        if (!registered.compareAndSet(false, true)) {
+            return;
+        }
         // Fix bug(https://github.com/dromara/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
         Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
         if (serviceBean.isEmpty()) {
-            return;
-        }
-        if (!registered.compareAndSet(false, true)) {
             return;
         }
         for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
@@ -126,7 +120,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
             clazz = AopUtils.getTargetClass(refProxy);
         }
         final ShenyuDubboClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuDubboClient.class);
-        final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
+        final String superPath = buildApiSuperPath(beanShenyuClient);
         if (superPath.contains("*") && Objects.nonNull(beanShenyuClient)) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
@@ -143,7 +137,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         }
     }
 
-    private String buildApiSuperPath(@NonNull final Class<?> clazz, final ShenyuDubboClient shenyuDubboClient) {
+    private String buildApiSuperPath(final ShenyuDubboClient shenyuDubboClient) {
         if (Objects.nonNull(shenyuDubboClient) && !StringUtils.isBlank(shenyuDubboClient.path())) {
             return shenyuDubboClient.path();
         }
@@ -188,7 +182,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
                 .build();
     }
 
-    private URIRegisterDTO buildURIRegisterDTO(final ServiceBean serviceBean) {
+    private URIRegisterDTO buildURIRegisterDTO(final ServiceBean<?> serviceBean) {
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
                 .appName(buildAppName(serviceBean))
@@ -198,7 +192,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
                 .build();
     }
 
-    private String buildRpcExt(final ServiceBean serviceBean) {
+    private String buildRpcExt(final ServiceBean<?> serviceBean) {
         DubboRpcExt build = DubboRpcExt.builder()
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
@@ -212,7 +206,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         return GsonUtils.getInstance().toJson(build);
     }
 
-    private String buildAppName(final ServiceBean serviceBean) {
+    private String buildAppName(final ServiceBean<?> serviceBean) {
         return StringUtils.isBlank(this.appName) ? serviceBean.getApplication().getName() : this.appName;
     }
 
@@ -220,7 +214,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         return IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
     }
 
-    private int buildPort(final ServiceBean serviceBean) {
+    private int buildPort(final ServiceBean<?> serviceBean) {
         return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
     }
 }
