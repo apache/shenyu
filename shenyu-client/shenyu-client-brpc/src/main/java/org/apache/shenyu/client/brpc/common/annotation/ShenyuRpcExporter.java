@@ -105,12 +105,16 @@ public @interface ShenyuRpcExporter {
     
     /**
      * Group for naming service.
+     *
+     * @return group
      */
     @AliasFor(annotation = RpcExporter.class)
     String group() default "normal";
     
     /**
      * Version for naming service.
+     *
+     * @return version
      */
     @AliasFor(annotation = RpcExporter.class)
     String version() default "1.0.0";
@@ -127,16 +131,15 @@ public @interface ShenyuRpcExporter {
      * attention here - it is not global share thread pool between multi RpcClient/RpcServer ,
      * if you want to use global thread pool , see rpc options.
      *
-     * @return true: use the shared thread pool;
-     * false: create individual thread pool for register service
+     * @return true: use the shared thread pool; false: create individual thread pool for register service
      */
     @AliasFor(annotation = RpcExporter.class)
     boolean useServiceSharedThreadPool() default true;
     
     /**
      * Extra naming options. This option is effective on service-scope.
-     * <p>
-     * This config may have different behavior depending on which NamingService is used,
+     *
+     * <p> This config may have different behavior depending on which NamingService is used,
      * consult documentation of the specific {@link com.baidu.brpc.naming.NamingService} for detailed usage.
      *
      * @return Extra naming options
