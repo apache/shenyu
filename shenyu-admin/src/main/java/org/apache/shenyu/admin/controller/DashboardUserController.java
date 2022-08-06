@@ -118,8 +118,6 @@ public class DashboardUserController {
     public ShenyuAdminResult createDashboardUser(@Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         return Optional.ofNullable(dashboardUserDTO)
                 .map(item -> {
-                    Assert.notBlack(item.getPassword(), ShenyuResultMessage.PARAMETER_ERROR + ": password is not balck");
-                    Assert.notNull(item.getRole(), ShenyuResultMessage.PARAMETER_ERROR + ": role is not null");
                     item.setPassword(ShaUtils.shaEncryption(item.getPassword()));
                     Integer createCount = dashboardUserService.createOrUpdate(item);
                     return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
