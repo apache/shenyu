@@ -41,38 +41,38 @@ import static org.mockito.Mockito.mockStatic;
 @Configuration
 @EnableConfigurationProperties
 public class ShenyuBrpcClientConfigurationTest {
-
+    
     private ApplicationContextRunner applicationContextRunner;
-
+    
     @BeforeEach
     public void before() {
         applicationContextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(ShenyuBrpcClientConfiguration.class))
-            .withBean(ShenyuBrpcClientConfigurationTest.class)
-            .withPropertyValues(
-                "debug=true",
-                "shenyu.register.registerType=http",
-                "shenyu.register.serverLists=http://localhost:9095",
-                "shenyu.register.props.username=admin",
-                "shenyu.register.props.password=123456",
-                "shenyu.client.brpc.props[contextPath]=/brpc",
-                "shenyu.client.brpc.props[appName]=brpc",
-                "shenyu.client.brpc.props[host]=127.0.0.1",
-                "shenyu.client.brpc.props[port]=21715"
-            );
+                .withConfiguration(AutoConfigurations.of(ShenyuBrpcClientConfiguration.class))
+                .withBean(ShenyuBrpcClientConfigurationTest.class)
+                .withPropertyValues(
+                        "debug=true",
+                        "shenyu.register.registerType=http",
+                        "shenyu.register.serverLists=http://localhost:9095",
+                        "shenyu.register.props.username=admin",
+                        "shenyu.register.props.password=123456",
+                        "shenyu.client.brpc.props[contextPath]=/brpc",
+                        "shenyu.client.brpc.props[ipAndPort]=127.0.0.1:21715",
+                        "shenyu.client.brpc.props[host]=127.0.0.1",
+                        "shenyu.client.brpc.props[port]=21715"
+                );
     }
-
+    
     @Test
     public void testBrpcServiceBeanPostProcessor() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         applicationContextRunner.run(context -> {
-            BrpcClientEventListener processor = context.getBean("brpcClientEventListener", BrpcClientEventListener.class);
-            assertNotNull(processor);
+            BrpcClientEventListener listener = context.getBean("brpcClientEventListener", BrpcClientEventListener.class);
+            assertNotNull(listener);
         });
         registerUtilsMockedStatic.close();
     }
-
+    
     @Test
     public void testBrpcContextRefreshedEventListener() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);

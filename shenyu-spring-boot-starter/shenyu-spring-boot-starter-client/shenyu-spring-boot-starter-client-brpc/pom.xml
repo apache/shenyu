@@ -19,6 +19,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.baidu</groupId>
+            <artifactId>brpc-spring-boot-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-client-common</artifactId>
             <version>${project.version}</version>

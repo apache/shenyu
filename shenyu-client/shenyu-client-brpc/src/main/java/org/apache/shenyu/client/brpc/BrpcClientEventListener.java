@@ -74,13 +74,12 @@ public class BrpcClientEventListener implements ApplicationListener<ContextRefre
     
     public BrpcClientEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = clientConfig.getProps();
-        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
+        this.contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
         this.ipAndPort = props.getProperty(ShenyuClientConstants.IP_PORT);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
         if (StringUtils.isAnyBlank(contextPath, ipAndPort, port)) {
             throw new ShenyuClientIllegalArgumentException("brpc client must config the contextPath, ipAndPort");
         }
-        this.contextPath = contextPath;
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         publisher.start(shenyuClientRegisterRepository);
     }
