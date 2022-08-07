@@ -146,3 +146,10 @@ UPDATE plugin SET config='{"multiSelectorHandle":"1","multiRuleHandle":"0","thre
 -- UPDATE plugin SET config='{"protocol":"zookeeper","register":"127.0.0.1:2181","threadpool":"shared"}' WHERE "name" = 'sofa';
 -- UPDATE plugin SET config='{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared"}' WHERE "name" = 'dubbo';
 -- if you want to execute this SQL, please replace it with your ZK configuration
+
+-- modify resource table columns
+ALTER TABLE `resource` ALTER COLUMN `parent_id` DROP NOT NULL;
+ALTER TABLE `resource` ALTER COLUMN `name` DROP NOT NULL;
+ALTER TABLE `resource` ALTER COLUMN `component` DROP NOT NULL;
+ALTER TABLE `resource` ALTER COLUMN `icon` DROP NOT NULL;
+ALTER TABLE `resource` ALTER COLUMN `perms` DROP NOT NULL;

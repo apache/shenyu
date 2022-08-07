@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.mapper.ResourceMapper;
+import org.apache.shenyu.admin.model.enums.ResourceTypeEnum;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import javax.validation.constraints.NotBlank;
@@ -28,88 +29,84 @@ import java.util.Objects;
  * this is resource Dto.
  */
 public class ResourceDTO {
-    
+
     /**
      * primary key.
      */
     @Existed(provider = ResourceMapper.class, nullOfIgnore = true, message = "resource not existed")
     private String id;
-    
+
     /**
      * resource parent key.
      */
-    @NotBlank
     private String parentId;
-    
+
     /**
      * resource title.
      */
     @NotBlank
     private String title;
-    
+
     /**
      * resource name.
      */
-    @NotBlank
     private String name;
-    
+
     /**
      * resource url.
+     *
+     * <p>Adding buttuon is not required, but adding resources is required.<p/>
      */
-    @NotBlank
     private String url;
-    
+
     /**
      * resource component.
      */
-    @NotBlank
     private String component;
-    
+
     /**
-     * resource type.
+     * resource type. {@link ResourceTypeEnum}
      */
     @NotNull
     private Integer resourceType;
-    
+
     /**
      * resource sort.
      */
     @NotNull
     private Integer sort;
-    
+
     /**
      * resource icon.
      */
-    @NotBlank
     private String icon;
-    
+
     /**
      * resource is leaf.
      */
     @NotNull
     private Boolean isLeaf;
-    
+
     /**
      * resource is route.
      */
     @NotNull
     private Integer isRoute;
-    
+
     /**
      * resource perms.
      */
-    @NotBlank
     private String perms;
-    
+
     /**
      * resource status.
      */
     @NotNull
     private Integer status;
-    
+
     public ResourceDTO() {
     }
-    
+
     public ResourceDTO(final String id,
                        final String parentId,
                        @NotBlank final String title,
@@ -137,7 +134,7 @@ public class ResourceDTO {
         this.perms = perms;
         this.status = status;
     }
-    
+
     /**
      * Gets the value of id.
      *
@@ -146,7 +143,7 @@ public class ResourceDTO {
     public String getId() {
         return id;
     }
-    
+
     /**
      * Sets the id.
      *
@@ -155,7 +152,7 @@ public class ResourceDTO {
     public void setId(final String id) {
         this.id = id;
     }
-    
+
     /**
      * Gets the value of parentId.
      *
@@ -164,7 +161,7 @@ public class ResourceDTO {
     public String getParentId() {
         return parentId;
     }
-    
+
     /**
      * Sets the parentId.
      *
@@ -173,7 +170,7 @@ public class ResourceDTO {
     public void setParentId(final String parentId) {
         this.parentId = parentId;
     }
-    
+
     /**
      * Gets the value of title.
      *
@@ -182,7 +179,7 @@ public class ResourceDTO {
     public String getTitle() {
         return title;
     }
-    
+
     /**
      * Sets the title.
      *
@@ -191,7 +188,7 @@ public class ResourceDTO {
     public void setTitle(final String title) {
         this.title = title;
     }
-    
+
     /**
      * Gets the value of name.
      *
@@ -200,7 +197,7 @@ public class ResourceDTO {
     public String getName() {
         return name;
     }
-    
+
     /**
      * Sets the name.
      *
@@ -209,7 +206,7 @@ public class ResourceDTO {
     public void setName(final String name) {
         this.name = name;
     }
-    
+
     /**
      * Gets the value of url.
      *
@@ -218,7 +215,7 @@ public class ResourceDTO {
     public String getUrl() {
         return url;
     }
-    
+
     /**
      * Sets the url.
      *
@@ -227,7 +224,7 @@ public class ResourceDTO {
     public void setUrl(final String url) {
         this.url = url;
     }
-    
+
     /**
      * Gets the value of component.
      *
@@ -236,7 +233,7 @@ public class ResourceDTO {
     public String getComponent() {
         return component;
     }
-    
+
     /**
      * Sets the component.
      *
@@ -245,7 +242,7 @@ public class ResourceDTO {
     public void setComponent(final String component) {
         this.component = component;
     }
-    
+
     /**
      * Gets the value of resourceType.
      *
@@ -254,7 +251,7 @@ public class ResourceDTO {
     public Integer getResourceType() {
         return resourceType;
     }
-    
+
     /**
      * Sets the resourceType.
      *
@@ -263,7 +260,7 @@ public class ResourceDTO {
     public void setResourceType(final Integer resourceType) {
         this.resourceType = resourceType;
     }
-    
+
     /**
      * Gets the value of sort.
      *
@@ -272,7 +269,7 @@ public class ResourceDTO {
     public Integer getSort() {
         return sort;
     }
-    
+
     /**
      * Sets the sort.
      *
@@ -281,7 +278,7 @@ public class ResourceDTO {
     public void setSort(final Integer sort) {
         this.sort = sort;
     }
-    
+
     /**
      * Gets the value of icon.
      *
@@ -290,7 +287,7 @@ public class ResourceDTO {
     public String getIcon() {
         return icon;
     }
-    
+
     /**
      * Sets the icon.
      *
@@ -299,7 +296,7 @@ public class ResourceDTO {
     public void setIcon(final String icon) {
         this.icon = icon;
     }
-    
+
     /**
      * Gets the value of isLeaf.
      *
@@ -308,7 +305,7 @@ public class ResourceDTO {
     public Boolean getIsLeaf() {
         return isLeaf;
     }
-    
+
     /**
      * Sets the isLeaf.
      *
@@ -317,7 +314,7 @@ public class ResourceDTO {
     public void setIsLeaf(final Boolean isLeaf) {
         this.isLeaf = isLeaf;
     }
-    
+
     /**
      * Gets the value of isRoute.
      *
@@ -326,7 +323,7 @@ public class ResourceDTO {
     public Integer getIsRoute() {
         return isRoute;
     }
-    
+
     /**
      * Sets the isRoute.
      *
@@ -335,7 +332,7 @@ public class ResourceDTO {
     public void setIsRoute(final Integer isRoute) {
         this.isRoute = isRoute;
     }
-    
+
     /**
      * Gets the value of perms.
      *
@@ -344,7 +341,7 @@ public class ResourceDTO {
     public String getPerms() {
         return perms;
     }
-    
+
     /**
      * Sets the perms.
      *
@@ -353,7 +350,7 @@ public class ResourceDTO {
     public void setPerms(final String perms) {
         this.perms = perms;
     }
-    
+
     /**
      * Gets the value of status.
      *
@@ -362,7 +359,7 @@ public class ResourceDTO {
     public Integer getStatus() {
         return status;
     }
-    
+
     /**
      * Sets the status.
      *
@@ -371,7 +368,7 @@ public class ResourceDTO {
     public void setStatus(final Integer status) {
         this.status = status;
     }
-    
+
     /**
      * builder method.
      *
@@ -380,7 +377,7 @@ public class ResourceDTO {
     public static ResourceDTO.ResourceDTOBuilder builder() {
         return new ResourceDTO.ResourceDTOBuilder();
     }
-    
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -404,43 +401,43 @@ public class ResourceDTO {
                 && Objects.equals(perms, that.perms)
                 && Objects.equals(status, that.status);
     }
-    
+
     @Override
     public int hashCode() {
         return Objects.hash(id, parentId, title, name, url, component, resourceType, sort, icon, isLeaf, isRoute, perms, status);
     }
-    
+
     public static final class ResourceDTOBuilder {
-        
+
         private String id;
-        
+
         private String parentId;
-        
+
         private String title;
-        
+
         private String name;
-        
+
         private String url;
-        
+
         private String component;
-        
+
         private Integer resourceType;
-        
+
         private Integer sort;
-        
+
         private String icon;
-        
+
         private Boolean isLeaf;
-        
+
         private Integer isRoute;
-        
+
         private String perms;
-        
+
         private Integer status;
-        
+
         private ResourceDTOBuilder() {
         }
-        
+
         /**
          * id.
          *
@@ -451,7 +448,7 @@ public class ResourceDTO {
             this.id = id;
             return this;
         }
-        
+
         /**
          * parentId.
          *
@@ -462,7 +459,7 @@ public class ResourceDTO {
             this.parentId = parentId;
             return this;
         }
-        
+
         /**
          * title.
          *
@@ -473,7 +470,7 @@ public class ResourceDTO {
             this.title = title;
             return this;
         }
-        
+
         /**
          * name.
          *
@@ -484,7 +481,7 @@ public class ResourceDTO {
             this.name = name;
             return this;
         }
-        
+
         /**
          * url.
          *
@@ -495,7 +492,7 @@ public class ResourceDTO {
             this.url = url;
             return this;
         }
-        
+
         /**
          * component.
          *
@@ -506,7 +503,7 @@ public class ResourceDTO {
             this.component = component;
             return this;
         }
-        
+
         /**
          * resourceType.
          *
@@ -517,7 +514,7 @@ public class ResourceDTO {
             this.resourceType = resourceType;
             return this;
         }
-        
+
         /**
          * sort.
          *
@@ -528,7 +525,7 @@ public class ResourceDTO {
             this.sort = sort;
             return this;
         }
-        
+
         /**
          * icon.
          *
@@ -539,7 +536,7 @@ public class ResourceDTO {
             this.icon = icon;
             return this;
         }
-        
+
         /**
          * isLeaf.
          *
@@ -550,7 +547,7 @@ public class ResourceDTO {
             this.isLeaf = isLeaf;
             return this;
         }
-        
+
         /**
          * isRoute.
          *
@@ -561,7 +558,7 @@ public class ResourceDTO {
             this.isRoute = isRoute;
             return this;
         }
-        
+
         /**
          * perms.
          *
@@ -572,7 +569,7 @@ public class ResourceDTO {
             this.perms = perms;
             return this;
         }
-        
+
         /**
          * status.
          *
@@ -583,7 +580,7 @@ public class ResourceDTO {
             this.status = status;
             return this;
         }
-        
+
         /**
          * build method.
          *

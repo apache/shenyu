@@ -21,8 +21,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
+import org.apache.shenyu.admin.model.enums.ResourceTypeEnum;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ResourceQuery;
@@ -138,6 +140,10 @@ public class ResourceController {
     @PostMapping("")
     @RequiresPermissions(value = {"system:resource:addMenu", "system:resource:addButton"}, logical = Logical.OR)
     public ShenyuAdminResult createResource(@Valid @RequestBody final ResourceDTO resourceDTO) {
+        if (ResourceTypeEnum.isMenuFlag(resourceDTO.getResourceType())
+                && StringUtils.isBlank(resourceDTO.getUrl())) {
+            return ShenyuAdminResult.error("Request error! invalid argument [url: must not be blank]");
+        }
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
     }
     

@@ -906,17 +906,17 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524971', '34', 'buffe
 DROP TABLE IF EXISTS "public"."resource";
 CREATE TABLE "public"."resource" (
   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "parent_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "parent_id" varchar(128) COLLATE "pg_catalog"."default",
   "title" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+  "name" varchar(32) COLLATE "pg_catalog"."default",
   "url" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "component" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+  "component" varchar(32) COLLATE "pg_catalog"."default",
   "resource_type" int4 NOT NULL,
   "sort" int4 NOT NULL,
-  "icon" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+  "icon" varchar(32) COLLATE "pg_catalog"."default",
   "is_leaf" int2 NOT NULL,
   "is_route" int4 NOT NULL,
-  "perms" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "perms" varchar(64) COLLATE "pg_catalog"."default",
   "status" int4 NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)

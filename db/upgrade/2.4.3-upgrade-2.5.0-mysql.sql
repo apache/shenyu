@@ -135,3 +135,12 @@ UPDATE plugin SET config='{"multiSelectorHandle":"1","multiRuleHandle":"0","thre
 -- UPDATE plugin SET config='{"protocol":"zookeeper","register":"127.0.0.1:2181","threadpool":"shared"}' WHERE "name" = 'sofa';
 -- UPDATE plugin SET config='{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared"}' WHERE "name" = 'dubbo';
 -- if you want to execute this SQL, please replace it with your ZK configuration
+
+-- modify resource table columns
+ALTER TABLE `resource` MODIFY COLUMN `parent_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'resource parent primary key id';
+ALTER TABLE `resource` MODIFY COLUMN `name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'route name';
+ALTER TABLE `resource` MODIFY COLUMN `component` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'component';
+ALTER TABLE `resource` MODIFY COLUMN `icon` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'icon';
+ALTER TABLE `resource` MODIFY COLUMN `perms` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'button permission description sys:user:add(add)/sys:user:edit(edit)';
+
+
