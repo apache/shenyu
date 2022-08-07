@@ -117,6 +117,8 @@ public final class PluginHandleControllerTest {
         pluginHandleDTO.setPluginId("1213");
         pluginHandleDTO.setDataType(1);
         pluginHandleDTO.setField("f");
+        pluginHandleDTO.setType(1);
+        pluginHandleDTO.setSort(1);
         given(this.pluginHandleService.createOrUpdate(pluginHandleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin-handle/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -133,6 +135,8 @@ public final class PluginHandleControllerTest {
         pluginHandleDTO.setPluginId("1213");
         pluginHandleDTO.setDataType(1);
         pluginHandleDTO.setField("f");
+        pluginHandleDTO.setType(1);
+        pluginHandleDTO.setSort(1);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(PluginHandleMapper.class)).thenReturn(handleMapper);
         when(handleMapper.existed(pluginHandleDTO.getId())).thenReturn(true);
