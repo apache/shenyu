@@ -17,12 +17,15 @@
 
 package org.apache.shenyu.client.tars;
 
+import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -40,10 +43,11 @@ import java.util.Optional;
 import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 /**
  * Test case for {@link TarsServiceBeanEventListener}.
@@ -55,6 +59,8 @@ public final class TarsServiceBeanPostProcessorTest {
 
     private final TarsDemoService tarsDemoService = new TarsDemoService();
 
+    private final TarsDemoService2 tarsDemoService2 = new TarsDemoService2();
+
     @Mock
     private ApplicationContext applicationContext;
 
@@ -64,9 +70,14 @@ public final class TarsServiceBeanPostProcessorTest {
     public void init() {
         Map<String, Object> results = new LinkedHashMap();
         results.put("tarsDemoService", tarsDemoService);
+        results.put("tarsDemoService2", tarsDemoService2);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
         contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
 
+        Properties properties = mock(Properties.class);
+        PropertiesConfig clientConfig = mock(PropertiesConfig.class);
+        when(clientConfig.getProps()).thenReturn(properties);
+        Assert.assertThrows(ShenyuClientIllegalArgumentException.class, () -> new TarsServiceBeanEventListener(clientConfig, mock(ShenyuClientRegisterRepository.class)));
     }
 
     @Test
@@ -108,6 +119,19 @@ public final class TarsServiceBeanPostProcessorTest {
     @ShenyuTarsService(serviceName = "testObj")
     static class TarsDemoService {
         @ShenyuTarsClient("hello")
+        public String test(final String hello) {
+            return hello + "";
+        }
+
+        @ShenyuTarsClient("hello2/*")
+        public String test2(final String hello) {
+            return hello + "";
+        }
+    }
+
+    @ShenyuTarsService(serviceName = "testObj2")
+    @ShenyuTarsClient("hello2/*")
+    static class TarsDemoService2 {
         public String test(final String hello) {
             return hello + "";
         }

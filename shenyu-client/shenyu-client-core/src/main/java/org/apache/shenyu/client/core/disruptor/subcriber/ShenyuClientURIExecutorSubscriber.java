@@ -75,7 +75,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
                     try {
                         TimeUnit.MILLISECONDS.sleep(sleepTime);
                     } catch (InterruptedException ex) {
-                        ex.printStackTrace();
+                        LOG.error("interrupted when sleep", ex);
                     }
                 }
             }

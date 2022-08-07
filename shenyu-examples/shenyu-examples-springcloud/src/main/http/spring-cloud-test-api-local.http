@@ -93,3 +93,15 @@ Content-Type: application/json
 POST http://localhost:8884/class/annotation/post
 Accept: application/json
 Content-Type: application/json
+
+### shengyu local used upload file
+POST http://localhost:8884/upload/file
+Cache-Control: no-cache
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="1.txt";
+Content-Type: multipart/form-data
+
+< ../../../../shenyu-examples-common/src/main/resources/1.txt
+--WebAppBoundary--

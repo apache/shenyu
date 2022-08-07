@@ -21,13 +21,17 @@ import hello.HelloResponse;
 import hello.HelloServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 
 @ShenyuGrpcClient("/helloService/**")
 @Service
 public class HelloServiceImpl extends HelloServiceGrpc.HelloServiceImplBase {
-
+    
+    private static final Logger LOG = LoggerFactory.getLogger(HelloServiceImpl.class);
+    
     @Override
     public void hello(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
         HelloResponse response = HelloResponse.newBuilder().setData("hello: " + request.getData()).build();
@@ -48,7 +52,7 @@ public class HelloServiceImpl extends HelloServiceGrpc.HelloServiceImplBase {
 
             @Override
             public void onError(final Throwable t) {
-                t.printStackTrace();
+                LOG.error(t.getMessage());
             }
 
             @Override

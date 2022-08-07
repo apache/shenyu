@@ -34,7 +34,7 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <build>
-                <finalName>apache-shenyu-incubating-${project.version}</finalName>
+                <finalName>apache-shenyu-${project.version}</finalName>
                 <plugins>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>

@@ -20,12 +20,12 @@ package org.apache.shenyu.springboot.starter.plugin.alibaba.dubbo;
 import org.apache.shenyu.plugin.alibaba.dubbo.AlibabaDubboPlugin;
 import org.apache.shenyu.plugin.alibaba.dubbo.handler.AlibabaDubboPluginDataHandler;
 import org.apache.shenyu.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
-import org.apache.shenyu.plugin.alibaba.dubbo.subscriber.AlibabaDubboMetaDataSubscriber;
+import org.apache.shenyu.plugin.alibaba.dubbo.handler.AlibabaDubboMetaDataHandler;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.springboot.plugin.dubbo.common.DubboCommonConfiguration;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -64,13 +64,13 @@ public class AlibabaDubboPluginConfiguration {
     }
     
     /**
-     * Dubbo meta data subscriber.
+     * Dubbo meta data handler.
      *
-     * @return the meta data subscriber
+     * @return the meta data handler
      */
     @Bean
-    public MetaDataSubscriber dubboMetaDataSubscriber() {
-        return new AlibabaDubboMetaDataSubscriber();
+    public MetaDataHandler alibabaDubboMetaDataHandler() {
+        return new AlibabaDubboMetaDataHandler();
     }
     
 }
