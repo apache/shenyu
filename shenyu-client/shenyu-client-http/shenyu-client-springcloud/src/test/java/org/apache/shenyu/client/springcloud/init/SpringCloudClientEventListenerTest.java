@@ -19,7 +19,13 @@ package org.apache.shenyu.client.springcloud.init;
 
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuGetMapping;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuPostMapping;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuRequestMapping;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuDeleteMapping;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuPutMapping;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuPatchMapping;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -40,6 +46,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -67,6 +74,8 @@ public final class SpringCloudClientEventListenerTest {
 
     private final SpringCloudClientTestBean springCloudClientTestBean = new SpringCloudClientTestBean();
 
+    private final SpringCloudClientTestBean2 springCloudClientTestBean2 = new SpringCloudClientTestBean2();
+
     @Mock
     private ApplicationContext applicationContext;
 
@@ -80,6 +89,7 @@ public final class SpringCloudClientEventListenerTest {
     private void init() {
         Map<String, Object> results = new LinkedHashMap<>();
         results.put("springCloudClientTestBean", springCloudClientTestBean);
+        results.put("springCloudClientTestBean2", springCloudClientTestBean2);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
         contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
     }
@@ -150,6 +160,36 @@ public final class SpringCloudClientEventListenerTest {
         @ShenyuSpringCloudClient(path = "")
         public String update(@RequestBody final String body) {
             return "" + body;
+        }
+    }
+
+    @RestController
+    @ShenyuRequestMapping(value = "/order", ruleName = "divide", enabled = false, desc = "it`s test.")
+    static class SpringCloudClientTestBean2 {
+
+        @ShenyuPostMapping(value = "/save")
+        public String save(@RequestBody final String body) {
+            return "" + body;
+        }
+
+        @ShenyuGetMapping("/{id}")
+        public String get(@PathVariable final String id) {
+            return "" + id;
+        }
+
+        @ShenyuDeleteMapping("/{id}")
+        public String delete(@PathVariable final String id) {
+            return "" + id;
+        }
+
+        @ShenyuPutMapping("/put")
+        public String put(@RequestBody final String body) {
+            return "" + body;
+        }
+
+        @ShenyuPatchMapping("/patch")
+        public String patch(@RequestBody final String operator) {
+            return "" + operator;
         }
     }
 }
