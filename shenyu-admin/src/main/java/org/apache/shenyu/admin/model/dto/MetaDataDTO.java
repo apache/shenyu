@@ -62,6 +62,7 @@ public class MetaDataDTO implements Serializable {
     /**
      * rpc tyoe is not null.
      */
+    @NotBlank
     private String rpcType;
     
     /**
