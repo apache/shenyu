@@ -106,7 +106,7 @@ public final class AppAuthControllerTest {
         pathList.add("/test");
         authApplyDTO.setAppName("testApp");
         authApplyDTO.setUserId("testUser");
-        authApplyDTO.setPhone("18600000000");
+        authApplyDTO.setPhone("+1234567");
         authApplyDTO.setAppParam("{\"type\": \"test\"}");
         authApplyDTO.setExtInfo("{\"extInfo\": \"test\"}");
         authApplyDTO.setOpen(true);
@@ -187,7 +187,7 @@ public final class AppAuthControllerTest {
         appAuthDTO.setId("0001");
         appAuthDTO.setAppKey("app key");
         appAuthDTO.setAppSecret("app secret");
-        appAuthDTO.setPhone("18600000001");
+        appAuthDTO.setPhone("1234567");
         given(this.appAuthService.updateDetail(appAuthDTO)).willReturn(
                 ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS));
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
