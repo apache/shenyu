@@ -20,7 +20,6 @@ package org.apache.shenyu.web.filter;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,17 +64,6 @@ public final class FileSizeFilterTest {
                         .contentType(MediaType.TEXT_PLAIN)
                         .contentLength(4)
                         .body("test"));
-        ServerWebExchange webExchangeTextPlain =
-                MockServerWebExchange.from(MockServerHttpRequest
-                        .post("http://localhost:8080")
-                        .contentType(MediaType.TEXT_PLAIN)
-                        .contentLength(4)
-                        .body("test"));
-        ServerWebExchange webExchangeError =
-                MockServerWebExchange.from(MockServerHttpRequest
-                        .post("http://localhost:8081")
-                        .contentType(MediaType.MULTIPART_FORM_DATA)
-                        .body("test"));
 
         ServerHttpRequest mutatedRequest = webExchange.getRequest().mutate().header(CONTENT_TYPE,
                 String.valueOf(MULTIPART_FORM_DATA)).build();
@@ -88,6 +76,12 @@ public final class FileSizeFilterTest {
         Mono<Void> voidMono = fileSizeFilter.filter(webExchange, webFilterChain);
         StepVerifier.create(voidMono).expectSubscription().verifyComplete();
 
+        final ServerWebExchange webExchangeTextPlain =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8080")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .contentLength(4)
+                        .body("test"));
         FileSizeFilter fileSizeFilterTextPlain = new FileSizeFilter(10);
         Mono<Void> voidMonoTextPlain = fileSizeFilterTextPlain.filter(webExchangeTextPlain, webFilterChain);
         StepVerifier.create(voidMonoTextPlain).expectSubscription().verifyComplete();
@@ -96,6 +90,11 @@ public final class FileSizeFilterTest {
         voidMono = fileSizeFilter.filter(webExchange, webFilterChain);
         StepVerifier.create(voidMono).expectSubscription().verifyComplete();
 
+        final ServerWebExchange webExchangeError =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8081")
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .body("test"));
         // hit `size.capacity() > BYTES_PER_MB * fileMaxSize`
         FileSizeFilter fileSizeFilterError = new FileSizeFilter(-1);
         Mono<Void> voidMonoError = fileSizeFilterError.filter(webExchangeError, webFilterChain);

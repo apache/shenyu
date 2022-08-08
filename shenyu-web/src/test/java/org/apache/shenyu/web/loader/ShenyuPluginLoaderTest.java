@@ -147,6 +147,7 @@ public final class ShenyuPluginLoaderTest {
     @Component
     public static class TestComponent {
     }
+
     @Service
     public static class TestService {
     }
