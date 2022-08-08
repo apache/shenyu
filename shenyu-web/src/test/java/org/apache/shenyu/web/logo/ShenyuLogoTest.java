@@ -51,6 +51,7 @@ public final class ShenyuLogoTest {
         ConfigurableEnvironment environment = new MockEnvironment();
         ApplicationEnvironmentPreparedEvent event = new ApplicationEnvironmentPreparedEvent(null, application, null, environment);
         shenyuLogo.onApplicationEvent(event);
+        shenyuLogo.onApplicationEvent(event);
         Field field = shenyuLogo.getClass().getDeclaredField("ALREADY_LOG");
         field.setAccessible(true);
         AtomicBoolean atomicBoolean = (AtomicBoolean) field.get(shenyuLogo);
