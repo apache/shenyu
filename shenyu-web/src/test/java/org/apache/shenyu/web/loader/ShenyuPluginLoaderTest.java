@@ -17,10 +17,13 @@
 
 package org.apache.shenyu.web.loader;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -30,6 +33,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
@@ -49,13 +53,14 @@ import static org.mockito.Mockito.when;
 /**
  * Test for  ShenyuPluginLoader.
  */
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public final class ShenyuPluginLoaderTest {
 
     @TempDir
     private static Path folder;
     
     private ShenyuPluginLoader shenyuPluginLoader;
-    
+
     private Path path;
     
     @BeforeEach
@@ -63,9 +68,10 @@ public final class ShenyuPluginLoaderTest {
         shenyuPluginLoader = ShenyuPluginLoader.getInstance();
         Path jar = folder.resolve("plugin.jar");
         path = jar.getParent();
-        FileOutputStream fos = new FileOutputStream(jar.toFile());
-        BufferedOutputStream bos = new BufferedOutputStream(fos);
-        try (JarOutputStream jos = new JarOutputStream(bos)) {
+
+        try (FileOutputStream fos = new FileOutputStream(jar.toFile());
+             BufferedOutputStream bos = new BufferedOutputStream(fos);
+             JarOutputStream jos = new JarOutputStream(bos)) {
             String pluginClz = "public class DividePlugin {}";
             jos.putNextEntry(new ZipEntry("org.apache.shenyu.plugin.DividePlugin.class"));
             jos.write(pluginClz.getBytes());
@@ -75,21 +81,6 @@ public final class ShenyuPluginLoaderTest {
             jos.write(pluginClz.getBytes());
             jos.putNextEntry(new ZipEntry("org/apache/shenyu/plugin/DividePlugin.class"));
             jos.write(pluginClz.getBytes());
-            String MANIFEST = "Manifest-Version: 1.0\n" +
-                    "Ant-Version: Apache Ant 1.9.3\n" +
-                    "Created-By: 1.6.0_65-b14-462-11M4609 (Apple Inc.)\n" +
-                    "Main-Class: org.apache.tools.ant.Main\n" +
-                    "\n" +
-                    "Name: org/apache/tools/ant/\n" +
-                    "Extension-name: org.apache.tools.ant\n" +
-                    "Specification-Title: Apache Ant\n" +
-                    "Specification-Version: 1.9.3\n" +
-                    "Specification-Vendor: Apache Software Foundation\n" +
-                    "Implementation-Title: org.apache.tools.ant\n" +
-                    "Implementation-Version: 1.9.3\n" +
-                    "Implementation-Vendor: Apache Software Foundation\n";
-            jos.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
-            jos.write(MANIFEST.getBytes());
             jos.closeEntry();
         }
         ApplicationContext mockApplication =
@@ -119,10 +110,13 @@ public final class ShenyuPluginLoaderTest {
         List<ShenyuLoaderResult> pluginList = shenyuPluginLoader.loadExtendPlugins("test");
         assertThat(pluginList.size(), is(0));
     }
-    
+
     @Test
-    public void testGetPluginPathWithJar() throws IOException {
+    public void testGetPluginPathWithJar() throws IOException, NoSuchFieldException, IllegalAccessException {
         ShenyuPluginLoader loader = ShenyuPluginLoader.getInstance();
+        Field field = ShenyuPluginLoader.class.getDeclaredField("jars");
+        field.setAccessible(true);
+        field.set(loader, Lists.newArrayList());
         List<ShenyuLoaderResult> pluginList = loader.loadExtendPlugins(path.toString());
         assertThat(pluginList.size(), is(1));
         Assertions.assertTrue(loader.findResources("").hasMoreElements());
@@ -139,16 +133,6 @@ public final class ShenyuPluginLoaderTest {
         getOrCreateSpringBean.setAccessible(true);
         getOrCreateSpringBean.invoke(ShenyuPluginLoader.getInstance(), "org.apache.shenyu.web.loader.ShenyuPluginLoaderTest$TestComponent");
         getOrCreateSpringBean.invoke(ShenyuPluginLoader.getInstance(), "org.apache.shenyu.web.loader.ShenyuPluginLoaderTest$TestService");
-    }
-
-    @Test
-    public void testFindClass() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
-        ShenyuPluginLoader loader = ShenyuPluginLoader.getInstance();
-        loader.loadExtendPlugins(path.toString());
-        Method findClass = ShenyuPluginLoader.class.getDeclaredMethod("findClass", String.class);
-        findClass.setAccessible(true);
-        findClass.invoke(loader, "org.apache.shenyu.plugin.DividePlugin");
-        loader.close();
     }
 
     @Test

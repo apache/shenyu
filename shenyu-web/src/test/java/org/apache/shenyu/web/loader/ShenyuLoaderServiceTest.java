@@ -18,6 +18,7 @@
 package org.apache.shenyu.web.loader;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -39,8 +40,7 @@ import java.nio.file.Path;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 /**
  * Test for ShenyuLoaderServiceTest.
@@ -76,18 +76,27 @@ public class ShenyuLoaderServiceTest {
 
     @Test
     public void loaderExtPluginsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        final ShenyuWebHandler shenyuWebHandler = mock(ShenyuWebHandler.class);
+        final CommonPluginDataSubscriber commonPluginDataSubscriber = mock(CommonPluginDataSubscriber.class);
         final ShenyuConfig.ExtPlugin extPlugin = new ShenyuConfig.ExtPlugin();
-        extPlugin.setEnabled(false);
+        extPlugin.setEnabled(true);
         extPlugin.setScheduleDelay(0);
         extPlugin.setScheduleTime(2);
-        extPlugin.setPath(path.toString());
         final ShenyuConfig shenyuConfig = new ShenyuConfig();
         shenyuConfig.setExtPlugin(extPlugin);
-        ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(mock(ShenyuWebHandler.class), mock(CommonPluginDataSubscriber.class), shenyuConfig);
-
+        new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig);
         extPlugin.setEnabled(true);
+        extPlugin.setPath(path.toString());
+        ShenyuLoaderService shenyuLoaderService = new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig);
+
         final Method loaderExtPlugins = ShenyuLoaderService.class.getDeclaredMethod("loaderExtPlugins");
         loaderExtPlugins.setAccessible(true);
+        loaderExtPlugins.invoke(shenyuLoaderService);
+
+        doNothing().doThrow(ShenyuException.class).when(shenyuWebHandler).putExtPlugins(any());
+        loaderExtPlugins.invoke(shenyuLoaderService);
+
+        extPlugin.setPath("test");
         loaderExtPlugins.invoke(shenyuLoaderService);
         ShenyuPluginLoader.getInstance().close();
     }

@@ -19,17 +19,24 @@ package org.apache.shenyu.web.filter;
 
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
+import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -58,6 +65,17 @@ public final class FileSizeFilterTest {
                         .contentType(MediaType.TEXT_PLAIN)
                         .contentLength(4)
                         .body("test"));
+        ServerWebExchange webExchangeTextPlain =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8080")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .contentLength(4)
+                        .body("test"));
+        ServerWebExchange webExchangeError =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8081")
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .body("test"));
 
         ServerHttpRequest mutatedRequest = webExchange.getRequest().mutate().header(CONTENT_TYPE,
                 String.valueOf(MULTIPART_FORM_DATA)).build();
@@ -70,8 +88,34 @@ public final class FileSizeFilterTest {
         Mono<Void> voidMono = fileSizeFilter.filter(webExchange, webFilterChain);
         StepVerifier.create(voidMono).expectSubscription().verifyComplete();
 
+        FileSizeFilter fileSizeFilterTextPlain = new FileSizeFilter(10);
+        Mono<Void> voidMonoTextPlain = fileSizeFilterTextPlain.filter(webExchangeTextPlain, webFilterChain);
+        StepVerifier.create(voidMonoTextPlain).expectSubscription().verifyComplete();
+
         fileSizeFilter = new FileSizeFilter(1);
         voidMono = fileSizeFilter.filter(webExchange, webFilterChain);
         StepVerifier.create(voidMono).expectSubscription().verifyComplete();
+
+        // hit `size.capacity() > BYTES_PER_MB * fileMaxSize`
+        FileSizeFilter fileSizeFilterError = new FileSizeFilter(-1);
+        Mono<Void> voidMonoError = fileSizeFilterError.filter(webExchangeError, webFilterChain);
+        StepVerifier.create(voidMonoError).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testDecorate() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
+        ServerWebExchange webExchangeTextPlain =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8080")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .contentLength(4)
+                        .body("test"));
+        FileSizeFilter fileSizeFilterError = new FileSizeFilter(1);
+        Method declaredMethod = FileSizeFilter.class.getDeclaredMethod("decorate", ServerWebExchange.class, CachedBodyOutputMessage.class);
+        CachedBodyOutputMessage cachedBodyOutputMessage = mock(CachedBodyOutputMessage.class);
+        declaredMethod.setAccessible(true);
+        ServerHttpRequestDecorator decorator = (ServerHttpRequestDecorator) declaredMethod.invoke(fileSizeFilterError, webExchangeTextPlain, cachedBodyOutputMessage);
+        Assertions.assertEquals(decorator.getBody(), cachedBodyOutputMessage.getBody());
     }
 }
