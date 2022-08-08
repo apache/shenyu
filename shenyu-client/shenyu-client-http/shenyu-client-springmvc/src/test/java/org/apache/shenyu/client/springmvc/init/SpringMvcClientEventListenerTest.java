@@ -19,7 +19,13 @@ package org.apache.shenyu.client.springmvc.init;
 
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuGetMapping;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuPostMapping;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuRequestMapping;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuDeleteMapping;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuPatchMapping;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuPutMapping;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
@@ -33,10 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -67,6 +70,8 @@ public class SpringMvcClientEventListenerTest {
 
     private final SpringMvcClientTestBean4 springMvcClientTestBean4 = new SpringMvcClientTestBean4();
 
+    private final SpringMvcClientTestBean5 springMvcClientTestBean5 = new SpringMvcClientTestBean5();
+
     @Mock
     private ApplicationContext applicationContext;
 
@@ -78,6 +83,7 @@ public class SpringMvcClientEventListenerTest {
         results.put("springMvcClientTestBean2", springMvcClientTestBean2);
         results.put("springMvcClientTestBean3", springMvcClientTestBean3);
         results.put("springMvcClientTestBean4", springMvcClientTestBean4);
+        results.put("springMvcClientTestBean5", springMvcClientTestBean5);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
         contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
         Properties properties = mock(Properties.class);
@@ -183,4 +189,33 @@ public class SpringMvcClientEventListenerTest {
         }
     }
 
+    @RestController
+    @ShenyuRequestMapping("/order")
+    static class SpringMvcClientTestBean5 {
+
+        @ShenyuPostMapping(value = "/save")
+        public String save(@RequestBody final String body) {
+            return "" + body;
+        }
+
+        @ShenyuGetMapping("/{id}")
+        public String get(@PathVariable final String id) {
+            return "" + id;
+        }
+
+        @ShenyuDeleteMapping("/{id}")
+        public String delete(@PathVariable final String id) {
+            return "" + id;
+        }
+
+        @ShenyuPutMapping("/put")
+        public String put(@RequestBody final String body) {
+            return "" + body;
+        }
+
+        @ShenyuPatchMapping("/patch")
+        public String patch(@RequestBody final String operator) {
+            return "" + operator;
+        }
+    }
 }

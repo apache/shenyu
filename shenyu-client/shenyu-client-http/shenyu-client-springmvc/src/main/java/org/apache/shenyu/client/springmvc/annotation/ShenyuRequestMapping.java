@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.springmvc.annotation;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -25,18 +26,23 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The interface shenyu client.
+ * This is a convenience annotation that is equivalent to
+ * declaring {@code @RequestMapping} and {@code @ShenyuSpringMvcClient}.
  */
-@Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
-public @interface ShenyuSpringMvcClient {
-    
+@Retention(RetentionPolicy.RUNTIME)
+@RequestMapping
+@ShenyuSpringMvcClient
+public @interface ShenyuRequestMapping {
+
     /**
      * Path string.
      *
      * @return the string
      */
-    @AliasFor(attribute = "path")
+    @AliasFor(
+            attribute = "path"
+    )
     String value() default "";
 
     /**
@@ -44,7 +50,9 @@ public @interface ShenyuSpringMvcClient {
      *
      * @return the string
      */
-    @AliasFor(attribute = "value")
+    @AliasFor(
+            attribute = "value"
+    )
     String path() default "";
 
     /**
@@ -52,13 +60,19 @@ public @interface ShenyuSpringMvcClient {
      *
      * @return the string
      */
+    @AliasFor(
+            annotation = ShenyuSpringMvcClient.class
+    )
     String ruleName() default "";
-    
+
     /**
      * Desc string.
      *
      * @return String string
      */
+    @AliasFor(
+            annotation = ShenyuSpringMvcClient.class
+    )
     String desc() default "";
 
     /**
@@ -66,12 +80,20 @@ public @interface ShenyuSpringMvcClient {
      *
      * @return the boolean
      */
+    @AliasFor(
+            annotation = ShenyuSpringMvcClient.class
+    )
     boolean enabled() default true;
-    
+
     /**
      * Register meta data boolean.
      *
      * @return the boolean
      */
+    @AliasFor(
+            annotation = ShenyuSpringMvcClient.class
+    )
     boolean registerMetaData() default true;
 }
+
+
