@@ -49,7 +49,7 @@ public class ShenyuGrpcClientConfigurationTest {
     @BeforeEach
     public void before() {
         applicationContextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(org.apache.springboot.starter.client.grpc.ShenyuGrpcClientConfiguration.class))
+            .withConfiguration(AutoConfigurations.of(ShenyuGrpcClientConfiguration.class))
             .withBean(ShenyuGrpcClientConfigurationTest.class)
             .withPropertyValues(
                 "debug=true",
