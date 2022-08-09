@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -30,10 +32,13 @@ public class AuthApplyDTO implements Serializable {
 
     private String appKey;
 
+    @NotBlank(message = "userId cannot be empty!")
     private String userId;
 
+    @Pattern(regexp = "\\+?\\d{7,11}", message = "number is illegal, length 7 to 11! e.g. +1234567 or 1234567")
     private String phone;
 
+    @NotBlank(message = "appName cannot be empty!")
     private String appName;
 
     private String appParam;

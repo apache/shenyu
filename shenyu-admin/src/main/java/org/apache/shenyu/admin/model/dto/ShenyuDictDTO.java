@@ -76,6 +76,7 @@ public class ShenyuDictDTO implements Serializable {
     /**
      * whether enabled.
      */
+    @NotNull
     private Boolean enabled;
     
     public ShenyuDictDTO() {

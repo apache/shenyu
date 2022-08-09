@@ -15,5 +15,23 @@
 # limitations under the License.
 #
 
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.springboot.starter.client.grpc.ShenyuGrpcClientConfiguration
+# Use gateway proxy
+# if you used IDEA, start example project. click green button.Quick access！
+
+### shengyu https example
+GET https://localhost:8190/order/findById?id=3
+Accept: application/json
+Content-Type: application/json
+
+
+### shengyu https upload file example
+POST https://localhost:8190/upload/file
+Cache-Control: no-cache
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="1.txt";
+Content-Type: multipart/form-data
+
+< ../../../../shenyu-examples-common/src/main/resources/1.txt
+--WebAppBoundary--
