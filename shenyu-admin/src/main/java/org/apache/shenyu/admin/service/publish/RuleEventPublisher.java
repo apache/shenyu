@@ -42,7 +42,11 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.List;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -143,8 +147,9 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
      * rule delete.
      *
      * @param rules data
+     * @param event BatchSelectorDeletedEvent
      */
-    public void onDeleted(List<RuleDO> rules, BatchSelectorDeletedEvent event) {
+    public void onDeleted(final List<RuleDO> rules, final BatchSelectorDeletedEvent event) {
         publish(new BatchRuleDeletedEvent(rules, SessionUtil.visitorName(), null));
         final Map<String, SelectorDO> stringSelectorDataMap = event.getSelectors().stream()
                 .collect(Collectors.toMap(SelectorDO::getId, Function.identity(), (value1, value2) -> value1));
