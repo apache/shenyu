@@ -15,20 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.dromara.springboot.starter.client.grpc.server;
+package org.apache.shenyu.examples.websocket.service;
 
-import io.grpc.ServerBuilder;
-import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
-import org.springframework.stereotype.Component;
+import java.util.Map;
 
-/**
- * Grpc ServerBuilder Test.
- */
-@Component
-public class ShenyuGrpcServerBuilderTest implements GrpcServerBuilder {
+public interface SaveFile {
 
-    @Override
-    public ServerBuilder<?> buildServerBuilder() {
-        return ServerBuilder.forPort(8080);
-    }
+    boolean saveFileFromBytes(byte[] b, Map<String, Object> map);
 }

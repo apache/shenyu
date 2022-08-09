@@ -74,7 +74,6 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
             @Override
             public void onError(final Throwable t) {
                 LOG.error(t.getMessage());
-                t.printStackTrace();
             }
             
             @Override
@@ -106,7 +105,6 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
             @Override
             public void onError(final Throwable t) {
                 LOG.error(t.getMessage());
-                t.printStackTrace();
             }
             
             @Override
