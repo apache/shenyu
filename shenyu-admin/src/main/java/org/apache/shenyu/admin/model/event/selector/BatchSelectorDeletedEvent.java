@@ -40,6 +40,7 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
 
     /**
      * Create a new {@code BatchChangedEvent}.operator is unknown.
+     *
      * @param source   Current plugin state
      * @param operator operator
      * @param plugins  about plugin
