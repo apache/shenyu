@@ -151,15 +151,10 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
      */
     public void onDeleted(final List<RuleDO> rules, final BatchSelectorDeletedEvent event) {
         publish(new BatchRuleDeletedEvent(rules, SessionUtil.visitorName(), null));
-        final Map<String, SelectorDO> stringSelectorDataMap = event.getSelectors().stream()
-                .collect(Collectors.toMap(SelectorDO::getId, Function.identity(), (value1, value2) -> value1));
-        final Map<String, PluginDO> pluginMap = event.getPlugins().stream()
-                .collect(Collectors.toMap(PluginDO::getId, Function.identity(), (value1, value2) -> value1));
         final List<RuleConditionDO> condition = ruleConditionMapper.selectByRuleIdSet(rules.stream().map(BaseDO::getId).collect(Collectors.toSet()));
         final Map<String, List<RuleConditionDO>> conditionsRuleGroup = groupBy(condition, RuleConditionDO::getRuleId);
         final List<RuleData> ruleData = map(rules, r -> RuleDO.transFrom(r,
-                Optional.ofNullable(stringSelectorDataMap.get(r.getSelectorId()))
-                        .flatMap(selectorDO -> Optional.ofNullable(pluginMap.get(selectorDO.getPluginId())).map(PluginDO::getName)).orElse(null),
+                Optional.ofNullable(event.findPluginBySelectorId(r.getSelectorId())).map(PluginDO::getName).orElse(null),
                 map(conditionsRuleGroup.get(r.getId()), ConditionTransfer.INSTANCE::mapToRuleDO)));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE, ruleData));
     }
