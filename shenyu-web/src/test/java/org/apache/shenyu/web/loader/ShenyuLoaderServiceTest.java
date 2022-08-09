@@ -89,8 +89,6 @@ public class ShenyuLoaderServiceTest {
         final CommonPluginDataSubscriber commonPluginDataSubscriber = mock(CommonPluginDataSubscriber.class);
         final ShenyuConfig.ExtPlugin extPlugin = new ShenyuConfig.ExtPlugin();
         extPlugin.setEnabled(true);
-        extPlugin.setScheduleDelay(0);
-        extPlugin.setScheduleTime(2);
         final ShenyuConfig shenyuConfig = new ShenyuConfig();
         shenyuConfig.setExtPlugin(extPlugin);
         new ShenyuLoaderService(shenyuWebHandler, commonPluginDataSubscriber, shenyuConfig);
@@ -100,9 +98,6 @@ public class ShenyuLoaderServiceTest {
 
         final Method loaderExtPlugins = ShenyuLoaderService.class.getDeclaredMethod("loaderExtPlugins");
         loaderExtPlugins.setAccessible(true);
-        loaderExtPlugins.invoke(shenyuLoaderService);
-
-        doNothing().doThrow(ShenyuException.class).when(shenyuWebHandler).putExtPlugins(any());
         loaderExtPlugins.invoke(shenyuLoaderService);
 
         extPlugin.setPath("test");
