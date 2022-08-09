@@ -30,18 +30,18 @@ import org.apache.shenyu.admin.model.event.rule.BatchRuleDeletedEvent;
 import org.apache.shenyu.admin.model.event.rule.RuleChangedEvent;
 import org.apache.shenyu.admin.model.event.rule.RuleCreatedEvent;
 import org.apache.shenyu.admin.model.event.rule.RuleUpdatedEvent;
+import org.apache.shenyu.admin.model.vo.RoleEditVO;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.shenyu.admin.utils.ListUtil.groupBy;
@@ -135,7 +135,24 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
                 map(conditionsRuleGroup.get(r.getId()), ConditionTransfer.INSTANCE::mapToRuleDO)));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE, ruleData));
     }
-    
+
+    /**
+     * rule delete.
+     *
+     * @param rules data
+     */
+    public void onDeleted(List<RuleDO> rules, List<SelectorData> selectorDataList) {
+        publish(new BatchRuleDeletedEvent(rules, SessionUtil.visitorName(), null));
+        Map<String, SelectorData> stringSelectorDataMap = selectorDataList.stream()
+                .collect(Collectors.toMap(SelectorData::getId, Function.identity(), (value1, value2) -> value1));
+        final List<RuleConditionDO> condition = ruleConditionMapper.selectByRuleIdSet(rules.stream().map(BaseDO::getId).collect(Collectors.toSet()));
+        final Map<String, List<RuleConditionDO>> conditionsRuleGroup = groupBy(condition, RuleConditionDO::getRuleId);
+        final List<RuleData> ruleData = map(rules, r -> RuleDO.transFrom(r,
+                Optional.ofNullable(stringSelectorDataMap.get(r.getSelectorId())).map(SelectorData::getPluginName).orElse(null),
+                map(conditionsRuleGroup.get(r.getId()), ConditionTransfer.INSTANCE::mapToRuleDO)));
+        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE, ruleData));
+    }
+
     /**
      * register.
      *
