@@ -131,7 +131,7 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
         publish(new BatchRuleDeletedEvent(rules, SessionUtil.visitorName(), null));
         final List<RuleConditionDO> condition = ruleConditionMapper.selectByRuleIdSet(rules.stream().map(BaseDO::getId).collect(Collectors.toSet()));
         final Map<String, List<RuleConditionDO>> conditionsRuleGroup = groupBy(condition, RuleConditionDO::getRuleId);
-        final List<RuleData> ruleData = map(rules, r -> RuleDO.transFrom(r, ruleMapper.getPluginNameByRuleId(r.getId()),
+        final List<RuleData> ruleData = map(rules, r -> RuleDO.transFrom(r, ruleMapper.getPluginNameBySelectorId(r.getSelectorId()),
                 map(conditionsRuleGroup.get(r.getId()), ConditionTransfer.INSTANCE::mapToRuleDO)));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE, ruleData));
     }
@@ -159,7 +159,7 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
     private void publishEvent(final RuleDO ruleDO, final List<RuleConditionDTO> condition) {
         // publish change event.
         final RuleData rule = RuleDO.transFrom(ruleDO,
-                ruleMapper.getPluginNameByRuleId(ruleDO.getId()),
+                ruleMapper.getPluginNameBySelectorId(ruleDO.getSelectorId()),
                 map(condition, ConditionTransfer.INSTANCE::mapToRuleDTO));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE, Collections.singletonList(rule)));
     }

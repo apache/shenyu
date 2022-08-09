@@ -164,12 +164,12 @@ public interface RuleMapper extends ExistProvider {
     List<RuleVO> selectByCondition(@Param("condition") RuleQueryCondition condition);
     
     /**
-     * get plugin name by ruleId.
+     * get plugin name by selectorId.
      *
-     * @param ruleId ruleId
+     * @param selectorId selectorId
      * @return plugin name
      */
-    String getPluginNameByRuleId(@Param("ruleId") String ruleId);
+    String getPluginNameBySelectorId(@Param("selectorId") String selectorId);
     
     /**
      * select by rule ids.

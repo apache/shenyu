@@ -208,10 +208,11 @@ public class RuleServiceImpl implements RuleService {
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
         List<RuleDO> rules = ruleMapper.selectByIds(ids);
-        // onDeleted needs to use ruleId for query, so it needs to be moved before deleteByIds #issue 3821
-        ruleEventPublisher.onDeleted(rules);
         final int deleteCount = ruleMapper.deleteByIds(ids);
         ruleConditionMapper.deleteByRuleIds(ids);
+        if (deleteCount > 0) {
+            ruleEventPublisher.onDeleted(rules);
+        }
         return deleteCount;
     }
     
@@ -225,10 +226,11 @@ public class RuleServiceImpl implements RuleService {
         List<RuleDO> ruleDOList = ruleMapper.findBySelectorIds(event.getDeletedIds());
         final List<String> ruleIds = map(ruleDOList, RuleDO::getId);
         if (CollectionUtils.isNotEmpty(ruleDOList)) {
-            // onDeleted needs to use ruleId for query, so it needs to be moved before deleteByIds #issue 3821
-            ruleEventPublisher.onDeleted(ruleDOList);
-            ruleMapper.deleteByIds(ruleIds);
+            final int deleteCount = ruleMapper.deleteByIds(ruleIds);
             ruleConditionMapper.deleteByRuleIds(ruleIds);
+            if (deleteCount > 0) {
+                ruleEventPublisher.onDeleted(ruleDOList);
+            }
         }
     }
     
