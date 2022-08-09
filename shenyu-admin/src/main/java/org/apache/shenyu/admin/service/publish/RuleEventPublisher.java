@@ -143,7 +143,7 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
      */
     public void onDeleted(List<RuleDO> rules, List<SelectorData> selectorDataList) {
         publish(new BatchRuleDeletedEvent(rules, SessionUtil.visitorName(), null));
-        Map<String, SelectorData> stringSelectorDataMap = selectorDataList.stream()
+        final Map<String, SelectorData> stringSelectorDataMap = selectorDataList.stream()
                 .collect(Collectors.toMap(SelectorData::getId, Function.identity(), (value1, value2) -> value1));
         final List<RuleConditionDO> condition = ruleConditionMapper.selectByRuleIdSet(rules.stream().map(BaseDO::getId).collect(Collectors.toSet()));
         final Map<String, List<RuleConditionDO>> conditionsRuleGroup = groupBy(condition, RuleConditionDO::getRuleId);
