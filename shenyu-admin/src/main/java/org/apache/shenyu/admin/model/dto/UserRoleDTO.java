@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 
 /**
@@ -32,11 +33,13 @@ public class UserRoleDTO {
     /**
      * user key.
      */
+    @NotBlank
     private String userId;
 
     /**
      * role key.
      */
+    @NotBlank
     private String roleId;
 
     public UserRoleDTO() {

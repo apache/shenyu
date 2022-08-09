@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.dromara.springboot.starter.client.grpc.server;
+package org.apache.springboot.starter.client.grpc.server;
 
 import io.grpc.ServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;

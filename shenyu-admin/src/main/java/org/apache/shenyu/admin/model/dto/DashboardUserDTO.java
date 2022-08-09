@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -44,6 +45,7 @@ public class DashboardUserDTO implements Serializable {
     /**
      * user password.
      */
+    @NotBlank
     private String password;
 
     /**
@@ -54,11 +56,14 @@ public class DashboardUserDTO implements Serializable {
     /**
      * current role list.
      */
-    private List<String> roles;
+    @NotEmpty
+    @NotNull
+    private List<@NotBlank String> roles;
 
     /**
      * whether enabled.
      */
+    @NotNull
     private Boolean enabled;
 
     public DashboardUserDTO() {
