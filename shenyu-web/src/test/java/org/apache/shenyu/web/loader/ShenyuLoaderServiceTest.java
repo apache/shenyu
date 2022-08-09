@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.loader;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -34,6 +35,7 @@ import org.springframework.context.ApplicationContext;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
@@ -78,7 +80,11 @@ public class ShenyuLoaderServiceTest {
     }
 
     @Test
-    public void loaderExtPluginsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void loaderExtPluginsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        final ShenyuPluginLoader loader = ShenyuPluginLoader.getInstance();
+        final Field field = ShenyuPluginLoader.class.getDeclaredField("jars");
+        field.setAccessible(true);
+        field.set(loader, Lists.newArrayList());
         final ShenyuWebHandler shenyuWebHandler = mock(ShenyuWebHandler.class);
         final CommonPluginDataSubscriber commonPluginDataSubscriber = mock(CommonPluginDataSubscriber.class);
         final ShenyuConfig.ExtPlugin extPlugin = new ShenyuConfig.ExtPlugin();

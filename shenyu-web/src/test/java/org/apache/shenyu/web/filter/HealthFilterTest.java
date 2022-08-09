@@ -67,6 +67,12 @@ public final class HealthFilterTest {
     }
 
     @Test
+    public void testPathNull() {
+        List<String> paths = new ArrayList<>();
+        new HealthFilter(paths);
+    }
+
+    @Test
     public void testDoNotMatcher() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest

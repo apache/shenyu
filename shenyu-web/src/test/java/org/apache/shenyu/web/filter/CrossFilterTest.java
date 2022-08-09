@@ -20,6 +20,8 @@ package org.apache.shenyu.web.filter;
 import org.apache.shenyu.common.config.ShenyuConfig.CrossFilterConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -112,7 +114,22 @@ public final class CrossFilterTest {
 
     @Test
     public void testOriginRegex() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("http://localhost:8080")
+                .header("Origin", "http://abc.com")
+                .build());
+        ServerHttpResponse exchangeResponse = exchange.getResponse();
+        exchangeResponse.getHeaders().add(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "0");
+        exchangeResponse.getHeaders().add(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "*");
+        WebFilterChain chainNoHeader = mock(WebFilterChain.class);
+        when(chainNoHeader.filter(exchange)).thenReturn(Mono.empty());
+        CrossFilterConfig crossFilterConfig = new CrossFilterConfig();
         final String regex = "^http(|s)://(.*\\.|)abc.com$";
+        crossFilterConfig.getAllowedOrigin().setOriginRegex(regex);
+        CrossFilter filterNoHeader = new CrossFilter(crossFilterConfig);
+        StepVerifier.create(filterNoHeader.filter(exchange, chainNoHeader))
+                .expectSubscription()
+                .verifyComplete();
         Assertions.assertTrue(Pattern.matches(regex, "http://console.ada.abc.com"));
         Assertions.assertTrue(Pattern.matches(regex, "http://console.abc.com"));
         Assertions.assertTrue(Pattern.matches(regex, "http://abc.com"));
