@@ -26,7 +26,6 @@ import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 import org.apache.shenyu.admin.model.event.rule.BatchRuleDeletedEvent;
@@ -47,7 +46,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Collections;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.shenyu.admin.utils.ListUtil.groupBy;

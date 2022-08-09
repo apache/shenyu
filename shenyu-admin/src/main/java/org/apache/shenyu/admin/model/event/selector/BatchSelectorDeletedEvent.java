@@ -87,7 +87,7 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
      * @param selectorId  selectorId
      * @return PluginDO
      */
-    public PluginDO findPluginBySelectorId(String selectorId) {
+    public PluginDO findPluginBySelectorId(final String selectorId) {
         return Optional.ofNullable(selectorDataMap.get(selectorId))
                 .flatMap(selectorDO -> Optional.ofNullable(pluginMap.get(selectorDO.getPluginId()))).orElse(null);
     }
