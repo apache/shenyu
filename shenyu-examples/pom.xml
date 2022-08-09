@@ -82,6 +82,7 @@
                     <headerLocation>/../script/checkstyle-header.txt</headerLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <excludes>**/transfer/**/*</excludes>
+                    <resourceExcludes>**/grpc/**/*</resourceExcludes>
                 </configuration>
                 <executions>
                     <execution>
