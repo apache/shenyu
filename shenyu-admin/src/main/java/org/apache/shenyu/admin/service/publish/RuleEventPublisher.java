@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.publish;
 
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
@@ -30,11 +31,10 @@ import org.apache.shenyu.admin.model.event.rule.BatchRuleDeletedEvent;
 import org.apache.shenyu.admin.model.event.rule.RuleChangedEvent;
 import org.apache.shenyu.admin.model.event.rule.RuleCreatedEvent;
 import org.apache.shenyu.admin.model.event.rule.RuleUpdatedEvent;
-import org.apache.shenyu.admin.model.vo.RoleEditVO;
+import org.apache.shenyu.admin.model.event.selector.BatchSelectorDeletedEvent;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEventPublisher;
@@ -61,6 +61,7 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
     
     public RuleEventPublisher(final ApplicationEventPublisher publisher,
                               final RuleConditionMapper ruleConditionMapper,
+                              final PluginMapper pluginMapper,
                               final RuleMapper ruleMapper) {
         this.publisher = publisher;
         this.ruleConditionMapper = ruleConditionMapper;
@@ -141,14 +142,17 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
      *
      * @param rules data
      */
-    public void onDeleted(List<RuleDO> rules, List<SelectorData> selectorDataList) {
+    public void onDeleted(List<RuleDO> rules, BatchSelectorDeletedEvent event) {
         publish(new BatchRuleDeletedEvent(rules, SessionUtil.visitorName(), null));
-        final Map<String, SelectorData> stringSelectorDataMap = selectorDataList.stream()
-                .collect(Collectors.toMap(SelectorData::getId, Function.identity(), (value1, value2) -> value1));
+        final Map<String, SelectorDO> stringSelectorDataMap = event.getSelectors().stream()
+                .collect(Collectors.toMap(SelectorDO::getId, Function.identity(), (value1, value2) -> value1));
+        final Map<String, PluginDO> pluginMap = event.getPlugins().stream()
+                .collect(Collectors.toMap(PluginDO::getId, Function.identity(), (value1, value2) -> value1));
         final List<RuleConditionDO> condition = ruleConditionMapper.selectByRuleIdSet(rules.stream().map(BaseDO::getId).collect(Collectors.toSet()));
         final Map<String, List<RuleConditionDO>> conditionsRuleGroup = groupBy(condition, RuleConditionDO::getRuleId);
         final List<RuleData> ruleData = map(rules, r -> RuleDO.transFrom(r,
-                Optional.ofNullable(stringSelectorDataMap.get(r.getSelectorId())).map(SelectorData::getPluginName).orElse(null),
+                Optional.ofNullable(stringSelectorDataMap.get(r.getSelectorId()))
+                        .flatMap(selectorDO -> Optional.ofNullable(pluginMap.get(selectorDO.getPluginId())).map(PluginDO::getName)).orElse(null),
                 map(conditionsRuleGroup.get(r.getId()), ConditionTransfer.INSTANCE::mapToRuleDO)));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE, ruleData));
     }

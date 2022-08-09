@@ -24,7 +24,6 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.BatchChangedEvent;
 import org.apache.shenyu.admin.utils.ListUtil;
-import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,20 +38,16 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
     
     private final List<PluginDO> plugins;
 
-    private final List<SelectorData> selectorDataList;
-
     /**
      * Create a new {@code BatchChangedEvent}.operator is unknown.
      *  @param source   Current plugin state
      * @param operator operator
      * @param plugins  about plugin
-     * @param selectorDataList selectorDataList
      */
-    public BatchSelectorDeletedEvent(final Collection<SelectorDO> source, final String operator, final List<PluginDO> plugins, List<SelectorData> selectorDataList) {
+    public BatchSelectorDeletedEvent(final Collection<SelectorDO> source, final String operator, final List<PluginDO> plugins) {
         super(source, null, EventTypeEnum.SELECTOR_DELETE, operator);
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
         this.plugins = plugins;
-        this.selectorDataList = selectorDataList;
     }
     
     @Override
@@ -92,14 +87,5 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
      */
     public List<String> getDeletedIds() {
         return deletedIds;
-    }
-
-    /**
-     * get selector dataList.
-     *
-     * @return list
-     */
-    public List<SelectorData> getSelectorDataList() {
-        return selectorDataList;
     }
 }

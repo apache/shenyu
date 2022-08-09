@@ -91,6 +91,7 @@ public class SelectorEventPublisher implements AdminDataModelChangedEventPublish
      * @param plugins   about plugin
      */
     public void onDeleted(final Collection<SelectorDO> selectors, final List<PluginDO> plugins) {
+        publish(new BatchSelectorDeletedEvent(selectors, SessionUtil.visitorName(), plugins));
         Map<String, String> pluginMap = ListUtil.toMap(plugins, PluginDO::getId, PluginDO::getName);
         List<SelectorData> selectorDataList = selectors.stream()
                 .map(selectorDO -> {
@@ -100,7 +101,6 @@ public class SelectorEventPublisher implements AdminDataModelChangedEventPublish
                     }
                     return SelectorDO.transFrom(selectorDO, pluginName, null);
                 }).collect(Collectors.toList());
-        publish(new BatchSelectorDeletedEvent(selectors, SessionUtil.visitorName(), plugins, selectorDataList));
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE, selectorDataList));
     }
     
