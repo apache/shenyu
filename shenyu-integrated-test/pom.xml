@@ -125,8 +125,8 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${maven-checkstyle-plugin.version}</version>
                 <configuration>
-                    <configLocation>${project.parent.relativePath}/../script/shenyu_checkstyle.xml</configLocation>
-                    <headerLocation>${project.parent.relativePath}/../script/checkstyle-header.txt</headerLocation>
+                    <configLocation>/../script/shenyu_checkstyle.xml</configLocation>
+                    <headerLocation>/../script/checkstyle-header.txt</headerLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <excludes>**/transfer/**/*</excludes>
                 </configuration>
