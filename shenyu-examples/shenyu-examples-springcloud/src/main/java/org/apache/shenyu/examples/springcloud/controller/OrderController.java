@@ -17,13 +17,14 @@
 
 package org.apache.shenyu.examples.springcloud.controller;
 
+import org.apache.shenyu.client.springcloud.annotation.ShenyuGetMapping;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuPostMapping;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuRequestMapping;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.examples.springcloud.dto.OrderDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,8 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
  * OrderController.
  */
 @RestController
-@RequestMapping("/order")
-@ShenyuSpringCloudClient(path = "/order")
+@ShenyuRequestMapping("/order")
 public class OrderController {
 
     /**
@@ -41,8 +41,7 @@ public class OrderController {
      * @param orderDTO the order dto
      * @return the order dto
      */
-    @PostMapping("/save")
-    @ShenyuSpringCloudClient(path = "/save")
+    @ShenyuPostMapping("/save")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
         orderDTO.setName("hello world spring cloud save order");
         return orderDTO;
@@ -54,8 +53,7 @@ public class OrderController {
      * @param id the id
      * @return the order dto
      */
-    @GetMapping("/findById")
-    @ShenyuSpringCloudClient(path = "/findById")
+    @ShenyuGetMapping("/findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
         return buildOrder(id, "hello world spring cloud findById");
     }
