@@ -66,6 +66,9 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+                    <excludes>
+                        <exclude>**/grpc/**</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
@@ -82,7 +85,6 @@
                     <headerLocation>/../script/checkstyle-header.txt</headerLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <excludes>**/transfer/**/*</excludes>
-                    <resourceExcludes>**/grpc/**/*</resourceExcludes>
                 </configuration>
                 <executions>
                     <execution>
