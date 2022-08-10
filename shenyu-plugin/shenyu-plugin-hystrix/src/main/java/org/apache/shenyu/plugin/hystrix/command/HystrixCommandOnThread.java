@@ -89,4 +89,9 @@ public class HystrixCommandOnThread extends HystrixCommand<Mono<Void>> implement
     public void removeCommandKey(final String commandKey) {
         executionSemaphorePerCircuit.remove(commandKey);
     }
+
+    @Override
+    public void cleanCommand() {
+        executionSemaphorePerCircuit.clear();
+    }
 }
