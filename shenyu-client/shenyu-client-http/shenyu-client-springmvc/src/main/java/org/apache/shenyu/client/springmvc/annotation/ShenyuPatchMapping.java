@@ -39,64 +39,85 @@ import java.lang.annotation.Target;
 public @interface ShenyuPatchMapping {
 
     /**
-     * Path string.
+     * Alias for {@link RequestMapping#value}, {@link ShenyuSpringMvcClient#value}.
      *
      * @return the string
      */
-    @AliasFor(
-            attribute = "path"
-    )
+    @AliasFor(attribute = "path")
     String value() default "";
 
     /**
-     * Path string.
+     * Alias for {@link RequestMapping#path}, {@link ShenyuSpringMvcClient#path}.
      *
      * @return the string
      */
-    @AliasFor(
-            attribute = "value"
-    )
+    @AliasFor(attribute = "value")
     String path() default "";
 
     /**
-     * Rule name string.
+     * Alias for {@link ShenyuSpringMvcClient#ruleName}.
      *
      * @return the string
      */
-    @AliasFor(
-            annotation = ShenyuSpringMvcClient.class
-    )
+    @AliasFor(annotation = ShenyuSpringMvcClient.class)
     String ruleName() default "";
 
     /**
-     * Desc string.
+     * Alias for {@link ShenyuSpringMvcClient#desc}.
      *
-     * @return String string
+     * @return the string
      */
-    @AliasFor(
-            annotation = ShenyuSpringMvcClient.class
-    )
+    @AliasFor(annotation = ShenyuSpringMvcClient.class)
     String desc() default "";
 
     /**
-     * Enabled boolean.
+     * Alias for {@link ShenyuSpringMvcClient#enabled}.
      *
      * @return the boolean
      */
-    @AliasFor(
-            annotation = ShenyuSpringMvcClient.class
-    )
+    @AliasFor(annotation = ShenyuSpringMvcClient.class)
     boolean enabled() default true;
 
+
     /**
-     * Register meta data boolean.
+     * Alias for {@link ShenyuSpringMvcClient#registerMetaData}.
      *
      * @return the boolean
      */
-    @AliasFor(
-            annotation = ShenyuSpringMvcClient.class
-    )
+    @AliasFor(annotation = ShenyuSpringMvcClient.class)
     boolean registerMetaData() default true;
+
+    /**
+     * Alias for {@link RequestMapping#params}.
+     *
+     * @return the string[]
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String[] params() default {};
+
+    /**
+     * Alias for {@link RequestMapping#headers}.
+     *
+     * @return the string[]
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String[] headers() default {};
+
+    /**
+     * Alias for {@link RequestMapping#consumes}.
+     *
+     * @return the string[]
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String[] consumes() default {};
+
+    /**
+     * Alias for {@link RequestMapping#produces}.
+     *
+     * @return the string[]
+     */
+    @AliasFor(annotation = RequestMapping.class)
+    String[] produces() default {};
 }
 
 
