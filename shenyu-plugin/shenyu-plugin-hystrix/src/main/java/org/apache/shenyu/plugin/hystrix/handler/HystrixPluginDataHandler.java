@@ -53,7 +53,7 @@ public class HystrixPluginDataHandler implements PluginDataHandler {
                     Command command = new HystrixCommand(HystrixBuilder.build(hystrixHandle), null, null, null);
                     command.removeCommandKey(commandKey);
                 }
-                // fix issues #3820
+                // fix ISSUE #3820, in same rule, change isolation strategy, can't circuit breaker
                 if (hystrixHandleCache.getExecutionIsolationStrategy() != hystrixHandle.getExecutionIsolationStrategy()) {
                     Command command = new HystrixCommand(HystrixBuilder.build(hystrixHandleCache), null, null, null);
                     if (StringUtils.hasText(hystrixHandle.getCommandKey())) {
