@@ -66,9 +66,6 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
-                    <excludes>
-                        <exclude>**/grpc/**</exclude>
-                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
