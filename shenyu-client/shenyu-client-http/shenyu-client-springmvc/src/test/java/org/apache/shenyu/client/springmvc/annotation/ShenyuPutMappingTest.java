@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springcloud.annotation;
+package org.apache.shenyu.client.springmvc.annotation;
 
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -24,54 +24,57 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 /**
- * Test for {@link ShenyuPatchMapping}.
+ * Test for {@link ShenyuPutMapping}.
  */
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
-public class ShenyuPatchMappingTest {
+public class ShenyuPutMappingTest {
 
-    private final SpringCloudClientTestBean springCloudClientTestBean = new SpringCloudClientTestBean();
+    private final SpringMvcClientTestBean springMvcClientTestBean = new SpringMvcClientTestBean();
 
     @Test
     public void testWithShenyuRequestMappingAnnotation() {
-        Class<?> clazz = springCloudClientTestBean.getClass();
+        Class<?> clazz = springMvcClientTestBean.getClass();
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            if (!Objects.equals(method.getName(), "patch")) {
+            if (!Objects.equals(method.getName(), "put")) {
                 continue;
             }
             final RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
             assertNotNull(requestMapping);
-            assertEquals(requestMapping.method()[0], RequestMethod.PATCH);
-            assertEquals(requestMapping.value()[0], "/patch");
-            assertEquals(requestMapping.path()[0], "/patch");
-            ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringCloudClient.class);
+            assertEquals(requestMapping.method()[0], RequestMethod.PUT);
+            assertEquals(requestMapping.value()[0], "/put");
+            assertEquals(requestMapping.path()[0], "/put");
+            ShenyuSpringMvcClient shenyuSpringCloudClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
             assertNotNull(shenyuSpringCloudClient);
-            assertEquals(shenyuSpringCloudClient.value(), "/patch");
-            assertEquals(shenyuSpringCloudClient.path(), "/patch");
+            assertEquals(shenyuSpringCloudClient.value(), "/put");
+            assertEquals(shenyuSpringCloudClient.path(), "/put");
             assertEquals(shenyuSpringCloudClient.ruleName(), "divide");
             assertFalse(shenyuSpringCloudClient.enabled());
             assertEquals(shenyuSpringCloudClient.desc(), "it`s test.");
         }
     }
 
-    static class SpringCloudClientTestBean {
-
-        @ShenyuPatchMapping(value = "/patch", ruleName = "divide", enabled = false, desc = "it`s test.")
-        public String patch(@RequestBody final String operator) {
-            return "" + operator;
+    static class SpringMvcClientTestBean {
+        
+        @ShenyuPutMapping(value = "/put", ruleName = "divide", enabled = false, desc = "it`s test.")
+        public String put(@RequestBody final String body) {
+            return "" + body;
         }
+        
     }
+
 }

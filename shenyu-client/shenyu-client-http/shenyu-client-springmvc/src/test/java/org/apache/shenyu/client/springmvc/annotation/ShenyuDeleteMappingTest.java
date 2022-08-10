@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springcloud.annotation;
+package org.apache.shenyu.client.springmvc.annotation;
 
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -24,54 +24,55 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 /**
- * Test for {@link ShenyuPatchMapping}.
+ * Test for {@link ShenyuDeleteMapping}.
  */
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
-public class ShenyuPatchMappingTest {
+public class ShenyuDeleteMappingTest {
 
-    private final SpringCloudClientTestBean springCloudClientTestBean = new SpringCloudClientTestBean();
+    private final SpringMvcClientTestBean springMvcClientTestBean = new SpringMvcClientTestBean();
 
     @Test
     public void testWithShenyuRequestMappingAnnotation() {
-        Class<?> clazz = springCloudClientTestBean.getClass();
+        Class<?> clazz = springMvcClientTestBean.getClass();
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            if (!Objects.equals(method.getName(), "patch")) {
+            if (!Objects.equals(method.getName(), "delete")) {
                 continue;
             }
             final RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
             assertNotNull(requestMapping);
-            assertEquals(requestMapping.method()[0], RequestMethod.PATCH);
-            assertEquals(requestMapping.value()[0], "/patch");
-            assertEquals(requestMapping.path()[0], "/patch");
-            ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringCloudClient.class);
-            assertNotNull(shenyuSpringCloudClient);
-            assertEquals(shenyuSpringCloudClient.value(), "/patch");
-            assertEquals(shenyuSpringCloudClient.path(), "/patch");
-            assertEquals(shenyuSpringCloudClient.ruleName(), "divide");
-            assertFalse(shenyuSpringCloudClient.enabled());
-            assertEquals(shenyuSpringCloudClient.desc(), "it`s test.");
+            assertEquals(requestMapping.method()[0], RequestMethod.DELETE);
+            assertEquals(requestMapping.value()[0], "/{id}");
+            assertEquals(requestMapping.path()[0], "/{id}");
+            ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
+            assertNotNull(shenyuSpringMvcClient);
+            assertEquals(shenyuSpringMvcClient.value(), "/{id}");
+            assertEquals(shenyuSpringMvcClient.path(), "/{id}");
+            assertEquals(shenyuSpringMvcClient.ruleName(), "divide");
+            assertFalse(shenyuSpringMvcClient.enabled());
+            assertEquals(shenyuSpringMvcClient.desc(), "it`s test.");
         }
     }
 
-    static class SpringCloudClientTestBean {
+    static class SpringMvcClientTestBean {
 
-        @ShenyuPatchMapping(value = "/patch", ruleName = "divide", enabled = false, desc = "it`s test.")
-        public String patch(@RequestBody final String operator) {
-            return "" + operator;
+        @ShenyuDeleteMapping(value = "/{id}", ruleName = "divide", enabled = false, desc = "it`s test.")
+        public String delete(@PathVariable final String id) {
+            return "" + id;
         }
     }
 }
