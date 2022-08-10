@@ -52,6 +52,12 @@ public class HystrixPluginDataHandler implements PluginDataHandler {
                     Command command = new HystrixCommand(HystrixBuilder.build(hystrixHandle), null, null, null);
                     command.removeCommandKey(commandKey);
                 }
+                // fix issues #3820
+                if (hystrixHandleCache.getExecutionIsolationStrategy() != hystrixHandle.getExecutionIsolationStrategy()) {
+                    Command command = new HystrixCommand(HystrixBuilder.build(hystrixHandleCache), null, null, null);
+                    // delete all old Commands of the specified group
+                    command.cleanCommand();
+                }
             });
             CACHED_HANDLE.get().cachedHandle(key, hystrixHandle);
         });

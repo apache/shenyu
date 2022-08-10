@@ -36,6 +36,7 @@ import org.apache.shenyu.plugin.hystrix.command.HystrixCommandOnThread;
 import org.apache.shenyu.plugin.hystrix.handler.HystrixPluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Subscription;
@@ -53,7 +54,9 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        final HystrixHandle hystrixHandle = HystrixPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        final HystrixHandle hystrixHandle = new HystrixHandle();
+        // Avoid modifying objects in the cache
+        BeanUtils.copyProperties(HystrixPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule)), hystrixHandle);
         if (StringUtils.isBlank(hystrixHandle.getGroupKey())) {
             hystrixHandle.setGroupKey(Objects.requireNonNull(shenyuContext).getModule());
         }
