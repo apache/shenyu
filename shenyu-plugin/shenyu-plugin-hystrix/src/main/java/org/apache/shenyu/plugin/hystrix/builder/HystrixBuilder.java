@@ -41,12 +41,14 @@ public final class HystrixBuilder {
      * this is build HystrixObservableCommand.Setter.
      *
      * @param hystrixHandle {@linkplain HystrixHandle}
+     * @param commandKey commandKey
+     * @param groupKey groupKey
      * @return {@linkplain HystrixObservableCommand.Setter}
      */
-    public static HystrixObservableCommand.Setter build(final HystrixHandle hystrixHandle) {
+    public static HystrixObservableCommand.Setter build(final HystrixHandle hystrixHandle, final String commandKey, final String groupKey) {
         initHystrixHandleOnRequire(hystrixHandle);
-        HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey());
-        HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey());
+        HystrixCommandGroupKey hystrixCommandGroupKey = HystrixCommandGroupKey.Factory.asKey(groupKey);
+        HystrixCommandKey hystrixCommandKey = HystrixCommandKey.Factory.asKey(commandKey);
         HystrixCommandProperties.Setter propertiesSetter =
                 HystrixCommandProperties.Setter()
                         .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
@@ -57,9 +59,19 @@ public final class HystrixBuilder {
                         .withCircuitBreakerRequestVolumeThreshold(hystrixHandle.getRequestVolumeThreshold())
                         .withCircuitBreakerSleepWindowInMilliseconds(hystrixHandle.getSleepWindowInMilliseconds());
         return HystrixObservableCommand.Setter
-                .withGroupKey(groupKey)
-                .andCommandKey(commandKey)
+                .withGroupKey(hystrixCommandGroupKey)
+                .andCommandKey(hystrixCommandKey)
                 .andCommandPropertiesDefaults(propertiesSetter);
+    }
+
+    /**
+     * this is build HystrixObservableCommand.Setter.
+     *
+     * @param hystrixHandle {@linkplain HystrixHandle}
+     * @return {@linkplain HystrixObservableCommand.Setter}
+     */
+    public static HystrixObservableCommand.Setter build(final HystrixHandle hystrixHandle) {
+        return build(hystrixHandle, hystrixHandle.getCommandKey(), hystrixHandle.getGroupKey());
     }
 
     /**
@@ -69,9 +81,21 @@ public final class HystrixBuilder {
      * @return {@linkplain HystrixCommand.Setter}
      */
     public static HystrixCommand.Setter buildForHystrixCommand(final HystrixHandle hystrixHandle) {
+        return buildForHystrixCommand(hystrixHandle, hystrixHandle.getCommandKey(), hystrixHandle.getGroupKey());
+    }
+
+    /**
+     * this is build HystrixCommand.Setter.
+     *
+     * @param hystrixHandle {@linkplain HystrixHandle}
+     * @param commandKey commandKey
+     * @param groupKey groupKey
+     * @return {@linkplain HystrixCommand.Setter}
+     */
+    public static HystrixCommand.Setter buildForHystrixCommand(final HystrixHandle hystrixHandle, final String commandKey, final String groupKey) {
         initHystrixHandleOnRequire(hystrixHandle);
-        HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey());
-        HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey());
+        HystrixCommandGroupKey hystrixCommandGroupKey = HystrixCommandGroupKey.Factory.asKey(groupKey);
+        HystrixCommandKey hystrixCommandKey = HystrixCommandKey.Factory.asKey(commandKey);
         HystrixCommandProperties.Setter propertiesSetter =
                 HystrixCommandProperties.Setter()
                         .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
@@ -88,8 +112,8 @@ public final class HystrixBuilder {
                         .withKeepAliveTimeMinutes(hystrixThreadPoolConfig.getKeepAliveTimeMinutes())
                         .withAllowMaximumSizeToDivergeFromCoreSize(true);
         return HystrixCommand.Setter
-                .withGroupKey(groupKey)
-                .andCommandKey(commandKey)
+                .withGroupKey(hystrixCommandGroupKey)
+                .andCommandKey(hystrixCommandKey)
                 .andCommandPropertiesDefaults(propertiesSetter)
                 .andThreadPoolPropertiesDefaults(threadPoolPropertiesSetter);
     }

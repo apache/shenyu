@@ -54,13 +54,15 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         final HystrixHandle hystrixHandle = HystrixPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        String groupKey = hystrixHandle.getGroupKey();
         if (StringUtils.isBlank(hystrixHandle.getGroupKey())) {
-            hystrixHandle.setGroupKey(Objects.requireNonNull(shenyuContext).getModule());
+            groupKey = Objects.requireNonNull(shenyuContext).getModule();
         }
+        String commandKey = hystrixHandle.getCommandKey();
         if (StringUtils.isBlank(hystrixHandle.getCommandKey())) {
-            hystrixHandle.setCommandKey(Objects.requireNonNull(shenyuContext).getMethod());
+            commandKey = Objects.requireNonNull(shenyuContext).getMethod();
         }
-        Command command = fetchCommand(hystrixHandle, exchange, chain);
+        Command command = fetchCommand(hystrixHandle, exchange, chain, commandKey, groupKey);
         return Mono.create(s -> {
             Subscription sub = command.fetchObservable().subscribe(s::success,
                     s::error, s::success);
@@ -75,12 +77,12 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
         }).then();
     }
 
-    private Command fetchCommand(final HystrixHandle hystrixHandle, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    private Command fetchCommand(final HystrixHandle hystrixHandle, final ServerWebExchange exchange, final ShenyuPluginChain chain, final String commandKey, final String groupKey) {
         if (hystrixHandle.getExecutionIsolationStrategy() == HystrixIsolationModeEnum.SEMAPHORE.getCode()) {
-            return new HystrixCommand(HystrixBuilder.build(hystrixHandle),
+            return new HystrixCommand(HystrixBuilder.build(hystrixHandle, commandKey, groupKey),
                     exchange, chain, hystrixHandle.getCallBackUri());
         }
-        return new HystrixCommandOnThread(HystrixBuilder.buildForHystrixCommand(hystrixHandle),
+        return new HystrixCommandOnThread(HystrixBuilder.buildForHystrixCommand(hystrixHandle, commandKey, groupKey),
                 exchange, chain, hystrixHandle.getCallBackUri());
     }
 
