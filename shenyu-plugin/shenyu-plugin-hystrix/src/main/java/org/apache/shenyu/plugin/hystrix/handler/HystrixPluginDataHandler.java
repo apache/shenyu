@@ -29,6 +29,7 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.hystrix.builder.HystrixBuilder;
 import org.apache.shenyu.plugin.hystrix.command.Command;
 import org.apache.shenyu.plugin.hystrix.command.HystrixCommand;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -55,8 +56,12 @@ public class HystrixPluginDataHandler implements PluginDataHandler {
                 // fix issues #3820
                 if (hystrixHandleCache.getExecutionIsolationStrategy() != hystrixHandle.getExecutionIsolationStrategy()) {
                     Command command = new HystrixCommand(HystrixBuilder.build(hystrixHandleCache), null, null, null);
-                    // delete all old Commands of the specified group
-                    command.cleanCommand();
+                    if (StringUtils.hasText(hystrixHandle.getCommandKey())) {
+                        command.removeCommandKey(hystrixHandle.getCommandKey());
+                    } else {
+                        // delete all old Commands of the specified group
+                        command.cleanCommand();
+                    }
                 }
             });
             CACHED_HANDLE.get().cachedHandle(key, hystrixHandle);
