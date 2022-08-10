@@ -36,7 +36,6 @@ import org.apache.shenyu.plugin.hystrix.command.HystrixCommandOnThread;
 import org.apache.shenyu.plugin.hystrix.handler.HystrixPluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Subscription;
