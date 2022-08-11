@@ -115,7 +115,7 @@ public final class RoundRobinLoadBalanceTest {
                         .collect(Collectors.toList());
 
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
-        Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
-        Upstream result2 = roundRobinLoadBalancer.select(upstreamList2, "");
+        roundRobinLoadBalancer.select(upstreamList, "");
+        roundRobinLoadBalancer.select(upstreamList2, "");
     }
 }

@@ -85,7 +85,7 @@ public final class CrossFilterTest {
     public void testCorsWhitelist() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .get("http://localhost:8080")
-                .header("Origin", "a.apache.org")
+                .header("Origin", "http://a.apache.org")
                 .build());
         WebFilterChain chainNormal = mock(WebFilterChain.class);
         when(chainNormal.filter(exchange)).thenReturn(Mono.empty());
@@ -108,6 +108,39 @@ public final class CrossFilterTest {
         filterConfig.setAllowedOrigin(allowedOriginConfig);
         CrossFilter filter = new CrossFilter(filterConfig);
         StepVerifier.create(filter.filter(exchange, chainNormal))
+                .expectSubscription()
+                .verifyComplete();
+        allowedOriginConfig.setOrigins(new HashSet<String>() {
+            {
+                add("a.apache.org");
+            }
+        });
+        StepVerifier.create(new CrossFilter(filterConfig).filter(exchange, chainNormal))
+                .expectSubscription()
+                .verifyComplete();
+
+        filterConfig.setAllowedOrigin(null);
+        StepVerifier.create(new CrossFilter(filterConfig).filter(exchange, chainNormal))
+                .expectSubscription()
+                .verifyComplete();
+        filterConfig.setAllowedAnyOrigin(true);
+        StepVerifier.create(new CrossFilter(filterConfig).filter(exchange, chainNormal))
+                .expectSubscription()
+                .verifyComplete();
+        filterConfig.setAllowedOrigin(null);
+        StepVerifier.create(new CrossFilter(filterConfig).filter(exchange, chainNormal))
+                .expectSubscription()
+                .verifyComplete();
+
+        filterConfig.setAllowedAnyOrigin(false);
+        allowedOriginConfig.setOrigins(new HashSet<String>() {
+            {
+                add("*");
+            }
+        });
+        allowedOriginConfig.setPrefixes(null);
+        filterConfig.setAllowedOrigin(allowedOriginConfig);
+        StepVerifier.create(new CrossFilter(filterConfig).filter(exchange, chainNormal))
                 .expectSubscription()
                 .verifyComplete();
     }
