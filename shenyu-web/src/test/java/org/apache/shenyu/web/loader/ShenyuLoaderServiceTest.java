@@ -19,7 +19,6 @@ package org.apache.shenyu.web.loader;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
@@ -44,8 +43,6 @@ import java.util.zip.ZipEntry;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.any;
 
 /**
  * Test for ShenyuLoaderServiceTest.
