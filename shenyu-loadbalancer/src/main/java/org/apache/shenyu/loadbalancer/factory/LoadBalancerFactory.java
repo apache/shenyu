@@ -27,6 +27,8 @@ import org.apache.shenyu.spi.ExtensionLoader;
  */
 public class LoadBalancerFactory {
 
+    private LoadBalancerFactory (){}
+
     /**
      * Selector upstream.
      *
