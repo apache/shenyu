@@ -24,23 +24,40 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * LogInterceptor.
+ */
 @Aspect
 public class LogInterceptor {
 
-    private static final Logger log = LoggerFactory.getLogger(LogInterceptor.class);
+    /**
+     * log.
+     */
+    private static final Logger LOG =
+            LoggerFactory.getLogger(LogInterceptor.class);
 
+    /**
+     * logPointcut.
+     */
     @Pointcut("@annotation(org.apache.shenyu.examples.common.aop.Log)")
     public void logPointcut() {
-        //just for pointcut
+
     }
 
+    /**
+     * around.
+     *
+     * @param point cut point.
+     * @return Object.
+     * @throws Throwable error.
+     */
     @Around("logPointcut()")
-    public Object around(ProceedingJoinPoint point) throws Throwable {
+    public Object around(final ProceedingJoinPoint point) throws Throwable {
         try {
-            log.info("before");
+            LOG.info("before");
             return point.proceed(point.getArgs());
         } finally {
-            log.info("after");
+            LOG.info("after");
         }
     }
 }

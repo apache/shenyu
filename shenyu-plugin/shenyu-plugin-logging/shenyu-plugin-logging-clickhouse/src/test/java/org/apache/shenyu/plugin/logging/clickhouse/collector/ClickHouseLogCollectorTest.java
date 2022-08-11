@@ -15,23 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.common.aop;
+package org.apache.shenyu.plugin.logging.clickhouse.collector;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.apache.shenyu.plugin.logging.clickhouse.client.ClickHouseLogCollectClient;
+import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
- * InterceptorConfiguration.
+ * The Test Case For ClickHouseLogCollector.
  */
-@Configuration
-public class InterceptorConfiguration {
+public final class ClickHouseLogCollectorTest {
 
-    /**
-     * logInterceptor.
-     * @return logInterceptor.
-     */
-    @Bean
-    public LogInterceptor logInterceptor() {
-        return new LogInterceptor();
+    @Test
+    public void testGetLogConsumeClient() {
+        LogConsumeClient logConsumeClient = new ClickHouseLogCollector().getLogConsumeClient();
+        Assertions.assertEquals(ClickHouseLogCollectClient.class, logConsumeClient.getClass());
     }
 }
