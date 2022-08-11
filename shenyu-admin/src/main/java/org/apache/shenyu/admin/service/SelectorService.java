@@ -65,6 +65,11 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
         if (Objects.equals(SelectorTypeEnum.CUSTOM_FLOW.getCode(), selectorDTO.getType())) {
             Assert.notNull(selectorDTO.getMatchMode(), "if type is custom, matchMode is not null");
             Assert.notEmpty(selectorDTO.getSelectorConditions(), "if type is custom, selectorConditions is not empty");
+            selectorDTO.getSelectorConditions().forEach(selectorConditionDTO -> {
+                Assert.notBlack(selectorConditionDTO.getParamType(), "if type is custom, paramType is not empty");
+                Assert.notBlack(selectorConditionDTO.getParamName(), "if type is custom, paramName is not empty");
+                Assert.notBlack(selectorConditionDTO.getParamValue(), "if type is custom, paramValue is not empty");
+            });
         }
         return StringUtils.isEmpty(selectorDTO.getId()) ? create(selectorDTO) : update(selectorDTO);
     }
