@@ -18,10 +18,8 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,63 +30,25 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class RandomLoadBalanceTest {
 
-    private List<Upstream> randomLoadBalancesWeightDisordered;
-
-    private List<Upstream> randomLoadBalancesWeightOrdered;
-
-    private List<Upstream> randomLoadBalancesWeightReversed;
-
-    private List<Upstream> randomLoadBalancesWeightEqual;
-
-    private List<Upstream> randomLoadBalancesWeightZero;
-
-    @BeforeEach
-    public void setUp() {
-        this.randomLoadBalancesWeightDisordered = Stream.of(10, 50, 40)
-                .map(weight -> Upstream.builder()
-                        .url("upstream-" + weight)
-                        .weight(weight)
-                        .build())
-                .collect(Collectors.toList());
-
-        this.randomLoadBalancesWeightOrdered = Stream.of(10, 40, 50)
-                .map(weight -> Upstream.builder()
-                        .url("upstream-" + weight)
-                        .weight(weight)
-                        .build())
-                .collect(Collectors.toList());
-
-        this.randomLoadBalancesWeightReversed = Stream.of(50, 40, 10)
-                .map(weight -> Upstream.builder()
-                        .url("upstream-" + weight)
-                        .weight(weight)
-                        .build())
-                .collect(Collectors.toList());
-
-        this.randomLoadBalancesWeightEqual = Stream.of(10, 10, 10)
-                .map(weight -> Upstream.builder()
-                        .url("upstream-" + weight)
-                        .weight(weight)
-                        .build())
-                .collect(Collectors.toList());
-
-        this.randomLoadBalancesWeightZero = Stream.of(0, 0, 0)
-                .map(weight -> Upstream.builder()
-                        .url("upstream-" + weight)
-                        .weight(weight)
-                        .build())
-                .collect(Collectors.toList());
-    }
-
     @Test
     public void randomLoadBalancesWeightEqualTest() {
-        final Upstream upstreamOrdered = new RandomLoadBalancer().select(randomLoadBalancesWeightEqual, "");
+        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(10, 10, 10)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
+                        .weight(weight)
+                        .build())
+                .collect(Collectors.toList()), "");
         assertNotNull(upstreamOrdered);
     }
 
     @Test
     public void randomLoadBalancesWeightZeroTest() {
-        final Upstream upstreamOrdered = new RandomLoadBalancer().select(randomLoadBalancesWeightZero, "");
+        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(0, 0, 0)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
+                        .weight(weight)
+                        .build())
+                .collect(Collectors.toList()), "");
         assertNotNull(upstreamOrdered);
     }
 
@@ -97,19 +57,34 @@ public class RandomLoadBalanceTest {
      */
     @Test
     public void randomLoadBalanceOrderedWeightTest() {
-        final Upstream upstreamOrdered = new RandomLoadBalancer().select(randomLoadBalancesWeightOrdered, "");
+        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(10, 40, 50)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
+                        .weight(weight)
+                        .build())
+                .collect(Collectors.toList()), "");
         assertNotNull(upstreamOrdered);
     }
 
     @Test
     public void randomLoadBalanceDisOrderedWeightTest() {
-        final Upstream upstreamDisordered = new RandomLoadBalancer().select(randomLoadBalancesWeightDisordered, "");
+        final Upstream upstreamDisordered = new RandomLoadBalancer().select(Stream.of(10, 50, 40)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
+                        .weight(weight)
+                        .build())
+                .collect(Collectors.toList()), "");
         assertNotNull(upstreamDisordered);
     }
 
     @Test
     public void randomLoadBalanceReversedWeightTest() {
-        final Upstream upstreamReversed = new RandomLoadBalancer().select(randomLoadBalancesWeightReversed, "");
+        final Upstream upstreamReversed = new RandomLoadBalancer().select(Stream.of(50, 40, 10)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
+                        .weight(weight)
+                        .build())
+                .collect(Collectors.toList()), "");
         assertNotNull(upstreamReversed);
     }
 }
