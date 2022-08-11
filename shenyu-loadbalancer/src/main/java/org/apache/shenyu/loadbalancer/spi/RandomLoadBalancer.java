@@ -31,6 +31,9 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    public RandomLoadBalancer() {
+    }
+
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
         int totalWeight = calculateTotalWeight(upstreamList);
