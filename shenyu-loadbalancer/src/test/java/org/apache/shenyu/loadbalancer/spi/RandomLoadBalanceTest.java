@@ -32,7 +32,8 @@ public class RandomLoadBalanceTest {
 
     @Test
     public void randomLoadBalancesWeightEqualTest() {
-        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(10, 10, 10)
+        LoadBalancer loadBalancer = new RandomLoadBalancer();
+        final Upstream upstreamOrdered = loadBalancer.select(Stream.of(10, 10, 10)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
@@ -43,7 +44,8 @@ public class RandomLoadBalanceTest {
 
     @Test
     public void randomLoadBalancesWeightZeroTest() {
-        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(0, 0, 0)
+        LoadBalancer loadBalancer = new RandomLoadBalancer();
+        final Upstream upstreamOrdered = loadBalancer.select(Stream.of(0, 0, 0)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
@@ -57,7 +59,8 @@ public class RandomLoadBalanceTest {
      */
     @Test
     public void randomLoadBalanceOrderedWeightTest() {
-        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(10, 40, 50)
+        LoadBalancer loadBalancer = new RandomLoadBalancer();
+        final Upstream upstreamOrdered = loadBalancer.select(Stream.of(10, 40, 50)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
@@ -68,7 +71,8 @@ public class RandomLoadBalanceTest {
 
     @Test
     public void randomLoadBalanceDisOrderedWeightTest() {
-        final Upstream upstreamDisordered = new RandomLoadBalancer().select(Stream.of(10, 50, 40)
+        LoadBalancer loadBalancer = new RandomLoadBalancer();
+        final Upstream upstreamDisordered = loadBalancer.select(Stream.of(10, 50, 40)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
@@ -79,7 +83,8 @@ public class RandomLoadBalanceTest {
 
     @Test
     public void randomLoadBalanceReversedWeightTest() {
-        final Upstream upstreamReversed = new RandomLoadBalancer().select(Stream.of(50, 40, 10)
+        LoadBalancer loadBalancer = new RandomLoadBalancer();
+        final Upstream upstreamReversed = loadBalancer.select(Stream.of(50, 40, 10)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
