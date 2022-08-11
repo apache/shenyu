@@ -68,6 +68,7 @@ public class ShenyuLoaderServiceTest {
             jos.write(pluginClz.getBytes());
             jos.closeEntry();
         }
+
         ApplicationContext mockApplication =
                 mock(ApplicationContext.class);
         when(mockApplication.getBean("dividePlugin")).thenReturn(new Object());
