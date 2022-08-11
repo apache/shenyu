@@ -17,8 +17,8 @@
 package org.apache.shenyu.examples.alibaba.dubbo.service.annotation.impl;
 
 
-import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.dubbo.rpc.RpcContext;
+import org.apache.shenyu.client.alibaba.dubbo.annotation.ShenyuService;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
@@ -33,8 +33,7 @@ import java.util.Random;
 /**
  * The type Dubbo service.
  */
-@ShenyuDubboClient("/demo/**")
-@Service
+@ShenyuService("/demo/**")
 public class DubboClassTestServiceImpl implements DubboClassTestService {
 
     @Override
