@@ -69,8 +69,7 @@ public class OrderController {
      * @param name the name
      * @return the path variable
      */
-    @GetMapping("/path/{id}/{name}")
-    @ShenyuSpringMvcClient("/path/**")
+    @ShenyuGetMapping("/path/{id}/{name}")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
         return build(id,"hello world restful: " + name);
     }
@@ -81,8 +80,7 @@ public class OrderController {
      * @param id the id
      * @return the order dto
      */
-    @GetMapping("/path/{id}/name")
-    @ShenyuSpringMvcClient("/path/**/name")
+    @ShenyuGetMapping("/path/{id}/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
         return build(id,"hello world restful inline " + id);
     }

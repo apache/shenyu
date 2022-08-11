@@ -65,8 +65,7 @@ public class OrderController {
      * @param name the name
      * @return the path variable
      */
-    @GetMapping("/path/{id}/{name}")
-    @ShenyuSpringCloudClient(path = "/path/**")
+    @ShenyuGetMapping("/path/{id}/{name}")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
         return buildOrder(id, "hello world spring cloud restful: " + name);
     }
@@ -77,8 +76,7 @@ public class OrderController {
      * @param id the id
      * @return the order dto
      */
-    @GetMapping("/path/{id}/name")
-    @ShenyuSpringCloudClient(path = "/path/**/name")
+    @ShenyuGetMapping("/path/{id}/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
         return buildOrder(id, "hello world spring cloud restful inline " + id);
     }

@@ -18,7 +18,6 @@
 package org.apache.shenyu.client.springcloud.annotation;
 
 import org.springframework.core.annotation.AliasFor;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.annotation.ElementType;
@@ -32,14 +31,11 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@RequestMapping(
-        method = {RequestMethod.POST}
-)
-@ShenyuSpringCloudClient
+@ShenyuRequestMapping(method = {RequestMethod.POST})
 public @interface ShenyuPostMapping {
 
     /**
-     * Alias for {@link RequestMapping#value}, {@link ShenyuSpringCloudClient#value}.
+     * Alias for {@link ShenyuRequestMapping#value}.
      *
      * @return the string
      */
@@ -47,7 +43,7 @@ public @interface ShenyuPostMapping {
     String value() default "";
 
     /**
-     * Alias for {@link RequestMapping#path}, {@link ShenyuSpringCloudClient#path}.
+     * Alias for {@link ShenyuRequestMapping#path}.
      *
      * @return the string
      */
@@ -55,59 +51,59 @@ public @interface ShenyuPostMapping {
     String path() default "";
 
     /**
-     * Alias for {@link ShenyuSpringCloudClient#ruleName}.
+     * Alias for {@link ShenyuRequestMapping#ruleName}.
      *
      * @return the string
      */
-    @AliasFor(annotation = ShenyuSpringCloudClient.class)
+    @AliasFor(annotation = ShenyuRequestMapping.class)
     String ruleName() default "";
 
     /**
-     * Alias for {@link ShenyuSpringCloudClient#desc}.
+     * Alias for {@link ShenyuRequestMapping#desc}.
      *
      * @return the string
      */
-    @AliasFor(annotation = ShenyuSpringCloudClient.class)
+    @AliasFor(annotation = ShenyuRequestMapping.class)
     String desc() default "";
 
     /**
-     * Alias for {@link ShenyuSpringCloudClient#enabled}.
+     * Alias for {@link ShenyuRequestMapping#enabled}.
      *
      * @return the boolean
      */
-    @AliasFor(annotation = ShenyuSpringCloudClient.class)
+    @AliasFor(annotation = ShenyuRequestMapping.class)
     boolean enabled() default true;
 
     /**
-     * Alias for {@link RequestMapping#params}.
+     * Alias for {@link ShenyuRequestMapping#params}.
      *
      * @return the string[]
      */
-    @AliasFor(annotation = RequestMapping.class)
+    @AliasFor(annotation = ShenyuRequestMapping.class)
     String[] params() default {};
 
     /**
-     * Alias for {@link RequestMapping#headers}.
+     * Alias for {@link ShenyuRequestMapping#headers}.
      *
      * @return the string[]
      */
-    @AliasFor(annotation = RequestMapping.class)
+    @AliasFor(annotation = ShenyuRequestMapping.class)
     String[] headers() default {};
 
     /**
-     * Alias for {@link RequestMapping#consumes}.
+     * Alias for {@link ShenyuRequestMapping#consumes}.
      *
      * @return the string[]
      */
-    @AliasFor(annotation = RequestMapping.class)
+    @AliasFor(annotation = ShenyuRequestMapping.class)
     String[] consumes() default {};
 
     /**
-     * Alias for {@link RequestMapping#produces}.
+     * Alias for {@link ShenyuRequestMapping#produces}.
      *
      * @return the string[]
      */
-    @AliasFor(annotation = RequestMapping.class)
+    @AliasFor(annotation = ShenyuRequestMapping.class)
     String[] produces() default {};
 }
 

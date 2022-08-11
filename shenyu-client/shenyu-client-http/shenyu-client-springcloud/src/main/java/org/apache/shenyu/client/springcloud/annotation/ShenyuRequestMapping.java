@@ -19,6 +19,7 @@ package org.apache.shenyu.client.springcloud.annotation;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -106,6 +107,13 @@ public @interface ShenyuRequestMapping {
      */
     @AliasFor(annotation = RequestMapping.class)
     String[] produces() default {};
+
+    /**
+     * Alias for {@link RequestMapping#method}.
+     *
+     * @return the RequestMethod[]
+     */
+    RequestMethod[] method() default {};
 }
 
 
