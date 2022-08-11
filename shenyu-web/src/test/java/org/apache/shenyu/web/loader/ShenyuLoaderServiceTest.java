@@ -43,7 +43,9 @@ import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doNothing;
 
 /**
  * Test for ShenyuLoaderServiceTest.
