@@ -123,9 +123,9 @@
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <compileSourceRoots>
-                        <compileSourceRoot>${project.build.sourceDirectory}</compileSourceRoot>
                         <compileSourceRoot>${project.build.directory}\generated-sources\protobuf\grpc-java</compileSourceRoot>
                         <compileSourceRoot>${project.build.directory}\generated-sources\protobuf\java</compileSourceRoot>
+                        <compileSourceRoot>${project.build.sourceDirectory}</compileSourceRoot>
                     </compileSourceRoots>
                 </configuration>
             </plugin>

@@ -21,6 +21,7 @@ import hello.HelloRequest;
 import hello.HelloResponse;
 import hello.HelloServiceGrpc;
 
+import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
