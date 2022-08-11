@@ -31,7 +31,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * Integrated pulsar collect log.
+ * LoggingClickHousePlugin.
  */
 public class LoggingClickHousePlugin extends AbstractLoggingPlugin {
 
