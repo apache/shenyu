@@ -76,14 +76,13 @@ public class RandomLoadBalanceTest {
 
     @Test
     public void randomLoadBalancesWeightZeroTest() {
-        List<Upstream> upstreamList = Stream.of(0, 0, 0)
+        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
+        final Upstream upstreamOrdered = randomLoadBalancer.select(Stream.of(0, 0, 0)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
-                .collect(Collectors.toList());
-        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
-        final Upstream upstreamOrdered = randomLoadBalancer.select(upstreamList, "");
+                .collect(Collectors.toList()), "");
         assertNotNull(upstreamOrdered);
     }
 
