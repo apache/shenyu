@@ -67,12 +67,27 @@ public final class HealthFilterTest {
     }
 
     @Test
+    public void testPathNull() {
+        List<String> paths = new ArrayList<>();
+        new HealthFilter(paths);
+    }
+
+    @Test
     public void testDoNotMatcher() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
                         .post("http://localhost:8080/"));
         Mono<Boolean> filter = healthFilter.doMatcher(webExchange, webFilterChain);
         StepVerifier.create(filter).expectNext(Boolean.FALSE).verifyComplete();
+    }
+
+    @Test
+    public void testDoFilter() {
+        ServerWebExchange webExchange =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8080/"));
+        Mono<Void> filter = healthFilter.doFilter(webExchange);
+        StepVerifier.create(filter).verifyComplete();
     }
 
 }

@@ -30,8 +30,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -85,5 +87,6 @@ public final class GlobalErrorHandlerTest {
         NullPointerException nullPointerException = new NullPointerException("nullPointerException");
         Mono<Void> response = globalErrorHandler.handle(webExchange, nullPointerException);
         assertNotNull(response);
+        assertNotNull(globalErrorHandler.handle(webExchange, new ResponseStatusException(HttpStatus.BAD_REQUEST)));
     }
 }

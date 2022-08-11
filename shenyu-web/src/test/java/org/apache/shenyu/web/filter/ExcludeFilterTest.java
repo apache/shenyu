@@ -72,4 +72,13 @@ public final class ExcludeFilterTest {
         StepVerifier.create(filter).expectNext(Boolean.FALSE).verifyComplete();
     }
 
+    @Test
+    public void testDoFilter() {
+        ServerWebExchange webExchange =
+                MockServerWebExchange.from(MockServerHttpRequest
+                        .post("http://localhost:8080/"));
+        Mono<Void> filter = excludeFilter.doFilter(webExchange);
+        StepVerifier.create(filter).verifyComplete();
+    }
+
 }
