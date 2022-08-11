@@ -42,8 +42,6 @@ public class RandomLoadBalanceTest {
 
     private List<Upstream> randomLoadBalancesWeightZero;
 
-    private RandomLoadBalancer randomLoadBalancer;
-
     @BeforeEach
     public void setUp() {
         this.randomLoadBalancesWeightDisordered = Stream.of(10, 50, 40)
@@ -80,36 +78,42 @@ public class RandomLoadBalanceTest {
                         .weight(weight)
                         .build())
                 .collect(Collectors.toList());
-
-        randomLoadBalancer = new RandomLoadBalancer();
     }
 
     @Test
     public void randomLoadBalancesWeightEqualTest() {
+        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
         final Upstream upstreamOrdered = randomLoadBalancer.select(randomLoadBalancesWeightEqual, "");
         assertNotNull(upstreamOrdered);
     }
 
     @Test
     public void randomLoadBalancesWeightZeroTest() {
+        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
         final Upstream upstreamOrdered = randomLoadBalancer.select(randomLoadBalancesWeightZero, "");
         assertNotNull(upstreamOrdered);
     }
 
+    /**
+     * random load balance test.
+     */
     @Test
     public void randomLoadBalanceOrderedWeightTest() {
+        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
         final Upstream upstreamOrdered = randomLoadBalancer.select(randomLoadBalancesWeightOrdered, "");
         assertNotNull(upstreamOrdered);
     }
 
     @Test
     public void randomLoadBalanceDisOrderedWeightTest() {
+        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
         final Upstream upstreamDisordered = randomLoadBalancer.select(randomLoadBalancesWeightDisordered, "");
         assertNotNull(upstreamDisordered);
     }
 
     @Test
     public void randomLoadBalanceReversedWeightTest() {
+        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
         final Upstream upstreamReversed = randomLoadBalancer.select(randomLoadBalancesWeightReversed, "");
         assertNotNull(upstreamReversed);
     }
