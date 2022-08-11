@@ -25,9 +25,10 @@ import org.apache.shenyu.spi.ExtensionLoader;
 /**
  * The type Load balance Factory.
  */
-public class LoadBalancerFactory {
+public final class LoadBalancerFactory {
 
-    private LoadBalancerFactory (){}
+    private LoadBalancerFactory() {
+    }
 
     /**
      * Selector upstream.
