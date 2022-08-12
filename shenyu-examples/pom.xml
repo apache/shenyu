@@ -66,11 +66,6 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
-                    <compileSourceRoots>
-                        <compileSourceRoot>${project.basedir}\target\generated-sources\protobuf\grpc-java</compileSourceRoot>
-                        <compileSourceRoot>${project.basedir}\target\generated-sources\protobuf\java</compileSourceRoot>
-                        <compileSourceRoot>${project.build.sourceDirectory}</compileSourceRoot>
-                    </compileSourceRoots>
                 </configuration>
             </plugin>
             <plugin>

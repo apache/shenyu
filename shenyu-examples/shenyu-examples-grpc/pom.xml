@@ -122,6 +122,10 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+                    <includes>
+                        <include>${project.basedir}\target\generated-sources\protobuf\grpc-java</include>
+                        <include>${project.basedir}\target\generated-sources\protobuf\java</include>
+                    </includes>
                 </configuration>
             </plugin>
         </plugins>
