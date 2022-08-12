@@ -45,7 +45,7 @@ import java.util.zip.ZipEntry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 
 /**
  * Test for ShenyuLoaderServiceTest.
@@ -101,7 +101,7 @@ public class ShenyuLoaderServiceTest {
         loaderExtPlugins.setAccessible(true);
         loaderExtPlugins.invoke(shenyuLoaderService);
 
-        doNothing().doThrow(ShenyuException.class).when(shenyuWebHandler).putExtPlugins(any());
+        doThrow(ShenyuException.class).when(shenyuWebHandler).putExtPlugins(any());
         loaderExtPlugins.invoke(shenyuLoaderService);
 
         extPlugin.setPath("test");
