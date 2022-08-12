@@ -27,7 +27,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -40,18 +39,20 @@ public class WebSocketInterceptor implements HandshakeInterceptor {
 
     /**
      * Before handshake.
-     *
-     * @param request
-     * @param response
-     * @param wsHandler
-     * @param attributes
-     * @return
-     * @throws Exception
+     * @param request request
+     * @param response response
+     * @param wsHandler websocketHandler
+     * @param attributes  attributes
+     * @return enable handshake
+     * @throws Exception exception
      */
     @Override
-    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+    public boolean beforeHandshake(final ServerHttpRequest request, 
+                                   final ServerHttpResponse response, 
+                                   final WebSocketHandler wsHandler, 
+                                   final Map<String, Object> attributes) throws Exception {
         LOG.info("Shake hands.");
-        HashMap<String, String> paramMap = HttpUtil.decodeParamMap(request.getURI().getQuery(), "utf-8");
+        Map<String, String> paramMap = HttpUtil.decodeParamMap(request.getURI().getQuery(), "utf-8");
         String uid = paramMap.get("token");
         if (StrUtil.isNotBlank(uid)) {
             attributes.put("token", uid);
@@ -64,14 +65,16 @@ public class WebSocketInterceptor implements HandshakeInterceptor {
 
     /**
      * After shaking hands.
-     *
-     * @param request
-     * @param response
-     * @param wsHandler
-     * @param exception
+     * @param request  request
+     * @param response  response
+     * @param wsHandler  websocketHandler
+     * @param exception  exception
      */
     @Override
-    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
+    public void afterHandshake(final ServerHttpRequest request, 
+                               final ServerHttpResponse response, 
+                               final WebSocketHandler wsHandler, 
+                               final Exception exception) {
         LOG.info("Handshake complete");
     }
 
