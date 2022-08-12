@@ -52,6 +52,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,6 +62,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -456,5 +459,26 @@ public final class LocalPluginControllerTest {
         divideRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
         selectorRuleData.setRuleHandler(JsonUtils.toJson(divideRuleHandle));
         Assertions.assertEquals(selectorRuleData.getSelectorName(), "selectorName");
+    }
+
+    @Test
+    public void testBuildDefaultSelectorData() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method buildDefaultSelectorData = LocalPluginController.class.getDeclaredMethod("buildDefaultSelectorData", SelectorData.class);
+        buildDefaultSelectorData.setAccessible(true);
+        LocalPluginController localPluginController = mock(LocalPluginController.class);
+        SelectorData selectorData = SelectorData.builder().id("id").name("name").sort(1)
+                .enabled(true)
+                .logged(true)
+                .build();
+        buildDefaultSelectorData.invoke(localPluginController, selectorData);
+    }
+
+    @Test
+    public void testBuildDefaultRuleData() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method buildDefaultRuleData = LocalPluginController.class.getDeclaredMethod("buildDefaultRuleData", RuleData.class);
+        buildDefaultRuleData.setAccessible(true);
+        LocalPluginController localPluginController = mock(LocalPluginController.class);
+
+        buildDefaultRuleData.invoke(localPluginController, RuleData.builder().sort(1).enabled(true).loged(true).build());
     }
 }
