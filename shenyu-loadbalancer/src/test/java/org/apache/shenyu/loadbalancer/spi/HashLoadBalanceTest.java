@@ -179,6 +179,7 @@ public final class HashLoadBalanceTest {
         MockedStatic<MessageDigest> messageDigestMockedStatic = mockStatic(MessageDigest.class);
         messageDigestMockedStatic.when((MockedStatic.Verification) MessageDigest.getInstance("MD5")).thenThrow(NoSuchAlgorithmException.class);
         assertThrows(InvocationTargetException.class, () -> hash.invoke(null, ip));
+        messageDigestMockedStatic.close();
     }
 
     @Test
