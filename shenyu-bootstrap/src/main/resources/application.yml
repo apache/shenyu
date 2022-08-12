@@ -68,7 +68,7 @@ management:
 
 shenyu:
   matchCache:
-    enabled: true
+    enabled: false
     maxFreeMemory: 256 # 256MB
   netty:
     http:
@@ -169,6 +169,7 @@ shenyu:
 #        - c.apache.org
 #        - d.apache.org
 #        - http://e.apache.org
+#      originRegex: ^http(|s)://(.*\.|)abc.com$
     allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
@@ -181,6 +182,7 @@ shenyu:
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
+      allowOrigin: ws://localhost:9195
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000

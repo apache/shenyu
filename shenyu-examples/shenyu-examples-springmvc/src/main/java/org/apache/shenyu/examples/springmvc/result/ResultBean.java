@@ -23,17 +23,17 @@ package org.apache.shenyu.examples.springmvc.result;
 public class ResultBean {
 
     /**
-     * code describe status
+     * code describe status.
      */
     private Integer code;
 
     /**
-     * msg describe result
+     * msg describe result.
      */
     private String msg;
 
     /**
-     * result data
+     * result data.
      */
     private Object data;
 

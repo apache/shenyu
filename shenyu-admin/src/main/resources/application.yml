@@ -50,6 +50,7 @@ shenyu:
     websocket:
       enabled: true
       messageMaxSize: 10240
+      allowOrigins: ws://localhost:9095;ws://localhost:9195;
 #      zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000

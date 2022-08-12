@@ -92,4 +92,9 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
     public void removeCommandKey(final String commandKey) {
         executionSemaphorePerCircuit.remove(commandKey);
     }
+
+    @Override
+    public void cleanCommand() {
+        executionSemaphorePerCircuit.clear();
+    }
 }

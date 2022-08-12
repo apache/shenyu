@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.examples.alibaba.dubbo.service.annotation.impl;
 
-import com.alibaba.dubbo.config.annotation.Service;
+import org.apache.shenyu.client.alibaba.dubbo.annotation.ShenyuService;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.entity.ComplexBeanTest;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
@@ -32,8 +32,7 @@ import java.util.stream.Collectors;
 /**
  * The type Dubbo multi param service.
  */
-@ShenyuDubboClient("/demo")
-@Service
+@ShenyuService("/demo")
 public class DubboClassMultiParamServiceImpl implements DubboClassMultiParamService {
 
     @Override
@@ -86,6 +85,12 @@ public class DubboClassMultiParamServiceImpl implements DubboClassMultiParamServ
     public DubboTest saveComplexBeanTestAndName(final ComplexBeanTest complexBeanTest, final String name) {
         return new DubboTest(complexBeanTest.getIdLists().toString(),
                 "hello world shenyu alibaba dubbo param saveComplexBeanTestAndName :" + complexBeanTest.getDubboTest().getName() + "-" + name);
+    }
+
+    @Override
+    @ShenyuDubboClient("/bigRequestBody")
+    public DubboTest saveBigRequestBody(final DubboTest dubboTest) {
+        return dubboTest;
     }
 
     private <T> String join(final @NonNull List<T> list, final Function<T, String> mapper) {

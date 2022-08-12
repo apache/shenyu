@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.hibernate.validator.constraints.Range;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -57,7 +58,7 @@ public final class SelectorDTO implements Serializable {
     private String name;
     
     /**
-     * match mode.
+     * match mode. 0 and 1 or
      */
     private Integer matchMode;
     
@@ -73,6 +74,7 @@ public final class SelectorDTO implements Serializable {
      * sort type.
      */
     @NotNull
+    @Range(min = 1, max = 1000)
     private Integer sort;
     
     /**
@@ -101,7 +103,7 @@ public final class SelectorDTO implements Serializable {
     /**
      * selector conditions.
      */
-    private List<@Valid SelectorConditionDTO> selectorConditions;
+    private List<SelectorConditionDTO> selectorConditions;
     
     public SelectorDTO() {
     }

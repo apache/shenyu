@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.aliyun.sls.collector;
 
-import org.apache.shenyu.plugin.aliyun.sls.handler.LoggingAliYunSlsPluginDataHandler;
+import org.apache.shenyu.plugin.aliyun.sls.handler.LoggingAliyunSlsPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
@@ -40,6 +40,6 @@ public class AliyunSlsLogCollector extends AbstractLogCollector {
 
     @Override
     protected LogConsumeClient getLogConsumeClient() {
-        return LoggingAliYunSlsPluginDataHandler.getAliyunSlsLogCollectClient();
+        return LoggingAliyunSlsPluginDataHandler.getAliyunSlsLogCollectClient();
     }
 }

@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.List;
@@ -36,7 +37,7 @@ public class AuthPathWarpDTO implements Serializable {
     private String id;
 
     @NotEmpty(message = "auth path is not empty")
-    private List<AuthPathDTO> authPathDTOList;
+    private List<@Valid AuthPathDTO> authPathDTOList;
 
     /**
      * Gets the value of id.

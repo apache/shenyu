@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.starter.plugin.sofa;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.sofa.SofaPlugin;
 import org.apache.shenyu.plugin.sofa.context.SofaShenyuContextDecorator;
@@ -26,8 +27,7 @@ import org.apache.shenyu.plugin.sofa.handler.SofaPluginDataHandler;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveServiceImpl;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
-import org.apache.shenyu.plugin.sofa.subscriber.SofaMetaDataSubscriber;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.apache.shenyu.plugin.sofa.handler.SofaMetaDataHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -77,13 +77,13 @@ public class SofaPluginConfiguration {
     }
     
     /**
-     * Sofa meta data subscriber.
+     * Sofa meta data handler.
      *
-     * @return the meta data subscriber
+     * @return the meta data handler
      */
     @Bean
-    public MetaDataSubscriber sofaMetaDataSubscriber() {
-        return new SofaMetaDataSubscriber();
+    public MetaDataHandler sofaMetaDataHandler() {
+        return new SofaMetaDataHandler();
     }
     
     /**

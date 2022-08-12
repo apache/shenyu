@@ -55,9 +55,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/apache/incubator-shenyu</url>
-        <connection>scm:git:https://github.com/apache/incubator-shenyu.git</connection>
-        <developerConnection>scm:git:https://github.com/apache/incubator-shenyu.git</developerConnection>
+        <url>https://github.com/apache/shenyu</url>
+        <connection>scm:git:https://github.com/apache/shenyu.git</connection>
+        <developerConnection>scm:git:https://github.com/apache/shenyu.git</developerConnection>
         <tag>v2.4.3</tag>
     </scm>
 
@@ -72,7 +72,7 @@
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/apache/incubator-shenyu/issues</url>
+        <url>https://github.com/apache/shenyu/issues</url>
     </issueManagement>
 
     <properties>
@@ -122,7 +122,7 @@
         <mockito.version>3.5.15</mockito.version>
         <awaitility.version>4.0.3</awaitility.version>
         <commons-io.version>2.11.0</commons-io.version>
-        <nacos-client.version>2.0.0</nacos-client.version>
+        <nacos-client.version>2.0.4</nacos-client.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
         <grpc.version>1.33.1</grpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>

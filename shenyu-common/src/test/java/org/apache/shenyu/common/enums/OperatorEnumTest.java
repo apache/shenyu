@@ -42,7 +42,7 @@ public final class OperatorEnumTest {
         assertTrue(enums.contains(OperatorEnum.EQ));
         assertTrue(enums.contains(OperatorEnum.REGEX));
         assertTrue(enums.contains(OperatorEnum.CONTAINS));
-        assertTrue(enums.contains(OperatorEnum.PATH_PATTER));
+        assertTrue(enums.contains(OperatorEnum.PATH_PATTERN));
         assertTrue(enums.contains(OperatorEnum.TIME_BEFORE));
         assertTrue(enums.contains(OperatorEnum.TIME_AFTER));
         assertTrue(enums.contains(OperatorEnum.STARTS_WITH));

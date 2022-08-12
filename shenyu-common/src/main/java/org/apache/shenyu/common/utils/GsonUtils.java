@@ -190,7 +190,7 @@ public class GsonUtils {
                         .append(URLDecoder.decode(v, Constants.DECODE))
                         .append(AND);
             } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                LOG.error("decode:{} failed !", v, e);
             }
         });
         final String r = stringBuilder.toString();

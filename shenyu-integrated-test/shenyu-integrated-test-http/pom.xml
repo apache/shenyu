@@ -186,6 +186,22 @@
         </dependency>
         <!--shenyu logging-rocketmq plugin end-->
 
+        <!--shenyu logging-kafka plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-kafka</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu logging-kafka plugin end-->
+
+        <!--shenyu logging-elasticsearch plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-mock</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu logging-elasticsearch plugin end-->
+
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-integrated-test-common</artifactId>

@@ -30,19 +30,19 @@ import java.util.regex.Pattern;
  */
 public final class GeneratorFactory {
     
-    /**
-     * Regular expression to extract placeholders.
-     */
-    private static final Pattern RULE_PATTERN = Pattern
-        .compile("(\\$\\{.+?})", Pattern.MULTILINE);
-    
     private static final Logger LOG = LoggerFactory.getLogger(GeneratorFactory.class);
+    
+    /**
+     * If expression parsing fails, the ${} placeholder
+     * will be replaced with the following.
+     */
+    private static final String ERROR_PARSE = "\"[#ERROR EXPRESSION#]\"";
     
     /**
      * Regular expression to extract rule content.
      */
     private static final Pattern RULE_CONTENT_PATTERN = Pattern
-        .compile("^\\$\\{(.+?)}$", Pattern.MULTILINE);
+            .compile("^\\$\\{(.+?)}$", Pattern.MULTILINE);
     
     private GeneratorFactory() {
     }
@@ -63,7 +63,7 @@ public final class GeneratorFactory {
         return null;
     }
     
-    private static Object generate(final String rule) {
+    private static String generate(final String rule) {
         final Matcher matcher = RULE_CONTENT_PATTERN.matcher(rule);
         if (matcher.find()) {
             String ruleContent = matcher.group(1);
@@ -72,8 +72,10 @@ public final class GeneratorFactory {
             if (generator == null || !generator.match(ruleContent)) {
                 return rule;
             }
+            String[] prefixAndSuffix = generator.getPrefixAndSuffix();
             generator.parseRule(ruleContent);
-            return generator.generate();
+            Object generateData = generator.generate();
+            return String.join("", prefixAndSuffix[0], generateData.toString(), prefixAndSuffix[1]);
         } else {
             return rule;
         }
@@ -87,20 +89,37 @@ public final class GeneratorFactory {
      */
     public static String dealRule(final String content) {
         String afterDeal = content;
-        final Matcher matcher = RULE_PATTERN.matcher(afterDeal);
-        while (matcher.find()) {
-            String placeHolder = matcher.group(0);
+        String placeHolder = getPlaceholder(content);
+        while (placeHolder != null) {
             Object generateData = generate(placeHolder);
             if (Objects.equals(generateData, placeHolder)) {
-                continue;
+                generateData = ERROR_PARSE;
             }
             String toString = String.valueOf(generateData);
-            if (generateData instanceof String) {
-                toString = String.format("\"%s\"", toString);
-            }
             placeHolder = placeHolder.replaceAll("([$|{}\\]\\[])", "\\\\$1");
             afterDeal = afterDeal.replaceFirst(placeHolder, toString);
+            placeHolder = getPlaceholder(afterDeal);
         }
         return afterDeal;
+    }
+    
+    private static String getPlaceholder(final String rule) {
+        int start = rule.indexOf("${");
+        if (start < 0) {
+            return null;
+        }
+        int counter = 1;
+        for (int i = start + 2; i < rule.length(); i++) {
+            char c = rule.charAt(i);
+            if (c == '{') {
+                counter++;
+            } else if (c == '}') {
+                counter--;
+                if (counter == 0) {
+                    return "${" + rule.substring(start + 2, i) + "}";
+                }
+            }
+        }
+        return null;
     }
 }

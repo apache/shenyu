@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,14 +30,9 @@ public final class CurrentTimeGeneratorTest {
     @Test
     public void testGenerate() {
         generator.parseRule("${current}");
-        Assertions.assertEquals(generator.generate(), currentTime("YYYY-MM-dd HH:mm:ss"));
+        Assertions.assertTrue(generator.generate().matches("^\\d{4}(-\\d{2}){2} \\d{2}(:\\d{2}){2}$"));
         generator.parseRule("current|YYYY-MM-dd");
-        Assertions.assertEquals(generator.generate(), currentTime("YYYY-MM-dd"));
-        
-    }
-    
-    private String currentTime(final String format) {
-        return new SimpleDateFormat(format).format(new Date());
+        Assertions.assertTrue(generator.generate().matches("^\\d{4}(-\\d{2}){2}$"));
     }
     
     @Test

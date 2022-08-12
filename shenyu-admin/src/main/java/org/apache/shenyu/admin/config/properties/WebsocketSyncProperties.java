@@ -36,6 +36,11 @@ public class WebsocketSyncProperties {
     private int messageMaxSize;
 
     /**
+     * allowOrigins.
+     */
+    private String allowOrigins;
+
+    /**
      * Gets the value of enabled.
      *
      * @return the value of enabled
@@ -69,5 +74,21 @@ public class WebsocketSyncProperties {
      */
     public void setMessageMaxSize(final int messageMaxSize) {
         this.messageMaxSize = messageMaxSize;
+    }
+
+    /**
+     * set allowOrigins.
+     * @return allowOrigins
+     */
+    public String getAllowOrigins() {
+        return allowOrigins;
+    }
+
+    /**
+     * get allowOrigins.
+     * @param allowOrigins allowOrigins
+     */
+    public void setAllowOrigins(final String allowOrigins) {
+        this.allowOrigins = allowOrigins;
     }
 }
