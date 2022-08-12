@@ -80,7 +80,7 @@ public class OrderController {
     }
 
     /**
-     * Test rest ful order dto.
+     * Test restful order dto.
      *
      * @param id the id
      * @return the order dto
@@ -91,6 +91,11 @@ public class OrderController {
         return build(id, "hello world restful inline " + id);
     }
 
+    /**
+     * Test oauth2 request.
+     * @param request request with the oauth2 headers
+     * @return the oauth2 dto
+     */
     @GetMapping("/oauth2/test")
     @ShenyuSpringMvcClient("/oauth2/test")
     public OAuth2DTO testRestFul(final ServerHttpRequest request) {

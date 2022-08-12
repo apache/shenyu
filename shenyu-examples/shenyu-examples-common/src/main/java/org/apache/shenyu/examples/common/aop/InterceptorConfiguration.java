@@ -20,15 +20,12 @@ package org.apache.shenyu.examples.common.aop;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * InterceptorConfiguration.
- */
 @Configuration
 public class InterceptorConfiguration {
 
     /**
-     * logInterceptor.
-     * @return logInterceptor.
+     * define a bean with the name logInterceptor.
+     * @return logInterceptor
      */
     @Bean
     public LogInterceptor logInterceptor() {
