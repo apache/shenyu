@@ -119,10 +119,6 @@ public final class CrossFilterTest {
                 .expectSubscription()
                 .verifyComplete();
 
-        filterConfig.setAllowedOrigin(null);
-        StepVerifier.create(new CrossFilter(filterConfig).filter(exchange, chainNormal))
-                .expectSubscription()
-                .verifyComplete();
         filterConfig.setAllowedAnyOrigin(true);
         StepVerifier.create(new CrossFilter(filterConfig).filter(exchange, chainNormal))
                 .expectSubscription()
