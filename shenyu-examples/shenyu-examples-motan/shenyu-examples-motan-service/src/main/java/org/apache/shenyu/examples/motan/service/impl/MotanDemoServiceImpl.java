@@ -38,12 +38,12 @@ public class MotanDemoServiceImpl implements MotanDemoService {
 
     @Override
     @ShenyuMotanClient("/timeout")
-    public String testTimeOut(final String timeout) {
+    public String testTimeOut(final long seconds) {
         try {
-            Thread.sleep((long) (Double.parseDouble(timeout) * 1000));
+            Thread.sleep(seconds * 1000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        return "hello timeout " + timeout + "s";
+        return "hello timeout " + seconds + "s";
     }
 }

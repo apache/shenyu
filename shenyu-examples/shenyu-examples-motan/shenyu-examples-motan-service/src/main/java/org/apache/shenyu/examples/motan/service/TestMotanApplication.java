@@ -44,6 +44,10 @@ public class TestMotanApplication {
         MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
     }
 
+    /**
+     * define the annotation bean, set the scan package.
+     * @return  annotationBean
+     */
     @Bean
     public AnnotationBean motanAnnotationBean() {
         AnnotationBean motanAnnotationBean = new AnnotationBean();
@@ -51,6 +55,10 @@ public class TestMotanApplication {
         return motanAnnotationBean;
     }
 
+    /**
+     * define a bean with name demoMotan of ProtocolConfigBean.
+     * @return demoMotan
+     */
     @Bean(name = "demoMotan")
     public ProtocolConfigBean protocolConfig1() {
         ProtocolConfigBean config = new ProtocolConfigBean();
@@ -60,6 +68,11 @@ public class TestMotanApplication {
         return config;
     }
 
+    /**
+     * define a bean with name registryConfig1 of RegistryConfigBean.
+     * @param properties  registry properties
+     * @return registryConfig1
+     */
     @Bean(name = "registryConfig1")
     public RegistryConfigBean registryConfig(final RegistryProperties properties) {
         RegistryConfigBean config = new RegistryConfigBean();
@@ -68,6 +81,10 @@ public class TestMotanApplication {
         return config;
     }
 
+    /**
+     * define a bean with name baseServiceConfig of BasicServiceConfigBean.
+     * @return baseServiceConfig
+     */
     @Bean(name = "baseServiceConfig")
     public BasicServiceConfigBean baseServiceConfig() {
         BasicServiceConfigBean config = new BasicServiceConfigBean();

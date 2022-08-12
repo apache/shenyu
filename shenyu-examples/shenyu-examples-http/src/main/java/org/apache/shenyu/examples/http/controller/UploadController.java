@@ -20,12 +20,13 @@ package org.apache.shenyu.examples.http.controller;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
@@ -37,22 +38,22 @@ import java.util.stream.Collectors;
 public class UploadController {
 
     /**
-     * webFlux uploadFile
-     * @param file
-     * @return
+     * webFlux uploadFile.
+     * @param file  the file you upload
+     * @return  response
      */
-    @PostMapping(value = "/webFluxSingle", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE,MediaType.TEXT_PLAIN_VALUE})
-    public Mono<String> webFluxSingle(@RequestPart("file") FilePart file){
+    @PostMapping(value = "/webFluxSingle", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.TEXT_PLAIN_VALUE})
+    public Mono<String> webFluxSingle(@RequestPart("file") final FilePart file) {
         return Mono.just(file.filename());
     }
 
     /**
-     * webFlux uploadFiles
-     * @param files
-     * @return
+     * webFlux uploadFiles.
+     * @param files  the file you upload
+     * @return response
      */
-    @PostMapping(value = "/webFluxFiles", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE,MediaType.TEXT_PLAIN_VALUE})
-    public Mono<String> webFluxFiles(@RequestPart(value = "files", required = false) Flux<FilePart> files){
+    @PostMapping(value = "/webFluxFiles", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.TEXT_PLAIN_VALUE})
+    public Mono<String> webFluxFiles(@RequestPart(value = "files", required = false) final Flux<FilePart> files) {
         return files.map(FilePart::filename).collect(Collectors.joining(","));
     }
 }
