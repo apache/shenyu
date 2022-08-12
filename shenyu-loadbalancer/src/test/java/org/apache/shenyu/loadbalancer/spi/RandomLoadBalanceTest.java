@@ -20,6 +20,9 @@ package org.apache.shenyu.loadbalancer.spi;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,8 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class RandomLoadBalanceTest {
 
     @Test
-    public void randomLoadBalancesWeightEqualTest() {
-        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(10, 10, 10)
+    public void randomLoadBalancesWeightEqualTest() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method select = AbstractLoadBalancer.class.getDeclaredMethod("select", List.class, String.class);
+        Object upstreamOrdered = select.invoke(new RandomLoadBalancer(), Stream.of(10, 10, 10)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
@@ -42,8 +46,9 @@ public class RandomLoadBalanceTest {
     }
 
     @Test
-    public void randomLoadBalancesWeightZeroTest() {
-        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(0, 0, 0)
+    public void randomLoadBalancesWeightZeroTest() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method select = AbstractLoadBalancer.class.getDeclaredMethod("select", List.class, String.class);
+        Object upstreamOrdered = select.invoke(new RandomLoadBalancer(), Stream.of(0, 0, 0)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
@@ -56,8 +61,9 @@ public class RandomLoadBalanceTest {
      * random load balance test.
      */
     @Test
-    public void randomLoadBalanceOrderedWeightTest() {
-        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(10, 40, 50)
+    public void randomLoadBalanceOrderedWeightTest() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method select = AbstractLoadBalancer.class.getDeclaredMethod("select", List.class, String.class);
+        Object upstreamOrdered = select.invoke(new RandomLoadBalancer(), Stream.of(10, 40, 50)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
@@ -67,24 +73,26 @@ public class RandomLoadBalanceTest {
     }
 
     @Test
-    public void randomLoadBalanceDisOrderedWeightTest() {
-        final Upstream upstreamDisordered = new RandomLoadBalancer().select(Stream.of(10, 50, 40)
+    public void randomLoadBalanceDisOrderedWeightTest() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method select = AbstractLoadBalancer.class.getDeclaredMethod("select", List.class, String.class);
+        Object upstreamOrdered = select.invoke(new RandomLoadBalancer(), Stream.of(10, 50, 40)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
                 .collect(Collectors.toList()), "");
-        assertNotNull(upstreamDisordered);
+        assertNotNull(upstreamOrdered);
     }
 
     @Test
-    public void randomLoadBalanceReversedWeightTest() {
-        final Upstream upstreamReversed = new RandomLoadBalancer().select(Stream.of(50, 40, 10)
+    public void randomLoadBalanceReversedWeightTest() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        Method select = AbstractLoadBalancer.class.getDeclaredMethod("select", List.class, String.class);
+        Object upstreamOrdered = select.invoke(new RandomLoadBalancer(), Stream.of(50, 40, 10)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
                 .collect(Collectors.toList()), "");
-        assertNotNull(upstreamReversed);
+        assertNotNull(upstreamOrdered);
     }
 }
