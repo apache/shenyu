@@ -22,6 +22,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class InterceptorConfiguration {
+
+    /**
+     * define a bean with the name logInterceptor.
+     * @return logInterceptor
+     */
     @Bean
     public LogInterceptor logInterceptor() {
         return new LogInterceptor();

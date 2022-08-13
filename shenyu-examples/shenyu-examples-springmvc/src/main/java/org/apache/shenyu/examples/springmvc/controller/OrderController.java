@@ -59,7 +59,7 @@ public class OrderController {
      */
     @ShenyuGetMapping("/findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
-        return build(id,"hello world findById");
+        return build(id, "hello world findById");
     }
 
     /**
@@ -71,7 +71,7 @@ public class OrderController {
      */
     @ShenyuGetMapping("/path/{id}/{name}")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
-        return build(id,"hello world restful: " + name);
+        return build(id, "hello world restful: " + name);
     }
 
     /**
@@ -82,9 +82,14 @@ public class OrderController {
      */
     @ShenyuGetMapping("/path/{id}/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
-        return build(id,"hello world restful inline " + id);
+        return build(id, "hello world restful inline " + id);
     }
 
+    /**
+     * Test oauth2 request.
+     * @param request request with the oauth2 headers
+     * @return the oauth2 dto
+     */
     @ShenyuGetMapping("/oauth2/test")
     public OAuth2DTO testRestFul(final HttpServletRequest request) {
         final String token = request.getHeader("Authorization");

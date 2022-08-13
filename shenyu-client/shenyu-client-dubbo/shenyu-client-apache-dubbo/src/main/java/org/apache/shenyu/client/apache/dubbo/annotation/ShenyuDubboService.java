@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.alibaba.dubbo.annotation;
+package org.apache.shenyu.client.apache.dubbo.annotation;
 
-import com.alibaba.dubbo.config.annotation.Method;
-import com.alibaba.dubbo.config.annotation.Service;
+import org.apache.dubbo.common.constants.ClusterRules;
+import org.apache.dubbo.common.constants.LoadbalanceRules;
+import org.apache.dubbo.config.annotation.Method;
+import org.apache.dubbo.config.annotation.DubboService;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.springframework.core.annotation.AliasFor;
 
@@ -28,16 +30,19 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_CALLBACK_INSTANCES;
+import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_RETRIES;
+
 
 /**
  * The interface shenyu service.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Service
+@DubboService
 @Inherited
 @ShenyuDubboClient
-public @interface ShenyuService {
+public @interface ShenyuDubboService {
 
     /**
      * Alias for {@link ShenyuDubboClient#value()} .
@@ -80,362 +85,362 @@ public @interface ShenyuService {
     boolean enabled() default true;
 
     /**
-     * Alias for {@link Service#interfaceClass()}.
+     * Alias for {@link DubboService#interfaceClass()}.
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     Class<?> interfaceClass() default void.class;
 
     /**
-     * Alias for {@link Service#interfaceName()} .
+     * Alias for {@link DubboService#interfaceName()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String interfaceName() default "";
 
     /**
-     * Alias for {@link Service#version()} .
+     * Alias for {@link DubboService#version()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String version() default "";
 
     /**
-     * Alias for {@link Service#group()} .
+     * Alias for {@link DubboService#group()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String group() default "";
 
     /**
-     * Alias for {@link Service#path()}.
+     * Alias for {@link DubboService#path()}.
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class, attribute = "path")
+    @AliasFor(annotation = DubboService.class, attribute = "path")
     String dubboPath() default "";
 
     /**
-     * Alias for {@link Service#export()} .
+     * Alias for {@link DubboService#export()} .
      *
      * @return the boolean
      */
-    @AliasFor(annotation = Service.class)
-    boolean export() default false;
+    @AliasFor(annotation = DubboService.class)
+    boolean export() default true;
 
     /**
-     * Alias for {@link Service#token()} .
+     * Alias for {@link DubboService#token()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String token() default "";
 
     /**
-     * Alias for {@link Service#deprecated()} .
+     * Alias for {@link DubboService#deprecated()} .
      *
      * @return the boolean
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     boolean deprecated() default false;
 
     /**
-     * Alias for {@link Service#dynamic()} .
+     * Alias for {@link DubboService#dynamic()} .
      *
      * @return the boolean
      */
-    @AliasFor(annotation = Service.class)
-    boolean dynamic() default false;
+    @AliasFor(annotation = DubboService.class)
+    boolean dynamic() default true;
 
     /**
-     * Alias for {@link Service#accesslog()} .
+     * Alias for {@link DubboService#accesslog()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String accesslog() default "";
 
     /**
-     * Alias for {@link Service#executes()} .
+     * Alias for {@link DubboService#executes()} .
      *
      * @return the int
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     int executes() default 0;
 
     /**
-     * Alias for {@link Service#register()} .
+     * Alias for {@link DubboService#register()} .
      *
      * @return the boolean
      */
-    @AliasFor(annotation = Service.class)
-    boolean register() default false;
+    @AliasFor(annotation = DubboService.class)
+    boolean register() default true;
 
     /**
-     * Alias for {@link Service#weight()} .
+     * Alias for {@link DubboService#weight()} .
      *
      * @return the int
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     int weight() default 0;
 
     /**
-     * Alias for {@link Service#document()} .
+     * Alias for {@link DubboService#document()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String document() default "";
 
     /**
-     * Alias for {@link Service#delay()} .
+     * Alias for {@link DubboService#delay()} .
      *
      * @return the int
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     int delay() default 0;
 
     /**
-     * Alias for {@link Service#local()} .
+     * Alias for {@link DubboService#local()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String local() default "";
 
     /**
-     * Alias for {@link Service#stub()} .
+     * Alias for {@link DubboService#stub()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String stub() default "";
 
     /**
-     * Alias for {@link Service#cluster()} .
+     * Alias for {@link DubboService#cluster()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
-    String cluster() default "";
+    @AliasFor(annotation = DubboService.class)
+    String cluster() default ClusterRules.EMPTY;
 
     /**
-     * Alias for {@link Service#proxy()} .
+     * Alias for {@link DubboService#proxy()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String proxy() default "";
 
     /**
-     * Alias for {@link Service#connections()} .
+     * Alias for {@link DubboService#connections()} .
      *
      * @return the int
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     int connections() default 0;
 
     /**
-     * Alias for {@link Service#callbacks()} .
+     * Alias for {@link DubboService#callbacks()} .
      *
      * @return the int
      */
-    @AliasFor(annotation = Service.class)
-    int callbacks() default 0;
+    @AliasFor(annotation = DubboService.class)
+    int callbacks() default DEFAULT_CALLBACK_INSTANCES;
 
     /**
-     * Alias for {@link Service#onconnect()} .
+     * Alias for {@link DubboService#onconnect()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String onconnect() default "";
 
     /**
-     * Alias for {@link Service#ondisconnect()} .
+     * Alias for {@link DubboService#ondisconnect()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String ondisconnect() default "";
 
     /**
-     * Alias for {@link Service#owner()} .
+     * Alias for {@link DubboService#owner()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String owner() default "";
 
     /**
-     * Alias for {@link Service#layer()} .
+     * Alias for {@link DubboService#layer()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String layer() default "";
 
     /**
-     *Alias for {@link Service#retries()} .
+     *Alias for {@link DubboService#retries()} .
      *
      * @return the int
      */
-    @AliasFor(annotation = Service.class)
-    int retries() default 0;
+    @AliasFor(annotation = DubboService.class)
+    int retries() default DEFAULT_RETRIES;
 
     /**
-     * Alias for {@link Service#loadbalance()} .
+     * Alias for {@link DubboService#loadbalance()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
-    String loadbalance() default "";
+    @AliasFor(annotation = DubboService.class)
+    String loadbalance() default LoadbalanceRules.RANDOM;
 
     /**
-     * Alias for {@link Service#async()} .
+     * Alias for {@link DubboService#async()} .
      *
      * @return the boolean
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     boolean async() default false;
 
     /**
-     * Alias for {@link Service#actives()} .
+     * Alias for {@link DubboService#actives()} .
      *
      * @return the int
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     int actives() default 0;
 
     /**
-     * Alias for {@link Service#sent()} .
+     * Alias for {@link DubboService#sent()} .
      *
      * @return the boolean
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     boolean sent() default false;
 
     /**
-     * Alias for {@link Service#mock()} .
+     * Alias for {@link DubboService#mock()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String mock() default "";
 
     /**
-     * Alias for {@link Service#validation()} .
+     * Alias for {@link DubboService#validation()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String validation() default "";
 
     /**
-     * Alias for {@link Service#timeout()} .
+     * Alias for {@link DubboService#timeout()} .
      *
      * @return the int
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     int timeout() default 0;
 
     /**
-     * Alias for {@link Service#cache()} .
+     * Alias for {@link DubboService#cache()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String cache() default "";
 
     /**
-     * Alias for {@link Service#filter()} .
+     * Alias for {@link DubboService#filter()} .
      *
      * @return the string[]
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String[] filter() default {};
 
     /**
-     * Alias for {@link Service#listener()} .
+     * Alias for {@link DubboService#listener()} .
      *
      * @return the string[]
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String[] listener() default {};
 
     /**
-     * Alias for {@link Service#parameters()} .
+     * Alias for {@link DubboService#parameters()} .
      *
      * @return the string[]
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String[] parameters() default {};
 
     /**
-     * Alias for {@link Service#application()} .
+     * Alias for {@link DubboService#application()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String application() default "";
 
     /**
-     * Alias for {@link Service#module()} .
+     * Alias for {@link DubboService#module()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String module() default "";
 
     /**
-     * Alias for {@link Service#provider()} .
+     * Alias for {@link DubboService#provider()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String provider() default "";
 
     /**
-     * Alias for {@link Service#protocol()} .
+     * Alias for {@link DubboService#protocol()} .
      *
      * @return the string[]
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String[] protocol() default {};
 
     /**
-     * Alias for {@link Service#monitor()} .
+     * Alias for {@link DubboService#monitor()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String monitor() default "";
 
     /**
-     * Alias for {@link Service#registry()} .
+     * Alias for {@link DubboService#registry()} .
      *
      * @return the string[]
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String[] registry() default {};
 
     /**
-     * Alias for {@link Service#tag()} .
+     * Alias for {@link DubboService#tag()} .
      *
      * @return the string
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     String tag() default "";
 
     /**
-     * Alias for {@link Service#methods()} .
+     * Alias for {@link DubboService#methods()} .
      *
      * @return the Method[]
      */
-    @AliasFor(annotation = Service.class)
+    @AliasFor(annotation = DubboService.class)
     Method[] methods() default {};
 }
