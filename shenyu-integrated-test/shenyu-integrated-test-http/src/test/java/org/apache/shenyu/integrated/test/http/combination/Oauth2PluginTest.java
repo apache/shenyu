@@ -44,7 +44,7 @@ public class Oauth2PluginTest extends AbstractPluginDataInit {
     @Test
     public void testFixContentMock() throws IOException, ExecutionException, InterruptedException {
         Map<String, Object> headers = new HashMap<>();
-        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://127.0.0.1:8189/login", headers, String.class));
+        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://shenyu-examples-http:8189/login", headers, String.class));
         assertTrue(resp.get().contains("Please sign in"));
     }
 
