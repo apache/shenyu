@@ -255,6 +255,7 @@ public class SwaggerDocParser implements DocParser {
         String className = responseObject.get("title").getAsString();
         JsonObject extProperties = docRoot.getAsJsonObject(className);
         JsonArray requiredProperties = responseObject.getAsJsonArray("required");
+        List<String> requiredFieldList = this.jsonArrayToStringList(requiredProperties);
         JsonObject properties = responseObject.getAsJsonObject("properties");
         List<DocParameter> docParameterList = new ArrayList<>();
         if (Objects.isNull(properties)) {
@@ -265,8 +266,7 @@ public class SwaggerDocParser implements DocParser {
             JsonObject fieldInfo = properties.getAsJsonObject(fieldName);
             DocParameter docParameter = GsonUtils.getInstance().fromJson(fieldInfo, DocParameter.class);
             docParameter.setName(fieldName);
-            docParameter.setRequired(
-                !(Objects.isNull(requiredProperties) || requiredProperties.isEmpty()) && requiredProperties.contains(fieldInfo));
+            docParameter.setRequired(requiredFieldList.contains(fieldName));
             if (Objects.nonNull(extProperties)) {
                 JsonObject prop = extProperties.getAsJsonObject(fieldName);
                 if (Objects.nonNull(prop)) {
@@ -286,6 +286,21 @@ public class SwaggerDocParser implements DocParser {
             }
         }
         return docParameterList;
+    }
+
+    private List<String> jsonArrayToStringList(final JsonArray jsonArray) {
+        if (Objects.isNull(jsonArray)) {
+            return Collections.EMPTY_LIST;
+        }
+        List<String> list = new ArrayList<>(jsonArray.size());
+        for (JsonElement jsonElement : jsonArray) {
+            if (jsonElement.isJsonNull()) {
+                continue;
+            }
+            String objStr = jsonElement.getAsString();
+            list.add(objStr);
+        }
+        return list;
     }
 
     /**
