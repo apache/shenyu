@@ -150,7 +150,7 @@ shenyu:
   instance:
     enabled: false
     registerType: zookeeper #etcd #consul
-    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    serverLists: 101.43.241.6:2181 #http://localhost:2379 #localhost:8848
     props:
   cross:
     enabled: true
