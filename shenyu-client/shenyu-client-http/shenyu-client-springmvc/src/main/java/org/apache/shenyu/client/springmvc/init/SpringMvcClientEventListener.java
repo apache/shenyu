@@ -49,11 +49,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * The type Shenyu spring mvc client event listener.
@@ -126,7 +128,7 @@ public class SpringMvcClientEventListener implements ApplicationListener<Context
         final String superPath = buildApiSuperPath(clazz);
         // Compatible with previous versions
         if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
-            publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath)));
+            publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath), clazz, null));
             return;
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
@@ -137,7 +139,7 @@ public class SpringMvcClientEventListener implements ApplicationListener<Context
             // the result of ReflectionUtils#getUniqueDeclaredMethods contains method such as hashCode, wait, toSting
             // add Objects.nonNull(requestMapping) to make sure not register wrong method
             if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
-                publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath)));
+                publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath), clazz, method));
             }
         }
     }
@@ -205,12 +207,20 @@ public class SpringMvcClientEventListener implements ApplicationListener<Context
         return result.toString();
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(@NonNull final ShenyuSpringMvcClient shenyuSpringMvcClient, final String path) {
+    private MetaDataRegisterDTO buildMetaDataDTO(@NonNull final ShenyuSpringMvcClient shenyuSpringMvcClient,
+                                                 final String path, final Class<?> clazz, final Method method) {
         return MetaDataRegisterDTO.builder()
             .contextPath(contextPath)
             .appName(appName)
+            .serviceName(clazz.getName())
+            .methodName(Optional.ofNullable(method).map(Method::getName).orElse(null))
             .path(path)
             .pathDesc(shenyuSpringMvcClient.desc())
+            .parameterTypes(Optional.ofNullable(method)
+                    .map(m -> Arrays.stream(m.getParameterTypes())
+                            .map(Class::getName)
+                            .collect(Collectors.joining(","))
+                    ).orElse(null))
             .rpcType(RpcTypeEnum.HTTP.getName())
             .enabled(shenyuSpringMvcClient.enabled())
             .ruleName(StringUtils.defaultIfBlank(shenyuSpringMvcClient.ruleName(), path))
