@@ -18,6 +18,9 @@
 package org.apache.shenyu.examples.http.controller;
 
 import com.google.common.collect.ImmutableMap;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.examples.http.dto.UserDTO;
@@ -71,8 +74,9 @@ public class HttpTestController {
      * @param userDTO the user dto
      * @return the user dto
      */
+    @ApiOperation(value = "payment", notes = "The user pays the order.")
     @PostMapping("/payment")
-    public UserDTO post(@RequestBody final UserDTO userDTO) {
+    public UserDTO payment(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
 
@@ -82,6 +86,8 @@ public class HttpTestController {
      * @param userId the user id
      * @return the string
      */
+    @ApiOperation(value = "findByUserId", notes = "Query the user information with the user ID.")
+    @ApiImplicitParam(value = "user id", name = "userId", required = true, dataType = "string", example = "100000")
     @GetMapping("/findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
         return buildUser(userId, "hello world");
@@ -94,19 +100,25 @@ public class HttpTestController {
      * @param name name
      * @return the string
      */
+    @ApiOperation(value = "findByUserIdName", notes = "Query user information with user ID and name.")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(value = "user id", name = "userId", required = true, dataTypeClass = String.class, example = "100000"),
+        @ApiImplicitParam(value = "user name", name = "name", dataTypeClass = String.class, example = "shenyu")
+    })
     @GetMapping("/findByUserIdName")
     public UserDTO findByUserId(@RequestParam("userId") final String userId, @RequestParam("name") final String name) {
         return buildUser(userId, name);
     }
 
     /**
-     * Find by page user dto.
+     * Find user dto by page.
      *
      * @param keyword  the keyword
      * @param page     the page
      * @param pageSize the page size
      * @return the user dto
      */
+    @ApiOperation(value = "getPathVariable", notes = "Find user dto by page.")
     @GetMapping("/findByPage")
     public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
         return buildUser(keyword, "hello world keyword is " + keyword + " page is " + page + " pageSize is " + pageSize);
@@ -119,6 +131,7 @@ public class HttpTestController {
      * @param name the name
      * @return the path variable
      */
+    @ApiOperation(value = "getPathVariable", notes = "Gets path variable.")
     @GetMapping("/path/{id}")
     public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
         return buildUser(id, name);
@@ -131,6 +144,7 @@ public class HttpTestController {
      * @param id the id
      * @return the string
      */
+    @ApiOperation(value = "testRestFul", notes = "Test rest ful string")
     @GetMapping("/path/{id}/name")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
         return buildUser(id, "hello world");

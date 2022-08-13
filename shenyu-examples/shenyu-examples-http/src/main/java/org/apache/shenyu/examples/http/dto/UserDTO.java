@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.http.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import java.util.StringJoiner;
 
 /**
@@ -24,8 +25,10 @@ import java.util.StringJoiner;
  */
 public class UserDTO {
 
+    @ApiModelProperty(value = "user id", required = true, example = "100000")
     private String userId;
 
+    @ApiModelProperty(value = "user name", example = "shenyu")
     private String userName;
 
     /**
@@ -67,9 +70,9 @@ public class UserDTO {
     @Override
     public String toString() {
         return new StringJoiner(", ", UserDTO.class.getSimpleName() + "[", "]")
-                .add("userId='" + userId + "'")
-                .add("userName='" + userName + "'")
-                .toString();
+            .add("userId='" + userId + "'")
+            .add("userName='" + userName + "'")
+            .toString();
     }
 
 }

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.http.controller;
 
+import io.swagger.annotations.ApiOperation;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,7 @@ public class ShenyuClientPathController {
      * @param name say hello user name
      * @return result
      */
+    @ApiOperation(value = "hello", notes = "Shenyu-Gateway System said hello to you.")
     @RequestMapping("shenyu/client/hi")
     @ShenyuSpringMvcClient("shenyu/client/hi")
     public String hello(final String name) {

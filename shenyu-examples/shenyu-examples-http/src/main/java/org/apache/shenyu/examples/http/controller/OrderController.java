@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.http.controller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.http.dto.OAuth2DTO;
 import org.apache.shenyu.examples.http.dto.OrderDTO;
@@ -36,6 +38,7 @@ import java.util.Objects;
 /**
  * TestController.
  */
+@Api(tags = "Order API")
 @RestController
 @RequestMapping("/order")
 @ShenyuSpringMvcClient("/order")
@@ -47,6 +50,7 @@ public class OrderController {
      * @param orderDTO the order dto
      * @return the order dto
      */
+    @ApiOperation(value = "save", notes = "save the order.")
     @PostMapping("/save")
     @ShenyuSpringMvcClient("/save")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
@@ -60,6 +64,7 @@ public class OrderController {
      * @param id the id
      * @return the order dto
      */
+    @ApiOperation(value = "findById", notes = "find order info by id.")
     @GetMapping("/findById")
     @ShenyuSpringMvcClient("/findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
@@ -73,6 +78,7 @@ public class OrderController {
      * @param name the name
      * @return the path variable
      */
+    @ApiOperation(value = "getPathVariable", notes = "get path variable.")
     @GetMapping("/path/{id}/{name}")
     @ShenyuSpringMvcClient("/path/**")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {

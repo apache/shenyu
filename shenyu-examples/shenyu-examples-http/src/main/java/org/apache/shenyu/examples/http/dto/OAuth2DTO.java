@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.examples.http.dto;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class OAuth2DTO {
 
+    @ApiModelProperty(value = "token", example = "afte6789try")
     private String token;
 
     /**
