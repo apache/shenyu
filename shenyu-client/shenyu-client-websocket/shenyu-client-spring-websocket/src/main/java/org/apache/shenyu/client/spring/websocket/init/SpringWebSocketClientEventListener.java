@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
+import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -30,12 +31,17 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -99,8 +105,28 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
         if (Boolean.TRUE.equals(isFull)) {
             return;
         }
+        Map<String, Object> endpointBeans = contextRefreshedEvent.getApplicationContext().getBeansWithAnnotation(ShenyuServerEndpoint.class);
+        handlerEndpintsBeans(contextRefreshedEvent.getApplicationContext(), endpointBeans);
+
         Map<String, Object> beans = contextRefreshedEvent.getApplicationContext().getBeansWithAnnotation(ShenyuSpringWebSocketClient.class);
         for (Map.Entry<String, Object> entry : beans.entrySet()) {
+            handler(entry.getValue());
+        }
+
+    }
+
+    private void handlerEndpintsBeans(final ApplicationContext context, final Map<String, Object> endpointBeans) {
+        if (CollectionUtils.isEmpty(endpointBeans)) {
+            return;
+        }
+        ShenyuServerEndpointerExporter exporter = (ShenyuServerEndpointerExporter) registerBean(context, ShenyuServerEndpointerExporter.class, "shenyuServerEndpointerExporter");
+        for (Map.Entry<String, Object> entry : endpointBeans.entrySet()) {
+            Object bean = entry.getValue();
+            Class<?> clazz = bean.getClass();
+            if (AopUtils.isAopProxy(bean)) {
+                clazz = AopUtils.getTargetClass(bean);
+            }
+            exporter.registerEndpoint(clazz);
             handler(entry.getValue());
         }
     }
@@ -198,6 +224,14 @@ public class SpringWebSocketClientEventListener implements ApplicationListener<C
             .ruleName(StringUtils.defaultIfBlank(webSocketClient.ruleName(), path))
             .registerMetaData(webSocketClient.registerMetaData())
             .build();
+    }
+
+    private Object registerBean(final ApplicationContext applicationContext, final Class<?> requiredType, final String beanName) {
+        ConfigurableApplicationContext configurableApplicationContext = (ConfigurableApplicationContext) applicationContext;
+        DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) configurableApplicationContext.getAutowireCapableBeanFactory();
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(requiredType);
+        defaultListableBeanFactory.registerBeanDefinition(beanName, beanDefinitionBuilder.getBeanDefinition());
+        return configurableApplicationContext.getBean(requiredType);
     }
 
 }

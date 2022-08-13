@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.websocket.ws;
 
+import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.apache.shenyu.examples.websocket.service.SaveFile;
 import org.slf4j.Logger;
@@ -33,9 +34,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ShenyuSpringWebSocketClient("/upload")
-@ServerEndpoint("/upload")
+
 @Controller
+@ShenyuServerEndpoint("/upload")
 public class UpLoadController {
 
     private static final Logger LOG = LoggerFactory.getLogger(UpLoadController.class);

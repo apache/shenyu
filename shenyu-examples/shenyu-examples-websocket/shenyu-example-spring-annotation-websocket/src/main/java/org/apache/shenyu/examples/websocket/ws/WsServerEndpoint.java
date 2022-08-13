@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.websocket.ws;
 
+import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,15 +27,13 @@ import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 
 /**
  * WsServerEndpoint
  */
-@ShenyuSpringWebSocketClient("/myWs")
-@ServerEndpoint("/myWs")
 @Component
+@ShenyuServerEndpoint("/myWs")
 public class WsServerEndpoint {
 
     private static final Logger LOG = LoggerFactory.getLogger(WsServerEndpoint.class);
