@@ -118,7 +118,7 @@ public class HttpTestController {
      * @param pageSize the page size
      * @return the user dto
      */
-    @ApiOperation(value = "getPathVariable", notes = "Find user dto by page.")
+    @ApiOperation(value = "findByPage", notes = "Find user dto by page.")
     @GetMapping("/findByPage")
     public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
         return buildUser(keyword, "hello world keyword is " + keyword + " page is " + page + " pageSize is " + pageSize);
