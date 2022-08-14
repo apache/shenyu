@@ -76,7 +76,7 @@ public class HttpTestController {
      */
     @ApiOperation(value = "payment", notes = "The user pays the order.")
     @PostMapping("/payment")
-    public UserDTO payment(@RequestBody final UserDTO userDTO) {
+    public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
 

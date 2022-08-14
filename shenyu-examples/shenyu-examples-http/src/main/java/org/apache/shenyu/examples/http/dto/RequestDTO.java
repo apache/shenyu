@@ -34,7 +34,7 @@ public class RequestDTO {
     @ApiModelProperty(value = "content", example = "hello,shenyu")
     private String content;
 
-    @ApiModelProperty(value = "extInfo")
+    @ApiModelProperty(value = "extInfo", example = "extended information")
     private String extInfo;
 
     public RequestDTO() {
