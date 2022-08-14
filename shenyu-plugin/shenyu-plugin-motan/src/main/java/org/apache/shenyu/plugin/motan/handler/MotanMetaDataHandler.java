@@ -44,7 +44,8 @@ public class MotanMetaDataHandler implements MetaDataHandler {
     public void handle(final MetaData metaData) {
         try {
             MetaData exist = META_DATA.get(metaData.getPath());
-            if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getPath()).getRef())) {
+            if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getPath()))
+                    || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getPath()).getRef())) {
                 // The first initialization
                 ApplicationConfigCache.getInstance().initRef(metaData);
             } else {
@@ -55,7 +56,7 @@ public class MotanMetaDataHandler implements MetaDataHandler {
             }
             META_DATA.put(metaData.getPath(), metaData);
         } catch (Exception e) {
-            LOG.error("motan sync metadata is error [{}]", metaData, e);
+            LOG.error("motan sync metadata is error, please check motan service. MetaData: [{}]", metaData, e);
         }
     }
     

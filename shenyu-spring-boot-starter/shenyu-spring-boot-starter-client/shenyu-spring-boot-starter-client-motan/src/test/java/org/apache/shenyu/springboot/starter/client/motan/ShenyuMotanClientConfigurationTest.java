@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.client.motan;
 
+import com.weibo.api.motan.config.springsupport.ProtocolConfigBean;
 import org.apache.shenyu.client.motan.MotanServiceEventListener;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,7 @@ public class ShenyuMotanClientConfigurationTest {
         new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(ShenyuMotanClientConfiguration.class))
             .withBean(ShenyuMotanClientConfigurationTest.class)
+            .withBean("demoMotan", ProtocolConfigBean.class)
             .withPropertyValues(
                 "debug=true",
                 "shenyu.register.registerType=http",

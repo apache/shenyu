@@ -15,23 +15,51 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.motan.service;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+package org.apache.shenyu.springboot.starter.client.motan.property;
 
 /**
- * Motan service starter.
+ * Motan Registry config.
  */
-@SpringBootApplication
-public class TestMotanApplication {
+public class RegistryProperties {
+
+    private String protocol;
+
+    private String address;
 
     /**
-     * Main Entrance.
+     * Get the protocol.
      *
-     * @param args startup arguments
+     * @return the protocol
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(TestMotanApplication.class, args);
+    public String getProtocol() {
+        return protocol;
     }
+
+    /**
+     * Set the protocol.
+     *
+     * @param protocol the protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
+    }
+
+    /**
+     * Get the address.
+     *
+     * @return the address
+     */
+    public String getAddress() {
+        return address;
+    }
+
+    /**
+     * Set the address.
+     *
+     * @param address the address
+     */
+    public void setAddress(final String address) {
+        this.address = address;
+    }
+
 }
