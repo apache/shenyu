@@ -37,11 +37,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Autowired
     private HttpAuthHandler httpAuthHandler;
+    
     @Autowired
     private WebSocketInterceptor myInterceptor;
 
     @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+    public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry) {
         registry.addHandler(httpAuthHandler, "myWebSocket")
                 .addInterceptors(myInterceptor)
                 .setAllowedOrigins("*");

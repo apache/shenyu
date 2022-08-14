@@ -1,5 +1,3 @@
-package org.apache.shenyu.examples.springmvc.controller;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,8 @@ package org.apache.shenyu.examples.springmvc.controller;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.apache.shenyu.examples.springmvc.controller;
 
 import java.util.HashMap;
 import java.util.Map;
