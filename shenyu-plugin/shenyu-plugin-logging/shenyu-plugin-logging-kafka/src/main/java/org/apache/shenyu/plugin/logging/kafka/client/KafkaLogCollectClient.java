@@ -28,6 +28,7 @@ import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.OutOfOrderSequenceException;
 import org.apache.kafka.common.errors.ProducerFencedException;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
@@ -74,7 +75,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
         if (isStarted.get()) {
             close();
         }
-        String topic = props.getProperty(GenericLoggingConstant.TOPIC);
+        String topic = "shenyu-access-logging";
         String nameserverAddress = props.getProperty("bootstrap.servers");
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init kafkaLogCollectClient error, please check topic or nameserverAddress");
@@ -82,7 +83,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
         }
         this.topic = topic;
         producer = new KafkaProducer<>(props);
-        ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, "shenyu-access-logging");
+        ProducerRecord<String, String> record = new ProducerRecord<>("shenyu-access-logging",StringSerializer.class.getName(), StringSerializer.class.getName());
         try {
             producer.send(record);
             LOG.info("init kafkaLogCollectClient success");
