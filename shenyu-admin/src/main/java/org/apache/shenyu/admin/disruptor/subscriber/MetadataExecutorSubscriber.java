@@ -45,15 +45,6 @@ public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDa
     @Override
     public void executor(final Collection<MetaDataRegisterDTO> metaDataRegisterDTOList) {
         metaDataRegisterDTOList.forEach(meta -> {
-            // adjustment such as `/aa/${xxx}/cc` replace to `/aa/**/cc` for client simpler annotation.
-            // link: https://github.com/apache/shenyu/pull/3819
-            meta.setPath(Optional.ofNullable(meta.getPath())
-                    .map(path -> path.replaceAll("(\\{.*?}(/\\{.*?})+|\\{.*?})", "**"))
-                    .orElse(null));
-            meta.setRuleName(Optional.ofNullable(meta.getRuleName())
-                    .map(ruleName -> ruleName.replaceAll("(\\{.*?}(/\\{.*?})+|\\{.*?})", "**"))
-                    .orElse(null));
-
             Optional.ofNullable(this.shenyuClientRegisterService.get(meta.getRpcType()))
                     .ifPresent(shenyuClientRegisterService -> {
                         synchronized (shenyuClientRegisterService) {

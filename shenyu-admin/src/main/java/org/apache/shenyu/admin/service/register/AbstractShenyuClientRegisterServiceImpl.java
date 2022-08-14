@@ -28,9 +28,8 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
-import org.apache.shenyu.common.constant.AdminConstants;
-import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -39,6 +38,7 @@ import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
@@ -238,7 +238,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         RuleConditionDTO ruleConditionDTO = RuleConditionDTO.builder()
                 .paramType(ParamTypeEnum.URI.getName())
                 .paramName("/")
-                .paramValue(path)
+                .paramValue(this.rewritePath(path))
                 .build();
         if (path.endsWith(AdminConstants.URI_SLASH_SUFFIX)) {
             ruleConditionDTO.setOperator(OperatorEnum.STARTS_WITH.getAlias());
@@ -251,5 +251,18 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         }
         ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
         return ruleDTO;
+    }
+
+    /**
+     * adjustment such as '/aa/${xxx}/cc' replace to `/aa/`**`/cc` for client simpler annotation.
+     * link: https://github.com/apache/shenyu/pull/3819
+     * @param path the path
+     * @return the replaced path
+     */
+    private String rewritePath(final String path) {
+        if (path.contains(AdminConstants.URI_VARIABLE_SUFFIX)) {
+            return path.replaceAll("(/\\{.*?})+", "/**");
+        }
+        return path;
     }
 }
