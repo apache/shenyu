@@ -65,6 +65,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+            <version>2.6.8</version>
         </dependency>
 
         <!--shenyu consul register center -->
