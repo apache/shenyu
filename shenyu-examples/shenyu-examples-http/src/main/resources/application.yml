@@ -38,18 +38,7 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
-  security:
-    oauth2:
-      client:
-        registration:
-          spring:
-            client-id: test-id
-            client-secret: test-secret
-      provider:
-        spring:
-          authorization-uri: http://localhost:8189/oauth2/authorize
-          token-uri: http://localhost:8189/oauth2/token
-          jwk-set-uri: http://localhost:8189/oauth2/jwks
+
 
 logging:
   level:
