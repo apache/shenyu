@@ -20,7 +20,6 @@ package org.apache.shenyu.examples.springmvc.controller;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuGetMapping;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuPostMapping;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuRequestMapping;
-import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.springmvc.dto.OAuth2DTO;
 import org.apache.shenyu.examples.springmvc.dto.OrderDTO;
 import org.springframework.web.bind.annotation.PathVariable;
