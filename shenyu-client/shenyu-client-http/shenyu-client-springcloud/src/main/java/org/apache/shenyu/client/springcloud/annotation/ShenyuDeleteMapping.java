@@ -39,7 +39,7 @@ public @interface ShenyuDeleteMapping {
      *
      * @return the string
      */
-    @AliasFor(attribute = "path")
+    @AliasFor(annotation = ShenyuRequestMapping.class)
     String value() default "";
 
     /**
@@ -47,7 +47,7 @@ public @interface ShenyuDeleteMapping {
      *
      * @return the string
      */
-    @AliasFor(attribute = "value")
+    @AliasFor(annotation = ShenyuRequestMapping.class)
     String path() default "";
 
     /**
