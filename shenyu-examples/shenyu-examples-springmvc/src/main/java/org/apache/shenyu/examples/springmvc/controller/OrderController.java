@@ -23,7 +23,6 @@ import org.apache.shenyu.client.springmvc.annotation.ShenyuRequestMapping;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.springmvc.dto.OAuth2DTO;
 import org.apache.shenyu.examples.springmvc.dto.OrderDTO;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
