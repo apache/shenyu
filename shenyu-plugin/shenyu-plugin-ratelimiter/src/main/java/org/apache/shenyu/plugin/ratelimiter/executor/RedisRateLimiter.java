@@ -67,7 +67,10 @@ public class RedisRateLimiter {
                     Long tokensLeft = results.get(1);
                     return new RateLimiterResponse(allowed, tokensLeft, keys);
                 })
-                .doOnError(throwable -> LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage()));
+                .doOnError(throwable -> {
+                    rateLimiterAlgorithm.callback(rateLimiterAlgorithm.getScript(), keys, scriptArgs);
+                    LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage())
+                });
     }
     
     private String doubleToString(final double param) {
