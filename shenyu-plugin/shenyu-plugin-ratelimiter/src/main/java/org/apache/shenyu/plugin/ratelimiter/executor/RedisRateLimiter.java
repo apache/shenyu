@@ -69,7 +69,7 @@ public class RedisRateLimiter {
                 })
                 .doOnError(throwable -> {
                     rateLimiterAlgorithm.callback(rateLimiterAlgorithm.getScript(), keys, scriptArgs);
-                    LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage())
+                    LOG.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage());
                 });
     }
     
