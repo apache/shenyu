@@ -163,7 +163,6 @@
         <dependency>
             <groupId>io.etcd</groupId>
             <artifactId>jetcd-core</artifactId>
-            <version>${jetcd-core.version}</version>
         </dependency>
 
         <dependency>

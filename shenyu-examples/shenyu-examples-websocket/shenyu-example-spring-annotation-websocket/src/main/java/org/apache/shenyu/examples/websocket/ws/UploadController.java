@@ -18,7 +18,6 @@
 package org.apache.shenyu.examples.websocket.ws;
 
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
-import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.apache.shenyu.examples.websocket.service.SaveFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,21 +28,25 @@ import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Controller
 @ShenyuServerEndpoint("/upload")
-public class UpLoadController {
+public class UploadController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(UpLoadController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UploadController.class);
 
     @Autowired
     private SaveFile saveFile;
 
+    /**
+     * connect successful.
+     * @param session session
+     */
     @OnOpen
     public void onOpen(final Session session) {
         LOG.info("connect successful");
@@ -51,7 +54,6 @@ public class UpLoadController {
 
     /**
      * connect close.
-     *
      * @param session used for verify
      */
     @OnClose
@@ -59,6 +61,11 @@ public class UpLoadController {
         LOG.info("connect1 closed");
     }
 
+    /**
+     * receive message.
+     * @param message  message content
+     * @param session  session
+     */
     @OnMessage
     public void onMessage(final String message, final Session session) {
         try {
@@ -68,13 +75,18 @@ public class UpLoadController {
         }
     }
 
+    /**
+     * receive message of bytes.
+     * @param message  message bytes
+     * @param session  session
+     */
     @OnMessage
     public void onMessage(final byte[] message, final Session session) {
         File file = (File) session.getUserProperties().get("file");
         try {
-            ConcurrentHashMap map = new ConcurrentHashMap<>();
-            map.put("file", file);
-            saveFile.saveFileFromBytes(message, map);
+            Map<String, Object> param = new HashMap<>(2);
+            param.put("file", file);
+            saveFile.saveFileFromBytes(message, param);
             session.getBasicRemote().sendText("ok");
         } catch (Exception e) {
             LOG.error("UpLoadController onMessage", e);
