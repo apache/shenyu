@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-
 @Controller
 @ShenyuServerEndpoint("/upload")
 public class UploadController {
