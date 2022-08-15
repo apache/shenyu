@@ -442,6 +442,7 @@
                 <groupId>com.oracle.ojdbc</groupId>
                 <artifactId>ojdbc8</artifactId>
                 <version>${ojdbc8.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
