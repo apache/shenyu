@@ -64,6 +64,12 @@ public class RateLimiterResponse implements Serializable {
         return tokensRemaining;
     }
 
+
+    /**
+     * get redis keys.
+     *
+     * @return getKeys
+     */
     public List<String> getKeys() {
         return keys;
     }
