@@ -20,6 +20,7 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
+    allow-circular-references: true
   application:
     name: shenyu-bootstrap
 #  cloud:
