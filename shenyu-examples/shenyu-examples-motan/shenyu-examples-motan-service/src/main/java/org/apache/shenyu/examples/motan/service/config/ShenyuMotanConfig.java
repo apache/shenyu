@@ -18,9 +18,7 @@
 package org.apache.shenyu.examples.motan.service.config;
 
 import com.weibo.api.motan.config.springsupport.ProtocolConfigBean;
-import org.apache.shenyu.springboot.starter.client.motan.property.RegistryProperties;
 import org.apache.shenyu.springboot.starter.client.motan.property.ShenyuMotanProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
