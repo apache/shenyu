@@ -55,6 +55,7 @@
         <module>shenyu-examples-websocket</module>
         <module>shenyu-examples-springmvc</module>
         <module>shenyu-examples-springmvc-tomcat</module>
+        <module>shenyu-examples-oauth</module>
     </modules>
 
     <build>
