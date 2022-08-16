@@ -31,7 +31,6 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -47,7 +46,7 @@ class RuntimeUtilsTest {
     void listenByOther() throws IOException {
         wireMockServer = new WireMockServer(options().extensions(new ResponseTemplateTransformer(false)).dynamicPort());
         wireMockServer.start();
-        try (MockedStatic<SystemUtils> systemUtilsMockedStatic = mockStatic(SystemUtils.class)){
+        try (MockedStatic<SystemUtils> systemUtilsMockedStatic = mockStatic(SystemUtils.class)) {
             systemUtilsMockedStatic.when(SystemUtils::getCurrentPID).thenReturn("0");
             systemUtilsMockedStatic.when(SystemUtils::isWindows).thenReturn(true);
             assertTrue(RuntimeUtils.listenByOther(wireMockServer.port()));
@@ -55,7 +54,7 @@ class RuntimeUtilsTest {
             systemUtilsMockedStatic.when(SystemUtils::isWindows).thenReturn(false);
             assertFalse(RuntimeUtils.listenByOther(wireMockServer.port()));
         }
-        try (MockedStatic<Runtime> runtimeMockedStatic = mockStatic(Runtime.class)){
+        try (MockedStatic<Runtime> runtimeMockedStatic = mockStatic(Runtime.class)) {
             runtimeMockedStatic.when(Runtime::getRuntime).thenThrow(RuntimeException.class);
             assertFalse(RuntimeUtils.listenByOther(wireMockServer.port()));
             final Runtime runtime = mock(Runtime.class);

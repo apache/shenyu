@@ -61,13 +61,13 @@ public final class OkHttpToolsTest {
                         .extensions(new ResponseTemplateTransformer(false))
                         .dynamicPort());
         this.wireMockServer.start();
-        wireMockServer.stubFor(post(urlPathEqualTo("/post" ))
+        wireMockServer.stubFor(post(urlPathEqualTo("/post"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(json)
                         .withStatus(200))
         );
-        wireMockServer.stubFor(get(urlPathEqualTo("/get" ))
+        wireMockServer.stubFor(get(urlPathEqualTo("/get"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(json)

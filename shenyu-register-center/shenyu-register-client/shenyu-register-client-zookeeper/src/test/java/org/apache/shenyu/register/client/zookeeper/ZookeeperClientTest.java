@@ -67,10 +67,10 @@ class ZookeeperClientTest {
 
     @AfterEach
     public void cleanup() throws IOException {
-        if (this.client != null){
+        if (this.client != null) {
             this.client.close();
         }
-        if (this.server != null){
+        if (this.server != null) {
             this.server.close();
         }
     }

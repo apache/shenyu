@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.register.client.server.etcd;
 
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
@@ -25,17 +27,20 @@ import org.apache.shenyu.register.client.server.etcd.client.EtcdClient;
 import org.apache.shenyu.register.client.server.etcd.client.EtcdListenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.anyString;
@@ -81,7 +86,60 @@ public class EtcdServerRegisterRepositoryTest {
         
         String data = GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build());
         watchHandler.updateHandler("/path", data);
+        watchHandler.deleteHandler("/path", data);
         verify(publisher, times(3)).publish(localAny());
+    }
+
+    @Test
+    public void testSubscribeURI() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        Class<? extends EtcdClientServerRegisterRepository> clazz = this.repository.getClass();
+        String methodString = "subscribeURI";
+        Method method = clazz.getDeclaredMethod(methodString, String.class);
+        method.setAccessible(true);
+        MetaDataRegisterDTO data = MetaDataRegisterDTO.builder().build();
+        EtcdClient client = mock(EtcdClient.class);
+        when(client.getChildren(anyString())).thenReturn(Collections.singletonList("/http/path1/path2/path3/path4"));
+        when(client.read(anyString())).thenReturn(GsonUtils.getInstance().toJson(data));
+
+        doAnswer(invocationOnMock -> {
+            this.watchHandler = invocationOnMock.getArgument(1);
+            return null;
+        }).when(client).subscribeChildChanges(anyString(), any(EtcdListenHandler.class));
+
+        Field fieldClient = clazz.getDeclaredField("client");
+        fieldClient.setAccessible(true);
+        fieldClient.set(repository, client);
+        method.invoke(repository, "http/path1/path2/path3/path4");
+        verify(publisher, times(1)).publish(localAny());
+        String data2 = GsonUtils.getInstance().toJson(MetaDataRegisterDTO.builder().build());
+        watchHandler.updateHandler("/http/path1/path2/path3/path4", data2);
+        watchHandler.deleteHandler("http/path1/path2/path3/path4", data2);
+        verify(publisher, times(3)).publish(localAny());
+    }
+
+    @Test
+    public void initTest() {
+        try (MockedConstruction<EtcdClient> etcdClientMockedConstruction = mockConstruction(EtcdClient.class)) {
+            final EtcdClientServerRegisterRepository etcdClientServerRegisterRepository = new EtcdClientServerRegisterRepository();
+            final ShenyuClientServerRegisterPublisher shenyuClientServerRegisterPublisher = mock(ShenyuClientServerRegisterPublisher.class);
+            final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
+            etcdClientServerRegisterRepository.init(shenyuClientServerRegisterPublisher, shenyuRegisterCenterConfig);
+            etcdClientServerRegisterRepository.close();
+        } catch (Exception e) {
+            throw new ShenyuException(e.getCause());
+        }
+    }
+
+    @Test
+    public void registerUriChildrenListTest() throws NoSuchMethodException, IllegalAccessException, NoSuchFieldException, InvocationTargetException {
+        final EtcdClient client = mock(EtcdClient.class);
+        final Field fieldClient = EtcdClientServerRegisterRepository.class.getDeclaredField("client");
+        fieldClient.setAccessible(true);
+        fieldClient.set(repository, client);
+
+        final Method method = EtcdClientServerRegisterRepository.class.getDeclaredMethod("registerUriChildrenList", String.class, String.class, String.class);
+        method.setAccessible(true);
+        method.invoke(repository, "rpcPath", "context", "rpcType");
     }
     
     private ShenyuClientServerRegisterPublisher mockPublish() {
