@@ -56,7 +56,7 @@ public class EtcdClientTest {
 
     @Test
     public void etcdClientTest() {
-        try (final MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
+        try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
             final ClientBuilder clientBuilder = mock(ClientBuilder.class);
             clientMockedStatic.when(Client::builder).thenReturn(clientBuilder);
             when(clientBuilder.endpoints(anyString())).thenReturn(clientBuilder);
@@ -84,7 +84,7 @@ public class EtcdClientTest {
                 streamObserver.onNext(leaseKeepAliveResponse);
             });
 
-            doThrow(new InterruptedException("error") ).when(completableFuture).get();
+            doThrow(new InterruptedException("error")).when(completableFuture).get();
             Assertions.assertDoesNotThrow(() -> new EtcdClient("url", 60L, 3000L));
         } catch (Exception e) {
             throw new ShenyuException(e.getCause());
@@ -93,7 +93,7 @@ public class EtcdClientTest {
 
     @Test
     public void closeTest() {
-        try (final MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
+        try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
             this.mockEtcd(clientMockedStatic);
             final EtcdClient etcdClient = new EtcdClient("url", 60L, 3000L);
             etcdClient.close();
@@ -104,7 +104,7 @@ public class EtcdClientTest {
 
     @Test
     public void putEphemeralTest() {
-        try (final MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
+        try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
             final Client client = this.mockEtcd(clientMockedStatic);
             final KV mockKV = mock(KV.class);
             when(client.getKVClient()).thenReturn(mockKV);
@@ -115,10 +115,10 @@ public class EtcdClientTest {
             final EtcdClient etcdClient = new EtcdClient("url", 60L, 3000L);
             etcdClient.putEphemeral("key", "value");
 
-            doThrow(new InterruptedException("error") ).when(completableFuture).get(anyLong(), any(TimeUnit.class));
+            doThrow(new InterruptedException("error")).when(completableFuture).get(anyLong(), any(TimeUnit.class));
             etcdClient.putEphemeral("key", "value");
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new ShenyuException(e.getCause());
         }
     }
 

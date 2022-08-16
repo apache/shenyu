@@ -136,7 +136,7 @@ public class EtcdClientRegisterRepositoryTest {
 
     @Test
     public void initTest() {
-        try (final MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
+        try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
             final ClientBuilder clientBuilder = mock(ClientBuilder.class);
             clientMockedStatic.when(Client::builder).thenReturn(clientBuilder);
             when(clientBuilder.endpoints(anyString())).thenReturn(clientBuilder);
