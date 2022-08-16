@@ -20,9 +20,21 @@ package org.apache.shenyu.register.client.http.utils;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link RuntimeUtils}.
@@ -32,12 +44,33 @@ class RuntimeUtilsTest {
     private WireMockServer wireMockServer;
 
     @Test
-    void listenByOther() {
+    void listenByOther() throws IOException {
         wireMockServer = new WireMockServer(options().extensions(new ResponseTemplateTransformer(false)).dynamicPort());
         wireMockServer.start();
+        try (MockedStatic<SystemUtils> systemUtilsMockedStatic = mockStatic(SystemUtils.class)){
+            systemUtilsMockedStatic.when(SystemUtils::getCurrentPID).thenReturn("0");
+            systemUtilsMockedStatic.when(SystemUtils::isWindows).thenReturn(true);
+            assertTrue(RuntimeUtils.listenByOther(wireMockServer.port()));
+
+            systemUtilsMockedStatic.when(SystemUtils::isWindows).thenReturn(false);
+            assertFalse(RuntimeUtils.listenByOther(wireMockServer.port()));
+        }
+        try (MockedStatic<Runtime> runtimeMockedStatic = mockStatic(Runtime.class)){
+            runtimeMockedStatic.when(Runtime::getRuntime).thenThrow(RuntimeException.class);
+            assertFalse(RuntimeUtils.listenByOther(wireMockServer.port()));
+            final Runtime runtime = mock(Runtime.class);
+            runtimeMockedStatic.when(Runtime::getRuntime).thenReturn(runtime);
+            final Process process = mock(Process.class);
+            when(runtime.exec(any(String[].class))).thenReturn(process);
+            final String text = "LISTEN xx:" + wireMockServer.port() + " xx ";
+            InputStream stream = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
+            when(process.getInputStream()).thenReturn(stream);
+            assertFalse(RuntimeUtils.listenByOther(wireMockServer.port()));
+            when(runtime.exec(any(String[].class))).thenReturn(null);
+            assertFalse(RuntimeUtils.listenByOther(wireMockServer.port()));
+        }
         assertFalse(RuntimeUtils.listenByOther(wireMockServer.port()));
         assertFalse(RuntimeUtils.listenByOther(99999));
-        //Comment out following line when committing. This assertion may fail if the ssh port is modified.
-        //assertFalse(!RuntimeUtils.listenByOther(22));
+        assertFalse(RuntimeUtils.listenByOther(0));
     }
 }

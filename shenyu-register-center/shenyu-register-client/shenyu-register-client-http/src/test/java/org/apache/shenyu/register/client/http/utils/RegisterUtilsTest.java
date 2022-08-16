@@ -18,7 +18,10 @@
 package org.apache.shenyu.register.client.http.utils;
 
 import com.google.gson.Gson;
+import okhttp3.Headers;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -26,6 +29,7 @@ import org.mockito.MockedStatic;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,6 +52,8 @@ public final class RegisterUtilsTest {
 
     private String url;
 
+    private String accessToken;
+
     @BeforeEach
     public void setUp() {
         okHttpTools = mock(OkHttpTools.class);
@@ -63,15 +69,20 @@ public final class RegisterUtilsTest {
         jsonMap.put("enabled", true);
         json = gson.toJson(jsonMap);
         url = "http://localhost:9095/shenyu-client/dubbo-register";
+        accessToken = "accessToken";
     }
 
     @Test
     public void testDoRegisterWhenSuccess() throws IOException {
         when(okHttpTools.post(url, json)).thenReturn("success");
+        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        when(okHttpTools.post(url, json, headers)).thenReturn("success");
 
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName());
+            verify(okHttpTools, times(1)).post(eq(url), eq(json));
+            RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName(), accessToken);
             verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
@@ -79,10 +90,16 @@ public final class RegisterUtilsTest {
     @Test
     public void testDoRegisterWhenError() throws IOException {
         when(okHttpTools.post(url, json)).thenReturn("Error parameter！");
+        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        when(okHttpTools.post(url, json, headers)).thenReturn("Error parameter！");
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName());
             verify(okHttpTools, times(1)).post(eq(url), eq(json));
+            RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName(), accessToken);
+            verify(okHttpTools, times(1)).post(eq(url), eq(json));
+
+            RegisterUtils.doRegister(json, url, RegisterTypeEnum.DUBBO.getName(), null);
         }
     }
 
@@ -96,5 +113,36 @@ public final class RegisterUtilsTest {
                 verify(okHttpTools, times(1)).post(eq(url), eq(json));
             }
         });
+    }
+
+    @Test
+    public void testDoLogin() throws IOException {
+        final String userName = "userName";
+        final String password = "password";
+        final String token = "token";
+        Map<String, Object> loginMap = new HashMap<>(2);
+        loginMap.put(Constants.LOGIN_NAME, userName);
+        loginMap.put(Constants.PASS_WORD, password);
+        when(okHttpTools.get(url, loginMap)).thenReturn("{\"code\":200,\"data\":{\"token\":\"" + token + "\"}}");
+        try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
+            okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
+            Optional<Object> objectOptional = RegisterUtils.doLogin(userName, password, url);
+            Assertions.assertEquals(token, objectOptional.get());
+        }
+    }
+
+    @Test
+    public void testDoLoginError() throws IOException {
+        final String userName = "userName";
+        final String password = "password";
+        Map<String, Object> loginMap = new HashMap<>(2);
+        loginMap.put(Constants.LOGIN_NAME, userName);
+        loginMap.put(Constants.PASS_WORD, password);
+        when(okHttpTools.get(url, loginMap)).thenReturn("{\"code\":300}");
+        try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
+            okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
+            Optional<Object> objectOptional = RegisterUtils.doLogin(userName, password, url);
+            Assertions.assertFalse(objectOptional.isPresent());
+        }
     }
 }

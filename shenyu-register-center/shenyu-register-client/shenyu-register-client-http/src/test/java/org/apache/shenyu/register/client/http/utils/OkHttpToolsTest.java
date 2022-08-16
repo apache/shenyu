@@ -19,13 +19,17 @@ package org.apache.shenyu.register.client.http.utils;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import okhttp3.Headers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import wiremock.com.google.common.net.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -42,7 +46,13 @@ public final class OkHttpToolsTest {
 
     private String url;
 
+    private String getUrl;
+
+    private String postUrl;
+
     private final String json = "{\"appName\":\"shenyu\"}";
+
+    private final Map<String, Object> request = new HashMap<>();
 
     @BeforeEach
     public void setUpWireMock() {
@@ -51,17 +61,34 @@ public final class OkHttpToolsTest {
                         .extensions(new ResponseTemplateTransformer(false))
                         .dynamicPort());
         this.wireMockServer.start();
-        wireMockServer.stubFor(post(urlPathEqualTo("/"))
+        wireMockServer.stubFor(post(urlPathEqualTo("/post" ))
+                .willReturn(aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                        .withBody(json)
+                        .withStatus(200))
+        );
+        wireMockServer.stubFor(get(urlPathEqualTo("/get" ))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(json)
                         .withStatus(200))
         );
         url = "http://localhost:" + wireMockServer.port();
+        getUrl = url + "/get";
+        postUrl = url + "/post";
     }
 
     @Test
     public void testPostReturnString() throws IOException {
-        assertThat(json, is(OkHttpTools.getInstance().post(url, json)));
+        assertThat(json, is(OkHttpTools.getInstance().post(postUrl, json)));
+        Headers headers = Headers.of().newBuilder().build();
+        assertThat(json, is(OkHttpTools.getInstance().post(postUrl, json, headers)));
+    }
+
+    @Test
+    public void testGetReturnString() throws IOException {
+        request.put("get", "request");
+        assertThat(json, is(OkHttpTools.getInstance().get(getUrl, request)));
+        assertThat(json, is(OkHttpTools.getInstance().get(getUrl, "userName", "passWord")));
     }
 }
