@@ -47,7 +47,7 @@ public class ShenyuMotanClientConfigurationTest {
         new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(ShenyuMotanClientConfiguration.class))
             .withBean(ShenyuMotanClientConfigurationTest.class)
-            .withBean("motan2", ProtocolConfigBean.class)
+            .withBean(ProtocolConfigBean.class)
             .withPropertyValues(
                 "debug=true",
                 "shenyu.register.registerType=http",
@@ -57,7 +57,8 @@ public class ShenyuMotanClientConfigurationTest {
                 "shenyu.client.motan.props[contextPath]=/motan",
                 "shenyu.client.motan.props[appName]=motan",
                 "shenyu.client.motan.props[host]=127.0.0.1",
-                "shenyu.client.motan.props[port]=8081"
+                "shenyu.client.motan.props[port]=8081",
+                "shenyu.client.motan.basicServiceConfig.exportPort=8002"
             )
             .run(context -> {
                 MotanServiceEventListener motanServiceEventListener = context.getBean("motanServiceEventListener", MotanServiceEventListener.class);
