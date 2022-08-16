@@ -163,7 +163,6 @@
         <dependency>
             <groupId>io.etcd</groupId>
             <artifactId>jetcd-core</artifactId>
-            <version>${jetcd-core.version}</version>
         </dependency>
 
         <dependency>
@@ -234,13 +233,14 @@
             <groupId>com.oracle.ojdbc</groupId>
             <artifactId>ojdbc8</artifactId>
             <version>${ojdbc8.version}</version>
-            <scope>runtime</scope>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.oracle.database.nls</groupId>
             <artifactId>orai18n</artifactId>
             <version>${orai18n.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
