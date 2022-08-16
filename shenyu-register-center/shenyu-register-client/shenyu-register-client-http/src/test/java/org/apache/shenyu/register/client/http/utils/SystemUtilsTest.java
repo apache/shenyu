@@ -17,17 +17,11 @@
 
 package org.apache.shenyu.register.client.http.utils;
 
-
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
 import java.util.Properties;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
