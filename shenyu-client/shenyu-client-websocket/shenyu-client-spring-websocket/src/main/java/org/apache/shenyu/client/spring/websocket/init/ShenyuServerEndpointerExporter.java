@@ -21,6 +21,7 @@ import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
@@ -70,7 +71,7 @@ public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport 
      * @param pojo pojo
      */
     public void registerEndpoint(final Class<?> pojo) {
-        ShenyuServerEndpoint annotation = (ShenyuServerEndpoint) pojo.getAnnotation(ShenyuServerEndpoint.class);
+        ShenyuServerEndpoint annotation = AnnotatedElementUtils.findMergedAnnotation(pojo, ShenyuServerEndpoint.class);
         if (annotation == null) {
             throw new ShenyuException("Class missing annotation ShenyuServerEndpoint! class name: " + pojo.getName());
         }
