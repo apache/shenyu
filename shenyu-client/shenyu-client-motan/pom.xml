@@ -50,6 +50,7 @@
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-springsupport</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

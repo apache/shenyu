@@ -20,6 +20,7 @@ package org.apache.shenyu.springboot.starter.client.motan;
 import com.weibo.api.motan.common.MotanConstants;
 import com.weibo.api.motan.config.springsupport.AnnotationBean;
 import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
+import com.weibo.api.motan.config.springsupport.ProtocolConfigBean;
 import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import org.apache.shenyu.client.motan.MotanServiceEventListener;
@@ -27,16 +28,16 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
-import org.apache.shenyu.springboot.starter.client.motan.property.RegistryProperties;
-import org.apache.shenyu.springboot.starter.client.motan.property.ShenyuMotanProperties;
+import org.apache.shenyu.springboot.starter.client.motan.property.RegistryConfig;
+import org.apache.shenyu.springboot.starter.client.motan.property.ShenyuMotanConfig;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ContextRefreshedEvent;
 
 /**
  * Motan type client event listener.
@@ -44,7 +45,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 @ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
-public class ShenyuMotanClientConfiguration implements ApplicationRunner {
+public class ShenyuMotanClientConfiguration implements ApplicationListener<ContextRefreshedEvent> {
 
     /**
      * Motan service event listener.
@@ -59,76 +60,99 @@ public class ShenyuMotanClientConfiguration implements ApplicationRunner {
     }
 
     /**
-     * motan registry.
+     * Motan registry.
      *
      * @return registryProperties
      */
     @Bean
     @ConfigurationProperties(prefix = "motan.registry")
-    public RegistryProperties registryProperties() {
-        return new RegistryProperties();
+    public RegistryConfig registryProperties() {
+        return new RegistryConfig();
     }
 
     /**
-     * shenyu motan properties.
+     * Shenyu motan properties.
      *
      * @return shenyuMotanProperties
      */
     @Bean
     @ConfigurationProperties(prefix = "shenyu.client.motan")
-    public ShenyuMotanProperties shenyuMotanProperties() {
-        return new ShenyuMotanProperties();
+    public ShenyuMotanConfig shenyuMotanProperties() {
+        return new ShenyuMotanConfig();
     }
 
     /**
-     * define the annotation bean, set the scan package.
+     * Define the annotation bean, set the scan package.
+     *
+     * <p>The packagePath seems to be better set in ShenyuMotanConfig,
+     * but if so, the parameters in the configuration file can not be read,
+     * using @Value can, probably related to the bean loading timing.
+     *
      * @param packagePath package path
      * @return  annotationBean
      */
 
     @Bean
-    @Value("${shenyu.client.motan.packagePath:org.apache.shenyu.examples.motan.service}")
-    public AnnotationBean motanAnnotationBean(final String packagePath) {
+    public AnnotationBean motanAnnotationBean(@Value("${shenyu.client.motan.package-path}")final String packagePath) {
         AnnotationBean motanAnnotationBean = new AnnotationBean();
         motanAnnotationBean.setPackage(packagePath);
         return motanAnnotationBean;
     }
 
     /**
-     * define a bean with name registryConfig1 of RegistryConfigBean.
-     * @param properties  registry properties
-     * @return registryConfig1
+     * Define a bean with name of ProtocolConfigBean.
+     *
+     * <p>The Default motan service name is "motan2"
+     *
+     * @param shenyuMotanConfig shenyu motan shenyuMotanConfig
+     * @return ProtocolConfigBean
      */
-    @Bean
-    public RegistryConfigBean registryConfig(final RegistryProperties properties) {
-        RegistryConfigBean config = new RegistryConfigBean();
-        config.setRegProtocol(properties.getProtocol());
-        config.setAddress(properties.getAddress());
+    @Bean("motan2")
+    public ProtocolConfigBean protocolConfig(final ShenyuMotanConfig shenyuMotanConfig) {
+        ProtocolConfigBean config = new ProtocolConfigBean();
+        config.setDefault(shenyuMotanConfig.getProtocol().isDefault());
+        config.setName(shenyuMotanConfig.getProtocol().getName());
+        config.setMaxContentLength(shenyuMotanConfig.getProtocol().getMaxContentLength());
         return config;
     }
 
     /**
-     * define a bean with name baseServiceConfig of BasicServiceConfigBean.
+     * Define a bean with name registryConfig1 of RegistryConfigBean.
      *
-     * @param properties shenyu motan properties
+     * @param registryConfig  registry registryConfig
+     * @return registryConfig
+     */
+    @Bean
+    public RegistryConfigBean registryConfig(final RegistryConfig registryConfig) {
+        RegistryConfigBean config = new RegistryConfigBean();
+        config.setRegProtocol(registryConfig.getProtocol());
+        config.setAddress(registryConfig.getAddress());
+        return config;
+    }
+
+    /**
+     * Define a bean with name baseServiceConfig of BasicServiceConfigBean.
+     *
+     * @param shenyuMotanConfig shenyu motan shenyuMotanConfig
      * @return baseServiceConfig
      */
     @Bean
-    public BasicServiceConfigBean baseServiceConfig(final ShenyuMotanProperties properties) {
+    public BasicServiceConfigBean baseServiceConfig(final ShenyuMotanConfig shenyuMotanConfig) {
         BasicServiceConfigBean config = new BasicServiceConfigBean();
-        config.setExport(properties.getBasicServiceConfig().getExport());
-        config.setGroup(properties.getBasicServiceConfig().getGroup());
-        config.setAccessLog(properties.getBasicServiceConfig().isAccessLog());
-        config.setShareChannel(properties.getBasicServiceConfig().isShareChannel());
-        config.setModule(properties.getBasicServiceConfig().getModule());
-        config.setApplication(properties.getBasicServiceConfig().getApplication());
-        config.setRegistry(properties.getBasicServiceConfig().getRegistry());
-        config.setRequestTimeout(properties.getBasicServiceConfig().getRequestTimeout());
+        config.setExport(String.format("%s:%s", shenyuMotanConfig.getProtocol().getName(), shenyuMotanConfig.getBasicServiceConfig().getExportPort()));
+        config.setGroup(shenyuMotanConfig.getBasicServiceConfig().getGroup());
+        config.setAccessLog(shenyuMotanConfig.getBasicServiceConfig().isAccessLog());
+        config.setShareChannel(shenyuMotanConfig.getBasicServiceConfig().isShareChannel());
+        config.setModule(shenyuMotanConfig.getBasicServiceConfig().getModule());
+        config.setApplication(shenyuMotanConfig.getBasicServiceConfig().getApplication());
+        config.setRegistry(shenyuMotanConfig.getBasicServiceConfig().getRegistry());
+        config.setRequestTimeout(shenyuMotanConfig.getBasicServiceConfig().getRequestTimeout());
         return config;
     }
 
     @Override
-    public void run(final ApplicationArguments args) throws Exception {
-        MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, true);
+    public void onApplicationEvent(final ContextRefreshedEvent event) {
+        ShenyuMotanConfig shenyuMotanConfig = event.getApplicationContext().getBean(ShenyuMotanConfig.class);
+        MotanSwitcherUtil.setSwitcherValue(MotanConstants.REGISTRY_HEARTBEAT_SWITCHER, shenyuMotanConfig.getBasicServiceConfig().getRegistryHeartBeatSwitcher());
     }
 }

@@ -20,9 +20,9 @@ package org.apache.shenyu.springboot.starter.client.motan.property;
 /**
  * Shenyu motan properties.
  */
-public class ShenyuMotanProperties {
+public class ShenyuMotanConfig {
 
-    private ProtocolConfig protocolConfig = new ProtocolConfig();
+    private Protocol protocol = new Protocol();
 
     private BasicServiceConfig basicServiceConfig = new BasicServiceConfig();
 
@@ -30,16 +30,16 @@ public class ShenyuMotanProperties {
      * Get the protocol config.
      * @return protocol config
      */
-    public ProtocolConfig getProtocolConfig() {
-        return protocolConfig;
+    public Protocol getProtocol() {
+        return protocol;
     }
 
     /**
      * Set the protocol config.
-     * @param protocolConfig protocol config
+     * @param protocol protocol config
      */
-    public void setProtocolConfig(final ProtocolConfig protocolConfig) {
-        this.protocolConfig = protocolConfig;
+    public void setProtocol(final Protocol protocol) {
+        this.protocol = protocol;
     }
 
     /**
@@ -58,11 +58,29 @@ public class ShenyuMotanProperties {
         this.basicServiceConfig = basicServiceConfig;
     }
 
-    public static class ProtocolConfig {
+    public static class Protocol {
+
+        private boolean isDefault = true;
 
         private String name = "motan2";
 
         private Integer maxContentLength = 1048576;
+
+        /**
+         * Get is default.
+         * @return isDefault isDefault
+         */
+        public boolean isDefault() {
+            return isDefault;
+        }
+
+        /**
+         * Set is default.
+         * @param isDefault isDefault
+         */
+        public void setDefault(final boolean isDefault) {
+            this.isDefault = isDefault;
+        }
 
         /**
          * Get the name.
@@ -99,7 +117,7 @@ public class ShenyuMotanProperties {
 
     public static class BasicServiceConfig {
 
-        private String export = "demoMotan:8002";
+        private String exportPort;
 
         private String group = "motan-shenyu-rpc";
 
@@ -107,28 +125,30 @@ public class ShenyuMotanProperties {
 
         private boolean shareChannel = true;
 
-        private String module = "motan-demo-rpc";
+        private String module;
 
-        private String application = "myMotanDemo";
+        private String application;
 
         private String registry = "registryConfig";
 
         private Integer requestTimeout = 2000;
 
+        private boolean registryHeartBeatSwitcher = true;
+
         /**
-         * Get the export.
-         * @return export
+         * Get the exportPort.
+         * @return exportPort
          */
-        public String getExport() {
-            return export;
+        public String getExportPort() {
+            return exportPort;
         }
 
         /**
-         * Set the export.
-         * @param export export
+         * Set the exportPort.
+         * @param exportPort exportPort
          */
-        public void setExport(final String export) {
-            this.export = export;
+        public void setExportPort(final String exportPort) {
+            this.exportPort = exportPort;
         }
 
         /**
@@ -241,6 +261,22 @@ public class ShenyuMotanProperties {
          */
         public void setRequestTimeout(final Integer requestTimeout) {
             this.requestTimeout = requestTimeout;
+        }
+
+        /**
+         * Get the registryHeartBeatSwitcher.
+         * @return registryHeartBeatSwitcher
+         */
+        public boolean getRegistryHeartBeatSwitcher() {
+            return registryHeartBeatSwitcher;
+        }
+
+        /**
+         * Set the registryHeartBeatSwitcher.
+         * @param registryHeartBeatSwitcher registryHeartBeatSwitcher
+         */
+        public void setRegistryHeartBeatSwitcher(final boolean registryHeartBeatSwitcher) {
+            this.registryHeartBeatSwitcher = registryHeartBeatSwitcher;
         }
     }
 }

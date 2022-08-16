@@ -37,9 +37,9 @@ shenyu:
         ipAndPort: motan
         appName: motan
         port: 8081
-      packagePath: org.apache.shenyu.examples.motan.service
+      package-path: org.apache.shenyu.examples.motan.service
       basicServiceConfig:
-        export: demoMotan:8002
+        exportPort: 8002
 
 motan:
   registry:

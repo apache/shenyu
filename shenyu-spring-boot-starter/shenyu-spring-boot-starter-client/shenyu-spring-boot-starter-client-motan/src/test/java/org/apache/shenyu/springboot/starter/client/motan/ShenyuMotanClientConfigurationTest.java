@@ -47,7 +47,7 @@ public class ShenyuMotanClientConfigurationTest {
         new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(ShenyuMotanClientConfiguration.class))
             .withBean(ShenyuMotanClientConfigurationTest.class)
-            .withBean("demoMotan", ProtocolConfigBean.class)
+            .withBean("motan2", ProtocolConfigBean.class)
             .withPropertyValues(
                 "debug=true",
                 "shenyu.register.registerType=http",

@@ -20,7 +20,7 @@ package org.apache.shenyu.springboot.starter.client.motan.property;
 /**
  * Motan Registry config.
  */
-public class RegistryProperties {
+public class RegistryConfig {
 
     private String protocol;
 
