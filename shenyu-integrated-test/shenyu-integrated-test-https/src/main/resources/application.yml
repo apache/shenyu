@@ -23,16 +23,6 @@ spring:
     allow-circular-references: true
   application:
     name: shenyu-bootstrap
-  security:
-    oauth2:
-      client:
-        registration:
-          spring:
-            client-id: test-id
-            client-secret: test-secret
-      provider:
-        spring:
-          authorization-uri: http://localhost:8189/oauth/authorize
 
 management:
   health:
