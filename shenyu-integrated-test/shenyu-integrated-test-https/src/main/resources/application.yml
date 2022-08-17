@@ -20,8 +20,19 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
+    allow-circular-references: true
   application:
     name: shenyu-bootstrap
+  security:
+    oauth2:
+      client:
+        registration:
+          spring:
+            client-id: test-id
+            client-secret: test-secret
+      provider:
+        spring:
+          authorization-uri: http://localhost:8189/oauth/authorize
 
 management:
   health:
@@ -43,7 +54,7 @@ shenyu:
     enabled: true
   sync:
     websocket:
-      urls: ws://shenyu-admin:9095/websocket
+      urls: ws://localhsot:9095/websocket
       allowOrigin: ws://localhost:9195
   exclude:
     enabled: true

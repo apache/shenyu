@@ -15,23 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.oauth;
+package org.apache.shenyu.examples.http.controller;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.springframework.web.bind.annotation.*;
 
 /**
- * ShenyuTestOauthApplication.
+ * OauthController.
  */
-@SpringBootApplication
-public class ShenyuTestOauthApplication {
+@RestController
+@RequestMapping("/oauth")
+@ShenyuSpringMvcClient("/oauth")
+public class OauthController {
 
     /**
-     * main.
-     *
-     * @param args args
+     * Test oauth2 code request.
+     * @return String
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(ShenyuTestOauthApplication.class, args);
+    @GetMapping("/authorize")
+    @ShenyuSpringMvcClient("/authorize")
+    public String testCode () {
+        return "authorize";
     }
+
 }

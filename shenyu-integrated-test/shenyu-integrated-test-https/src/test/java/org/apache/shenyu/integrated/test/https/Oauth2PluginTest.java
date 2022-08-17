@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integrated.test.http.combination;
+package org.apache.shenyu.integrated.test.https;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
@@ -31,7 +31,8 @@ import java.util.concurrent.Future;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 public class Oauth2PluginTest extends AbstractPluginDataInit {
     
@@ -44,8 +45,8 @@ public class Oauth2PluginTest extends AbstractPluginDataInit {
     @Test
     public void testOauthPass() throws ExecutionException, InterruptedException {
         Map<String, Object> headers = new HashMap<>();
-        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://localhost:8200/login", headers, String.class));
-        assertTrue(resp.get().contains("Please sign in"));
+        Future<String> resp = this.getService().submit(() -> HttpHelper.INSTANCE.getHttpService("http://localhost:8189/oauth/authorize", headers, String.class));
+        assertNotNull(resp.get());
     }
 
 }

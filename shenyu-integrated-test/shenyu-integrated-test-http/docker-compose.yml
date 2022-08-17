@@ -53,26 +53,6 @@ services:
     networks:
       - shenyu
 
-  shenyu-examples-oauth:
-    deploy:
-      resources:
-        limits:
-          memory: 2048M
-    container_name: shenyu-examples-oauth
-    image: shenyu-examples-oauth:latest
-    restart: always
-    healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-examples-oauth:8200/test/path/123?name=tom" ]
-      timeout: 2s
-      retries: 30
-    ports:
-      - "8200:8200"
-    depends_on:
-      shenyu-integrated-test-http:
-        condition: service_healthy
-    networks:
-      - shenyu
-
   shenyu-admin:
     image: apache/shenyu-admin:latest
     container_name: shenyu-admin
