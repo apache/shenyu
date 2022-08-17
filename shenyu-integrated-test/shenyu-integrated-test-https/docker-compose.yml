@@ -91,7 +91,7 @@ services:
     ports:
       - "8189:8189"
     depends_on:
-      shenyu-integrated-test-http:
+      shenyu-integrated-test-https:
         condition: service_healthy
     networks:
       - shenyu
