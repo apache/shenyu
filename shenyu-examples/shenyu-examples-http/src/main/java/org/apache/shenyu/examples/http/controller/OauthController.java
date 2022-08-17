@@ -18,7 +18,9 @@
 package org.apache.shenyu.examples.http.controller;
 
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * OauthController.
@@ -34,7 +36,7 @@ public class OauthController {
      */
     @GetMapping("/authorize")
     @ShenyuSpringMvcClient("/authorize")
-    public String testCode () {
+    public String testCode() {
         return "authorize";
     }
 
