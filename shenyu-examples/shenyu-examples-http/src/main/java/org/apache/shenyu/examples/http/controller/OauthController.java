@@ -32,12 +32,10 @@ public class OauthController {
 
     /**
      * Test oauth2 code request.
+     *
      * @return String
      */
     @GetMapping("/authorize")
-    @ShenyuSpringMvcClient("/authorize")
-    public String testCode() {
-        return "authorize";
-    }
+    public String testCode() { return "authorize"; }
 
 }
