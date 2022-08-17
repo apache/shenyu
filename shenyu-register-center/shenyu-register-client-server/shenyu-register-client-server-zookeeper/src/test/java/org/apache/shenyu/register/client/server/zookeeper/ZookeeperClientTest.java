@@ -23,13 +23,16 @@ import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.zookeeper.CreateMode;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 class ZookeeperClientTest {
 
@@ -49,6 +54,8 @@ class ZookeeperClientTest {
     public void setup() throws Exception {
         this.server = new TestingServer();
         ZookeeperConfig config = new ZookeeperConfig(server.getConnectString());
+        config.setNamespace("namespace");
+        config.setDigest("digest");
         client = new ZookeeperClient(config);
         client.start();
     }
@@ -73,6 +80,31 @@ class ZookeeperClientTest {
         client.createOrUpdate("/test", "", CreateMode.PERSISTENT);
         exist = client.isExist("/test");
         assertTrue(exist);
+    }
+
+    @Test
+    void errorTest() throws NoSuchFieldException, InterruptedException, IllegalAccessException {
+        final Field curatorFramework = ZookeeperClient.class.getDeclaredField("client");
+        final CuratorFramework curatorFrameworkMock = mock(CuratorFramework.class);
+        curatorFramework.setAccessible(true);
+        curatorFramework.set(client, curatorFrameworkMock);
+        doThrow(InterruptedException.class).when(curatorFrameworkMock).blockUntilConnected();
+        Assertions.assertDoesNotThrow(() -> client.start());
+
+        doThrow(ShenyuException.class).when(curatorFrameworkMock).checkExists();
+        Assertions.assertThrows(ShenyuException.class, () -> client.isExist("key"));
+
+        doThrow(ShenyuException.class).when(curatorFrameworkMock).getData();
+        Assertions.assertThrows(ShenyuException.class, () -> client.getDirectly("key"));
+
+        doThrow(ShenyuException.class).when(curatorFrameworkMock).create();
+        Assertions.assertThrows(ShenyuException.class, () -> client.createOrUpdate("key", "value", CreateMode.PERSISTENT));
+
+        doThrow(ShenyuException.class).when(curatorFrameworkMock).delete();
+        Assertions.assertThrows(ShenyuException.class, () -> client.delete("key"));
+
+        doThrow(ShenyuException.class).when(curatorFrameworkMock).getChildren();
+        Assertions.assertThrows(ShenyuException.class, () -> client.getChildren("key"));
     }
 
     @Test
