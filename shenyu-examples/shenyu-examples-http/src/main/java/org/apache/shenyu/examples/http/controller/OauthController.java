@@ -36,6 +36,8 @@ public class OauthController {
      * @return String
      */
     @GetMapping("/authorize")
-    public String testCode() { return "authorize"; }
+    public String testCode() {
+        return "authorize";
+    }
 
 }
