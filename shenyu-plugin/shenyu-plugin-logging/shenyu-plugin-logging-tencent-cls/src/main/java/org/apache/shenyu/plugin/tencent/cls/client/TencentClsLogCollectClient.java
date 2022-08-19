@@ -115,9 +115,12 @@ public class TencentClsLogCollectClient implements LogConsumeClient {
 
         threadExecutor = createThreadPoolExecutor(props);
 
-        isStarted.set(true);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
-        client = new AsyncProducerClient(config);
+        try {
+            isStarted.set(true);
+            client = new AsyncProducerClient(config);
+        } catch (Exception e) {
+            LOG.warn("TencentClsLogCollectClient initClient error message:{}", e.getMessage());
+        }
     }
 
     /**
