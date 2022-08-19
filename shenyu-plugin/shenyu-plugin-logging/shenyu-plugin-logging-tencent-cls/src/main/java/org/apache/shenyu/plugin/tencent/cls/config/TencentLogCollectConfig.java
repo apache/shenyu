@@ -429,5 +429,12 @@ public class TencentLogCollectConfig {
                     && Objects.equals(getBaseRetryBackoffMs(), that.getBaseRetryBackoffMs())
                     && Objects.equals(getMaxRetryBackoffMs(), that.getMaxRetryBackoffMs());
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(secretId, secretKey, endpoint, topic, sendThreadCount, totalSizeInBytes,
+                    maxSendThreadCount, maxBlockSec, maxBatchSize, maxBatchCount, lingerMs, retries,
+                    maxReservedAttempts, baseRetryBackoffMs, maxRetryBackoffMs);
+        }
     }
 }

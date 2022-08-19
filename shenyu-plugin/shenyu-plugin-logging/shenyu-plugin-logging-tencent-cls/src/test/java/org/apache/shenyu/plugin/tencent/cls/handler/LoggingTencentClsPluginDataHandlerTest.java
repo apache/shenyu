@@ -55,7 +55,7 @@ public class LoggingTencentClsPluginDataHandlerTest {
 
     @Test
     public void testPluginNamed() {
-        Assertions.assertEquals(loggingTencentClsPluginDataHandler.pluginNamed(), PluginEnum.LOGGING_ALIYUN_SLS.getName());
+        Assertions.assertEquals(loggingTencentClsPluginDataHandler.pluginNamed(), PluginEnum.LOGGING_TENCENT_CLS.getName());
     }
 
     @Test
