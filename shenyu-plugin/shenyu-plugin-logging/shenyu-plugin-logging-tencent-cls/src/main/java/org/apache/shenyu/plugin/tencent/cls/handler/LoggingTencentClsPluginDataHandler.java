@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -61,20 +60,19 @@ public class LoggingTencentClsPluginDataHandler implements PluginDataHandler {
                 properties.setProperty(GenericLoggingConstant.SECRET_KEY, globalLogConfig.getSecretKey().trim());
                 properties.setProperty(GenericLoggingConstant.ENDPOINT, globalLogConfig.getEndpoint().trim());
                 properties.setProperty(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic().trim());
+                properties.setProperty(GenericLoggingConstant.SEND_THREAD_COUNT, String.valueOf(globalLogConfig.getSendThreadCount()));
 
                 // Optional parameters
-                Optional.ofNullable(globalLogConfig.getTotalSizeInBytes()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.TOTAL_SIZE_IN_BYTES, globalLogConfig.getTotalSizeInBytes()));
-                Optional.ofNullable(globalLogConfig.getMaxSendThreadCount()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.MAX_SEND_THREAD_COUNT, globalLogConfig.getMaxSendThreadCount()));
-                Optional.ofNullable(globalLogConfig.getMaxBlockSec()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.MAX_BLOCK_SEC, globalLogConfig.getMaxBlockSec()));
-                Optional.ofNullable(globalLogConfig.getMaxBatchSize()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.MAX_BATCH_SIZE, globalLogConfig.getMaxBatchSize()));
-                Optional.ofNullable(globalLogConfig.getMaxBatchCount()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.MAX_BATCH_COUNT, globalLogConfig.getMaxBatchCount()));
-                Optional.ofNullable(globalLogConfig.getLingerMs()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.LINGER_MS, globalLogConfig.getLingerMs()));
-                Optional.ofNullable(globalLogConfig.getRetries()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.RETRIES, globalLogConfig.getRetries()));
-                Optional.ofNullable(globalLogConfig.getMaxReservedAttempts()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.MAX_RESERVED_ATTEMPTS, globalLogConfig.getMaxReservedAttempts()));
-                Optional.ofNullable(globalLogConfig.getBaseRetryBackoffMs()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.BASE_RETRY_BACKOFF_MS, globalLogConfig.getBaseRetryBackoffMs()));
-                Optional.ofNullable(globalLogConfig.getMaxRetryBackoffMs()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.MAX_RETRY_BACKOFF_MS, globalLogConfig.getMaxRetryBackoffMs()));
-                Optional.ofNullable(globalLogConfig.getSendThreadCount()).ifPresent(res -> properties.setProperty(GenericLoggingConstant.SEND_THREAD_COUNT, String.valueOf(globalLogConfig.getSendThreadCount())));
-
+                properties.setProperty(GenericLoggingConstant.TOTAL_SIZE_IN_BYTES, globalLogConfig.getTotalSizeInBytes());
+                properties.setProperty(GenericLoggingConstant.MAX_SEND_THREAD_COUNT, globalLogConfig.getMaxSendThreadCount());
+                properties.setProperty(GenericLoggingConstant.MAX_BLOCK_SEC, globalLogConfig.getMaxBlockSec());
+                properties.setProperty(GenericLoggingConstant.MAX_BATCH_SIZE, globalLogConfig.getMaxBatchSize());
+                properties.setProperty(GenericLoggingConstant.MAX_BATCH_COUNT, globalLogConfig.getMaxBatchCount());
+                properties.setProperty(GenericLoggingConstant.LINGER_MS, globalLogConfig.getLingerMs());
+                properties.setProperty(GenericLoggingConstant.RETRIES, globalLogConfig.getRetries());
+                properties.setProperty(GenericLoggingConstant.MAX_RESERVED_ATTEMPTS, globalLogConfig.getMaxReservedAttempts());
+                properties.setProperty(GenericLoggingConstant.BASE_RETRY_BACKOFF_MS, globalLogConfig.getBaseRetryBackoffMs());
+                properties.setProperty(GenericLoggingConstant.MAX_RETRY_BACKOFF_MS, globalLogConfig.getMaxRetryBackoffMs());
                 // init tencent cls client
                 TENCENT_CLS_LOG_COLLECT_CLIENT.initClient(properties);
                 TencentClsSlsLogCollector.getInstance().start();

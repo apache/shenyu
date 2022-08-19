@@ -73,52 +73,52 @@ public class TencentLogCollectConfig {
         /**
          * tencent totalSizeInBytes.
          */
-        private String totalSizeInBytes;
+        private String totalSizeInBytes = "104857600";
 
         /**
          * tencent maxSendThreadCount.
          */
-        private String maxSendThreadCount;
+        private String maxSendThreadCount = String.valueOf(Math.max(Runtime.getRuntime().availableProcessors(), 1));
 
         /**
          * tencent maxBlockSec.
          */
-        private String maxBlockSec;
+        private String maxBlockSec = "60000";
 
         /**
          * tencent maxBatchSize.
          */
-        private String maxBatchSize;
+        private String maxBatchSize = 512 * 1024 + "";
 
         /**
          * tencent maxBatchCount.
          */
-        private String maxBatchCount;
+        private String maxBatchCount = "4096";
 
         /**
          * tencent lingerMs.
          */
-        private String lingerMs;
+        private String lingerMs = "2000";
 
         /**
          * tencent retries.
          */
-        private String retries;
+        private String retries = "10";
 
         /**
          * tencent maxReservedAttempts.
          */
-        private String maxReservedAttempts;
+        private String maxReservedAttempts = "11";
 
         /**
          * tencent baseRetryBackoffMs.
          */
-        private String baseRetryBackoffMs;
+        private String baseRetryBackoffMs = "100";
 
         /**
          * tencent maxRetryBackoffMs.
          */
-        private String maxRetryBackoffMs;
+        private String maxRetryBackoffMs = "50000";
 
         /**
          * tencent sendThreadCount.
@@ -145,7 +145,7 @@ public class TencentLogCollectConfig {
          *
          * @param endpoint endpoint
          */
-        public void setEndpoint(String endpoint) {
+        public void setEndpoint(final String endpoint) {
             this.endpoint = endpoint;
         }
         
@@ -163,7 +163,7 @@ public class TencentLogCollectConfig {
          *
          * @param secretId secretId
          */
-        public void setSecretId(String secretId) {
+        public void setSecretId(final String secretId) {
             this.secretId = secretId;
         }
 
@@ -181,7 +181,7 @@ public class TencentLogCollectConfig {
          *
          * @param secretKey secretKey
          */
-        public void setSecretKey(String secretKey) {
+        public void setSecretKey(final String secretKey) {
             this.secretKey = secretKey;
         }
 
@@ -199,7 +199,7 @@ public class TencentLogCollectConfig {
          *
          * @param totalSizeInBytes totalSizeInBytes
          */
-        public void setTotalSizeInBytes(String totalSizeInBytes) {
+        public void setTotalSizeInBytes(final String totalSizeInBytes) {
             this.totalSizeInBytes = totalSizeInBytes;
         }
 
@@ -217,7 +217,7 @@ public class TencentLogCollectConfig {
          *
          * @param maxSendThreadCount maxSendThreadCount
          */
-        public void setMaxSendThreadCount(String maxSendThreadCount) {
+        public void setMaxSendThreadCount(final String maxSendThreadCount) {
             this.maxSendThreadCount = maxSendThreadCount;
         }
 
@@ -235,7 +235,7 @@ public class TencentLogCollectConfig {
          *
          * @param maxBlockSec maxBlockSec
          */
-        public void setMaxBlockSec(String maxBlockSec) {
+        public void setMaxBlockSec(final String maxBlockSec) {
             this.maxBlockSec = maxBlockSec;
         }
 
@@ -253,7 +253,7 @@ public class TencentLogCollectConfig {
          *
          * @param maxBatchSize maxBatchSize
          */
-        public void setMaxBatchSize(String maxBatchSize) {
+        public void setMaxBatchSize(final String maxBatchSize) {
             this.maxBatchSize = maxBatchSize;
         }
 
@@ -271,7 +271,7 @@ public class TencentLogCollectConfig {
          *
          * @param maxBatchCount maxBatchCount
          */
-        public void setMaxBatchCount(String maxBatchCount) {
+        public void setMaxBatchCount(final String maxBatchCount) {
             this.maxBatchCount = maxBatchCount;
         }
 
@@ -289,7 +289,7 @@ public class TencentLogCollectConfig {
          *
          * @param lingerMs lingerMs
          */
-        public void setLingerMs(String lingerMs) {
+        public void setLingerMs(final String lingerMs) {
             this.lingerMs = lingerMs;
         }
 
@@ -307,7 +307,7 @@ public class TencentLogCollectConfig {
          *
          * @param retries retries
          */
-        public void setRetries(String retries) {
+        public void setRetries(final String retries) {
             this.retries = retries;
         }
 
@@ -325,7 +325,7 @@ public class TencentLogCollectConfig {
          *
          * @param maxReservedAttempts maxReservedAttempts
          */
-        public void setMaxReservedAttempts(String maxReservedAttempts) {
+        public void setMaxReservedAttempts(final String maxReservedAttempts) {
             this.maxReservedAttempts = maxReservedAttempts;
         }
 
@@ -343,7 +343,7 @@ public class TencentLogCollectConfig {
          *
          * @param baseRetryBackoffMs baseRetryBackoffMs
          */
-        public void setBaseRetryBackoffMs(String baseRetryBackoffMs) {
+        public void setBaseRetryBackoffMs(final String baseRetryBackoffMs) {
             this.baseRetryBackoffMs = baseRetryBackoffMs;
         }
 
@@ -361,7 +361,7 @@ public class TencentLogCollectConfig {
          *
          * @param maxRetryBackoffMs maxRetryBackoffMs
          */
-        public void setMaxRetryBackoffMs(String maxRetryBackoffMs) {
+        public void setMaxRetryBackoffMs(final String maxRetryBackoffMs) {
             this.maxRetryBackoffMs = maxRetryBackoffMs;
         }
 
@@ -397,7 +397,7 @@ public class TencentLogCollectConfig {
          *
          * @param topic topic
          */
-        public void setTopic(String topic) {
+        public void setTopic(final String topic) {
             this.topic = topic;
         }
     }

@@ -158,7 +158,7 @@ public class TencentClsLogCollectClient implements LogConsumeClient {
         logItem.PushBack("message", GsonUtils.getGson().toJson(log));
         logItems.add(logItem);
         try {
-            final ListenableFuture<Result> f = client.putLogs(topic, logItems, result -> {});
+            final ListenableFuture<Result> f = client.putLogs(topic, logItems, result -> { });
             Futures.addCallback(f, new ProducerFutureCallback(topic), threadExecutor);
         } catch (InterruptedException e) {
             LOG.warn("The current thread has been interrupted during send logs.");
