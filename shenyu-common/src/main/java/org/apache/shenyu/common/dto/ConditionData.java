@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.common.dto;
 
-import org.apache.shenyu.common.enums.OperatorEnum;
-
 import java.util.Objects;
 
 /**
@@ -29,12 +27,12 @@ import java.util.Objects;
 public class ConditionData {
 
     /**
-     * param type (post  query  uri).
+     * {@linkplain org.apache.shenyu.common.enums.ParamTypeEnum}.
      */
     private String paramType;
 
     /**
-     * {@linkplain OperatorEnum}.
+     * {@linkplain org.apache.shenyu.common.enums.OperatorEnum}.
      */
     private String operator;
 

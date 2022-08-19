@@ -24,11 +24,15 @@ import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 
-
 @Component
 public class UploadFileHandler implements WebSocketHandler {
 
 
+    /**
+     * Handle by upload handler.
+     * @param session  session
+     * @return  void
+     */
     @Override
     @NonNull
     @Log

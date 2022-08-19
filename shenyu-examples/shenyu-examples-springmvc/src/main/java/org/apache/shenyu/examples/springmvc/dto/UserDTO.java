@@ -25,12 +25,12 @@ import java.util.StringJoiner;
 public class UserDTO {
 
     /**
-     * user id
+     * user id.
      */
     private String userId;
 
     /**
-     * username
+     * username.
      */
     private String userName;
 
@@ -77,6 +77,5 @@ public class UserDTO {
                 .add("userName='" + userName + "'")
                 .toString();
     }
-
 
 }

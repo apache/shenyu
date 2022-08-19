@@ -18,10 +18,8 @@
 package org.apache.shenyu.examples.springcloud.controller;
 
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
-import org.apache.shenyu.examples.springcloud.dto.UserDTO;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,7 +41,7 @@ public class UploadController {
      */
     @PostMapping(value = "/file", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ShenyuSpringCloudClient(path = "/file")
-    public String post(@RequestPart("file") MultipartFile file) {
+    public String post(@RequestPart("file")final MultipartFile file) {
         return file.getOriginalFilename();
     }
 }

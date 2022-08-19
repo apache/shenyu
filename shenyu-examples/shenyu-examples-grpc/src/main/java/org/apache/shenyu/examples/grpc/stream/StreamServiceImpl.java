@@ -94,7 +94,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
             private final ResponseData.Builder builder = ResponseData.newBuilder();
             
             @Override
-            public void onNext(RequestData value) {
+            public void onNext(final RequestData value) {
                 LOG.info("bidiStreamingFun received: {}", value.getText());
                 ResponseData responseData = ResponseData.newBuilder()
                         .setText("bidiStreamingFun response: hello")

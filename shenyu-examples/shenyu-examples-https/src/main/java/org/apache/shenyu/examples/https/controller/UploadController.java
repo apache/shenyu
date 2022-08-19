@@ -19,7 +19,6 @@ package org.apache.shenyu.examples.https.controller;
 
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -37,12 +36,12 @@ public class UploadController {
     /**
      * upload file.
      *
-     * @param file
+     * @param file  file
      * @return filename
      */
     @PostMapping(value = "/file", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ShenyuSpringMvcClient("/file")
-    public String uploadFile(@RequestPart("file") MultipartFile file){
+    public String uploadFile(@RequestPart("file") final MultipartFile file) {
         return file.getOriginalFilename();
     }
 }
