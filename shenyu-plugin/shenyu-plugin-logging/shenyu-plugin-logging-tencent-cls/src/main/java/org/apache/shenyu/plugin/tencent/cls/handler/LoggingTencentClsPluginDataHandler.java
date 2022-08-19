@@ -34,7 +34,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 /**
- * LoggingAliYunSlsPluginDataHandler Tencent cls plugin data handler.
+ * LoggingTencentClsPluginDataHandler Tencent cls plugin data handler.
  */
 public class LoggingTencentClsPluginDataHandler implements PluginDataHandler {
 
@@ -89,7 +89,7 @@ public class LoggingTencentClsPluginDataHandler implements PluginDataHandler {
 
     @Override
     public String pluginNamed() {
-        return PluginEnum.LOGGING_ALIYUN_SLS.getName();
+        return PluginEnum.LOGGING_TENCENT_CLS.getName();
     }
 
     /**

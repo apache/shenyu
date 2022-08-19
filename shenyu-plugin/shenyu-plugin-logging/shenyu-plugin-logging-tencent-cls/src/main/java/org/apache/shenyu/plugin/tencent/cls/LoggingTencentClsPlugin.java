@@ -31,7 +31,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * LoggingAliYunSlsPlugin send log to Tencent cls service.
+ * LoggingTencentClsPlugin send log to Tencent cls service.
  */
 public class LoggingTencentClsPlugin extends AbstractLoggingPlugin {
 

@@ -42,10 +42,10 @@ public class TencentLogCollectConfig {
     /**
      * set Tencent cls log config.
      *
-     * @param aliyunSlsLogConfig Tencent cls log config.
+     * @param tencentClsLogConfig Tencent cls log config.
      */
-    public void setTencentClsLogConfig(final TencentClsLogConfig aliyunSlsLogConfig) {
-        this.tencentClsLogConfig = aliyunSlsLogConfig;
+    public void setTencentClsLogConfig(final TencentClsLogConfig tencentClsLogConfig) {
+        this.tencentClsLogConfig = tencentClsLogConfig;
     }
 
     /**
@@ -127,7 +127,7 @@ public class TencentLogCollectConfig {
 
         /**
          * Tencent cls topic.
-         * aliyun query by topic
+         * tencent query by topic
          */
         private String topic = "shenyu-topic";
         
