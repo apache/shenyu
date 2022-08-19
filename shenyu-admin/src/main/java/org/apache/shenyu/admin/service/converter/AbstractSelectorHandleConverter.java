@@ -68,10 +68,11 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
      */
     @Override
     public <T extends CommonUpstream> List<T> updateStatusAndFilter(final List<T> existList, final List<? extends CommonUpstream> aliveList) {
-        if (aliveList == null) {
-            return Collections.EMPTY_LIST;
+        if (CollectionUtils.isEmpty(aliveList) || CollectionUtils.isEmpty(existList)) {
+            return Collections.emptyList();
         }
         long currentTimeMillis = System.currentTimeMillis();
+        
         List<T> validExistList = existList.stream()
                 .filter(e -> e.isStatus() || e.getTimestamp() > currentTimeMillis - TimeUnit.SECONDS.toMillis(UpstreamCheckService.getZombieRemovalTimes())
                         || aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(e.getUpstreamUrl())))
@@ -83,7 +84,7 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
                     upstream.setTimestamp(currentTimeMillis);
                 });
         validExistList.stream()
-                .filter(upstream -> !aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
+                .filter(upstream -> aliveList.stream().noneMatch(alive -> alive.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
                 .forEach(upstream -> {
                     upstream.setStatus(false);
                     upstream.setTimestamp(currentTimeMillis);
