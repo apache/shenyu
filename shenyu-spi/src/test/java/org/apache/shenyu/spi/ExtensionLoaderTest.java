@@ -29,6 +29,7 @@ import org.apache.shenyu.spi.fixture.NoJoinSPI;
 import org.apache.shenyu.spi.fixture.NopSPI;
 import org.apache.shenyu.spi.fixture.NotMatchSPI;
 import org.apache.shenyu.spi.fixture.SubHasDefaultSPI;
+import org.apache.shenyu.spi.fixture.TreeListSPI;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.InvocationTargetException;
@@ -66,9 +67,15 @@ public final class ExtensionLoaderTest {
     @Test
     public void testSPIList() {
         List<ListSPI> joins = ExtensionLoader.getExtensionLoader(ListSPI.class).getJoins();
-        assertEquals(joins.size(), 2);
-        assertThat(joins.get(0).getClass().getName(), is(ArrayListSPI.class.getName()));
-        assertThat(joins.get(1).getClass().getName(), is(LinkedListSPI.class.getName()));
+        assertEquals(joins.size(), 3);
+        assertThat(joins.get(0).getClass().getName(), is(LinkedListSPI.class.getName()));
+        assertThat(joins.get(1).getClass().getName(), is(TreeListSPI.class.getName()));
+        assertThat(joins.get(2).getClass().getName(), is(ArrayListSPI.class.getName()));
+        List<ListSPI> joins1 = ExtensionLoader.getExtensionLoader(ListSPI.class).getJoins();
+        assertEquals(joins1.size(), 3);
+        assertThat(joins1.get(0).getClass().getName(), is(LinkedListSPI.class.getName()));
+        assertThat(joins1.get(1).getClass().getName(), is(TreeListSPI.class.getName()));
+        assertThat(joins1.get(2).getClass().getName(), is(ArrayListSPI.class.getName()));
     }
     
     /**
@@ -202,7 +209,7 @@ public final class ExtensionLoaderTest {
             ExtensionLoader.getExtensionLoader(NoJoinSPI.class).getJoin("subNoJoinSPI");
             fail();
         } catch (IllegalStateException expected) {
-            assertThat(expected.getMessage(), 
+            assertThat(expected.getMessage(),
                     containsString("load extension resources error,class org.apache.shenyu.spi.fixture.SubNoJoinSPI without @interface org.apache.shenyu.spi.Join annotation"));
         }
     }

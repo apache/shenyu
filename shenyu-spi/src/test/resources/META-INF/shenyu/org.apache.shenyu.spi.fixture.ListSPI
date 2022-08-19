@@ -14,5 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-arrayList=org.apache.shenyu.spi.fixture.ArrayListSPI
 linkedList=org.apache.shenyu.spi.fixture.LinkedListSPI
+arrayList=org.apache.shenyu.spi.fixture.ArrayListSPI
+treeList=org.apache.shenyu.spi.fixture.TreeListSPI
