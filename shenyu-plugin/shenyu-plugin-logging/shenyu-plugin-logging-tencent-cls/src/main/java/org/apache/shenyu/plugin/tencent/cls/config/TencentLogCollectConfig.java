@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.tencent.cls.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -399,6 +400,34 @@ public class TencentLogCollectConfig {
          */
         public void setTopic(final String topic) {
             this.topic = topic;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return Boolean.TRUE;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return Boolean.FALSE;
+            }
+
+            TencentClsLogConfig that = (TencentClsLogConfig) o;
+            return Objects.equals(getSecretId(), that.getSecretId())
+                    && Objects.equals(getSecretKey(), that.getSecretKey())
+                    && Objects.equals(getEndpoint(), that.getEndpoint())
+                    && Objects.equals(getTopic(), that.getTopic())
+                    && Objects.equals(getSendThreadCount(), that.getSendThreadCount())
+                    && Objects.equals(getTotalSizeInBytes(), that.getTotalSizeInBytes())
+                    && Objects.equals(getMaxSendThreadCount(), that.getMaxSendThreadCount())
+                    && Objects.equals(getMaxBlockSec(), that.getMaxBlockSec())
+                    && Objects.equals(getMaxBatchSize(), that.getMaxBatchSize())
+                    && Objects.equals(getMaxBatchCount(), that.getMaxBatchCount())
+                    && Objects.equals(getLingerMs(), that.getLingerMs())
+                    && Objects.equals(getRetries(), that.getRetries())
+                    && Objects.equals(getMaxReservedAttempts(), that.getMaxReservedAttempts())
+                    && Objects.equals(getBaseRetryBackoffMs(), that.getBaseRetryBackoffMs())
+                    && Objects.equals(getMaxRetryBackoffMs(), that.getMaxRetryBackoffMs());
         }
     }
 }

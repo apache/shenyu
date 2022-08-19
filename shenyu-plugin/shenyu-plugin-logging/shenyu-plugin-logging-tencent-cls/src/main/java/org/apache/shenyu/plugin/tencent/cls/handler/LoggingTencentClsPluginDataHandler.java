@@ -76,8 +76,8 @@ public class LoggingTencentClsPluginDataHandler implements PluginDataHandler {
                 // init tencent cls client
                 TENCENT_CLS_LOG_COLLECT_CLIENT.initClient(properties);
                 TencentClsSlsLogCollector.getInstance().start();
+                Singleton.INST.single(TencentLogCollectConfig.TencentClsLogConfig.class, globalLogConfig);
             }
-            Singleton.INST.single(MotanRegisterConfig.class, globalLogConfig);
         } else {
             try {
                 TencentClsSlsLogCollector.getInstance().close();
