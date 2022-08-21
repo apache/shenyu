@@ -83,7 +83,7 @@ public class TencentClsLogCollectClient implements LogConsumeClient {
         String secretKey = props.getProperty(GenericLoggingConstant.SECRET_KEY);
         String endpoint = props.getProperty(GenericLoggingConstant.ENDPOINT);
         topic = props.getProperty(GenericLoggingConstant.TOPIC);
-        if (StringUtils.isBlank(secretId) || StringUtils.isBlank(secretKey) || StringUtils.isBlank(topic)) {
+        if (StringUtils.isBlank(secretId) || StringUtils.isBlank(secretKey) || StringUtils.isBlank(topic) || StringUtils.isBlank(endpoint)) {
             LOG.error("init Tencent cls client error, please check secretId, secretKey, topic or host");
             return;
         }
