@@ -95,13 +95,7 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
 
             KafkaLogCollectConfig.INSTANCE.setKafkaLogConfig(globalLogConfig);
             // start kafka producer
-            Properties properties = new Properties();
-            properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-            properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-            properties.put("bootstrap.servers", globalLogConfig.getNamesrvAddr());
-            properties.put(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
-            properties.put(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getTopic());
-            KAFKA_LOG_COLLECT_CLIENT.initProducer(properties);
+            KAFKA_LOG_COLLECT_CLIENT.initProducer(globalLogConfig);
             KafkaLogCollector.getInstance().start();
         } else {
             try {

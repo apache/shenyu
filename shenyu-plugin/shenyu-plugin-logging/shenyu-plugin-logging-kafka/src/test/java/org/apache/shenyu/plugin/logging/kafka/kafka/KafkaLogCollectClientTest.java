@@ -38,34 +38,29 @@ import java.util.Properties;
  */
 public class KafkaLogCollectClientTest {
 
-    private final Properties props = new Properties();
-
     private final PluginData pluginData = new PluginData();
 
     private final ShenyuRequestLog shenyuRequestLog = new ShenyuRequestLog();
 
     private KafkaLogCollectClient kafkaLogCollectClient;
     
+    private KafkaLogCollectConfig.KafkaLogConfig globalLogConfig;
+
     @BeforeEach
     public void setUp() {
         this.kafkaLogCollectClient = new KafkaLogCollectClient();
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\":\"localhost:8082\"}");
-        KafkaLogCollectConfig.KafkaLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), KafkaLogCollectConfig.KafkaLogConfig.class);
+        globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), KafkaLogCollectConfig.KafkaLogConfig.class);
         globalLogConfig.setCompressAlg("LZ4");
-        props.put("bootstrap.servers", globalLogConfig.getNamesrvAddr());
-        props.put(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getNamesrvAddr());
-        props.setProperty(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
     }
 
     @Test
     @Ignore
-    public void testInitProducer() throws NoSuchFieldException, IllegalAccessException {
-        kafkaLogCollectClient.initProducer(props);
+    public void testInitClient() throws NoSuchFieldException, IllegalAccessException {
+        kafkaLogCollectClient.initClient(globalLogConfig);
         Field field = kafkaLogCollectClient.getClass().getDeclaredField("topic");
         field.setAccessible(true);
         Assertions.assertEquals(field.get(kafkaLogCollectClient), "shenyu-access-logging");

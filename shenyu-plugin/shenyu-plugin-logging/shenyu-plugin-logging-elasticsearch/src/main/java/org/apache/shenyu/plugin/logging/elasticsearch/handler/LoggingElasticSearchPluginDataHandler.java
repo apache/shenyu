@@ -65,10 +65,7 @@ public class LoggingElasticSearchPluginDataHandler implements PluginDataHandler 
                     ElasticSearchLogCollectConfig.ElasticSearchLogConfig.class);
 
             ElasticSearchLogCollectConfig.INSTANCE.setElasticSearchLogConfig(globalLogConfig);
-            Properties properties = new Properties();
-            properties.setProperty(GenericLoggingConstant.HOST, globalLogConfig.getHost());
-            properties.setProperty(GenericLoggingConstant.PORT, globalLogConfig.getPort());
-            ELASTICSEARCH_LOG_COLLECT_CLIENT.initClient(properties);
+            ELASTICSEARCH_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
             ElasticSearchLogCollector.getInstance().start();
         } else {
             try {
