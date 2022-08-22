@@ -713,6 +713,10 @@
                         <exclude>**/resources/static/</exclude>
                         <!-- JNI headers -->
                         <exclude>**/*.h</exclude>
+                        <!-- native libraries -->
+                        <exclude>**/*.dll</exclude>
+                        <exclude>**/*.dylib</exclude>
+                        <exclude>**/*.so</exclude>
                     </excludes>
                 </configuration>
                 <executions>
