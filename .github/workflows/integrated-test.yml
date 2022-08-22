@@ -91,4 +91,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: rat
-          path: /**/rat.txt
+          path: /home/runner/work/shenyu/shenyu/**/rat.txt
