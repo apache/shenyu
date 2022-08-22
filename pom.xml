@@ -711,6 +711,8 @@
                         <exclude>**/node_modules/**</exclude>
                         <exclude>**/test/coverage/**</exclude>
                         <exclude>**/resources/static/</exclude>
+                        <!-- JNI headers -->
+                        <exclude>**/*.h</exclude>
                     </excludes>
                 </configuration>
                 <executions>
