@@ -38,6 +38,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.aliyun.sls.config.AliyunLogCollectConfig;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
@@ -57,7 +58,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Aliyun sls log Collect client.
  */
-public class AliyunSlsLogCollectClient implements LogConsumeClient {
+public class AliyunSlsLogCollectClient implements LogConsumeClient<AliyunLogCollectConfig.AliyunSlsLogConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AliyunSlsLogCollectClient.class);
 
@@ -78,35 +79,39 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
     /**
      * init aliyun sls client.
      *
-     * @param props props
+     * @param config config
      */
-    public void initClient(final Properties props) {
-        if (MapUtils.isEmpty(props)) {
+    @Override
+    public void initClient(final AliyunLogCollectConfig.AliyunSlsLogConfig config) {
+        if (Objects.isNull(config) 
+                || StringUtils.isBlank(config.getHost())
+                || StringUtils.isBlank(config.getAccessId())
+                || StringUtils.isBlank(config.getAccessKey())) {
             LOG.error("aliyun sls props is empty. failed init aliyun sls producer");
             return;
         }
         if (isStarted.get()) {
             close();
         }
-        String accessId = props.getProperty(GenericLoggingConstant.ACCESS_ID);
-        String accessKey = props.getProperty(GenericLoggingConstant.ACCESS_KEY);
-        String host = props.getProperty(GenericLoggingConstant.HOST);
+        String accessId = config.getAccessId();
+        String accessKey = config.getAccessKey();
+        String host = config.getHost();
         if (StringUtils.isBlank(accessId) || StringUtils.isBlank(accessKey) || StringUtils.isBlank(host)) {
             LOG.error("init aliyun sls client error, please check accessId, accessKey or host");
             return;
         }
         client = new Client(host, accessId, accessKey);
         // create LogStore, if you don't create logStore, shenyu will do it.
-        projectName = props.getProperty(GenericLoggingConstant.PROJECT_NAME);
-        topic = props.getProperty(GenericLoggingConstant.TOPIC);
-        logStore = props.getProperty(GenericLoggingConstant.LOG_STORE);
-        int ttlInDay = Integer.parseInt(props.getProperty(GenericLoggingConstant.TTL_IN_DAY));
-        int shardCount = Integer.parseInt(props.getProperty(GenericLoggingConstant.SHARD_COUNT));
+        projectName = config.getProjectName();
+        topic = config.getTopic();
+        logStore = config.getLogStoreName();
+        int ttlInDay = config.getTtlInDay();
+        int shardCount = config.getShardCount();
         // init projectConfig, producer, logStore
         ProjectConfig projectConfig = new ProjectConfig(projectName, host, accessId, accessKey);
-        producer = createProducer(props, projectConfig);
+        producer = createProducer(config, projectConfig);
         LogStore store = new LogStore(logStore, ttlInDay, shardCount);
-        threadExecutor = createThreadPoolExecutor(props);
+        threadExecutor = createThreadPoolExecutor(config);
         try {
             isStarted.set(true);
             Runtime.getRuntime().addShutdownHook(new Thread(this::close));
@@ -173,12 +178,13 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
     /**
      * create aliyun sls producer.
      *
-     * @param props         props
+     * @param config        props
      * @param projectConfig project config
      * @return {@linkplain Producer}
      */
-    private static Producer createProducer(final Properties props, final ProjectConfig projectConfig) {
-        int ioThreadCount = Integer.parseInt(props.getProperty(GenericLoggingConstant.IO_THREAD_COUNT));
+    private static Producer createProducer(final AliyunLogCollectConfig.AliyunSlsLogConfig config, 
+                                           final ProjectConfig projectConfig) {
+        int ioThreadCount = config.getIoThreadCount();
         if (ioThreadCount > GenericLoggingConstant.MAX_ALLOW_THREADS) {
             LOG.warn("io thread count number too large!");
             ioThreadCount = GenericLoggingConstant.MAX_ALLOW_THREADS;
@@ -194,11 +200,11 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient {
     /**
      * create send log queue.
      *
-     * @param props props
+     * @param config props
      * @return ThreadPoolExecutor
      */
-    private static ThreadPoolExecutor createThreadPoolExecutor(final Properties props) {
-        int sendThreadCount = Integer.parseInt(props.getProperty(GenericLoggingConstant.SEND_THREAD_COUNT));
+    private static ThreadPoolExecutor createThreadPoolExecutor(final AliyunLogCollectConfig.AliyunSlsLogConfig config) {
+        int sendThreadCount = config.getSendThreadCount();
         if (sendThreadCount > GenericLoggingConstant.MAX_ALLOW_THREADS) {
             LOG.warn("send thread count number too large!");
             sendThreadCount = GenericLoggingConstant.MAX_ALLOW_THREADS;

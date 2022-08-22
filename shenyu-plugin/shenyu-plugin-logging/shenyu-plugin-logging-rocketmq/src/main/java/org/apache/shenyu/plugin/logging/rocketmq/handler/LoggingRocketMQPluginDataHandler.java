@@ -65,11 +65,7 @@ public class LoggingRocketMQPluginDataHandler implements PluginDataHandler {
                     RocketMQLogCollectConfig.RocketMQLogConfig.class);
             RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(globalLogConfig);
             // start rocketmq producer
-            Properties properties = new Properties();
-            properties.setProperty(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
-            properties.setProperty(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getNamesrvAddr());
-            properties.setProperty(GenericLoggingConstant.PRODUCER_GROUP, globalLogConfig.getProducerGroup());
-            ROCKET_MQ_LOG_COLLECT_CLIENT.initProducer(properties);
+            ROCKET_MQ_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
             RocketMQLogCollector.getInstance().start();
         } else {
             try {

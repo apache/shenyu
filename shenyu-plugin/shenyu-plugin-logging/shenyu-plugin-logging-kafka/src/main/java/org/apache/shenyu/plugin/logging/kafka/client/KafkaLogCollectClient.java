@@ -22,12 +22,15 @@ import net.jpountz.lz4.LZ4Factory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.OutOfOrderSequenceException;
 import org.apache.kafka.common.errors.ProducerFencedException;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
@@ -37,6 +40,7 @@ import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.PropertiesPropertySource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -49,7 +53,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * queue-based logging collector.
  */
-public class KafkaLogCollectClient implements LogConsumeClient {
+public class KafkaLogCollectClient implements LogConsumeClient<KafkaLogCollectConfig.KafkaLogConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaLogCollectClient.class);
 
@@ -64,23 +68,33 @@ public class KafkaLogCollectClient implements LogConsumeClient {
     /**
      * init producer.
      *
-     * @param props kafka props
+     * @param config kafka props
      */
-    public void initProducer(final Properties props) {
-        if (MapUtils.isEmpty(props)) {
+    @Override
+    public void initClient(final KafkaLogCollectConfig.KafkaLogConfig config) {
+        if (Objects.isNull(config)
+                || StringUtils.isBlank(config.getNamesrvAddr())
+                || StringUtils.isBlank(config.getTopic())) {
             LOG.error("kafka props is empty. failed init kafka producer");
             return;
         }
         if (isStarted.get()) {
             close();
         }
-        String topic = props.getProperty(GenericLoggingConstant.TOPIC);
-        String nameserverAddress = props.getProperty("bootstrap.servers");
+        String topic = config.getTopic();
+        String nameserverAddress = config.getNamesrvAddr();
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init kafkaLogCollectClient error, please check topic or nameserverAddress");
             return;
         }
         this.topic = topic;
+
+        Properties props = new Properties();
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, config.getNamesrvAddr());
+        props.put(GenericLoggingConstant.TOPIC, config.getTopic());
+        props.put(GenericLoggingConstant.NAMESERVER_ADDRESS, config.getTopic());
         producer = new KafkaProducer<>(props);
         ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, "shenyu-access-logging");
         try {

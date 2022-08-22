@@ -55,20 +55,9 @@ public class LoggingAliyunSlsPluginDataHandler implements PluginDataHandler {
             if (Objects.isNull(exist) || !globalLogConfig.equals(exist)) {
                 // no data, init client
                 AliyunLogCollectConfig.INSTANCE.setAliyunSlsLogConfig(globalLogConfig);
-                Properties properties = new Properties();
-                properties.setProperty(GenericLoggingConstant.ACCESS_ID, globalLogConfig.getAccessId().trim());
-                properties.setProperty(GenericLoggingConstant.ACCESS_KEY, globalLogConfig.getAccessKey().trim());
-                properties.setProperty(GenericLoggingConstant.HOST, globalLogConfig.getHost().trim());
-                properties.setProperty(GenericLoggingConstant.PROJECT_NAME, globalLogConfig.getProjectName().trim());
-                properties.setProperty(GenericLoggingConstant.LOG_STORE, globalLogConfig.getLogStoreName().trim());
-                properties.setProperty(GenericLoggingConstant.TTL_IN_DAY, String.valueOf(globalLogConfig.getTtlInDay()));
-                properties.setProperty(GenericLoggingConstant.SHARD_COUNT, String.valueOf(globalLogConfig.getShardCount()));
-                properties.setProperty(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic().trim());
-                properties.setProperty(GenericLoggingConstant.SEND_THREAD_COUNT, String.valueOf(globalLogConfig.getSendThreadCount()));
-                properties.setProperty(GenericLoggingConstant.IO_THREAD_COUNT, String.valueOf(globalLogConfig.getIoThreadCount()));
-
+                
                 // init aliyun sls client
-                ALIYUN_SLS_LOG_COLLECT_CLIENT.initClient(properties);
+                ALIYUN_SLS_LOG_COLLECT_CLIENT.initClient(exist);
                 AliyunSlsLogCollector.getInstance().start();
             }
             Singleton.INST.single(MotanRegisterConfig.class, globalLogConfig);
