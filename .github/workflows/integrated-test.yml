@@ -86,3 +86,9 @@ jobs:
             echo "Test Successful"
             exit 0
           fi
+      - name: Report rat.txt
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: rat
+          path: shenyu/**/rat.txt
