@@ -530,6 +530,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     tars-context 1.7.2: https://github.com/TarsCloud/Tars/tars-context, BSD 3-Clause
     tars-net 1.7.2: https://github.com/TarsCloud/Tars/tars-net, BSD 3-Clause
     zstd-jni 1.5.0-2: https://github.com/luben/zstd-jni, BSD 2-Clause
+    native-lib-loader 2.0.2: https://github.com/scijava/native-lib-loader, BSD 2-Clause
     reflections 0.9.11: https://mvnrepository.com/artifact/org.reflections/reflections/0.9.11, BSD 2-Clause
     stax2-api 4.2.1: http://github.com/FasterXML/stax2-api, BSD 2-Clause
     stringtemplate 3.2.1: http://www.stringtemplate.org, BSD
