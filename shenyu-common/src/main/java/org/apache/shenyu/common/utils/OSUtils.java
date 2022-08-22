@@ -24,7 +24,7 @@ import java.util.Locale;
 /**
  * The type OS utils.
  */
-public class OSUtils {
+public final class OSUtils {
     
     private static final String OPERATING_SYSTEM_NAME = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
     
@@ -32,22 +32,22 @@ public class OSUtils {
     
     private static final String UNKNOWN = "unknown";
     
-    static PlatformEnum platform;
+    private static final PlatformEnum PLATFORM;
     
-    static String arch;
+    private static final String ARCH;
     
     static {
         if (OPERATING_SYSTEM_NAME.startsWith("linux")) {
-            platform = PlatformEnum.LINUX;
+            PLATFORM = PlatformEnum.LINUX;
         } else if (OPERATING_SYSTEM_NAME.startsWith("mac") || OPERATING_SYSTEM_NAME.startsWith("darwin")) {
-            platform = PlatformEnum.MACOSX;
+            PLATFORM = PlatformEnum.MACOSX;
         } else if (OPERATING_SYSTEM_NAME.startsWith("windows")) {
-            platform = PlatformEnum.WINDOWS;
+            PLATFORM = PlatformEnum.WINDOWS;
         } else {
-            platform = PlatformEnum.UNKNOWN;
+            PLATFORM = PlatformEnum.UNKNOWN;
         }
         
-        arch = normalizeArch();
+        ARCH = normalizeArch();
     }
     
     private OSUtils() {
@@ -119,7 +119,7 @@ public class OSUtils {
      * @return true if it is a windows system
      */
     public static boolean isWindows() {
-        return platform == PlatformEnum.WINDOWS;
+        return PLATFORM == PlatformEnum.WINDOWS;
     }
     
     /**
@@ -128,7 +128,7 @@ public class OSUtils {
      * @return true if it is a linux system
      */
     public static boolean isLinux() {
-        return platform == PlatformEnum.LINUX;
+        return PLATFORM == PlatformEnum.LINUX;
     }
     
     /**
@@ -137,16 +137,16 @@ public class OSUtils {
      * @return true if it is a macos
      */
     public static boolean isMac() {
-        return platform == PlatformEnum.MACOSX;
+        return PLATFORM == PlatformEnum.MACOSX;
     }
     
     /**
-     * Get the CPU architecture
+     * Get the CPU architecture.
      *
      * @return the CPU architecture
      */
     public static String arch() {
-        return arch;
+        return ARCH;
     }
     
     /**
@@ -155,7 +155,7 @@ public class OSUtils {
      * @return true if it is x86 architecture
      */
     public static boolean isX86() {
-        return "x86_32".equals(arch);
+        return "x86_32".equals(ARCH);
     }
     
     /**
@@ -164,7 +164,7 @@ public class OSUtils {
      * @return true if it is x86_64 architecture
      */
     public static boolean isX64() {
-        return "x86_64".equals(arch);
+        return "x86_64".equals(ARCH);
     }
     
     /**
@@ -173,7 +173,7 @@ public class OSUtils {
      * @return true if it is arm32 architecture
      */
     public static boolean isArm32() {
-        return "arm_32".equals(arch);
+        return "arm_32".equals(ARCH);
     }
     
     /**
@@ -182,6 +182,6 @@ public class OSUtils {
      * @return true if it is arm64 architecture
      */
     public static boolean isArm64() {
-        return "aarch_64".equals(arch);
+        return "aarch_64".equals(ARCH);
     }
 }

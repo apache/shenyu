@@ -23,22 +23,22 @@ package org.apache.shenyu.common.enums;
 public enum PlatformEnum {
     
     /**
-     * Microsoft Windows
+     * Microsoft Windows.
      */
     WINDOWS,
     
     /**
-     * A flavor of Linux
+     * A flavor of Linux.
      */
     LINUX,
     
     /**
-     * macOS (OS X)
+     * macOS (OS X).
      */
     MACOSX,
     
     /**
-     * unknown system type
+     * unknown system type.
      */
     UNKNOWN
 }
