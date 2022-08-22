@@ -21,12 +21,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * test class for {@link org.apache.shenyu.jvmti.JVMTI}
+ * test class for {@link org.apache.shenyu.jvmti.JVMTI}.
  */
 public class JVMTITest {
-    
-    private static class TestClass {
-    }
     
     @Test
     public void testGetInstances() {
@@ -37,5 +34,8 @@ public class JVMTITest {
         instances = JVMTI.getInstances(TestClass.class);
         Assert.assertNotNull(instances);
         Assert.assertEquals(1, instances.length);
+    }
+    
+    private static class TestClass {
     }
 }

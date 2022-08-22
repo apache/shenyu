@@ -33,7 +33,7 @@ public class JVMTI {
     
     private static final Logger LOG = LoggerFactory.getLogger(JVMTI.class);
     
-    private final static String LIB_NAME = "JniLibrary";
+    private static final String LIB_NAME = "JniLibrary";
     
     static {
         try {
@@ -55,6 +55,7 @@ public class JVMTI {
      * Get current surviving instance of a class in the jvm.
      *
      * @param klass class type
+     * @param <T>   class type
      * @return current surviving instance
      * @throws RuntimeException if find many instances
      */
@@ -75,6 +76,7 @@ public class JVMTI {
      * <p>Note: be careful to use this method !
      *
      * @param klass class type
+     * @param <T>   class type
      * @return current surviving instances
      */
     public static <T> T[] getInstances(final Class<T> klass) {
@@ -87,6 +89,7 @@ public class JVMTI {
      * <p>Note: be careful to use this method !
      *
      * @param klass class type
+     * @param <T>   class type
      * @param limit instance limit, less than 0 means no limit.
      *              It is recommended to pass in a small {@code limit} value which is larger than 0.
      * @return current surviving instances
@@ -101,8 +104,9 @@ public class JVMTI {
      * <p>Note: Only 64-bit CPU architecture is supported now !
      *
      * @param klass class type
+     * @param <T>   class type
      * @param limit instance limit, less than 0 means no limit
      * @return current surviving instances
      */
-    private static synchronized native <T> T[] getInstances0(final Class<T> klass, final int limit);
+    private static synchronized native <T> T[] getInstances0(Class<T> klass, int limit);
 }

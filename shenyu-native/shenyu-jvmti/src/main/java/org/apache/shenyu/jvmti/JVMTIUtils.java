@@ -24,7 +24,7 @@ import org.apache.shenyu.common.utils.OSUtils;
  */
 public class JVMTIUtils {
     
-    private static String libName = null;
+    private static String libName;
     
     static {
         if (OSUtils.isMac()) {
