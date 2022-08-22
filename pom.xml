@@ -44,6 +44,7 @@
         <module>shenyu-loadbalancer</module>
         <module>shenyu-dist</module>
         <module>shenyu-alert</module>
+        <module>shenyu-native</module>
     </modules>
 
     <licenses>
@@ -158,6 +159,7 @@
         <spring-cloud-netflix-ribbon.version>2.2.10.RELEASE</spring-cloud-netflix-ribbon.version>
         <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
         <spring-cloud.version>3.1.2</spring-cloud.version>
+        <native-lib-loader.version>2.0.2</native-lib-loader.version>
     </properties>
 
     <dependencyManagement>
@@ -479,6 +481,11 @@
                 <groupId>io.etcd</groupId>
                 <artifactId>jetcd-core</artifactId>
                 <version>${jetcd-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scijava</groupId>
+                <artifactId>native-lib-loader</artifactId>
+                <version>${native-lib-loader.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
