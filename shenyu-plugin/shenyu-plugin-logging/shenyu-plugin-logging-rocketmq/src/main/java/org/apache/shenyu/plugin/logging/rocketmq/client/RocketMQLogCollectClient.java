@@ -20,13 +20,14 @@ package org.apache.shenyu.plugin.logging.rocketmq.client;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.acl.common.AclClientRPCHook;
+import org.apache.rocketmq.acl.common.SessionCredentials;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
@@ -35,7 +36,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -77,7 +82,7 @@ public class RocketMQLogCollectClient implements LogConsumeClient<RocketMQLogCol
             return;
         }
         this.topic = topic;
-        producer = new DefaultMQProducer(producerGroup);
+        producer = new DefaultMQProducer(producerGroup, getAclRPCHook(config));
         producer.setNamesrvAddr(nameserverAddress);
         producer.setRetryTimesWhenSendAsyncFailed(0);
         producer.setInstanceName(DEFAULT_PRODUCER_GROUP);
@@ -89,6 +94,18 @@ public class RocketMQLogCollectClient implements LogConsumeClient<RocketMQLogCol
         } catch (Exception e) {
             LOG.error("init RocketMQLogCollectClient error", e);
         }
+    }
+
+    /**
+     * get Acl(Access Control List) rpc Hook.
+     * @param config rocketMqLog Config
+     * @return boolean
+     */
+    private RPCHook getAclRPCHook(final RocketMQLogCollectConfig.RocketMQLogConfig config) {
+        if (StringUtils.isBlank(config.getAccessKey()) || StringUtils.isBlank(config.getSecretKey())) {
+            return null;
+        }
+        return new AclClientRPCHook(new SessionCredentials(config.getAccessKey(), config.getSecretKey()));
     }
 
     /**

@@ -62,6 +62,10 @@ public class RocketMQLogCollectConfig {
         private String namesrvAddr;
 
         private String producerGroup;
+        
+        private String accessKey;
+        
+        private String secretKey;
 
         /**
          * whether compress.
@@ -129,6 +133,38 @@ public class RocketMQLogCollectConfig {
          */
         public void setProducerGroup(final String producerGroup) {
             this.producerGroup = producerGroup;
+        }
+
+        /**
+         * get accessKey.
+         * @return accessKey
+         */
+        public String getAccessKey() {
+            return accessKey;
+        }
+
+        /**
+         * set accessKey.
+         * @param accessKey accessKey
+         */
+        public void setAccessKey(final String accessKey) {
+            this.accessKey = accessKey;
+        }
+
+        /**
+         * get secretKey.
+         * @return secretKey
+         */
+        public String getSecretKey() {
+            return secretKey;
+        }
+
+        /**
+         * set secretKey.
+         * @param secretKey secretKey
+         */
+        public void setSecretKey(final String secretKey) {
+            this.secretKey = secretKey;
         }
     }
 
