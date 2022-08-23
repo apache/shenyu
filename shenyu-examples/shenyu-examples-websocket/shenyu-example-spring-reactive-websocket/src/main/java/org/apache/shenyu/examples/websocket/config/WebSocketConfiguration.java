@@ -19,6 +19,7 @@ package org.apache.shenyu.examples.websocket.config;
 
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.apache.shenyu.examples.websocket.handler.EchoHandler;
+import org.apache.shenyu.examples.websocket.handler.UploadFileHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -54,8 +55,22 @@ public class WebSocketConfiguration {
     }
 
     /**
+     * define a websocket handler Mapping bean.
+     * @param uploadFileHandler  upload file handler
+     * @return  handlerMapping
+     */
+    @Bean
+    public HandlerMapping websocketFileMapping(final UploadFileHandler uploadFileHandler) {
+        final Map<String, WebSocketHandler> map = new HashMap<>(1);
+        map.put("/websocket/upload", uploadFileHandler);
+        final SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
+        mapping.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        mapping.setUrlMap(map);
+        return mapping;
+    }
+
+    /**
      * Handler adapter web socket handler adapter.
-     *
      * @return the web socket handler adapter
      */
     @Bean

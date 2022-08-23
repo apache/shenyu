@@ -52,4 +52,9 @@ public class EmailGenerator implements Generator<String> {
     public boolean match(final String rule) {
         return rule.matches("^email$");
     }
+    
+    @Override
+    public String[] getPrefixAndSuffix() {
+        return new String[]{"\"", "\""};
+    }
 }

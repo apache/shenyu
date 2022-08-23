@@ -64,13 +64,11 @@ public class MqttPluginDataHandler implements PluginDataHandler {
         boolean flag = false;
         try {
             InetAddress address = InetAddress.getByName("127.0.0.1");
-            Socket socket = new Socket(address, port);
+            new Socket(address, port);
             flag = true;
         } catch (Exception ignored) {
 
         }
         return flag;
-
     }
-
 }

@@ -85,3 +85,38 @@ Content-Type: application/json
 GET http://localhost:8290/test/request/parameter/pass?requestParameter=test
 Accept: application/json
 Content-Type: application/json
+
+###  example singleFile
+POST http://localhost:8290/upload/singleFile
+Cache-Control: no-cache
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="1.txt"
+Content-Type: multipart/form-data
+# you need to change your local path
+< /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/1.txt
+
+--WebAppBoundary--
+
+
+###  example files
+POST http://localhost:8290/upload/files
+Cache-Control: no-cache
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="1.txt";
+Content-Type: multipart/form-data
+# you need to change your local path
+< /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/1.txt
+
+--WebAppBoundary--
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="2.txt";
+Content-Type: multipart/form-data
+# you need to change your local path
+< /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/2.txt
+
+--WebAppBoundary--

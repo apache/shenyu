@@ -128,6 +128,25 @@ services:
       timeout: 2s
       retries: 30
 
+
+  shenyu-kafka:
+    container_name: shenyu-kafka
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    depends_on:
+        - shenyu-zk
+    networks:
+      - shenyu
+    ports:
+        - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: shenyu-zk
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
   shenyu-rocketmq:
     image: apache/rocketmq:4.9.3
     container_name: shenyu-rocketmq

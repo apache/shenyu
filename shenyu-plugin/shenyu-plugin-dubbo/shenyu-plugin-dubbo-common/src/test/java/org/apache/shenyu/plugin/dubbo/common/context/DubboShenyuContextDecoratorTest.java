@@ -34,6 +34,8 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class DubboShenyuContextDecoratorTest {
 
+    private static final String MOCK_ID = "MOCK_ID";
+
     private static final String MOCK_APP_NAME = "mockAppName";
 
     private static final String MOCK_SERVICE_NAME = "mockServiceName";
@@ -50,6 +52,7 @@ public class DubboShenyuContextDecoratorTest {
     @Test
     public void decorator() {
         MetaData metaData = MetaData.builder()
+                .id(MOCK_ID)
                 .appName(MOCK_APP_NAME)
                 .contextPath(MOCK_CONTEXT_PATH)
                 .serviceName(MOCK_SERVICE_NAME)

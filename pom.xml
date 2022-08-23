@@ -55,9 +55,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/apache/incubator-shenyu</url>
-        <connection>scm:git:https://github.com/apache/incubator-shenyu.git</connection>
-        <developerConnection>scm:git:https://github.com/apache/incubator-shenyu.git</developerConnection>
+        <url>https://github.com/apache/shenyu</url>
+        <connection>scm:git:https://github.com/apache/shenyu.git</connection>
+        <developerConnection>scm:git:https://github.com/apache/shenyu.git</developerConnection>
         <tag>v2.4.3</tag>
     </scm>
 
@@ -72,7 +72,7 @@
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/apache/incubator-shenyu/issues</url>
+        <url>https://github.com/apache/shenyu/issues</url>
     </issueManagement>
 
     <properties>
@@ -117,12 +117,12 @@
         <spring-boot.version>2.6.8</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
-        <jetcd-core.version>0.5.0</jetcd-core.version>
+        <jetcd-core.version>0.7.3</jetcd-core.version>
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>3.5.15</mockito.version>
         <awaitility.version>4.0.3</awaitility.version>
         <commons-io.version>2.11.0</commons-io.version>
-        <nacos-client.version>2.0.0</nacos-client.version>
+        <nacos-client.version>2.0.4</nacos-client.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
         <grpc.version>1.33.1</grpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
@@ -442,6 +442,7 @@
                 <groupId>com.oracle.ojdbc</groupId>
                 <artifactId>ojdbc8</artifactId>
                 <version>${ojdbc8.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
@@ -474,6 +475,11 @@
                 <version>${jakarta.json-api.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>io.etcd</groupId>
+                <artifactId>jetcd-core</artifactId>
+                <version>${jetcd-core.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

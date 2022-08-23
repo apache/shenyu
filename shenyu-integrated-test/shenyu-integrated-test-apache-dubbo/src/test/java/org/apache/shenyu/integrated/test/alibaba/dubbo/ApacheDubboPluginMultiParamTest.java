@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
+
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.ComplexBeanTest;
@@ -146,5 +148,17 @@ public class ApacheDubboPluginMultiParamTest extends AbstractPluginDataInit {
         DubboTest dubboTest = HttpHelper.INSTANCE.postGateway("/dubbo/saveComplexBeanTestAndName", request, DubboTest.class);
         assertEquals("hello world shenyu alibaba dubbo param saveComplexBeanTestAndName :name122-name", dubboTest.getName());
         assertEquals("[123, 124]", dubboTest.getId());
+    }
+
+    @Test
+    public void testSaveBigRequestBody() throws IOException {
+        DubboTest dubboTest = new DubboTest();
+        String id = RandomStringUtils.randomAlphanumeric(2048);
+        dubboTest.setId(id);
+        String name = RandomStringUtils.randomAlphanumeric(2048);
+        dubboTest.setName(name);
+        DubboTest dubboTestRet = HttpHelper.INSTANCE.postGateway("/dubbo/bigRequestBody", dubboTest, DubboTest.class);
+        assertEquals(id, dubboTestRet.getId());
+        assertEquals(name, dubboTestRet.getName());
     }
 }

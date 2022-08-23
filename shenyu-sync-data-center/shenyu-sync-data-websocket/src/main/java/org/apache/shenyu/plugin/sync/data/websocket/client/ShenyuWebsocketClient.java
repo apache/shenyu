@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -73,7 +74,25 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }
-    
+
+    /**
+     * Instantiates a new shenyu websocket client.
+     * @param serverUri the server uri
+     * @param headers the headers
+     * @param pluginDataSubscriber the plugin data subscriber
+     * @param metaDataSubscribers the meta data subscribers
+     * @param authDataSubscribers the auth data subscribers
+     */
+    public ShenyuWebsocketClient(final URI serverUri, final Map<String, String> headers,
+                                 final PluginDataSubscriber pluginDataSubscriber,
+                                 final List<MetaDataSubscriber> metaDataSubscribers,
+                                 final List<AuthDataSubscriber> authDataSubscribers) {
+        super(serverUri, headers);
+        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        this.timer = WheelTimerFactory.getSharedTimer();
+        this.connection();
+    }
+
     private void connection() {
         this.connectBlocking();
         this.timer.add(timerTask = new AbstractRoundTask(null, TimeUnit.SECONDS.toMillis(10)) {
@@ -89,7 +108,8 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         boolean success = false;
         try {
             success = super.connectBlocking();
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            LOG.error("websocket connection server[{}] is error.....[{}]", this.getURI().toString(), exception.getMessage());
         }
         if (success) {
             LOG.info("websocket connection server[{}] is successful.....", this.getURI().toString());
@@ -98,7 +118,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         }
         return success;
     }
-    
+
     @Override
     public void onOpen(final ServerHandshake serverHandshake) {
         if (!alreadySync) {

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -29,6 +30,7 @@ public class AuthPathApplyDTO implements Serializable {
 
     private String appName;
 
+    @NotBlank
     private String path;
 
     /**

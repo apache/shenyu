@@ -79,7 +79,7 @@ public final class PredicateJudgeFactoryTest {
     
     @Test
     public void testPathPatternJudge() {
-        conditionData.setOperator(OperatorEnum.PATH_PATTER.getAlias());
+        conditionData.setOperator(OperatorEnum.PATH_PATTERN.getAlias());
         conditionData.setParamValue("/http/**");
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/**"));
         assertTrue(PredicateJudgeFactory.judge(conditionData, "/http/test"));

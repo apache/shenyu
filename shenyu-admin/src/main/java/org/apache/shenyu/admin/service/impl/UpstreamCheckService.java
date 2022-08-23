@@ -212,7 +212,7 @@ public class UpstreamCheckService {
      * that do not register with the gateway by listening to
      * {@link org.springframework.context.event.ContextRefreshedEvent},
      * which will cause some problems,
-     * check https://github.com/apache/incubator-shenyu/issues/3484 for more details.
+     * check https://github.com/apache/shenyu/issues/3484 for more details.
      *
      * @param selectorId     the selector id
      * @param commonUpstream the common upstream

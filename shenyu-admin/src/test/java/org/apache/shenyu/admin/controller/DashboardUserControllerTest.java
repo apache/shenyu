@@ -76,7 +76,7 @@ public final class DashboardUserControllerTest {
             "dateUpdated");
 
     private final DashboardUserDTO dashboardUserDTO = new DashboardUserDTO("2", "userName",
-            "123456", 0, new ArrayList<>(), false);
+            "123456", 0, Lists.newArrayList("1"), false);
 
     @BeforeEach
     public void setUp() throws Exception {

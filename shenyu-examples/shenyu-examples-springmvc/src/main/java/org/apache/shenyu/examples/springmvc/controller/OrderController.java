@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/order")
-@ShenyuSpringMvcClient( "/order")
+@ShenyuSpringMvcClient("/order")
 public class OrderController {
 
     /**
@@ -60,7 +60,7 @@ public class OrderController {
     @GetMapping("/findById")
     @ShenyuSpringMvcClient("/findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
-        return build(id,"hello world findById");
+        return build(id, "hello world findById");
     }
 
     /**
@@ -73,7 +73,7 @@ public class OrderController {
     @GetMapping("/path/{id}/{name}")
     @ShenyuSpringMvcClient("/path/**")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
-        return build(id,"hello world restful: " + name);
+        return build(id, "hello world restful: " + name);
     }
 
     /**
@@ -85,9 +85,14 @@ public class OrderController {
     @GetMapping("/path/{id}/name")
     @ShenyuSpringMvcClient("/path/**/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
-        return build(id,"hello world restful inline " + id);
+        return build(id, "hello world restful inline " + id);
     }
 
+    /**
+     * Test oauth2 request.
+     * @param request request with the oauth2 headers
+     * @return the oauth2 dto
+     */
     @GetMapping("/oauth2/test")
     @ShenyuSpringMvcClient("/oauth2/test")
     public OAuth2DTO testRestFul(final HttpServletRequest request) {

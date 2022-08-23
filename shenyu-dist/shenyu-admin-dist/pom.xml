@@ -65,7 +65,7 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <build>
-                <finalName>apache-shenyu-incubating-${project.version}</finalName>
+                <finalName>apache-shenyu-${project.version}</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -93,7 +93,7 @@
         <profile>
             <id>docker</id>
             <properties>
-                <docker.buildArg.APP_NAME>apache-shenyu-incubating-${project.version}-admin-bin</docker.buildArg.APP_NAME>
+                <docker.buildArg.APP_NAME>apache-shenyu-${project.version}-admin-bin</docker.buildArg.APP_NAME>
             </properties>
             <activation>
                 <activeByDefault>false</activeByDefault>

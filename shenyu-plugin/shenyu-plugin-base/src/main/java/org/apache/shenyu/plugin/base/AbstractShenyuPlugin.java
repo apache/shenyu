@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.base;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -57,12 +56,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private ShenyuConfig.MatchCache matchCacheConfig;
 
-    private SelectorData defaultSelectorData = new SelectorData();
-
-    {
-        defaultSelectorData.setPluginName(named());
-    }
-
     /**
      * this is Template Method child has Implement your own logic.
      *
@@ -89,9 +82,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
             final String path = exchange.getRequest().getURI().getPath();
-            Pair<Boolean, SelectorData> resultSelectorData = obtainSelectorDataCacheIfEnabled(exchange);
-            SelectorData selectorData = resultSelectorData.getRight();
-            if (Boolean.TRUE.equals(resultSelectorData.getLeft())) {
+            SelectorData selectorData = obtainSelectorDataCacheIfEnabled(exchange);
+            if (Objects.isNull(selectorData)) {
                 List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
                 if (CollectionUtils.isEmpty(selectors)) {
                     return handleSelectorIfNull(pluginName, exchange, chain);
@@ -134,16 +126,12 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private void cacheSelectorDataIfEnabled(final String path, final SelectorData selectorData) {
-        if (matchCacheConfig.getEnabled()) {
-            if (Objects.isNull(selectorData)) {
-                MatchDataCache.getInstance().cacheSelectorData(path, defaultSelectorData, getMaxFreeMemory());
-            } else {
-                List<ConditionData> conditionList = selectorData.getConditionList();
-                if (CollectionUtils.isNotEmpty(conditionList)) {
-                    boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
-                    if (isUriCondition) {
-                        MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getMaxFreeMemory());
-                    }
+        if (matchCacheConfig.getEnabled() && Objects.nonNull(selectorData)) {
+            List<ConditionData> conditionList = selectorData.getConditionList();
+            if (CollectionUtils.isNotEmpty(conditionList)) {
+                boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
+                if (isUriCondition) {
+                    MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getMaxFreeMemory());
                 }
             }
         }
@@ -153,21 +141,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return matchCacheConfig.getMaxFreeMemory() * 1024 * 1024;
     }
 
-    private Pair<Boolean, SelectorData> obtainSelectorDataCacheIfEnabled(final ServerWebExchange exchange) {
+    private SelectorData obtainSelectorDataCacheIfEnabled(final ServerWebExchange exchange) {
         if (matchCacheConfig.getEnabled()) {
-            SelectorData selectorData = MatchDataCache.getInstance().obtainSelectorData(named(), exchange.getRequest().getURI().getPath());
-
-            if (Objects.isNull(selectorData)) {
-                return Pair.of(Boolean.TRUE, null);
-            }
-
-            if (StringUtils.isBlank(selectorData.getId())) {
-                return Pair.of(Boolean.FALSE, null);
-            }
-
-            return Pair.of(Boolean.FALSE, selectorData);
+            return MatchDataCache.getInstance().obtainSelectorData(named(), exchange.getRequest().getURI().getPath());
         }
-        return Pair.of(Boolean.TRUE, null);
+        return null;
     }
 
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {

@@ -40,6 +40,12 @@ public class RequestController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestController.class);
 
+    /**
+     * Test for header annotation.
+     * @param headerKey1  one RequestHeader key
+     * @param serverHttpRequest  request
+     * @return response
+     */
     @GetMapping(path = "/header")
     public Mono<String> testRequestHeader(@RequestHeader("header_key1") final String headerKey1,
                                           final ServerHttpRequest serverHttpRequest) {
@@ -47,6 +53,12 @@ public class RequestController {
         return successMono(serverHttpRequest.getHeaders());
     }
 
+    /**
+     * Test for param annotation.
+     * @param parameterKey1  one RequestParam key
+     * @param serverHttpRequest  request
+     * @return  response
+     */
     @PostMapping(path = "/parameter")
     public Mono<String> testRequestParameter(@RequestParam("parameter_key1") final String parameterKey1,
                                              final ServerHttpRequest serverHttpRequest) {
@@ -54,6 +66,12 @@ public class RequestController {
         return successMono(serverHttpRequest.getQueryParams());
     }
 
+    /**
+     * Test for cookie annotation.
+     * @param userId  a cookie key with the name userId
+     * @param serverHttpRequest  request
+     * @return  response
+     */
     @GetMapping(path = "/cookie")
     public Mono<String> testRequestCookie(@CookieValue("userId") final String userId,
                                           final ServerHttpRequest serverHttpRequest) {

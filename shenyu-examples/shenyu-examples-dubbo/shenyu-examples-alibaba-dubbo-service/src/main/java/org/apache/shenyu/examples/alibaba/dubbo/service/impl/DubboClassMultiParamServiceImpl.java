@@ -87,7 +87,13 @@ public class DubboClassMultiParamServiceImpl implements DubboClassMultiParamServ
         return new DubboTest(complexBeanTest.getIdLists().toString(),
                 "hello world shenyu alibaba dubbo param saveComplexBeanTestAndName :" + complexBeanTest.getDubboTest().getName() + "-" + name);
     }
-    
+
+    @Override
+    @ShenyuDubboClient("/bigRequestBody")
+    public DubboTest saveBigRequestBody(final DubboTest dubboTest) {
+        return dubboTest;
+    }
+
     private <T> String join(final @NonNull List<T> list, final Function<T, String> mapper) {
         return list.stream()
                 .map(mapper)

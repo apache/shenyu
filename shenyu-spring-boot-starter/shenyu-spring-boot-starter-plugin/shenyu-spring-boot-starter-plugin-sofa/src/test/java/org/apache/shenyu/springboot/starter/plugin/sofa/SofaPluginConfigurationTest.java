@@ -20,9 +20,9 @@ package org.apache.shenyu.springboot.starter.plugin.sofa;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -81,8 +81,8 @@ public class SofaPluginConfigurationTest {
     @Test
     public void testSofaMetaDataSubscriber() {
         applicationContextRunner.run(context -> {
-                MetaDataSubscriber subscriber = context.getBean("sofaMetaDataSubscriber", MetaDataSubscriber.class);
-                assertNotNull(subscriber);
+                MetaDataHandler handler = context.getBean("sofaMetaDataHandler", MetaDataHandler.class);
+                assertNotNull(handler);
             }
         );
     }

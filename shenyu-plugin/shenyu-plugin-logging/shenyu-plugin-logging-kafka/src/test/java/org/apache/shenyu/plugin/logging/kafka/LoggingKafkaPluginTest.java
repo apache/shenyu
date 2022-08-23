@@ -72,7 +72,7 @@ public final class LoggingKafkaPluginTest {
         this.requestLog = new ShenyuRequestLog();
         MockServerHttpRequest request = MockServerHttpRequest
             .get("localhost")
-            .remoteAddress(new InetSocketAddress(8090))
+            .remoteAddress(new InetSocketAddress(9092))
             .header("X-source", "mock test")
             .queryParam("queryParam", "Hello,World")
             .build();
