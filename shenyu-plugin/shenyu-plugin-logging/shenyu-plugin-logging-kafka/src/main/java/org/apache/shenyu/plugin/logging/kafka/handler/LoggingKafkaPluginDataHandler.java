@@ -95,7 +95,7 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
 
             KafkaLogCollectConfig.INSTANCE.setKafkaLogConfig(globalLogConfig);
             // start kafka producer
-            KAFKA_LOG_COLLECT_CLIENT.initProducer(globalLogConfig);
+            KAFKA_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
             KafkaLogCollector.getInstance().start();
         } else {
             try {

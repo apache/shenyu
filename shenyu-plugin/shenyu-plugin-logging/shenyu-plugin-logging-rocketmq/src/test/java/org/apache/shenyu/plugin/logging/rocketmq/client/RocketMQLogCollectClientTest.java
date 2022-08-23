@@ -65,7 +65,7 @@ public class RocketMQLogCollectClientTest {
     public void testConsume() {
         String msg = "";
         RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(rocketMQLogConfig);
-        rocketMQLogCollectClient.initProducer(properties);
+        rocketMQLogCollectClient.initClient(rocketMQLogConfig);
         try {
             rocketMQLogCollectClient.consume(logs);
         } catch (Exception e) {

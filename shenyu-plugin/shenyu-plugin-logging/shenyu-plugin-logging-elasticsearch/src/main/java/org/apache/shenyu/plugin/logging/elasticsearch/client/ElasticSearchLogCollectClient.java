@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -72,18 +71,17 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient<ElasticSe
                 .builder(new HttpHost(config.getHost(), Integer.parseInt(config.getPort())));
         
         // authentication and config auth cathe.
-        if(StringUtils.isNoneBlank(config.getUserName()) && StringUtils.isNoneBlank(config.getPassword())){
+        if (StringUtils.isNoneBlank(config.getUsername()) && StringUtils.isNoneBlank(config.getPassword())) {
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(AuthScope.ANY,
-                    new UsernamePasswordCredentials(config.getUserName(), config.getPassword()));
+                    new UsernamePasswordCredentials(config.getUsername(), config.getPassword()));
             builder.setHttpClientConfigCallback(asyncClientBuilder -> {
-                if(Boolean.FALSE.equals(config.getAuthCache())){
+                if (Boolean.FALSE.equals(config.getAuthCache())) {
                     asyncClientBuilder.disableAuthCaching();
                 }
                 return asyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
             });
         }
-        
         
         restClient = builder.build();
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());

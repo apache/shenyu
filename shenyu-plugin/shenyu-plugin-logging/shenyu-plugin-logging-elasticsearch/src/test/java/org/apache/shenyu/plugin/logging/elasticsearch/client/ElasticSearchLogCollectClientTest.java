@@ -39,8 +39,6 @@ public class ElasticSearchLogCollectClientTest {
 
     private final PluginData pluginData = new PluginData();
 
-    private final Properties properties = new Properties();
-
     private ElasticSearchLogCollectConfig.ElasticSearchLogConfig elasticSearchLogConfig;
 
     private final List<ShenyuRequestLog> logs = new ArrayList<>();
@@ -51,7 +49,7 @@ public class ElasticSearchLogCollectClientTest {
     public void setUp() {
         this.elasticSearchLogCollectClient = new ElasticSearchLogCollectClient();
         pluginData.setEnabled(true);
-        pluginData.setConfig("{\"host\":\"localhost\", \"port\":\"9200\", \"userName\": \"shenyu\",\"password\": \"shenyu\", \"authCache\": true}");
+        pluginData.setConfig("{\"host\":\"localhost\", \"port\":\"9200\", \"userName\": \"shenyu\",\"password\": \"shenyu\", \"authCache\": \"true\"}");
         elasticSearchLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                 ElasticSearchLogCollectConfig.ElasticSearchLogConfig.class);
         
