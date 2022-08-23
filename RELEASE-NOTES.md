@@ -1,3 +1,69 @@
+## 2.5.0
+
+### New Features
+1. Add logging-aliyun-sls plugin 
+2. Add mock plugin 
+3. Add logging-es plugin 
+4. Add logging-rocketmq plugin 
+5. Add logging-kafka plugin 
+6. Add custom message writer in response plugin 
+7. Add record log in admin 
+8. Add apache dubbo http 
+9. Add nacos register 
+10. add the logic of annotation on the splicing class for sofa client 
+11. Add the logic of annotation on the splicing class for motan client 
+12. Add netty http server parameters 
+13. Add the logic of annotation on the splicing class for apache dubbo client 
+14. Add alert module 
+15. Add support configurable timeout for MotanPlugin 
+16. Add api document
+17. Add user permissions Exclude admin
+18. Add springBoot upgrade to 2.6.8
+19. Add support regsiter instance to consul
+20. Add admin Support oracle database
+
+### API Changes
+
+### Enhancement
+
+1. Enhancement cache pluign
+2. Enhancement divide plugin
+
+### Refactor
+1. Refactor spring cloud loadbalancer
+2. Refactor thread pool
+4. Refactor max memory config logic
+5. Refactor cors logic
+6. Refactor selector match
+7. Refactor fixed and elastic connection provider pool
+8. Refactor uri register
+9. Refactor zk client delete logic
+10. Refactor IpUtils
+11. Refactor result wrap
+13. Refactor app auth
+14. Refactor http client
+15. Refactor proxy and webclient remove host
+16. Refactor shared thread pool
+
+### Bug Fix
+1. Fix divide has nullpointerexception
+2. Fix body maxInMemorySize
+3. Fix admin delay update handle in selector
+4. Fix register-client loop error
+5. Fix the error of combination plugin
+6. Fix sofa and websocket client lossless registration
+7. Fix grpc client lossless registration
+8. Fix springcloud client lossless registration
+9. Fix spring cloud dubbo example
+10. Fix NPE repair of admin module caused by spring MVC example synchronization
+11. Fix curator version incompatible in bootstrap
+12. Fix hiden logic bug
+13. Fix failure to load local plugins
+14. Fix pg script error
+15. Fix hystrix-plugin tests failure
+16. Fix client registration by consul only register 1 metadata
+17. Fix websocket datasync can chose allow origin to avoid CSRF
+
 ## 2.4.3
 
 ### New Features
