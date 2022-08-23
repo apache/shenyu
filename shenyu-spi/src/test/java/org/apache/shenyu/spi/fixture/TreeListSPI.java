@@ -19,21 +19,16 @@ package org.apache.shenyu.spi.fixture;
 
 import org.apache.shenyu.spi.Join;
 
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * LinkedList .
+ * TreeListSPI .
  */
-@Join(order = -1)
-public class LinkedListSPI implements ListSPI {
-    /**
-     * Gets list.
-     *
-     * @return the list
-     */
+@Join
+public class TreeListSPI implements ListSPI {
     @Override
     public List<Object> getList() {
-        return new LinkedList<>();
+        return Collections.emptyList();
     }
 }
