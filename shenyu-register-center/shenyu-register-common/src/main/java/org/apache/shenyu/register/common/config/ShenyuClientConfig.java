@@ -17,15 +17,27 @@
 
 package org.apache.shenyu.register.common.config;
 
+import org.apache.shenyu.common.exception.ShenyuException;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The type Shenyu client config.
  */
 public final class ShenyuClientConfig {
     
-    private Map<String, ClientPropertiesConfig> client = new HashMap<>();
+    private Map<String, ClientPropertiesConfig> client = new HashMap<String, ClientPropertiesConfig>() {
+        @Override
+        public ClientPropertiesConfig get(final Object key) {
+            ClientPropertiesConfig config = super.get(key);
+            if (Objects.isNull(key) || Objects.isNull(config)) {
+                throw new ShenyuException("key is null or invalid, you should checkout property of " + key);
+            }
+            return config;
+        }
+    };
     
     /**
      * Gets client.
