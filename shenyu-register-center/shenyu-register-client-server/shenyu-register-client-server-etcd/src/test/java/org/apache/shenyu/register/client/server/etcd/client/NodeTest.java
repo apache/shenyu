@@ -40,7 +40,7 @@ class NodeTest {
         Assertions.assertEquals(node.getKey(), "key");
         Assertions.assertEquals(node.getValue(), "value");
         Assertions.assertNotNull(node.toString());
-        Assertions.assertTrue(node.hashCode() > 0);
+        Assertions.assertTrue(node.hashCode() != 0);
 
         final Node node2 = new Node("key", "value", 0L, 0L, 0L);
 
