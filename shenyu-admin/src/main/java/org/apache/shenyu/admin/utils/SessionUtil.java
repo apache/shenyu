@@ -91,12 +91,17 @@ public final class SessionUtil {
         LOCAL_VISITOR.remove();
     }
     
-    private static UserInfo defaultUser() {
-        return UserInfo.builder().userId("-1").userName("unknown").build();
-    }
-    
+    /**
+     * current user is admin.
+     *
+     * @return boolean
+     */
     public static boolean isAdmin() {
         return AdminConstants.ADMIN_NAME.equals(visitorName());
+    }
+    
+    private static UserInfo defaultUser() {
+        return UserInfo.builder().userId("-1").userName("unknown").build();
     }
 }
 
