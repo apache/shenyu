@@ -76,14 +76,14 @@ public final class SpringCloudClientEventListenerTest {
     public void beforeEach() {
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
     }
-    
+
     private void init() {
         Map<String, Object> results = new LinkedHashMap<>();
         results.put("springCloudClientTestBean", springCloudClientTestBean);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
         contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
     }
-    
+
     @Test
     public void testShenyuBeanProcess() {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
@@ -152,4 +152,5 @@ public final class SpringCloudClientEventListenerTest {
             return "" + body;
         }
     }
+
 }
