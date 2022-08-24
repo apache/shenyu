@@ -158,6 +158,7 @@
         <spring-cloud-netflix-ribbon.version>2.2.10.RELEASE</spring-cloud-netflix-ribbon.version>
         <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
         <spring-cloud.version>3.1.2</spring-cloud.version>
+        <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
     </properties>
 
     <dependencyManagement>
