@@ -105,6 +105,12 @@
                     #{filterId, jdbcType=VARCHAR}
                 </foreach>
             </if>
+
+            <if test="userId != null">
+                AND exists(select true
+                    from data_permission
+                    where user_id = #{userId})
+            </if>
         </where>
     </select>
 
