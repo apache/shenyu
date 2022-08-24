@@ -21,7 +21,6 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.cache.ICache;
 import org.apache.shenyu.plugin.cache.config.CacheConfig;
 import org.apache.shenyu.plugin.cache.handler.CachePluginDataHandler;
 import org.apache.shenyu.plugin.cache.redis.RedisConfigProperties;

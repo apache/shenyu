@@ -29,8 +29,9 @@ import org.apache.shenyu.plugin.cache.utils.CacheUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.reactivestreams.Publisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.http.client.reactive.MockClientHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -70,9 +71,13 @@ public class CachePluginTest {
     @Test
     public void httpResponseTest() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+        MockClientHttpResponse clientResponse = new MockClientHttpResponse(HttpStatus.OK);
+        clientResponse.setBody("body");
         final CacheRuleHandle cacheRuleHandle = new CacheRuleHandle();
         CachePlugin.CacheHttpResponse cacheHttpResponse = new CachePlugin.CacheHttpResponse(exchange, cacheRuleHandle);
-        Assertions.assertDoesNotThrow(() -> cacheHttpResponse.writeWith(mock(Publisher.class)));
+        cacheHttpResponse.getHeaders().add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        final Mono<Void> mono = cacheHttpResponse.writeWith(clientResponse.getBody());
+        StepVerifier.create(mono).expectSubscription().verifyComplete();
     }
 
     @Test
