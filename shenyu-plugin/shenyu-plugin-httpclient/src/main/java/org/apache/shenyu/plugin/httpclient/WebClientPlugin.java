@@ -63,7 +63,8 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                         .flatMap(bytes -> Mono.fromCallable(() -> Optional.ofNullable(bytes))).defaultIfEmpty(Optional.empty())
                         .flatMap(option -> {
                             final ClientResponse.Builder builder = ClientResponse.create(response.statusCode())
-                                    .headers(headers -> headers.addAll(response.headers().asHttpHeaders()));
+                                    .headers(headers -> headers.addAll(response.headers().asHttpHeaders()))
+                                    .cookies(cookies -> cookies.addAll(response.cookies()));
                             if (option.isPresent()) {
                                 final DataBufferFactory dataBufferFactory = exchange.getResponse().bufferFactory();
                                 return Mono.just(builder.body(Flux.just(dataBufferFactory.wrap(option.get()))).build());
