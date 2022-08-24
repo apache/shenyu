@@ -184,7 +184,8 @@
             <if test="condition.userId != null and condition.userId != ''">
                 AND exists(select true
                     from data_permission
-                    where user_id = #{condition.userId})
+                    where data_id = selector.id
+                        and user_id = #{condition.userId})
             </if>
         </where>
     </select>
