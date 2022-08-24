@@ -122,6 +122,7 @@ public @interface ShenyuRequestMapping {
      *
      * @return the RequestMethod[]
      */
+    @AliasFor(annotation = RequestMapping.class)
     RequestMethod[] method() default {};
 }
 
