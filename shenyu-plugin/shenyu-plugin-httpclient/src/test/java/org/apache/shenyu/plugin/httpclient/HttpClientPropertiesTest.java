@@ -67,24 +67,11 @@ public class HttpClientPropertiesTest {
         } catch (IOException e) {
             throw new ShenyuException(e);
         }
-
     }
 
     @Test
-    public void httpClientPropertiesTest() {
+    public void httpClientPropertiesSslTest() {
         HttpClientProperties httpClientProperties = new HttpClientProperties();
-        HttpClientProperties.Proxy proxy = httpClientProperties.getProxy();
-        proxy.setHost("host");
-        proxy.setNonProxyHostsPattern("nonProxyHostsPattern");
-        proxy.setPassword("password");
-        proxy.setUsername("username");
-        proxy.setPort(9095);
-        HttpClientProperties.Pool pool = httpClientProperties.getPool();
-        pool.setAcquireTimeout(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT);
-        pool.setMaxConnections(ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
-        pool.setName("name");
-        pool.setType(HttpClientProperties.Pool.PoolType.ELASTIC);
-        pool.setMaxIdleTime(0L);
         HttpClientProperties.Ssl ssl = httpClientProperties.getSsl();
         ssl.setCloseNotifyFlushTimeout(Duration.ofMillis(3000));
         ssl.setCloseNotifyReadTimeout(Duration.ZERO);
@@ -98,29 +85,7 @@ public class HttpClientPropertiesTest {
         ssl.setUseInsecureTrustManager(true);
         final ArrayList<String> arrayList = new ArrayList<>();
         ssl.setTrustedX509Certificates(arrayList);
-        HttpClientProperties.ThreadPool threadPool = httpClientProperties.getThreadPool();
-
-        threadPool.setDaemon(true);
-        threadPool.setPrefix("prefix-");
-        threadPool.setSelectCount(1);
-        threadPool.setWorkerCount(10);
-
-        httpClientProperties.setProxy(proxy);
-        httpClientProperties.setPool(pool);
         httpClientProperties.setSsl(ssl);
-        httpClientProperties.setThreadPool(threadPool);
-
-        httpClientProperties.setAllIdleTime(1);
-        httpClientProperties.setConnectTimeout(1);
-        httpClientProperties.setKeepAlive(true);
-        httpClientProperties.setMaxInMemorySize(1);
-        httpClientProperties.setReaderIdleTime(1);
-        httpClientProperties.setReadTimeout(1);
-        httpClientProperties.setResponseTimeout(1L);
-        httpClientProperties.setStrategy("strategy");
-        httpClientProperties.setWiretap(true);
-        httpClientProperties.setWriterIdleTime(1);
-        httpClientProperties.setWriteTimeout(1);
 
         Assertions.assertEquals(httpClientProperties.getSsl().getCloseNotifyFlushTimeout(), Duration.ofMillis(3000));
         Assertions.assertEquals(httpClientProperties.getSsl().getCloseNotifyReadTimeout(), Duration.ZERO);
@@ -135,25 +100,71 @@ public class HttpClientPropertiesTest {
         Assertions.assertEquals(httpClientProperties.getSsl().getTrustedX509Certificates(), arrayList);
         Assertions.assertNotNull(httpClientProperties.getSsl().getTrustedX509CertificatesForTrustManager());
         Assertions.assertThrows(ShenyuException.class, () -> httpClientProperties.getSsl().getKeyManagerFactory());
+    }
 
+    @Test
+    public void httpClientPropertiesProxyTest() {
+        HttpClientProperties httpClientProperties = new HttpClientProperties();
+        HttpClientProperties.Proxy proxy = httpClientProperties.getProxy();
+        proxy.setHost("host");
+        proxy.setNonProxyHostsPattern("nonProxyHostsPattern");
+        proxy.setPassword("password");
+        proxy.setUsername("username");
+        proxy.setPort(9095);
+        httpClientProperties.setProxy(proxy);
         Assertions.assertEquals(httpClientProperties.getProxy().getHost(), "host");
         Assertions.assertEquals(httpClientProperties.getProxy().getNonProxyHostsPattern(), "nonProxyHostsPattern");
         Assertions.assertEquals(httpClientProperties.getProxy().getPassword(), "password");
         Assertions.assertEquals(httpClientProperties.getProxy().getUsername(), "username");
         Assertions.assertEquals(httpClientProperties.getProxy().getPort(), 9095);
+    }
 
+    @Test
+    public void httpClientPropertiesPoolTest() {
+        HttpClientProperties httpClientProperties = new HttpClientProperties();
+        HttpClientProperties.Pool pool = httpClientProperties.getPool();
+        pool.setAcquireTimeout(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT);
+        pool.setMaxConnections(ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
+        pool.setName("name");
+        pool.setType(HttpClientProperties.Pool.PoolType.ELASTIC);
+        pool.setMaxIdleTime(0L);
+        httpClientProperties.setPool(pool);
         Assertions.assertEquals(httpClientProperties.getPool().getAcquireTimeout(), ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT);
         Assertions.assertEquals(httpClientProperties.getPool().getMaxConnections(), ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS);
         Assertions.assertEquals(httpClientProperties.getPool().getName(), "name");
         Assertions.assertEquals(httpClientProperties.getPool().getType(), HttpClientProperties.Pool.PoolType.ELASTIC);
         Assertions.assertEquals(httpClientProperties.getPool().getMaxIdleTime(), Duration.ofMillis(0L));
+    }
 
-
+    @Test
+    public void httpClientPropertiesThreadPoolTest() {
+        HttpClientProperties httpClientProperties = new HttpClientProperties();
+        HttpClientProperties.ThreadPool threadPool = httpClientProperties.getThreadPool();
+        threadPool.setDaemon(true);
+        threadPool.setPrefix("prefix-");
+        threadPool.setSelectCount(1);
+        threadPool.setWorkerCount(10);
+        httpClientProperties.setThreadPool(threadPool);
         Assertions.assertEquals(httpClientProperties.getThreadPool().getDaemon(), true);
         Assertions.assertEquals(httpClientProperties.getThreadPool().getPrefix(), "prefix-");
         Assertions.assertEquals(httpClientProperties.getThreadPool().getSelectCount(), 1);
         Assertions.assertEquals(httpClientProperties.getThreadPool().getWorkerCount(), 10);
+    }
 
+    @Test
+    public void httpClientPropertiesTest() {
+        HttpClientProperties httpClientProperties = new HttpClientProperties();
+        httpClientProperties.setAllIdleTime(1);
+        httpClientProperties.setConnectTimeout(1);
+        httpClientProperties.setKeepAlive(true);
+        httpClientProperties.setMaxInMemorySize(1);
+        httpClientProperties.setReaderIdleTime(1);
+        httpClientProperties.setReadTimeout(1);
+        httpClientProperties.setResponseTimeout(1L);
+        httpClientProperties.setStrategy("strategy");
+        httpClientProperties.setWiretap(true);
+        httpClientProperties.setWriterIdleTime(1);
+        httpClientProperties.setWriteTimeout(1);
         Assertions.assertEquals(httpClientProperties.getAllIdleTime(), 1);
         Assertions.assertEquals(httpClientProperties.getConnectTimeout(), 1);
         Assertions.assertTrue(httpClientProperties.isKeepAlive());
