@@ -105,12 +105,6 @@
                     #{filterId, jdbcType=VARCHAR}
                 </foreach>
             </if>
-
-            <if test="userId != null">
-                AND exists(select true
-                    from data_permission
-                    where user_id = #{userId})
-            </if>
         </where>
     </select>
 
@@ -186,6 +180,11 @@
                 <foreach item="id" collection="condition.plugin" open="(" separator="," close=")">
                     #{id, jdbcType=VARCHAR}
                 </foreach>
+            </if>
+            <if test="condition.userId != null and condition.userId != ''">
+                AND exists(select true
+                    from data_permission
+                    where user_id = #{condition.userId})
             </if>
         </where>
     </select>
