@@ -15,22 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.motan.service.config;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+package org.apache.shenyu.springboot.starter.client.motan.property;
 
 /**
  * Motan Registry config.
  */
-@Configuration
-@ConfigurationProperties(prefix = "motan.registry")
-public class RegistryProperties {
+public class RegistryConfig {
 
     private String protocol;
 
     private String address;
-
 
     /**
      * Get the protocol.

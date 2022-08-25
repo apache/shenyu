@@ -33,7 +33,7 @@ public interface PageService<Q, R> {
     
     
     /**
-     * searh by page condition.
+     * search by page condition.
      *
      * @param pageCondition page condition
      * @return list
@@ -46,7 +46,7 @@ public interface PageService<Q, R> {
     
     
     /**
-     * searh by page condition.
+     * search by page condition.
      *
      * @param pageCondition page condition
      * @return list
