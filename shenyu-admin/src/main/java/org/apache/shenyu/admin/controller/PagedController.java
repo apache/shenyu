@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.result.AdminResult;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.utils.ResultUtil;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,7 +42,7 @@ public interface PagedController<V, T> {
      */
     @PostMapping("list/search")
     default AdminResult<PageInfo<T>> search(@RequestBody @Validated final PageCondition<V> pageCondition) {
-        return ResultUtil.ok(pageService().searchByPage(pageCondition));
+        return ResultUtil.ok(pageService().searchByPage(pageCondition), ShenyuResultMessage.QUERY_SUCCESS);
     }
     
     /**
@@ -53,7 +54,7 @@ public interface PagedController<V, T> {
     @PostMapping("list/search/adaptor")
     default AdminResult<CommonPager<T>> searchAdaptor(
             @RequestBody @Validated final PageCondition<V> pageCondition) {
-        return ResultUtil.ok(pageService().searchByPageToPager(pageCondition));
+        return ResultUtil.ok(pageService().searchByPageToPager(pageCondition), ShenyuResultMessage.QUERY_SUCCESS);
     }
     
     /**
