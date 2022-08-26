@@ -76,8 +76,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.REPOSITORY }}/admin:latest
-            ${{ env.REPOSITORY }}/admin:${{ env.TAG }}
+            apache/shenyu-admin:latest
+            apache/shenyu-admin:${{ env.TAG }}
 
       - name: Build and push (bootstrap) (dockerhub)
         uses: docker/build-push-action@v3
@@ -87,5 +87,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.REPOSITORY }}/bootstrap:latest
-            ${{ env.REPOSITORY }}/bootstrap:${{ env.TAG }}
+            apache/shenyu-bootstrap:latest
+            apache/shenyu-bootstrap:${{ env.TAG }}
