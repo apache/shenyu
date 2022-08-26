@@ -57,7 +57,7 @@
         <url>https://github.com/apache/shenyu</url>
         <connection>scm:git:https://github.com/apache/shenyu.git</connection>
         <developerConnection>scm:git:https://github.com/apache/shenyu.git</developerConnection>
-        <tag>v2.4.3</tag>
+        <tag>v2.5.0</tag>
     </scm>
 
     <mailingLists>
