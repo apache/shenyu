@@ -39,7 +39,7 @@ public class ConfigDataTest {
         ConfigData<Object> configData = new ConfigData<>();
         configData.setLastModifyTime(LAST_MODIFY_TIME);
         configData.setMd5(MD5);
-        configData.setData(Collections.EMPTY_LIST);
+        configData.setData(Collections.emptyList());
         assertNotNull(configData.toString());
     }
 
@@ -48,8 +48,8 @@ public class ConfigDataTest {
      */
     @Test
     public void testGetterSetter() {
-        ConfigData<Object> configData = new ConfigData<>(MD5, LAST_MODIFY_TIME, Collections.EMPTY_LIST);
-        assertEquals(configData.getData(), Collections.EMPTY_LIST);
+        ConfigData<Object> configData = new ConfigData<>(MD5, LAST_MODIFY_TIME, Collections.emptyList());
+        assertEquals(configData.getData(), Collections.emptyList());
         assertEquals(configData.getMd5(), MD5);
         assertEquals(configData.getLastModifyTime(), LAST_MODIFY_TIME);
     }
