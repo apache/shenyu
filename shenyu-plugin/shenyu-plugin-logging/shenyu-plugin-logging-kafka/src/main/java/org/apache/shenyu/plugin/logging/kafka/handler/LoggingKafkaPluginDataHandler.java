@@ -19,7 +19,10 @@ package org.apache.shenyu.plugin.logging.kafka.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.config.SaslConfigs;
+import org.apache.kafka.common.security.scram.ScramLoginModule;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -35,6 +38,7 @@ import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -92,15 +96,8 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
         if (pluginData.getEnabled()) {
             KafkaLogCollectConfig.KafkaLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                 KafkaLogCollectConfig.KafkaLogConfig.class);
-
             KafkaLogCollectConfig.INSTANCE.setKafkaLogConfig(globalLogConfig);
-            // start kafka producer
-            Properties properties = new Properties();
-            properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-            properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-            properties.put("bootstrap.servers", globalLogConfig.getNamesrvAddr());
-            properties.put(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
-            properties.put(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getTopic());
+            Properties properties = initProperties(globalLogConfig);
             KAFKA_LOG_COLLECT_CLIENT.initProducer(properties);
             KafkaLogCollector.getInstance().start();
         } else {
@@ -110,6 +107,22 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
                 LOG.error("close log collector error", e);
             }
         }
+    }
+
+    private Properties initProperties(KafkaLogCollectConfig.KafkaLogConfig globalLogConfig) {
+        // init kafka producer properties
+        Properties properties = new Properties();
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, globalLogConfig.getNamesrvAddr());
+        properties.put(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
+        properties.put(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getTopic());
+        if (!StringUtils.isBlank(globalLogConfig.getSecurityProtocol()) && !StringUtils.isBlank(globalLogConfig.getSaslMechanism())) {
+            properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, globalLogConfig.getSecurityProtocol());
+            properties.put(SaslConfigs.SASL_MECHANISM, globalLogConfig.getSaslMechanism());
+            properties.put(SaslConfigs.SASL_JAAS_CONFIG, MessageFormat.format("org.apache.kafka.common.security.scram.ScramLoginModule required username=\"{0}\" password=\"{1}\";", globalLogConfig.getUserName(), globalLogConfig.getPassWord()));
+        }
+        return properties;
     }
 
     @Override
