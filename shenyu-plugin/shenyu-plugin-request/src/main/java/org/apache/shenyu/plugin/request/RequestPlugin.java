@@ -187,8 +187,9 @@ public class RequestPlugin extends AbstractShenyuPlugin {
     private void replaceCookieKey(final Map.Entry<String, String> shenyuCookie, final MultiValueMap<String, HttpCookie> cookies) {
         List<HttpCookie> httpCookies = cookies.get(shenyuCookie.getKey());
         if (Objects.nonNull(httpCookies)) {
-            cookies.addAll(shenyuCookie.getValue(), httpCookies);
             cookies.remove(shenyuCookie.getKey());
+            List<HttpCookie> newKeyCookieList = httpCookies.stream().filter(Objects::nonNull).map(cookie -> new HttpCookie(shenyuCookie.getValue(), cookie.getValue())).collect(Collectors.toList());
+            cookies.addAll(shenyuCookie.getValue(), newKeyCookieList);
         }
     }
 
