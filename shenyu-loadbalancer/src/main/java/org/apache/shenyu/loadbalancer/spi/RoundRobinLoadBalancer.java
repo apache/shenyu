@@ -18,6 +18,8 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
+import org.apache.shenyu.loadbalancer.util.WeightUtil;
 import org.apache.shenyu.spi.Join;
 
 import java.util.List;
@@ -40,7 +42,13 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
     private final AtomicBoolean updateLock = new AtomicBoolean();
 
     @Override
-    public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
+    protected Upstream doSelect(final List<Upstream> upstreamList, String ip) {
+        return doSelect(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), ip);
+    }
+
+    @Override
+    public Upstream doSelect(UpstreamHolder upstreamHolder , final String ip) {
+        final List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         String key = upstreamList.get(0).getUrl();
         ConcurrentMap<String, WeightedRoundRobin> map = methodWeightMap.get(key);
         if (Objects.isNull(map)) {
@@ -55,7 +63,7 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
         for (Upstream upstream : upstreamList) {
             String rKey = upstream.getUrl();
             WeightedRoundRobin weightedRoundRobin = map.get(rKey);
-            int weight = getWeight(upstream);
+            int weight = WeightUtil.getWeight(upstream);
             if (Objects.isNull(weightedRoundRobin)) {
                 weightedRoundRobin = new WeightedRoundRobin();
                 weightedRoundRobin.setWeight(weight);

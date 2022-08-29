@@ -19,7 +19,9 @@ package org.apache.shenyu.loadbalancer.factory;
 
 import java.util.List;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
 import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
+import org.apache.shenyu.loadbalancer.util.WeightUtil;
 import org.apache.shenyu.spi.ExtensionLoader;
 
 /**
@@ -29,14 +31,21 @@ public class LoadBalancerFactory {
 
     /**
      * Selector upstream.
+     * Deprecated
      *
+     * @see LoadBalancerFactory#selector(UpstreamHolder, String, String)
      * @param upstreamList the upstream list
      * @param algorithm    the loadBalance algorithm
      * @param ip           the ip
      * @return the upstream
      */
+    @Deprecated
     public static Upstream selector(final List<Upstream> upstreamList, final String algorithm, final String ip) {
+        return selector(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), algorithm, ip);
+    }
+
+    public static Upstream selector(final UpstreamHolder upstreamHolder, final String algorithm, final String ip) {
         LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
-        return loadBalance.select(upstreamList, ip);
+        return loadBalance.select(upstreamHolder, ip);
     }
 }

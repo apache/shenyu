@@ -18,6 +18,7 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
 import org.apache.shenyu.spi.SPI;
 
 import java.util.List;
@@ -31,9 +32,20 @@ public interface LoadBalancer {
     /**
      * this is select one for upstream list.
      *
+     * @param upstreamHolder Wrapper object of upstream, including total weight and upstream list.
+     * @param ip ip
+     * @return upstream
+     */
+    Upstream select(UpstreamHolder upstreamHolder, String ip);
+
+    /**
+     * Deprecated
+     * @see LoadBalancer#select(UpstreamHolder, String)
+     *
      * @param upstreamList upstream list
      * @param ip ip
      * @return upstream
      */
+    @Deprecated
     Upstream select(List<Upstream> upstreamList, String ip);
 }

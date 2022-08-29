@@ -20,6 +20,8 @@ package org.apache.shenyu.loadbalancer.spi;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
+import org.apache.shenyu.loadbalancer.util.WeightUtil;
 
 /**
  * The type Abstract load balancer.
@@ -28,24 +30,50 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     /**
      * Do select upstream.
+     * Deprecated
      *
-     * @param upstreamList the upstream list
-     * @param ip           the ip
+     * @see AbstractLoadBalancer#doSelect(UpstreamHolder, String)
+     * @param upstreamList
+     * @param ip
+     * @return
+     */
+    @Deprecated
+    protected abstract Upstream doSelect(List<Upstream> upstreamList, String ip);
+
+    /**
+     * Do select upstream.
+     *
+     * @param upstreamHolder warpper of upstream
+     * @param ip             the ip
      * @return the upstream
      */
-    protected abstract Upstream doSelect(List<Upstream> upstreamList, String ip);
+    protected abstract Upstream doSelect(UpstreamHolder upstreamHolder, String ip);
 
     @Override
     public Upstream select(final List<Upstream> upstreamList, final String ip) {
+        return select(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), ip)
+    }
+
+    @Override
+    public Upstream select(UpstreamHolder upstreamHolder, String ip) {
+        List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         if (CollectionUtils.isEmpty(upstreamList)) {
             return null;
         }
         if (upstreamList.size() == 1) {
             return upstreamList.get(0);
         }
-        return doSelect(upstreamList, ip);
+        return doSelect(upstreamHolder, ip);
     }
 
+    /**
+     * Deprecated
+     *
+     * @see WeightUtil#getWeight(Upstream)
+     * @param upstream upstream
+     * @return weight
+     */
+    @Deprecated
     protected int getWeight(final Upstream upstream) {
         if (!upstream.isStatus()) {
             return 0;
@@ -53,6 +81,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         return getWeight(upstream.getTimestamp(), upstream.getWarmup(), upstream.getWeight());
     }
 
+    @Deprecated
     private int getWeight(final long timestamp, final int warmup, final int weight) {
         if (weight > 0 && timestamp > 0) {
             int uptime = (int) (System.currentTimeMillis() - timestamp);
@@ -63,6 +92,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         return weight;
     }
 
+    @Deprecated
     private int calculateWarmupWeight(final int uptime, final int warmup, final int weight) {
         int ww = (int) ((float) uptime / ((float) warmup / (float) weight));
         return ww < 1 ? 1 : (Math.min(ww, weight));

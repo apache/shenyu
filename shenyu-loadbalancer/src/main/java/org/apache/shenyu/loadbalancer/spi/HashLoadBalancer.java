@@ -25,6 +25,8 @@ import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.IntStream;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
+import org.apache.shenyu.loadbalancer.util.WeightUtil;
 import org.apache.shenyu.spi.Join;
 
 /**
@@ -47,6 +49,12 @@ public class HashLoadBalancer extends AbstractLoadBalancer {
      */
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
+        return doSelect(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), ip);
+    }
+
+    @Override
+    protected Upstream doSelect(UpstreamHolder upstreamHolder, String ip) {
+        final List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         final ConcurrentSkipListMap<Long, Upstream> treeMap = new ConcurrentSkipListMap<>();
         upstreamList.forEach(upstream -> IntStream.range(0, VIRTUAL_NODE_NUM).forEach(i -> {
             long addressHash = hash("SHENYU-" + upstream.getUrl() + "-HASH-" + i);
