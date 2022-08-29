@@ -17,6 +17,12 @@
 
 package org.apache.shenyu.plugin.logging.kafka.handler;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.text.MessageFormat;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -37,12 +43,6 @@ import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The type logging kafka plugin data handler.

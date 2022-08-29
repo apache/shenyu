@@ -18,10 +18,8 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,36 +28,28 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * The type random balance test.
  */
-public class RandomLoadBalanceTest {
+public class RandomLoadBalancerTest {
 
-    private List<Upstream> randomLoadBalancesWeightDisordered;
-
-    private List<Upstream> randomLoadBalancesWeightOrdered;
-
-    private List<Upstream> randomLoadBalancesWeightReversed;
-
-    @BeforeEach
-    public void setUp() {
-        this.randomLoadBalancesWeightDisordered = Stream.of(10, 50, 40)
+    @Test
+    public void randomLoadBalancesWeightEqualTest() {
+        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(10, 10, 10)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()), "");
+        assertNotNull(upstreamOrdered);
+    }
 
-        this.randomLoadBalancesWeightOrdered = Stream.of(10, 40, 50)
+    @Test
+    public void randomLoadBalancesWeightZeroTest() {
+        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(0, 0, 0)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
-                .collect(Collectors.toList());
-
-        this.randomLoadBalancesWeightReversed = Stream.of(50, 40, 10)
-                .map(weight -> Upstream.builder()
-                        .url("upstream-" + weight)
-                        .weight(weight)
-                        .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()), "");
+        assertNotNull(upstreamOrdered);
     }
 
     /**
@@ -67,22 +57,34 @@ public class RandomLoadBalanceTest {
      */
     @Test
     public void randomLoadBalanceOrderedWeightTest() {
-        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
-        final Upstream upstreamOrdered = randomLoadBalancer.select(randomLoadBalancesWeightOrdered, "");
+        final Upstream upstreamOrdered = new RandomLoadBalancer().select(Stream.of(10, 40, 50)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
+                        .weight(weight)
+                        .build())
+                .collect(Collectors.toList()), "");
         assertNotNull(upstreamOrdered);
     }
 
     @Test
     public void randomLoadBalanceDisOrderedWeightTest() {
-        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
-        final Upstream upstreamDisordered = randomLoadBalancer.select(randomLoadBalancesWeightDisordered, "");
+        final Upstream upstreamDisordered = new RandomLoadBalancer().select(Stream.of(10, 50, 40)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
+                        .weight(weight)
+                        .build())
+                .collect(Collectors.toList()), "");
         assertNotNull(upstreamDisordered);
     }
 
     @Test
     public void randomLoadBalanceReversedWeightTest() {
-        final RandomLoadBalancer randomLoadBalancer = new RandomLoadBalancer();
-        final Upstream upstreamReversed = randomLoadBalancer.select(randomLoadBalancesWeightReversed, "");
+        final Upstream upstreamReversed = new RandomLoadBalancer().select(Stream.of(50, 40, 10)
+                .map(weight -> Upstream.builder()
+                        .url("upstream-" + weight)
+                        .weight(weight)
+                        .build())
+                .collect(Collectors.toList()), "");
         assertNotNull(upstreamReversed);
     }
 }

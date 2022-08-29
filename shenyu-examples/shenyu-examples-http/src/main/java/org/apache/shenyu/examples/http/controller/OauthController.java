@@ -15,31 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.loadbalancer.factory;
+package org.apache.shenyu.examples.http.controller;
 
-import java.util.List;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
-import org.apache.shenyu.spi.ExtensionLoader;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * The type Load balance Factory.
+ * OauthController.
  */
-public final class LoadBalancerFactory {
-
-    private LoadBalancerFactory() {
-    }
+@RestController
+@RequestMapping("/oauth")
+@ShenyuSpringMvcClient("/oauth")
+public class OauthController {
 
     /**
-     * Selector upstream.
+     * Test oauth2 code request.
      *
-     * @param upstreamList the upstream list
-     * @param algorithm    the loadBalance algorithm
-     * @param ip           the ip
-     * @return the upstream
+     * @return String
      */
-    public static Upstream selector(final List<Upstream> upstreamList, final String algorithm, final String ip) {
-        LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
-        return loadBalance.select(upstreamList, ip);
+    @GetMapping("/authorize")
+    public String testCode() {
+        return "authorize";
     }
+
 }
