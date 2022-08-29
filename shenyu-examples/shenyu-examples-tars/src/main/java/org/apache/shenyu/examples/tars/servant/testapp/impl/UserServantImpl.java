@@ -19,12 +19,11 @@ package org.apache.shenyu.examples.tars.servant.testapp.impl;
 
 import com.qq.tars.spring.annotation.TarsServant;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
-import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
+import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsServant;
 import org.apache.shenyu.examples.tars.servant.testapp.UserServant;
 
-@TarsServant("UserObj")
 @ShenyuTarsClient("/user/**")
-@ShenyuTarsService(serviceName = "ShenyuExampleServer.ShenyuExampleApp.UserObj")
+@ShenyuTarsServant(servantName = "UserObj", serviceName = "ShenyuExampleServer.ShenyuExampleApp.UserObj")
 public class UserServantImpl implements UserServant {
     
     @Override

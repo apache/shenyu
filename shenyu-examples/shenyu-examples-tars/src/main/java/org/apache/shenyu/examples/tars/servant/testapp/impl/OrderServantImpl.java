@@ -17,14 +17,12 @@
 
 package org.apache.shenyu.examples.tars.servant.testapp.impl;
 
-import com.qq.tars.spring.annotation.TarsServant;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
-import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
+import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsServant;
 import org.apache.shenyu.examples.tars.servant.testapp.OrderServant;
 
-@TarsServant("OrderObj")
 @ShenyuTarsClient("/order")
-@ShenyuTarsService(serviceName = "ShenyuExampleServer.ShenyuExampleApp.OrderObj")
+@ShenyuTarsServant(servantName = "OrderObj", serviceName = "ShenyuExampleServer.ShenyuExampleApp.OrderObj")
 public class OrderServantImpl implements OrderServant {
 
     @Override
