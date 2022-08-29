@@ -63,7 +63,7 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
         // Determine which segment the random value falls on
         for (int i = 0; i < weights.length; i++) {
             offset -= weights[i];
-            if (offset < 0){
+            if (offset < 0) {
                 return upstreamList.get(i);
             }
         }
