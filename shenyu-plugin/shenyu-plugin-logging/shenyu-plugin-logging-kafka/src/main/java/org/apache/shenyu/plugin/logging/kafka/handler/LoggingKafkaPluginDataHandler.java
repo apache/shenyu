@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
-import org.apache.kafka.common.security.scram.ScramLoginModule;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -109,8 +108,8 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
         }
     }
 
-    private Properties initProperties(KafkaLogCollectConfig.KafkaLogConfig globalLogConfig) {
-        // init kafka producer properties
+    private Properties initProperties(final KafkaLogCollectConfig.KafkaLogConfig globalLogConfig) {
+        //init kafka properties
         Properties properties = new Properties();
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
@@ -120,7 +119,10 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
         if (!StringUtils.isBlank(globalLogConfig.getSecurityProtocol()) && !StringUtils.isBlank(globalLogConfig.getSaslMechanism())) {
             properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, globalLogConfig.getSecurityProtocol());
             properties.put(SaslConfigs.SASL_MECHANISM, globalLogConfig.getSaslMechanism());
-            properties.put(SaslConfigs.SASL_JAAS_CONFIG, MessageFormat.format("org.apache.kafka.common.security.scram.ScramLoginModule required username=\"{0}\" password=\"{1}\";", globalLogConfig.getUserName(), globalLogConfig.getPassWord()));
+            properties.put(SaslConfigs.SASL_JAAS_CONFIG,
+                    MessageFormat
+                            .format("org.apache.kafka.common.security.scram.ScramLoginModule required username=\"{0}\" password=\"{1}\";",
+                                    globalLogConfig.getUserName(), globalLogConfig.getPassWord()));
         }
         return properties;
     }

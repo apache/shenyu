@@ -72,7 +72,8 @@ public class KafkaLogCollectConfig {
         private String passWord;
 
         /**
-         * get kafka securityProtocol
+         * get kafka securityProtocol.
+         *
          * @return securityProtocol
          */
         public String getSecurityProtocol() {
@@ -80,14 +81,17 @@ public class KafkaLogCollectConfig {
         }
 
         /**
-         * set kafka securityProtocol
+         * set kafka securityProtocol.
+         *
+         * @param securityProtocol securityProtocol
          */
-        public void setSecurityProtocol(String securityProtocol) {
+        public void setSecurityProtocol(final String securityProtocol) {
             this.securityProtocol = securityProtocol;
         }
 
         /**
-         * get Kafka saslMechanism
+         * get Kafka saslMechanism.
+         *
          * @return saslMechanism
          */
         public String getSaslMechanism() {
@@ -95,14 +99,17 @@ public class KafkaLogCollectConfig {
         }
 
         /**
-         *set kafka saslMechanism
+         *set kafka saslMechanism.
+         *
+         * @param saslMechanism saslMechanism
          */
-        public void setSaslMechanism(String saslMechanism) {
+        public void setSaslMechanism(final String saslMechanism) {
             this.saslMechanism = saslMechanism;
         }
 
         /**
-         * get kafka userName
+         * get kafka userName.
+         *
          * @return userName
          */
         public String getUserName() {
@@ -110,14 +117,17 @@ public class KafkaLogCollectConfig {
         }
 
         /**
-         * set kafka userName
+         * set kafka userName.
+         *
+         * @param userName userName
          */
-        public void setUserName(String userName) {
+        public void setUserName(final String userName) {
             this.userName = userName;
         }
 
         /**
-         * get kafka passWord
+         * get kafka passWord.
+         *
          * @return passWord
          */
         public String getPassWord() {
@@ -125,9 +135,11 @@ public class KafkaLogCollectConfig {
         }
 
         /**
-         * set kafka passWord
+         * set kafka pwd.
+         *
+         * @param passWord passWord
          */
-        public void setPassWord(String passWord) {
+        public void setPassWord(final String passWord) {
             this.passWord = passWord;
         }
 
