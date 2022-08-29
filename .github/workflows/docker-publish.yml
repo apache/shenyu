@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: docker-publish
+name: docker-publish-ghcr
 
 on:
   push:
@@ -74,27 +74,31 @@ jobs:
         if: env.SKIP_CI != 'true'
         with:
           java-version: 8
-          
+
       - name: Build with Maven
         if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
 
-      - name: Build and push(admin)
+      - name: Build and push (admin) (ghcr.io)
         uses: docker/build-push-action@v3
         if: env.SKIP_CI != 'true'
         with:
           context: ./shenyu-dist/shenyu-admin-dist
-          build-args: APP_NAME=apache-shenyu-incubating-*-admin-bin
+          build-args: APP_NAME=apache-shenyu-*-admin-bin
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/admin:${{ env.TAG }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/admin:latest
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/admin:${{ env.TAG }}
 
-      - name: Build and push(bootstrap)
+      - name: Build and push (bootstrap) (ghcr.io)
         uses: docker/build-push-action@v3
         if: env.SKIP_CI != 'true'
         with:
           context: ./shenyu-dist/shenyu-bootstrap-dist
-          build-args: APP_NAME=apache-shenyu-incubating-*-bootstrap-bin
+          build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/bootstrap:${{ env.TAG }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/bootstrap:latest
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/bootstrap:${{ env.TAG }}

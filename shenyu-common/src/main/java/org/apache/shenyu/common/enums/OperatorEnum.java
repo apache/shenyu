@@ -84,7 +84,7 @@ public enum OperatorEnum {
     /**
      * Path patter operator enum.
      */
-    PATH_PATTER("pathPatter", true);
+    PATH_PATTERN("pathPattern", true);
 
     private final String alias;
 

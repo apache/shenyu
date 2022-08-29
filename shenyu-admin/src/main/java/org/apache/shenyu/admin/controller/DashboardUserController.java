@@ -17,9 +17,18 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
+import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -28,10 +37,10 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
-import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.utils.ShaUtils;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,14 +52,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * this is dashboard user controller.
@@ -115,8 +116,6 @@ public class DashboardUserController {
     public ShenyuAdminResult createDashboardUser(@Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         return Optional.ofNullable(dashboardUserDTO)
                 .map(item -> {
-                    Assert.notBlack(item.getPassword(), ShenyuResultMessage.PARAMETER_ERROR + ": password is not balck");
-                    Assert.notNull(item.getRole(), ShenyuResultMessage.PARAMETER_ERROR + ": role is not null");
                     item.setPassword(ShaUtils.shaEncryption(item.getPassword()));
                     Integer createCount = dashboardUserService.createOrUpdate(item);
                     return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
@@ -158,6 +157,13 @@ public class DashboardUserController {
                                             @Existed(provider = DashboardUserMapper.class,
                                                     message = "user is not found") final String id,
                                             @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
+        UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipal();
+        if (Objects.isNull(userInfo)) {
+            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_USER_LOGIN_ERROR);
+        }
+        if (!userInfo.getUserId().equals(id) && !userInfo.getUserName().equals(dashboardUserDTO.getUserName())) {
+            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_MODIFY_PASSWORD_ERROR);
+        }
         return updateDashboardUser(id, dashboardUserDTO);
     }
     

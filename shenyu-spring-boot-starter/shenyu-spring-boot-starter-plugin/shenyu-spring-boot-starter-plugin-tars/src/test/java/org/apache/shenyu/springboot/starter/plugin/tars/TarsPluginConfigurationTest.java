@@ -20,8 +20,8 @@ package org.apache.shenyu.springboot.starter.plugin.tars;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -60,10 +60,10 @@ public class TarsPluginConfigurationTest {
     }
 
     @Test
-    public void testTarsMetaDataSubscriber() {
+    public void testTarsMetaDataHandler() {
         applicationContextRunner.run(context -> {
-                MetaDataSubscriber subscriber = context.getBean("tarsMetaDataSubscriber", MetaDataSubscriber.class);
-                assertNotNull(subscriber);
+                MetaDataHandler handler = context.getBean("tarsMetaDataHandler", MetaDataHandler.class);
+                assertNotNull(handler);
             }
         );
     }

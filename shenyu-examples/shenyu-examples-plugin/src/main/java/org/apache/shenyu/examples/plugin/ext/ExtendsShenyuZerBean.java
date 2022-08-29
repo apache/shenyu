@@ -20,9 +20,10 @@ package org.apache.shenyu.examples.plugin.ext;
 import org.springframework.stereotype.Component;
 
 /**
- * ExtendsShenyuBean .
+ * ExtendsShenyuBean.
  */
 @Component
 public class ExtendsShenyuZerBean {
+    
     private final String name = "test";
 }

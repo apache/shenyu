@@ -83,16 +83,19 @@ public final class LocalMetadataControllerTest {
     public void testClean() throws Exception {
         final MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu/meta/delete")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .param("id", "id")
                         .param("path", "path")
                         .param("rpcType", "rpcType"))
                 .andReturn().getResponse();
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
         MetaData metaData = new MetaData();
+        metaData.setId("id");
         metaData.setPath("path");
         metaData.setRpcType("rpcType");
         subscribers.forEach(subscriber -> verify(subscriber).unSubscribe(metaData));
         final MockHttpServletResponse subNullResponse = this.mockMvcSubscribersNull.perform(MockMvcRequestBuilders.get("/shenyu/meta/delete")
                 .contentType(MediaType.APPLICATION_JSON)
+                .param("id", "id")
                 .param("path", "path")
                 .param("rpcType", "rpcType"))
                 .andReturn().getResponse();

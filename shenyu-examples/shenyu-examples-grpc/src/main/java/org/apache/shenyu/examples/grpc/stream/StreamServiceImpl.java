@@ -74,7 +74,6 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
             @Override
             public void onError(final Throwable t) {
                 LOG.error(t.getMessage());
-                t.printStackTrace();
             }
             
             @Override
@@ -95,7 +94,7 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
             private final ResponseData.Builder builder = ResponseData.newBuilder();
             
             @Override
-            public void onNext(RequestData value) {
+            public void onNext(final RequestData value) {
                 LOG.info("bidiStreamingFun received: {}", value.getText());
                 ResponseData responseData = ResponseData.newBuilder()
                         .setText("bidiStreamingFun response: hello")
@@ -106,7 +105,6 @@ public class StreamServiceImpl extends StreamServiceGrpc.StreamServiceImplBase {
             @Override
             public void onError(final Throwable t) {
                 LOG.error(t.getMessage());
-                t.printStackTrace();
             }
             
             @Override

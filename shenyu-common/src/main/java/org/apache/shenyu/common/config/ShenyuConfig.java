@@ -1148,6 +1148,8 @@ public class ShenyuConfig {
 
             private Set<String> origins;
 
+            private String originRegex;
+
             /**
              * Gets the spacer.
              *
@@ -1218,6 +1220,24 @@ public class ShenyuConfig {
              */
             public void setOrigins(final Set<String> origins) {
                 this.origins = origins;
+            }
+
+            /**
+             * Gets the originRegex.
+             *
+             * @return the value of originRegex
+             */
+            public String getOriginRegex() {
+                return originRegex;
+            }
+
+            /**
+             * Sets the originRegex.
+             *
+             * @param originRegex originRegex
+             */
+            public void setOriginRegex(final String originRegex) {
+                this.originRegex = originRegex;
             }
         }
     }

@@ -48,7 +48,7 @@ public class RandomIntGenerator implements Generator<Integer> {
     }
     
     @Override
-    public void initParam(final List<String> params) {
+    public void initParam(final List<String> params, final String rule) {
         String[] range = params.get(0).split("-");
         min = Integer.parseInt(range[0]);
         max = Integer.parseInt(range[1]);

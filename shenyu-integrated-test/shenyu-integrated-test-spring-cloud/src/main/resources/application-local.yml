@@ -40,6 +40,7 @@ shenyu:
   sync:
     websocket:
       urls: ws://localhost:9095/websocket
+      allowOrigin: ws://localhost:9195
   exclude:
     enabled: true
     paths:

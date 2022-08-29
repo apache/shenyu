@@ -70,7 +70,7 @@ public class GenericLoggingConstant {
     /**
      * aliyun sls topic.
      */
-    public static final String TOPIC = "Topic";
+    public static final String TOPIC = "topic";
     
     /**
      * send thread config.

@@ -61,19 +61,20 @@ public interface Generator<T> {
         String[] split = rule.split("(?<!\\\\)\\|");
         if (split.length >= getParamSize() + 1) {
             params.addAll(Arrays.stream(split)
-                .map(p -> p.replaceAll("\\\\\\|", "|"))
-                .skip(1)
-                .collect(Collectors.toList()));
+                    .map(p -> p.replaceAll("\\\\\\|", "|"))
+                    .skip(1)
+                    .collect(Collectors.toList()));
         }
-        initParam(params);
+        initParam(params, rule);
     }
     
     /**
      * param from rule.
      *
      * @param params rule params.
+     * @param rule   source rule content
      */
-    default void initParam(List<String> params) {
+    default void initParam(List<String> params, String rule) {
     
     }
     
@@ -84,5 +85,15 @@ public interface Generator<T> {
      * @return if match return true.
      */
     boolean match(String rule);
+    
+    
+    /**
+     * return prefix and suffix for generate data.
+     *
+     * @return String array contains two element.
+     */
+    default String[] getPrefixAndSuffix() {
+        return new String[]{"", ""};
+    }
     
 }

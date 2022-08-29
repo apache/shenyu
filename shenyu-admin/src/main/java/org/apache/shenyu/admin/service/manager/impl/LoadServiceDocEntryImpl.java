@@ -60,7 +60,8 @@ import org.springframework.stereotype.Service;
 public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     private static final Logger LOG = LoggerFactory.getLogger(LoadServiceDocEntryImpl.class);
 
-    private static Map<String, String> supportSwaggePluginMap = Collections.EMPTY_MAP;
+    @SuppressWarnings("unchecked")
+    private static Map<String, String> supportSwaggerPluginMap = Collections.EMPTY_MAP;
 
     private final SelectorService selectorService;
 
@@ -128,12 +129,10 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     private List<UpstreamInstance> getLastUpdateInstanceList(final List<SelectorData> changedList) {
         if (CollectionUtils.isEmpty(changedList)) {
             LOG.info("getLastUpdateInstanceList, changedList is empty.");
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList(); 
         }
         return changedList.parallelStream()
-            .map(service -> {
-                return getClusterLastUpdateInstance(service);
-            })
+            .map(this::getClusterLastUpdateInstance)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -148,21 +147,19 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         RpcTypeEnum.acquireSupportSwaggers().forEach(rpcTypeEnum -> pluginNames.add(PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName())));
         final List<PluginDO> pluginDOList = pluginMapper.selectByNames(pluginNames);
         if (CollectionUtils.isEmpty(pluginDOList)) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
-        supportSwaggePluginMap = pluginDOList.stream().filter(Objects::nonNull)
+        supportSwaggerPluginMap = pluginDOList.stream().filter(Objects::nonNull)
             .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
 
-        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(Lists.newArrayList(supportSwaggePluginMap.keySet()), null, new PageParameter(1, Integer.MAX_VALUE)));
+        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(Lists.newArrayList(supportSwaggerPluginMap.keySet()), null, new PageParameter(1, Integer.MAX_VALUE)));
         List<SelectorVO> clusterList = commonPager.getDataList();
         if (CollectionUtils.isEmpty(clusterList)) {
             LOG.info("getAllClusterLastUpdateInstanceList, Not loaded into available backend services.");
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         return clusterList.parallelStream()
-            .map(service -> {
-                return getClusterLastUpdateInstance(service);
-            })
+            .map(this::getClusterLastUpdateInstance)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -176,7 +173,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     }
 
     private UpstreamInstance getClusterLastUpdateInstance(final SelectorData selectorData) {
-        if (!supportSwaggePluginMap.keySet().contains(selectorData.getPluginId())) {
+        if (!supportSwaggerPluginMap.containsKey(selectorData.getPluginId())) {
             LOG.info("getClusterLastUpdateInstance. pluginNae={} does not support pulling API documents.", selectorData.getPluginName());
             return null;
         }
@@ -192,10 +189,10 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             return null;
         }
         return allInstances.stream()
-            .filter(UpstreamInstance::isHealthy)
-            .filter(Objects::nonNull)
-            .max(Comparator.comparing(UpstreamInstance::getStartupTime))
-            .orElse(null);
+                .filter(Objects::nonNull)
+                .filter(UpstreamInstance::isHealthy)
+                .max(Comparator.comparing(UpstreamInstance::getStartupTime))
+                .orElse(null);
     }
 
     private List<UpstreamInstance> getInstances(final String pluginId, final String handle, final String contextPath,
@@ -226,9 +223,9 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     }
 
     private List<CommonUpstream> convert(final String pluginId, final String handle) {
-        String pluginName = supportSwaggePluginMap.get(pluginId);
+        String pluginName = supportSwaggerPluginMap.get(pluginId);
         return converterFactor.newInstance(pluginName).convertUpstream(handle)
-            .stream().filter(upstream -> upstream.isStatus())
+            .stream().filter(CommonUpstream::isStatus)
             .collect(Collectors.toList());
     }
 

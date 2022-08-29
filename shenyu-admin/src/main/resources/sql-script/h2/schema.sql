@@ -214,17 +214,17 @@ CREATE TABLE IF NOT EXISTS `permission` (
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `resource` (
     `id` varchar(128) NOT NULL COMMENT 'primary key id',
-    `parent_id` varchar(128) NOT NULL COMMENT 'resource parent primary key id',
+    `parent_id` varchar(128) NULL COMMENT 'resource parent primary key id',
     `title` varchar(128) NOT NULL COMMENT 'title',
-    `name` varchar(32) NOT NULL COMMENT 'route name',
-    `url` varchar(32) NOT NULL COMMENT 'route url',
-    `component` varchar(32) NOT NULL COMMENT 'component',
+    `name` varchar(32) NULL COMMENT 'route name',
+    `url` varchar(32) NULL COMMENT 'route url',
+    `component` varchar(32) NULL COMMENT 'component',
     `resource_type` int(4) NOT NULL COMMENT 'resource type eg 0:main menu 1:child menu 2:function button',
     `sort` int(4) NOT NULL COMMENT 'sort',
-    `icon` varchar(32) NOT NULL COMMENT 'icon',
+    `icon` varchar(32) NULL COMMENT 'icon',
     `is_leaf` tinyint(1) NOT NULL COMMENT 'leaf node 0:no 1:yes',
     `is_route` int(4) NOT NULL COMMENT 'route 1:yes 0:no',
-    `perms` varchar(64) NOT NULL COMMENT 'button permission description sys:user:add(add)/sys:user:edit(edit)',
+    `perms` varchar(64) NULL COMMENT 'button permission description sys:user:add(add)/sys:user:edit(edit)',
     `status` int(4) NOT NULL COMMENT 'status 1:enable 0:disable',
     `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
@@ -387,7 +387,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) 
 INSERT IGNORE INTO `plugin` (`id`, `name`, `config`, `role`, `sort`, `enabled`) VALUES ('30', 'cache', '{"cacheType":"memory"}', 'Cache', 10, 0);
 INSERT IGNORE INTO `plugin` (`id`, `name`, `config`, `role`, `sort`, `enabled`) VALUES ('31', 'mock', null, 'Mock', 1, 0);
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('32', 'loggingElasticSearch', 'Logging', 190,'{"host":"localhost", "port": "9200"}', '0');
-INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('33', 'loggingKafka', 'Logging', 180,'{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:8082"}', '0');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('33', 'loggingKafka', 'Logging', 180,'{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9092"}', '0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('34', 'loggingAliyunSls', 'Logging', 175, '{"projectName": "shenyu", "logStoreName": "shenyu-logstore", "topic": "shenyu-topic"}', '0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('35', 'loggingPulsar', 'Logging', 185, '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', '0');
 
@@ -566,7 +566,7 @@ INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172883', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172884', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172885', '33', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}');
-INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172886', '33', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:8082"}');
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172886', '33', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:9092"}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172887', '33', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172888', '33', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172889', '33', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}');

@@ -52,7 +52,7 @@ public class RoleDTO implements Serializable {
     /**
      * pre permission ids.
      */
-    private List<String> currentPermissionIds;
+    private List<@NotBlank String> currentPermissionIds;
     
     public RoleDTO() {
     }

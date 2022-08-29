@@ -18,6 +18,12 @@ server:
   address: 0.0.0.0
   servlet:
     context-path: /
+  tomcat:
+    max-http-form-post-size: 100MB
 spring:
   main:
     allow-bean-definition-overriding: true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB

@@ -16,6 +16,8 @@
 server:
   port: 8189
   address: 0.0.0.0
+  tomcat:
+    max-http-form-post-size: 100MB
 
 shenyu:
   register:
@@ -30,6 +32,12 @@ shenyu:
           contextPath: /http
           appName: http
 #          port: 8189
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
 
 logging:
   level:

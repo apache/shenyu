@@ -134,6 +134,16 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
                 && !StringUtils.isBlank(metaData.getServiceName());
     }
 
+    @Override
+    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
+    }
+
+    @Override
+    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return WebFluxResultUtils.noRuleResult(pluginName, exchange);
+    }
+
     /**
      * The GrpcExt.
      */

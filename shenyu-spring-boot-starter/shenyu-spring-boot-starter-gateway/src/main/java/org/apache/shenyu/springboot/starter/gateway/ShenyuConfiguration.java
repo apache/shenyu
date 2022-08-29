@@ -21,8 +21,11 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.RpcParamTransformPlugin;
+import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
+import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.configuration.ErrorHandlerConfiguration;
 import org.apache.shenyu.web.configuration.ShenyuExtConfiguration;
@@ -110,7 +113,7 @@ public class ShenyuConfiguration {
     }
     
     /**
-     * Plugin data subscriber.
+     * common plugin data subscriber.
      *
      * @param pluginDataHandlerList the plugin data handler list
      * @param eventPublisher event publisher
@@ -120,6 +123,17 @@ public class ShenyuConfiguration {
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList,
                                                      final ApplicationEventPublisher eventPublisher) {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList), eventPublisher);
+    }
+
+    /**
+     * common meta data subscriber.
+     *
+     * @param metaDataHandlerList the meta data handler list
+     * @return the meta data subscriber
+     */
+    @Bean
+    public MetaDataSubscriber commonMetaDataSubscriber(final ObjectProvider<List<MetaDataHandler>> metaDataHandlerList) {
+        return new CommonMetaDataSubscriber(metaDataHandlerList.getIfAvailable(Collections::emptyList));
     }
     
     /**
@@ -133,8 +147,7 @@ public class ShenyuConfiguration {
     @Bean
     public ShenyuLoaderService shenyuLoaderService(final ShenyuWebHandler shenyuWebHandler,
                                                    final PluginDataSubscriber pluginDataSubscriber,
-                                                   final ShenyuConfig config
-    ) {
+                                                   final ShenyuConfig config) {
         return new ShenyuLoaderService(shenyuWebHandler, (CommonPluginDataSubscriber) pluginDataSubscriber, config);
     }
     

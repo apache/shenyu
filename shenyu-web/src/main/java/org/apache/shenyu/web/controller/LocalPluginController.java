@@ -284,12 +284,14 @@ public class LocalPluginController {
      *
      * @param selectorId the selector id
      * @param id the id
+     * @param pluginName the pluginName
      * @return the mono
      */
     @GetMapping("/plugin/rule/delete")
     public Mono<String> deleteRule(@RequestParam("selectorId") final String selectorId,
-                                       @RequestParam("id") final String id) {
-        RuleData ruleData = RuleData.builder().selectorId(selectorId).id(id).build();
+                                   @RequestParam("id") final String id,
+                                   @RequestParam("pluginName") final String pluginName) {
+        RuleData ruleData = RuleData.builder().selectorId(selectorId).id(id).pluginName(pluginName).build();
         subscriber.unRuleSubscribe(ruleData);
         return Mono.just(Constants.SUCCESS);
     }

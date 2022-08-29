@@ -299,7 +299,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param roleIds role ids.
      */
     private void bindUserRole(final String userId, final List<String> roleIds) {
-        if (CollectionUtils.isEmpty(roleIds)) {
+        if (CollectionUtils.isEmpty(roleIds) || StringUtils.isBlank(userId)) {
             return;
         }
         userRoleMapper.insertBatch(roleIds.stream()

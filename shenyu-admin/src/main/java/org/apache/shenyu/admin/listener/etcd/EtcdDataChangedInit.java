@@ -22,6 +22,8 @@ import org.apache.shenyu.common.constant.DefaultPathConstants;
 
 /**
  * The type Etcd data changed init.
+ *
+ * @since 2.5.0
  */
 public class EtcdDataChangedInit extends AbstractDataChangedInit {
 

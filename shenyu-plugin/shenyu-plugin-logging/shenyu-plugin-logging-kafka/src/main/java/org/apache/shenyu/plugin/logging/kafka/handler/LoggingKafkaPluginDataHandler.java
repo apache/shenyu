@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.kafka.handler;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -28,18 +33,11 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.apache.shenyu.plugin.logging.kafka.collector.KafkaLogCollector;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
-import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The type logging kafka plugin data handler.
@@ -99,8 +97,6 @@ public class LoggingKafkaPluginDataHandler implements PluginDataHandler {
             properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
             properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
             properties.put("bootstrap.servers", globalLogConfig.getNamesrvAddr());
-            properties.put(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
-            properties.put(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getTopic());
             KAFKA_LOG_COLLECT_CLIENT.initProducer(properties);
             KafkaLogCollector.getInstance().start();
         } else {

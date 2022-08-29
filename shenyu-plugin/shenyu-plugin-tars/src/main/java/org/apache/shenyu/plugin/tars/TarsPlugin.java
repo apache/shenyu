@@ -113,6 +113,16 @@ public class TarsPlugin extends AbstractShenyuPlugin {
         return skipExcept(exchange, RpcTypeEnum.TARS);
     }
 
+    @Override
+    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
+    }
+
+    @Override
+    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return WebFluxResultUtils.noRuleResult(pluginName, exchange);
+    }
+
     private boolean checkMetaData(final MetaData metaData) {
         return Objects.nonNull(metaData) && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
     }

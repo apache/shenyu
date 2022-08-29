@@ -671,7 +671,7 @@ INSERT INTO "public"."plugin" VALUES ('29', 'loggingRocketMQ', '{"topic":"shenyu
 INSERT INTO "public"."plugin" VALUES ('30', 'cache', '{"cacheType":"memory"}', 'Cache', 10, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin" VALUES ('31', 'mock', null, 'Mock', 1, 0, '2022-06-16 14:40:35', '2022-06-16 14:40:55');
 INSERT INTO "public"."plugin" VALUES ('32', 'loggingElasticSearch', '{"host":"localhost", "port": "9200"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO "public"."plugin" VALUES ('33', 'loggingKafka', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:8082"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin" VALUES ('33', 'loggingKafka', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9092"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin" VALUES ('34', 'loggingAliyunSls', '{"projectName": "shenyu", "logStoreName": "shenyu-logstore", "topic": "shenyu-topic"}', 'Logging', 175, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
 -- ----------------------------
@@ -877,7 +877,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524927', '32', 'index
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524928', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524929', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}', '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524950', '33', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524951', '33', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:8082"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524951', '33', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:9092"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524952', '33', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524953', '33', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524954', '33', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
@@ -906,17 +906,17 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524971', '34', 'buffe
 DROP TABLE IF EXISTS "public"."resource";
 CREATE TABLE "public"."resource" (
   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "parent_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "parent_id" varchar(128) COLLATE "pg_catalog"."default" NULL,
   "title" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "url" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "component" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+  "name" varchar(32) COLLATE "pg_catalog"."default" NULL,
+  "url" varchar(32) COLLATE "pg_catalog"."default" NULL,
+  "component" varchar(32) COLLATE "pg_catalog"."default" NULL,
   "resource_type" int4 NOT NULL,
   "sort" int4 NOT NULL,
-  "icon" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+  "icon" varchar(32) COLLATE "pg_catalog"."default" NULL,
   "is_leaf" int2 NOT NULL,
   "is_route" int4 NOT NULL,
-  "perms" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "perms" varchar(64) COLLATE "pg_catalog"."default" NULL,
   "status" int4 NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)

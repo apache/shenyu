@@ -49,6 +49,7 @@ shenyu:
     websocket:
       enabled: true
       messageMaxSize: 10240
+      allowOrigins: ws://localhost:9095;ws://localhost:9195;
 #      zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000
@@ -97,15 +98,6 @@ shenyu:
       - /csrf
   swagger:
     enable: true
-  apidoc:
-    gatewayUrl: http://127.0.0.1:9195
-    envProps:
-      - envLabel: Test environment
-        addressLabel: Request Address
-        addressUrl: http://127.0.0.1:9195
-      - envLabel: Prod environment
-        addressLabel: Request Address
-        addressUrl: http://127.0.0.1:9195
 
 logging:
   level:

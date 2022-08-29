@@ -21,6 +21,7 @@ import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractTest;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
@@ -40,6 +41,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
@@ -211,5 +213,24 @@ public final class HttpTestControllerTest extends AbstractTest {
                 .build();
         String ret = HttpHelper.INSTANCE.postGateway("/http/test/upload", requestBody, String.class);
         assertEquals(ret, "OK");
+    }
+
+    @Test
+    public void testResponseBodyIsNull() throws IOException {
+        Object result = HttpHelper.INSTANCE.getFromGateway("/http/test/nullResponse", null);
+        assertNull(result);
+    }
+
+    @Test
+    public void testBigRequestBody() throws IOException {
+        UserDTO userDTO = new UserDTO();
+        String id = RandomStringUtils.randomAlphanumeric(2048);
+        userDTO.setUserId(id);
+        String name = RandomStringUtils.randomAlphanumeric(2048);
+        userDTO.setUserName(name);
+        ResultBean resultBean = HttpHelper.INSTANCE.postGateway("/http/test/bigRequestBody", userDTO, ResultBean.class);
+        UserDTO userDTORet = GsonUtils.getInstance().fromJson(String.valueOf(resultBean.getData()), UserDTO.class);
+        assertEquals(id, userDTORet.getUserId());
+        assertEquals(name, userDTORet.getUserName());
     }
 }
