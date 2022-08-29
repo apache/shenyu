@@ -18,6 +18,8 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
+import org.apache.shenyu.loadbalancer.util.WeightUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -50,7 +52,7 @@ public final class RoundRobinLoadBalanceTest {
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
         IntStream.range(0, 120).forEach(i -> {
-            Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
+            Upstream result = roundRobinLoadBalancer.select(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), "");
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });
@@ -70,7 +72,7 @@ public final class RoundRobinLoadBalanceTest {
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
         IntStream.range(0, 120).forEach(i -> {
-            Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
+            Upstream result = roundRobinLoadBalancer.select(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), "");
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });
@@ -90,7 +92,7 @@ public final class RoundRobinLoadBalanceTest {
         RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
         Map<String, Integer> countMap = new HashMap<>();
         IntStream.range(0, 120).forEach(i -> {
-            Upstream result = roundRobinLoadBalancer.select(upstreamList, "");
+            Upstream result = roundRobinLoadBalancer.select(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), "");
             int count = countMap.getOrDefault(result.getUrl(), 0);
             countMap.put(result.getUrl(), ++count);
         });

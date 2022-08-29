@@ -18,6 +18,8 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
+import org.apache.shenyu.loadbalancer.util.WeightUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,34 +34,37 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class RandomLoadBalanceTest {
 
-    private List<Upstream> randomLoadBalancesWeightDisordered;
+    private UpstreamHolder randomLoadBalancesWeightDisordered;
 
-    private List<Upstream> randomLoadBalancesWeightOrdered;
+    private UpstreamHolder randomLoadBalancesWeightOrdered;
 
-    private List<Upstream> randomLoadBalancesWeightReversed;
+    private UpstreamHolder randomLoadBalancesWeightReversed;
 
     @BeforeEach
     public void setUp() {
-        this.randomLoadBalancesWeightDisordered = Stream.of(10, 50, 40)
+        List<Upstream> disorderedUpstream = Stream.of(10, 50, 40)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
                 .collect(Collectors.toList());
+        this.randomLoadBalancesWeightDisordered = new UpstreamHolder(WeightUtil.calculateTotalWeight(disorderedUpstream), disorderedUpstream);
 
-        this.randomLoadBalancesWeightOrdered = Stream.of(10, 40, 50)
+        List<Upstream> orderedUpstream = Stream.of(10, 40, 50)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
                 .collect(Collectors.toList());
+        this.randomLoadBalancesWeightOrdered = new UpstreamHolder(WeightUtil.calculateTotalWeight(orderedUpstream), orderedUpstream);
 
-        this.randomLoadBalancesWeightReversed = Stream.of(50, 40, 10)
+        List<Upstream> reversedUpstream = Stream.of(50, 40, 10)
                 .map(weight -> Upstream.builder()
                         .url("upstream-" + weight)
                         .weight(weight)
                         .build())
                 .collect(Collectors.toList());
+        this.randomLoadBalancesWeightReversed = new UpstreamHolder(WeightUtil.calculateTotalWeight(reversedUpstream), reversedUpstream);
     }
 
     /**

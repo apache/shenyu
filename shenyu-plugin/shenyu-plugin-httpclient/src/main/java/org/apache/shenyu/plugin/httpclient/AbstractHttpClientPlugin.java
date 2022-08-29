@@ -26,6 +26,7 @@ import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -123,7 +124,8 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
             final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
             //always query the latest available list
-            final List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId)
+            UpstreamHolder upstreamHolder = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
+            final List<Upstream> upstreamList = upstreamHolder.getUpstreams()
                     .stream().filter(data -> {
                         final String trimUri = data.getUrl().trim();
                         for (URI needToExclude : exclude) {
@@ -139,7 +141,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 return Mono.error(new ShenyuException(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg()));
             }
             final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-            final Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalance, ip);
+            final Upstream upstream = LoadBalancerFactory.selector(upstreamHolder, loadBalance, ip);
             if (Objects.isNull(upstream)) {
                 // no need to retry anymore
                 return Mono.error(new ShenyuException(ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg()));

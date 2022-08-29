@@ -53,7 +53,7 @@ public class HashLoadBalancer extends AbstractLoadBalancer {
     }
 
     @Override
-    protected Upstream doSelect(UpstreamHolder upstreamHolder, String ip) {
+    protected Upstream doSelect(final UpstreamHolder upstreamHolder, final String ip) {
         final List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         final ConcurrentSkipListMap<Long, Upstream> treeMap = new ConcurrentSkipListMap<>();
         upstreamList.forEach(upstream -> IntStream.range(0, VIRTUAL_NODE_NUM).forEach(i -> {

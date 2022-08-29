@@ -21,7 +21,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
+import org.apache.shenyu.loadbalancer.util.WeightUtil;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -65,7 +67,8 @@ public final class ShenyuSpringCloudServiceChooser {
             // load service from register center
             return this.doSelect(serviceId, ip, loadbalancer);
         }
-        List<Upstream> divideUpstreams = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
+        UpstreamHolder upstreamHolder = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorId);
+        List<Upstream> divideUpstreams = upstreamHolder.getUpstreams();
         // gray flow,but upstream is null
         if (CollectionUtils.isEmpty(divideUpstreams)) {
             return this.doSelect(serviceId, ip, loadbalancer);
@@ -103,7 +106,8 @@ public final class ShenyuSpringCloudServiceChooser {
      * @return ServiceInstance
      */
     private Upstream doSelect(final List<Upstream> upstreamList, final String loadbalancer, final String ip) {
-        return LoadBalancerFactory.selector(upstreamList, loadbalancer, ip);
+        return LoadBalancerFactory.selector(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList)
+                        , upstreamList), loadbalancer, ip);
     }
 
     /**

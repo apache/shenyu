@@ -28,6 +28,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -83,7 +84,8 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        UpstreamHolder upstreamHolder = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        final List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         if (CollectionUtils.isEmpty(upstreamList) || Objects.isNull(shenyuContext)) {
             LOG.error("websocket upstream configuration error：{}", rule);
@@ -91,7 +93,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         }
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
         final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-        Upstream upstream = LoadBalancerFactory.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
+        Upstream upstream = LoadBalancerFactory.selector(upstreamHolder, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(upstream)) {
             LOG.error("websocket has no upstream");
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);

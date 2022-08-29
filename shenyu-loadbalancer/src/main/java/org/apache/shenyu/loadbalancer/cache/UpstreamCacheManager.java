@@ -25,6 +25,7 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.config.ShenyuConfig.UpstreamCheck;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
 
 import java.util.List;
 import java.util.Map;
@@ -117,7 +118,7 @@ public final class UpstreamCacheManager {
      * @param selectorId the selector id
      * @return the list
      */
-    public List<Upstream> findUpstreamListBySelectorId(final String selectorId) {
+    public UpstreamHolder findUpstreamListBySelectorId(final String selectorId) {
         return task.getHealthyUpstream().get(selectorId);
     }
 

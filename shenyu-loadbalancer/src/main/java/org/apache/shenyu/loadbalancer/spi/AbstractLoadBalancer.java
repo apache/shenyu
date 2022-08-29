@@ -32,10 +32,10 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      * Do select upstream.
      * Deprecated
      *
-     * @see AbstractLoadBalancer#doSelect(UpstreamHolder, String)
-     * @param upstreamList
-     * @param ip
-     * @return
+     * @deprecated {@link AbstractLoadBalancer#doSelect(UpstreamHolder, String)}
+     * @param upstreamList  the upstreams
+     * @param ip            the ip
+     * @return the upstream
      */
     @Deprecated
     protected abstract Upstream doSelect(List<Upstream> upstreamList, String ip);
@@ -43,7 +43,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     /**
      * Do select upstream.
      *
-     * @param upstreamHolder warpper of upstream
+     * @param upstreamHolder wrapper of upstream
      * @param ip             the ip
      * @return the upstream
      */
@@ -51,11 +51,11 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     @Override
     public Upstream select(final List<Upstream> upstreamList, final String ip) {
-        return select(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), ip)
+        return select(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), ip);
     }
 
     @Override
-    public Upstream select(UpstreamHolder upstreamHolder, String ip) {
+    public Upstream select(final UpstreamHolder upstreamHolder, final String ip) {
         List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         if (CollectionUtils.isEmpty(upstreamList)) {
             return null;
@@ -67,9 +67,10 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     }
 
     /**
+     * get weight.
      * Deprecated
      *
-     * @see WeightUtil#getWeight(Upstream)
+     * @deprecated {@link WeightUtil#getWeight(Upstream)}
      * @param upstream upstream
      * @return weight
      */
@@ -78,23 +79,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         if (!upstream.isStatus()) {
             return 0;
         }
-        return getWeight(upstream.getTimestamp(), upstream.getWarmup(), upstream.getWeight());
+        return WeightUtil.getWeight(upstream);
     }
 
-    @Deprecated
-    private int getWeight(final long timestamp, final int warmup, final int weight) {
-        if (weight > 0 && timestamp > 0) {
-            int uptime = (int) (System.currentTimeMillis() - timestamp);
-            if (uptime > 0 && uptime < warmup) {
-                return calculateWarmupWeight(uptime, warmup, weight);
-            }
-        }
-        return weight;
-    }
-
-    @Deprecated
-    private int calculateWarmupWeight(final int uptime, final int warmup, final int weight) {
-        int ww = (int) ((float) uptime / ((float) warmup / (float) weight));
-        return ww < 1 ? 1 : (Math.min(ww, weight));
-    }
 }

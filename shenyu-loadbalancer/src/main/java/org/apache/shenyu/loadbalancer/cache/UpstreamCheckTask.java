@@ -24,6 +24,8 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
+import org.apache.shenyu.loadbalancer.util.WeightUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,9 +51,9 @@ public final class UpstreamCheckTask implements Runnable {
      */
     private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckTask.class);
 
-    private final Map<String, List<Upstream>> healthyUpstream = Maps.newConcurrentMap();
+    private final Map<String, UpstreamHolder> healthyUpstream = Maps.newConcurrentMap();
 
-    private final Map<String, List<Upstream>> unhealthyUpstream = Maps.newConcurrentMap();
+    private final Map<String, UpstreamHolder> unhealthyUpstream = Maps.newConcurrentMap();
 
     private final Object lock = new Object();
 
@@ -157,10 +159,10 @@ public final class UpstreamCheckTask implements Runnable {
         check(unhealthyUpstream);
     }
 
-    private void check(final Map<String, List<Upstream>> map) {
-        for (Map.Entry<String, List<Upstream>> entry : map.entrySet()) {
+    private void check(final Map<String, UpstreamHolder> map) {
+        for (Map.Entry<String, UpstreamHolder> entry : map.entrySet()) {
             String key = entry.getKey();
-            List<Upstream> value = entry.getValue();
+            List<Upstream> value = entry.getValue().getUpstreams();
             for (Upstream upstream : value) {
                 CompletableFuture<UpstreamWithSelectorId> future = CompletableFuture.supplyAsync(() -> check(key, upstream), executor);
                 futures.add(future);
@@ -249,20 +251,24 @@ public final class UpstreamCheckTask implements Runnable {
         removeFromMap(unhealthyUpstream, selectorId, upstream);
     }
 
-    private void putToMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
+    private void putToMap(final Map<String, UpstreamHolder> map, final String selectorId, final Upstream upstream) {
         synchronized (lock) {
-            List<Upstream> list = map.computeIfAbsent(selectorId, k -> Lists.newArrayList());
+            UpstreamHolder holder = map.computeIfAbsent(selectorId, k -> new UpstreamHolder());
+            List<Upstream> list = holder.getUpstreams();
             if (!list.contains(upstream)) {
                 list.add(upstream);
+                holder.setTotalWeight(holder.getTotalWeight() + WeightUtil.getWeight(upstream));
             }
         }
     }
 
-    private void removeFromMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
+    private void removeFromMap(final Map<String, UpstreamHolder> map, final String selectorId, final Upstream upstream) {
         synchronized (lock) {
-            List<Upstream> list = map.get(selectorId);
+            UpstreamHolder holder = map.computeIfAbsent(selectorId, k -> new UpstreamHolder());
+            List<Upstream> list = holder.getUpstreams();
             if (CollectionUtils.isNotEmpty(list)) {
                 list.remove(upstream);
+                holder.setTotalWeight(holder.getTotalWeight() - WeightUtil.getWeight(upstream));
             }
         }
     }
@@ -290,7 +296,7 @@ public final class UpstreamCheckTask implements Runnable {
     private void printHealthyUpstream() {
         healthyUpstream.forEach((k, v) -> {
             if (Objects.nonNull(v)) {
-                List<String> list = v.stream().map(Upstream::getUrl).collect(Collectors.toList());
+                List<String> list = v.getUpstreams().stream().map(Upstream::getUrl).collect(Collectors.toList());
                 LOG.info("[Health Check] currently healthy upstream: {}", GsonUtils.getInstance().toJson(list));
             }
         });
@@ -299,7 +305,7 @@ public final class UpstreamCheckTask implements Runnable {
     private void printUnhealthyUpstream() {
         unhealthyUpstream.forEach((k, v) -> {
             if (Objects.nonNull(v)) {
-                List<String> list = v.stream().map(Upstream::getUrl).collect(Collectors.toList());
+                List<String> list = v.getUpstreams().stream().map(Upstream::getUrl).collect(Collectors.toList());
                 LOG.info("[Health Check] currently unhealthy upstream: {}", GsonUtils.getInstance().toJson(list));
             }
         });
@@ -310,7 +316,7 @@ public final class UpstreamCheckTask implements Runnable {
      *
      * @return healthy map.
      */
-    public Map<String, List<Upstream>> getHealthyUpstream() {
+    public Map<String, UpstreamHolder> getHealthyUpstream() {
         return healthyUpstream;
     }
     
@@ -319,7 +325,7 @@ public final class UpstreamCheckTask implements Runnable {
      *
      * @return unhealthy map.
      */
-    public Map<String, List<Upstream>> getUnhealthyUpstream() {
+    public Map<String, UpstreamHolder> getUnhealthyUpstream() {
         return unhealthyUpstream;
     }
 }

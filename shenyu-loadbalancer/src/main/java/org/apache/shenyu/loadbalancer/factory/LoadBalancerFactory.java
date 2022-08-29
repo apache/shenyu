@@ -33,7 +33,7 @@ public class LoadBalancerFactory {
      * Selector upstream.
      * Deprecated
      *
-     * @see LoadBalancerFactory#selector(UpstreamHolder, String, String)
+     * @deprecated {@link LoadBalancerFactory#selector(UpstreamHolder, String, String)}
      * @param upstreamList the upstream list
      * @param algorithm    the loadBalance algorithm
      * @param ip           the ip
@@ -44,6 +44,14 @@ public class LoadBalancerFactory {
         return selector(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), algorithm, ip);
     }
 
+    /**
+     * Selector upstream.
+     *
+     * @param upstreamHolder the wrapper of upstream list
+     * @param algorithm      the loadBalance algorithm
+     * @param ip             the ip
+     * @return the upstream
+     */
     public static Upstream selector(final UpstreamHolder upstreamHolder, final String algorithm, final String ip) {
         LoadBalancer loadBalance = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin(algorithm);
         return loadBalance.select(upstreamHolder, ip);

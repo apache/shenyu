@@ -42,12 +42,12 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
     private final AtomicBoolean updateLock = new AtomicBoolean();
 
     @Override
-    protected Upstream doSelect(final List<Upstream> upstreamList, String ip) {
+    protected Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
         return doSelect(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), ip);
     }
 
     @Override
-    public Upstream doSelect(UpstreamHolder upstreamHolder , final String ip) {
+    public Upstream doSelect(final UpstreamHolder upstreamHolder, final String ip) {
         final List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         String key = upstreamList.get(0).getUrl();
         ConcurrentMap<String, WeightedRoundRobin> map = methodWeightMap.get(key);

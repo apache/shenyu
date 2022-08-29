@@ -39,9 +39,10 @@ public interface LoadBalancer {
     Upstream select(UpstreamHolder upstreamHolder, String ip);
 
     /**
+     * this is select one for upstream list.
      * Deprecated
-     * @see LoadBalancer#select(UpstreamHolder, String)
      *
+     * @deprecated {@link LoadBalancer#select(UpstreamHolder, String)}
      * @param upstreamList upstream list
      * @param ip ip
      * @return upstream

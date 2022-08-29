@@ -39,7 +39,7 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
     }
 
     @Override
-    protected Upstream doSelect(UpstreamHolder upstreamHolder, String ip) {
+    protected Upstream doSelect(final UpstreamHolder upstreamHolder, final String ip) {
         final List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         int totalWeight = upstreamHolder.getTotalWeight();
         boolean sameWeight = isAllUpStreamSameWeight(upstreamList);

@@ -18,6 +18,8 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
+import org.apache.shenyu.loadbalancer.util.WeightUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,11 +39,11 @@ public final class HashLoadBalanceTest {
 
     private Method hash;
 
-    private List<Upstream> hashLoadBalancesOrdered;
+    private UpstreamHolder hashLoadBalancesOrdered;
 
-    private List<Upstream> hashLoadBalancesDisordered;
+    private UpstreamHolder hashLoadBalancesDisordered;
 
-    private List<Upstream> hashLoadBalancesReversed;
+    private UpstreamHolder hashLoadBalancesReversed;
 
     private ConcurrentSkipListMap<Long, Upstream> treeMapOrdered;
 
@@ -53,39 +55,36 @@ public final class HashLoadBalanceTest {
     public void setUp() throws Exception {
         this.hash = HashLoadBalancer.class.getDeclaredMethod("hash", String.class);
         this.hash.setAccessible(true);
-        this.hashLoadBalancesOrdered = Stream.of(1, 2, 3)
-                .map(weight -> Upstream.builder()
-                        .url("upstream-" + weight)
-                        .build())
+        List<Upstream> orderedUpstream = Stream.of(1, 2, 3)
+                .map(weight -> Upstream.builder().url("upstream-" + weight).build())
                 .collect(Collectors.toList());
-        this.hashLoadBalancesDisordered = Stream.of(2, 1, 3)
-                .map(weight -> Upstream.builder()
-                        .url("upstream-" + weight)
-                        .build())
+        this.hashLoadBalancesOrdered = new UpstreamHolder(WeightUtil.calculateTotalWeight(orderedUpstream), orderedUpstream);
+        List<Upstream> disorderedUpstream = Stream.of(2, 1, 3)
+                .map(weight -> Upstream.builder().url("upstream-" + weight).build())
                 .collect(Collectors.toList());
-        this.hashLoadBalancesReversed = Stream.of(3, 2, 1)
-                .map(weight -> Upstream.builder()
-                        .url("upstream-" + weight)
-                        .build())
+        this.hashLoadBalancesDisordered = new UpstreamHolder(WeightUtil.calculateTotalWeight(disorderedUpstream), disorderedUpstream);
+        List<Upstream> reversedUpstream = Stream.of(3, 2, 1)
+                .map(weight -> Upstream.builder().url("upstream-" + weight).build())
                 .collect(Collectors.toList());
+        this.hashLoadBalancesReversed = new UpstreamHolder(WeightUtil.calculateTotalWeight(reversedUpstream), reversedUpstream);
         this.treeMapOrdered = new ConcurrentSkipListMap<>();
         this.treeMapDisordered = new ConcurrentSkipListMap<>();
         this.treeMapReversed = new ConcurrentSkipListMap<>();
-        for (Upstream address : hashLoadBalancesOrdered) {
+        for (Upstream address : hashLoadBalancesOrdered.getUpstreams()) {
             for (int i = 0; i < 5; i++) {
                 String hashKey = "SHENYU-" + address.getUrl() + "-HASH-" + i;
                 Object o = hash.invoke(null, hashKey);
                 treeMapOrdered.put(Long.parseLong(o.toString()), address);
             }
         }
-        for (Upstream address : hashLoadBalancesReversed) {
+        for (Upstream address : hashLoadBalancesReversed.getUpstreams()) {
             for (int i = 0; i < 5; i++) {
                 String hashKey = "SHENYU-" + address.getUrl() + "-HASH-" + i;
                 Object o = hash.invoke(null, hashKey);
                 treeMapReversed.put(Long.parseLong(o.toString()), address);
             }
         }
-        for (Upstream address : hashLoadBalancesDisordered) {
+        for (Upstream address : hashLoadBalancesDisordered.getUpstreams()) {
             for (int i = 0; i < 5; i++) {
                 String hashKey = "SHENYU-" + address.getUrl() + "-HASH-" + i;
                 Object o = hash.invoke(null, hashKey);
