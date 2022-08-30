@@ -45,11 +45,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * The type Spring cloud client event listener.
@@ -124,7 +126,7 @@ public class SpringCloudClientEventListener implements ApplicationListener<Conte
         final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
         // Compatible with previous versions
         if (Objects.nonNull(beanShenyuClient) && superPath.contains("*")) {
-            publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath)));
+            publisher.publishEvent(buildMetaDataDTO(beanShenyuClient, pathJoin(contextPath, superPath), clazz, null));
             return;
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
@@ -135,7 +137,7 @@ public class SpringCloudClientEventListener implements ApplicationListener<Conte
             // the result of ReflectionUtils#getUniqueDeclaredMethods contains methods such as hashCode, wait, toSting
             // add Objects.nonNull(requestMapping) to make sure not register wrong method
             if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
-                publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath, methodShenyuClient)));
+                publisher.publishEvent(buildMetaDataDTO(methodShenyuClient, buildApiPath(method, superPath, methodShenyuClient), clazz, method));
             }
         }
     }
@@ -202,7 +204,8 @@ public class SpringCloudClientEventListener implements ApplicationListener<Conte
         return result.toString();
     }
     
-    private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringCloudClient shenyuSpringCloudClient, final String path) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringCloudClient shenyuSpringCloudClient,
+                                                 final String path, final Class<?> clazz, final Method method) {
         String appName = env.getProperty("spring.application.name");
         String desc = shenyuSpringCloudClient.desc();
         String configRuleName = shenyuSpringCloudClient.ruleName();
@@ -210,8 +213,15 @@ public class SpringCloudClientEventListener implements ApplicationListener<Conte
         return MetaDataRegisterDTO.builder()
                 .contextPath(StringUtils.defaultIfBlank(this.contextPath, this.servletContextPath))
                 .appName(appName)
+                .serviceName(clazz.getName())
+                .methodName(Optional.ofNullable(method).map(Method::getName).orElse(null))
                 .path(path)
                 .pathDesc(desc)
+                .parameterTypes(Optional.ofNullable(method)
+                        .map(m -> Arrays.stream(m.getParameterTypes())
+                                .map(Class::getName)
+                                .collect(Collectors.joining(","))
+                        ).orElse(null))
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .enabled(shenyuSpringCloudClient.enabled())
                 .ruleName(ruleName)

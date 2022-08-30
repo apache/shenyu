@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  * The interface shenyu service.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target(ElementType.TYPE)
 @Service
 @Inherited
 @ShenyuDubboClient

@@ -83,7 +83,7 @@ public class RoleControllerTest {
 
     @Test
     public void testSelectAll() throws Exception {
-        given(roleService.selectAll()).willReturn(Collections.EMPTY_LIST);
+        given(roleService.selectAll()).willReturn(Collections.emptyList());
         this.mockMvc.perform(MockMvcRequestBuilders.get("/role/getAllRoles"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
