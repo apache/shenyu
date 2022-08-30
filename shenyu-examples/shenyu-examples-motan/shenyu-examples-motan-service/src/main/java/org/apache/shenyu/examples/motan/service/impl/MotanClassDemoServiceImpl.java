@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.examples.motan.service.impl;
 
-import com.weibo.api.motan.config.springsupport.annotation.MotanService;
-import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanSerive;
 import org.apache.shenyu.examples.motan.service.MotanClassDemoService;
 import org.apache.shenyu.springboot.starter.client.motan.ShenyuMotanClientConfiguration;
@@ -29,8 +27,6 @@ import org.apache.shenyu.springboot.starter.client.motan.ShenyuMotanClientConfig
  * <P>Default motan service name is "motan2", If you want to inject other services,
  * please refer to {@link ShenyuMotanClientConfiguration}
  */
-@MotanService(export = "motan2:8002")
-@ShenyuMotanClient("/demoTest/**")
 @ShenyuMotanSerive("/demoTest/**")
 public class MotanClassDemoServiceImpl implements MotanClassDemoService {
 
