@@ -27,11 +27,14 @@ import java.util.Optional;
  * The type Shenyu plugin path builder.
  */
 public final class ShenyuPluginPathBuilder {
-    
+
     private static final String PLUGIN_PATH = "plugin-ext";
     
     private static final String DEFAULT_EXT_PLUGIN_PATH = "/ext-lib/";
-    
+
+    private ShenyuPluginPathBuilder() {
+    }
+
     /**
      * Gets plugin file.
      *
