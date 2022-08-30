@@ -28,8 +28,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -49,10 +49,10 @@ class RuntimeUtilsTest {
         try (MockedStatic<SystemUtils> systemUtilsMockedStatic = mockStatic(SystemUtils.class)) {
             systemUtilsMockedStatic.when(SystemUtils::getCurrentPID).thenReturn("0");
             systemUtilsMockedStatic.when(SystemUtils::isWindows).thenReturn(true);
-            assertTrue(RuntimeUtils.listenByOther(wireMockServer.port()));
+            assertDoesNotThrow(() -> RuntimeUtils.listenByOther(wireMockServer.port()));
 
             systemUtilsMockedStatic.when(SystemUtils::isWindows).thenReturn(false);
-            assertFalse(RuntimeUtils.listenByOther(wireMockServer.port()));
+            assertDoesNotThrow(() -> RuntimeUtils.listenByOther(wireMockServer.port()));
         }
         try (MockedStatic<Runtime> runtimeMockedStatic = mockStatic(Runtime.class)) {
             runtimeMockedStatic.when(Runtime::getRuntime).thenThrow(RuntimeException.class);
