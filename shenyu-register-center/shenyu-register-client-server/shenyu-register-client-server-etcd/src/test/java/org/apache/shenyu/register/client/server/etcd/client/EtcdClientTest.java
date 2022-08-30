@@ -181,7 +181,6 @@ public class EtcdClientTest {
             final Method subscribeChildChanges = EtcdClient.class.getDeclaredMethod("subscribeChildChanges", String.class, EtcdListenHandler.class);
             subscribeChildChanges.setAccessible(true);
             final EtcdListenHandler etcdListenHandler = mock(EtcdListenHandler.class);
-
             subscribeChildChanges.invoke(etcdClient, "path", etcdListenHandler);
 
             final Watch watch = mock(Watch.class);
@@ -199,17 +198,13 @@ public class EtcdClientTest {
             when(keyValue.getValue()).thenReturn(ByteSequence.fromString("value"));
             when(watchEvent.getKeyValue()).thenReturn(keyValue);
             subscribeChildChanges.invoke(etcdClient, "path", etcdListenHandler);
-
             when(keyValue.getKey()).thenReturn(ByteSequence.fromString("key"));
-
             // hit EventType.PUT
             when(watchEvent.getEventType()).thenReturn(WatchEvent.EventType.PUT);
             subscribeChildChanges.invoke(etcdClient, "path", etcdListenHandler);
-
             // hit EventType.DELETE
             when(watchEvent.getEventType()).thenReturn(WatchEvent.EventType.DELETE);
             subscribeChildChanges.invoke(etcdClient, "path", etcdListenHandler);
-
             // hit EventType.UNRECOGNIZED
             when(watchEvent.getEventType()).thenReturn(WatchEvent.EventType.UNRECOGNIZED);
             subscribeChildChanges.invoke(etcdClient, "path", etcdListenHandler);

@@ -169,7 +169,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
     @Test
     public void nacosConfigServiceTest() {
-        try (final MockedStatic<NacosFactory> nacosFactoryMockedStatic = mockStatic(NacosFactory.class)) {
+        try (MockedStatic<NacosFactory> nacosFactoryMockedStatic = mockStatic(NacosFactory.class)) {
             final NacosProperties nacosProperties = new NacosProperties();
             final NacosProperties.NacosACMProperties nacosACMProperties = new NacosProperties.NacosACMProperties();
             nacosProperties.setAcm(nacosACMProperties);
