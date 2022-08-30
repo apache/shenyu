@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLPrepareInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLQueryInterceptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,5 +39,25 @@ public class MapperConfigTest {
     public void testPostgreSQLQueryInterceptor() {
         PostgreSQLQueryInterceptor postgreSQLQueryInterceptor = mapperConfig.postgreSqlQueryInterceptor();
         assertNotNull(postgreSQLQueryInterceptor);
+    }
+
+    @Test
+    public void postgreSqlPrepareInterceptorTest() {
+        assertNotNull(mapperConfig.postgreSqlPrepareInterceptor());
+    }
+
+    @Test
+    public void oracleSqlPrepareInterceptorTest() {
+        assertNotNull(mapperConfig.oracleSqlPrepareInterceptor());
+    }
+
+    @Test
+    public void oracleSqlUpdateInterceptorTest() {
+        assertNotNull(mapperConfig.oracleSqlUpdateInterceptor());
+    }
+
+    @Test
+    public void postgreSqlUpdateInterceptorTest() {
+        assertNotNull(mapperConfig.postgreSqlUpdateInterceptor());
     }
 }
