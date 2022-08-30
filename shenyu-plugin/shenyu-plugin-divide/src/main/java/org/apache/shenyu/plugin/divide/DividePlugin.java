@@ -81,12 +81,12 @@ public class DividePlugin extends AbstractShenyuPlugin {
             }
         }
         UpstreamHolder upstreamHolder = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
-        List<Upstream> upstreamList = upstreamHolder.getUpstreams();
-        if (CollectionUtils.isEmpty(upstreamList)) {
+        if (Objects.isNull(upstreamHolder) || CollectionUtils.isEmpty(upstreamHolder.getUpstreams())) {
             LOG.error("divide upstream configuration error： {}", rule);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
+        List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         Upstream upstream = LoadBalancerFactory.selector(upstreamHolder, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(upstream)) {

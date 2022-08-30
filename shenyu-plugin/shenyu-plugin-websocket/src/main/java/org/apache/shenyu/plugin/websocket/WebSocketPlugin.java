@@ -85,9 +85,8 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         UpstreamHolder upstreamHolder = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
-        final List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        if (CollectionUtils.isEmpty(upstreamList) || Objects.isNull(shenyuContext)) {
+        if (Objects.isNull(upstreamHolder) || CollectionUtils.isEmpty(upstreamHolder.getUpstreams()) || Objects.isNull(shenyuContext)) {
             LOG.error("websocket upstream configuration error：{}", rule);
             return chain.execute(exchange);
         }

@@ -106,8 +106,8 @@ public final class ShenyuSpringCloudServiceChooser {
      * @return ServiceInstance
      */
     private Upstream doSelect(final List<Upstream> upstreamList, final String loadbalancer, final String ip) {
-        return LoadBalancerFactory.selector(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList)
-                        , upstreamList), loadbalancer, ip);
+        return LoadBalancerFactory.selector(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList),
+                loadbalancer, ip);
     }
 
     /**

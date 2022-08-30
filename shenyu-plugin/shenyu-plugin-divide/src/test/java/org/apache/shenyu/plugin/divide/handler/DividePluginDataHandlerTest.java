@@ -25,6 +25,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -105,7 +106,7 @@ public final class DividePluginDataHandlerTest {
     public void removeSelectorTest() {
         dividePluginDataHandler.handlerSelector(selectorData);
         dividePluginDataHandler.removeSelector(selectorData);
-        List<Upstream> result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler").getUpstreams();
+        UpstreamHolder result = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("handler");
         assertNull(result);
     }
 

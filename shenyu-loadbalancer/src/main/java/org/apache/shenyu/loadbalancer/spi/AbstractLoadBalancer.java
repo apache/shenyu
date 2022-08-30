@@ -18,6 +18,8 @@
 package org.apache.shenyu.loadbalancer.spi;
 
 import java.util.List;
+import java.util.Objects;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
@@ -56,10 +58,10 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     @Override
     public Upstream select(final UpstreamHolder upstreamHolder, final String ip) {
-        List<Upstream> upstreamList = upstreamHolder.getUpstreams();
-        if (CollectionUtils.isEmpty(upstreamList)) {
+        if (Objects.isNull(upstreamHolder) || CollectionUtils.isEmpty(upstreamHolder.getUpstreams())) {
             return null;
         }
+        List<Upstream> upstreamList = upstreamHolder.getUpstreams();
         if (upstreamList.size() == 1) {
             return upstreamList.get(0);
         }

@@ -17,32 +17,15 @@
 
 package org.apache.shenyu.loadbalancer.factory;
 
-import java.util.List;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.entity.UpstreamHolder;
 import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
-import org.apache.shenyu.loadbalancer.util.WeightUtil;
 import org.apache.shenyu.spi.ExtensionLoader;
 
 /**
  * The type Load balance Factory.
  */
 public class LoadBalancerFactory {
-
-    /**
-     * Selector upstream.
-     * Deprecated
-     *
-     * @deprecated {@link LoadBalancerFactory#selector(UpstreamHolder, String, String)}
-     * @param upstreamList the upstream list
-     * @param algorithm    the loadBalance algorithm
-     * @param ip           the ip
-     * @return the upstream
-     */
-    @Deprecated
-    public static Upstream selector(final List<Upstream> upstreamList, final String algorithm, final String ip) {
-        return selector(new UpstreamHolder(WeightUtil.calculateTotalWeight(upstreamList), upstreamList), algorithm, ip);
-    }
 
     /**
      * Selector upstream.
