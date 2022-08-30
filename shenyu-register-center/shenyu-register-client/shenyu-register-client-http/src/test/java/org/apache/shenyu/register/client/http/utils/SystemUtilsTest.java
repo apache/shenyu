@@ -19,6 +19,7 @@ package org.apache.shenyu.register.client.http.utils;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
 import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -34,11 +35,16 @@ class SystemUtilsTest {
     void getOsNameTest() {
         final Properties properties = System.getProperties();
         try {
-            final Properties mock = mock(Properties.class);
-            System.setProperties(mock);
-            when(mock.getProperty(anyString())).thenThrow(SecurityException.class);
-            SystemUtils.getOsName();
+            final Optional<String> osName = SystemUtils.getOsName();
+            if (osName.isPresent() && !osName.get().toLowerCase().contains("mac")) {
+                final Properties mock = mock(Properties.class);
+                System.setProperties(mock);
+                when(mock.getProperty(anyString())).thenThrow(SecurityException.class);
+                SystemUtils.getOsName();
+            }
         } catch (Exception e) {
+            System.setProperties(properties);
+        } finally {
             System.setProperties(properties);
         }
     }
