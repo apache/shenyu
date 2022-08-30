@@ -49,7 +49,7 @@ jobs:
       - uses: dorny/paths-filter@v2
         id: filter
         with:
-          filters: '.github/workflows/filters.yml'
+          filters: '.github/filters.yml'
           list-files: json
       - name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
