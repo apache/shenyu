@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
+import org.apache.shenyu.admin.model.dto.DashboardUserModifyPasswordDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
@@ -104,4 +105,12 @@ public interface DashboardUserService {
      * @return {@linkplain LoginDashboardUserVO}
      */
     LoginDashboardUserVO login(String userName, String password);
+
+    /**
+     * modify password.
+     *
+     * @param dashboardUserModifyPasswordDTO {@linkplain DashboardUserModifyPasswordDTO}
+     * @return rows
+     */
+    int modifyPassword(DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO);
 }
