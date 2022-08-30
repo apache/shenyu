@@ -33,6 +33,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
 @MotanService
+@ShenyuMotanClient
 public @interface ShenyuMotanService {
 
     /**
@@ -250,4 +251,43 @@ public @interface ShenyuMotanService {
      */
     @AliasFor(annotation = MotanService.class)
     String codec() default "";
+
+    /**
+     * Path string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = ShenyuMotanClient.class)
+    String value() default "";
+
+    /**
+     * Path string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = ShenyuMotanClient.class)
+    String path() default "";
+    /**
+     * Rule name string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = ShenyuMotanClient.class)
+    String ruleName() default "";
+
+    /**
+     * Desc string.
+     *
+     * @return String string
+     */
+    @AliasFor(annotation = ShenyuMotanClient.class)
+    String desc() default "";
+
+    /**
+     * Enabled boolean.
+     *
+     * @return the boolean
+     */
+    @AliasFor(annotation = ShenyuMotanClient.class)
+    boolean enabled() default true;
 }
