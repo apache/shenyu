@@ -107,7 +107,6 @@ public final class ConsulSyncDataServiceTest {
         consulSyncDataService.close();
     }
 
-
     @Test
     public void testWatchConfigKeyValues() throws NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
         final Method watchConfigKeyValues = ConsulSyncDataService.class.getDeclaredMethod("watchConfigKeyValues");
