@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.motan.common.annotation;
 
+import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
@@ -31,45 +32,222 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
-@ShenyuMotanClient
+@MotanService
 public @interface ShenyuMotanService {
 
     /**
-     * Path string.
+     * interface class.
+     *
+     * @return class
+     */
+    @AliasFor(annotation = MotanService.class)
+    Class<?> interfaceClass() default void.class;
+
+    /**
+     *  basic service string.
      *
      * @return the string
      */
-    @AliasFor(annotation = ShenyuMotanClient.class)
-    String value() default "";
+    @AliasFor(annotation = MotanService.class)
+    String basicService() default "";
 
     /**
-     * Path string.
+     * export string.
      *
      * @return the string
      */
-    @AliasFor(annotation = ShenyuMotanClient.class)
-    String path() default "";
+    @AliasFor(annotation = MotanService.class)
+    String export() default "";
+
     /**
-     * Rule name string.
+     * export string.
      *
      * @return the string
      */
-    @AliasFor(annotation = ShenyuMotanClient.class)
-    String ruleName() default "";
+    @AliasFor(annotation = MotanService.class)
+    String host() default "";
 
     /**
-     * Desc string.
+     * protocol string.
      *
-     * @return String string
+     * @return the string
      */
-    @AliasFor(annotation = ShenyuMotanClient.class)
-    String desc() default "";
+    @AliasFor(annotation = MotanService.class)
+    String protocol() default "";
 
     /**
-     * Enabled boolean.
+     * methods strings.
+     *
+     * @return strings
+     */
+    @AliasFor(annotation = MotanService.class)
+    String[] methods() default {};
+
+    /**
+     * registry string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = MotanService.class)
+    String registry() default "";
+
+    /**
+     * extConfig string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = MotanService.class)
+    String extConfig() default "";
+
+    /**
+     * application string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = MotanService.class)
+    String application() default "";
+
+    /**
+     * module string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = MotanService.class)
+    String module() default "";
+
+    /**
+     * group string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = MotanService.class)
+    String group() default "";
+
+    /**
+     * version string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = MotanService.class)
+    String version() default "";
+
+    /**
+     * proxy string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = MotanService.class)
+    String proxy() default "";
+
+    /**
+     * filter string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = MotanService.class)
+    String filter() default "";
+
+    /**
+     * actives int.
+     *
+     * @return the int
+     */
+    @AliasFor(annotation = MotanService.class)
+    int actives() default 0;
+
+    /**
+     * async boolean.
      *
      * @return the boolean
      */
-    @AliasFor(annotation = ShenyuMotanClient.class)
-    boolean enabled() default true;
+    @AliasFor(annotation = MotanService.class)
+    boolean async() default false;
+
+    /**
+     * mock string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = MotanService.class)
+    String mock() default "";
+
+    /**
+     * shareChannel boolean.
+     *
+     * @return the boolean
+     */
+    @AliasFor(annotation = MotanService.class)
+    boolean shareChannel() default false;
+
+    /**
+     * throwException boolean.
+     *
+     * @return the boolean
+     */
+    @AliasFor(annotation = MotanService.class)
+    boolean throwException() default false;
+
+    /**
+     * requestTimeout int.
+     *
+     * @return the int
+     */
+    @AliasFor(annotation = MotanService.class)
+    int requestTimeout() default 0;
+
+    /**
+     * register boolean.
+     *
+     * @return the boolean
+     */
+    @AliasFor(annotation = MotanService.class)
+    boolean register() default false;
+
+    /**
+     * accessLog boolean.
+     *
+     * @return the boolean
+     */
+    @AliasFor(annotation = MotanService.class)
+    boolean accessLog() default false;
+
+    /**
+     * check boolean.
+     *
+     * @return the boolean
+     */
+    @AliasFor(annotation = MotanService.class)
+    boolean check() default false;
+
+    /**
+     * retries int.
+     *
+     * @return the int
+     */
+    @AliasFor(annotation = MotanService.class)
+    int retries() default 0;
+
+    /**
+     * usegz boolean.
+     *
+     * @return the boolean
+     */
+    @AliasFor(annotation = MotanService.class)
+    boolean usegz() default false;
+
+    /**
+     * mingzSize int.
+     *
+     * @return the int
+     */
+    @AliasFor(annotation = MotanService.class)
+    int mingzSize() default 0;
+
+    /**
+     * codec string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = MotanService.class)
+    String codec() default "";
 }
