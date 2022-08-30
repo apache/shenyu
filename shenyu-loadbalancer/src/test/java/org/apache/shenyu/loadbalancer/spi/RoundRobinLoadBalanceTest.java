@@ -98,4 +98,26 @@ public final class RoundRobinLoadBalanceTest {
         });
         assertEquals(60, countMap.get("upstream-50").intValue());
     }
+
+    @Test
+    public void roundRobinLoadBalanceTest() {
+        List<Upstream> upstreamList =
+                Stream.of(50, 30, 20)
+                        .map(weight -> Upstream.builder()
+                                .url("upstream-" + weight)
+                                .weight(weight)
+                                .build())
+                        .collect(Collectors.toList());
+        List<Upstream> upstreamList2 =
+                Stream.of(50, 40, 20)
+                        .map(weight -> Upstream.builder()
+                                .url("upstream-" + weight)
+                                .weight(1)
+                                .build())
+                        .collect(Collectors.toList());
+
+        RoundRobinLoadBalancer roundRobinLoadBalancer = new RoundRobinLoadBalancer();
+        roundRobinLoadBalancer.select(upstreamList, "");
+        roundRobinLoadBalancer.select(upstreamList2, "");
+    }
 }
