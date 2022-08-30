@@ -19,6 +19,9 @@ on:
   push:
     branches: [ "master" ]
     tags: [ 'v*.*.*' ]
+    paths:
+      - '!**.md'
+      - '!**/resources/static/'
 
 env:
   REGISTRY: ghcr.io
@@ -38,12 +41,8 @@ jobs:
         with:
           submodules: true
 
-      - name: Set Skip Env Var
-        uses: ./.github/actions/skip-ci
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
-        if: env.SKIP_CI != 'true'
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -51,18 +50,14 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-        if: env.SKIP_CI != 'true'
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-        if: env.SKIP_CI != 'true'
 
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
-        if: env.SKIP_CI != 'true'
 
       - name: Cache Maven Repos
-        if: env.SKIP_CI != 'true'
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
@@ -71,17 +66,14 @@ jobs:
             ${{ runner.os }}-maven-
 
       - uses: actions/setup-java@v1
-        if: env.SKIP_CI != 'true'
         with:
           java-version: 8
 
       - name: Build with Maven
-        if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
 
       - name: Build and push (admin) (ghcr.io)
         uses: docker/build-push-action@v3
-        if: env.SKIP_CI != 'true'
         with:
           context: ./shenyu-dist/shenyu-admin-dist
           build-args: APP_NAME=apache-shenyu-*-admin-bin
@@ -93,7 +85,6 @@ jobs:
 
       - name: Build and push (bootstrap) (ghcr.io)
         uses: docker/build-push-action@v3
-        if: env.SKIP_CI != 'true'
         with:
           context: ./shenyu-dist/shenyu-bootstrap-dist
           build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
