@@ -37,6 +37,7 @@ jobs:
           - shenyu-integrated-test-websocket
           - shenyu-integrated-test-combination
     runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
     steps:
       - uses: actions/checkout@v2
         with:

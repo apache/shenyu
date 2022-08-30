@@ -29,6 +29,7 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
 
     strategy:
       fail-fast: false

@@ -39,6 +39,7 @@ jobs:
           - java: 16
             os: ubuntu-latest
     runs-on: ${{ matrix.os }}
+    if: (github.repository == 'apache/shenyu')
     steps:
       - name: Support longpaths
         if: ${{ matrix.os == 'windows-latest'}}
