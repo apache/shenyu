@@ -31,7 +31,6 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
