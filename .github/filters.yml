@@ -1,0 +1,10 @@
+changed:
+  - "!**/{\
+    *.md,*.txt,\
+    resources/static/**,\
+    .asf.yaml,.gitignore,.licenserc.yaml,\
+    LICENSE,NOTICE,\
+    .github/(ISSUE_TEMPLATE/**|PULL_REQUEST_TEMPLATE)\
+    }"
+pom:
+  - "**/pom.xml"

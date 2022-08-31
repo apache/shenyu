@@ -24,13 +24,16 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -39,14 +42,19 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 
 /**
  * The TestCase for {@link ConsulClientServerRegisterRepository}.
@@ -108,7 +116,29 @@ public class ConsulServerRegisterRepositoryTest {
                     context.publishEvent(new ConsulConfigChangedEvent(this, 1L, mateData));
                     ConsulConfigChangedEvent consulConfigChangedEvent = new ConsulConfigChangedEvent(this, 1L, mateData);
                     context.publishEvent(consulConfigChangedEvent);
+                    Assertions.assertEquals(consulConfigChangedEvent.getConsulIndex(), 1L);
                 });
+    }
+
+    @Test
+    public void initTest() {
+        final MockedConstruction<ConsulClient> consulClientMockedConstruction = mockConstruction(ConsulClient.class);
+        ConsulClientServerRegisterRepository consulServerRegisterRepository = new ConsulClientServerRegisterRepository();
+        final ShenyuClientServerRegisterPublisher shenyuClientServerRegisterPublisher = mock(ShenyuClientServerRegisterPublisher.class);
+        final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = mock(ShenyuRegisterCenterConfig.class);
+        consulServerRegisterRepository.init(shenyuClientServerRegisterPublisher, shenyuRegisterCenterConfig);
+        consulClientMockedConstruction.close();
+    }
+
+    @Test
+    public void publishRegisterURITest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        final ConsulClientServerRegisterRepository consulServerRegisterRepository = new ConsulClientServerRegisterRepository();
+        final Method publishRegisterURI = ConsulClientServerRegisterRepository.class.getDeclaredMethod("publishRegisterURI", String.class, List.class);
+        publishRegisterURI.setAccessible(true);
+        Field fieldPublisher = ConsulClientServerRegisterRepository.class.getDeclaredField("publisher");
+        fieldPublisher.setAccessible(true);
+        fieldPublisher.set(consulServerRegisterRepository, mockPublish());
+        publishRegisterURI.invoke(consulServerRegisterRepository, "http", new ArrayList<>());
     }
     
     private DataTypeParent localAny() {

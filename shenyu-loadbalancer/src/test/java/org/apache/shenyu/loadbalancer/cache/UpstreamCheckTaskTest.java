@@ -89,6 +89,7 @@ public class UpstreamCheckTaskTest {
         healthCheckTask.run();
         Awaitility.await().pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> assertFalse(healthCheckTask.getCheckStarted().get()));
         assertTrue(healthCheckTask.getHealthyUpstream().get(selectorId1).size() > 0);
+        healthCheckTask.print();
     }
     
     /**

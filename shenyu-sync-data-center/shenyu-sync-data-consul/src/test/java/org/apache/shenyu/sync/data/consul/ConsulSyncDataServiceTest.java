@@ -24,6 +24,7 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import org.apache.shenyu.common.constant.ConsulConstants;
 import org.apache.shenyu.sync.data.consul.config.ConsulConfig;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,14 +33,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -100,5 +105,42 @@ public final class ConsulSyncDataServiceTest {
     @AfterEach
     public void testStop() {
         consulSyncDataService.close();
+    }
+
+    @Test
+    public void testWatchConfigKeyValues() throws NoSuchMethodException, IllegalAccessException, NoSuchFieldException {
+        final Method watchConfigKeyValues = ConsulSyncDataService.class.getDeclaredMethod("watchConfigKeyValues");
+        watchConfigKeyValues.setAccessible(true);
+
+        final Field consul = ConsulSyncDataService.class.getDeclaredField("consulClient");
+        consul.setAccessible(true);
+        final ConsulClient consulClient = mock(ConsulClient.class);
+        consul.set(consulSyncDataService, consulClient);
+        final Response<List<GetValue>> response = mock(Response.class);
+
+        when(consulClient.getKVValues(any(), any(), any())).thenReturn(response);
+
+        Assertions.assertDoesNotThrow(() -> watchConfigKeyValues.invoke(consulSyncDataService));
+
+        List<GetValue> getValues = new ArrayList<>(1);
+        getValues.add(mock(GetValue.class));
+        when(response.getValue()).thenReturn(getValues);
+        Assertions.assertDoesNotThrow(() -> watchConfigKeyValues.invoke(consulSyncDataService));
+
+        when(response.getConsulIndex()).thenReturn(2L);
+        Assertions.assertDoesNotThrow(() -> watchConfigKeyValues.invoke(consulSyncDataService));
+
+        when(response.getConsulIndex()).thenReturn(null);
+        Assertions.assertDoesNotThrow(() -> watchConfigKeyValues.invoke(consulSyncDataService));
+
+        when(response.getConsulIndex()).thenReturn(0L);
+        Assertions.assertDoesNotThrow(() -> watchConfigKeyValues.invoke(consulSyncDataService));
+
+        final Field consulIndexes = ConsulSyncDataService.class.getDeclaredField("consulIndexes");
+        consulIndexes.setAccessible(true);
+        final Map<String, Long> consulIndexesSource = (Map<String, Long>) consulIndexes.get(consulSyncDataService);
+        consulIndexesSource.put("/null", null);
+        when(response.getConsulIndex()).thenReturn(2L);
+        Assertions.assertDoesNotThrow(() -> watchConfigKeyValues.invoke(consulSyncDataService));
     }
 }

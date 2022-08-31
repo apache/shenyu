@@ -42,9 +42,11 @@ public final class SecretPropertiesTest extends AbstractConfigurationTest {
         if (LOG.isDebugEnabled()) {
             LOG.debug("RandomKey is: " + randomKey);
         }
-        load(SecretPropertiesConfiguration.class, "shenyu.aes.secret.key=" + randomKey);
+        load(SecretPropertiesConfiguration.class, "shenyu.aes.secret.key=" + randomKey,
+                "shenyu.aes.secret.iv=" + randomKey);
         SecretProperties secretProperties = getContext().getBean(SecretProperties.class);
         Assertions.assertEquals(secretProperties.getKey(), randomKey);
+        Assertions.assertEquals(secretProperties.getIv(), randomKey);
     }
     
     @Configuration

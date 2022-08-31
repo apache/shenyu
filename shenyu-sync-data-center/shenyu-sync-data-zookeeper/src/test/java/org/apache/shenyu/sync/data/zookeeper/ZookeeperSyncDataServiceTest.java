@@ -98,7 +98,7 @@ public final class ZookeeperSyncDataServiceTest {
             }
         }, Collections.emptyList(), Collections.emptyList());
         // wait for listener taking action
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(subscribeList.size(), is(1));
         assertThat(subscribeList.get(0).getName(), is("divide"));
     }
@@ -116,7 +116,7 @@ public final class ZookeeperSyncDataServiceTest {
         PluginData pluginData = PluginData.builder().name(MOCK_PLUGIN_NAME).enabled(Boolean.FALSE).build();
         zkClient.createOrUpdate(MOCK_PLUGIN_PATH, pluginData, CreateMode.PERSISTENT);
         // wait for listener taking action
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(subscribeList.size(), is(1));
         assertThat(subscribeList.get(0).getName(), is("divide"));
     }
@@ -133,10 +133,10 @@ public final class ZookeeperSyncDataServiceTest {
                 unSubscribeList.add(pluginData);
             }
         }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
+        Thread.sleep(200);
         zkClient.delete(MOCK_PLUGIN_PATH);
         // wait for listener taking action
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(unSubscribeList.size(), is(1));
         assertThat(unSubscribeList.get(0).getName(), is("divide"));
     }
@@ -152,7 +152,7 @@ public final class ZookeeperSyncDataServiceTest {
                 subscribeList.add(selectorData);
             }
         }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(subscribeList.size(), is(1));
         assertThat(subscribeList.get(0).getName(), is("test"));
     }
@@ -168,9 +168,9 @@ public final class ZookeeperSyncDataServiceTest {
                 subscribeList.add(selectorData);
             }
         }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
+        Thread.sleep(200);
         zkClient.createOrUpdate(MOCK_SELECTOR_PATH, selectorData, CreateMode.PERSISTENT);
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(subscribeList.size(), is(2));
         assertThat(subscribeList.get(0).getName(), is("test"));
     }
@@ -186,9 +186,9 @@ public final class ZookeeperSyncDataServiceTest {
                 unSubscribeList.add(selectorData);
             }
         }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
+        Thread.sleep(200);
         zkClient.delete(MOCK_SELECTOR_PATH);
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(unSubscribeList.size(), is(1));
         assertThat(unSubscribeList.get(0).getId(), is("test"));
     }
@@ -204,7 +204,7 @@ public final class ZookeeperSyncDataServiceTest {
                 subscribeList.add(data);
             }
         }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(subscribeList.size(), is(1));
         assertThat(subscribeList.get(0).getName(), is(MOCK_RULE_NAME));
     }
@@ -220,9 +220,9 @@ public final class ZookeeperSyncDataServiceTest {
                 subscribeList.add(data);
             }
         }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
+        Thread.sleep(200);
         zkClient.createOrUpdate(MOCK_RULE_PATH, ruleData, CreateMode.PERSISTENT);
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(subscribeList.size(), is(2));
         assertThat(subscribeList.get(0).getName(), is(MOCK_RULE_NAME));
     }
@@ -238,9 +238,9 @@ public final class ZookeeperSyncDataServiceTest {
                 unSubscribeList.add(data);
             }
         }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
+        Thread.sleep(200);
         zkClient.delete(MOCK_RULE_PATH);
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(unSubscribeList.size(), is(1));
         assertThat(unSubscribeList.get(0).getSelectorId() + DefaultPathConstants.SELECTOR_JOIN_RULE + unSubscribeList.get(0).getId(), is(MOCK_RULE_NAME));
     }
@@ -262,7 +262,7 @@ public final class ZookeeperSyncDataServiceTest {
         };
         syncDataService = new ZookeeperSyncDataService(zkClient,
                 null, Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(subscribeList.size(), is(1));
     }
 
@@ -283,10 +283,10 @@ public final class ZookeeperSyncDataServiceTest {
         };
         syncDataService = new ZookeeperSyncDataService(zkClient,
                 null, Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
-        Thread.sleep(500);
+        Thread.sleep(200);
         appAuthData.setEnabled(true);
         zkClient.createOrUpdate(MOCK_APP_AUTH_PATH, appAuthData, CreateMode.PERSISTENT);
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(subscribeList.size(), is(2));
         assertTrue(subscribeList.get(1).getEnabled());
     }
@@ -308,9 +308,9 @@ public final class ZookeeperSyncDataServiceTest {
         };
         syncDataService = new ZookeeperSyncDataService(zkClient,
                 null, Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
-        Thread.sleep(500);
+        Thread.sleep(200);
         zkClient.delete(MOCK_APP_AUTH_PATH);
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(unSubscribeList.size(), is(1));
         assertThat(unSubscribeList.get(0).getAppKey(), is(MOCK_APP_AUTH_KEY));
     }
@@ -332,7 +332,7 @@ public final class ZookeeperSyncDataServiceTest {
         };
         syncDataService = new ZookeeperSyncDataService(zkClient,
                 null, Lists.newArrayList(metaDataSubscriber), Collections.emptyList());
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(subscribeList.size(), is(1));
     }
 
@@ -353,10 +353,10 @@ public final class ZookeeperSyncDataServiceTest {
         };
         syncDataService = new ZookeeperSyncDataService(zkClient,
                 null, Lists.newArrayList(metaDataSubscriber), Collections.emptyList());
-        Thread.sleep(500);
+        Thread.sleep(200);
         metaData.setEnabled(true);
         zkClient.createOrUpdate(MOCK_META_DATA_PATH, metaData, CreateMode.PERSISTENT);
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(subscribeList.size(), is(2));
         assertTrue(subscribeList.get(1).getEnabled());
     }
@@ -378,9 +378,9 @@ public final class ZookeeperSyncDataServiceTest {
         };
         syncDataService = new ZookeeperSyncDataService(zkClient,
                 null, Lists.newArrayList(metaDataSubscriber), Collections.emptyList());
-        Thread.sleep(500);
+        Thread.sleep(200);
         zkClient.delete(MOCK_META_DATA_PATH);
-        Thread.sleep(500);
+        Thread.sleep(200);
         assertThat(unSubscribeList.size(), is(1));
         assertThat(unSubscribeList.get(0).getPath(), is(MOCK_META_DATA_ID));
     }
