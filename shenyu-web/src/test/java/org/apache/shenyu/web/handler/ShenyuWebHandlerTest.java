@@ -36,6 +36,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -78,7 +79,7 @@ public final class ShenyuWebHandlerTest {
         exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
         Mono<Void> handle = shenyuWebHandler.handle(exchange);
-        assertNotNull(handle);
+        StepVerifier.create(handle).expectSubscription().verifyComplete();
     }
 
     @Test
@@ -86,6 +87,22 @@ public final class ShenyuWebHandlerTest {
         shenyuWebHandler.putExtPlugins(Collections.emptyList());
         shenyuWebHandler.putExtPlugins(Collections.singletonList(new TestPlugin2()));
         shenyuWebHandler.putExtPlugins(Collections.singletonList(new TestPlugin3()));
+    }
+
+    @Test
+    public void scheduledEnableTest() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
+                .remoteAddress(new InetSocketAddress(8090))
+                .build());
+        ShenyuConfig shenyuConfig = new ShenyuConfig();
+        shenyuConfig.getScheduler().setEnabled(true);
+        ShenyuWebHandler shenyuWebHandler1 = new ShenyuWebHandler(listPlugins, shenyuConfig);
+        Mono<Void> handle = shenyuWebHandler1.handle(exchange);
+        assertNotNull(handle);
+        shenyuConfig.getScheduler().setType("elastic");
+        ShenyuWebHandler shenyuWebHandler2 = new ShenyuWebHandler(listPlugins, shenyuConfig);
+        Mono<Void> handle2 = shenyuWebHandler2.handle(exchange);
+        assertNotNull(handle2);
     }
 
     @Test
@@ -173,7 +190,7 @@ public final class ShenyuWebHandlerTest {
 
         @Override
         public boolean skip(final ServerWebExchange exchange) {
-            return ShenyuPlugin.super.skip(exchange);
+            return true;
         }
     }
 

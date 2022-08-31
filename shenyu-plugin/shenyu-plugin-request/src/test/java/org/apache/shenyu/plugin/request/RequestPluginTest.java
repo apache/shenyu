@@ -18,6 +18,9 @@
 package org.apache.shenyu.plugin.request;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
@@ -41,10 +44,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -129,6 +137,12 @@ public class RequestPluginTest {
         assertFalse(httpHeaders.containsKey("removeKey"));
         assertTrue(httpHeaders.containsKey(HttpHeaders.COOKIE));
 
+        LinkedMultiValueMap<String, String> cookies = getCookieMapFromHeader(httpHeaders);
+        assertTrue(checkMapSizeAndEqualVal(cookies, "addKey", "addValue"));
+        assertTrue(checkMapSizeAndEqualVal(cookies, "newKey", "oldValue"));
+        assertTrue(checkMapSizeAndEqualVal(cookies, "setKey", "newValue"));
+        assertFalse(cookies.containsKey("removeKey"));
+
         MultiValueMap<String, String> queryParams = request.getQueryParams();
         assertNotNull(queryParams);
         assertTrue(checkMapSizeAndEqualVal(queryParams, "addKey", "addValue"));
@@ -148,6 +162,15 @@ public class RequestPluginTest {
             return false;
         }
         return value.equals(headersOrParams.get(key).get(0));
+    }
+
+    private LinkedMultiValueMap<String, String> getCookieMapFromHeader(final HttpHeaders httpHeaders) {
+        List<String> cookies = httpHeaders.get(HttpHeaders.COOKIE);
+        return new LinkedMultiValueMap<>(ListUtils.emptyIfNull(cookies).stream().map(cookiePair -> cookiePair.split(";"))
+                .flatMap(s ->
+                        Arrays.stream(s).filter(cookie -> cookie.split("=").length == 2)
+                                .map(cookie -> Pair.of(cookie.split("=")[0].trim(), Lists.newArrayList(cookie.split("=")[1].trim()))))
+                .collect(Collectors.toMap(Pair::getKey, Pair::getValue, (k, v) -> k)));
     }
 
     @Test

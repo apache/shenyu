@@ -20,13 +20,14 @@ package org.apache.shenyu.admin.controller;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
-import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
@@ -50,6 +51,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 
 import static org.hamcrest.core.Is.is;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -76,11 +78,7 @@ public final class SelectorControllerTest {
     
     @Mock
     private PluginMapper pluginMapper;
-
-    private final PageParameter pageParameter = new PageParameter();
-
-    private final SelectorQuery selectorQuery = new SelectorQuery("2", "selector-1", pageParameter);
-
+    
     private final SelectorVO selectorVO = new SelectorVO("1", "2", "selector-1", MatchModeEnum.AND.getCode(),
             MatchModeEnum.AND.getName(), SelectorTypeEnum.FULL_FLOW.getCode(), SelectorTypeEnum.FULL_FLOW.getName(),
             1, true, true, true, "handle", Collections.emptyList(),
@@ -93,11 +91,16 @@ public final class SelectorControllerTest {
         this.mockMvc = MockMvcBuilders.standaloneSetup(selectorController)
                 .setControllerAdvice(new ExceptionHandlers())
                 .build();
+        // mock login user
+        final UserInfo mockLoginUser = new UserInfo();
+        mockLoginUser.setUserId("1");
+        mockLoginUser.setUserName("admin");
+        SessionUtil.setLocalVisitor(mockLoginUser);
     }
 
     @Test
     public void querySelectors() throws Exception {
-        given(this.selectorService.listByPageWithPermission(selectorQuery)).willReturn(commonPager);
+        given(this.selectorService.searchByPageToPager(any())).willReturn(commonPager);
         String urlTemplate = "/selector?pluginId={pluginId}&name={name}&currentPage={currentPage}&pageSize={pageSize}";
         this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "2", "selector-1", 1, 12))
                 .andExpect(status().isOk())

@@ -69,7 +69,7 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
     @Override
     public <T extends CommonUpstream> List<T> updateStatusAndFilter(final List<T> existList, final List<? extends CommonUpstream> aliveList) {
         if (aliveList == null) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         long currentTimeMillis = System.currentTimeMillis();
         List<T> validExistList = existList.stream()
