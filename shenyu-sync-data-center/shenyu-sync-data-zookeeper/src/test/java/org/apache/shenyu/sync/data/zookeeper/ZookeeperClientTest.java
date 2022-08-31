@@ -56,11 +56,6 @@ class ZookeeperClientTest {
         ZookeeperConfig config = new ZookeeperConfig(server.getConnectString());
         config.setNamespace("namespace");
         config.setDigest("digest");
-        config.setConnectionTimeoutMilliseconds(0);
-        config.setMaxSleepTimeMilliseconds(0);
-        config.setSessionTimeoutMilliseconds(0);
-        config.setBaseSleepTimeMilliseconds(0);
-        config.setMaxRetries(3);
         client = new ZookeeperClient(config);
         client.start();
     }
@@ -172,6 +167,18 @@ class ZookeeperClientTest {
         client.addCache("/test");
         cache = client.getCache("/test");
         assertNotNull(cache);
+    }
+
+    @Test
+    void configTest() {
+        ZookeeperConfig config = new ZookeeperConfig(server.getConnectString());
+        config.setNamespace("namespace");
+        config.setDigest("digest");
+        config.setConnectionTimeoutMilliseconds(0);
+        config.setMaxSleepTimeMilliseconds(0);
+        config.setSessionTimeoutMilliseconds(0);
+        config.setBaseSleepTimeMilliseconds(0);
+        config.setMaxRetries(3);
     }
 
     @Test
