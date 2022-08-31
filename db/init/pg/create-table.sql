@@ -70,8 +70,8 @@ COMMENT ON COLUMN "public"."app_auth"."app_secret" IS 'encryption algorithm secr
 COMMENT ON COLUMN "public"."app_auth"."user_id" IS 'user id';
 COMMENT ON COLUMN "public"."app_auth"."phone" IS 'phone number when the user applies';
 COMMENT ON COLUMN "public"."app_auth"."ext_info" IS 'extended parameter json';
-COMMENT ON COLUMN "public"."app_auth"."open" IS 'open auth path or not';
-COMMENT ON COLUMN "public"."app_auth"."enabled" IS 'delete or not';
+COMMENT ON COLUMN "public"."app_auth"."open" IS 'open auth path or not (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."app_auth"."enabled" IS 'delete or not (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."app_auth"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."app_auth"."date_updated" IS 'update time';
 
@@ -121,7 +121,7 @@ COMMENT ON COLUMN "public"."auth_path"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."auth_path"."auth_id" IS 'auth table id';
 COMMENT ON COLUMN "public"."auth_path"."app_name" IS 'module';
 COMMENT ON COLUMN "public"."auth_path"."path" IS 'path';
-COMMENT ON COLUMN "public"."auth_path"."enabled" IS 'whether pass 1 is';
+COMMENT ON COLUMN "public"."auth_path"."enabled" IS 'whether pass 1 is (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."auth_path"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."auth_path"."date_updated" IS 'update time';
 
@@ -147,7 +147,7 @@ COMMENT ON COLUMN "public"."dashboard_user"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."dashboard_user"."user_name" IS 'user name';
 COMMENT ON COLUMN "public"."dashboard_user"."password" IS 'user password';
 COMMENT ON COLUMN "public"."dashboard_user"."role" IS 'role';
-COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not';
+COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."dashboard_user"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."dashboard_user"."date_updated" IS 'update time';
 
@@ -211,7 +211,7 @@ COMMENT ON COLUMN "public"."meta_data"."parameter_types" IS 'parameter types are
 COMMENT ON COLUMN "public"."meta_data"."rpc_ext" IS 'rpc extended information, json format';
 COMMENT ON COLUMN "public"."meta_data"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."meta_data"."date_updated" IS 'update time';
-COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state';
+COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state (0 close, 1 open) ';
 
 -- ----------------------------
 -- Records of meta_data
@@ -1337,8 +1337,8 @@ COMMENT ON COLUMN "public"."rule"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."rule"."selector_id" IS 'selector id';
 COMMENT ON COLUMN "public"."rule"."match_mode" IS 'matching mode (0 and 1 or)';
 COMMENT ON COLUMN "public"."rule"."name" IS 'rule name';
-COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open';
-COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not';
+COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."rule"."sort" IS 'sort';
 COMMENT ON COLUMN "public"."rule"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."rule"."date_created" IS 'create time';
@@ -1402,8 +1402,8 @@ COMMENT ON COLUMN "public"."selector"."match_mode" IS 'matching mode (0 and 1 or
 COMMENT ON COLUMN "public"."selector"."type" IS 'type (0, full flow, 1 custom flow)';
 COMMENT ON COLUMN "public"."selector"."sort" IS 'sort';
 COMMENT ON COLUMN "public"."selector"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
-COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open';
-COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log';
+COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."selector"."continued" IS 'whether to continue execution';
 COMMENT ON COLUMN "public"."selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."selector"."date_updated" IS 'update time';
@@ -1464,7 +1464,7 @@ COMMENT ON COLUMN "public"."shenyu_dict"."dict_name" IS 'dictionary name';
 COMMENT ON COLUMN "public"."shenyu_dict"."dict_value" IS 'dictionary value';
 COMMENT ON COLUMN "public"."shenyu_dict"."desc" IS 'dictionary description or remarks';
 COMMENT ON COLUMN "public"."shenyu_dict"."sort" IS 'sort';
-COMMENT ON COLUMN "public"."shenyu_dict"."enabled" IS 'whether it is enabled';
+COMMENT ON COLUMN "public"."shenyu_dict"."enabled" IS 'whether it is enabled (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."shenyu_dict"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."shenyu_dict"."date_updated" IS 'update time';
 
