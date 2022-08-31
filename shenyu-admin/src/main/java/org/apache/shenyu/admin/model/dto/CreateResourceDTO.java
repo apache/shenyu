@@ -45,7 +45,6 @@ public class CreateResourceDTO {
     /**
      * resource url.
      */
-    @NotBlank
     private String url;
 
     /**
