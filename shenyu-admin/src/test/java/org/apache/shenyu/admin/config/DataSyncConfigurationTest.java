@@ -181,7 +181,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
             nacosProperties.setUsername("username");
             nacosProperties.setPassword("password");
             Assertions.assertDoesNotThrow(() -> nacosListener.nacosConfigService(nacosProperties));
-            nacosACMProperties.setEnabled(false);
+            nacosACMProperties.setEnabled(true);
             nacosACMProperties.setEndpoint("acm.aliyun.com");
             nacosACMProperties.setAccessKey("accessKey");
             nacosACMProperties.setNamespace("namespace");
