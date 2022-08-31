@@ -28,6 +28,7 @@ env:
 jobs:
   dockerhub:
     runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
     permissions:
       contents: read
       packages: write
