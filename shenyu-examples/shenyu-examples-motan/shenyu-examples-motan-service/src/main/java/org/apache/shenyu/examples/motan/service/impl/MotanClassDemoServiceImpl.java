@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.examples.motan.service.impl;
 
-import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanService;
 import org.apache.shenyu.examples.motan.service.MotanClassDemoService;
 import org.apache.shenyu.springboot.starter.client.motan.ShenyuMotanClientConfiguration;
