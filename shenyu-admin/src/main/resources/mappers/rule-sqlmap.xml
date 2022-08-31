@@ -160,6 +160,12 @@
                     #{id, jdbcType=VARCHAR}
                 </foreach>
             </if>
+            <if test="condition.userId != null and condition.userId != ''">
+                AND exists(select true
+                    from data_permission
+                    where data_id = rule.id
+                        and user_id = #{condition.userId})
+            </if>
         </where>
     </select>
 

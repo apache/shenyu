@@ -290,7 +290,7 @@ public class SwaggerDocParser implements DocParser {
 
     private List<String> jsonArrayToStringList(final JsonArray jsonArray) {
         if (Objects.isNull(jsonArray)) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         List<String> list = new ArrayList<>(jsonArray.size());
         for (JsonElement jsonElement : jsonArray) {

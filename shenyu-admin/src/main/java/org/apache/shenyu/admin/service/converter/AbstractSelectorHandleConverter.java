@@ -72,7 +72,6 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
             return Collections.emptyList();
         }
         long currentTimeMillis = System.currentTimeMillis();
-        
         List<T> validExistList = existList.stream()
                 .filter(e -> e.isStatus() || e.getTimestamp() > currentTimeMillis - TimeUnit.SECONDS.toMillis(UpstreamCheckService.getZombieRemovalTimes())
                         || aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(e.getUpstreamUrl())))

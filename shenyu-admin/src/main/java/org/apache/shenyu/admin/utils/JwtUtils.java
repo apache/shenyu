@@ -36,11 +36,14 @@ import java.util.Optional;
  * JWT tools.
  */
 public final class JwtUtils {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(JwtUtils.class);
-
+    
     private static final long TOKEN_EXPIRE_SECONDS = 24 * 60 * 60 * 1000L;
-
+    
+    private JwtUtils() {
+    }
+    
     /**
      * according to token to get isUserInfo.
      *
@@ -49,7 +52,7 @@ public final class JwtUtils {
     public static UserInfo getUserInfo() {
         return (UserInfo) SecurityUtils.getSubject().getPrincipal();
     }
-
+    
     /**
      * according to token to get issuer.
      *
@@ -60,23 +63,23 @@ public final class JwtUtils {
         DecodedJWT jwt = JWT.decode(token);
         return Optional.of(jwt).map(item -> item.getClaim("userName").asString()).orElse("");
     }
-
+    
     /**
      * generate jwt token.
      *
      * @param userName login's userName
-     * @param key secretKey
+     * @param key      secretKey
      * @return token
      */
     public static String generateToken(final String userName, final String key) {
         return generateToken(userName, key, null);
     }
-
+    
     /**
      * generate jwt token.
      *
-     * @param userName login's userName
-     * @param key secretKey
+     * @param userName      login's userName
+     * @param key           secretKey
      * @param expireSeconds expireSeconds
      * @return token
      */
@@ -91,7 +94,7 @@ public final class JwtUtils {
         }
         return StringUtils.EMPTY_STRING;
     }
-
+    
     public static boolean verifyToken(final String token, final String key) {
         try {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(key)).build();

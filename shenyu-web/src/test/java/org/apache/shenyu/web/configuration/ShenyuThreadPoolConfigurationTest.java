@@ -24,6 +24,7 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.web.controller.TestObjectProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -35,7 +36,6 @@ import org.springframework.context.event.ContextClosedEvent;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -87,8 +87,9 @@ public class ShenyuThreadPoolConfigurationTest {
         when(sharedPool.getMaximumPoolSize()).thenReturn(1);
         when(sharedPool.getKeepAliveTime()).thenReturn(60L);
         when(sharedPool.getPrefix()).thenReturn("TEST-");
-        when(objectProvider.getIfAvailable(any())).thenReturn(new MemorySafeTaskQueue<>(Constants.THE_256_MB));
-        assertNotNull(shenyuThreadPoolConfiguration.shenyuThreadPoolExecutor(shenyuConfig, objectProvider));
+        when(objectProvider.getIfAvailable()).thenReturn(null);
+        assertNotNull(shenyuThreadPoolConfiguration.shenyuThreadPoolExecutor(shenyuConfig, new TestObjectProvider<>(null)));
+        assertNotNull(shenyuThreadPoolConfiguration.shenyuThreadPoolExecutor(shenyuConfig, new TestObjectProvider<>(new MemorySafeTaskQueue<>(Constants.THE_256_MB))));
     }
 
     @Test
