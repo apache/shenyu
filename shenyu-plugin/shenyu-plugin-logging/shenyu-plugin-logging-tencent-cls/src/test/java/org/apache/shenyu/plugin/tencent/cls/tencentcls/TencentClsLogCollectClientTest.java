@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.tencent.cls.tencentcls;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.tencent.cls.client.TencentClsLogCollectClient;
 import org.apache.shenyu.plugin.tencent.cls.config.TencentLogCollectConfig;
@@ -30,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * test cases for TencentClsLogCollectClient.
@@ -38,9 +36,7 @@ import java.util.Properties;
 public class TencentClsLogCollectClientTest {
 
     private TencentClsLogCollectClient tencentClsLogCollectClient;
-
-    private final Properties props = new Properties();
-
+    
     private final PluginData pluginData = new PluginData();
 
     private TencentLogCollectConfig.TencentClsLogConfig tencentClsLogConfig;
@@ -57,11 +53,6 @@ public class TencentClsLogCollectClientTest {
                 + "\"endpoint\":\"ap-guangzhou.cls.tencentcs.com\"}");
         tencentClsLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
                 TencentLogCollectConfig.TencentClsLogConfig.class);
-        props.setProperty(GenericLoggingConstant.SECRET_ID, tencentClsLogConfig.getSecretId().trim());
-        props.setProperty(GenericLoggingConstant.SECRET_KEY, tencentClsLogConfig.getSecretKey().trim());
-        props.setProperty(GenericLoggingConstant.ENDPOINT, tencentClsLogConfig.getEndpoint().trim());
-        props.setProperty(GenericLoggingConstant.TOPIC, tencentClsLogConfig.getTopic().trim());
-        props.setProperty(GenericLoggingConstant.SEND_THREAD_COUNT, String.valueOf(tencentClsLogConfig.getSendThreadCount()));
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
         shenyuRequestLog.setRequestUri("org/apache/shenyu/plugin/logging");
@@ -70,7 +61,7 @@ public class TencentClsLogCollectClientTest {
 
     @Test
     public void testInitClient() throws NoSuchFieldException, IllegalAccessException {
-        tencentClsLogCollectClient.initClient(props);
+        tencentClsLogCollectClient.initClient(tencentClsLogConfig);
         Field field = tencentClsLogCollectClient.getClass().getDeclaredField("topic");
         field.setAccessible(true);
         Assertions.assertEquals(field.get(tencentClsLogCollectClient), "shenyu-topic-test");
@@ -81,7 +72,7 @@ public class TencentClsLogCollectClientTest {
     public void testConsume() {
         String msg = "";
         TencentLogCollectConfig.INSTANCE.setTencentClsLogConfig(tencentClsLogConfig);
-        tencentClsLogCollectClient.initClient(props);
+        tencentClsLogCollectClient.initClient(tencentClsLogConfig);
         try {
             tencentClsLogCollectClient.consume(logs);
         } catch (Exception e) {

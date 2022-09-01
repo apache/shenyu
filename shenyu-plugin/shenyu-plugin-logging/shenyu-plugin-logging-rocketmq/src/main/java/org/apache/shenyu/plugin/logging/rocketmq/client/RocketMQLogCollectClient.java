@@ -76,7 +76,8 @@ public class RocketMQLogCollectClient implements LogConsumeClient<RocketMQLogCol
         }
         String topic = config.getTopic();
         String nameserverAddress = config.getNamesrvAddr();
-        String producerGroup = Optional.ofNullable(config.getProducerGroup()).orElse(DEFAULT_PRODUCER_GROUP);
+        String producerGroup = config.getProducerGroup();
+        producerGroup = Optional.ofNullable(producerGroup).orElse(DEFAULT_PRODUCER_GROUP);
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init RocketMQLogCollectClient error, please check topic or nameserverAddress");
             return;

@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq.config;
 
-import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
-
 import java.util.Optional;
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
 /**
  * log collect config, include rocketmq config.
@@ -62,9 +62,9 @@ public class RocketMQLogCollectConfig {
         private String namesrvAddr;
 
         private String producerGroup;
-        
+
         private String accessKey;
-        
+
         private String secretKey;
 
         /**
@@ -105,6 +105,7 @@ public class RocketMQLogCollectConfig {
 
         /**
          * get rocketmq nameserver address.
+         *
          * @return rocketmq nameserver address
          */
         public String getNamesrvAddr() {
@@ -113,6 +114,7 @@ public class RocketMQLogCollectConfig {
 
         /**
          * set rocketmq nameserver address.
+         *
          * @param namesrvAddr rocketmq nameserver address
          */
         public void setNamesrvAddr(final String namesrvAddr) {
@@ -121,6 +123,7 @@ public class RocketMQLogCollectConfig {
 
         /**
          * get producer group.
+         *
          * @return producer group
          */
         public String getProducerGroup() {
@@ -129,6 +132,7 @@ public class RocketMQLogCollectConfig {
 
         /**
          * set producer group.
+         *
          * @param producerGroup producer group
          */
         public void setProducerGroup(final String producerGroup) {
@@ -137,6 +141,7 @@ public class RocketMQLogCollectConfig {
 
         /**
          * get accessKey.
+         *
          * @return accessKey
          */
         public String getAccessKey() {
@@ -145,6 +150,7 @@ public class RocketMQLogCollectConfig {
 
         /**
          * set accessKey.
+         *
          * @param accessKey accessKey
          */
         public void setAccessKey(final String accessKey) {
@@ -153,6 +159,7 @@ public class RocketMQLogCollectConfig {
 
         /**
          * get secretKey.
+         *
          * @return secretKey
          */
         public String getSecretKey() {
@@ -161,6 +168,7 @@ public class RocketMQLogCollectConfig {
 
         /**
          * set secretKey.
+         *
          * @param secretKey secretKey
          */
         public void setSecretKey(final String secretKey) {
@@ -171,52 +179,6 @@ public class RocketMQLogCollectConfig {
     /**
      * api log config.
      */
-    public static class LogApiConfig {
-
-        /**
-         * 0 means never sample, 1 means always sample. Minimum probability is 0.01, or 1% of logging
-         */
-        private String sampleRate;
-
-        /**
-         * This topic is useful if you use message queuing to collect logs.
-         */
-        private String topic;
-
-        /**
-         * get sample rate.
-         *
-         * @return sample rate
-         */
-        public String getSampleRate() {
-            return sampleRate;
-        }
-
-        /**
-         * set sample rate.
-         *
-         * @param sampleRate sample rate
-         */
-        public void setSampleRate(final String sampleRate) {
-            this.sampleRate = sampleRate;
-        }
-
-        /**
-         * get mq topic.
-         *
-         * @return mq topic
-         */
-        public String getTopic() {
-            return topic;
-        }
-
-        /**
-         * set  mq topic.
-         *
-         * @param topic mq topic
-         */
-        public void setTopic(final String topic) {
-            this.topic = topic;
-        }
+    public static class LogApiConfig extends GenericApiConfig {
     }
 }
