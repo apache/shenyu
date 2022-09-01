@@ -17,27 +17,38 @@
 
 package org.apache.shenyu.register.client.nacos;
 
+import com.alibaba.nacos.api.PropertyKeyConst;
+import com.alibaba.nacos.api.config.ConfigFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
+import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -108,7 +119,7 @@ public class NacosClientRegisterRepositoryTest {
     }
 
     @Test
-    public void testPersistInterface() {
+    public void testPersistInterface() throws NacosException {
         final MetaDataRegisterDTO data = MetaDataRegisterDTO.builder()
                 .rpcType("http")
                 .host("host")
@@ -121,10 +132,16 @@ public class NacosClientRegisterRepositoryTest {
         assertTrue(nacosBroker.containsKey(configPath));
         String dataStr = GsonUtils.getInstance().toJson(data);
         assertEquals(nacosBroker.get(configPath), GsonUtils.getInstance().toJson(Collections.singletonList(dataStr)));
+
+        doThrow(NacosException.class).when(configService).publishConfig(any(), any(), any());
+        Assertions.assertThrows(ShenyuException.class, () -> repository.persistInterface(data));
+
+        doReturn(false).when(configService).publishConfig(any(), any(), any());
+        Assertions.assertThrows(ShenyuException.class, () -> repository.persistInterface(data));
     }
     
     @Test
-    public void testPersistUri() {
+    public void testPersistUri() throws NacosException {
         final URIRegisterDTO data = URIRegisterDTO.builder()
                 .rpcType("http")
                 .host("host")
@@ -138,5 +155,36 @@ public class NacosClientRegisterRepositoryTest {
         assertEquals(instance.getIp(), data.getHost());
         Map<String, String> metadataMap = instance.getMetadata();
         assertEquals(metadataMap.get("uriMetadata"), GsonUtils.getInstance().toJson(data));
+
+        doThrow(NacosException.class).when(namingService).registerInstance(any(), any());
+        Assertions.assertThrows(ShenyuException.class, () -> repository.persistURI(data));
+    }
+
+    @Test
+    public void initTest() throws NacosException {
+        ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
+        config.setServerLists("http://localhost:8089");
+        Properties configProps = config.getProps();
+        configProps.setProperty("nacosNameSpace", PropertyKeyConst.NAMESPACE);
+        configProps.setProperty(PropertyKeyConst.USERNAME, PropertyKeyConst.USERNAME);
+        configProps.setProperty(PropertyKeyConst.PASSWORD, PropertyKeyConst.PASSWORD);
+        configProps.setProperty(PropertyKeyConst.ACCESS_KEY, PropertyKeyConst.ACCESS_KEY);
+        configProps.setProperty(PropertyKeyConst.SECRET_KEY, PropertyKeyConst.SECRET_KEY);
+
+        MockedStatic<ConfigFactory> configFactoryMockedStatic = mockStatic(ConfigFactory.class);
+        MockedStatic<NamingFactory> namingFactoryMockedStatic = mockStatic(NamingFactory.class);
+        ConfigService configService = mock(ConfigService.class);
+        configFactoryMockedStatic.when(() -> ConfigFactory.createConfigService(any(Properties.class))).thenReturn(configService);
+        namingFactoryMockedStatic.when(() -> NamingFactory.createNamingService(any(Properties.class))).thenReturn(mock(NamingService.class));
+        this.repository = new NacosClientRegisterRepository(config);
+        Assertions.assertDoesNotThrow(() -> this.repository.init(config));
+        Assertions.assertDoesNotThrow(() -> this.repository.close());
+        doThrow(NacosException.class).when(configService).shutDown();
+        configFactoryMockedStatic.when(() -> ConfigFactory.createConfigService(any(Properties.class))).thenThrow(NacosException.class);
+        // hit error
+        Assertions.assertDoesNotThrow(() -> this.repository.close());
+        Assertions.assertThrows(ShenyuException.class, () -> this.repository.init(config));
+        configFactoryMockedStatic.close();
+        namingFactoryMockedStatic.close();
     }
 }
