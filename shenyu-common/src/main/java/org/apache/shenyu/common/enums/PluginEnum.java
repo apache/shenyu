@@ -143,9 +143,19 @@ public enum PluginEnum {
     LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
 
     /**
+     * Logging Tencent cls enums.
+     */
+    LOGGING_TENCENT_CLS(176, 0, "loggingTencentCls"),
+
+    /**
      * Logging Kafka plugin enum.
      */
     LOGGING_KAFKA(180, 0, "loggingKafka"),
+
+    /**
+     * Logging Pulsar plugin enum.
+     */
+    LOGGING_PULSAR(185, 0, "loggingPulsar"),
 
     /**
      * Logging ElasticSearch plugin enum.

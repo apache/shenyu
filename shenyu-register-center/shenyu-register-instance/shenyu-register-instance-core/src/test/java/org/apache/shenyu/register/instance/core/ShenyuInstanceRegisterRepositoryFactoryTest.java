@@ -18,14 +18,18 @@
 package org.apache.shenyu.register.instance.core;
 
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.spi.ExtensionLoader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 public final class ShenyuInstanceRegisterRepositoryFactoryTest {
 
@@ -40,5 +44,11 @@ public final class ShenyuInstanceRegisterRepositoryFactoryTest {
     @Test
     public void testNewInstance() {
         assertNotNull(ShenyuInstanceRegisterRepositoryFactory.newInstance("zookeeper"));
+        try (MockedStatic<ExtensionLoader> extensionLoaderMockedStatic = mockStatic(ExtensionLoader.class)) {
+            ExtensionLoader extensionLoader = mock(ExtensionLoader.class);
+            extensionLoaderMockedStatic.when(() -> ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class)).thenReturn(extensionLoader);
+            when(extensionLoader.getJoin("zs")).thenReturn(mock(ShenyuInstanceRegisterRepository.class));
+            assertNotNull(ShenyuInstanceRegisterRepositoryFactory.newInstance("zs"));
+        }
     }
 }

@@ -17,20 +17,32 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.ClientBuilder;
+import io.etcd.jetcd.Lease;
+import io.etcd.jetcd.lease.LeaseGrantResponse;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 public final class EtcdInstanceRegisterRepositoryTest {
 
@@ -81,5 +93,28 @@ public final class EtcdInstanceRegisterRepositoryTest {
         assertTrue(etcdBroker.containsKey(realNode));
         assertEquals(GsonUtils.getInstance().toJson(data), etcdBroker.get(realNode));
         repository.close();
+    }
+
+    @Test
+    public void initTest() {
+        try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
+            final ClientBuilder clientBuilder = mock(ClientBuilder.class);
+            clientMockedStatic.when(Client::builder).thenReturn(clientBuilder);
+            when(clientBuilder.endpoints(anyString())).thenReturn(clientBuilder);
+            final Client client = mock(Client.class);
+            when(clientBuilder.endpoints(anyString()).build()).thenReturn(client);
+            final Lease lease = mock(Lease.class);
+            when(client.getLeaseClient()).thenReturn(lease);
+            final CompletableFuture<LeaseGrantResponse> completableFuture = mock(CompletableFuture.class);
+            final LeaseGrantResponse leaseGrantResponse = mock(LeaseGrantResponse.class);
+
+            when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
+            when(completableFuture.get()).thenReturn(leaseGrantResponse);
+            final ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+            config.setServerLists("url");
+            Assertions.assertDoesNotThrow(() -> repository.init(config));
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
     }
 }
