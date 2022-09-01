@@ -306,7 +306,7 @@ public class AliyunLogCollectConfig {
                     && Objects.equals(getSendThreadCount(), that.getSendThreadCount())
                     && Objects.equals(getShardCount(), that.getShardCount())
                     && Objects.equals(getTopic(), that.getTopic())
-                    && Objects.equals(getTtlInDay(), that.getTtlInDay()));
+                    && Objects.equals(getTtlInDay(), that.getTtlInDay());
         }
 
         @Override
