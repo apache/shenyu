@@ -69,14 +69,14 @@ public class LoggingKafkaPluginDataHandlerTest {
     }
 
     @Test
-    public void testHandlerSelector() throws NoSuchFieldException, IllegalAccessException {
+    public void testHandlerSelector() {
         loggingKafkaPluginDataHandler.handlerSelector(selectorData);
         Assertions.assertEquals(AbstractPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
         Assertions.assertNotEquals(AbstractPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
     }
 
     @Test
-    public void testRemoveSelector() throws NoSuchFieldException, IllegalAccessException {
+    public void testRemoveSelector() {
         loggingKafkaPluginDataHandler.handlerSelector(selectorData);
         Assertions.assertEquals(AbstractPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
         Assertions.assertNotEquals(AbstractPluginDataHandler.getSelectApiConfigMap().toString(), "{}");

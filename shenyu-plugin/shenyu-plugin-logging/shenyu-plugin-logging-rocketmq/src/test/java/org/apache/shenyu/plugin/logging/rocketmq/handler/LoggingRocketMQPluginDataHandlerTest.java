@@ -71,14 +71,14 @@ public class LoggingRocketMQPluginDataHandlerTest {
     }
 
     @Test
-    public void testHandlerSelector() throws NoSuchFieldException, IllegalAccessException {
+    public void testHandlerSelector() {
         loggingRocketMQPluginDataHandler.handlerSelector(selectorData);
         Assertions.assertEquals(AbstractPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
         Assertions.assertNotEquals(AbstractPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
     }
 
     @Test
-    public void testRemoveSelector() throws NoSuchFieldException, IllegalAccessException {
+    public void testRemoveSelector() {
         loggingRocketMQPluginDataHandler.handlerSelector(selectorData);
         Assertions.assertEquals(AbstractPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
         Assertions.assertNotEquals(AbstractPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
