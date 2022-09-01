@@ -17,19 +17,16 @@
 
 package org.apache.shenyu.plugin.logging.clickhouse.client;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectConfig;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.junit.After;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
 
 /**
@@ -38,8 +35,6 @@ import java.util.Properties;
 public class ClickHouseLogCollectClientTest {
 
     private final PluginData pluginData = new PluginData();
-
-    private final Properties properties = new Properties();
 
     private final List<ShenyuRequestLog> logs = new ArrayList<>();
 
@@ -55,16 +50,11 @@ public class ClickHouseLogCollectClientTest {
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"host\":\"127.0.0.1\",\"port\":\"8123\",\"database\":\"shenyu-gateway\",\"username\":\"foo\",\"password\":\"bar\"}");
         clickHouseLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), ClickHouseLogCollectConfig.ClickHouseLogConfig.class);
-        properties.setProperty(GenericLoggingConstant.HOST, clickHouseLogConfig.getHost());
-        properties.setProperty(GenericLoggingConstant.PORT, clickHouseLogConfig.getPort());
-        properties.setProperty(GenericLoggingConstant.DEFAULT_SOURCE, clickHouseLogConfig.getDatabase());
-        properties.setProperty(GenericLoggingConstant.USERNAME, clickHouseLogConfig.getUsername());
-        properties.setProperty(GenericLoggingConstant.PASSWORD, clickHouseLogConfig.getPassword());
         shenyuRequestLog.setClientIp("127.0.0.1");
         shenyuRequestLog.setTimeLocal("2022-08-10 16:21:05.508");
         shenyuRequestLog.setMethod("/http/shenyu/client/post/hi");
         shenyuRequestLog.setRequestHeader("{\"content-length\":\"0\",\"Accept\":\"application/json\",\"Connection\":\"Keep-Alive\",\"User-Agent\":\"Apache-HttpClient/4.5.13 (Java/11.0.10)\","
-                + "\"Host\":\"localhost:9195\",\"Accept-Encoding\":\"gzip,deflate\",\"Content-Type\":\"application/json\"}");
+            + "\"Host\":\"localhost:9195\",\"Accept-Encoding\":\"gzip,deflate\",\"Content-Type\":\"application/json\"}");
         shenyuRequestLog.setResponseHeader("{\"content-length\":\"65\",\"transfer-encoding\":\"chunked\",\"Content-Type\":\"application/json;charset=UTF-8\"}");
         shenyuRequestLog.setQueryParams("name=Tom");
         shenyuRequestLog.setRequestBody("");
@@ -87,7 +77,7 @@ public class ClickHouseLogCollectClientTest {
     public void testConsume() {
         String msg = "";
         ClickHouseLogCollectConfig.INSTANCE.setClickHouseLogConfig(clickHouseLogConfig);
-        clickHouseLogCollectClient.initClient(properties);
+        clickHouseLogCollectClient.initClient(clickHouseLogConfig);
         try {
             clickHouseLogCollectClient.consume(logs);
         } catch (Exception e) {

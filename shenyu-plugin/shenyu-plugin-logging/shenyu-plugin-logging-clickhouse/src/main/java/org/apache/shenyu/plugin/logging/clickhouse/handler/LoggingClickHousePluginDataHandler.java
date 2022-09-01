@@ -25,11 +25,8 @@ import org.apache.shenyu.plugin.logging.clickhouse.client.ClickHouseLogCollectCl
 import org.apache.shenyu.plugin.logging.clickhouse.collector.ClickHouseLogCollector;
 import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectConfig;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Properties;
 
 /**
  * The type logging pulsar plugin data handler.
@@ -55,13 +52,7 @@ public class LoggingClickHousePluginDataHandler implements PluginDataHandler {
         if (pluginData.getEnabled()) {
             ClickHouseLogCollectConfig.ClickHouseLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), ClickHouseLogCollectConfig.ClickHouseLogConfig.class);
             ClickHouseLogCollectConfig.INSTANCE.setClickHouseLogConfig(globalLogConfig);
-            Properties properties = new Properties();
-            properties.setProperty(GenericLoggingConstant.HOST, globalLogConfig.getHost());
-            properties.setProperty(GenericLoggingConstant.PORT, globalLogConfig.getPort());
-            properties.setProperty(GenericLoggingConstant.DEFAULT_SOURCE, globalLogConfig.getDatabase());
-            properties.setProperty(GenericLoggingConstant.USERNAME, globalLogConfig.getUsername());
-            properties.setProperty(GenericLoggingConstant.PASSWORD, globalLogConfig.getPassword());
-            CLICK_HOUSE_LOG_COLLECT_CLIENT.initClient(properties);
+            CLICK_HOUSE_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
             ClickHouseLogCollector.getInstance().start();
         } else {
             try {

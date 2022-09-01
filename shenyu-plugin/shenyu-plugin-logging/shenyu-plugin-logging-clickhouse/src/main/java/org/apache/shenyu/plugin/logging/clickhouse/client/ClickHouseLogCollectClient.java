@@ -17,37 +17,34 @@
 
 package org.apache.shenyu.plugin.logging.clickhouse.client;
 
+import com.clickhouse.client.ClickHouseClient;
 import com.clickhouse.client.ClickHouseCredentials;
 import com.clickhouse.client.ClickHouseFormat;
+import com.clickhouse.client.ClickHouseNode;
 import com.clickhouse.client.ClickHouseProtocol;
 import com.clickhouse.client.ClickHouseRequest;
-import com.clickhouse.client.ClickHouseNode;
-import com.clickhouse.client.ClickHouseClient;
 import com.clickhouse.client.ClickHouseValue;
 import com.clickhouse.client.data.ClickHouseIntegerValue;
 import com.clickhouse.client.data.ClickHouseLongValue;
 import com.clickhouse.client.data.ClickHouseOffsetDateTimeValue;
 import com.clickhouse.client.data.ClickHouseStringValue;
+import java.util.List;
+import java.util.Objects;
+import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.utils.DateUtils;
+import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectConfig;
 import org.apache.shenyu.plugin.logging.clickhouse.constant.ClickHouseLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.TimeZone;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * queue-based logging collector.
  */
-public class ClickHouseLogCollectClient implements LogConsumeClient {
+public class ClickHouseLogCollectClient implements LogConsumeClient<ClickHouseLogCollectConfig.ClickHouseLogConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClickHouseLogCollectClient.class);
 
@@ -62,52 +59,52 @@ public class ClickHouseLogCollectClient implements LogConsumeClient {
         if (CollectionUtils.isNotEmpty(logs)) {
             Object[][] datas = new Object[logs.size()][];
             for (int i = 0; i < logs.size(); i++) {
-                Object[] data = new Object[]{
-                        DateUtils.parseLocalDateTime(logs.get(i).getTimeLocal(), DateUtils.DATE_FORMAT_DATETIME_MILLISECOND),
-                        logs.get(i).getClientIp(),
-                        logs.get(i).getMethod(),
-                        logs.get(i).getRequestHeader(),
-                        logs.get(i).getResponseHeader(),
-                        logs.get(i).getQueryParams(),
-                        logs.get(i).getRequestBody(),
-                        logs.get(i).getRequestUri(),
-                        logs.get(i).getResponseBody(),
-                        logs.get(i).getResponseContentLength(),
-                        logs.get(i).getRpcType(),
-                        logs.get(i).getStatus(),
-                        logs.get(i).getUpstreamIp(),
-                        logs.get(i).getUpstreamResponseTime(),
-                        logs.get(i).getUserAgent(),
-                        logs.get(i).getHost(),
-                        logs.get(i).getModule(),
-                        logs.get(i).getTraceId(),
-                        logs.get(i).getPath(),
+                Object[] data = new Object[] {
+                    DateUtils.parseLocalDateTime(logs.get(i).getTimeLocal(), DateUtils.DATE_FORMAT_DATETIME_MILLISECOND),
+                    logs.get(i).getClientIp(),
+                    logs.get(i).getMethod(),
+                    logs.get(i).getRequestHeader(),
+                    logs.get(i).getResponseHeader(),
+                    logs.get(i).getQueryParams(),
+                    logs.get(i).getRequestBody(),
+                    logs.get(i).getRequestUri(),
+                    logs.get(i).getResponseBody(),
+                    logs.get(i).getResponseContentLength(),
+                    logs.get(i).getRpcType(),
+                    logs.get(i).getStatus(),
+                    logs.get(i).getUpstreamIp(),
+                    logs.get(i).getUpstreamResponseTime(),
+                    logs.get(i).getUserAgent(),
+                    logs.get(i).getHost(),
+                    logs.get(i).getModule(),
+                    logs.get(i).getTraceId(),
+                    logs.get(i).getPath(),
                 };
                 datas[i] = data;
             }
             ClickHouseClient.send(endpoint, ClickHouseLoggingConstant.PRE_INSERT_SQL,
-                    new ClickHouseValue[]{
-                            ClickHouseOffsetDateTimeValue.ofNull(3, TimeZone.getTimeZone("Asia/Shanghai")),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseIntegerValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseIntegerValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseLongValue.ofNull(false),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                            ClickHouseStringValue.ofNull(),
-                    },
-                    datas).get();
+                new ClickHouseValue[] {
+                    ClickHouseOffsetDateTimeValue.ofNull(3, TimeZone.getTimeZone("Asia/Shanghai")),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseIntegerValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseIntegerValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseLongValue.ofNull(false),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                    ClickHouseStringValue.ofNull(),
+                },
+                datas).get();
         }
     }
 
@@ -122,24 +119,25 @@ public class ClickHouseLogCollectClient implements LogConsumeClient {
     /**
      * init client .
      *
-     * @param properties properties.
+     * @param config properties.
      */
-    public void initClient(final Properties properties) {
-        if (MapUtils.isEmpty(properties)) {
+    @Override
+    public void initClient(final ClickHouseLogCollectConfig.ClickHouseLogConfig config) {
+        if (Objects.isNull(config)) {
             LOG.error("clickhouse properties is empty. failed init clickhouse client");
             return;
         }
         if (isStarted.get()) {
             close();
         }
-        final String username = properties.getProperty(GenericLoggingConstant.USERNAME);
-        final String password = properties.getProperty(GenericLoggingConstant.PASSWORD);
+        final String username = config.getUsername();
+        final String password = config.getPassword();
         endpoint = ClickHouseNode.builder()
-                .host(properties.getProperty(GenericLoggingConstant.HOST))
-                .port(ClickHouseProtocol.HTTP, Integer.valueOf(properties.getProperty(GenericLoggingConstant.PORT)))
-                .database(properties.getProperty(GenericLoggingConstant.DEFAULT_SOURCE))
-                .credentials(ClickHouseCredentials.fromUserAndPassword(username, password))
-                .build();
+            .host(config.getHost())
+            .port(ClickHouseProtocol.HTTP, Integer.valueOf(config.getPort()))
+            .database(config.getDatabase())
+            .credentials(ClickHouseCredentials.fromUserAndPassword(username, password))
+            .build();
         try {
             client = ClickHouseClient.builder().build();
             ClickHouseRequest<?> request = client.connect(endpoint).format(ClickHouseFormat.TabSeparatedWithNamesAndTypes);
