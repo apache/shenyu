@@ -40,9 +40,4 @@ public interface LogConsumeClient<C extends GenericGlobalConfig> extends AutoClo
      * @param config logClientConfig
      */
     void initClient(C config);
-
-    /**
-     * close the client.
-     */
-    void close();
 }
