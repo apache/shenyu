@@ -20,13 +20,13 @@ package org.apache.shenyu.plugin.logging.rocketmq.handler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.apache.shenyu.plugin.logging.rocketmq.collector.RocketMQLogCollector;
 import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * The type logging rocketmq plugin data handler.
  */
-public class LoggingRocketMQPluginDataHandler implements PluginDataHandler {
+public class LoggingRocketMQPluginDataHandler extends AbstractLogPluginDataHandler<RocketMQLogCollectConfig.RocketMQLogConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(LoggingRocketMQPluginDataHandler.class);
 
@@ -55,29 +55,24 @@ public class LoggingRocketMQPluginDataHandler implements PluginDataHandler {
     private static final Map<String, RocketMQLogCollectConfig.LogApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
 
     /**
-     * start or close rocketMQ client.
+     * logCollector.
      */
     @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        LOG.info("handler loggingRocketMQ Plugin data:{}", GsonUtils.getGson().toJson(pluginData));
-        if (pluginData.getEnabled()) {
-            RocketMQLogCollectConfig.RocketMQLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                    RocketMQLogCollectConfig.RocketMQLogConfig.class);
-            RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(globalLogConfig);
-            // start rocketmq producer
-            Properties properties = new Properties();
-            properties.setProperty(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
-            properties.setProperty(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getNamesrvAddr());
-            properties.setProperty(GenericLoggingConstant.PRODUCER_GROUP, globalLogConfig.getProducerGroup());
-            ROCKET_MQ_LOG_COLLECT_CLIENT.initProducer(properties);
-            RocketMQLogCollector.getInstance().start();
-        } else {
-            try {
-                RocketMQLogCollector.getInstance().close();
-            } catch (Exception e) {
-                LOG.error("close log collector error", e);
-            }
-        }
+    protected LogCollector logCollector() {
+        return RocketMQLogCollector.getInstance();
+    }
+
+    /**
+     * doRefreshConfig.
+     */
+    @Override
+    protected void doRefreshConfig(RocketMQLogCollectConfig.RocketMQLogConfig globalLogConfig) {
+        RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(globalLogConfig);
+        Properties properties = new Properties();
+        properties.setProperty(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
+        properties.setProperty(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getNamesrvAddr());
+        properties.setProperty(GenericLoggingConstant.PRODUCER_GROUP, globalLogConfig.getProducerGroup());
+        ROCKET_MQ_LOG_COLLECT_CLIENT.initProducer(properties);
     }
 
     @Override

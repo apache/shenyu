@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.plugin.tencent.cls.collector;
 
-import org.apache.shenyu.plugin.tencent.cls.handler.LoggingTencentClsPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.tencent.cls.handler.LoggingTencentClsPluginDataHandler;
 
 /**
  * Tencent cls log collector，depend a LogConsumeClient for consume logs.

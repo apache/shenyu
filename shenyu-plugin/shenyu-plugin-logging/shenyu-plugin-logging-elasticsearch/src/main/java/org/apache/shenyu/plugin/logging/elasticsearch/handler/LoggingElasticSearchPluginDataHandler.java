@@ -20,13 +20,13 @@ package org.apache.shenyu.plugin.logging.elasticsearch.handler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
 import org.apache.shenyu.plugin.logging.elasticsearch.collector.ElasticSearchLogCollector;
 import org.apache.shenyu.plugin.logging.elasticsearch.config.ElasticSearchLogCollectConfig;
@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * The type logging elasticsearch plugin data handler.
  */
-public class LoggingElasticSearchPluginDataHandler implements PluginDataHandler {
+public class LoggingElasticSearchPluginDataHandler extends AbstractLogPluginDataHandler<ElasticSearchLogCollectConfig.ElasticSearchLogConfig> {
     
     private static final Logger LOG = LoggerFactory.getLogger(LoggingElasticSearchPluginDataHandler.class);
 
@@ -55,28 +55,23 @@ public class LoggingElasticSearchPluginDataHandler implements PluginDataHandler 
     private static final Map<String, ElasticSearchLogCollectConfig.LogApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
 
     /**
-     * start or close elasticsearch client.
+     * logCollector.
      */
     @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        LOG.info("handler loggingElasticSearch Plugin data:{}", GsonUtils.getGson().toJson(pluginData));
-        if (pluginData.getEnabled()) {
-            ElasticSearchLogCollectConfig.ElasticSearchLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                    ElasticSearchLogCollectConfig.ElasticSearchLogConfig.class);
+    protected LogCollector logCollector() {
+        return ElasticSearchLogCollector.getInstance();
+    }
 
-            ElasticSearchLogCollectConfig.INSTANCE.setElasticSearchLogConfig(globalLogConfig);
-            Properties properties = new Properties();
-            properties.setProperty(GenericLoggingConstant.HOST, globalLogConfig.getHost());
-            properties.setProperty(GenericLoggingConstant.PORT, globalLogConfig.getPort());
-            ELASTICSEARCH_LOG_COLLECT_CLIENT.initClient(properties);
-            ElasticSearchLogCollector.getInstance().start();
-        } else {
-            try {
-                ElasticSearchLogCollector.getInstance().close();
-            } catch (Exception e) {
-                LOG.error("close log collector error", e);
-            }
-        }
+    /**
+     * doRefreshConfig.
+     */
+    @Override
+    protected void doRefreshConfig(ElasticSearchLogCollectConfig.ElasticSearchLogConfig globalLogConfig) {
+        ElasticSearchLogCollectConfig.INSTANCE.setElasticSearchLogConfig(globalLogConfig);
+        Properties properties = new Properties();
+        properties.setProperty(GenericLoggingConstant.HOST, globalLogConfig.getHost());
+        properties.setProperty(GenericLoggingConstant.PORT, globalLogConfig.getPort());
+        ELASTICSEARCH_LOG_COLLECT_CLIENT.initClient(properties);
     }
 
     @Override

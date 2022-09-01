@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.logging.elasticsearch.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -115,6 +116,30 @@ public class ElasticSearchLogCollectConfig {
             this.port = port;
         }
 
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return Boolean.TRUE;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return Boolean.FALSE;
+            }
+
+            ElasticSearchLogConfig that = (ElasticSearchLogConfig) o;
+            return Objects.equals(getHost(), that.getHost())
+                    && Objects.equals(getCompressAlg(), that.getCompressAlg())
+                    && Objects.equals(getPort(), that.getPort())
+                    && Objects.equals(getSampleRate(), that.getSampleRate())
+                    && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxRequestBody())
+                    && Objects.equals(getMaxRequestBody(), that.getMaxResponseBody());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(host, compressAlg, port);
+        }
     }
 
     /**
