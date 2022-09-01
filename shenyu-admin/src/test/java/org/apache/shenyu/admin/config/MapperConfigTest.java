@@ -39,4 +39,24 @@ public class MapperConfigTest {
         PostgreSQLQueryInterceptor postgreSQLQueryInterceptor = mapperConfig.postgreSqlQueryInterceptor();
         assertNotNull(postgreSQLQueryInterceptor);
     }
+
+    @Test
+    public void postgreSqlPrepareInterceptorTest() {
+        assertNotNull(mapperConfig.postgreSqlPrepareInterceptor());
+    }
+
+    @Test
+    public void oracleSqlPrepareInterceptorTest() {
+        assertNotNull(mapperConfig.oracleSqlPrepareInterceptor());
+    }
+
+    @Test
+    public void oracleSqlUpdateInterceptorTest() {
+        assertNotNull(mapperConfig.oracleSqlUpdateInterceptor());
+    }
+
+    @Test
+    public void postgreSqlUpdateInterceptorTest() {
+        assertNotNull(mapperConfig.postgreSqlUpdateInterceptor());
+    }
 }

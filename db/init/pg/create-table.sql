@@ -70,8 +70,8 @@ COMMENT ON COLUMN "public"."app_auth"."app_secret" IS 'encryption algorithm secr
 COMMENT ON COLUMN "public"."app_auth"."user_id" IS 'user id';
 COMMENT ON COLUMN "public"."app_auth"."phone" IS 'phone number when the user applies';
 COMMENT ON COLUMN "public"."app_auth"."ext_info" IS 'extended parameter json';
-COMMENT ON COLUMN "public"."app_auth"."open" IS 'open auth path or not';
-COMMENT ON COLUMN "public"."app_auth"."enabled" IS 'delete or not';
+COMMENT ON COLUMN "public"."app_auth"."open" IS 'open auth path or not (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."app_auth"."enabled" IS 'delete or not (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."app_auth"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."app_auth"."date_updated" IS 'update time';
 
@@ -121,7 +121,7 @@ COMMENT ON COLUMN "public"."auth_path"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."auth_path"."auth_id" IS 'auth table id';
 COMMENT ON COLUMN "public"."auth_path"."app_name" IS 'module';
 COMMENT ON COLUMN "public"."auth_path"."path" IS 'path';
-COMMENT ON COLUMN "public"."auth_path"."enabled" IS 'whether pass 1 is';
+COMMENT ON COLUMN "public"."auth_path"."enabled" IS 'whether pass 1 is (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."auth_path"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."auth_path"."date_updated" IS 'update time';
 
@@ -147,7 +147,7 @@ COMMENT ON COLUMN "public"."dashboard_user"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."dashboard_user"."user_name" IS 'user name';
 COMMENT ON COLUMN "public"."dashboard_user"."password" IS 'user password';
 COMMENT ON COLUMN "public"."dashboard_user"."role" IS 'role';
-COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not';
+COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."dashboard_user"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."dashboard_user"."date_updated" IS 'update time';
 
@@ -211,7 +211,7 @@ COMMENT ON COLUMN "public"."meta_data"."parameter_types" IS 'parameter types are
 COMMENT ON COLUMN "public"."meta_data"."rpc_ext" IS 'rpc extended information, json format';
 COMMENT ON COLUMN "public"."meta_data"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."meta_data"."date_updated" IS 'update time';
-COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state';
+COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state (0 close, 1 open) ';
 
 -- ----------------------------
 -- Records of meta_data
@@ -673,7 +673,8 @@ INSERT INTO "public"."plugin" VALUES ('31', 'mock', null, 'Mock', 1, 0, '2022-06
 INSERT INTO "public"."plugin" VALUES ('32', 'loggingElasticSearch', '{"host":"localhost", "port": "9200"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin" VALUES ('33', 'loggingKafka', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9092"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin" VALUES ('34', 'loggingAliyunSls', '{"projectName": "shenyu", "logStoreName": "shenyu-logstore", "topic": "shenyu-topic"}', 'Logging', 175, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin" VALUES ('35', 'loggingTencentCls', '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', 'Logging', 176, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin" VALUES ('35', 'loggingPulsar', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 'Logging', 185, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin" VALUES ('36', 'loggingTencentCls', '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', 'Logging', 176, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
 -- ----------------------------
 -- Table structure for plugin_handle
@@ -900,6 +901,12 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524968', '34', 'sampl
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524969', '34', 'maxRequestBody', 'maxRequestBody', 1, 3, 11, '{"required":"0","defaultValue":524288,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524970', '34', 'maxResponseBody', 'maxResponseBody', 1, 3, 12, '{"required":"0","defaultValue":524288,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524971', '34', 'bufferQueueSize', 'bufferQueueSize', 1, 3, 13, '{"required":"0","defaultValue":50000,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524972', '35', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524973', '35', 'serviceUrl', 'serviceUrl', 2, 3, 2, '{"required":"1","defaultValue":"pulsar://localhost:6650"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524974', '35', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524975', '35', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524976', '35', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524977', '35', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524972', '35', 'secretId', 'secretId', 2, 3, 1, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524973', '35', 'secretKey', 'secretKey', 2, 3, 2, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
@@ -1354,8 +1361,8 @@ COMMENT ON COLUMN "public"."rule"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."rule"."selector_id" IS 'selector id';
 COMMENT ON COLUMN "public"."rule"."match_mode" IS 'matching mode (0 and 1 or)';
 COMMENT ON COLUMN "public"."rule"."name" IS 'rule name';
-COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open';
-COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not';
+COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."rule"."sort" IS 'sort';
 COMMENT ON COLUMN "public"."rule"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."rule"."date_created" IS 'create time';
@@ -1419,8 +1426,8 @@ COMMENT ON COLUMN "public"."selector"."match_mode" IS 'matching mode (0 and 1 or
 COMMENT ON COLUMN "public"."selector"."type" IS 'type (0, full flow, 1 custom flow)';
 COMMENT ON COLUMN "public"."selector"."sort" IS 'sort';
 COMMENT ON COLUMN "public"."selector"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
-COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open';
-COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log';
+COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."selector"."continued" IS 'whether to continue execution';
 COMMENT ON COLUMN "public"."selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."selector"."date_updated" IS 'update time';
@@ -1481,7 +1488,7 @@ COMMENT ON COLUMN "public"."shenyu_dict"."dict_name" IS 'dictionary name';
 COMMENT ON COLUMN "public"."shenyu_dict"."dict_value" IS 'dictionary value';
 COMMENT ON COLUMN "public"."shenyu_dict"."desc" IS 'dictionary description or remarks';
 COMMENT ON COLUMN "public"."shenyu_dict"."sort" IS 'sort';
-COMMENT ON COLUMN "public"."shenyu_dict"."enabled" IS 'whether it is enabled';
+COMMENT ON COLUMN "public"."shenyu_dict"."enabled" IS 'whether it is enabled (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."shenyu_dict"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."shenyu_dict"."date_updated" IS 'update time';
 
