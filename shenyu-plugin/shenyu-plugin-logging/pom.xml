@@ -34,5 +34,6 @@
         <module>shenyu-plugin-logging-elasticsearch</module>
         <module>shenyu-plugin-logging-aliyun-sls</module>
         <module>shenyu-plugin-logging-pulsar</module>
+        <module>shenyu-plugin-logging-tencent-cls</module>
     </modules>
 </project>

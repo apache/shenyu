@@ -17,13 +17,15 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import reactor.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
+
+import reactor.util.StringUtils;
 
 /**
  * The Resource Entity.
@@ -375,6 +377,35 @@ public final class ResourceDO extends BaseDO {
             } else {
                 resourceDO.setId(item.getId());
             }
+            return resourceDO;
+        }).orElse(null);
+    }
+
+    /**
+     * build ResourceDO.
+     *
+     * @param createResourceDTO {@linkplain CreateResourceDTO}
+     * @return {@linkplain ResourceDO}
+     */
+    public static ResourceDO buildResourceDO(final CreateResourceDTO createResourceDTO) {
+        return Optional.ofNullable(createResourceDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            ResourceDO resourceDO = ResourceDO.builder()
+                .parentId(item.getParentId())
+                .title(item.getTitle())
+                .name(item.getName())
+                .url(item.getUrl())
+                .component(item.getComponent())
+                .resourceType(item.getResourceType())
+                .sort(item.getSort())
+                .icon(item.getIcon())
+                .isLeaf(item.getIsLeaf())
+                .isRoute(item.getIsRoute())
+                .perms(item.getPerms())
+                .status(item.getStatus())
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .dateCreated(currentTime)
+                .build();
             return resourceDO;
         }).orElse(null);
     }

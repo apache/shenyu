@@ -503,6 +503,14 @@
         </dependency>
         <!-- shenyu logging-pulsar plugin end -->
 
+        <!-- shenyu logging-tencentcls plugin start -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging-tencent-cls</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu logging-tencentcls plugin end -->
+
     </dependencies>
     <profiles>
         <profile>
