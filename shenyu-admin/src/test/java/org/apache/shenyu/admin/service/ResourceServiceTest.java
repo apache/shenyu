@@ -109,7 +109,7 @@ public class ResourceServiceTest {
     @Test
     public void testCreate() {
         // test create
-        CreateResourceDTO createResourceDTO = new CreateResourceDTO();
+        final CreateResourceDTO createResourceDTO = new CreateResourceDTO();
         reset(resourceMapper);
         reset(publisher);
         when(resourceMapper.insertSelective(any())).thenReturn(1);
