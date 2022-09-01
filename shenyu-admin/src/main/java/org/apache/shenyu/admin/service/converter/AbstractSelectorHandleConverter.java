@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.converter;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
@@ -69,7 +70,7 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
     @Override
     public <T extends CommonUpstream> List<T> updateStatusAndFilter(final List<T> existList, final List<? extends CommonUpstream> aliveList) {
         if (CollectionUtils.isEmpty(aliveList) || CollectionUtils.isEmpty(existList)) {
-            return Collections.emptyList();
+            return Lists.newArrayList();
         }
         long currentTimeMillis = System.currentTimeMillis();
         List<T> validExistList = existList.stream()
