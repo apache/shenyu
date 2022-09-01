@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.utils;
 
 import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,6 +89,15 @@ public final class SessionUtil {
      */
     public static void clean() {
         LOCAL_VISITOR.remove();
+    }
+    
+    /**
+     * current user is admin.
+     *
+     * @return boolean
+     */
+    public static boolean isAdmin() {
+        return AdminConstants.ADMIN_NAME.equals(visitorName());
     }
     
     private static UserInfo defaultUser() {

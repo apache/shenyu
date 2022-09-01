@@ -46,6 +46,7 @@ public @interface ShenyuSpringMvcClient {
      */
     @AliasFor(attribute = "value")
     String path() default "";
+
     /**
      * Rule name string.
      *

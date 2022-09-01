@@ -70,8 +70,73 @@ public class GenericLoggingConstant {
     /**
      * aliyun sls topic.
      */
-    public static final String TOPIC = "Topic";
-    
+    public static final String TOPIC = "topic";
+
+    /**
+     * tencent cls secretId.
+     */
+    public static final String SECRET_ID = "secretId";
+
+    /**
+     * tencent cls secretKey.
+     */
+    public static final String SECRET_KEY = "secretKey";
+
+    /**
+     * tencent cls endpoint.
+     */
+    public static final String ENDPOINT = "endpoint";
+
+    /**
+     * tencent cls totalSizeInBytes.
+     */
+    public static final String TOTAL_SIZE_IN_BYTES = "totalSizeInBytes";
+
+    /**
+     * tencent cls maxSendThreadCount.
+     */
+    public static final String MAX_SEND_THREAD_COUNT = "maxSendThreadCount";
+
+    /**
+     * tencent cls maxBlockSec.
+     */
+    public static final String MAX_BLOCK_SEC = "maxBlockSec";
+
+    /**
+     * tencent cls maxBatchSize.
+     */
+    public static final String MAX_BATCH_SIZE = "maxBatchSize";
+
+    /**
+     * tencent cls maxBatchCount.
+     */
+    public static final String MAX_BATCH_COUNT = "maxBatchCount";
+
+    /**
+     * tencent cls lingerMs.
+     */
+    public static final String LINGER_MS = "lingerMs";
+
+    /**
+     * tencent cls retries.
+     */
+    public static final String RETRIES = "retries";
+
+    /**
+     * tencent cls maxReservedAttempts.
+     */
+    public static final String MAX_RESERVED_ATTEMPTS = "maxReservedAttempts";
+
+    /**
+     * tencent cls baseRetryBackoffMs.
+     */
+    public static final String BASE_RETRY_BACKOFF_MS = "baseRetryBackoffMs";
+
+    /**
+     * tencent cls maxRetryBackoffMs.
+     */
+    public static final String MAX_RETRY_BACKOFF_MS = "maxRetryBackoffMs";
+
     /**
      * send thread config.
      */
@@ -111,9 +176,25 @@ public class GenericLoggingConstant {
      * The constant NAMESERVER_ADDRESS.
      */
     public static final String NAMESERVER_ADDRESS = "namesrvAddr";
+
+    /**
+     * The constant SERVICE_URL.
+     */
+    public static final String SERVICE_URL = "serviceUrl";
     
     /**
      * The constant PRODUCER_GROUP.
      */
     public static final String PRODUCER_GROUP = "producerGroup";
+
+    /**
+     * The constant USERNAME.
+     */
+    public static final String USERNAME = "username";
+
+    /**
+     * The constant PASSWORD.
+     */
+    public static final String PASSWORD = "password";
+
 }

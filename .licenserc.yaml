@@ -60,7 +60,6 @@ header:
     - '.mvn'
     - 'shenyu-dist'
     - 'shenyu-dashboard'
-    - 'DISCLAIMER'
     - 'licenses'
     - 'LICENSE'
     - 'NOTICE'

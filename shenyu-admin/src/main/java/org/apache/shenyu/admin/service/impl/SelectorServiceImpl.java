@@ -46,6 +46,7 @@ import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SelectorUtil;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -96,6 +97,13 @@ public class SelectorServiceImpl implements SelectorService {
         this.pluginMapper = pluginMapper;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
+    }
+    
+    @Override
+    public void doConditionPreProcessing(final SelectorQueryCondition condition) {
+        if (SessionUtil.isAdmin()) {
+            condition.setUserId(null);
+        }
     }
     
     @Override

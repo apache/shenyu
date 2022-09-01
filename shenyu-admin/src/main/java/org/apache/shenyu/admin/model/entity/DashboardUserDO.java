@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.entity;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
+import org.apache.shenyu.admin.model.dto.DashboardUserModifyPasswordDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
@@ -171,6 +172,24 @@ public final class DashboardUserDO extends BaseDO {
     /**
      * build dashboardUserDO.
      *
+     * @param dashboardUserModifyPasswordDTO {@linkplain DashboardUserModifyPasswordDTO}
+     * @return {@linkplain DashboardUserDO}
+     */
+    public static DashboardUserDO buildDashboardUserDO(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
+        return Optional.ofNullable(dashboardUserModifyPasswordDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
+                    .password(item.getPassword())
+                    .dateUpdated(currentTime)
+                    .id(item.getId())
+                    .build();
+            return dashboardUserDO;
+        }).orElse(null);
+    }
+
+    /**
+     * build dashboardUserDO.
+     *
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return {@linkplain DashboardUserDO}
      */
@@ -178,12 +197,12 @@ public final class DashboardUserDO extends BaseDO {
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
-                    .userName(item.getUserName())
-                    .password(item.getPassword())
-                    .role(item.getRole())
-                    .roles(item.getRoles())
-                    .dateUpdated(currentTime)
-                    .build();
+                .userName(item.getUserName())
+                .password(item.getPassword())
+                .role(item.getRole())
+                .roles(item.getRoles())
+                .dateUpdated(currentTime)
+                .build();
             if (StringUtils.isEmpty(item.getId())) {
                 dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 dashboardUserDO.setEnabled(true);

@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -53,6 +54,17 @@ public class ZookeeperClientRegisterRepositoryTest {
         Field field = clazz.getDeclaredField(fieldString);
         field.setAccessible(true);
         this.client = (ZookeeperClient) field.get(repository);
+    }
+
+    @Test
+    public void initTest() throws Exception {
+        TestingServer server = new TestingServer();
+        ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
+        config.setServerLists(server.getConnectString());
+        this.repository = new ZookeeperClientRegisterRepository(config);
+        Properties configProps = config.getProps();
+        configProps.setProperty("digest", "digest");
+        this.repository.init(config);
     }
 
     @Test
@@ -97,6 +109,8 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .serviceName("testService")
                 .methodName("testMethod")
                 .build();
+        repository.persistInterface(data);
+        // hit `metadataSet.contains(realNode)`
         repository.persistInterface(data);
         String metadataPath = "/shenyu/register/metadata/grpc/context/testService.testMethod";
         String value = client.get(metadataPath);

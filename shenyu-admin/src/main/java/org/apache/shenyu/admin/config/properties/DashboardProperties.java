@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.config.properties;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,24 +30,21 @@ public class DashboardProperties {
     /**
      * record log limit.
      */
-    @Value("${shenyu.dashboard.core.record-log-limit:12}")
-    private Integer recordLogLimit;
+    private Integer recordLogLimit = 12;
     
     
     /**
      * Only supports deleting logs older than a certain day.
      * default is 3.
      */
-    @Value("${shenyu.dashboard.core.record-log-only-clean-days:3}")
-    private Integer onlyCleanDays;
+    private Integer onlyCleanDays = 3;
     
     
     /**
      * enable print api log..
      * default is false.
      */
-    @Value("${shenyu.dashboard.core.enable-print-api-log:false}")
-    private Boolean enablePrintApiLog;
+    private Boolean enablePrintApiLog = false;
     
     /**
      * get recordLogLimit.
