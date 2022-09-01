@@ -186,4 +186,15 @@ public class GenericLoggingConstant {
      * The constant PRODUCER_GROUP.
      */
     public static final String PRODUCER_GROUP = "producerGroup";
+
+    /**
+     * The constant USERNAME.
+     */
+    public static final String USERNAME = "username";
+
+    /**
+     * The constant PASSWORD.
+     */
+    public static final String PASSWORD = "password";
+
 }

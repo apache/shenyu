@@ -161,6 +161,11 @@ public enum PluginEnum {
      * Logging ElasticSearch plugin enum.
      */
     LOGGING_ELASTIC_SEARCH(190, 0, "loggingElasticSearch"),
+
+    /**
+     * Logging ClickHouse plugin enum.
+     */
+    LOGGING_CLICK_HOUSE(195, 0, "loggingClickHouse"),
     
     /**
      * Divide plugin enum.
