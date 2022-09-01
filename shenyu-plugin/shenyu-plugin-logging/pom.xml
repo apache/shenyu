@@ -33,5 +33,6 @@
         <module>shenyu-plugin-logging-kafka</module>
         <module>shenyu-plugin-logging-elasticsearch</module>
         <module>shenyu-plugin-logging-aliyun-sls</module>
+        <module>shenyu-plugin-logging-pulsar</module>
     </modules>
 </project>

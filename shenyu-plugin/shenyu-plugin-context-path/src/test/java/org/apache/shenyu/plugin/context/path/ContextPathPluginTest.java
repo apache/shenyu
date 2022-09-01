@@ -30,6 +30,7 @@ import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -89,6 +90,15 @@ public final class ContextPathPluginTest {
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingRuleHandle));
         contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
         assertEquals("/order/findById", shenyuContext.getRealUrl());
+
+        Assertions.assertDoesNotThrow(() -> contextPathPlugin.doExecute(exchange, chain, selectorData, RuleData.builder().name("RuleData").build()));
+        contextMappingRuleHandle.setAddPrefix("/addPrefix");
+        Assertions.assertDoesNotThrow(() -> contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData));
+        contextMappingRuleHandle.setContextPath("/context");
+        Assertions.assertDoesNotThrow(() -> contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData));
+        shenyuContext.setPath(null);
+        contextMappingRuleHandle.setContextPath(null);
+        Assertions.assertDoesNotThrow(() -> contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData));
     }
 
     /**

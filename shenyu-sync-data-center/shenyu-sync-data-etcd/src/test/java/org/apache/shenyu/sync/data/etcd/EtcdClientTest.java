@@ -25,6 +25,8 @@ import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.options.WatchOption;
+import io.etcd.jetcd.watch.WatchEvent;
+import io.etcd.jetcd.watch.WatchResponse;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,14 +37,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -148,6 +156,7 @@ public class EtcdClientTest {
         Consumer<String> deleteHandler = mock(Consumer.class);
         etcdClient.watchDataChange(WATCH_DATA_CHANGE_KEY, updateHandler, deleteHandler);
         etcdClient.watchClose(WATCH_DATA_CHANGE_KEY);
+        etcdClient.watchClose("not hit");
         verify(watcher).close();
     }
     
@@ -158,6 +167,43 @@ public class EtcdClientTest {
         etcdClient.watchChildChange(WATCH_CHILD_CHANGE_KEY, updateHandler, deleteHandler);
         etcdClient.watchClose(WATCH_CHILD_CHANGE_KEY);
         verify(watcher).close();
+    }
+
+    @Test
+    public void testEtcdClient() throws ExecutionException, InterruptedException {
+        final Client client = mock(Client.class);
+        final EtcdClient etcdClient = new EtcdClient(client);
+        assertDoesNotThrow(etcdClient::close);
+        final KV mockKV = mock(KV.class);
+        when(client.getKVClient()).thenReturn(mockKV);
+        final CompletableFuture<GetResponse> future = mock(CompletableFuture.class);
+        when(mockKV.get(any(ByteSequence.class))).thenReturn(future);
+        doThrow(new InterruptedException()).when(future).get();
+        assertDoesNotThrow(() -> etcdClient.get("key"));
+    }
+
+    @Test
+    public void watchTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        BiConsumer<String, String> updateHandler = mock(BiConsumer.class);
+        Consumer<String> deleteHandler = mock(Consumer.class);
+        final Method watch = EtcdClient.class.getDeclaredMethod("watch", BiConsumer.class, Consumer.class);
+        watch.setAccessible(true);
+        final Watch.Listener listener = (Watch.Listener) watch.invoke(etcdClient, updateHandler, deleteHandler);
+        final WatchResponse watchResponse = mock(WatchResponse.class);
+        List<WatchEvent> watchEvents = new ArrayList<>(2);
+        final WatchEvent watchEvent = mock(WatchEvent.class);
+        watchEvents.add(watchEvent);
+        when(watchResponse.getEvents()).thenReturn(watchEvents);
+        final KeyValue keyValue = mock(KeyValue.class);
+        when(watchEvent.getKeyValue()).thenReturn(keyValue);
+        when(keyValue.getValue()).thenReturn(ByteSequence.from("value", StandardCharsets.UTF_8));
+        when(keyValue.getKey()).thenReturn(ByteSequence.from("key", StandardCharsets.UTF_8));
+        when(watchEvent.getEventType()).thenReturn(WatchEvent.EventType.PUT);
+        assertDoesNotThrow(() -> listener.onNext(watchResponse));
+        when(watchEvent.getEventType()).thenReturn(WatchEvent.EventType.DELETE);
+        assertDoesNotThrow(() -> listener.onNext(watchResponse));
+        when(watchEvent.getEventType()).thenReturn(WatchEvent.EventType.UNRECOGNIZED);
+        assertDoesNotThrow(() -> listener.onNext(watchResponse));
     }
 
 }

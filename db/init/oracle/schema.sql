@@ -62,11 +62,11 @@ comment on column PLUGIN.name
 comment on column PLUGIN.config
   is 'plugin configuration';
 comment on column PLUGIN.role
-  is 'plug-in role';
+  is 'plugin role';
 comment on column PLUGIN.sort
   is 'sort';
 comment on column PLUGIN.enabled
-  is 'whether to open (0, not open, 1 open)';
+  is 'plugin whether to open (0 not open, 1 open)';
 comment on column PLUGIN.date_created
   is 'create time';
 comment on column PLUGIN.date_updated
@@ -132,15 +132,15 @@ comment on column SELECTOR.name
 comment on column SELECTOR.match_mode
   is 'matching mode (0 and 1 or)';
 comment on column SELECTOR.type
-  is 'type (0, full flow, 1 custom flow)';
+  is 'type (0 full flow, 1 custom flow)';
 comment on column SELECTOR.sort
   is 'sort';
 comment on column SELECTOR.handle
-  is 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
+  is 'processing logic (here for different plugins, there will be different fields to identify different processes, all data in JSON format is stored)';
 comment on column SELECTOR.enabled
-  is 'whether to open';
+  is 'whether to open (0 not open, 1 open)';
 comment on column SELECTOR.loged
-  is 'whether to print the log';
+  is 'whether to print the log (0 not print, 1 print)';
 comment on column SELECTOR.continued
   is 'whether to continue execution';
 comment on column SELECTOR.date_created
@@ -201,9 +201,9 @@ comment on column RULE.match_mode
 comment on column RULE.name
   is 'rule name';
 comment on column RULE.enabled
-  is 'whether to open';
+  is 'whether to open (0 not open, 1 open)';
 comment on column RULE.loged
-  is 'whether to log or not';
+  is 'whether to log or not (0 not print, 1 print)';
 comment on column RULE.sort
   is 'sort';
 comment on column RULE.handle
@@ -282,7 +282,7 @@ comment on column META_DATA.date_created
 comment on column META_DATA.date_updated
   is 'update time';
 comment on column META_DATA.enabled
-  is 'enabled state';
+  is 'enabled state (0 close, 1 enabled) ';
 
 create table operation_record_log
 (
@@ -342,9 +342,9 @@ comment on column APP_AUTH.phone
 comment on column APP_AUTH.ext_info
   is 'extended parameter json';
 comment on column APP_AUTH.open
-  is 'open auth path or not';
+  is 'open auth path or not (0 not open, 1 open) ';
 comment on column APP_AUTH.enabled
-  is 'delete or not';
+  is 'delete or not (0 close, 1 open) ';
 comment on column APP_AUTH.date_created
   is 'create time';
 comment on column APP_AUTH.date_updated
@@ -395,7 +395,7 @@ comment on column AUTH_PATH.app_name
 comment on column AUTH_PATH.path
   is 'path';
 comment on column AUTH_PATH.enabled
-  is 'whether pass 1 is';
+  is 'whether pass 1 is (0 close, 1 open) ';
 comment on column AUTH_PATH.date_created
   is 'create time';
 comment on column AUTH_PATH.date_updated
@@ -432,7 +432,7 @@ comment on column SHENYU_DICT."desc"
 comment on column SHENYU_DICT.sort
   is 'sort';
 comment on column SHENYU_DICT.enabled
-  is 'whether it is enabled';
+  is 'whether it is enabled (0 close, 1 open) ';
 comment on column SHENYU_DICT.date_created
   is 'create time';
 comment on column SHENYU_DICT.date_updated
@@ -854,6 +854,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('32', 'loggingElasticSearch', '{"host":"localhost", "port": "9200"}', 'Logging', 190, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('33', 'loggingKafka', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9092"}', 'Logging', 180, 0);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('34', 'loggingAliyunSls', '{"projectName": "shenyu", "logStoreName": "shenyu-logstore", "topic": "shenyu-topic"}', 'Logging', 175, '0');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('35', 'loggingPulsar', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 'Logging', 185, '0')
 
 
 
@@ -1441,6 +1442,25 @@ values ('1518229897214468196', '34', 'maxResponseBody', 'maxResponseBody', 1, 3,
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468197', '34', 'bufferQueueSize', 'bufferQueueSize', 1, 3, 13, '{"required":"0","defaultValue":524288,"placeholder":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468198', '35', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468199', '35', 'serviceUrl', 'serviceUrl', 2, 3, 2, '{"required":"1","defaultValue":"pulsar://localhost:6650"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468200', '35', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468201', '35', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468202', '35', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1518229897214468203', '35', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}');
+
 
 /** insert resource for resource */
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"   (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1346775491550474240','','SHENYU.MENU.PLUGIN.LIST','plug','/plug','PluginList','0','0','dashboard','0','0','','1');
