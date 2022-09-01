@@ -16,23 +16,32 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-plugin</artifactId>
+        <artifactId>shenyu-spring-boot-starter-plugin</artifactId>
         <version>2.5.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-plugin-logging</artifactId>
-    <packaging>pom</packaging>
 
-    <modules>
-        <module>shenyu-plugin-logging-common</module>
-        <module>shenyu-plugin-logging-console</module>
-        <module>shenyu-plugin-logging-rocketmq</module>
-        <module>shenyu-plugin-logging-kafka</module>
-        <module>shenyu-plugin-logging-elasticsearch</module>
-        <module>shenyu-plugin-logging-aliyun-sls</module>
-        <module>shenyu-plugin-logging-pulsar</module>
-    </modules>
+    <artifactId>shenyu-spring-boot-starter-plugin-logging-pulsar</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-logging-pulsar</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+        </dependency>
+    </dependencies>
+    
 </project>

@@ -111,6 +111,11 @@ public class GenericLoggingConstant {
      * The constant NAMESERVER_ADDRESS.
      */
     public static final String NAMESERVER_ADDRESS = "namesrvAddr";
+
+    /**
+     * The constant SERVICE_URL.
+     */
+    public static final String SERVICE_URL = "serviceUrl";
     
     /**
      * The constant PRODUCER_GROUP.
