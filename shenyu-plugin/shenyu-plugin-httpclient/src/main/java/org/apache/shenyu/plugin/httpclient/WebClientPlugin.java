@@ -21,6 +21,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -31,14 +32,15 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Optional;
 
 /**
  * The type Web client plugin.
  */
 public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
-
+    
     private final WebClient webClient;
-
+    
     /**
      * Instantiates a new Web client plugin.
      *
@@ -47,20 +49,28 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
     public WebClientPlugin(final WebClient webClient) {
         this.webClient = webClient;
     }
-
+    
     @Override
     protected Mono<ClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod, final URI uri,
                                              final HttpHeaders httpHeaders, final Flux<DataBuffer> body) {
         // springWebflux5.3 mark #exchange() deprecated. because #echange maybe make memory leak.
         // https://github.com/spring-projects/spring-framework/issues/25751
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
-        // exchangeToMono has two important bug:
-        // 1.exchangeToMono can cause NPE when response body is null
-        // 2.download file with exchangeToMono can't open
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> headers.addAll(httpHeaders))
                 .body(BodyInserters.fromDataBuffers(body))
-                .exchange()
+                .exchangeToMono(response -> response.bodyToMono(byte[].class)
+                        .flatMap(bytes -> Mono.fromCallable(() -> Optional.ofNullable(bytes))).defaultIfEmpty(Optional.empty())
+                        .flatMap(option -> {
+                            final ClientResponse.Builder builder = ClientResponse.create(response.statusCode())
+                                    .headers(headers -> headers.addAll(response.headers().asHttpHeaders()))
+                                    .cookies(cookies -> cookies.addAll(response.cookies()));
+                            if (option.isPresent()) {
+                                final DataBufferFactory dataBufferFactory = exchange.getResponse().bufferFactory();
+                                return Mono.just(builder.body(Flux.just(dataBufferFactory.wrap(option.get()))).build());
+                            }
+                            return Mono.just(builder.build());
+                        }))
                 .doOnSuccess(res -> {
                     if (res.statusCode().is2xxSuccessful()) {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
@@ -71,17 +81,17 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                 });
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.WEB_CLIENT.getCode();
     }
-
+    
     @Override
     public String named() {
         return PluginEnum.WEB_CLIENT.getName();
     }
-
+    
     @Override
     public boolean skip(final ServerWebExchange exchange) {
         return skipExceptHttpLike(exchange);

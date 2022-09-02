@@ -20,14 +20,12 @@ package org.apache.shenyu.plugin.logging.pulsar.client;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.pulsar.config.PulsarLogCollectConfig;
@@ -37,36 +35,26 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * queue-based logging collector.
  */
-public class PulsarLogCollectClient implements LogConsumeClient {
+public class PulsarLogCollectClient extends AbstractLogConsumeClient<PulsarLogCollectConfig.PulsarLogConfig> {
     private static final Logger LOG = LoggerFactory.getLogger(PulsarLogCollectClient.class);
 
     private PulsarClient client;
 
     private Producer<byte[]> producer;
 
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
-
     /**
      * init producer.
      * 
-     * @param props pulsar props
+     * @param config pulsar props
      */
-    public void initProducer(final Properties props) {
-        if (MapUtils.isEmpty(props)) {
-            LOG.error("Pulsar props is empty. Fail to init Pulsar producer.");
-            return;
-        }
-        if (isStarted.get()) {
-            close();
-        }
-        String topic = props.getProperty(GenericLoggingConstant.TOPIC);
-        String serviceUrl = props.getProperty(GenericLoggingConstant.SERVICE_URL);
+    @Override
+    public void initClient0(final PulsarLogCollectConfig.PulsarLogConfig config) {
+        String topic = config.getTopic();
+        String serviceUrl = config.getServiceUrl();
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(serviceUrl)) {
             LOG.error("init PulsarLogCollectClient error, please check topic or serviceUrl.");
             return;
@@ -75,7 +63,6 @@ public class PulsarLogCollectClient implements LogConsumeClient {
             client = PulsarClient.builder().serviceUrl(serviceUrl).build();
             producer = client.newProducer().topic(topic).create();
             LOG.info("init PulsarLogCollectClient success.");
-            isStarted.set(true);
             Runtime.getRuntime().addShutdownHook(new Thread(this::close));
 
         } catch (PulsarClientException e) {
@@ -85,8 +72,8 @@ public class PulsarLogCollectClient implements LogConsumeClient {
     }
 
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
+    public void consume0(final List<ShenyuRequestLog> logs) {
+        if (CollectionUtils.isEmpty(logs)) {
             return;
         }
         logs.forEach(log -> {
@@ -112,12 +99,11 @@ public class PulsarLogCollectClient implements LogConsumeClient {
     }
 
     @Override
-    public void close() {
-        if (Objects.nonNull(producer) && isStarted.get()) {
+    public void close0() {
+        if (Objects.nonNull(producer)) {
             try {
                 producer.close();
                 client.close();
-                isStarted.set(false);
             } catch (PulsarClientException e) {
                 LOG.error("fail to close PulsarLogCollectClient, e", e);
             }

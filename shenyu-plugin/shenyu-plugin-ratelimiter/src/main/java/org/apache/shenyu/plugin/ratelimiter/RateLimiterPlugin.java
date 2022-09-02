@@ -27,6 +27,8 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
+import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
 import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.apache.shenyu.plugin.ratelimiter.resolver.RateLimiterKeyResolverFactory;
@@ -76,7 +78,10 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
                         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TOO_MANY_REQUESTS);
                         return WebFluxResultUtils.result(exchange, error);
                     }
-                    return chain.execute(exchange);
+                    return chain.execute(exchange).doFinally(signalType -> {
+                        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance(limiterHandle.getAlgorithmName());
+                        rateLimiterAlgorithm.callback(rateLimiterAlgorithm.getScript(), response.getKeys(), null);
+                    });
                 });
     }
 }

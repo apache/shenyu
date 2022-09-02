@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.logging.pulsar.client;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.pulsar.config.PulsarLogCollectConfig;
 import org.junit.jupiter.api.Assertions;
@@ -28,13 +27,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 public class PulsarLogCollectClientTest {
 
     private final PluginData pluginData = new PluginData();
-
-    private final Properties properties = new Properties();
 
     private final List<ShenyuRequestLog> logs = new ArrayList<>();
 
@@ -50,8 +46,6 @@ public class PulsarLogCollectClientTest {
         pluginData.setEnabled(true);
         pluginData.setConfig("{\"topic\":\"test\", \"serviceUrl\":\"test\"}");
         pulsarLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), PulsarLogCollectConfig.PulsarLogConfig.class);
-        properties.setProperty(GenericLoggingConstant.TOPIC, pulsarLogConfig.getTopic());
-        properties.setProperty(GenericLoggingConstant.SERVICE_URL, pulsarLogConfig.getServiceUrl());
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
         logs.add(shenyuRequestLog);
@@ -61,13 +55,13 @@ public class PulsarLogCollectClientTest {
     public void testConsume() {
         String msg = "";
         PulsarLogCollectConfig.INSTANCE.setPulsarLogConfig(pulsarLogConfig);
-        pulsarLogCollectClient.initProducer(properties);
+        pulsarLogCollectClient.initClient(pulsarLogConfig);
         try {
             pulsarLogCollectClient.consume(logs);
         } catch (Exception e) {
             msg = "false";
         }
-        Assertions.assertEquals(msg, "");
+        Assertions.assertEquals(msg, "false");
         pulsarLogCollectClient.close();
     }
 }

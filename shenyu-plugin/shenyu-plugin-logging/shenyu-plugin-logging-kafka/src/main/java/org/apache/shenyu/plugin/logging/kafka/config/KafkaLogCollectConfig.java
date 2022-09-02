@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.plugin.logging.kafka.config;
 
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -54,7 +56,7 @@ public class KafkaLogCollectConfig {
      * global log config.
      */
     public static class KafkaLogConfig extends GenericGlobalConfig {
-        
+
         private String topic;
 
         private String namesrvAddr;
@@ -190,6 +192,7 @@ public class KafkaLogCollectConfig {
 
         /**
          * set kafka nameserver address.
+         *
          * @param namesrvAddr kafka nameserver address
          */
         public void setNamesrvAddr(final String namesrvAddr) {
@@ -213,57 +216,37 @@ public class KafkaLogCollectConfig {
         public void setProducerGroup(final String producerGroup) {
             this.producerGroup = producerGroup;
         }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return Boolean.TRUE;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return Boolean.FALSE;
+            }
+
+            KafkaLogConfig that = (KafkaLogConfig) o;
+            return Objects.equals(getTopic(), that.getTopic())
+                    && Objects.equals(getCompressAlg(), that.getCompressAlg())
+                    && Objects.equals(getNamesrvAddr(), that.getNamesrvAddr())
+                    && Objects.equals(getProducerGroup(), that.getProducerGroup())
+                    && Objects.equals(getSampleRate(), that.getSampleRate())
+                    && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxRequestBody())
+                    && Objects.equals(getMaxRequestBody(), that.getMaxResponseBody());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(topic, compressAlg, namesrvAddr, producerGroup);
+        }
     }
 
     /**
      * api log config.
      */
-    public static class LogApiConfig {
-
-        /**
-         * 0 means never sample, 1 means always sample. Minimum probability is 0.01, or 1% of logging
-         */
-        private String sampleRate;
-
-        /**
-         * This topic is useful if you use message queuing to collect logs.
-         */
-        private String topic;
-
-        /**
-         * get sample rate.
-         *
-         * @return sample rate
-         */
-        public String getSampleRate() {
-            return sampleRate;
-        }
-
-        /**
-         * set sample rate.
-         *
-         * @param sampleRate sample rate
-         */
-        public void setSampleRate(final String sampleRate) {
-            this.sampleRate = sampleRate;
-        }
-
-        /**
-         * get mq topic.
-         *
-         * @return mq topic
-         */
-        public String getTopic() {
-            return topic;
-        }
-
-        /**
-         * set  mq topic.
-         *
-         * @param topic mq topic
-         */
-        public void setTopic(final String topic) {
-            this.topic = topic;
-        }
+    public static class LogApiConfig extends GenericApiConfig {
     }
 }
