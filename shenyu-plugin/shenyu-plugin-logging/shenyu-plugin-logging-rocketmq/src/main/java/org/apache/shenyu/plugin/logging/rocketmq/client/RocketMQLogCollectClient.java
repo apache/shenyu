@@ -20,13 +20,14 @@ package org.apache.shenyu.plugin.logging.rocketmq.client;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.acl.common.AclClientRPCHook;
+import org.apache.rocketmq.acl.common.SessionCredentials;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
@@ -39,13 +40,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * queue-based logging collector.
  */
-public class RocketMQLogCollectClient implements LogConsumeClient {
+public class RocketMQLogCollectClient implements LogConsumeClient<RocketMQLogCollectConfig.RocketMQLogConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQLogCollectClient.class);
 
@@ -62,25 +63,27 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
     /**
      * init producer.
      *
-     * @param props rocketmq props
+     * @param config rocketmq props
      */
-    public void initProducer(final Properties props) {
-        if (MapUtils.isEmpty(props)) {
+    @Override
+    public void initClient(final RocketMQLogCollectConfig.RocketMQLogConfig config) {
+        if (Objects.isNull(config)) {
             LOG.error("RocketMQ props is empty. failed init RocketMQ producer");
             return;
         }
         if (isStarted.get()) {
             close();
         }
-        String topic = props.getProperty(GenericLoggingConstant.TOPIC);
-        String nameserverAddress = props.getProperty(GenericLoggingConstant.NAMESERVER_ADDRESS);
-        String producerGroup = props.getProperty(GenericLoggingConstant.PRODUCER_GROUP, DEFAULT_PRODUCER_GROUP);
+        String topic = config.getTopic();
+        String nameserverAddress = config.getNamesrvAddr();
+        String producerGroup = config.getProducerGroup();
+        producerGroup = Optional.ofNullable(producerGroup).orElse(DEFAULT_PRODUCER_GROUP);
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init RocketMQLogCollectClient error, please check topic or nameserverAddress");
             return;
         }
         this.topic = topic;
-        producer = new DefaultMQProducer(producerGroup);
+        producer = new DefaultMQProducer(producerGroup, getAclRPCHook(config));
         producer.setNamesrvAddr(nameserverAddress);
         producer.setRetryTimesWhenSendAsyncFailed(0);
         producer.setInstanceName(DEFAULT_PRODUCER_GROUP);
@@ -92,6 +95,18 @@ public class RocketMQLogCollectClient implements LogConsumeClient {
         } catch (Exception e) {
             LOG.error("init RocketMQLogCollectClient error", e);
         }
+    }
+
+    /**
+     * get Acl(Access Control List) rpc Hook.
+     * @param config rocketMqLog Config
+     * @return boolean
+     */
+    private RPCHook getAclRPCHook(final RocketMQLogCollectConfig.RocketMQLogConfig config) {
+        if (StringUtils.isBlank(config.getAccessKey()) || StringUtils.isBlank(config.getSecretKey())) {
+            return null;
+        }
+        return new AclClientRPCHook(new SessionCredentials(config.getAccessKey(), config.getSecretKey()));
     }
 
     /**

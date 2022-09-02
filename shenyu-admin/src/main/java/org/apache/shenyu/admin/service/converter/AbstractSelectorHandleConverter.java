@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.admin.service.converter;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -68,8 +68,8 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
      */
     @Override
     public <T extends CommonUpstream> List<T> updateStatusAndFilter(final List<T> existList, final List<? extends CommonUpstream> aliveList) {
-        if (aliveList == null) {
-            return Collections.emptyList();
+        if (CollectionUtils.isEmpty(aliveList) || CollectionUtils.isEmpty(existList)) {
+            return Lists.newArrayList();
         }
         long currentTimeMillis = System.currentTimeMillis();
         List<T> validExistList = existList.stream()
@@ -83,7 +83,7 @@ public abstract class AbstractSelectorHandleConverter implements SelectorHandleC
                     upstream.setTimestamp(currentTimeMillis);
                 });
         validExistList.stream()
-                .filter(upstream -> !aliveList.stream().anyMatch(alive -> alive.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
+                .filter(upstream -> aliveList.stream().noneMatch(alive -> alive.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
                 .forEach(upstream -> {
                     upstream.setStatus(false);
                     upstream.setTimestamp(currentTimeMillis);

@@ -20,9 +20,10 @@ package org.apache.shenyu.plugin.logging.kafka.client;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.errors.AuthorizationException;
@@ -49,7 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * queue-based logging collector.
  */
-public class KafkaLogCollectClient implements LogConsumeClient {
+public class KafkaLogCollectClient implements LogConsumeClient<KafkaLogCollectConfig.KafkaLogConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(KafkaLogCollectClient.class);
 
@@ -64,10 +65,13 @@ public class KafkaLogCollectClient implements LogConsumeClient {
     /**
      * init producer.
      *
-     * @param props kafka props
+     * @param config kafka props
      */
-    public void initProducer(final Properties props) {
-        if (MapUtils.isEmpty(props)) {
+    @Override
+    public void initClient(final KafkaLogCollectConfig.KafkaLogConfig config) {
+        if (Objects.isNull(config)
+                || StringUtils.isBlank(config.getNamesrvAddr())
+                || StringUtils.isBlank(config.getTopic())) {
             LOG.error("kafka props is empty. failed init kafka producer");
             return;
         }
@@ -75,12 +79,17 @@ public class KafkaLogCollectClient implements LogConsumeClient {
             close();
         }
         String topic = "shenyu-access-logging";
-        String nameserverAddress = props.getProperty("bootstrap.servers");
+        String nameserverAddress = config.getNamesrvAddr();
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init kafkaLogCollectClient error, please check topic or nameserverAddress");
             return;
         }
         this.topic = topic;
+
+        Properties props = new Properties();
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, config.getNamesrvAddr());
         producer = new KafkaProducer<>(props);
         ProducerRecord<String, String> record = new ProducerRecord<>("shenyu-access-logging", StringSerializer.class.getName(), StringSerializer.class.getName());
         try {

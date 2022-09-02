@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.logging.elasticsearch.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -59,6 +58,12 @@ public class ElasticSearchLogCollectConfig {
         private String host;
 
         private String port;
+
+        private String username;
+
+        private String password;
+
+        private Boolean authCache;
 
         private String compressAlg;
 
@@ -116,6 +121,56 @@ public class ElasticSearchLogCollectConfig {
             this.port = port;
         }
 
+        /**
+         * get userName.
+         * @return userName
+         */
+        public String getUsername() {
+            return username;
+        }
+
+        /**
+         * set userName.
+         *
+         * @param username userName
+         */
+        public void setUsername(final String username) {
+            this.username = username;
+        }
+
+        /**
+         * get password.
+         * @return password
+         */
+        public String getPassword() {
+            return password;
+        }
+
+        /**
+         * set password.
+         *
+         * @param password password
+         */
+        public void setPassword(final String password) {
+            this.password = password;
+        }
+
+        /**
+         * get authCache.
+         * @return authCache
+         */
+        public Boolean getAuthCache() {
+            return authCache;
+        }
+
+        /**
+         * set authCache.
+         *
+         * @param authCache authCache
+         */
+        public void setAuthCache(final Boolean authCache) {
+            this.authCache = authCache;
+        }
         @Override
         public boolean equals(final Object o) {
             if (this == o) {

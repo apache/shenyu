@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.concurrent;
 
+import java.util.Queue;
+
 /**
  * A handler for rejected element that silently discards the
  * rejected element.
@@ -24,7 +26,7 @@ package org.apache.shenyu.common.concurrent;
 public class DiscardPolicy<E> implements Rejector<E> {
 
     @Override
-    public void reject(final E e, final MemorySafeLinkedBlockingQueue<E> queue) {
+    public void reject(final E e, final Queue<E> queue) {
 
     }
 }
