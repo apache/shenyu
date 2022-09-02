@@ -51,6 +51,11 @@
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-acl</artifactId>
+            <version>${rocketmq-client.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

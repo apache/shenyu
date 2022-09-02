@@ -16,6 +16,16 @@
 
 -- this file works for PostgreSQL, can not use "`" syntax.
 
+/*insert plugin_handle data for plugin loggingElasticSearch*/
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524972', '32', 'username', 'username', 2, 3, 4, '{"required":"0","defaultValue":""}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524973', '32', 'password', 'password', 2, 3, 5, '{"required":"0","defaultValue":""}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524974', '32', 'authCache', 'authCache', 2, 3, 6, '{"required":"0","defaultValue":"","placeholder":"true|false"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524975', '29', 'accessKey', 'accessKey', 2, 3, 4, '{"required":"0","defaultValue":"","placeholder":"accessKey"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524976', '29', 'secretKey', 'secretKey', 2, 3, 5, '{"required":"0","defaultValue":"","placeholder":"secretKey"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+-- resort relation fields
+UPDATE "public"."plugin_handle" SET sort = sort + 3 WHERE plugin_id = '32' AND field in ('sampleRate', 'maxResponseBody', 'maxRequestBody', 'compressAlg');
+UPDATE "public"."plugin_handle" SET sort = sort + 2 WHERE plugin_id = '29' AND field in ('sampleRate', 'maxResponseBody', 'maxRequestBody', 'compressAlg');
+
 /* insert plugin for loggingPulsar */
 INSERT INTO "public"."plugin" VALUES ('35', 'loggingPulsar', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 'Logging', 185, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 -- insert loggingTencentCls plugin

@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.plugin.logging.kafka.config;
 
-import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
-
 import java.util.Optional;
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
 /**
  * log collect config, include kafka config.
@@ -54,7 +54,7 @@ public class KafkaLogCollectConfig {
      * global log config.
      */
     public static class KafkaLogConfig extends GenericGlobalConfig {
-        
+
         private String topic;
 
         private String namesrvAddr;
@@ -110,6 +110,7 @@ public class KafkaLogCollectConfig {
 
         /**
          * set kafka nameserver address.
+         *
          * @param namesrvAddr kafka nameserver address
          */
         public void setNamesrvAddr(final String namesrvAddr) {
@@ -138,52 +139,6 @@ public class KafkaLogCollectConfig {
     /**
      * api log config.
      */
-    public static class LogApiConfig {
-
-        /**
-         * 0 means never sample, 1 means always sample. Minimum probability is 0.01, or 1% of logging
-         */
-        private String sampleRate;
-
-        /**
-         * This topic is useful if you use message queuing to collect logs.
-         */
-        private String topic;
-
-        /**
-         * get sample rate.
-         *
-         * @return sample rate
-         */
-        public String getSampleRate() {
-            return sampleRate;
-        }
-
-        /**
-         * set sample rate.
-         *
-         * @param sampleRate sample rate
-         */
-        public void setSampleRate(final String sampleRate) {
-            this.sampleRate = sampleRate;
-        }
-
-        /**
-         * get mq topic.
-         *
-         * @return mq topic
-         */
-        public String getTopic() {
-            return topic;
-        }
-
-        /**
-         * set  mq topic.
-         *
-         * @param topic mq topic
-         */
-        public void setTopic(final String topic) {
-            this.topic = topic;
-        }
+    public static class LogApiConfig extends GenericApiConfig {
     }
 }
