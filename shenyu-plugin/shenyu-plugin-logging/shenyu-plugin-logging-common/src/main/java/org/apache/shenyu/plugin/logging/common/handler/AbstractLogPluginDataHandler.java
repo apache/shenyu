@@ -82,7 +82,6 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
      * LogCollector.
      *
      * @param globalLogConfig globalLogConfig
-     * @return LogCollector
      */
     protected abstract void doRefreshConfig(T globalLogConfig);
 
