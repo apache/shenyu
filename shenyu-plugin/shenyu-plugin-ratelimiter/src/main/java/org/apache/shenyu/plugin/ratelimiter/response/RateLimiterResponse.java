@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ratelimiter.response;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * rateLimiter response.
@@ -30,15 +31,19 @@ public class RateLimiterResponse implements Serializable {
 
     private final long tokensRemaining;
 
+    private final List<String> keys;
+
     /**
      * Instantiates a new Rate limiter response.
      *
      * @param allowed         the allowed
      * @param tokensRemaining the tokens remaining
+     * @param keys the redis keys
      */
-    public RateLimiterResponse(final boolean allowed, final long tokensRemaining) {
+    public RateLimiterResponse(final boolean allowed, final long tokensRemaining, final List<String> keys) {
         this.allowed = allowed;
         this.tokensRemaining = tokensRemaining;
+        this.keys = keys;
     }
 
     /**
@@ -57,6 +62,16 @@ public class RateLimiterResponse implements Serializable {
      */
     public long getTokensRemaining() {
         return tokensRemaining;
+    }
+
+
+    /**
+     * get redis keys.
+     *
+     * @return getKeys
+     */
+    public List<String> getKeys() {
+        return keys;
     }
 
     @Override
