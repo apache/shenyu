@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.mybatis.pg.interceptor;
+package org.apache.shenyu.admin.mybatis.common;
 
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -34,11 +34,11 @@ import static org.mockito.Mockito.when;
 /**
  * PostgreSqlUpdateInterceptorTest.
  */
-public class PostgreSqlUpdateInterceptorTest {
+public class SqlUpdateInterceptorTest {
 
     @Test
     public void interceptTest() throws SQLException {
-        final PostgreSqlUpdateInterceptor postgreSqlUpdateInterceptor = new PostgreSqlUpdateInterceptor();
+        final SqlUpdateInterceptor sqlUpdateInterceptor = new SqlUpdateInterceptor();
         final Invocation invocation = mock(Invocation.class);
         Object[] args = new Object[2];
         args[0] = mock(MappedStatement.class);
@@ -47,19 +47,19 @@ public class PostgreSqlUpdateInterceptorTest {
         when(invocation.getTarget()).thenReturn(executor);
         when(invocation.getArgs()).thenReturn(args);
         when(executor.update(any(), any())).thenReturn(1);
-        Assertions.assertDoesNotThrow(() -> postgreSqlUpdateInterceptor.intercept(invocation));
+        Assertions.assertDoesNotThrow(() -> sqlUpdateInterceptor.intercept(invocation));
     }
 
     @Test
     public void pluginTest() {
-        final PostgreSqlUpdateInterceptor postgreSqlUpdateInterceptor = new PostgreSqlUpdateInterceptor();
-        Assertions.assertDoesNotThrow(() -> postgreSqlUpdateInterceptor.plugin(new Object()));
+        final SqlUpdateInterceptor sqlUpdateInterceptor = new SqlUpdateInterceptor();
+        Assertions.assertDoesNotThrow(() -> sqlUpdateInterceptor.plugin(new Object()));
     }
 
     @Test
     public void setPropertiesTest() {
-        final PostgreSqlUpdateInterceptor postgreSqlUpdateInterceptor = new PostgreSqlUpdateInterceptor();
-        Assertions.assertDoesNotThrow(() -> postgreSqlUpdateInterceptor.setProperties(mock(Properties.class)));
+        final SqlUpdateInterceptor sqlUpdateInterceptor = new SqlUpdateInterceptor();
+        Assertions.assertDoesNotThrow(() -> sqlUpdateInterceptor.setProperties(mock(Properties.class)));
     }
 
 }

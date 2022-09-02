@@ -51,12 +51,7 @@ public class MapperConfigTest {
     }
 
     @Test
-    public void oracleSqlUpdateInterceptorTest() {
-        assertNotNull(mapperConfig.oracleSqlUpdateInterceptor());
-    }
-
-    @Test
-    public void postgreSqlUpdateInterceptorTest() {
-        assertNotNull(mapperConfig.postgreSqlUpdateInterceptor());
+    public void sqlUpdateInterceptorTest() {
+        assertNotNull(mapperConfig.sqlUpdateInterceptor());
     }
 }

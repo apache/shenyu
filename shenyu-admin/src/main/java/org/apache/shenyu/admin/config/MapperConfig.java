@@ -73,7 +73,7 @@ public class MapperConfig {
      */
     @Bean
     @ConditionalOnExpression(value = "'${shenyu.database.dialect}' == 'oracle' || '${shenyu.database.dialect}' == 'postgresql'")
-    public SqlUpdateInterceptor oracleSqlUpdateInterceptor() {
+    public SqlUpdateInterceptor sqlUpdateInterceptor() {
         return new SqlUpdateInterceptor();
     }
 
