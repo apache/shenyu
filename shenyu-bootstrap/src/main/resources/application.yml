@@ -255,16 +255,16 @@ shenyu:
   local:
     enabled: false
     sha512Key: "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548BAEAE6956DF346EC8C17F5EA10F35EE3CBC514797ED7DDD3145464E2A0BAB413"
-  sharedPool:
-    enable: true
-    prefix: "shenyu-shared"
-    corePoolSize: 200
-    maximumPoolSize: 2000
-    keepAliveTime: 60000
-    # 1GB
-    maxWorkQueueMemory: 1073741824
-    # 256MB
-    maxFreeMemory: 268435456
+#  sharedPool:
+#    enable: true
+#    prefix: "shenyu-shared"
+#    corePoolSize: 200
+#    maximumPoolSize: 2000
+#    keepAliveTime: 60000
+#    # 1GB
+#    maxWorkQueueMemory: 1073741824
+#    # 256MB
+#    maxFreeMemory: 268435456
 
 logging:
   level:
