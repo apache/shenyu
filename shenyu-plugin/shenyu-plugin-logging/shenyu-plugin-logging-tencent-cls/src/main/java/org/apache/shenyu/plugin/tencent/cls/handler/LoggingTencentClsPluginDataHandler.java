@@ -21,7 +21,6 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.tencent.cls.client.TencentClsLogCollectClient;
 import org.apache.shenyu.plugin.tencent.cls.collector.TencentClsSlsLogCollector;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -30,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.Properties;
 
 /**
  * LoggingTencentClsPluginDataHandler Tencent cls plugin data handler.
@@ -54,26 +52,8 @@ public class LoggingTencentClsPluginDataHandler implements PluginDataHandler {
             if (Objects.isNull(exist) || !globalLogConfig.equals(exist)) {
                 // no data, init client
                 TencentLogCollectConfig.INSTANCE.setTencentClsLogConfig(globalLogConfig);
-                Properties properties = new Properties();
-                properties.setProperty(GenericLoggingConstant.SECRET_ID, globalLogConfig.getSecretId().trim());
-                properties.setProperty(GenericLoggingConstant.SECRET_KEY, globalLogConfig.getSecretKey().trim());
-                properties.setProperty(GenericLoggingConstant.ENDPOINT, globalLogConfig.getEndpoint().trim());
-                properties.setProperty(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic().trim());
-                properties.setProperty(GenericLoggingConstant.SEND_THREAD_COUNT, String.valueOf(globalLogConfig.getSendThreadCount()));
-
-                // Optional parameters
-                properties.setProperty(GenericLoggingConstant.TOTAL_SIZE_IN_BYTES, globalLogConfig.getTotalSizeInBytes());
-                properties.setProperty(GenericLoggingConstant.MAX_SEND_THREAD_COUNT, globalLogConfig.getMaxSendThreadCount());
-                properties.setProperty(GenericLoggingConstant.MAX_BLOCK_SEC, globalLogConfig.getMaxBlockSec());
-                properties.setProperty(GenericLoggingConstant.MAX_BATCH_SIZE, globalLogConfig.getMaxBatchSize());
-                properties.setProperty(GenericLoggingConstant.MAX_BATCH_COUNT, globalLogConfig.getMaxBatchCount());
-                properties.setProperty(GenericLoggingConstant.LINGER_MS, globalLogConfig.getLingerMs());
-                properties.setProperty(GenericLoggingConstant.RETRIES, globalLogConfig.getRetries());
-                properties.setProperty(GenericLoggingConstant.MAX_RESERVED_ATTEMPTS, globalLogConfig.getMaxReservedAttempts());
-                properties.setProperty(GenericLoggingConstant.BASE_RETRY_BACKOFF_MS, globalLogConfig.getBaseRetryBackoffMs());
-                properties.setProperty(GenericLoggingConstant.MAX_RETRY_BACKOFF_MS, globalLogConfig.getMaxRetryBackoffMs());
                 // init tencent cls client
-                TENCENT_CLS_LOG_COLLECT_CLIENT.initClient(properties);
+                TENCENT_CLS_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
                 TencentClsSlsLogCollector.getInstance().start();
                 Singleton.INST.single(TencentLogCollectConfig.TencentClsLogConfig.class, globalLogConfig);
             }
