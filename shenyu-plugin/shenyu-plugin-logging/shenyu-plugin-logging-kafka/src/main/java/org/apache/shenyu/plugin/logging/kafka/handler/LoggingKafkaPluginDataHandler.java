@@ -51,25 +51,6 @@ public class LoggingKafkaPluginDataHandler extends AbstractLogPluginDataHandler<
         KAFKA_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
     }
 
-    private Properties initProperties(final KafkaLogCollectConfig.KafkaLogConfig globalLogConfig) {
-        //init kafka properties
-        Properties properties = new Properties();
-        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, globalLogConfig.getNamesrvAddr());
-        properties.put(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
-        properties.put(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getTopic());
-        if (!StringUtils.isBlank(globalLogConfig.getSecurityProtocol()) && !StringUtils.isBlank(globalLogConfig.getSaslMechanism())) {
-            properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, globalLogConfig.getSecurityProtocol());
-            properties.put(SaslConfigs.SASL_MECHANISM, globalLogConfig.getSaslMechanism());
-            properties.put(SaslConfigs.SASL_JAAS_CONFIG,
-                    MessageFormat
-                            .format("org.apache.kafka.common.security.scram.ScramLoginModule required username=\"{0}\" password=\"{1}\";",
-                                    globalLogConfig.getUserName(), globalLogConfig.getPassWord()));
-        }
-        return properties;
-    }
-
     @Override
     public String pluginNamed() {
         return PluginEnum.LOGGING_KAFKA.getName();
