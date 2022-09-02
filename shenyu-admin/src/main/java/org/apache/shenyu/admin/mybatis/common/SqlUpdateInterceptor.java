@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.mybatis.pg.interceptor;
+package org.apache.shenyu.admin.mybatis.common;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.ibatis.executor.Executor;
@@ -25,8 +25,8 @@ import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
-import org.apache.shenyu.common.utils.ReflectUtils;
 
+import org.apache.shenyu.common.utils.ReflectUtils;
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -35,14 +35,14 @@ import java.util.Objects;
 import java.util.Properties;
 
 /**
- * The 'date_updated' field in the postgreSql library is not automatically updated.
+ * The 'date_updated' field in the postgreSql and oracle library is not automatically updated.
  * So this interceptor intercepts the UPDATE statement.
  * Adds the current time to the 'date_updated' field at run time.
  */
 @Intercepts({
-    @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class})
+        @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class})
 })
-public class PostgreSqlUpdateInterceptor implements Interceptor {
+public class SqlUpdateInterceptor implements Interceptor {
 
     private static final List<String> AUTOMATIC_DATES = ImmutableList.of("dateUpdated");
 
