@@ -66,6 +66,10 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig> im
         if (isStarted.get()) {
             this.close();
         }
+        if (ObjectUtils.isEmpty(config)) {
+            LOG.error("{} config is null.", this.getClass().getSimpleName());
+            return;
+        }
         this.initClient0(config);
         isStarted.set(true);
         closeThread.set(new Thread(this::close));
@@ -82,7 +86,7 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig> im
             try {
                 this.close0();
             } catch (Exception e) {
-                LOG.error("Close producer error.");
+                LOG.error("{} close error.", this.getClass().getSimpleName());
             }
         }
     }
