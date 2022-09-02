@@ -16,8 +16,22 @@
 
 -- this file works for PostgreSQL, can not use "`" syntax.
 
+/*insert plugin_handle data for plugin loggingElasticSearch*/
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524972', '32', 'username', 'username', 2, 3, 4, '{"required":"0","defaultValue":""}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524973', '32', 'password', 'password', 2, 3, 5, '{"required":"0","defaultValue":""}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524974', '32', 'authCache', 'authCache', 2, 3, 6, '{"required":"0","defaultValue":"","placeholder":"true|false"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524975', '29', 'accessKey', 'accessKey', 2, 3, 4, '{"required":"0","defaultValue":"","placeholder":"accessKey"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524976', '29', 'secretKey', 'secretKey', 2, 3, 5, '{"required":"0","defaultValue":"","placeholder":"secretKey"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+-- resort relation fields
+UPDATE "public"."plugin_handle" SET sort = sort + 3 WHERE plugin_id = '32' AND field in ('sampleRate', 'maxResponseBody', 'maxRequestBody', 'compressAlg');
+UPDATE "public"."plugin_handle" SET sort = sort + 2 WHERE plugin_id = '29' AND field in ('sampleRate', 'maxResponseBody', 'maxRequestBody', 'compressAlg');
+
 /* insert plugin for loggingPulsar */
 INSERT INTO "public"."plugin" VALUES ('35', 'loggingPulsar', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 'Logging', 185, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+-- insert loggingTencentCls plugin
+INSERT INTO "public"."plugin" VALUES ('36', 'loggingTencentCls', '{"endpoint\": \"ap-guangzhou.cls.tencentcs.com\, \"topic\": \"shenyu-topic"}', 'Logging', 176, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+/* insert plugin for loggingClickHouse */
+INSERT INTO "public"."plugin" VALUES ('38', 'loggingClickHouse', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 'Logging', 195, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
 /* insert plugin_handle data for plugin loggingPulsar */
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524972', '35', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
@@ -26,9 +40,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524974', '35', 'sampl
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524975', '35', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524976', '35', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524977', '35', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-
--- insert loggingTencentCls plugin
-INSERT INTO "public"."plugin" VALUES ('36', 'loggingTencentCls', '{"endpoint\": \"ap-guangzhou.cls.tencentcs.com\, \"topic\": \"shenyu-topic"}', 'Logging', 176, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+/* insert plugin_handle data for plugin loggingTencentCls */
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524978', '36', 'secretId', 'secretId', 2, 3, 1, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524979', '36', 'secretKey', 'secretKey', 2, 3, 2, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524980', '36', 'endpoint', 'endpoint', 2, 3, 3, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
@@ -44,13 +56,19 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524989', '36', 'retri
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524990', '36', 'maxReservedAttempts', 'maxReservedAttempts', 1, 3, 13, '{\"required\":\"0\",\"defaultValue\":11}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524991', '36', 'baseRetryBackoffMs', 'baseRetryBackoffMs', 1, 3, 14, '{\"required\":\"0\",\"defaultValue\":100}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524992', '36', 'maxRetryBackoffMs', 'maxRetryBackoffMs', 1, 3, 15, '{\"required\":\"0\",\"defaultValue\":50000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+/* insert plugin_handle data for plugin loggingClickHouse */
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172798', '38', 'host', 'host', 2, 3, 1, '{"required":"0","defaultValue":"127.0.0.1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172799', '38', 'port', 'port', 2, 3, 2, '{"required":"0","defaultValue":"8123"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1556899301440503808', '38', 'database', 'database', 2, 2, 0, '{"required":"0","defaultValue":"shenyu-gateway","placeholder":"database"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1556899400849702912', '38', 'username', 'username', 2, 2, 0, '{"required":"0","defaultValue":"foo","placeholder":"username"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1556899492809818112', '38', 'password', 'password', 2, 2, 0, '{"required":"0","defaultValue":"bar","placeholder":"password"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
--- insert loggingKafka plugin
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524993', '33', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524994', '33', 'securityProtocol', 'securityProtocol', 3, 3, 8, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524995', '33', 'saslMechanism', 'saslMechanism', 3, 3, 9, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524996', '33', 'userName', 'userName', 2, 3, 10, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524997', '33', 'passWord', 'passWord', 2, 3, 11, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+/* insert plugin_handle data for plugin loggingKafka */
+
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172858', '33', 'securityProtocol', 'securityProtocol', 3, 3, 8, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172859', '33', 'saslMechanism', 'saslMechanism', 3, 3, 9, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172860', '33', 'userName', 'userName', 2, 3, 10, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172861', '33', 'passWord', 'passWord', 2, 3, 11, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 
 INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784271', 'securityProtocol', 'SECURITY_PROTOCOL', 'default', '', '', 0, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784272', 'securityProtocol', 'SECURITY_PROTOCOL', 'SSL', 'SSL', '', 1, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
@@ -63,4 +81,5 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784278', 'saslMechanism
 INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784279', 'saslMechanism', 'SASL_MECHANISM', 'OAUTHBEARER', 'OAUTHBEARER', '', 3, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784280', 'saslMechanism', 'SASL_MECHANISM', 'SCRAM-SHA-256', 'SCRAM-SHA-256', '', 4, 1,'2022-09-02 00:00:00', '2022-09-02 00:00:00');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784281', 'saslMechanism', 'SASL_MECHANISM', 'SCRAM-SHA-512', 'SCRAM-SHA-512', '', 5, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+
 
