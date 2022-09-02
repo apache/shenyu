@@ -51,7 +51,7 @@ public class LoggingRocketMQPluginDataHandler extends AbstractLogPluginDataHandl
     private static final String EMPTY_JSON = "{}";
 
     private static final Map<String, List<String>> SELECT_ID_URI_LIST_MAP = new ConcurrentHashMap<>();
-
+    
     private static final Map<String, RocketMQLogCollectConfig.LogApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
 
     /**
@@ -64,6 +64,8 @@ public class LoggingRocketMQPluginDataHandler extends AbstractLogPluginDataHandl
 
     /**
      * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
      */
     @Override
     protected void doRefreshConfig(RocketMQLogCollectConfig.RocketMQLogConfig globalLogConfig) {

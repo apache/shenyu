@@ -44,6 +44,8 @@ public class LoggingTencentClsPluginDataHandler extends AbstractLogPluginDataHan
 
     /**
      * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
      */
     @Override
     protected void doRefreshConfig(TencentLogCollectConfig.TencentClsLogConfig globalLogConfig) {

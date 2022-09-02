@@ -64,6 +64,8 @@ public class LoggingElasticSearchPluginDataHandler extends AbstractLogPluginData
 
     /**
      * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
      */
     @Override
     protected void doRefreshConfig(ElasticSearchLogCollectConfig.ElasticSearchLogConfig globalLogConfig) {

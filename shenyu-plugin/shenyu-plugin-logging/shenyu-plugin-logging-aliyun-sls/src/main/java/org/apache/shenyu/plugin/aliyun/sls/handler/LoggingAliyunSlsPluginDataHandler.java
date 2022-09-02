@@ -48,6 +48,8 @@ public class LoggingAliyunSlsPluginDataHandler extends AbstractLogPluginDataHand
 
     /**
      * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
      */
     @Override
     protected void doRefreshConfig(AliyunLogCollectConfig.AliyunSlsLogConfig globalLogConfig) {

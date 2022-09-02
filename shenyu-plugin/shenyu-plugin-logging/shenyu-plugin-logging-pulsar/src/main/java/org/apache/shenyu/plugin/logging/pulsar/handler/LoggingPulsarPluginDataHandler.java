@@ -45,6 +45,8 @@ public class LoggingPulsarPluginDataHandler extends AbstractLogPluginDataHandler
 
     /**
      * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
      */
     @Override
     protected void doRefreshConfig(PulsarLogCollectConfig.PulsarLogConfig globalLogConfig) {

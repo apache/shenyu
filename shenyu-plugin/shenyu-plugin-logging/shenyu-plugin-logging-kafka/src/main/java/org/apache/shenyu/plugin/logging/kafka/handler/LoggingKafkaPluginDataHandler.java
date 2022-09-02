@@ -92,6 +92,8 @@ public class LoggingKafkaPluginDataHandler extends AbstractLogPluginDataHandler<
 
     /**
      * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
      */
     @Override
     protected void doRefreshConfig(KafkaLogCollectConfig.KafkaLogConfig globalLogConfig) {
