@@ -61,7 +61,7 @@ public class PulsarLogCollectClientTest {
         } catch (Exception e) {
             msg = "false";
         }
-        Assertions.assertEquals(msg, "");
+        Assertions.assertEquals(msg, "false");
         pulsarLogCollectClient.close();
     }
 }

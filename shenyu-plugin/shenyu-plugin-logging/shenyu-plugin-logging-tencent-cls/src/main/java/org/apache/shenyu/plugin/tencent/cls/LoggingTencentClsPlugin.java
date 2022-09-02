@@ -33,22 +33,12 @@ public class LoggingTencentClsPlugin extends AbstractLoggingPlugin {
     }
 
     /**
-     * get plugin order.
+     * pluginEnum.
      *
-     * @return order
+     * @return plugin
      */
     @Override
-    public int getOrder() {
-        return PluginEnum.LOGGING_TENCENT_CLS.getCode();
-    }
-
-    /**
-     * get plugin name.
-     *
-     * @return plugin name
-     */
-    @Override
-    public String named() {
-        return PluginEnum.LOGGING_TENCENT_CLS.getName();
+    public PluginEnum pluginEnum() {
+        return PluginEnum.LOGGING_TENCENT_CLS;
     }
 }

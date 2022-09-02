@@ -17,28 +17,20 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq.handler;
 
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.logging.common.handler.AbstractPluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.apache.shenyu.plugin.logging.rocketmq.collector.RocketMQLogCollector;
 import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The type logging rocketmq plugin data handler.
  */
-public class LoggingRocketMQPluginDataHandler extends AbstractLogPluginDataHandler<RocketMQLogCollectConfig.RocketMQLogConfig> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingRocketMQPluginDataHandler.class);
+public class LoggingRocketMQPluginDataHandler extends AbstractLogPluginDataHandler<RocketMQLogCollectConfig.RocketMQLogConfig, GenericApiConfig> {
 
     private static final RocketMQLogCollectClient ROCKET_MQ_LOG_COLLECT_CLIENT = new RocketMQLogCollectClient();
-
-    public LoggingRocketMQPluginDataHandler() {
-        super(RocketMQLogCollectConfig.LogApiConfig.class);
-    }
 
     /**
      * logCollector.
@@ -54,13 +46,9 @@ public class LoggingRocketMQPluginDataHandler extends AbstractLogPluginDataHandl
      * @param globalLogConfig globalLogConfig
      */
     @Override
-    protected void doRefreshConfig(RocketMQLogCollectConfig.RocketMQLogConfig globalLogConfig) {
+    protected void doRefreshConfig(final RocketMQLogCollectConfig.RocketMQLogConfig globalLogConfig) {
         RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(globalLogConfig);
-        Properties properties = new Properties();
-        properties.setProperty(GenericLoggingConstant.TOPIC, globalLogConfig.getTopic());
-        properties.setProperty(GenericLoggingConstant.NAMESERVER_ADDRESS, globalLogConfig.getNamesrvAddr());
-        properties.setProperty(GenericLoggingConstant.PRODUCER_GROUP, globalLogConfig.getProducerGroup());
-        ROCKET_MQ_LOG_COLLECT_CLIENT.initProducer(properties);
+        ROCKET_MQ_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
     }
 
     @Override

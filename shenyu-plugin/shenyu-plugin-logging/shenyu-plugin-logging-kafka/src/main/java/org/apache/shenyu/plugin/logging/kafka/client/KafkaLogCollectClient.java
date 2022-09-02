@@ -31,13 +31,11 @@ import org.apache.kafka.common.errors.OutOfOrderSequenceException;
 import org.apache.kafka.common.errors.ProducerFencedException;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -45,18 +43,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * queue-based logging collector.
  */
-public class KafkaLogCollectClient implements LogConsumeClient<KafkaLogCollectConfig.KafkaLogConfig> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaLogCollectClient.class);
+public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogCollectConfig.KafkaLogConfig> {
 
     private static Map<String, String> apiTopicMap = new HashMap<>();
-
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
     private KafkaProducer<String, String> producer;
 
@@ -68,15 +61,12 @@ public class KafkaLogCollectClient implements LogConsumeClient<KafkaLogCollectCo
      * @param config kafka props
      */
     @Override
-    public void initClient(final KafkaLogCollectConfig.KafkaLogConfig config) {
+    public void initClient0(final KafkaLogCollectConfig.KafkaLogConfig config) {
         if (Objects.isNull(config)
                 || StringUtils.isBlank(config.getNamesrvAddr())
                 || StringUtils.isBlank(config.getTopic())) {
             LOG.error("kafka props is empty. failed init kafka producer");
             return;
-        }
-        if (isStarted.get()) {
-            close();
         }
         String topic = "shenyu-access-logging";
         String nameserverAddress = config.getNamesrvAddr();
@@ -95,7 +85,6 @@ public class KafkaLogCollectClient implements LogConsumeClient<KafkaLogCollectCo
         try {
             producer.send(record);
             LOG.info("init kafkaLogCollectClient success");
-            isStarted.set(true);
         } catch (ProducerFencedException | OutOfOrderSequenceException | AuthorizationException e) {
             // We can't recover from these exceptions, so our only option is to close the producer and exit.
             LOG.error("Init kafkaLogCollectClient error, We can't recover from these exceptions, so our only option is to close the producer and exit", e);
@@ -113,8 +102,8 @@ public class KafkaLogCollectClient implements LogConsumeClient<KafkaLogCollectCo
      * @param logs list of log
      */
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
+    public void consume0(final List<ShenyuRequestLog> logs) {
+        if (CollectionUtils.isEmpty(logs)) {
             return;
         }
         logs.forEach(log -> {
@@ -157,10 +146,9 @@ public class KafkaLogCollectClient implements LogConsumeClient<KafkaLogCollectCo
      * close producer.
      */
     @Override
-    public void close() {
-        if (Objects.nonNull(producer) && isStarted.get()) {
+    public void close0() {
+        if (Objects.nonNull(producer)) {
             producer.close();
-            isStarted.set(false);
         }
     }
 }

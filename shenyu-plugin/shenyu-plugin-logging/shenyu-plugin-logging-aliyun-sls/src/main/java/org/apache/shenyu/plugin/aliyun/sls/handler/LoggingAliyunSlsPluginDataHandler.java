@@ -17,25 +17,21 @@
 
 package org.apache.shenyu.plugin.aliyun.sls.handler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.aliyun.sls.client.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.collector.AliyunSlsLogCollector;
 import org.apache.shenyu.plugin.aliyun.sls.config.AliyunLogCollectConfig;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
 /**
  * LoggingAliYunSlsPluginDataHandler aliyun sls plugin data handler.
  */
-public class LoggingAliyunSlsPluginDataHandler extends AbstractLogPluginDataHandler<AliyunLogCollectConfig.AliyunSlsLogConfig> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingAliyunSlsPluginDataHandler.class);
+public class LoggingAliyunSlsPluginDataHandler extends AbstractLogPluginDataHandler<AliyunLogCollectConfig.AliyunSlsLogConfig, GenericApiConfig> {
 
     private static final AliyunSlsLogCollectClient ALIYUN_SLS_LOG_COLLECT_CLIENT = new AliyunSlsLogCollectClient();
 
@@ -53,10 +49,15 @@ public class LoggingAliyunSlsPluginDataHandler extends AbstractLogPluginDataHand
      * @param globalLogConfig globalLogConfig
      */
     @Override
-    protected void doRefreshConfig(AliyunLogCollectConfig.AliyunSlsLogConfig globalLogConfig) {
-        // no data, init client
+    protected void doRefreshConfig(final AliyunLogCollectConfig.AliyunSlsLogConfig globalLogConfig) {
         AliyunLogCollectConfig.INSTANCE.setAliyunSlsLogConfig(globalLogConfig);
-        // init aliyun sls client
+        if (Objects.isNull(globalLogConfig)
+                || StringUtils.isBlank(globalLogConfig.getHost())
+                || StringUtils.isBlank(globalLogConfig.getAccessId())
+                || StringUtils.isBlank(globalLogConfig.getAccessKey())) {
+            LOG.error("aliyun sls props is empty. failed init aliyun sls producer");
+            return;
+        }
         ALIYUN_SLS_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
     }
 

@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.kafka.config;
 
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
 import java.util.Objects;
 import java.util.Optional;
-import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
-import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
 /**
  * log collect config, include kafka config.

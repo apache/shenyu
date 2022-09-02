@@ -17,54 +17,29 @@
 
 package org.apache.shenyu.plugin.logging.clickhouse;
 
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.logging.clickhouse.collector.ClickHouseLogCollector;
 import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
-import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
-import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
-import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 
 /**
  * LoggingClickHousePlugin.
  */
 public class LoggingClickHousePlugin extends AbstractLoggingPlugin {
 
+
     @Override
-    public Mono<Void> doLogExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                   final SelectorData selector, final RuleData rule,
-                                   final ServerHttpRequest request, final ShenyuRequestLog requestInfo) {
-        LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
-        LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
-                requestInfo, ClickHouseLogCollector.getInstance());
-        ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
-                .response(loggingServerHttpResponse).build();
-        loggingServerHttpResponse.setExchange(webExchange);
-        return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
+    protected LogCollector logCollector() {
+        return ClickHouseLogCollector.getInstance();
     }
 
     /**
-     * get plugin order.
+     * pluginEnum.
      *
-     * @return order
+     * @return plugin
      */
     @Override
-    public int getOrder() {
-        return PluginEnum.LOGGING_CLICK_HOUSE.getCode();
-    }
-
-    /**
-     * get plugin name.
-     *
-     * @return plugin name
-     */
-    @Override
-    public String named() {
-        return PluginEnum.LOGGING_CLICK_HOUSE.getName();
+    public PluginEnum pluginEnum() {
+        return PluginEnum.LOGGING_CLICK_HOUSE;
     }
 }

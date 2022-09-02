@@ -33,22 +33,12 @@ public class LoggingPulsarPlugin extends AbstractLoggingPlugin {
     }
 
     /**
-     * get plugin order.
+     * pluginEnum.
      *
-     * @return order
+     * @return plugin
      */
     @Override
-    public int getOrder() {
-        return PluginEnum.LOGGING_PULSAR.getCode();
-    }
-
-    /**
-     * get plugin name.
-     *
-     * @return plugin name
-     */
-    @Override
-    public String named() {
-        return PluginEnum.LOGGING_PULSAR.getName();
+    public PluginEnum pluginEnum() {
+        return PluginEnum.LOGGING_PULSAR;
     }
 }

@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.logging.elasticsearch.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -171,6 +172,7 @@ public class ElasticSearchLogCollectConfig {
         public void setAuthCache(final Boolean authCache) {
             this.authCache = authCache;
         }
+
         @Override
         public boolean equals(final Object o) {
             if (this == o) {

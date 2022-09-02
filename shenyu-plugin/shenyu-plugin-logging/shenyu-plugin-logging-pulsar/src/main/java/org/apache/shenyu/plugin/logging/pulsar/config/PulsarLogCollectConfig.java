@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.pulsar.config;
 
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
 import java.util.Objects;
@@ -132,7 +133,7 @@ public class PulsarLogCollectConfig {
         }
     }
 
-    public static class LogApiConfig {
+    public static class LogApiConfig extends GenericApiConfig {
 
         /**
          * 0 means never sample, 1 means always sample. Minimum probability is 0.01, or 1% of logging

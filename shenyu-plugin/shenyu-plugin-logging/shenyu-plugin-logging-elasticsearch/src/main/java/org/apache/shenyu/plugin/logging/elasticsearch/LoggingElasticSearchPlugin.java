@@ -33,22 +33,12 @@ public class LoggingElasticSearchPlugin extends AbstractLoggingPlugin {
     }
 
     /**
-     * get plugin order.
+     * pluginEnum.
      *
-     * @return plugin order
+     * @return plugin
      */
     @Override
-    public int getOrder() {
-        return PluginEnum.LOGGING_ELASTIC_SEARCH.getCode();
-    }
-
-    /**
-     * get plugin name.
-     *
-     * @return plugin name
-     */
-    @Override
-    public String named() {
-        return PluginEnum.LOGGING_ELASTIC_SEARCH.getName();
+    public PluginEnum pluginEnum() {
+        return PluginEnum.LOGGING_ELASTIC_SEARCH;
     }
 }

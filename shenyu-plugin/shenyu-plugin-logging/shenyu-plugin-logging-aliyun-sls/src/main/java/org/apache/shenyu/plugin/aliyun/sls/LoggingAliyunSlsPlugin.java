@@ -33,22 +33,12 @@ public class LoggingAliyunSlsPlugin extends AbstractLoggingPlugin {
     }
 
     /**
-     * get plugin order.
+     * pluginEnum.
      *
-     * @return order
+     * @return plugin
      */
     @Override
-    public int getOrder() {
-        return PluginEnum.LOGGING_ALIYUN_SLS.getCode();
-    }
-
-    /**
-     * get plugin name.
-     *
-     * @return plugin name
-     */
-    @Override
-    public String named() {
-        return PluginEnum.LOGGING_ALIYUN_SLS.getName();
+    public PluginEnum pluginEnum() {
+        return PluginEnum.LOGGING_ALIYUN_SLS;
     }
 }

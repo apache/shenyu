@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.logging.common;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
@@ -47,6 +48,13 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
      */
     protected abstract LogCollector logCollector();
 
+    /**
+     * pluginEnum.
+     *
+     * @return PluginEnum
+     */
+    protected abstract PluginEnum pluginEnum();
+
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
@@ -71,5 +79,26 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
                 .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);
         return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
+    }
+
+
+    /**
+     * get plugin order.
+     *
+     * @return order
+     */
+    @Override
+    public int getOrder() {
+        return pluginEnum().getCode();
+    }
+
+    /**
+     * get plugin name.
+     *
+     * @return plugin name
+     */
+    @Override
+    public String named() {
+        return pluginEnum().getName();
     }
 }
