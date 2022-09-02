@@ -27,7 +27,6 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
  */
 public class LoggingClickHousePlugin extends AbstractLoggingPlugin {
 
-
     @Override
     protected LogCollector logCollector() {
         return ClickHouseLogCollector.getInstance();
