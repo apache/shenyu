@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.aliyun.sls.config;
 
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -283,6 +284,35 @@ public class AliyunLogCollectConfig {
          */
         public void setIoThreadCount(final Integer ioThreadCount) {
             this.ioThreadCount = ioThreadCount;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return Boolean.TRUE;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return Boolean.FALSE;
+            }
+
+            AliyunSlsLogConfig that = (AliyunSlsLogConfig) o;
+            return Objects.equals(getAccessId(), that.getAccessId())
+                    && Objects.equals(getAccessKey(), that.getAccessKey())
+                    && Objects.equals(getHost(), that.getHost())
+                    && Objects.equals(getIoThreadCount(), that.getIoThreadCount())
+                    && Objects.equals(getLogStoreName(), that.getLogStoreName())
+                    && Objects.equals(getProjectName(), that.getProjectName())
+                    && Objects.equals(getSendThreadCount(), that.getSendThreadCount())
+                    && Objects.equals(getShardCount(), that.getShardCount())
+                    && Objects.equals(getTopic(), that.getTopic())
+                    && Objects.equals(getTtlInDay(), that.getTtlInDay());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(accessId, accessKey, host, ioThreadCount, logStoreName,
+                    projectName, sendThreadCount, shardCount, topic, ttlInDay);
         }
     }
 }

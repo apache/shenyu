@@ -17,27 +17,42 @@
 
 package org.apache.shenyu.plugin.logging.kafka.handler;
 
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.logging.common.handler.AbstractPluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.apache.shenyu.plugin.logging.kafka.collector.KafkaLogCollector;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The type logging kafka plugin data handler.
  */
-public class LoggingKafkaPluginDataHandler extends AbstractPluginDataHandler<KafkaLogCollectConfig.LogApiConfig> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingKafkaPluginDataHandler.class);
+public class LoggingKafkaPluginDataHandler extends AbstractLogPluginDataHandler<KafkaLogCollectConfig.KafkaLogConfig, KafkaLogCollectConfig.LogApiConfig> {
 
     private static final KafkaLogCollectClient KAFKA_LOG_COLLECT_CLIENT = new KafkaLogCollectClient();
 
-    public LoggingKafkaPluginDataHandler() {
-        super(KafkaLogCollectConfig.LogApiConfig.class);
+    /**
+     * logCollector.
+     */
+    @Override
+    protected LogCollector logCollector() {
+        return KafkaLogCollector.getInstance();
+    }
+
+    /**
+     * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
+     */
+    @Override
+    protected void doRefreshConfig(final KafkaLogCollectConfig.KafkaLogConfig globalLogConfig) {
+        KafkaLogCollectConfig.INSTANCE.setKafkaLogConfig(globalLogConfig);
+        KAFKA_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
+    }
+
+    @Override
+    public String pluginNamed() {
+        return PluginEnum.LOGGING_KAFKA.getName();
     }
 
     /**
@@ -47,33 +62,5 @@ public class LoggingKafkaPluginDataHandler extends AbstractPluginDataHandler<Kaf
      */
     public static KafkaLogCollectClient getKafkaLogCollectClient() {
         return KAFKA_LOG_COLLECT_CLIENT;
-    }
-
-    /**
-     * start or close kafka client.
-     */
-    @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        LOG.info("handler loggingKafka Plugin data:{}", GsonUtils.getGson().toJson(pluginData));
-        if (pluginData.getEnabled()) {
-            KafkaLogCollectConfig.KafkaLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                KafkaLogCollectConfig.KafkaLogConfig.class);
-
-            KafkaLogCollectConfig.INSTANCE.setKafkaLogConfig(globalLogConfig);
-            // start kafka producer
-            KAFKA_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
-            KafkaLogCollector.getInstance().start();
-        } else {
-            try {
-                KafkaLogCollector.getInstance().close();
-            } catch (Exception e) {
-                LOG.error("close log collector error", e);
-            }
-        }
-    }
-
-    @Override
-    public String pluginNamed() {
-        return PluginEnum.LOGGING_KAFKA.getName();
     }
 }

@@ -30,7 +30,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.config.ElasticSearchLogCollectConfig;
@@ -43,12 +43,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * queue-based logging collector.
  */
-public class ElasticSearchLogCollectClient implements LogConsumeClient<ElasticSearchLogCollectConfig.ElasticSearchLogConfig> {
+public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<ElasticSearchLogCollectConfig.ElasticSearchLogConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchLogCollectClient.class);
 
@@ -58,15 +57,13 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient<ElasticSe
 
     private ElasticsearchClient client;
 
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
-
     /**
      * init elasticsearch client.
      *
      * @param config elasticsearch client config
      */
     @Override
-    public void initClient(final ElasticSearchLogCollectConfig.ElasticSearchLogConfig config) {
+    public void initClient0(final ElasticSearchLogCollectConfig.ElasticSearchLogConfig config) {
         RestClientBuilder builder = RestClient
                 .builder(new HttpHost(config.getHost(), Integer.parseInt(config.getPort())));
         
@@ -92,13 +89,11 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient<ElasticSe
             createIndex(GenericLoggingConstant.INDEX);
             LOG.info("create index success");
         }
-        isStarted.set(true);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
+    public void consume0(final List<ShenyuRequestLog> logs) {
+        if (CollectionUtils.isEmpty(logs)) {
             return;
         }
         List<BulkOperation> bulkOperations = new ArrayList<>();
@@ -150,8 +145,8 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient<ElasticSe
      * close client.
      */
     @Override
-    public void close() {
-        if (Objects.nonNull(restClient) && isStarted.get()) {
+    public void close0() {
+        if (Objects.nonNull(restClient)) {
             try {
                 transport.close();
             } catch (IOException e) {
@@ -162,7 +157,6 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient<ElasticSe
             } catch (IOException e) {
                 LOG.error("restClient close has IOException : ", e);
             }
-            isStarted.set(false);
         }
     }
 }

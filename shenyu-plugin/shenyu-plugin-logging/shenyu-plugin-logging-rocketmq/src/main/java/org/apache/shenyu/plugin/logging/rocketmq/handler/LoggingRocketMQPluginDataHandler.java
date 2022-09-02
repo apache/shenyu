@@ -17,49 +17,38 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq.handler;
 
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.logging.common.handler.AbstractPluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.apache.shenyu.plugin.logging.rocketmq.collector.RocketMQLogCollector;
 import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The type logging rocketmq plugin data handler.
  */
-public class LoggingRocketMQPluginDataHandler extends AbstractPluginDataHandler<RocketMQLogCollectConfig.LogApiConfig> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingRocketMQPluginDataHandler.class);
+public class LoggingRocketMQPluginDataHandler extends AbstractLogPluginDataHandler<RocketMQLogCollectConfig.RocketMQLogConfig, GenericApiConfig> {
 
     private static final RocketMQLogCollectClient ROCKET_MQ_LOG_COLLECT_CLIENT = new RocketMQLogCollectClient();
 
-    public LoggingRocketMQPluginDataHandler() {
-        super(RocketMQLogCollectConfig.LogApiConfig.class);
+    /**
+     * logCollector.
+     */
+    @Override
+    protected LogCollector logCollector() {
+        return RocketMQLogCollector.getInstance();
     }
 
     /**
-     * start or close rocketMQ client.
+     * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
      */
     @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        LOG.info("handler loggingRocketMQ Plugin data:{}", GsonUtils.getGson().toJson(pluginData));
-        if (pluginData.getEnabled()) {
-            RocketMQLogCollectConfig.RocketMQLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                RocketMQLogCollectConfig.RocketMQLogConfig.class);
-            RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(globalLogConfig);
-            // start rocketmq producer
-            ROCKET_MQ_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
-            RocketMQLogCollector.getInstance().start();
-        } else {
-            try {
-                RocketMQLogCollector.getInstance().close();
-            } catch (Exception e) {
-                LOG.error("close log collector error", e);
-            }
-        }
+    protected void doRefreshConfig(final RocketMQLogCollectConfig.RocketMQLogConfig globalLogConfig) {
+        RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(globalLogConfig);
+        ROCKET_MQ_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
     }
 
     @Override

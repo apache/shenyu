@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.kafka.config;
 
-import java.util.Optional;
 import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
+
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * log collect config, include kafka config.
@@ -133,6 +135,32 @@ public class KafkaLogCollectConfig {
          */
         public void setProducerGroup(final String producerGroup) {
             this.producerGroup = producerGroup;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return Boolean.TRUE;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return Boolean.FALSE;
+            }
+
+            KafkaLogConfig that = (KafkaLogConfig) o;
+            return Objects.equals(getTopic(), that.getTopic())
+                    && Objects.equals(getCompressAlg(), that.getCompressAlg())
+                    && Objects.equals(getNamesrvAddr(), that.getNamesrvAddr())
+                    && Objects.equals(getProducerGroup(), that.getProducerGroup())
+                    && Objects.equals(getSampleRate(), that.getSampleRate())
+                    && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxRequestBody())
+                    && Objects.equals(getMaxRequestBody(), that.getMaxResponseBody());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(topic, compressAlg, namesrvAddr, producerGroup);
         }
     }
 

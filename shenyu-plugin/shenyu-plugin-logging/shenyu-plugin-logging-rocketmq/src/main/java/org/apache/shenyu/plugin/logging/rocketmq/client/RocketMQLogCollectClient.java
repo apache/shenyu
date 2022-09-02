@@ -27,7 +27,7 @@ import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
@@ -41,12 +41,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * queue-based logging collector.
  */
-public class RocketMQLogCollectClient implements LogConsumeClient<RocketMQLogCollectConfig.RocketMQLogConfig> {
+public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQLogCollectConfig.RocketMQLogConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQLogCollectClient.class);
 
@@ -58,22 +57,13 @@ public class RocketMQLogCollectClient implements LogConsumeClient<RocketMQLogCol
 
     private String topic;
 
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
-
     /**
      * init producer.
      *
      * @param config rocketmq props
      */
     @Override
-    public void initClient(final RocketMQLogCollectConfig.RocketMQLogConfig config) {
-        if (Objects.isNull(config)) {
-            LOG.error("RocketMQ props is empty. failed init RocketMQ producer");
-            return;
-        }
-        if (isStarted.get()) {
-            close();
-        }
+    public void initClient0(final RocketMQLogCollectConfig.RocketMQLogConfig config) {
         String topic = config.getTopic();
         String nameserverAddress = config.getNamesrvAddr();
         String producerGroup = config.getProducerGroup();
@@ -90,7 +80,6 @@ public class RocketMQLogCollectClient implements LogConsumeClient<RocketMQLogCol
         try {
             producer.start();
             LOG.info("init RocketMQLogCollectClient success");
-            isStarted.set(true);
             Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         } catch (Exception e) {
             LOG.error("init RocketMQLogCollectClient error", e);
@@ -115,8 +104,8 @@ public class RocketMQLogCollectClient implements LogConsumeClient<RocketMQLogCol
      * @param logs list of log
      */
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
+    public void consume0(final List<ShenyuRequestLog> logs) {
+        if (CollectionUtils.isEmpty(logs)) {
             return;
         }
         logs.forEach(log -> {
@@ -158,10 +147,9 @@ public class RocketMQLogCollectClient implements LogConsumeClient<RocketMQLogCol
      * close producer.
      */
     @Override
-    public void close() {
-        if (Objects.nonNull(producer) && isStarted.get()) {
+    public void close0() {
+        if (Objects.nonNull(producer)) {
             producer.shutdown();
-            isStarted.set(false);
         }
     }
 }

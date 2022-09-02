@@ -33,7 +33,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.tencent.cls.config.TencentLogCollectConfig;
@@ -48,20 +48,15 @@ import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Tencent cls log Collect client.
  */
-public class TencentClsLogCollectClient implements LogConsumeClient<TencentLogCollectConfig.TencentClsLogConfig> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(TencentClsLogCollectClient.class);
+public class TencentClsLogCollectClient extends AbstractLogConsumeClient<TencentLogCollectConfig.TencentClsLogConfig> {
 
     private AsyncProducerClient client;
 
     private String topic;
-
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
     private ThreadPoolExecutor threadExecutor;
 
@@ -71,14 +66,7 @@ public class TencentClsLogCollectClient implements LogConsumeClient<TencentLogCo
      * @param shenyuConfig shenyu log config
      */
     @Override
-    public void initClient(final TencentLogCollectConfig.TencentClsLogConfig shenyuConfig) {
-        if (Objects.isNull(shenyuConfig)) {
-            LOG.error("Tencent cls props is empty. failed init Tencent cls producer");
-            return;
-        }
-        if (isStarted.get()) {
-            close();
-        }
+    public void initClient0(final TencentLogCollectConfig.TencentClsLogConfig shenyuConfig) {
         String secretId = shenyuConfig.getSecretId();
         String secretKey = shenyuConfig.getSecretKey();
         String endpoint = shenyuConfig.getEndpoint();
@@ -116,7 +104,6 @@ public class TencentClsLogCollectClient implements LogConsumeClient<TencentLogCo
         threadExecutor = createThreadPoolExecutor(config.getSendThreadCount());
 
         try {
-            isStarted.set(true);
             client = new AsyncProducerClient(config);
         } catch (Exception e) {
             LOG.warn("TencentClsLogCollectClient initClient error message:{}", e.getMessage());
@@ -129,17 +116,16 @@ public class TencentClsLogCollectClient implements LogConsumeClient<TencentLogCo
      * @param logs list of log
      */
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
+    public void consume0(final List<ShenyuRequestLog> logs) {
+        if (CollectionUtils.isEmpty(logs)) {
             return;
         }
         logs.forEach(this::sendLog);
     }
 
     @Override
-    public void close() {
-        if (Objects.nonNull(client) && isStarted.get()) {
-            isStarted.set(false);
+    public void close0() {
+        if (Objects.nonNull(client)) {
             try {
                 client.close();
             } catch (InterruptedException | ProducerException e) {

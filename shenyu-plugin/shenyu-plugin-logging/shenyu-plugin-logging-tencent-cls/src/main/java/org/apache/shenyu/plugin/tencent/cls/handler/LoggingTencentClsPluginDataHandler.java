@@ -17,53 +17,38 @@
 
 package org.apache.shenyu.plugin.tencent.cls.handler;
 
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.tencent.cls.client.TencentClsLogCollectClient;
 import org.apache.shenyu.plugin.tencent.cls.collector.TencentClsSlsLogCollector;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.tencent.cls.config.TencentLogCollectConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
 
 /**
  * LoggingTencentClsPluginDataHandler Tencent cls plugin data handler.
  */
-public class LoggingTencentClsPluginDataHandler implements PluginDataHandler {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingTencentClsPluginDataHandler.class);
+public class LoggingTencentClsPluginDataHandler extends AbstractLogPluginDataHandler<TencentLogCollectConfig.TencentClsLogConfig, GenericApiConfig> {
 
     private static final TencentClsLogCollectClient TENCENT_CLS_LOG_COLLECT_CLIENT = new TencentClsLogCollectClient();
 
+    /**
+     * logCollector.
+     */
     @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        LOG.info("Tencent cls plugin data: {}", GsonUtils.getGson().toJson(pluginData));
-        if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
-            TencentLogCollectConfig.TencentClsLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                    TencentLogCollectConfig.TencentClsLogConfig.class);
-            TencentLogCollectConfig.TencentClsLogConfig exist = Singleton.INST.get(TencentLogCollectConfig.TencentClsLogConfig.class);
-            if (Objects.isNull(globalLogConfig)) {
-                return;
-            }
-            if (Objects.isNull(exist) || !globalLogConfig.equals(exist)) {
-                // no data, init client
-                TencentLogCollectConfig.INSTANCE.setTencentClsLogConfig(globalLogConfig);
-                // init tencent cls client
-                TENCENT_CLS_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
-                TencentClsSlsLogCollector.getInstance().start();
-                Singleton.INST.single(TencentLogCollectConfig.TencentClsLogConfig.class, globalLogConfig);
-            }
-        } else {
-            try {
-                TencentClsSlsLogCollector.getInstance().close();
-            } catch (Exception e) {
-                LOG.error("close log collector error", e);
-            }
-        }
+    protected LogCollector logCollector() {
+        return TencentClsSlsLogCollector.getInstance();
+    }
+
+    /**
+     * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
+     */
+    @Override
+    protected void doRefreshConfig(final TencentLogCollectConfig.TencentClsLogConfig globalLogConfig) {
+        TencentLogCollectConfig.INSTANCE.setTencentClsLogConfig(globalLogConfig);
+        TENCENT_CLS_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
     }
 
     @Override

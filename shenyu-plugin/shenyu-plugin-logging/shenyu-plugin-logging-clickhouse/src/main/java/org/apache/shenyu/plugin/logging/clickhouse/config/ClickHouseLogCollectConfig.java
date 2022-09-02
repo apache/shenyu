@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.plugin.logging.clickhouse.config;
 
-import java.util.Optional;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
+
+import java.util.Optional;
 
 /**
  * ClickHouseLogCollectConfig.

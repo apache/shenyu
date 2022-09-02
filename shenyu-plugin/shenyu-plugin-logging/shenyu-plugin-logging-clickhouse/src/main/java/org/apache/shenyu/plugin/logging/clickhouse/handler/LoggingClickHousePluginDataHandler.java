@@ -17,25 +17,45 @@
 
 package org.apache.shenyu.plugin.logging.clickhouse.handler;
 
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.logging.clickhouse.client.ClickHouseLogCollectClient;
 import org.apache.shenyu.plugin.logging.clickhouse.collector.ClickHouseLogCollector;
 import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectConfig;
 import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 
 /**
  * The type logging pulsar plugin data handler.
  */
-public class LoggingClickHousePluginDataHandler implements PluginDataHandler {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingClickHousePluginDataHandler.class);
+public class LoggingClickHousePluginDataHandler extends AbstractLogPluginDataHandler<ClickHouseLogCollectConfig.ClickHouseLogConfig, GenericApiConfig> {
 
     private static final ClickHouseLogCollectClient CLICK_HOUSE_LOG_COLLECT_CLIENT = new ClickHouseLogCollectClient();
+
+    /**
+     * logCollector.
+     */
+    @Override
+    protected LogCollector logCollector() {
+        return ClickHouseLogCollector.getInstance();
+    }
+
+    /**
+     * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
+     */
+    @Override
+    protected void doRefreshConfig(final ClickHouseLogCollectConfig.ClickHouseLogConfig globalLogConfig) {
+        ClickHouseLogCollectConfig.INSTANCE.setClickHouseLogConfig(globalLogConfig);
+        CLICK_HOUSE_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
+    }
+
+    @Override
+    public String pluginNamed() {
+        return PluginEnum.LOGGING_CLICK_HOUSE.getName();
+    }
 
     /**
      * getClickHouseLogCollectClient.
@@ -44,28 +64,6 @@ public class LoggingClickHousePluginDataHandler implements PluginDataHandler {
      */
     public static LogConsumeClient getClickHouseLogCollectClient() {
         return CLICK_HOUSE_LOG_COLLECT_CLIENT;
-    }
-
-    @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        LOG.info("handler loggingClickHouse Plugin data:{}", GsonUtils.getGson().toJson(pluginData));
-        if (pluginData.getEnabled()) {
-            ClickHouseLogCollectConfig.ClickHouseLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), ClickHouseLogCollectConfig.ClickHouseLogConfig.class);
-            ClickHouseLogCollectConfig.INSTANCE.setClickHouseLogConfig(globalLogConfig);
-            CLICK_HOUSE_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
-            ClickHouseLogCollector.getInstance().start();
-        } else {
-            try {
-                ClickHouseLogCollector.getInstance().close();
-            } catch (Exception e) {
-                LOG.error("close log collector error", e);
-            }
-        }
-    }
-
-    @Override
-    public String pluginNamed() {
-        return PluginEnum.LOGGING_CLICK_HOUSE.getName();
     }
 
 }
