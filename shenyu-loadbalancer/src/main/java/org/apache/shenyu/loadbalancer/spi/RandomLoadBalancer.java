@@ -44,11 +44,11 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
         int halfLengthTotalWeight = 0;
         for (int i = 1; i < length; i++) {
             int currentUpstreamWeight = getWeight(upstreamList.get(i));
-            weights[i] = currentUpstreamWeight;
-            totalWeight += currentUpstreamWeight;
             if (i <= (length + 1) / 2) {
                 halfLengthTotalWeight = totalWeight;
             }
+            weights[i] = currentUpstreamWeight;
+            totalWeight += currentUpstreamWeight;
             if (sameWeight && currentUpstreamWeight != firstUpstreamWeight) {
                 // Calculate whether the weight of ownership is the same.
                 sameWeight = false;
@@ -63,16 +63,19 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
     private Upstream random(final int totalWeight, final int halfLengthTotalWeight, final int[] weights, final List<Upstream> upstreamList) {
         // If the weights are not the same and the weights are greater than 0, then random by the total number of weights.
         int offset = RANDOM.nextInt(totalWeight);
-        int i = 0;
+        int index = 0;
+        int end = weights.length;
         if (offset >= halfLengthTotalWeight) {
-            i = (weights.length + 1) / 2;
+            index = (weights.length + 1) / 2;
             offset -= halfLengthTotalWeight;
+        } else {
+            end = (weights.length + 1) / 2;
         }
         // Determine which segment the random value falls on
-        for (; i < weights.length; i++) {
-            offset -= weights[i];
+        for (; index < end; index++) {
+            offset -= weights[index];
             if (offset < 0) {
-                return upstreamList.get(i);
+                return upstreamList.get(index);
             }
         }
         return random(upstreamList);
