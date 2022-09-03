@@ -55,7 +55,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
     /**
      * Instantiates a new context refreshed event listener.
      *
-     * @param clientConfig                   the shenyu grpc client config
+     * @param clientConfig                   the shenyu dubbo client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
     public ApacheDubboServiceBeanListener(final PropertiesConfig clientConfig,

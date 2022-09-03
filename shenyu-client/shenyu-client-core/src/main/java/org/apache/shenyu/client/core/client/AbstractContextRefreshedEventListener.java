@@ -74,7 +74,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     /**
      * Instantiates a new context refreshed event listener.
      *
-     * @param clientConfig                   the shenyu grpc client config
+     * @param clientConfig                   the shenyu client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
     public AbstractContextRefreshedEventListener(final PropertiesConfig clientConfig,
