@@ -17,11 +17,10 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.spi.Join;
-
 import java.security.SecureRandom;
 import java.util.List;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.spi.Join;
 
 /**
  * random algorithm impl.
@@ -42,26 +41,35 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
         weights[0] = firstUpstreamWeight;
         // init the totalWeight
         int totalWeight = firstUpstreamWeight;
+        int halfLengthTotalWeight = 0;
         for (int i = 1; i < length; i++) {
             int currentUpstreamWeight = getWeight(upstreamList.get(i));
             weights[i] = currentUpstreamWeight;
             totalWeight += currentUpstreamWeight;
+            if (i <= (length + 1) / 2) {
+                halfLengthTotalWeight = totalWeight;
+            }
             if (sameWeight && currentUpstreamWeight != firstUpstreamWeight) {
                 // Calculate whether the weight of ownership is the same.
                 sameWeight = false;
             }
         }
         if (totalWeight > 0 && !sameWeight) {
-            return random(totalWeight, weights, upstreamList);
+            return random(totalWeight, halfLengthTotalWeight, weights, upstreamList);
         }
         return random(upstreamList);
     }
 
-    private Upstream random(final int totalWeight, final int[] weights, final List<Upstream> upstreamList) {
+    private Upstream random(final int totalWeight, final int halfLengthTotalWeight, final int[] weights, final List<Upstream> upstreamList) {
         // If the weights are not the same and the weights are greater than 0, then random by the total number of weights.
         int offset = RANDOM.nextInt(totalWeight);
+        int i = 0;
+        if (offset >= halfLengthTotalWeight) {
+            i = (weights.length + 1) / 2;
+            offset -= halfLengthTotalWeight;
+        }
         // Determine which segment the random value falls on
-        for (int i = 0; i < weights.length; i++) {
+        for (; i < weights.length; i++) {
             offset -= weights[i];
             if (offset < 0) {
                 return upstreamList.get(i);
