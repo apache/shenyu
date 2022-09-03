@@ -37,7 +37,6 @@ import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
-import org.checkerframework.checker.units.qual.C;
 
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
@@ -73,8 +72,6 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
         }
         String topic = "shenyu-access-logging";
         String nameserverAddress = config.getNamesrvAddr();
-        String securityProtocol = config.getSecurityProtocol();
-        String saslMechanism = config.getSaslMechanism();
 
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init kafkaLogCollectClient error, please check topic or nameserverAddress");
@@ -86,10 +83,10 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, config.getNamesrvAddr());
-        if (!StringUtils.isBlank(securityProtocol)
-                && !StringUtils.isBlank(saslMechanism)) {
-            props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
-            props.put(SaslConfigs.SASL_MECHANISM, saslMechanism);
+        if (!StringUtils.isBlank(config.getSecurityProtocol())
+                && !StringUtils.isBlank(config.getSaslMechanism())) {
+            props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, config.getSecurityProtocol());
+            props.put(SaslConfigs.SASL_MECHANISM, config.getSaslMechanism());
             props.put(SaslConfigs.SASL_JAAS_CONFIG,
                     MessageFormat
                             .format("org.apache.kafka.common.security.scram.ScramLoginModule required username=\"{0}\" password=\"{1}\";",
