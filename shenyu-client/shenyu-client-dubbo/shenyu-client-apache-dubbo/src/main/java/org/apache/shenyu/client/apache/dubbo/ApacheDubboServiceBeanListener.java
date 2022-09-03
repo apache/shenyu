@@ -94,7 +94,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
     }
     
     private String buildAppName(final ServiceBean<?> serviceBean) {
-        String appName=this.getAppName();
+        String appName = this.getAppName();
         return StringUtils.isBlank(appName) ? serviceBean.getApplication().getName() : appName;
     }
     
