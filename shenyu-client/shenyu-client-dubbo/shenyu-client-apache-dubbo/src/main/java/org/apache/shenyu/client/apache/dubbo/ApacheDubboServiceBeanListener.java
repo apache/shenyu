@@ -84,7 +84,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
         return beans.entrySet().stream().findFirst().map(entry -> {
             final ServiceBean<?> bean = entry.getValue();
             return URIRegisterDTO.builder()
-                    .contextPath(this.contextPath)
+                    .contextPath(getContextPath())
                     .appName(buildAppName(bean))
                     .rpcType(RpcTypeEnum.DUBBO.getName())
                     .host(buildHost())
@@ -94,15 +94,18 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
     }
     
     private String buildAppName(final ServiceBean<?> serviceBean) {
-        return StringUtils.isBlank(this.appName) ? serviceBean.getApplication().getName() : this.appName;
+        String appName=this.getAppName();
+        return StringUtils.isBlank(appName) ? serviceBean.getApplication().getName() : appName;
     }
     
     private String buildHost() {
-        return IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
+        final String host = this.getHost();
+        return IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host);
     }
     
     private int buildPort(final ServiceBean<?> serviceBean) {
-        return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
+        final String port = this.getPort();
+        return StringUtils.isBlank(port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(port);
     }
     
     @Override
@@ -126,7 +129,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                                final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            publisher.publishEvent(buildMetaDataDTO(bean, beanShenyuClient, pathJoin(contextPath, superPath), clazz, method));
+            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, pathJoin(getContextPath(), superPath), clazz, method));
         }
     }
     
@@ -134,6 +137,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
     protected String buildApiPath(final Method method,
                                   final String superPath,
                                   @NonNull final ShenyuDubboClient methodShenyuClient) {
+        final String contextPath = this.getContextPath();
         return superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName())
                 : pathJoin(contextPath, superPath, methodShenyuClient.path());
     }
@@ -155,7 +159,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .appName(appName)
                 .serviceName(serviceName)
                 .methodName(methodName)
-                .contextPath(contextPath)
+                .contextPath(getContextPath())
                 .host(buildHost())
                 .port(buildPort(bean))
                 .path(path)
