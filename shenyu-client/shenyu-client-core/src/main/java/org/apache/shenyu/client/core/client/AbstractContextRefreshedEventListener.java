@@ -178,22 +178,47 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
                                                             Class<?> clazz,
                                                             Method method);
     
+    /**
+     * Get the event publisher.
+     *
+     * @return the event publisher
+     */
     public ShenyuClientRegisterEventPublisher getPublisher() {
         return publisher;
     }
     
+    /**
+     * Get the app name.
+     *
+     * @return the app name
+     */
     public String getAppName() {
         return appName;
     }
     
+    /**
+     * Get the context path.
+     *
+     * @return the context path
+     */
     public String getContextPath() {
         return contextPath;
     }
     
+    /**
+     * Get the host.
+     *
+     * @return the host
+     */
     public String getHost() {
         return host;
     }
     
+    /**
+     * Get the port.
+     *
+     * @return the port
+     */
     public String getPort() {
         return port;
     }
