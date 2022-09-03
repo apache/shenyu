@@ -633,7 +633,7 @@ public interface Constants {
     int THE_256_MB = 256 * 1024 * 1024;
     
     /**
-     * The default cluster of dubbo client
+     * The default cluster of dubbo client.
      */
     String DEFAULT_CLUSTER = "failover";
 
