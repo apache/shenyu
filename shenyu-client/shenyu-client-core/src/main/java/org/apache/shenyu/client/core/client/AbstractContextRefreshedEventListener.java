@@ -59,17 +59,17 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      */
     protected static final String PATH_SEPARATOR = "/";
     
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    
     private final AtomicBoolean registered = new AtomicBoolean(false);
     
-    protected final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    private final String appName;
     
-    protected final String appName;
+    private final String contextPath;
     
-    protected final String contextPath;
+    private final String host;
     
-    protected final String host;
-    
-    protected final String port;
+    private final String port;
     
     /**
      * Instantiates a new context refreshed event listener.
@@ -173,8 +173,28 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     }
     
     protected abstract MetaDataRegisterDTO buildMetaDataDTO(T bean,
-                                                            @NonNull final A shenyuClient,
+                                                            @NonNull A shenyuClient,
                                                             String path,
                                                             Class<?> clazz,
                                                             Method method);
+    
+    public ShenyuClientRegisterEventPublisher getPublisher() {
+        return publisher;
+    }
+    
+    public String getAppName() {
+        return appName;
+    }
+    
+    public String getContextPath() {
+        return contextPath;
+    }
+    
+    public String getHost() {
+        return host;
+    }
+    
+    public String getPort() {
+        return port;
+    }
 }
