@@ -79,7 +79,8 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
     }
     
     @Override
-    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, Map<String, ServiceBean> beans) {
+    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context,
+                                                 final Map<String, ServiceBean> beans) {
         return beans.entrySet().stream().findFirst().map(entry -> {
             final ServiceBean<?> bean = entry.getValue();
             return URIRegisterDTO.builder()
