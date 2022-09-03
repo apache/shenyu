@@ -90,7 +90,7 @@ public class LoggingClickHousePluginTest {
     @Test
     public void testDoExecute() {
         Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
-        Mono<Void> result = loggingClickHousePlugin.doLogExecute(exchange, chain, selectorData, ruleData, request, requestLog);
+        Mono<Void> result = loggingClickHousePlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 

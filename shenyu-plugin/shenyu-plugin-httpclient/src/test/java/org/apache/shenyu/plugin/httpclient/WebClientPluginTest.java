@@ -34,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -159,8 +160,14 @@ public final class WebClientPluginTest {
     }
 
     private WebClient mockWebClientOK() {
+        final ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
+        when(headers.asHttpHeaders()).thenReturn(new HttpHeaders());
+        
         final ClientResponse mockResponse = mock(ClientResponse.class);
         when(mockResponse.statusCode()).thenReturn(HttpStatus.OK);
+        when(mockResponse.headers()).thenReturn(headers);
+        when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just("{\"test\":\"ok\"}".getBytes()));
+        when(mockResponse.releaseBody()).thenReturn(Mono.empty());
         given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
         return WebClient.builder().baseUrl("/test")
                 .exchangeFunction(this.exchangeFunction)
@@ -170,8 +177,14 @@ public final class WebClientPluginTest {
     }
 
     private WebClient mockWebClientError() {
+        final ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
+        when(headers.asHttpHeaders()).thenReturn(new HttpHeaders());
+        
         final ClientResponse mockResponse = mock(ClientResponse.class);
         when(mockResponse.statusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+        when(mockResponse.headers()).thenReturn(headers);
+        when(mockResponse.bodyToMono(byte[].class)).thenReturn(Mono.just(new byte[0]));
+        when(mockResponse.releaseBody()).thenReturn(Mono.empty());
         given(this.exchangeFunction.exchange(this.captor.capture())).willReturn(Mono.just(mockResponse));
         return WebClient.builder().baseUrl("/test")
                 .exchangeFunction(this.exchangeFunction)

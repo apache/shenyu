@@ -87,7 +87,7 @@ public class LoggingPulsarPluginTest {
     @Test
     public void testDoExecute() {
         Mockito.when(chain.execute(ArgumentMatchers.any())).thenReturn(Mono.empty());
-        Mono<Void> result = loggingPulsarPlugin.doLogExecute(exchange, chain, selectorData, ruleData, request, requestLog);
+        Mono<Void> result = loggingPulsarPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 

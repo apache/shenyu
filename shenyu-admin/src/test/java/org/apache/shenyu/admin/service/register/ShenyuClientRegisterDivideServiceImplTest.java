@@ -139,7 +139,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
                 .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
 
         list.clear();
-        list.add(URIRegisterDTO.builder().protocol("http://").appName("test1").rpcType(RpcTypeEnum.HTTP.getName()).host(LOCALHOST).port(8091).eventType(EventType.DELETED).build());
+        list.add(URIRegisterDTO.builder().protocol("http://").appName("test1").rpcType(RpcTypeEnum.HTTP.getName()).host(LOCALHOST).port(8091)/*.eventType(EventType.DELETED)*/.build());
         doReturn(false).when(shenyuClientRegisterDivideService).doSubmit(any(), any());
         selectorDO = mock(SelectorDO.class);
         when(selectorDO.getHandle()).thenReturn(returnStr);

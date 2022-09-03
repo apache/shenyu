@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.logging.clickhouse.config;
 
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
+
 import java.util.Optional;
 
 /**
@@ -49,7 +51,7 @@ public class ClickHouseLogCollectConfig {
     /**
      * click house log config.
      */
-    public static class ClickHouseLogConfig {
+    public static class ClickHouseLogConfig extends GenericGlobalConfig {
         private String host;
 
         private String port;
