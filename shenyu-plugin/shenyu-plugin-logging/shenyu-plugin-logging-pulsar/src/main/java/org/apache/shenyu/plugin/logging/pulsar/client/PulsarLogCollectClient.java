@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.logging.pulsar.client;
 
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
@@ -31,6 +30,7 @@ import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.pulsar.config.PulsarLogCollectConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -52,7 +52,7 @@ public class PulsarLogCollectClient extends AbstractLogConsumeClient<PulsarLogCo
      * @param config pulsar props
      */
     @Override
-    public void initClient0(final PulsarLogCollectConfig.PulsarLogConfig config) {
+    public void initClient0(@NonNull final PulsarLogCollectConfig.PulsarLogConfig config) {
         String topic = config.getTopic();
         String serviceUrl = config.getServiceUrl();
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(serviceUrl)) {
@@ -68,17 +68,11 @@ public class PulsarLogCollectClient extends AbstractLogConsumeClient<PulsarLogCo
         } catch (PulsarClientException e) {
             LOG.error("init PulsarLogCollectClient error, ", e);
         }
-
     }
 
     @Override
-    public void consume0(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs)) {
-            return;
-        }
-        logs.forEach(log -> {
-            producer.sendAsync(toBytes(log));
-        });
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
+        logs.forEach(log -> producer.sendAsync(toBytes(log)));
     }
 
     private byte[] toBytes(final ShenyuRequestLog log) {

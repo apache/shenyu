@@ -21,7 +21,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.logging.clickhouse.client.ClickHouseLogCollectClient;
 import org.apache.shenyu.plugin.logging.clickhouse.collector.ClickHouseLogCollector;
 import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectConfig;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
@@ -62,7 +61,7 @@ public class LoggingClickHousePluginDataHandler extends AbstractLogPluginDataHan
      *
      * @return LogConsumeClient
      */
-    public static LogConsumeClient getClickHouseLogCollectClient() {
+    public static ClickHouseLogCollectClient getClickHouseLogCollectClient() {
         return CLICK_HOUSE_LOG_COLLECT_CLIENT;
     }
 

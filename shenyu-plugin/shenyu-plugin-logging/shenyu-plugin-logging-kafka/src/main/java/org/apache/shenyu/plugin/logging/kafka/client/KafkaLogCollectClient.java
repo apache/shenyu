@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.logging.kafka.client;
 
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -37,6 +36,7 @@ import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
+import org.springframework.lang.NonNull;
 
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
@@ -63,7 +63,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
      * @param config kafka props
      */
     @Override
-    public void initClient0(final KafkaLogCollectConfig.KafkaLogConfig config) {
+    public void initClient0(@NonNull final KafkaLogCollectConfig.KafkaLogConfig config) {
         if (Objects.isNull(config)
                 || StringUtils.isBlank(config.getNamesrvAddr())
                 || StringUtils.isBlank(config.getTopic())) {
@@ -114,10 +114,7 @@ public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogColl
      * @param logs list of log
      */
     @Override
-    public void consume0(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs)) {
-            return;
-        }
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         logs.forEach(log -> {
             String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath(), apiTopicMap), topic);
             try {

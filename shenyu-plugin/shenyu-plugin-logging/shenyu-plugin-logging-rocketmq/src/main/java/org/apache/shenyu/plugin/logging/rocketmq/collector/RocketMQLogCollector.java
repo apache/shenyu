@@ -17,15 +17,15 @@
 
 package org.apache.shenyu.plugin.logging.rocketmq.collector;
 
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
 import org.apache.shenyu.plugin.logging.rocketmq.handler.LoggingRocketMQPluginDataHandler;
 
 /**
  * default log collector，depend a LogConsumeClient for consume logs.
  */
-public class RocketMQLogCollector extends AbstractLogCollector {
+public class RocketMQLogCollector extends AbstractLogCollector<RocketMQLogCollectClient> {
 
     private static final LogCollector INSTANCE = new RocketMQLogCollector();
 
@@ -39,7 +39,7 @@ public class RocketMQLogCollector extends AbstractLogCollector {
     }
 
     @Override
-    protected LogConsumeClient getLogConsumeClient() {
+    protected RocketMQLogCollectClient getLogConsumeClient() {
         return LoggingRocketMQPluginDataHandler.getRocketMqLogCollectClient();
     }
 }

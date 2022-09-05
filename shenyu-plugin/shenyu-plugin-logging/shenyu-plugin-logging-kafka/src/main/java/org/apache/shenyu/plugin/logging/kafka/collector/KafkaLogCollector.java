@@ -17,15 +17,15 @@
 
 package org.apache.shenyu.plugin.logging.kafka.collector;
 
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.apache.shenyu.plugin.logging.kafka.handler.LoggingKafkaPluginDataHandler;
 
 /**
  * kafka log collector，depend a LogConsumeClient for consume logs.
  */
-public class KafkaLogCollector extends AbstractLogCollector {
+public class KafkaLogCollector extends AbstractLogCollector<KafkaLogCollectClient> {
 
     private static final LogCollector INSTANCE = new KafkaLogCollector();
 
@@ -39,7 +39,7 @@ public class KafkaLogCollector extends AbstractLogCollector {
     }
 
     @Override
-    protected LogConsumeClient getLogConsumeClient() {
+    protected KafkaLogCollectClient getLogConsumeClient() {
         return LoggingKafkaPluginDataHandler.getKafkaLogCollectClient();
     }
 }

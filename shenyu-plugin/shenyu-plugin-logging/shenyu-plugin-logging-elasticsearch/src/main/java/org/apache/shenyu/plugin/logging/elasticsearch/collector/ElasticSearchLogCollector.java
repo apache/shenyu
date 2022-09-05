@@ -17,15 +17,15 @@
 
 package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
 import org.apache.shenyu.plugin.logging.elasticsearch.handler.LoggingElasticSearchPluginDataHandler;
 
 /**
  * elastic search log collector，depend a LogConsumeClient for consume logs.
  */
-public class ElasticSearchLogCollector extends AbstractLogCollector {
+public class ElasticSearchLogCollector extends AbstractLogCollector<ElasticSearchLogCollectClient> {
 
     private static final LogCollector INSTANCE = new ElasticSearchLogCollector();
 
@@ -39,7 +39,7 @@ public class ElasticSearchLogCollector extends AbstractLogCollector {
     }
 
     @Override
-    protected LogConsumeClient getLogConsumeClient() {
+    protected ElasticSearchLogCollectClient getLogConsumeClient() {
         return LoggingElasticSearchPluginDataHandler.getElasticSearchLogCollectClient();
     }
 }
