@@ -329,7 +329,7 @@ public class GsonUtils {
             String objStr;
             if (jsonElement instanceof JsonObject) {
                 JsonObject asJsonObject = jsonElement.getAsJsonObject();
-                objStr = new GsonUtils().toJson(asJsonObject);
+                objStr = toJson(asJsonObject);
             } else {
                 objStr = jsonElement.getAsString();
             }
