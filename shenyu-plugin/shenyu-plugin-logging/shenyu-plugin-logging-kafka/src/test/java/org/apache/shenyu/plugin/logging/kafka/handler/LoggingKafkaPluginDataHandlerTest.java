@@ -17,18 +17,19 @@
 
 package org.apache.shenyu.plugin.logging.kafka.handler;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.plugin.logging.common.handler.AbstractPluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The Test Case For LoggingKafkaPluginDataHandler.
@@ -71,18 +72,18 @@ public class LoggingKafkaPluginDataHandlerTest {
     @Test
     public void testHandlerSelector() {
         loggingKafkaPluginDataHandler.handlerSelector(selectorData);
-        Assertions.assertEquals(AbstractPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
-        Assertions.assertNotEquals(AbstractPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
+        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
+        Assertions.assertNotEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
     }
 
     @Test
     public void testRemoveSelector() {
         loggingKafkaPluginDataHandler.handlerSelector(selectorData);
-        Assertions.assertEquals(AbstractPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
-        Assertions.assertNotEquals(AbstractPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
+        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{1=[11]}");
+        Assertions.assertNotEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
         loggingKafkaPluginDataHandler.removeSelector(selectorData);
-        Assertions.assertEquals(AbstractPluginDataHandler.getSelectIdUriListMap().toString(), "{}");
-        Assertions.assertEquals(AbstractPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
+        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectIdUriListMap().toString(), "{}");
+        Assertions.assertEquals(AbstractLogPluginDataHandler.getSelectApiConfigMap().toString(), "{}");
     }
 
     @Test

@@ -17,55 +17,48 @@
 
 package org.apache.shenyu.plugin.aliyun.sls.handler;
 
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.convert.plugin.MotanRegisterConfig;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.aliyun.sls.client.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.collector.AliyunSlsLogCollector;
 import org.apache.shenyu.plugin.aliyun.sls.config.AliyunLogCollectConfig;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 
 import java.util.Objects;
 
 /**
  * LoggingAliYunSlsPluginDataHandler aliyun sls plugin data handler.
  */
-public class LoggingAliyunSlsPluginDataHandler implements PluginDataHandler {
-
-    private static final Logger LOG = LoggerFactory.getLogger(LoggingAliyunSlsPluginDataHandler.class);
+public class LoggingAliyunSlsPluginDataHandler extends AbstractLogPluginDataHandler<AliyunLogCollectConfig.AliyunSlsLogConfig, GenericApiConfig> {
 
     private static final AliyunSlsLogCollectClient ALIYUN_SLS_LOG_COLLECT_CLIENT = new AliyunSlsLogCollectClient();
 
+    /**
+     * logCollector.
+     */
     @Override
-    public void handlerPlugin(final PluginData pluginData) {
-        LOG.info("AliYun sls plugin data: {}", GsonUtils.getGson().toJson(pluginData));
-        if (Objects.nonNull(pluginData) && Boolean.TRUE.equals(pluginData.getEnabled())) {
-            AliyunLogCollectConfig.AliyunSlsLogConfig globalLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(),
-                    AliyunLogCollectConfig.AliyunSlsLogConfig.class);
-            AliyunLogCollectConfig.AliyunSlsLogConfig exist = Singleton.INST.get(AliyunLogCollectConfig.AliyunSlsLogConfig.class);
-            if (Objects.isNull(globalLogConfig)) {
-                return;
-            }
-            if (Objects.isNull(exist) || !globalLogConfig.equals(exist)) {
-                // no data, init client
-                AliyunLogCollectConfig.INSTANCE.setAliyunSlsLogConfig(globalLogConfig);
-                
-                // init aliyun sls client
-                ALIYUN_SLS_LOG_COLLECT_CLIENT.initClient(exist);
-                AliyunSlsLogCollector.getInstance().start();
-            }
-            Singleton.INST.single(MotanRegisterConfig.class, globalLogConfig);
-        } else {
-            try {
-                AliyunSlsLogCollector.getInstance().close();
-            } catch (Exception e) {
-                LOG.error("close log collector error", e);
-            }
+    protected LogCollector logCollector() {
+        return AliyunSlsLogCollector.getInstance();
+    }
+
+    /**
+     * doRefreshConfig.
+     *
+     * @param globalLogConfig globalLogConfig
+     */
+    @Override
+    protected void doRefreshConfig(final AliyunLogCollectConfig.AliyunSlsLogConfig globalLogConfig) {
+        AliyunLogCollectConfig.INSTANCE.setAliyunSlsLogConfig(globalLogConfig);
+        if (Objects.isNull(globalLogConfig)
+                || StringUtils.isBlank(globalLogConfig.getHost())
+                || StringUtils.isBlank(globalLogConfig.getAccessId())
+                || StringUtils.isBlank(globalLogConfig.getAccessKey())) {
+            LOG.error("aliyun sls props is empty. failed init aliyun sls producer");
+            return;
         }
+        ALIYUN_SLS_LOG_COLLECT_CLIENT.initClient(globalLogConfig);
     }
 
     @Override

@@ -20,13 +20,12 @@ package org.apache.shenyu.client.apache.dubbo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.spring.ServiceBean;
-import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
-import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
+import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
-import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -34,20 +33,16 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
@@ -55,172 +50,139 @@ import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
 /**
  * The Apache Dubbo ServiceBean Listener.
  */
-@SuppressWarnings("all")
-public class ApacheDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
-
-    private static final String DEFAULT_CLUSTER = "failover";
-
+public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEventListener<ServiceBean, ShenyuDubboClient> {
+    
     /**
-     * api path separator.
-     */
-    private static final String PATH_SEPARATOR = "/";
-
-    private static final Boolean DEFAULT_SENT = Boolean.FALSE;
-
-    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-
-    private final AtomicBoolean registered = new AtomicBoolean(false);
-
-    private ExecutorService executorService;
-
-    private String contextPath;
-
-    private String appName;
-
-    private final String host;
-
-    private final String port;
-
-    public ApacheDubboServiceBeanListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
-        Properties props = clientConfig.getProps();
-        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
-        String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
-        if (StringUtils.isBlank(contextPath)) {
-            throw new ShenyuClientIllegalArgumentException("apache dubbo client must config the contextPath or appName");
-        }
-        this.contextPath = contextPath;
-        this.appName = appName;
-        this.host = props.getProperty(ShenyuClientConstants.HOST);
-        this.port = props.getProperty(ShenyuClientConstants.PORT);
-        executorService = Executors.newSingleThreadExecutor(ShenyuThreadFactory.create("shenyu-apache-dubbo-client-thread-pool", false));
-        publisher.start(shenyuClientRegisterRepository);
-    }
-
-    /**
-     * notes:When the "servicebean" is not obtained from the context, wait for the subsequent contextrefreshedevent.
+     * Instantiates a new context refreshed event listener.
      *
-     * @param contextRefreshedEvent  spring contextRefreshedEvent
+     * @param clientConfig                   the shenyu dubbo client config
+     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
-    @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        // Fix bug(https://github.com/apache/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
-        Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
-        if (serviceBean.isEmpty()) {
-            return;
-        }
-        if (!registered.compareAndSet(false, true)) {
-            return;
-        }
-        for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
-            handler(entry.getValue());
-        }
-        serviceBean.values().stream().findFirst().ifPresent(bean -> {
-            publisher.publishEvent(buildURIRegisterDTO(bean));
-        });
+    public ApacheDubboServiceBeanListener(final PropertiesConfig clientConfig,
+                                          final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+        super(clientConfig, shenyuClientRegisterRepository);
     }
-
-    private void handler(final ServiceBean<?> serviceBean) {
-        Object refProxy = serviceBean.getRef();
+    
+    @Override
+    protected Map<String, ServiceBean> getBeans(final ApplicationContext context) {
+        return context.getBeansOfType(ServiceBean.class);
+    }
+    
+    @Override
+    protected Class<?> getCorrectedClass(final ServiceBean bean) {
+        Object refProxy = bean.getRef();
         Class<?> clazz = refProxy.getClass();
         if (AopUtils.isAopProxy(refProxy)) {
             clazz = AopUtils.getTargetClass(refProxy);
         }
-        final ShenyuDubboClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuDubboClient.class);
-        final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
-        if (superPath.contains("*") && Objects.nonNull(beanShenyuClient)) {
-            Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
-            for (Method method : methods) {
-                publisher.publishEvent(buildMetaDataDTO(serviceBean, beanShenyuClient, method, superPath));
-            }
-            return;
-        }
-        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
-        for (Method method : methods) {
-            ShenyuDubboClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuDubboClient.class);
-            if (Objects.nonNull(methodShenyuClient)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceBean, methodShenyuClient, method, superPath));
-            }
-        }
+        return clazz;
     }
-
-    private String buildApiSuperPath(@NonNull final Class<?> clazz, final ShenyuDubboClient shenyuDubboClient) {
-        if (Objects.nonNull(shenyuDubboClient) && !StringUtils.isBlank(shenyuDubboClient.path())) {
-            return shenyuDubboClient.path();
+    
+    @Override
+    protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context,
+                                                 final Map<String, ServiceBean> beans) {
+        return beans.entrySet().stream().findFirst().map(entry -> {
+            final ServiceBean<?> bean = entry.getValue();
+            return URIRegisterDTO.builder()
+                    .contextPath(getContextPath())
+                    .appName(buildAppName(bean))
+                    .rpcType(RpcTypeEnum.DUBBO.getName())
+                    .host(buildHost())
+                    .port(buildPort(bean))
+                    .build();
+        }).orElse(null);
+    }
+    
+    private String buildAppName(final ServiceBean<?> serviceBean) {
+        String appName = this.getAppName();
+        return StringUtils.isBlank(appName) ? serviceBean.getApplication().getName() : appName;
+    }
+    
+    private String buildHost() {
+        final String host = this.getHost();
+        return IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host);
+    }
+    
+    private int buildPort(final ServiceBean<?> serviceBean) {
+        final String port = this.getPort();
+        return StringUtils.isBlank(port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(port);
+    }
+    
+    @Override
+    protected Class<ShenyuDubboClient> getAnnotationType() {
+        return ShenyuDubboClient.class;
+    }
+    
+    @Override
+    protected String buildApiSuperPath(final Class<?> clazz,
+                                       @Nullable final ShenyuDubboClient beanShenyuClient) {
+        if (Objects.nonNull(beanShenyuClient) && !StringUtils.isBlank(beanShenyuClient.path())) {
+            return beanShenyuClient.path();
         }
         return "";
     }
-
-    private String pathJoin(@NonNull final String... path) {
-        StringBuilder result = new StringBuilder(PATH_SEPARATOR);
-        for (String p : path) {
-            if (!result.toString().endsWith(PATH_SEPARATOR)) {
-                result.append(PATH_SEPARATOR);
-            }
-            result.append(p.startsWith(PATH_SEPARATOR) ? p.replaceFirst(PATH_SEPARATOR, "") : p);
+    
+    @Override
+    protected void handleClass(final Class<?> clazz,
+                               final ServiceBean bean,
+                               @NonNull final ShenyuDubboClient beanShenyuClient,
+                               final String superPath) {
+        Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
+        for (Method method : methods) {
+            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, pathJoin(getContextPath(), superPath), clazz, method));
         }
-        return result.toString();
     }
-
-    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method, final String superPath) {
-        String appName = buildAppName(serviceBean);
-        String path = superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName()) : pathJoin(contextPath, superPath, shenyuDubboClient.path());
-        String desc = shenyuDubboClient.desc();
-        String serviceName = serviceBean.getInterface();
-        String configRuleName = shenyuDubboClient.ruleName();
+    
+    @Override
+    protected String buildApiPath(final Method method,
+                                  final String superPath,
+                                  @NonNull final ShenyuDubboClient methodShenyuClient) {
+        final String contextPath = this.getContextPath();
+        return superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName())
+                : pathJoin(contextPath, superPath, methodShenyuClient.path());
+    }
+    
+    @Override
+    protected MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean bean,
+                                                   @NonNull final ShenyuDubboClient shenyuClient,
+                                                   final String path, final Class<?> clazz,
+                                                   final Method method) {
+        String appName = buildAppName(bean);
+        String desc = shenyuClient.desc();
+        String serviceName = bean.getInterface();
+        String configRuleName = shenyuClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
-        String methodName = method.getName();
+        String methodName = Optional.ofNullable(method).map(Method::getName).orElseThrow(() -> new ShenyuException("unexpected error"));
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName).collect(Collectors.joining(","));
         return MetaDataRegisterDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
                 .methodName(methodName)
-                .contextPath(contextPath)
+                .contextPath(getContextPath())
                 .host(buildHost())
-                .port(buildPort(serviceBean))
+                .port(buildPort(bean))
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
-                .rpcExt(buildRpcExt(serviceBean))
+                .rpcExt(buildRpcExt(bean))
                 .rpcType(RpcTypeEnum.DUBBO.getName())
-                .enabled(shenyuDubboClient.enabled())
+                .enabled(shenyuClient.enabled())
                 .build();
     }
-
-    private URIRegisterDTO buildURIRegisterDTO(final ServiceBean serviceBean) {
-        return URIRegisterDTO.builder()
-                .contextPath(this.contextPath)
-                .appName(buildAppName(serviceBean))
-                .rpcType(RpcTypeEnum.DUBBO.getName())
-                .host(buildHost())
-                .port(buildPort(serviceBean))
-                .build();
-    }
-
-    private String buildRpcExt(final ServiceBean serviceBean) {
+    
+    private String buildRpcExt(final ServiceBean<?> serviceBean) {
         DubboRpcExt build = DubboRpcExt.builder()
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
                 .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : CommonConstants.DEFAULT_LOADBALANCE)
                 .retries(Objects.isNull(serviceBean.getRetries()) ? CommonConstants.DEFAULT_RETRIES : serviceBean.getRetries())
                 .timeout(Objects.isNull(serviceBean.getTimeout()) ? DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
-                .sent(Objects.isNull(serviceBean.getSent()) ? DEFAULT_SENT : serviceBean.getSent())
-                .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : DEFAULT_CLUSTER)
+                .sent(Objects.isNull(serviceBean.getSent()) ? Boolean.FALSE : serviceBean.getSent())
+                .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
                 .url("")
                 .build();
         return GsonUtils.getInstance().toJson(build);
-    }
-
-    private String buildAppName(final ServiceBean serviceBean) {
-        return StringUtils.isBlank(this.appName) ? serviceBean.getApplication().getName() : this.appName;
-    }
-
-    private String buildHost() {
-        return IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-    }
-
-    private int buildPort(final ServiceBean serviceBean) {
-        return StringUtils.isBlank(this.port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(this.port);
     }
 }

@@ -24,7 +24,6 @@ import com.aliyun.openservices.aliyun.log.producer.ProjectConfig;
 import com.aliyun.openservices.aliyun.log.producer.Result;
 import com.aliyun.openservices.aliyun.log.producer.errors.LogSizeTooLargeException;
 import com.aliyun.openservices.aliyun.log.producer.errors.MaxBatchCountExceedException;
-import com.aliyun.openservices.aliyun.log.producer.errors.ProducerException;
 import com.aliyun.openservices.aliyun.log.producer.errors.ResultFailedException;
 import com.aliyun.openservices.log.Client;
 import com.aliyun.openservices.log.common.LogItem;
@@ -38,7 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.aliyun.sls.config.AliyunLogCollectConfig;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.slf4j.Logger;
@@ -51,14 +50,11 @@ import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Aliyun sls log Collect client.
  */
-public class AliyunSlsLogCollectClient implements LogConsumeClient<AliyunLogCollectConfig.AliyunSlsLogConfig> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(AliyunSlsLogCollectClient.class);
+public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLogCollectConfig.AliyunSlsLogConfig> {
 
     private Client client;
 
@@ -70,8 +66,6 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient<AliyunLogColl
 
     private Producer producer;
 
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
-
     private ThreadPoolExecutor threadExecutor;
 
     /**
@@ -80,17 +74,7 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient<AliyunLogColl
      * @param config config
      */
     @Override
-    public void initClient(final AliyunLogCollectConfig.AliyunSlsLogConfig config) {
-        if (Objects.isNull(config) 
-                || StringUtils.isBlank(config.getHost())
-                || StringUtils.isBlank(config.getAccessId())
-                || StringUtils.isBlank(config.getAccessKey())) {
-            LOG.error("aliyun sls props is empty. failed init aliyun sls producer");
-            return;
-        }
-        if (isStarted.get()) {
-            close();
-        }
+    public void initClient0(final AliyunLogCollectConfig.AliyunSlsLogConfig config) {
         String accessId = config.getAccessId();
         String accessKey = config.getAccessKey();
         String host = config.getHost();
@@ -111,8 +95,6 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient<AliyunLogColl
         LogStore store = new LogStore(logStore, ttlInDay, shardCount);
         threadExecutor = createThreadPoolExecutor(config);
         try {
-            isStarted.set(true);
-            Runtime.getRuntime().addShutdownHook(new Thread(this::close));
             client.CreateLogStore(projectName, store);
         } catch (LogException e) {
             LOG.warn("error code:{}, error message:{}", e.GetErrorCode(), e.GetErrorMessage());
@@ -125,23 +107,18 @@ public class AliyunSlsLogCollectClient implements LogConsumeClient<AliyunLogColl
      * @param logs list of log
      */
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
+    public void consume0(final List<ShenyuRequestLog> logs) {
+        if (CollectionUtils.isEmpty(logs)) {
             return;
         }
         logs.forEach(this::sendLog);
     }
 
     @Override
-    public void close() {
-        if (Objects.nonNull(client) && isStarted.get()) {
-            isStarted.set(false);
+    public void close0() throws Exception {
+        if (Objects.nonNull(client)) {
             client.shutdown();
-            try {
-                producer.close();
-            } catch (InterruptedException | ProducerException e) {
-                LOG.error("Close producer error.");
-            }
+            producer.close();
         }
     }
 

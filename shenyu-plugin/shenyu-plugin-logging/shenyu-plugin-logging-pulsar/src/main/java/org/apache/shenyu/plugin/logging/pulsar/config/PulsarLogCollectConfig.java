@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.plugin.logging.pulsar.config;
 
+import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class PulsarLogCollectConfig {
@@ -104,9 +106,34 @@ public class PulsarLogCollectConfig {
         public void setServiceUrl(final String serviceUrl) {
             this.serviceUrl = serviceUrl;
         }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return Boolean.TRUE;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return Boolean.FALSE;
+            }
+
+            PulsarLogConfig that = (PulsarLogConfig) o;
+            return Objects.equals(getTopic(), that.getTopic())
+                    && Objects.equals(getCompressAlg(), that.getCompressAlg())
+                    && Objects.equals(getServiceUrl(), that.getServiceUrl())
+                    && Objects.equals(getSampleRate(), that.getSampleRate())
+                    && Objects.equals(getBufferQueueSize(), that.getBufferQueueSize())
+                    && Objects.equals(getMaxResponseBody(), that.getMaxRequestBody())
+                    && Objects.equals(getMaxRequestBody(), that.getMaxResponseBody());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(topic, compressAlg, serviceUrl);
+        }
     }
 
-    public static class LogApiConfig {
+    public static class LogApiConfig extends GenericApiConfig {
 
         /**
          * 0 means never sample, 1 means always sample. Minimum probability is 0.01, or 1% of logging
