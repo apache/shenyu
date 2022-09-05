@@ -29,7 +29,6 @@ import com.tencentcloudapi.cls.producer.errors.MaxBatchCountExceedException;
 import com.tencentcloudapi.cls.producer.errors.ProducerException;
 import com.tencentcloudapi.cls.producer.errors.ResultFailedException;
 import com.tencentcloudapi.cls.producer.util.NetworkUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
