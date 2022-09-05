@@ -17,15 +17,15 @@
 
 package org.apache.shenyu.plugin.tencent.cls.collector;
 
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.tencent.cls.client.TencentClsLogCollectClient;
 import org.apache.shenyu.plugin.tencent.cls.handler.LoggingTencentClsPluginDataHandler;
 
 /**
  * Tencent cls log collector，depend a LogConsumeClient for consume logs.
  */
-public class TencentClsSlsLogCollector extends AbstractLogCollector {
+public class TencentClsSlsLogCollector extends AbstractLogCollector<TencentClsLogCollectClient> {
 
     private static final LogCollector INSTANCE = new TencentClsSlsLogCollector();
 
@@ -39,7 +39,7 @@ public class TencentClsSlsLogCollector extends AbstractLogCollector {
     }
 
     @Override
-    protected LogConsumeClient getLogConsumeClient() {
+    protected TencentClsLogCollectClient getLogConsumeClient() {
         return LoggingTencentClsPluginDataHandler.getTencentClsLogCollectClient();
     }
 }

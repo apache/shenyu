@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.plugin.logging.pulsar.collector;
 
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.pulsar.client.PulsarLogCollectClient;
 import org.apache.shenyu.plugin.logging.pulsar.handler.LoggingPulsarPluginDataHandler;
 
-public class PulsarLogCollector extends AbstractLogCollector {
+public class PulsarLogCollector extends AbstractLogCollector<PulsarLogCollectClient> {
 
     private static final LogCollector INSTANCE = new PulsarLogCollector();
 
@@ -36,7 +36,7 @@ public class PulsarLogCollector extends AbstractLogCollector {
     }
     
     @Override
-    protected LogConsumeClient getLogConsumeClient() {
+    protected PulsarLogCollectClient getLogConsumeClient() {
         return LoggingPulsarPluginDataHandler.getPulsarLogCollectClient();
     }
 }

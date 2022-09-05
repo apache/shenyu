@@ -38,6 +38,7 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,7 +64,7 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
      * @param config elasticsearch client config
      */
     @Override
-    public void initClient0(final ElasticSearchLogCollectConfig.ElasticSearchLogConfig config) {
+    public void initClient0(@NonNull final ElasticSearchLogCollectConfig.ElasticSearchLogConfig config) {
         RestClientBuilder builder = RestClient
                 .builder(new HttpHost(config.getHost(), Integer.parseInt(config.getPort())));
         
@@ -92,10 +93,7 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
     }
 
     @Override
-    public void consume0(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs)) {
-            return;
-        }
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         List<BulkOperation> bulkOperations = new ArrayList<>();
         logs.forEach(log -> {
             try {

@@ -34,6 +34,7 @@ import org.apache.shenyu.plugin.logging.clickhouse.config.ClickHouseLogCollectCo
 import org.apache.shenyu.plugin.logging.clickhouse.constant.ClickHouseLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Objects;
@@ -49,7 +50,7 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
     private ClickHouseNode endpoint;
 
     @Override
-    public void consume0(final List<ShenyuRequestLog> logs) throws Exception {
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) throws Exception {
         if (CollectionUtils.isNotEmpty(logs)) {
             Object[][] datas = new Object[logs.size()][];
             for (int i = 0; i < logs.size(); i++) {
@@ -115,7 +116,7 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
      * @param config properties.
      */
     @Override
-    public void initClient0(final ClickHouseLogCollectConfig.ClickHouseLogConfig config) {
+    public void initClient0(@NonNull final ClickHouseLogCollectConfig.ClickHouseLogConfig config) {
         final String username = config.getUsername();
         final String password = config.getPassword();
         endpoint = ClickHouseNode.builder()

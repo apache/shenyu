@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.common.client;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.slf4j.Logger;
@@ -52,7 +53,7 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig> im
      * @param logs logs
      * @throws Exception error
      */
-    public abstract void consume0(List<ShenyuRequestLog> logs) throws Exception;
+    public abstract void consume0(@NonNull List<ShenyuRequestLog> logs) throws Exception;
 
     /**
      * close0.
@@ -67,7 +68,7 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig> im
             this.close();
         }
         if (ObjectUtils.isEmpty(config)) {
-            LOG.error("{} config is null.", this.getClass().getSimpleName());
+            LOG.error("{} config is null, client not init.", this.getClass().getSimpleName());
             return;
         }
         this.initClient0(config);
@@ -93,7 +94,7 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig> im
 
     @Override
     public void consume(final List<ShenyuRequestLog> logs) throws Exception {
-        if (!isStarted.get()) {
+        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
             return;
         }
         this.consume0(logs);

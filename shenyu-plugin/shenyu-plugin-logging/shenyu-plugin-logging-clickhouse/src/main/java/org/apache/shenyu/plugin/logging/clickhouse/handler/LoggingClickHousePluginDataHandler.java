@@ -62,7 +62,7 @@ public class LoggingClickHousePluginDataHandler extends AbstractLogPluginDataHan
      *
      * @return LogConsumeClient
      */
-    public static LogConsumeClient getClickHouseLogCollectClient() {
+    public static ClickHouseLogCollectClient getClickHouseLogCollectClient() {
         return CLICK_HOUSE_LOG_COLLECT_CLIENT;
     }
 

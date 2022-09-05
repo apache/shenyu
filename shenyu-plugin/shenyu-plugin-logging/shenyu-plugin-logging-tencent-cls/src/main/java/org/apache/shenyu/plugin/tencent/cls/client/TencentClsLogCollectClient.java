@@ -39,6 +39,7 @@ import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.tencent.cls.config.TencentLogCollectConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
      * @param shenyuConfig shenyu log config
      */
     @Override
-    public void initClient0(final TencentLogCollectConfig.TencentClsLogConfig shenyuConfig) {
+    public void initClient0(@NonNull final TencentLogCollectConfig.TencentClsLogConfig shenyuConfig) {
         String secretId = shenyuConfig.getSecretId();
         String secretKey = shenyuConfig.getSecretKey();
         String endpoint = shenyuConfig.getEndpoint();
@@ -116,10 +117,7 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
      * @param logs list of log
      */
     @Override
-    public void consume0(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs)) {
-            return;
-        }
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         logs.forEach(this::sendLog);
     }
 
