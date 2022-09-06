@@ -19,7 +19,7 @@
 -- ----------------------------
 DROP SEQUENCE IF EXISTS "public"."operation_record_log_id_seq";
 CREATE SEQUENCE "public"."operation_record_log_id_seq"
-INCREMENT 1
+    INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
 START 1
@@ -30,7 +30,7 @@ CACHE 1;
 -- ----------------------------
 DROP SEQUENCE IF EXISTS "public"."plugin_handle_id_seq";
 CREATE SEQUENCE "public"."plugin_handle_id_seq"
-INCREMENT 1
+    INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
 START 1
@@ -41,7 +41,7 @@ CACHE 1;
 -- ----------------------------
 DROP SEQUENCE IF EXISTS "public"."shenyu_dict_id_seq";
 CREATE SEQUENCE "public"."shenyu_dict_id_seq"
-INCREMENT 1
+    INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
 START 1
@@ -52,16 +52,16 @@ CACHE 1;
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."app_auth";
 CREATE TABLE "public"."app_auth" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "app_key" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "app_secret" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "user_id" varchar(128) COLLATE "pg_catalog"."default",
-  "phone" varchar(255) COLLATE "pg_catalog"."default",
-  "ext_info" varchar(1024) COLLATE "pg_catalog"."default",
-  "open" int2 NOT NULL,
-  "enabled" int2 NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                     "app_key" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+                                     "app_secret" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                     "user_id" varchar(128) COLLATE "pg_catalog"."default",
+                                     "phone" varchar(255) COLLATE "pg_catalog"."default",
+                                     "ext_info" varchar(1024) COLLATE "pg_catalog"."default",
+                                     "open" int2 NOT NULL,
+                                     "enabled" int2 NOT NULL,
+                                     "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                     "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."app_auth"."id" IS 'primary key id';
@@ -70,8 +70,8 @@ COMMENT ON COLUMN "public"."app_auth"."app_secret" IS 'encryption algorithm secr
 COMMENT ON COLUMN "public"."app_auth"."user_id" IS 'user id';
 COMMENT ON COLUMN "public"."app_auth"."phone" IS 'phone number when the user applies';
 COMMENT ON COLUMN "public"."app_auth"."ext_info" IS 'extended parameter json';
-COMMENT ON COLUMN "public"."app_auth"."open" IS 'open auth path or not';
-COMMENT ON COLUMN "public"."app_auth"."enabled" IS 'delete or not';
+COMMENT ON COLUMN "public"."app_auth"."open" IS 'open auth path or not (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."app_auth"."enabled" IS 'delete or not (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."app_auth"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."app_auth"."date_updated" IS 'update time';
 
@@ -84,12 +84,12 @@ COMMENT ON COLUMN "public"."app_auth"."date_updated" IS 'update time';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."auth_param";
 CREATE TABLE "public"."auth_param" (
-  "id" varchar(129) COLLATE "pg_catalog"."default" NOT NULL,
-  "auth_id" varchar(129) COLLATE "pg_catalog"."default",
-  "app_name" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
-  "app_param" varchar(256) COLLATE "pg_catalog"."default",
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                       "id" varchar(129) COLLATE "pg_catalog"."default" NOT NULL,
+                                       "auth_id" varchar(129) COLLATE "pg_catalog"."default",
+                                       "app_name" varchar(256) COLLATE "pg_catalog"."default" NOT NULL,
+                                       "app_param" varchar(256) COLLATE "pg_catalog"."default",
+                                       "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                       "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."auth_param"."id" IS 'primary key id';
@@ -108,20 +108,20 @@ COMMENT ON COLUMN "public"."auth_param"."date_updated" IS 'update time';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."auth_path";
 CREATE TABLE "public"."auth_path" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "auth_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "app_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-  "path" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-  "enabled" int2 NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                      "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "auth_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "app_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "path" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "enabled" int2 NOT NULL,
+                                      "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                      "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."auth_path"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."auth_path"."auth_id" IS 'auth table id';
 COMMENT ON COLUMN "public"."auth_path"."app_name" IS 'module';
 COMMENT ON COLUMN "public"."auth_path"."path" IS 'path';
-COMMENT ON COLUMN "public"."auth_path"."enabled" IS 'whether pass 1 is';
+COMMENT ON COLUMN "public"."auth_path"."enabled" IS 'whether pass 1 is (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."auth_path"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."auth_path"."date_updated" IS 'update time';
 
@@ -134,20 +134,20 @@ COMMENT ON COLUMN "public"."auth_path"."date_updated" IS 'update time';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."dashboard_user";
 CREATE TABLE "public"."dashboard_user" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "user_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "password" varchar(128) COLLATE "pg_catalog"."default",
-  "role" int4 NOT NULL,
-  "enabled" int2 NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                           "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                           "user_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                           "password" varchar(128) COLLATE "pg_catalog"."default",
+                                           "role" int4 NOT NULL,
+                                           "enabled" int2 NOT NULL,
+                                           "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                           "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."dashboard_user"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."dashboard_user"."user_name" IS 'user name';
 COMMENT ON COLUMN "public"."dashboard_user"."password" IS 'user password';
 COMMENT ON COLUMN "public"."dashboard_user"."role" IS 'role';
-COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not';
+COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."dashboard_user"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."dashboard_user"."date_updated" IS 'update time';
 
@@ -161,12 +161,12 @@ INSERT INTO "public"."dashboard_user" VALUES ('1', 'admin', 'ba3253876aed6bc22d4
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."data_permission";
 CREATE TABLE "public"."data_permission" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "user_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "data_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "data_type" int4 NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                            "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                            "user_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                            "data_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                            "data_type" int4 NOT NULL,
+                                            "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                            "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."data_permission"."id" IS 'primary key id';
@@ -186,18 +186,18 @@ COMMENT ON TABLE "public"."data_permission" IS 'data permission table';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."meta_data";
 CREATE TABLE "public"."meta_data" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "app_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-  "path" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-  "path_desc" varchar(255) COLLATE "pg_catalog"."default",
-  "rpc_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "service_name" varchar(255) COLLATE "pg_catalog"."default",
-  "method_name" varchar(255) COLLATE "pg_catalog"."default",
-  "parameter_types" varchar(255) COLLATE "pg_catalog"."default",
-  "rpc_ext" varchar(512) COLLATE "pg_catalog"."default",
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "enabled" int2 NOT NULL
+                                      "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "app_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "path" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "path_desc" varchar(255) COLLATE "pg_catalog"."default",
+                                      "rpc_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "service_name" varchar(255) COLLATE "pg_catalog"."default",
+                                      "method_name" varchar(255) COLLATE "pg_catalog"."default",
+                                      "parameter_types" varchar(255) COLLATE "pg_catalog"."default",
+                                      "rpc_ext" varchar(512) COLLATE "pg_catalog"."default",
+                                      "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                      "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                      "enabled" int2 NOT NULL
 )
 ;
 COMMENT ON COLUMN "public"."meta_data"."id" IS 'id';
@@ -211,7 +211,7 @@ COMMENT ON COLUMN "public"."meta_data"."parameter_types" IS 'parameter types are
 COMMENT ON COLUMN "public"."meta_data"."rpc_ext" IS 'rpc extended information, json format';
 COMMENT ON COLUMN "public"."meta_data"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."meta_data"."date_updated" IS 'update time';
-COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state';
+COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state (0 close, 1 open) ';
 
 -- ----------------------------
 -- Records of meta_data
@@ -222,12 +222,12 @@ COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."operation_record_log";
 CREATE TABLE "public"."operation_record_log" (
-  "id" int8 NOT NULL DEFAULT nextval('operation_record_log_id_seq'::regclass),
-  "color" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
-  "context" text COLLATE "pg_catalog"."default" NOT NULL,
-  "operator" varchar(200) COLLATE "pg_catalog"."default" NOT NULL,
-  "operation_time" timestamp(6) NOT NULL,
-  "operation_type" varchar(60) COLLATE "pg_catalog"."default" NOT NULL
+                                                 "id" int8 NOT NULL DEFAULT nextval('operation_record_log_id_seq'::regclass),
+                                                 "color" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
+                                                 "context" text COLLATE "pg_catalog"."default" NOT NULL,
+                                                 "operator" varchar(200) COLLATE "pg_catalog"."default" NOT NULL,
+                                                 "operation_time" timestamp(6) NOT NULL,
+                                                 "operation_type" varchar(60) COLLATE "pg_catalog"."default" NOT NULL
 )
 ;
 COMMENT ON COLUMN "public"."operation_record_log"."id" IS 'id';
@@ -247,11 +247,11 @@ COMMENT ON TABLE "public"."operation_record_log" IS 'operation record log';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."permission";
 CREATE TABLE "public"."permission" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "object_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "resource_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                       "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                       "object_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                       "resource_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                       "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                       "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."permission"."id" IS 'primary key id';
@@ -618,14 +618,14 @@ INSERT INTO "public"."permission" VALUES ('1529403932886044769', '13463585604272
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."plugin";
 CREATE TABLE "public"."plugin" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(62) COLLATE "pg_catalog"."default" NOT NULL,
-  "config" text COLLATE "pg_catalog"."default",
-  "role" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "sort" int4,
-  "enabled" int2 NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                   "name" varchar(62) COLLATE "pg_catalog"."default" NOT NULL,
+                                   "config" text COLLATE "pg_catalog"."default",
+                                   "role" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                   "sort" int4,
+                                   "enabled" int2 NOT NULL,
+                                   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."plugin"."id" IS 'primary key id';
@@ -673,22 +673,25 @@ INSERT INTO "public"."plugin" VALUES ('31', 'mock', null, 'Mock', 1, 0, '2022-06
 INSERT INTO "public"."plugin" VALUES ('32', 'loggingElasticSearch', '{"host":"localhost", "port": "9200"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin" VALUES ('33', 'loggingKafka', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9092"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin" VALUES ('34', 'loggingAliyunSls', '{"projectName": "shenyu", "logStoreName": "shenyu-logstore", "topic": "shenyu-topic"}', 'Logging', 175, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin" VALUES ('35', 'loggingPulsar', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 'Logging', 185, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin" VALUES ('36', 'loggingTencentCls', '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', 'Logging', 176, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin" VALUES ('38', 'loggingClickHouse', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 'Logging', 195, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
 -- ----------------------------
 -- Table structure for plugin_handle
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."plugin_handle";
 CREATE TABLE "public"."plugin_handle" (
-  "id" varchar(128) NOT NULL DEFAULT nextval('plugin_handle_id_seq'::regclass),
-  "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "field" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
-  "label" varchar(100) COLLATE "pg_catalog"."default",
-  "data_type" int2 NOT NULL,
-  "type" int2,
-  "sort" int4,
-  "ext_obj" varchar(1024) COLLATE "pg_catalog"."default",
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                          "id" varchar(128) NOT NULL DEFAULT nextval('plugin_handle_id_seq'::regclass),
+                                          "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                          "field" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+                                          "label" varchar(100) COLLATE "pg_catalog"."default",
+                                          "data_type" int2 NOT NULL,
+                                          "type" int2,
+                                          "sort" int4,
+                                          "ext_obj" varchar(1024) COLLATE "pg_catalog"."default",
+                                          "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                          "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."plugin_handle"."plugin_id" IS 'plugin id';
@@ -840,10 +843,12 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524892', '28', 'leakD
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524893', '29', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524894', '29', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:9876"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524895', '29', 'producerGroup', 'producerGroup', 2, 3, 3, '{"required":"1","defaultValue":"shenyu-plugin-logging-rocketmq"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524896', '29', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524897', '29', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524898', '29', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524899', '29', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524975', '29', 'accessKey', 'accessKey', 2, 3, 4, '{"required":"0","defaultValue":"","placeholder":"accessKey"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524976', '29', 'secretKey', 'secretKey', 2, 3, 5, '{"required":"0","defaultValue":"","placeholder":"secretKey"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524896', '29', 'sampleRate', 'sampleRate', 2, 3, 6, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524897', '29', 'maxResponseBody', 'maxResponseBody', 1, 3, 7, '{"required":"0","defaultValue":524288}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524898', '29', 'maxRequestBody', 'maxRequestBody', 1, 3, 8, '{"required":"0","defaultValue":524288}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524899', '29', 'compressAlg', 'compressAlg', 3, 3, 9, '{"required":"0","defaultValue":"none"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524900', '29', 'topic', 'topic', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524901', '29', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524902', '30', 'cacheType', 'cacheType', 3, 3, 1, '{"required":"1","defaultValue":"memory","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -869,10 +874,13 @@ INSERT INTO "public"."plugin_handle" VALUES ('1537326008606343168', '31', 'respo
 INSERT INTO "public"."plugin_handle" VALUES ('1537325892176658432', '31', 'httpStatusCode', 'httpStatusCode', 1, 2, 0, '{"required":"0","defaultValue":"200","rule":""}', '2022-06-16 14:47:09', '2022-06-16 14:50:39');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524921', '32', 'host', 'host', 2, 3, 2, '{"required":"1","defaultValue":"localhost"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524922', '32', 'port', 'port', 2, 3, 3, '{"required":"1","defaultValue":"9200"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524923', '32', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524924', '32', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524925', '32', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524926', '32', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524972', '32', 'username', 'username', 2, 3, 4, '{"required":"0","defaultValue":"","placeholder":"username"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524973', '32', 'password', 'password', 2, 3, 5, '{"required":"0","defaultValue":"","placeholder":"username"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524974', '32', 'authCache', 'authCache', 2, 3, 6, '{"required":"0","defaultValue":"","placeholder":"true|false"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524923', '32', 'sampleRate', 'sampleRate', 2, 3, 7, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524924', '32', 'maxResponseBody', 'maxResponseBody', 1, 3, 8, '{"required":"0","defaultValue":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524925', '32', 'maxRequestBody', 'maxRequestBody', 1, 3, 9, '{"required":"0","defaultValue":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524926', '32', 'compressAlg', 'compressAlg', 3, 3, 10, '{"required":"0","defaultValue":"none"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524927', '32', 'index', 'index', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524928', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524929', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}', '2022-06-29 10:08:02', '2022-06-29 10:08:02');
@@ -884,42 +892,73 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524954', '33', 'maxRe
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524955', '33', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524956', '33', 'topic', 'topic', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524957', '33', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172858', '33', 'securityProtocol', 'securityProtocol', 3, 3, 8, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172859', '33', 'saslMechanism', 'saslMechanism', 3, 3, 9, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172860', '33', 'userName', 'userName', 2, 3, 10, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172861', '33', 'passWord', 'passWord', 2, 3, 11, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524958', '34', 'accessId', 'accessId', 2, 3, 0, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524959', '34', 'accessKey', 'accessKey', 2, 3, 1, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524960', '34', 'host', 'host', 2, 3, 2, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524961', '34', 'projectName', 'projectName', 2, 3, 3, '{"required":"0","defaultValue":"shenyu","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524962', '34', 'logStoreName', 'logStoreName', 2, 3, 4, '{"required":"0","defaultValue":"shenyu-logstore","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524963', '34', 'topic', 'topic', 2, 3, 5, '{"required":"0","defaultValue":"shenyu-topic","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524964', '34', 'ttlInDay', 'ttlInDay', 1, 3, 6, '{"required":"0","defaultValue":3,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524965', '34', 'shardCount', 'shardCount', 1, 3, 7, '{"required":"0","defaultValue":10,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524966', '34', 'sendThreadCount', 'sendThreadCount', 1, 3, 8, '{"required":"0","defaultValue":1,"placeholder":"1-500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524967', '34', 'ioThreadCount', 'ioThreadCount', 1, 3, 9, '{"required":"0","defaultValue":1,"placeholder":"1-500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524968', '34', 'sampleRate', 'sampleRate', 2, 3, 10, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524969', '34', 'maxRequestBody', 'maxRequestBody', 1, 3, 11, '{"required":"0","defaultValue":524288,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524970', '34', 'maxResponseBody', 'maxResponseBody', 1, 3, 12, '{"required":"0","defaultValue":524288,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524971', '34', 'bufferQueueSize', 'bufferQueueSize', 1, 3, 13, '{"required":"0","defaultValue":50000,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524962', '34', 'accessId', 'accessId', 2, 3, 0, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524963', '34', 'accessKey', 'accessKey', 2, 3, 1, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524964', '34', 'host', 'host', 2, 3, 2, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524965', '34', 'projectName', 'projectName', 2, 3, 3, '{"required":"0","defaultValue":"shenyu","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524966', '34', 'logStoreName', 'logStoreName', 2, 3, 4, '{"required":"0","defaultValue":"shenyu-logstore","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524967', '34', 'topic', 'topic', 2, 3, 5, '{"required":"0","defaultValue":"shenyu-topic","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524968', '34', 'ttlInDay', 'ttlInDay', 1, 3, 6, '{"required":"0","defaultValue":3,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524969', '34', 'shardCount', 'shardCount', 1, 3, 7, '{"required":"0","defaultValue":10,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524970', '34', 'sendThreadCount', 'sendThreadCount', 1, 3, 8, '{"required":"0","defaultValue":1,"placeholder":"1-500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524971', '34', 'ioThreadCount', 'ioThreadCount', 1, 3, 9, '{"required":"0","defaultValue":1,"placeholder":"1-500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524972', '34', 'sampleRate', 'sampleRate', 2, 3, 10, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524973', '34', 'maxRequestBody', 'maxRequestBody', 1, 3, 11, '{"required":"0","defaultValue":524288,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524974', '34', 'maxResponseBody', 'maxResponseBody', 1, 3, 12, '{"required":"0","defaultValue":524288,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524975', '34', 'bufferQueueSize', 'bufferQueueSize', 1, 3, 13, '{"required":"0","defaultValue":50000,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524976', '35', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524977', '35', 'serviceUrl', 'serviceUrl', 2, 3, 2, '{"required":"1","defaultValue":"pulsar://localhost:6650"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524978', '35', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524979', '35', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524980', '35', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524981', '35', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524982', '36', 'secretId', 'secretId', 2, 3, 1, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524983', '36', 'secretKey', 'secretKey', 2, 3, 2, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524984', '36', 'endpoint', 'endpoint', 2, 3, 3, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524985', '36', 'topic', 'topic', 2, 3, 4, '{\"required\":\"1\",\"defaultValue\":\"\",\"placeholder\":\"\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524986', '36', 'sendThreadCount', 'sendThreadCount', 1, 3, 5, '{\"required\":\"0\",\"defaultValue\":1,\"placeholder\":\"1-500\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524987', '36', 'totalSizeInBytes', 'totalSizeInBytes', 1, 3, 6, '{\"required\":\"0\",\"defaultValue\":104857600}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524988', '36', 'maxSendThreadCount', 'maxSendThreadCount', 1, 3, 7, '{\"required\":\"0\",\"defaultValue\":1,\"placeholder\":\"availableProcessors + 1\"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524989', '36', 'maxBlockSec', 'maxBlockSec', 1, 3, 8, '{\"required\":\"0\",\"defaultValue\":60000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524990', '36', 'maxBatchSize', 'maxBatchSize', 1, 3, 9, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524991', '36', 'maxBatchCount', 'maxBatchCount', 1, 3, 10, '{\"required\":\"0\",\"defaultValue\":4096}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524992', '36', 'lingerMs', 'lingerMs', 1, 3, 11, '{\"required\":\"0\",\"defaultValue\":2000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524993', '36', 'retries', 'retries', 1, 3, 12, '{\"required\":\"0\",\"defaultValue\":10}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524994', '36', 'maxReservedAttempts', 'maxReservedAttempts', 1, 3, 13, '{\"required\":\"0\",\"defaultValue\":11}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524995', '36', 'baseRetryBackoffMs', 'baseRetryBackoffMs', 1, 3, 14, '{\"required\":\"0\",\"defaultValue\":100}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524996', '36', 'maxRetryBackoffMs', 'maxRetryBackoffMs', 1, 3, 15, '{\"required\":\"0\",\"defaultValue\":50000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172798', '38', 'host', 'host', 2, 3, 1, '{"required":"0","defaultValue":"127.0.0.1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172799', '38', 'port', 'port', 2, 3, 2, '{"required":"0","defaultValue":"8123"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1556899301440503808', '38', 'database', 'database', 2, 2, 0, '{"required":"0","defaultValue":"shenyu-gateway","placeholder":"database"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1556899400849702912', '38', 'username', 'username', 2, 2, 0, '{"required":"0","defaultValue":"foo","placeholder":"username"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1556899492809818112', '38', 'password', 'password', 2, 2, 0, '{"required":"0","defaultValue":"bar","placeholder":"password"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."resource";
 CREATE TABLE "public"."resource" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "parent_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "title" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "url" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "component" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "resource_type" int4 NOT NULL,
-  "sort" int4 NOT NULL,
-  "icon" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "is_leaf" int2 NOT NULL,
-  "is_route" int4 NOT NULL,
-  "perms" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "status" int4 NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                     "parent_id" varchar(128) COLLATE "pg_catalog"."default" NULL,
+                                     "title" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                     "name" varchar(32) COLLATE "pg_catalog"."default" NULL,
+                                     "url" varchar(32) COLLATE "pg_catalog"."default" NULL,
+                                     "component" varchar(32) COLLATE "pg_catalog"."default" NULL,
+                                     "resource_type" int4 NOT NULL,
+                                     "sort" int4 NOT NULL,
+                                     "icon" varchar(32) COLLATE "pg_catalog"."default" NULL,
+                                     "is_leaf" int2 NOT NULL,
+                                     "is_route" int4 NOT NULL,
+                                     "perms" varchar(64) COLLATE "pg_catalog"."default" NULL,
+                                     "status" int4 NOT NULL,
+                                     "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                     "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."resource"."id" IS 'primary key id';
@@ -1296,11 +1335,11 @@ INSERT INTO "public"."resource" VALUES ('1534585531108564992', '1534585430311051
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."role";
 CREATE TABLE "public"."role" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "role_name" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "description" varchar(255) COLLATE "pg_catalog"."default",
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                 "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                 "role_name" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+                                 "description" varchar(255) COLLATE "pg_catalog"."default",
+                                 "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                 "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."role"."id" IS 'primary key id';
@@ -1321,24 +1360,24 @@ INSERT INTO "public"."role" VALUES ('1385482862971723776', 'default', 'Standard'
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."rule";
 CREATE TABLE "public"."rule" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "selector_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "match_mode" int4 NOT NULL,
-  "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "enabled" int2 NOT NULL,
-  "loged" int2 NOT NULL,
-  "sort" int4 NOT NULL,
-  "handle" varchar(1024) COLLATE "pg_catalog"."default",
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                 "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                 "selector_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                 "match_mode" int4 NOT NULL,
+                                 "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                 "enabled" int2 NOT NULL,
+                                 "loged" int2 NOT NULL,
+                                 "sort" int4 NOT NULL,
+                                 "handle" varchar(1024) COLLATE "pg_catalog"."default",
+                                 "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                 "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."rule"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."rule"."selector_id" IS 'selector id';
 COMMENT ON COLUMN "public"."rule"."match_mode" IS 'matching mode (0 and 1 or)';
 COMMENT ON COLUMN "public"."rule"."name" IS 'rule name';
-COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open';
-COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not';
+COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."rule"."sort" IS 'sort';
 COMMENT ON COLUMN "public"."rule"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."rule"."date_created" IS 'create time';
@@ -1353,14 +1392,14 @@ COMMENT ON COLUMN "public"."rule"."date_updated" IS 'update time';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."rule_condition";
 CREATE TABLE "public"."rule_condition" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "rule_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "param_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "operator" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "param_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "param_value" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                           "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                           "rule_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                           "param_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                           "operator" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                           "param_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                           "param_value" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                           "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                           "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."rule_condition"."id" IS 'primary key id';
@@ -1381,18 +1420,18 @@ COMMENT ON COLUMN "public"."rule_condition"."date_updated" IS 'update time';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."selector";
 CREATE TABLE "public"."selector" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "match_mode" int4 NOT NULL,
-  "type" int4 NOT NULL,
-  "sort" int4 NOT NULL,
-  "handle" varchar(1024) COLLATE "pg_catalog"."default",
-  "enabled" int2 NOT NULL,
-  "loged" int2 NOT NULL,
-  "continued" int2 NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                     "plugin_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                     "name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                     "match_mode" int4 NOT NULL,
+                                     "type" int4 NOT NULL,
+                                     "sort" int4 NOT NULL,
+                                     "handle" varchar(1024) COLLATE "pg_catalog"."default",
+                                     "enabled" int2 NOT NULL,
+                                     "loged" int2 NOT NULL,
+                                     "continued" int2 NOT NULL,
+                                     "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                     "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."selector"."id" IS 'primary key id varchar';
@@ -1402,8 +1441,8 @@ COMMENT ON COLUMN "public"."selector"."match_mode" IS 'matching mode (0 and 1 or
 COMMENT ON COLUMN "public"."selector"."type" IS 'type (0, full flow, 1 custom flow)';
 COMMENT ON COLUMN "public"."selector"."sort" IS 'sort';
 COMMENT ON COLUMN "public"."selector"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
-COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open';
-COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log';
+COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."selector"."continued" IS 'whether to continue execution';
 COMMENT ON COLUMN "public"."selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."selector"."date_updated" IS 'update time';
@@ -1417,14 +1456,14 @@ COMMENT ON COLUMN "public"."selector"."date_updated" IS 'update time';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."selector_condition";
 CREATE TABLE "public"."selector_condition" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "selector_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "param_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "operator" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "param_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "param_value" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                               "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                               "selector_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                               "param_type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                               "operator" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                               "param_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                               "param_value" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+                                               "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                               "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."selector_condition"."id" IS 'primary key id';
@@ -1445,16 +1484,16 @@ COMMENT ON COLUMN "public"."selector_condition"."date_updated" IS 'update time';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."shenyu_dict";
 CREATE TABLE "public"."shenyu_dict" (
-  "id" varchar(128) NOT NULL DEFAULT nextval('shenyu_dict_id_seq'::regclass),
-  "type" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
-  "dict_code" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
-  "dict_name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
-  "dict_value" varchar(100) COLLATE "pg_catalog"."default",
-  "desc" varchar(255) COLLATE "pg_catalog"."default",
-  "sort" int4 NOT NULL,
-  "enabled" int2,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                        "id" varchar(128) NOT NULL DEFAULT nextval('shenyu_dict_id_seq'::regclass),
+                                        "type" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+                                        "dict_code" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+                                        "dict_name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+                                        "dict_value" varchar(100) COLLATE "pg_catalog"."default",
+                                        "desc" varchar(255) COLLATE "pg_catalog"."default",
+                                        "sort" int4 NOT NULL,
+                                        "enabled" int2,
+                                        "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                        "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."shenyu_dict"."id" IS 'primary key id';
@@ -1464,7 +1503,7 @@ COMMENT ON COLUMN "public"."shenyu_dict"."dict_name" IS 'dictionary name';
 COMMENT ON COLUMN "public"."shenyu_dict"."dict_value" IS 'dictionary value';
 COMMENT ON COLUMN "public"."shenyu_dict"."desc" IS 'dictionary description or remarks';
 COMMENT ON COLUMN "public"."shenyu_dict"."sort" IS 'sort';
-COMMENT ON COLUMN "public"."shenyu_dict"."enabled" IS 'whether it is enabled';
+COMMENT ON COLUMN "public"."shenyu_dict"."enabled" IS 'whether it is enabled (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."shenyu_dict"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."shenyu_dict"."date_updated" IS 'update time';
 
@@ -1543,19 +1582,33 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302093', 'table', 'INIT
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302098', 'threadpool', 'THREADPOOL', 'default', 'default', '', 5, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302099', 'signRequestBody', 'SIGN_REQUEST_BODY', 'close', 'false', 'close', 1, 1, '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302100', 'signRequestBody', 'SIGN_REQUEST_BODY', 'open', 'true', 'open', 0, 1, '2022-06-29 10:08:02', '2022-06-29 10:08:02');
-INSERT INTO "public".`shenyu_dict` VALUES ('1545811989312315392', 'apidoc', 'API_DOC_GLOBAL_FLAG', 'status', 'true', 'Global switching (on or off) of API documents.', 0, 1, '2022-07-10 00:47:52', '2022-07-10 00:47:52');
-INSERT INTO "public".`shenyu_dict` VALUES ('1545812101056962560', 'apidocEnv', 'ENV_LABEL_OFFLINE', 'Offline', 'http://127.0.0.1:9195', 'Offline environment', 0, 1, '2022-07-10 00:48:19', '2022-07-10 00:48:19');
-INSERT INTO "public".`shenyu_dict` VALUES ('1545812228228259840', 'apidocEnv', 'ENV_LABEL_ONLINE', 'Online', 'http://127.0.0.1:9196', 'Online environment', 1, 1, '2022-07-10 00:48:49', '2022-07-10 00:48:49');
+INSERT INTO "public"."shenyu_dict" VALUES ('1545811989312315392', 'apidoc', 'API_DOC_GLOBAL_FLAG', 'status', 'true', 'Global switching (on or off) of API documents.', 0, 1, '2022-07-10 00:47:52', '2022-07-10 00:47:52');
+INSERT INTO "public"."shenyu_dict" VALUES ('1545812101056962560', 'apidocEnv', 'ENV_LABEL_OFFLINE', 'Offline', 'http://127.0.0.1:9195', 'Offline environment', 0, 1, '2022-07-10 00:48:19', '2022-07-10 00:48:19');
+INSERT INTO "public"."shenyu_dict" VALUES ('1545812228228259840', 'apidocEnv', 'ENV_LABEL_ONLINE', 'Online', 'http://127.0.0.1:9196', 'Online environment', 1, 1, '2022-07-10 00:48:49', '2022-07-10 00:48:49');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784271', 'securityProtocol', 'SECURITY_PROTOCOL', 'default', '', '', 0, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784272', 'securityProtocol', 'SECURITY_PROTOCOL', 'SSL', 'SSL', '', 1, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784273', 'securityProtocol', 'SECURITY_PROTOCOL', 'PLAINTEXT', 'PLAINTEXT', '', 2, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784274', 'securityProtocol', 'SECURITY_PROTOCOL', 'SASL_PLAINTEXT', 'SASL_PLAINTEXT', '', 3, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784275', 'securityProtocol', 'SECURITY_PROTOCOL', 'SASL_SSL', 'SASL_SSL', '', 4, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784276', 'saslMechanism', 'SASL_MECHANISM', 'default', '', '', 0, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784277', 'saslMechanism', 'SASL_MECHANISM', 'GSSAPI', 'GSSAPI', '', 1, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784278', 'saslMechanism', 'SASL_MECHANISM', 'PLAIN', 'PLAIN', '', 2, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784279', 'saslMechanism', 'SASL_MECHANISM', 'OAUTHBEARER', 'OAUTHBEARER', '', 3, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784280', 'saslMechanism', 'SASL_MECHANISM', 'SCRAM-SHA-256', 'SCRAM-SHA-256', '', 4, 1,'2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784281', 'saslMechanism', 'SASL_MECHANISM', 'SCRAM-SHA-512', 'SCRAM-SHA-512', '', 5, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+
+
+
 -- ----------------------------
 -- Table structure for user_role
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."user_role";
 CREATE TABLE "public"."user_role" (
-  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "user_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "role_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+                                      "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "user_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "role_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                      "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                      "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."user_role"."id" IS 'primary key id';
@@ -1579,14 +1632,14 @@ SELECT setval('"public"."operation_record_log_id_seq"', 2, false);
 -- Alter sequences owned by
 -- ----------------------------
 ALTER SEQUENCE "public"."plugin_handle_id_seq"
-OWNED BY "public"."plugin_handle"."id";
+    OWNED BY "public"."plugin_handle"."id";
 SELECT setval('"public"."plugin_handle_id_seq"', 2, false);
 
 -- ----------------------------
 -- Alter sequences owned by
 -- ----------------------------
 ALTER SEQUENCE "public"."shenyu_dict_id_seq"
-OWNED BY "public"."shenyu_dict"."id";
+    OWNED BY "public"."shenyu_dict"."id";
 SELECT setval('"public"."shenyu_dict_id_seq"', 2, false);
 
 -- ----------------------------
@@ -1608,8 +1661,8 @@ ALTER TABLE "public"."auth_path" ADD CONSTRAINT "auth_path_pkey" PRIMARY KEY ("i
 -- Indexes structure for table dashboard_user
 -- ----------------------------
 CREATE INDEX "unique_user_name" ON "public"."dashboard_user" USING btree (
-  "user_name" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
-);
+    "user_name" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST
+    );
 
 -- ----------------------------
 -- Primary Key structure for table dashboard_user
@@ -1645,10 +1698,10 @@ ALTER TABLE "public"."plugin" ADD CONSTRAINT "plugin_pkey" PRIMARY KEY ("id");
 -- Indexes structure for table plugin_handle
 -- ----------------------------
 CREATE INDEX "plugin_id_field_type" ON "public"."plugin_handle" USING btree (
-  "plugin_id" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST,
-  "field" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST,
-  "type" "pg_catalog"."int2_ops" ASC NULLS LAST
-);
+    "plugin_id" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST,
+    "field" COLLATE "pg_catalog"."default" "pg_catalog"."text_ops" ASC NULLS LAST,
+    "type" "pg_catalog"."int2_ops" ASC NULLS LAST
+    );
 
 -- ----------------------------
 -- Rules structure for table plugin_handle
