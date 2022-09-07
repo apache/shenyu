@@ -43,6 +43,7 @@
         <module>shenyu-loadbalancer</module>
         <module>shenyu-dist</module>
         <module>shenyu-alert</module>
+        <module>shenyu-sdk</module>
     </modules>
 
     <licenses>
