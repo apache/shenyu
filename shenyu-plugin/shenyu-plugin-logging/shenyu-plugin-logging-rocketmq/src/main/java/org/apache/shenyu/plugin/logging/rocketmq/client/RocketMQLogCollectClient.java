@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.logging.rocketmq.client;
 
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.acl.common.AclClientRPCHook;
 import org.apache.rocketmq.acl.common.SessionCredentials;
@@ -34,6 +33,7 @@ import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -63,7 +63,7 @@ public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQL
      * @param config rocketmq props
      */
     @Override
-    public void initClient0(final RocketMQLogCollectConfig.RocketMQLogConfig config) {
+    public void initClient0(@NonNull final RocketMQLogCollectConfig.RocketMQLogConfig config) {
         String topic = config.getTopic();
         String nameserverAddress = config.getNamesrvAddr();
         String producerGroup = config.getProducerGroup();
@@ -104,10 +104,7 @@ public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQL
      * @param logs list of log
      */
     @Override
-    public void consume0(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs)) {
-            return;
-        }
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         logs.forEach(log -> {
             String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath(), apiTopicMap), topic);
             try {

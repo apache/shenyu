@@ -24,7 +24,7 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.common.utils.ThreadUtils;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.slf4j.Logger;
@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * abstract log collector,Contains common methods.
  */
-public abstract class AbstractLogCollector implements LogCollector {
+public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?>> implements LogCollector {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLogCollector.class);
 
@@ -94,7 +94,7 @@ public abstract class AbstractLogCollector implements LogCollector {
                 int batchSize = 100;
                 if (size >= batchSize || timeDiffMs > diffTimeMSForPush) {
                     bufferQueue.drainTo(logs, batchSize);
-                    LogConsumeClient logCollectClient = getLogConsumeClient();
+                    AbstractLogConsumeClient<?> logCollectClient = getLogConsumeClient();
                     if (Objects.nonNull(logCollectClient)) {
                         logCollectClient.consume(logs);
                     }
@@ -114,12 +114,12 @@ public abstract class AbstractLogCollector implements LogCollector {
      *
      * @return log consume client
      */
-    protected abstract LogConsumeClient getLogConsumeClient();
+    protected abstract T getLogConsumeClient();
 
     @Override
     public void close() throws Exception {
         started.set(false);
-        LogConsumeClient logCollectClient = getLogConsumeClient();
+        AbstractLogConsumeClient<?> logCollectClient = getLogConsumeClient();
         if (logCollectClient != null) {
             logCollectClient.close();
         }

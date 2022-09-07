@@ -32,7 +32,6 @@ import com.aliyun.openservices.log.exception.LogException;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -42,6 +41,7 @@ import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -74,7 +74,7 @@ public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLo
      * @param config config
      */
     @Override
-    public void initClient0(final AliyunLogCollectConfig.AliyunSlsLogConfig config) {
+    public void initClient0(@NonNull final AliyunLogCollectConfig.AliyunSlsLogConfig config) {
         String accessId = config.getAccessId();
         String accessKey = config.getAccessKey();
         String host = config.getHost();
@@ -107,10 +107,7 @@ public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLo
      * @param logs list of log
      */
     @Override
-    public void consume0(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs)) {
-            return;
-        }
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         logs.forEach(this::sendLog);
     }
 

@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.plugin.logging.clickhouse.collector;
 
+import org.apache.shenyu.plugin.logging.clickhouse.client.ClickHouseLogCollectClient;
 import org.apache.shenyu.plugin.logging.clickhouse.handler.LoggingClickHousePluginDataHandler;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 
-public class ClickHouseLogCollector extends AbstractLogCollector {
+public class ClickHouseLogCollector extends AbstractLogCollector<ClickHouseLogCollectClient> {
 
     private static final LogCollector INSTANCE = new ClickHouseLogCollector();
 
@@ -36,7 +36,7 @@ public class ClickHouseLogCollector extends AbstractLogCollector {
     }
     
     @Override
-    protected LogConsumeClient getLogConsumeClient() {
+    protected ClickHouseLogCollectClient getLogConsumeClient() {
         return LoggingClickHousePluginDataHandler.getClickHouseLogCollectClient();
     }
 }

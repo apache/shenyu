@@ -65,6 +65,86 @@ public class KafkaLogCollectConfig {
 
         private String compressAlg;
 
+        private String securityProtocol;
+
+        private String saslMechanism;
+
+        private String userName;
+
+        private String passWord;
+
+        /**
+         * get kafka securityProtocol.
+         *
+         * @return securityProtocol
+         */
+        public String getSecurityProtocol() {
+            return securityProtocol;
+        }
+
+        /**
+         * set kafka securityProtocol.
+         *
+         * @param securityProtocol securityProtocol
+         */
+        public void setSecurityProtocol(final String securityProtocol) {
+            this.securityProtocol = securityProtocol;
+        }
+
+        /**
+         * get Kafka saslMechanism.
+         *
+         * @return saslMechanism
+         */
+        public String getSaslMechanism() {
+            return saslMechanism;
+        }
+
+        /**
+         *set kafka saslMechanism.
+         *
+         * @param saslMechanism saslMechanism
+         */
+        public void setSaslMechanism(final String saslMechanism) {
+            this.saslMechanism = saslMechanism;
+        }
+
+        /**
+         * get kafka userName.
+         *
+         * @return userName
+         */
+        public String getUserName() {
+            return userName;
+        }
+
+        /**
+         * set kafka userName.
+         *
+         * @param userName userName
+         */
+        public void setUserName(final String userName) {
+            this.userName = userName;
+        }
+
+        /**
+         * get kafka passWord.
+         *
+         * @return passWord
+         */
+        public String getPassWord() {
+            return passWord;
+        }
+
+        /**
+         * set kafka pwd.
+         *
+         * @param passWord passWord
+         */
+        public void setPassWord(final String passWord) {
+            this.passWord = passWord;
+        }
+
         /**
          * whether compress.
          *

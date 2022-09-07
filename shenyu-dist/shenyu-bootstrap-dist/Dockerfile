@@ -17,7 +17,9 @@
 FROM openjdk:8-jre-alpine
 
 ARG APP_NAME
+
 ENV LOCAL_PATH /opt/shenyu-bootstrap
+ENV BOOT_JVM ""
 
 RUN apk --no-cache add procps
 
