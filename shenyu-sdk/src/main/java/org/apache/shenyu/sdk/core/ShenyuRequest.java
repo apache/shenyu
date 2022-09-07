@@ -102,7 +102,7 @@ public final class ShenyuRequest implements Serializable {
   /**
    * getHeaders.
    *
-   * @return {@link Map< String, Collection< String>>}
+   * @return {@link Map}
    */
   public Map<String, Collection<String>> getHeaders() {
     return headers;
