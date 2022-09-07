@@ -32,7 +32,7 @@ public interface ShenyuHttpClient {
      *
      * @param request request
      * @return {@link ShenyuResponse}
-     * @throws IOException err
+     * @throws IOException error
      */
     ShenyuResponse execute(ShenyuRequest request) throws IOException;
 
