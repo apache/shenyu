@@ -81,22 +81,47 @@ public final class ShenyuRequest implements Serializable {
     this.requestTemplate = requestTemplate;
   }
 
+  /**
+   * getHttpMethod.
+   *
+   * @return {@link HttpMethod}
+   */
   public HttpMethod getHttpMethod() {
     return httpMethod;
   }
 
+  /**
+   * getUrl.
+   *
+   * @return {@link String}
+   */
   public String getUrl() {
     return url;
   }
 
+  /**
+   * getHeaders.
+   *
+   * @return {@link Map< String, Collection< String>>}
+   */
   public Map<String, Collection<String>> getHeaders() {
     return headers;
   }
 
+  /**
+   * getBody.
+   *
+   * @return {@link String}
+   */
   public String getBody() {
     return body;
   }
 
+  /**
+   * getRequestTemplate.
+   *
+   * @return {@link RequestTemplate}
+   */
   public RequestTemplate getRequestTemplate() {
     return requestTemplate;
   }

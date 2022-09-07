@@ -152,7 +152,7 @@ public final class RequestTemplate implements Serializable {
   /**
    * getParamMetadataList.
    *
-   * @return {@link List<ParamMetadata>}
+   * @return {@link List}
    */
   public List<ParamMetadata> getParamMetadataList() {
     return paramMetadataList;

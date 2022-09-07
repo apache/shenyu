@@ -51,7 +51,7 @@ public interface ShenyuInstanceRegisterRepository {
      *
      * @param selectKey selectKey
      * @param watcherListener watcherListener
-     * @return {@link List<InstanceRegisterDTO>}
+     * @return {@link List}
      */
     default List<InstanceRegisterDTO> selectInstancesAndWatcher(String selectKey, WatcherListener watcherListener) {
         return Collections.emptyList();
