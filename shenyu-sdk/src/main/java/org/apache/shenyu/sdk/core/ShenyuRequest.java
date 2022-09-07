@@ -29,6 +29,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class ShenyuRequest implements Serializable {
 
   public enum HttpMethod {
+
+    /**
+     * HttpMethod.
+     */
     GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH
   }
 

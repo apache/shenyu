@@ -29,7 +29,11 @@ import java.io.IOException;
 public interface ShenyuHttpClient {
 
   /**
-   * request execute.
+   * execute.
+   *
+   * @param request request
+   * @return {@link ShenyuResponse}
+   * @throws IOException
    */
   ShenyuResponse execute(ShenyuRequest request) throws IOException;
 
