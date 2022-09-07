@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.sdk.http.api;
 
-
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 
@@ -28,13 +27,13 @@ import java.io.IOException;
  */
 public interface ShenyuHttpClient {
 
-  /**
-   * execute.
-   *
-   * @param request request
-   * @return {@link ShenyuResponse}
-   * @throws IOException
-   */
-  ShenyuResponse execute(ShenyuRequest request) throws IOException;
+    /**
+     * execute.
+     *
+     * @param request request
+     * @return {@link ShenyuResponse}
+     * @throws IOException err
+     */
+    ShenyuResponse execute(ShenyuRequest request) throws IOException;
 
 }

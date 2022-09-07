@@ -28,105 +28,105 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class ShenyuRequest implements Serializable {
 
-  public enum HttpMethod {
+    private final HttpMethod httpMethod;
+
+    private final String url;
+
+    private final Map<String, Collection<String>> headers;
+
+    private final String body;
+
+    private final RequestTemplate requestTemplate;
 
     /**
-     * HttpMethod.
+     * Creates a new Request.
+     *
+     * @param method of the request.
+     * @param url for the request.
+     * @param headers for the request.
+     * @param body for the request, optional.
+     * @param requestTemplate used to build the request.
      */
-    GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH
-  }
+    ShenyuRequest(final HttpMethod method,
+                  final String url,
+                  final Map<String, Collection<String>> headers,
+                  final String body,
+                  final RequestTemplate requestTemplate) {
+        this.httpMethod = checkNotNull(method, "httpMethod of %s", method.name());
+        this.url = checkNotNull(url, "url");
+        this.headers = checkNotNull(headers, "headers of %s %s", method, url);
+        this.body = body;
+        this.requestTemplate = requestTemplate;
+    }
 
-  /**
-   * Builds a Request. All parameters must be effectively immutable, via safe copies.
-   *
-   * @param httpMethod for the request.
-   * @param url for the request.
-   * @param headers to include.
-   * @param body of the request, can be {@literal null}
-   * @return a Request
-   */
-  public static ShenyuRequest create(final HttpMethod httpMethod,
-                                     final String url,
-                                     final Map<String, Collection<String>> headers,
-                                     final String body,
-                                     final RequestTemplate requestTemplate) {
-    return new ShenyuRequest(httpMethod, url, headers, body, requestTemplate);
-  }
+    public enum HttpMethod {
 
-  private final HttpMethod httpMethod;
+        /**
+         * HttpMethod.
+         */
+        GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH
+    }
 
-  private final String url;
+    /**
+     * Builds a Request. All parameters must be effectively immutable, via safe copies.
+     *
+     * @param httpMethod for the request.
+     * @param url for the request.
+     * @param headers to include.
+     * @param body of the request, can be {@literal null}
+     * @param requestTemplate requestTemplate
+     * @return a Request
+     */
+    public static ShenyuRequest create(final HttpMethod httpMethod,
+                                       final String url,
+                                       final Map<String, Collection<String>> headers,
+                                       final String body,
+                                       final RequestTemplate requestTemplate) {
+        return new ShenyuRequest(httpMethod, url, headers, body, requestTemplate);
+    }
 
-  private final Map<String, Collection<String>> headers;
+    /**
+     * getHttpMethod.
+     *
+     * @return {@link HttpMethod}
+     */
+    public HttpMethod getHttpMethod() {
+        return httpMethod;
+    }
 
-  private final String body;
+    /**
+     * getUrl.
+     *
+     * @return {@link String}
+     */
+    public String getUrl() {
+        return url;
+    }
 
-  private final RequestTemplate requestTemplate;
+    /**
+     * getHeaders.
+     *
+     * @return {@link Map}
+     */
+    public Map<String, Collection<String>> getHeaders() {
+        return headers;
+    }
 
+    /**
+     * getBody.
+     *
+     * @return {@link String}
+     */
+    public String getBody() {
+        return body;
+    }
 
-  /**
-   * Creates a new Request.
-   *
-   * @param method of the request.
-   * @param url for the request.
-   * @param headers for the request.
-   * @param body for the request, optional.
-   * @param requestTemplate used to build the request.
-   */
-  ShenyuRequest(final HttpMethod method,
-                final String url,
-                final Map<String, Collection<String>> headers,
-                final String body,
-                final RequestTemplate requestTemplate) {
-    this.httpMethod = checkNotNull(method, "httpMethod of %s", method.name());
-    this.url = checkNotNull(url, "url");
-    this.headers = checkNotNull(headers, "headers of %s %s", method, url);
-    this.body = body;
-    this.requestTemplate = requestTemplate;
-  }
-
-  /**
-   * getHttpMethod.
-   *
-   * @return {@link HttpMethod}
-   */
-  public HttpMethod getHttpMethod() {
-    return httpMethod;
-  }
-
-  /**
-   * getUrl.
-   *
-   * @return {@link String}
-   */
-  public String getUrl() {
-    return url;
-  }
-
-  /**
-   * getHeaders.
-   *
-   * @return {@link Map}
-   */
-  public Map<String, Collection<String>> getHeaders() {
-    return headers;
-  }
-
-  /**
-   * getBody.
-   *
-   * @return {@link String}
-   */
-  public String getBody() {
-    return body;
-  }
-
-  /**
-   * getRequestTemplate.
-   *
-   * @return {@link RequestTemplate}
-   */
-  public RequestTemplate getRequestTemplate() {
-    return requestTemplate;
-  }
+    /**
+     * getRequestTemplate.
+     *
+     * @return {@link RequestTemplate}
+     */
+    public RequestTemplate getRequestTemplate() {
+        return requestTemplate;
+    }
 }

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.sdk.core;
 
-
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -30,241 +29,241 @@ import java.util.Map;
  */
 public final class RequestTemplate implements Serializable {
 
-  private String url;
+    private String url;
 
-  private String path;
+    private String path;
 
-  private ShenyuRequest.HttpMethod httpMethod;
+    private ShenyuRequest.HttpMethod httpMethod;
 
-  private List<ParamMetadata> paramMetadataList;
+    private List<ParamMetadata> paramMetadataList;
 
-  private Map<String, Collection<String>> headers = new HashMap<>();
+    private Map<String, Collection<String>> headers = new HashMap<>();
 
-  private String body;
-
-  /**
-   * request.
-   *
-   * @return {@link ShenyuRequest}
-   */
-  public ShenyuRequest request() {
-    return ShenyuRequest.create(this.httpMethod, this.url + this.path, this.headers, this.body, this);
-  }
-
-  /**
-   * getUrl.
-   *
-   * @return {@link String}
-   */
-  public String getUrl() {
-    return url;
-  }
-
-  /**
-   * setUrl.
-   *
-   * @param url url
-   * @return {@link RequestTemplate}
-   */
-  public RequestTemplate setUrl(final String url) {
-    this.url = url;
-    return this;
-  }
-
-  /**
-   * getHttpMethod.
-   *
-   * @return {@link ShenyuRequest.HttpMethod}
-   */
-  public ShenyuRequest.HttpMethod getHttpMethod() {
-    return httpMethod;
-  }
-
-  /**
-   * setHttpMethod.
-   *
-   * @param method method
-   * @return {@link RequestTemplate}
-   */
-  public RequestTemplate setHttpMethod(final ShenyuRequest.HttpMethod method) {
-    this.httpMethod = method;
-    return this;
-  }
-
-  /**
-   * getHeaders.
-   *
-   * @return {@link Map}
-   */
-  public Map<String, Collection<String>> getHeaders() {
-    return headers;
-  }
-
-  /**
-   * setHeaders.
-   *
-   * @param headers headers
-   * @return {@link RequestTemplate}
-   */
-  public RequestTemplate setHeaders(final Map<String, Collection<String>> headers) {
-    this.headers = headers;
-    return this;
-  }
-
-  /**
-   * getBody.
-   *
-   * @return {@link String}
-   */
-  public String getBody() {
-    return body;
-  }
-
-  /**
-   * setBody.
-   *
-   * @param body body
-   */
-  public void setBody(String body) {
-    this.body = body;
-  }
-
-  /**
-   * getPath.
-   *
-   * @return {@link String}
-   */
-  public String getPath() {
-    return path;
-  }
-
-  /**
-   * setPath.
-   *
-   * @param path path
-   * @return {@link RequestTemplate}
-   */
-  public RequestTemplate setPath(final String path) {
-    this.path = path;
-    return this;
-  }
-
-  /**
-   * getParamMetadataList.
-   *
-   * @return {@link List}
-   */
-  public List<ParamMetadata> getParamMetadataList() {
-    return paramMetadataList;
-  }
-
-  /**
-   * setParamMetadataList.
-   *
-   * @param paramMetadataList paramMetadataList
-   * @return {@link RequestTemplate}
-   */
-  public RequestTemplate setParamMetadataList(final List<ParamMetadata> paramMetadataList) {
-    this.paramMetadataList = paramMetadataList;
-    return this;
-  }
-
-  /**
-   * method ParamMetadata.
-   */
-  public static class ParamMetadata {
+    private String body;
 
     /**
-     * paramAnnotations.
-     */
-    private Annotation[] paramAnnotations;
-
-    /**
-     * paramType.
-     */
-    private Class<?> paramType;
-
-    /**
-     * isPrimitive.
-     */
-    private boolean isPrimitive;
-
-    /**
-     * paramIndexOnMethod.
-     */
-    private int paramIndexOnMethod;
-
-    /**
-     * getParamAnnotations.
+     * request.
      *
-     * @return {@link Annotation[]}
+     * @return {@link ShenyuRequest}
      */
-    public Annotation[] getParamAnnotations() {
-      return paramAnnotations;
+    public ShenyuRequest request() {
+        return ShenyuRequest.create(this.httpMethod, this.url + this.path, this.headers, this.body, this);
     }
 
     /**
-     * setParamAnnotations.
+     * getUrl.
      *
-     * @param paramAnnotations paramAnnotations
+     * @return {@link String}
      */
-    public void setParamAnnotations(final Annotation[] paramAnnotations) {
-      this.paramAnnotations = paramAnnotations;
+    public String getUrl() {
+        return url;
     }
 
     /**
-     * getParamType.
+     * setUrl.
      *
-     * @return {@link Class<?>}
+     * @param url url
+     * @return {@link RequestTemplate}
      */
-    public Class<?> getParamType() {
-      return paramType;
+    public RequestTemplate setUrl(final String url) {
+        this.url = url;
+        return this;
     }
 
     /**
-     * setParamType.
+     * getHttpMethod.
      *
-     * @param paramType paramType
+     * @return {@link ShenyuRequest.HttpMethod}
      */
-    public void setParamType(final Class<?> paramType) {
-      this.paramType = paramType;
+    public ShenyuRequest.HttpMethod getHttpMethod() {
+        return httpMethod;
     }
 
     /**
-     * isPrimitive.
+     * setHttpMethod.
      *
-     * @return {@link boolean}
+     * @param method method
+     * @return {@link RequestTemplate}
      */
-    public boolean isPrimitive() {
-      return isPrimitive;
+    public RequestTemplate setHttpMethod(final ShenyuRequest.HttpMethod method) {
+        this.httpMethod = method;
+        return this;
     }
 
     /**
-     * setPrimitive.
+     * getHeaders.
      *
-     * @param primitive primitive
+     * @return {@link Map}
      */
-    public void setPrimitive(final boolean primitive) {
-      isPrimitive = primitive;
+    public Map<String, Collection<String>> getHeaders() {
+        return headers;
     }
 
     /**
-     * getParamIndexOnMethod.
+     * setHeaders.
      *
-     * @return {@link int}
+     * @param headers headers
+     * @return {@link RequestTemplate}
      */
-    public int getParamIndexOnMethod() {
-      return paramIndexOnMethod;
+    public RequestTemplate setHeaders(final Map<String, Collection<String>> headers) {
+        this.headers = headers;
+        return this;
     }
 
     /**
-     * setParamIndexOnMethod.
+     * getBody.
      *
-     * @param paramIndexOnMethod paramIndexOnMethod
+     * @return {@link String}
      */
-    public void setParamIndexOnMethod(final int paramIndexOnMethod) {
-      this.paramIndexOnMethod = paramIndexOnMethod;
+    public String getBody() {
+        return body;
     }
 
-  }
+    /**
+     * setBody.
+     *
+     * @param body body
+     */
+    public void setBody(final String body) {
+        this.body = body;
+    }
+
+    /**
+     * getPath.
+     *
+     * @return {@link String}
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * setPath.
+     *
+     * @param path path
+     * @return {@link RequestTemplate}
+     */
+    public RequestTemplate setPath(final String path) {
+        this.path = path;
+        return this;
+    }
+
+    /**
+     * getParamMetadataList.
+     *
+     * @return {@link List}
+     */
+    public List<ParamMetadata> getParamMetadataList() {
+        return paramMetadataList;
+    }
+
+    /**
+     * setParamMetadataList.
+     *
+     * @param paramMetadataList paramMetadataList
+     * @return {@link RequestTemplate}
+     */
+    public RequestTemplate setParamMetadataList(final List<ParamMetadata> paramMetadataList) {
+        this.paramMetadataList = paramMetadataList;
+        return this;
+    }
+
+    /**
+     * method ParamMetadata.
+     */
+    public static class ParamMetadata {
+
+        /**
+         * paramAnnotations.
+         */
+        private Annotation[] paramAnnotations;
+
+        /**
+         * paramType.
+         */
+        private Class<?> paramType;
+
+        /**
+         * isPrimitive.
+         */
+        private boolean isPrimitive;
+
+        /**
+         * paramIndexOnMethod.
+         */
+        private int paramIndexOnMethod;
+
+        /**
+         * getParamAnnotations.
+         *
+         * @return {@link Annotation}
+         */
+        public Annotation[] getParamAnnotations() {
+            return paramAnnotations;
+        }
+
+        /**
+         * setParamAnnotations.
+         *
+         * @param paramAnnotations paramAnnotations
+         */
+        public void setParamAnnotations(final Annotation[] paramAnnotations) {
+            this.paramAnnotations = paramAnnotations;
+        }
+
+        /**
+         * getParamType.
+         *
+         * @return {@link Class}
+         */
+        public Class<?> getParamType() {
+            return paramType;
+        }
+
+        /**
+         * setParamType.
+         *
+         * @param paramType paramType
+         */
+        public void setParamType(final Class<?> paramType) {
+            this.paramType = paramType;
+        }
+
+        /**
+         * isPrimitive.
+         *
+         * @return {@link boolean}
+         */
+        public boolean isPrimitive() {
+            return isPrimitive;
+        }
+
+        /**
+         * setPrimitive.
+         *
+         * @param primitive primitive
+         */
+        public void setPrimitive(final boolean primitive) {
+            isPrimitive = primitive;
+        }
+
+        /**
+         * getParamIndexOnMethod.
+         *
+         * @return {@link int}
+         */
+        public int getParamIndexOnMethod() {
+            return paramIndexOnMethod;
+        }
+
+        /**
+         * setParamIndexOnMethod.
+         *
+         * @param paramIndexOnMethod paramIndexOnMethod
+         */
+        public void setParamIndexOnMethod(final int paramIndexOnMethod) {
+            this.paramIndexOnMethod = paramIndexOnMethod;
+        }
+
+    }
 }

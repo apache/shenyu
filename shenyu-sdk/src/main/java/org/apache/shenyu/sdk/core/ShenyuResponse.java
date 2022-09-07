@@ -26,72 +26,76 @@ import java.util.Map;
  */
 public final class ShenyuResponse {
 
-  private final int status;
-  private final String reason;
-  private final Map<String, Collection<String>> headers;
-  private final String body;
-  private final ShenyuRequest request;
+    private final int status;
 
-  /**
-   * ShenyuResponse.
-   *
-   * @param status status
-   * @param reason reason
-   * @param headers headers
-   * @param body body
-   * @param request request
-   */
-  public ShenyuResponse(final int status, final String reason, final Map<String, Collection<String>> headers,
-                        final String body, final ShenyuRequest request) {
-    this.status = status;
-    this.reason = reason;
-    this.headers = headers;
-    this.body = body;
-    this.request = request;
-  }
+    private final String reason;
 
-  /**
-   * getStatus.
-   *
-   * @return {@link int}
-   */
-  public int getStatus() {
-    return status;
-  }
+    private final Map<String, Collection<String>> headers;
 
-  /**
-   * getReason.
-   *
-   * @return {@link String}
-   */
-  public String getReason() {
-    return reason;
-  }
+    private final String body;
 
-  /**
-   * getHeaders.
-   *
-   * @return {@link Map}
-   */
-  public Map<String, Collection<String>> getHeaders() {
-    return headers;
-  }
+    private final ShenyuRequest request;
 
-  /**
-   * getBody.
-   *
-   * @return {@link String}
-   */
-  public String getBody() {
-    return body;
-  }
+    /**
+     * ShenyuResponse.
+     *
+     * @param status status
+     * @param reason reason
+     * @param headers headers
+     * @param body body
+     * @param request request
+     */
+    public ShenyuResponse(final int status, final String reason, final Map<String, Collection<String>> headers,
+                          final String body, final ShenyuRequest request) {
+        this.status = status;
+        this.reason = reason;
+        this.headers = headers;
+        this.body = body;
+        this.request = request;
+    }
 
-  /**
-   * getRequest.
-   *
-   * @return {@link ShenyuRequest}
-   */
-  public ShenyuRequest getRequest() {
-    return request;
-  }
+    /**
+     * getStatus.
+     *
+     * @return {@link int}
+     */
+    public int getStatus() {
+        return status;
+    }
+
+    /**
+     * getReason.
+     *
+     * @return {@link String}
+     */
+    public String getReason() {
+        return reason;
+    }
+
+    /**
+     * getHeaders.
+     *
+     * @return {@link Map}
+     */
+    public Map<String, Collection<String>> getHeaders() {
+        return headers;
+    }
+
+    /**
+     * getBody.
+     *
+     * @return {@link String}
+     */
+    public String getBody() {
+        return body;
+    }
+
+    /**
+     * getRequest.
+     *
+     * @return {@link ShenyuRequest}
+     */
+    public ShenyuRequest getRequest() {
+        return request;
+    }
 }
