@@ -17,15 +17,18 @@
 
 package org.apache.shenyu.plugin.logging.common.body;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
+import org.apache.shenyu.plugin.logging.common.datamask.DataMaskInterface;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
@@ -48,7 +51,9 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * decorate ServerHttpResponse for read body.
@@ -65,6 +70,12 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
 
     private final LogCollector logCollector;
 
+    private boolean maskFlag;
+
+    private Set<String> keyWordSet;
+
+    private static DataMaskInterface dataMaskInterface;
+
     /**
      * Constructor LoggingServerHttpResponse.
      *
@@ -73,10 +84,15 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
      * @param logCollector LogCollector  instance
      */
     public LoggingServerHttpResponse(final ServerHttpResponse delegate, final ShenyuRequestLog logInfo,
-                                     final LogCollector logCollector) {
+                                     final LogCollector logCollector, boolean maskFlag, Set<String> keyWordSet,
+                                     DataMaskInterface dataMaskInterface) {
+
         super(delegate);
         this.logInfo = logInfo;
         this.logCollector = logCollector;
+        this.maskFlag = maskFlag;
+        this.keyWordSet = keyWordSet;
+        this.dataMaskInterface = dataMaskInterface;
     }
 
     /**
@@ -149,6 +165,9 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
         String body = writer.output();
         if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
             logInfo.setResponseBody(body);
+        }
+        if(maskFlag){
+            mask(logInfo);
         }
         // collect log
         if (Objects.nonNull(logCollector)) {
@@ -232,6 +251,9 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
         if (size > 0 && !LogCollectConfigUtils.isResponseBodyTooLarge(size)) {
             logInfo.setResponseBody(body);
         }
+        if(maskFlag){
+            mask(logInfo);
+        }
         // collect log
         if (Objects.nonNull(logCollector)) {
             logCollector.collect(logInfo);
@@ -249,5 +271,88 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
             LOG.error("get upstream ip error");
         }
         return "";
+    }
+
+    private void mask(ShenyuRequestLog logInfo) {
+
+        if (keyWordSet.contains(GenericLoggingConstant.CLIENT_IP) && StringUtils.isNotBlank(logInfo.getClientIp())) {
+            logInfo.setClientIp(dataMaskInterface.mask(logInfo.getClientIp()));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.TIME_LOCAL) && StringUtils.isNotBlank(logInfo.getTimeLocal())) {
+            logInfo.setTimeLocal(dataMaskInterface.mask(logInfo.getTimeLocal()));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.METHOD) && StringUtils.isNotBlank(logInfo.getMethod())) {
+            logInfo.setMethod(dataMaskInterface.mask(logInfo.getMethod()));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.REQUEST_URI) && StringUtils.isNotBlank(logInfo.getRequestUri())) {
+            logInfo.setRequestUri(dataMaskInterface.mask(logInfo.getRequestUri()));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.RESPONSE_CONTENT_LENGTH)
+                && ObjectUtils.isNotEmpty(logInfo.getResponseContentLength())) {
+            logInfo.setResponseContentLength(
+                    Integer.valueOf(dataMaskInterface.mask(logInfo.getResponseContentLength().toString())));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.RPC_TYPE) && StringUtils.isNotBlank(logInfo.getRpcType())) {
+            logInfo.setRpcType(dataMaskInterface.mask(logInfo.getRpcType()));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.STATUS) && ObjectUtils.isNotEmpty(logInfo.getStatus())) {
+            logInfo.setStatus(Integer.valueOf(dataMaskInterface.mask(logInfo.getStatus().toString())));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.UP_STREAM_IP) && StringUtils.isNotBlank(logInfo.getUpstreamIp())) {
+            logInfo.setUpstreamIp(dataMaskInterface.mask(logInfo.getUpstreamIp()));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.UP_STREAM_RESPONSE_TIME) && ObjectUtils.isNotEmpty(logInfo.getUpstreamResponseTime())) {
+            logInfo.setUpstreamResponseTime(
+                    Long.valueOf(dataMaskInterface.mask(logInfo.getUpstreamResponseTime().toString())));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.USER_AGENT) && StringUtils.isNotBlank(logInfo.getUserAgent())) {
+            logInfo.setUserAgent(dataMaskInterface.mask(logInfo.getUserAgent()));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.HOST) && StringUtils.isNotBlank(logInfo.getHost())) {
+            logInfo.setHost(dataMaskInterface.mask(logInfo.getHost()));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.MODULE) && StringUtils.isNotBlank(logInfo.getModule())) {
+            logInfo.setModule(dataMaskInterface.mask(logInfo.getModule()));
+        }
+        if (keyWordSet.contains(GenericLoggingConstant.TRACE_ID) && StringUtils.isNotBlank(logInfo.getTraceId())) {
+            logInfo.setTraceId(dataMaskInterface.mask(logInfo.getTraceId()));
+        }
+        if(StringUtils.isNotBlank(logInfo.getRequestHeader())){
+            Map<String,String> requestHeaderMap=JsonUtils.jsonToMap(logInfo.getRequestHeader(),String.class);
+            requestHeaderMap.forEach((key,value)->{
+                if(keyWordSet.contains(key)){
+                    requestHeaderMap.put(key, dataMaskInterface.mask(value));
+                }
+            });
+        }
+        if(StringUtils.isNotBlank(logInfo.getResponseHeader())){
+            Map<String,String> responseHeaderMap=JsonUtils.jsonToMap(logInfo.getResponseHeader(),String.class);
+            responseHeaderMap.forEach((key,value)->{
+                if(keyWordSet.contains(key)){
+                    responseHeaderMap.put(key, dataMaskInterface.mask(value));
+                }
+            });
+        }if(StringUtils.isNotBlank(logInfo.getRequestBody())){
+            Map<String,String> requestBodyMap=JsonUtils.jsonToMap(logInfo.getRequestBody(),String.class);
+            requestBodyMap.forEach((key,value)->{
+                if(keyWordSet.contains(key)){
+                    requestBodyMap.put(key, dataMaskInterface.mask(value));
+                }
+            });
+        }if(StringUtils.isNotBlank(logInfo.getResponseBody())){
+            Map<String,String> responseBodyMap=JsonUtils.jsonToMap(logInfo.getResponseBody(),String.class);
+            responseBodyMap.forEach((key,value)->{
+                if(keyWordSet.contains(key)){
+                    responseBodyMap.put(key, dataMaskInterface.mask(value));
+                }
+            });
+        }if(StringUtils.isNotBlank(logInfo.getQueryParams())){
+            Map<String,String> queryParamsMap=JsonUtils.jsonToMap(logInfo.getQueryParams(),String.class);
+            queryParamsMap.forEach((key,value)->{
+                if(keyWordSet.contains(key)){
+                    queryParamsMap.put(key, dataMaskInterface.mask(value));
+                }
+            });
+        }
     }
 }

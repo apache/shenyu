@@ -20,18 +20,27 @@ package org.apache.shenyu.plugin.logging.common;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
 import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.datamask.DataMaskInterface;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.HOST;
 import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant.USER_AGENT;
@@ -55,9 +64,23 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
      */
     protected abstract PluginEnum pluginEnum();
 
+    private static boolean MASK_FLAG;
+
+    private static Set<String> keyWordSet = new HashSet<>();
+
+    private static DataMaskInterface dataMaskInterface;
+
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                   final SelectorData selector, final RuleData rule) {
+                                final SelectorData selector, final RuleData rule) {
+
+        Map<String, String> handleMap = JsonUtils.jsonToMap(
+                Optional.ofNullable(rule).map(RuleData::getHandle).orElse(""), String.class);
+        MASK_FLAG = handleMap.containsKey("keyword") ? true : false;
+        if (MASK_FLAG) {
+            Collections.addAll(keyWordSet, handleMap.get("keyword").split(";"));
+            dataMaskInterface = SpringBeanUtils.getInstance().getBean(handleMap.get("maskType"));
+        }
         ServerHttpRequest request = exchange.getRequest();
         // control sampling
         if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
@@ -74,13 +97,12 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
         requestInfo.setPath(request.getURI().getPath());
         LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
         LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
-                requestInfo, this.logCollector());
+                requestInfo, this.logCollector(), MASK_FLAG, keyWordSet, dataMaskInterface);
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
                 .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);
         return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
     }
-
 
     /**
      * get plugin order.
