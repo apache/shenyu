@@ -1,4 +1,4 @@
-package org.apache.shenyu.sdk.starter.core.processor;
+package org.apache.shenyu.sdk.starter.core.support;
 
 import org.apache.shenyu.sdk.starter.core.RequestTemplate;
 import org.apache.shenyu.sdk.starter.core.ShenyuRequest;

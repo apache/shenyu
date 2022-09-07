@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.starter.core.factory;
+package org.apache.shenyu.sdk.starter.core.proxy;
 
 import org.apache.shenyu.sdk.starter.core.ShenyuClientFactoryBean;
 import org.springframework.context.ApplicationContext;
@@ -25,26 +25,31 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Rpc代理工厂
+ * ShenyuClientProxyFactory.
+ *
  */
-public class ShenyuClientProxyFactory {
+public final class ShenyuClientProxyFactory {
 
     /**
-     * 缓存代理对象
+     * PROXY_CACHE.
      */
     private static final ConcurrentMap<Class<?>, Object> PROXY_CACHE = new ConcurrentHashMap<>();
 
-
-    private ShenyuClientProxyFactory() {
-    }
-
-    public static <T> T createProxy(final Class<T> apiClass, final ApplicationContext applicationContext, final ShenyuClientFactoryBean shenyuClientFactoryBean) {
+    /**
+     * createProxy.
+     *
+     * @param apiClass apiClass
+     * @param applicationContext applicationContext
+     * @param shenyuClientFactoryBean shenyuClientFactoryBean
+     * @return {@link Object}
+     */
+    public static Object createProxy(final Class<?> apiClass, final ApplicationContext applicationContext, final ShenyuClientFactoryBean shenyuClientFactoryBean) {
         if (!apiClass.isInterface()) {
             throw new UnsupportedOperationException("@ShenyuClient please use it on the interface. " + apiClass.getName());
         }
 
         if (PROXY_CACHE.containsKey(apiClass)) {
-            return (T) PROXY_CACHE.get(apiClass);
+            return PROXY_CACHE.get(apiClass);
         }
 
         synchronized (apiClass) {
@@ -53,7 +58,7 @@ public class ShenyuClientProxyFactory {
                     new ShenyuClientInvocationHandler(apiClass, applicationContext, shenyuClientFactoryBean));
             PROXY_CACHE.put(apiClass, proxy);
         }
-        return (T) PROXY_CACHE.get(apiClass);
+        return PROXY_CACHE.get(apiClass);
     }
 
 }

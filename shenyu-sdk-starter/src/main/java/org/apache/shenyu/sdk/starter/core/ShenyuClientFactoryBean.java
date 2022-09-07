@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.sdk.starter.core;
 
-import org.apache.shenyu.sdk.starter.core.factory.ShenyuClientProxyFactory;
+import org.apache.shenyu.sdk.starter.core.proxy.ShenyuClientProxyFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -35,180 +35,180 @@ import java.util.Objects;
  */
 public class ShenyuClientFactoryBean implements FactoryBean<Object>, InitializingBean, ApplicationContextAware, BeanFactoryAware {
 
-	private Class<?> type;
+    private Class<?> type;
 
-	private String name;
+    private String name;
 
-	private String url;
+    private String url;
 
-	private String contextId;
+    private String contextId;
 
-	private String path;
+    private String path;
 
-	private boolean decode404;
+    private boolean decode404;
 
-	private boolean inheritParentContext = true;
+    private boolean inheritParentContext = true;
 
-	private ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;
 
-	private BeanFactory beanFactory;
+    private BeanFactory beanFactory;
 
-	private Class<?> fallback = void.class;
+    private Class<?> fallback = void.class;
 
-	private Class<?> fallbackFactory = void.class;
+    private Class<?> fallbackFactory = void.class;
 
-	private boolean refreshableClient = false;
-
-
-	@Override
-	public void afterPropertiesSet() {
-		Assert.hasText(contextId, "Context id must be set");
-		Assert.hasText(name, "Name must be set");
-	}
-
-	@Override
-	public Object getObject() {
-		return getTarget();
-	}
-
-	/**
-	 * getTarget.
-	 *
-	 * @return {@link Object}
-	 */
-	private Object getTarget() {
-		if (StringUtils.hasText(url) && !url.startsWith("http")) {
-			url = "http://" + url;
-		}
-		return ShenyuClientProxyFactory.createProxy(type, applicationContext, this);
-	}
-
-	@Override
-	public Class<?> getObjectType() {
-		return type;
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
-
-	public Class<?> getType() {
-		return type;
-	}
-
-	public void setType(Class<?> type) {
-		this.type = type;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getContextId() {
-		return contextId;
-	}
-
-	public void setContextId(String contextId) {
-		this.contextId = contextId;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
-	}
-
-	public boolean isDecode404() {
-		return decode404;
-	}
-
-	public void setDecode404(boolean decode404) {
-		this.decode404 = decode404;
-	}
+    private boolean refreshableClient = false;
 
 
-	public ApplicationContext getApplicationContext() {
-		return applicationContext;
-	}
+    @Override
+    public void afterPropertiesSet() {
+        Assert.hasText(contextId, "Context id must be set");
+        Assert.hasText(name, "Name must be set");
+    }
 
-	@Override
-	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		applicationContext = context;
-		beanFactory = context;
-	}
+    @Override
+    public Object getObject() {
+        return getTarget();
+    }
 
-	public Class<?> getFallback() {
-		return fallback;
-	}
+    /**
+     * getTarget.
+     *
+     * @return {@link Object}
+     */
+    private Object getTarget() {
+        if (StringUtils.hasText(url) && !url.startsWith("http")) {
+            url = "http://" + url;
+        }
+        return ShenyuClientProxyFactory.createProxy(type, applicationContext, this);
+    }
 
-	public void setFallback(Class<?> fallback) {
-		this.fallback = fallback;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return type;
+    }
 
-	public Class<?> getFallbackFactory() {
-		return fallbackFactory;
-	}
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
 
-	public void setFallbackFactory(Class<?> fallbackFactory) {
-		this.fallbackFactory = fallbackFactory;
-	}
+    public Class<?> getType() {
+        return type;
+    }
 
-	public void setRefreshableClient(boolean refreshableClient) {
-		this.refreshableClient = refreshableClient;
-	}
+    public void setType(Class<?> type) {
+        this.type = type;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		ShenyuClientFactoryBean that = (ShenyuClientFactoryBean) o;
-		return Objects.equals(applicationContext, that.applicationContext)
-				&& Objects.equals(beanFactory, that.beanFactory) && decode404 == that.decode404
-				&& inheritParentContext == that.inheritParentContext && Objects.equals(fallback, that.fallback)
-				&& Objects.equals(fallbackFactory, that.fallbackFactory) && Objects.equals(name, that.name)
-				&& Objects.equals(path, that.path) && Objects.equals(type, that.type) && Objects.equals(url, that.url)
-				&& Objects.equals(refreshableClient, that.refreshableClient);
-	}
+    public String getName() {
+        return name;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(applicationContext, beanFactory, decode404, inheritParentContext, fallback, fallbackFactory,
-				name, path, type, url, refreshableClient);
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	@Override
-	public String toString() {
-		return new StringBuilder("ShenyuClientFactoryBean{").append("type=").append(type).append(", ").append("name='")
-				.append(name).append("', ").append("url='").append(url).append("', ").append("path='").append(path)
-				.append("', ").append("decode404=").append(decode404).append(", ").append("inheritParentContext=")
-				.append(inheritParentContext).append(", ").append("applicationContext=").append(applicationContext)
-				.append(", ").append("beanFactory=").append(beanFactory).append(", ").append("fallback=")
-				.append(fallback).append(", ").append("fallbackFactory=").append(fallbackFactory).append("}")
-				.append("refreshableClient=").append(refreshableClient).append("}").toString();
-	}
+    public String getContextId() {
+        return contextId;
+    }
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
-	}
+    public void setContextId(String contextId) {
+        this.contextId = contextId;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public boolean isDecode404() {
+        return decode404;
+    }
+
+    public void setDecode404(boolean decode404) {
+        this.decode404 = decode404;
+    }
+
+
+    public ApplicationContext getApplicationContext() {
+        return applicationContext;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext context) throws BeansException {
+        applicationContext = context;
+        beanFactory = context;
+    }
+
+    public Class<?> getFallback() {
+        return fallback;
+    }
+
+    public void setFallback(Class<?> fallback) {
+        this.fallback = fallback;
+    }
+
+    public Class<?> getFallbackFactory() {
+        return fallbackFactory;
+    }
+
+    public void setFallbackFactory(Class<?> fallbackFactory) {
+        this.fallbackFactory = fallbackFactory;
+    }
+
+    public void setRefreshableClient(boolean refreshableClient) {
+        this.refreshableClient = refreshableClient;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ShenyuClientFactoryBean that = (ShenyuClientFactoryBean) o;
+        return Objects.equals(applicationContext, that.applicationContext)
+                && Objects.equals(beanFactory, that.beanFactory) && decode404 == that.decode404
+                && inheritParentContext == that.inheritParentContext && Objects.equals(fallback, that.fallback)
+                && Objects.equals(fallbackFactory, that.fallbackFactory) && Objects.equals(name, that.name)
+                && Objects.equals(path, that.path) && Objects.equals(type, that.type) && Objects.equals(url, that.url)
+                && Objects.equals(refreshableClient, that.refreshableClient);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(applicationContext, beanFactory, decode404, inheritParentContext, fallback, fallbackFactory,
+                name, path, type, url, refreshableClient);
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder("ShenyuClientFactoryBean{").append("type=").append(type).append(", ").append("name='")
+                .append(name).append("', ").append("url='").append(url).append("', ").append("path='").append(path)
+                .append("', ").append("decode404=").append(decode404).append(", ").append("inheritParentContext=")
+                .append(inheritParentContext).append(", ").append("applicationContext=").append(applicationContext)
+                .append(", ").append("beanFactory=").append(beanFactory).append(", ").append("fallback=")
+                .append(fallback).append(", ").append("fallbackFactory=").append(fallbackFactory).append("}")
+                .append("refreshableClient=").append(refreshableClient).append("}").toString();
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
 
 }

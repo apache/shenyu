@@ -1,10 +1,29 @@
-package org.apache.shenyu.sdk.starter.core.factory;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.shenyu.sdk.starter.core.proxy;
 
 import org.apache.shenyu.sdk.starter.core.RequestTemplate;
 import org.apache.shenyu.sdk.starter.core.ShenyuClient;
 import org.apache.shenyu.sdk.starter.core.ShenyuClientFactoryBean;
 import org.apache.shenyu.sdk.starter.core.ShenyuHttpClient;
-import org.apache.shenyu.sdk.starter.core.SpringMvcContract;
+import org.apache.shenyu.sdk.starter.core.factory.RequestPostProcessor;
+import org.apache.shenyu.sdk.starter.core.support.SpringMvcContract;
+import org.apache.shenyu.sdk.starter.core.util.Util;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.ObjectUtils;
 
@@ -33,7 +52,7 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
 
     private final Collection<RequestPostProcessor> requestPostProcessors;
 
-    public ShenyuClientInvocationHandler(final Class<?> apiClass, final ApplicationContext applicationContext, ShenyuClientFactoryBean shenyuClientFactoryBean) {
+    public ShenyuClientInvocationHandler(final Class<?> apiClass, final ApplicationContext applicationContext, final ShenyuClientFactoryBean shenyuClientFactoryBean) {
         this.applicationContext = applicationContext;
         this.shenyuClientFactoryBean = shenyuClientFactoryBean;
         ShenyuClient shenyuClient = apiClass.getAnnotation(ShenyuClient.class);
@@ -49,10 +68,11 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
 
     private void buildMethodHandlerMap(final Class<?> apiClass, final ShenyuHttpClient shenyuHttpClient, final ShenyuClient shenyuClient) {
         Method[] methods = apiClass.getMethods();
+
         for (Method method : methods) {
-            if (method.getDeclaringClass() == Object.class ||
-                    (method.getModifiers() & Modifier.STATIC) != 0 ||
-                    isDefault(method)) {
+            if (method.getDeclaringClass() == Object.class
+                    || (method.getModifiers() & Modifier.STATIC) != 0
+                    || Util.isDefault(method)) {
                 continue;
             }
             final RequestTemplate requestTemplate = springMvcContract.parseRequestTemplate(method);
@@ -60,21 +80,6 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
             requestTemplate.setParamMetadataList(this.analysisParamMetadata(method));
             methodHandlerMap.put(method, new ShenyuClientMethodHandler(shenyuClient, shenyuHttpClient, method, requestTemplate, requestPostProcessors));
         }
-    }
-
-    /**
-     * Identifies a method as a default instance method.
-     */
-    public static boolean isDefault(final Method method) {
-        // Default methods are public non-abstract, non-synthetic, and non-static instance methods
-        // declared in an interface.
-        // method.isDefault() is not sufficient for our usage as it does not check
-        // for synthetic methods. As a result, it picks up overridden methods as well as actual default
-        // methods.
-        final int SYNTHETIC = 0x00001000;
-        return ((method.getModifiers()
-                & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC | SYNTHETIC)) == Modifier.PUBLIC)
-                && method.getDeclaringClass().isInterface();
     }
 
     @Override
@@ -86,8 +91,13 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
         return null;
     }
 
-
-    private List<RequestTemplate.ParamMetadata> analysisParamMetadata(Method method) {
+    /**
+     * analysisParamMetadata.
+     *
+     * @param method method
+     * @return {@link List}
+     */
+    private List<RequestTemplate.ParamMetadata> analysisParamMetadata(final Method method) {
         List<RequestTemplate.ParamMetadata> params = new ArrayList<>();
         Parameter[] parameters = method.getParameters();
         if (parameters != null && parameters.length > 0) {

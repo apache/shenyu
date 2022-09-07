@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.starter.core.factory;
+package org.apache.shenyu.sdk.starter.core.proxy;
 
 import org.apache.shenyu.sdk.starter.core.RequestTemplate;
 import org.apache.shenyu.sdk.starter.core.ShenyuClient;
 import org.apache.shenyu.sdk.starter.core.ShenyuHttpClient;
 import org.apache.shenyu.sdk.starter.core.ShenyuRequest;
+import org.apache.shenyu.sdk.starter.core.factory.RequestPostProcessor;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -54,18 +55,21 @@ public class ShenyuClientMethodHandler {
         this.requestPostProcessors = requestPostProcessors;
     }
 
-    public Object invoke(Object[] args) throws IOException {
+    /**
+     * invoke.
+     *
+     * @param args args
+     * @return {@link Object}
+     * @throws IOException err
+     */
+    public Object invoke(final Object[] args) throws IOException {
 
         for (RequestPostProcessor requestPostProcessor : requestPostProcessors) {
             requestTemplate = requestPostProcessor.postProcessor(requestTemplate, args);
         }
-
         final ShenyuRequest shenyuRequest = requestTemplate.request();
-
-
         shenyuHttpClient.execute(shenyuRequest);
         throw new IOException("请求失败！");
     }
-
 
 }
