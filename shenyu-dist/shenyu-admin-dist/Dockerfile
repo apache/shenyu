@@ -15,10 +15,11 @@
 # limitations under the License.
 
 FROM openjdk:8-jre-alpine
-        
+
 ARG APP_NAME
 
 ENV LOCAL_PATH /opt/shenyu-admin
+ENV ADMIN_JVM ""
 
 RUN apk --no-cache add procps
 
