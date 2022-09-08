@@ -21,10 +21,10 @@ import org.apache.shenyu.sdk.starter.core.RequestTemplate;
 import org.apache.shenyu.sdk.starter.core.ShenyuClient;
 import org.apache.shenyu.sdk.starter.core.ShenyuHttpClient;
 import org.apache.shenyu.sdk.starter.core.ShenyuRequest;
+import org.apache.shenyu.sdk.starter.core.ShenyuResponse;
 import org.apache.shenyu.sdk.starter.core.factory.RequestPostProcessor;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.Collection;
 
 /**
@@ -32,25 +32,19 @@ import java.util.Collection;
  */
 public class ShenyuClientMethodHandler {
 
-    private final Class<?> returnType;
-
     private final ShenyuClient shenyuClient;
 
     private final ShenyuHttpClient shenyuHttpClient;
-
-    private final Method method;
 
     private RequestTemplate requestTemplate;
 
     private final Collection<RequestPostProcessor> requestPostProcessors;
 
     public ShenyuClientMethodHandler(final ShenyuClient shenyuClient, final ShenyuHttpClient shenyuHttpClient,
-                                     final Method method, final RequestTemplate requestTemplate,
+                                     final RequestTemplate requestTemplate,
                                      final Collection<RequestPostProcessor> requestPostProcessors) {
-        this.returnType = method.getReturnType();
         this.shenyuHttpClient = shenyuHttpClient;
         this.shenyuClient = shenyuClient;
-        this.method = method;
         this.requestTemplate = requestTemplate;
         this.requestPostProcessors = requestPostProcessors;
     }
@@ -63,12 +57,11 @@ public class ShenyuClientMethodHandler {
      * @throws IOException err
      */
     public Object invoke(final Object[] args) throws IOException {
-
         for (RequestPostProcessor requestPostProcessor : requestPostProcessors) {
             requestTemplate = requestPostProcessor.postProcessor(requestTemplate, args);
         }
         final ShenyuRequest shenyuRequest = requestTemplate.request();
-        shenyuHttpClient.execute(shenyuRequest);
+        final ShenyuResponse shenyuResponse = shenyuHttpClient.execute(shenyuRequest);
         throw new IOException("请求失败！");
     }
 

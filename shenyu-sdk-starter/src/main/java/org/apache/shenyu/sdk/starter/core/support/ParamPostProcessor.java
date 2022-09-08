@@ -18,36 +18,35 @@ public class ParamPostProcessor implements RequestPostProcessor {
     }
 
     @Override
-    public RequestTemplate postProcessor(RequestTemplate request, Object[] args) {
+    public RequestTemplate postProcessor(final RequestTemplate request, final Object[] args) {
         final List<RequestTemplate.ParamMetadata> paramMetadataList = request.getParamMetadataList();
         if (!CollectionUtils.isEmpty(paramMetadataList)) {
             request.setUrl(urlJoinParams(request.getUrl(), paramMetadataList, args));
         }
-
         if (request.getHttpMethod() == ShenyuRequest.HttpMethod.POST) {
-            // TODO JsonUtils
 //            request.setBody(ShenyuRequest.Body.create(getRequestBody(paramMetadataList, args)));
         }
         return request;
     }
 
-    private String urlJoinParams(String url, List<RequestTemplate.ParamMetadata> paramMetadataList, Object[] args) {
+    private String urlJoinParams(final String url, final List<RequestTemplate.ParamMetadata> paramMetadataList, final Object[] args) {
         boolean isFistParam = !url.contains("=");
+        final StringBuilder urlResult = new StringBuilder(url);
         for (RequestTemplate.ParamMetadata paramMetadata : paramMetadataList) {
             Annotation[] paramAnnotations = paramMetadata.getParamAnnotations();
             if (paramAnnotations != null && paramAnnotations.length > 0) {
                 for (Annotation anno : paramAnnotations) {
                     if (anno instanceof RequestParam) {
                         if (!url.startsWith("?")) {
-                            url = url.concat("?");
+                            urlResult.append("?");
                         }
                         if (!isFistParam) {
-                            url = url.concat("&");
+                            urlResult.append("&");
                         }
                         isFistParam = false;
-                        url = url.concat(((RequestParam) anno).value());
-                        url = url.concat("=");
-                        url = url.concat(String.valueOf(args[paramMetadata.getParamIndexOnMethod()]));
+                        urlResult.append(((RequestParam) anno).value());
+                        urlResult.append("=");
+                        urlResult.append(args[paramMetadata.getParamIndexOnMethod()]);
                     }
                 }
             }
@@ -55,7 +54,7 @@ public class ParamPostProcessor implements RequestPostProcessor {
         return url;
     }
 
-    private Object getRequestBody(List<RequestTemplate.ParamMetadata> paramMetadataList, Object[] args) {
+    private Object getRequestBody(final List<RequestTemplate.ParamMetadata> paramMetadataList, final Object[] args) {
         for (RequestTemplate.ParamMetadata paramMetadata : paramMetadataList) {
             Annotation[] paramAnnotations = paramMetadata.getParamAnnotations();
             if (paramAnnotations != null && paramAnnotations.length > 0) {

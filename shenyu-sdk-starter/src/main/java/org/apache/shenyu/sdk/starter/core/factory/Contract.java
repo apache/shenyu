@@ -18,11 +18,15 @@
 package org.apache.shenyu.sdk.starter.core.factory;
 
 import org.apache.shenyu.sdk.starter.core.RequestTemplate;
+import org.apache.shenyu.sdk.starter.core.util.Types;
 import org.apache.shenyu.sdk.starter.core.util.Util;
 import org.springframework.context.ResourceLoaderAware;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -62,21 +66,45 @@ public interface Contract extends ResourceLoaderAware {
                         || Util.isDefault(method)) {
                     continue;
                 }
-                final RequestTemplate metadata = parseRequestTemplate(method);
+                final RequestTemplate parseRequestTemplate = parseRequestTemplate(method);
+
+                // paramMetadata
+                parseRequestTemplate.setParamMetadataList(analysisParamMetadata(method));
                 if (result.containsKey(method)) {
-//                    RequestTemplate existingMetadata = result.get(metadata.configKey());
-//                    Type existingReturnType = existingMetadata.returnType();
-//                    Type overridingReturnType = metadata.returnType();
-//                    Type resolvedType = Types.resolveReturnType(existingReturnType, overridingReturnType);
-//                    if (resolvedType.equals(overridingReturnType)) {
-//                        result.put(metadata.configKey(), metadata);
-//                    }
-//                    result.put(method, existingMetadata);
+                    RequestTemplate existingMetadata = result.get(method);
+                    Type existingReturnType = existingMetadata.getReturnType();
+                    Type overridingReturnType = parseRequestTemplate.getReturnType();
+                    Type resolvedType = Types.resolveReturnType(existingReturnType, overridingReturnType);
+                    if (resolvedType.equals(overridingReturnType)) {
+                        result.put(method, parseRequestTemplate);
+                    }
+                    result.put(method, existingMetadata);
                     continue;
                 }
-                result.put(method, metadata);
+                result.put(method, parseRequestTemplate);
             }
             return new ArrayList<>(result.values());
+        }
+
+        /**
+         * analysisParamMetadata.
+         *
+         * @param method method
+         * @return {@link List}
+         */
+        private List<RequestTemplate.ParamMetadata> analysisParamMetadata(final Method method) {
+            List<RequestTemplate.ParamMetadata> params = new ArrayList<>();
+            Parameter[] parameters = method.getParameters();
+            if (parameters != null && parameters.length > 0) {
+                for (int index = 0; index < parameters.length; index++) {
+                    Annotation[] annotations = parameters[index].getAnnotations();
+                    if (annotations == null || annotations.length == 0) {
+                        continue;
+                    }
+                    params.add(new RequestTemplate.ParamMetadata(annotations, parameters[index].getType(), index));
+                }
+            }
+            return params;
         }
 
         /**
@@ -85,9 +113,7 @@ public interface Contract extends ResourceLoaderAware {
          * @param method method
          * @return {@link RequestTemplate}
          */
-        RequestTemplate parseRequestTemplate(final Method method) {
-            return null;
-        }
+        public abstract RequestTemplate parseRequestTemplate(Method method);
     }
 
 }
