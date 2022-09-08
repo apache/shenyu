@@ -233,6 +233,11 @@ public final class AdminConstants {
     public static final String URI_SLASH_SUFFIX = "/";
 
     /**
+     * The constant URI_VARIABLE_SUFFIX.
+     */
+    public static final String URI_VARIABLE_SUFFIX = "{";
+
+    /**
      * the constant api document global flag dict code.
      */
     public static final String DICT_API_DOC_FLAG_DICTCODE = "API_DOC_GLOBAL_FLAG";

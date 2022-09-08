@@ -19,6 +19,8 @@
 16. Add api document
 17. Add user permissions Exclude admin
 18. Add springBoot upgrade to 2.6.8
+19. Add support regsiter instance to consul
+20. Add admin Support oracle database
 
 ### API Changes
 

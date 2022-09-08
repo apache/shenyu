@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * LinkedList .
  */
-@Join
+@Join(order = -1)
 public class LinkedListSPI implements ListSPI {
     /**
      * Gets list.

@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.sofa.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.Singleton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -58,5 +59,10 @@ public final class SofaPluginDataHandlerTest {
         PluginData pluginData = new PluginData("", "", registryConfig, "1", false);
         sofaPluginDataHandler.handlerPlugin(pluginData);
         assertNull(Singleton.INST.get(SofaRegisterConfig.class));
+    }
+
+    @Test
+    public void testPluginNamed() {
+        assertEquals(sofaPluginDataHandler.pluginNamed(), PluginEnum.SOFA.getName());
     }
 }

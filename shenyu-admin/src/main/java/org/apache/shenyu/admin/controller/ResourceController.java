@@ -17,11 +17,9 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.util.List;
-import java.util.Optional;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
+import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -34,6 +32,15 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+
+import java.util.List;
+import java.util.Optional;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,11 +51,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 /**
  * this is resource controller.
@@ -132,13 +134,13 @@ public class ResourceController {
     /**
      * create resource.
      *
-     * @param resourceDTO resource dto
+     * @param createResourceDTO resource dto
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
     @RequiresPermissions(value = {"system:resource:addMenu", "system:resource:addButton"}, logical = Logical.OR)
-    public ShenyuAdminResult createResource(@Valid @RequestBody final ResourceDTO resourceDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
+    public ShenyuAdminResult createResource(@Valid @RequestBody final CreateResourceDTO createResourceDTO) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, resourceService.create(createResourceDTO));
     }
     
     /**
@@ -155,7 +157,7 @@ public class ResourceController {
                                                     message = "resource not existed") final String id,
                                             @RequestBody final ResourceDTO resourceDTO) {
         resourceDTO.setId(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, resourceService.update(resourceDTO));
     }
     
     /**

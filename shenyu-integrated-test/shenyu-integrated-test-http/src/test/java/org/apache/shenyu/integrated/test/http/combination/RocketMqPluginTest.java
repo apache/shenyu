@@ -21,7 +21,6 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
 import org.apache.shenyu.plugin.logging.rocketmq.client.RocketMQLogCollectClient;
@@ -33,7 +32,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -43,8 +41,6 @@ public final class RocketMqPluginTest extends AbstractPluginDataInit {
     private final RocketMQLogCollectClient rocketMQLogCollectClient = new RocketMQLogCollectClient();
 
     private final PluginData pluginData = new PluginData();
-
-    private final Properties properties = new Properties();
 
     private final List<ShenyuRequestLog> logs = new ArrayList<>();
 
@@ -60,9 +56,6 @@ public final class RocketMqPluginTest extends AbstractPluginDataInit {
     @Test
     public void testPass() {
         final RocketMQLogCollectConfig.RocketMQLogConfig rocketMQLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RocketMQLogCollectConfig.RocketMQLogConfig.class);
-        properties.setProperty(GenericLoggingConstant.TOPIC, "shenyu-access-logging");
-        properties.setProperty(GenericLoggingConstant.NAMESERVER_ADDRESS, "shenyu-rocketmq:9876");
-        properties.setProperty(GenericLoggingConstant.PRODUCER_GROUP, "shenyu-plugin-logging-rocketmq");
 
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
@@ -70,7 +63,7 @@ public final class RocketMqPluginTest extends AbstractPluginDataInit {
 
         String msg = "";
         RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(rocketMQLogConfig);
-        rocketMQLogCollectClient.initProducer(properties);
+        rocketMQLogCollectClient.initClient(rocketMQLogConfig);
         try {
             rocketMQLogCollectClient.consume(logs);
         } catch (Exception e) {

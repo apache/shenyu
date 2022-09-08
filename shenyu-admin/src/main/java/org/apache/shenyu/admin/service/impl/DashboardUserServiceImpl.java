@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
@@ -26,6 +25,7 @@ import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
+import org.apache.shenyu.admin.model.dto.DashboardUserModifyPasswordDTO;
 import org.apache.shenyu.admin.model.dto.UserRoleDTO;
 import org.apache.shenyu.admin.model.entity.DashboardUserDO;
 import org.apache.shenyu.admin.model.entity.RoleDO;
@@ -45,6 +45,15 @@ import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.ShaUtils;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.NameNotFoundException;
@@ -53,12 +62,7 @@ import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.DashboardUserService}.
@@ -257,7 +261,24 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
         }).orElse(null);
     }
-    
+
+    /**
+     * modify password.
+     *
+     * @param dashboardUserModifyPasswordDTO {@linkplain DashboardUserModifyPasswordDTO}
+     * @return rows
+     */
+    @Override
+    public int modifyPassword(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
+        DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserModifyPasswordDTO);
+        DashboardUserDO before = dashboardUserMapper.selectById(dashboardUserDO.getId());
+        int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
+        if (updateCount > 0) {
+            publisher.onUpdated(dashboardUserDO, before);
+        }
+        return updateCount;
+    }
+
     private DashboardUserVO loginByLdap(final String userName, final String password) {
         Assert.notNull(ldapProperties, "ldap config is not enable");
         String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), LdapEncoder.nameEncode(userName), ldapProperties.getBaseDn());
