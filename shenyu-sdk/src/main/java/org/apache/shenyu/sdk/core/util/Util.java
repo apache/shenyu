@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.starter.core.util;
+package org.apache.shenyu.sdk.core.util;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.charset.Charset;
 
 import static java.lang.String.format;
 
@@ -27,6 +28,10 @@ import static java.lang.String.format;
  */
 public final class Util {
 
+    /**
+     * UTF-8: eight-bit UCS Transformation Format.
+     */
+    public static final Charset UTF_8 = Charset.forName("UTF-8");
 
     /**
      * checkArgument.
@@ -42,6 +47,26 @@ public final class Util {
             throw new IllegalArgumentException(
                     format(errorMessageTemplate, errorMessageArgs));
         }
+    }
+
+    /**
+     * If the provided String is not null or empty.
+     *
+     * @param value to evaluate.
+     * @return true of the value is not null and not empty.
+     */
+    public static boolean isNotBlank(final String value) {
+        return value != null && !value.isEmpty();
+    }
+
+    /**
+     * If the provided String is null or empty.
+     *
+     * @param value to evaluate.
+     * @return true if the value is null or empty.
+     */
+    public static boolean isBlank(final String value) {
+        return value == null || value.isEmpty();
     }
 
     /**

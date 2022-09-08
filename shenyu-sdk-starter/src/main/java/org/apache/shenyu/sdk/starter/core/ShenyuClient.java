@@ -72,19 +72,10 @@ public @interface ShenyuClient {
     String[] qualifiers() default {};
 
     /**
+     * url.
      * @return an absolute URL or resolvable hostname (the protocol is optional).
      */
     String url() default "";
-
-    /**
-     * A custom configuration class for the feign client. Can contain override
-     * <code>@Bean</code> definition for the pieces that make up the client, for instance
-     * {@link feign.codec.Decoder}, {@link feign.codec.Encoder}, {@link feign.Contract}.
-     *
-     * @see FeignClientsConfiguration for the defaults
-     * @return list of configurations for feign client
-     */
-    Class<?>[] configuration() default {};
 
     /**
      * Fallback class for the specified Feign client interface. The fallback class must

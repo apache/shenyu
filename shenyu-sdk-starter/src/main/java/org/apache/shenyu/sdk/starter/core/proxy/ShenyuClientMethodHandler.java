@@ -17,15 +17,24 @@
 
 package org.apache.shenyu.sdk.starter.core.proxy;
 
-import org.apache.shenyu.sdk.starter.core.RequestTemplate;
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.sdk.core.ShenyuRequest;
+import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.sdk.core.common.RequestTemplate;
+import org.apache.shenyu.sdk.http.api.ShenyuHttpClient;
 import org.apache.shenyu.sdk.starter.core.ShenyuClient;
-import org.apache.shenyu.sdk.starter.core.ShenyuHttpClient;
-import org.apache.shenyu.sdk.starter.core.ShenyuRequest;
-import org.apache.shenyu.sdk.starter.core.ShenyuResponse;
-import org.apache.shenyu.sdk.starter.core.factory.RequestPostProcessor;
+import org.apache.shenyu.sdk.starter.core.factory.AnnotatedParameterProcessor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * ShenyuClientMethodHandler.
@@ -38,15 +47,18 @@ public class ShenyuClientMethodHandler {
 
     private RequestTemplate requestTemplate;
 
-    private final Collection<RequestPostProcessor> requestPostProcessors;
+    private final Map<Class<? extends Annotation>, AnnotatedParameterProcessor> annotatedArgumentProcessors;
 
-    public ShenyuClientMethodHandler(final ShenyuClient shenyuClient, final ShenyuHttpClient shenyuHttpClient,
+    public ShenyuClientMethodHandler(final ShenyuClient shenyuClient,
                                      final RequestTemplate requestTemplate,
-                                     final Collection<RequestPostProcessor> requestPostProcessors) {
-        this.shenyuHttpClient = shenyuHttpClient;
+                                     final ApplicationContext applicationContext) {
         this.shenyuClient = shenyuClient;
         this.requestTemplate = requestTemplate;
-        this.requestPostProcessors = requestPostProcessors;
+        this.shenyuHttpClient = applicationContext.getBean(ShenyuHttpClient.class);
+        final Map<String, AnnotatedParameterProcessor> annotatedParameterProcessorMap = applicationContext.getBeansOfType(AnnotatedParameterProcessor.class);
+        Collection<AnnotatedParameterProcessor> annotatedParameterProcessors = annotatedParameterProcessorMap.values();
+        annotatedParameterProcessors = annotatedParameterProcessors.stream().sorted(Comparator.comparing(AnnotatedParameterProcessor::order)).collect(Collectors.toList());
+        annotatedArgumentProcessors = toAnnotatedArgumentProcessorMap(annotatedParameterProcessors);
     }
 
     /**
@@ -57,12 +69,42 @@ public class ShenyuClientMethodHandler {
      * @throws IOException err
      */
     public Object invoke(final Object[] args) throws IOException {
-        for (RequestPostProcessor requestPostProcessor : requestPostProcessors) {
-            requestTemplate = requestPostProcessor.postProcessor(requestTemplate, args);
-        }
-        final ShenyuRequest shenyuRequest = requestTemplate.request();
+        final ShenyuRequest shenyuRequest = targetProcessor(requestTemplate, args);
         final ShenyuResponse shenyuResponse = shenyuHttpClient.execute(shenyuRequest);
-        throw new IOException("请求失败！");
+        return handlerResponse(shenyuResponse, shenyuRequest.getRequestTemplate().getReturnType());
+    }
+
+    private Object handlerResponse(final ShenyuResponse shenyuResponse, final Class<?> returnType) {
+        if (ShenyuResponse.class == returnType) {
+            return shenyuResponse;
+        } else if (StringUtils.hasText(shenyuResponse.getBody())) {
+            return JsonUtils.jsonToObject(shenyuResponse.getBody(), returnType);
+        } else {
+            return null;
+        }
+    }
+
+    private ShenyuRequest targetProcessor(final RequestTemplate requestTemplate, final Object[] args) {
+        for (RequestTemplate.ParamMetadata paramMetadata : requestTemplate.getParamMetadataList()) {
+            final Annotation[] paramAnnotations = paramMetadata.getParamAnnotations();
+            for (Annotation paramAnnotation : paramAnnotations) {
+                final AnnotatedParameterProcessor processor = annotatedArgumentProcessors.get(paramAnnotation);
+                if (ObjectUtils.isEmpty(processor)) {
+                    continue;
+                }
+                processor.processArgument(requestTemplate, paramAnnotation, args[paramMetadata.getParamIndexOnMethod()]);
+            }
+        }
+        return requestTemplate.request();
+    }
+
+    private Map<Class<? extends Annotation>, AnnotatedParameterProcessor> toAnnotatedArgumentProcessorMap(
+            final Collection<AnnotatedParameterProcessor> processors) {
+        Map<Class<? extends Annotation>, AnnotatedParameterProcessor> result = new HashMap<>();
+        for (AnnotatedParameterProcessor processor : processors) {
+            result.put(processor.getAnnotationType(), processor);
+        }
+        return result;
     }
 
 }

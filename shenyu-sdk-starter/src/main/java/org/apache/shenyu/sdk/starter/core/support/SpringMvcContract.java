@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.sdk.starter.core.support;
 
-import org.apache.shenyu.sdk.starter.core.RequestTemplate;
-import org.apache.shenyu.sdk.starter.core.ShenyuRequest;
+import org.apache.shenyu.sdk.core.ShenyuRequest;
+import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.starter.core.factory.Contract;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -47,6 +47,7 @@ public class SpringMvcContract extends Contract.BaseContract {
     public RequestTemplate parseRequestTemplate(final Method method) {
         final RequestTemplate requestTemplate = new RequestTemplate();
         requestTemplate.setMethod(method);
+        requestTemplate.setReturnType(method.getReturnType());
         for (final Annotation methodAnnotation : method.getAnnotations()) {
             this.processAnnotationOnMethod(requestTemplate, methodAnnotation, method);
         }

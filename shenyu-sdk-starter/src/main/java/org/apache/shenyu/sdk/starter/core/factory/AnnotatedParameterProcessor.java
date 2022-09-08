@@ -19,7 +19,18 @@ package org.apache.shenyu.sdk.starter.core.factory;
 
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 
-public interface RequestPostProcessor {
+import java.lang.annotation.Annotation;
+
+/**
+ * Shenyu contract method parameter processor.
+ */
+public interface AnnotatedParameterProcessor {
+
+    /**
+     * Retrieves the processor supported annotation type.
+     * @return the annotation type
+     */
+    Class<? extends Annotation> getAnnotationType();
 
     /**
      * order.
@@ -27,16 +38,18 @@ public interface RequestPostProcessor {
      * @return {@link int}
      */
     default int order() {
-        return Integer.MAX_VALUE;
+        return Integer.MIN_VALUE;
     }
 
+
     /**
-     * postProcessor.
+     * Process the annotated parameter.
      *
-     * @param request request
-     * @param args args
-     * @return {@link RequestTemplate}
+     * @param requestTemplate requestTemplate
+     * @param annotation annotation
+     * @param arg arg
+     * @return {@link boolean}
      */
-    RequestTemplate postProcessor(RequestTemplate request, Object[] args);
+    boolean processArgument(RequestTemplate requestTemplate, Annotation annotation, Object arg);
 
 }

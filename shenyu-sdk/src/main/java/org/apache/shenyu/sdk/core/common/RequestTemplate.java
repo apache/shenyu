@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.starter.core;
+package org.apache.shenyu.sdk.core.common;
 
+import org.apache.shenyu.sdk.core.ShenyuRequest;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -36,11 +36,15 @@ import java.util.Map;
  */
 public final class RequestTemplate implements Serializable {
 
-    private transient Type returnType;
+    private transient Class<?> returnType;
 
     private transient Method method;
 
+    private String name;
+
     private String url;
+
+    private String contextId;
 
     private String path;
 
@@ -50,7 +54,7 @@ public final class RequestTemplate implements Serializable {
 
     private Map<String, Collection<String>> headers = new HashMap<>();
 
-    private ShenyuRequest.Body body = ShenyuRequest.Body.empty();
+    private String body;
 
     /**
      * request.
@@ -156,7 +160,7 @@ public final class RequestTemplate implements Serializable {
      *
      * @return Body
      */
-    public ShenyuRequest.Body getBody() {
+    public String getBody() {
         return body;
     }
 
@@ -165,7 +169,7 @@ public final class RequestTemplate implements Serializable {
      *
      * @param body body
      */
-    public void setBody(final ShenyuRequest.Body body) {
+    public void setBody(final String body) {
         this.body = body;
     }
 
@@ -174,7 +178,7 @@ public final class RequestTemplate implements Serializable {
      *
      * @return ReturnType
      */
-    public Type getReturnType() {
+    public Class<?> getReturnType() {
         return returnType;
     }
 
@@ -183,7 +187,7 @@ public final class RequestTemplate implements Serializable {
      *
      * @param returnType returnType
      */
-    public void setReturnType(final Type returnType) {
+    public void setReturnType(final Class<?> returnType) {
         this.returnType = returnType;
     }
 
@@ -203,6 +207,42 @@ public final class RequestTemplate implements Serializable {
      */
     public void setMethod(final Method method) {
         this.method = method;
+    }
+
+    /**
+     * contextId.
+     *
+     * @return ContextId
+     */
+    public String getContextId() {
+        return contextId;
+    }
+
+    /**
+     * set contextId.
+     *
+     * @param contextId contextId
+     */
+    public void setContextId(final String contextId) {
+        this.contextId = contextId;
+    }
+
+    /**
+     * name.
+     *
+     * @return Name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * set name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
     }
 
     public static class ParamMetadata {

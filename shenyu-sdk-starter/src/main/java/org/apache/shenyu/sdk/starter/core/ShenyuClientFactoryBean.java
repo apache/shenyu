@@ -28,8 +28,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.Objects;
-
 /**
  * ShenyuClientFactoryBean.
  */
@@ -45,10 +43,6 @@ public class ShenyuClientFactoryBean implements FactoryBean<Object>, Initializin
 
     private String path;
 
-    private boolean decode404;
-
-    private boolean inheritParentContext = true;
-
     private ApplicationContext applicationContext;
 
     private BeanFactory beanFactory;
@@ -56,9 +50,6 @@ public class ShenyuClientFactoryBean implements FactoryBean<Object>, Initializin
     private Class<?> fallback = void.class;
 
     private Class<?> fallbackFactory = void.class;
-
-    private boolean refreshableClient = false;
-
 
     @Override
     public void afterPropertiesSet() {
@@ -93,122 +84,158 @@ public class ShenyuClientFactoryBean implements FactoryBean<Object>, Initializin
         return true;
     }
 
+    /**
+     * type.
+     *
+     * @return Type
+     */
     public Class<?> getType() {
         return type;
     }
 
-    public void setType(Class<?> type) {
+    /**
+     * set type.
+     *
+     * @param type type
+     */
+    public void setType(final Class<?> type) {
         this.type = type;
     }
 
+    /**
+     * name.
+     *
+     * @return Name
+     */
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    /**
+     * set name.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
         this.name = name;
     }
 
-    public String getContextId() {
-        return contextId;
-    }
-
-    public void setContextId(String contextId) {
-        this.contextId = contextId;
-    }
-
+    /**
+     * url end not With "/".
+     *
+     * @return Url
+     */
     public String getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
+    /**
+     * set url.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
         this.url = url;
     }
 
+    /**
+     * contextId.
+     *
+     * @return ContextId
+     */
+    public String getContextId() {
+        return contextId;
+    }
+
+    /**
+     * set contextId.
+     *
+     * @param contextId contextId
+     */
+    public void setContextId(final String contextId) {
+        this.contextId = contextId;
+    }
+
+    /**
+     * path startsWith '/' .
+     *
+     * @return Path
+     */
     public String getPath() {
         return path;
     }
 
-    public void setPath(String path) {
+    /**
+     * set path.
+     *
+     * @param path path
+     */
+    public void setPath(final String path) {
         this.path = path;
     }
 
-    public boolean isDecode404() {
-        return decode404;
-    }
-
-    public void setDecode404(boolean decode404) {
-        this.decode404 = decode404;
-    }
-
-
+    /**
+     * applicationContext.
+     *
+     * @return ApplicationContext
+     */
     public ApplicationContext getApplicationContext() {
         return applicationContext;
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException {
-        applicationContext = context;
-        beanFactory = context;
+    /**
+     * beanFactory.
+     *
+     * @return BeanFactory
+     */
+    public BeanFactory getBeanFactory() {
+        return beanFactory;
     }
 
+    /**
+     * fallback.
+     *
+     * @return Fallback
+     */
     public Class<?> getFallback() {
         return fallback;
     }
 
-    public void setFallback(Class<?> fallback) {
+    /**
+     * set fallback.
+     *
+     * @param fallback fallback
+     */
+    public void setFallback(final Class<?> fallback) {
         this.fallback = fallback;
     }
 
+    /**
+     * fallbackFactory.
+     *
+     * @return FallbackFactory
+     */
     public Class<?> getFallbackFactory() {
         return fallbackFactory;
     }
 
-    public void setFallbackFactory(Class<?> fallbackFactory) {
+    /**
+     * set fallbackFactory.
+     *
+     * @param fallbackFactory fallbackFactory
+     */
+    public void setFallbackFactory(final Class<?> fallbackFactory) {
         this.fallbackFactory = fallbackFactory;
     }
 
-    public void setRefreshableClient(boolean refreshableClient) {
-        this.refreshableClient = refreshableClient;
-    }
-
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ShenyuClientFactoryBean that = (ShenyuClientFactoryBean) o;
-        return Objects.equals(applicationContext, that.applicationContext)
-                && Objects.equals(beanFactory, that.beanFactory) && decode404 == that.decode404
-                && inheritParentContext == that.inheritParentContext && Objects.equals(fallback, that.fallback)
-                && Objects.equals(fallbackFactory, that.fallbackFactory) && Objects.equals(name, that.name)
-                && Objects.equals(path, that.path) && Objects.equals(type, that.type) && Objects.equals(url, that.url)
-                && Objects.equals(refreshableClient, that.refreshableClient);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(applicationContext, beanFactory, decode404, inheritParentContext, fallback, fallbackFactory,
-                name, path, type, url, refreshableClient);
-    }
-
-    @Override
-    public String toString() {
-        return new StringBuilder("ShenyuClientFactoryBean{").append("type=").append(type).append(", ").append("name='")
-                .append(name).append("', ").append("url='").append(url).append("', ").append("path='").append(path)
-                .append("', ").append("decode404=").append(decode404).append(", ").append("inheritParentContext=")
-                .append(inheritParentContext).append(", ").append("applicationContext=").append(applicationContext)
-                .append(", ").append("beanFactory=").append(beanFactory).append(", ").append("fallback=")
-                .append(fallback).append(", ").append("fallbackFactory=").append(fallbackFactory).append("}")
-                .append("refreshableClient=").append(refreshableClient).append("}").toString();
-    }
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+    public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
         this.beanFactory = beanFactory;
     }
 
+    @Override
+    public void setApplicationContext(final ApplicationContext context) throws BeansException {
+        applicationContext = context;
+        beanFactory = context;
+    }
 }

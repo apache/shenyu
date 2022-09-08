@@ -67,11 +67,4 @@ public @interface EnableShenyuClients {
      */
     Class<?>[] basePackageClasses() default {};
 
-    /**
-     * List of classes annotated with @ShenyuClient. If not empty, disables classpath
-     * scanning.
-     * @return list of ShenyuClient classes
-     */
-    Class<?>[] clients() default {};
-
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.starter.core.util;
+package org.apache.shenyu.sdk.core.util;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

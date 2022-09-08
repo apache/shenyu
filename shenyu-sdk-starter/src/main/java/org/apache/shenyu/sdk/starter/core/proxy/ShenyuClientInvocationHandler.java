@@ -17,18 +17,17 @@
 
 package org.apache.shenyu.sdk.starter.core.proxy;
 
-import org.apache.shenyu.sdk.starter.core.RequestTemplate;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.starter.core.ShenyuClient;
 import org.apache.shenyu.sdk.starter.core.ShenyuClientFactoryBean;
-import org.apache.shenyu.sdk.starter.core.ShenyuHttpClient;
 import org.apache.shenyu.sdk.starter.core.factory.Contract;
-import org.apache.shenyu.sdk.starter.core.factory.RequestPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,40 +36,42 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
 
     private final Map<Method, ShenyuClientMethodHandler> methodHandlerMap = new ConcurrentHashMap<>();
 
-    private final ShenyuHttpClient shenyuHttpClient;
+    private final ApplicationContext applicationContext;
 
     private final Contract contract;
 
     private final ShenyuClientFactoryBean shenyuClientFactoryBean;
 
-    private final Collection<RequestPostProcessor> requestPostProcessors;
-
     public ShenyuClientInvocationHandler(final Class<?> apiClass, final ApplicationContext applicationContext,
                                          final ShenyuClientFactoryBean shenyuClientFactoryBean) {
         this.shenyuClientFactoryBean = shenyuClientFactoryBean;
-        this.shenyuHttpClient = applicationContext.getBean(ShenyuHttpClient.class);
+        this.applicationContext = applicationContext;
         this.contract = applicationContext.getBean(Contract.class);
-        final Map<String, RequestPostProcessor> beansOfType = applicationContext.getBeansOfType(RequestPostProcessor.class);
-        this.requestPostProcessors = beansOfType.values();
         ShenyuClient shenyuClient = apiClass.getAnnotation(ShenyuClient.class);
-        buildMethodHandlerMap(apiClass, shenyuHttpClient, shenyuClient);
+        buildMethodHandlerMap(apiClass, shenyuClient);
     }
 
     @Override
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
         ShenyuClientMethodHandler handler = methodHandlerMap.get(method);
         if (ObjectUtils.isEmpty(handler)) {
-            return handler.invoke(args);
+            throw new ShenyuException(String.format("the method cannot be called, please check the annotation and configuration, method %s", method.getName()));
         }
-        return null;
+        return handler.invoke(args);
     }
 
-    private void buildMethodHandlerMap(final Class<?> apiClass, final ShenyuHttpClient shenyuHttpClient, final ShenyuClient shenyuClient) {
-        final List<RequestTemplate> requestTemplates = contract.parseAndValidateMetadata(apiClass);
+    private void buildMethodHandlerMap(final Class<?> apiClass, final ShenyuClient shenyuClient) {
+        // parseAndValidate RequestTemplate
+        final List<RequestTemplate> requestTemplates = contract.parseAndValidateRequestTemplate(apiClass);
         for (RequestTemplate requestTemplate : requestTemplates) {
             requestTemplate.setUrl(shenyuClientFactoryBean.getUrl());
+            requestTemplate.setName(shenyuClientFactoryBean.getName());
+            requestTemplate.setContextId(shenyuClientFactoryBean.getContextId());
+            if (StringUtils.hasText(shenyuClientFactoryBean.getPath())) {
+                requestTemplate.setPath(shenyuClientFactoryBean.getPath() + "/" + requestTemplate.getPath());
+            }
             methodHandlerMap.put(requestTemplate.getMethod(),
-                    new ShenyuClientMethodHandler(shenyuClient, shenyuHttpClient, requestTemplate, requestPostProcessors));
+                    new ShenyuClientMethodHandler(shenyuClient, requestTemplate, applicationContext));
         }
     }
 }

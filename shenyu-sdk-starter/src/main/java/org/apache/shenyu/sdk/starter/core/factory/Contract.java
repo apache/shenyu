@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.sdk.starter.core.factory;
 
-import org.apache.shenyu.sdk.starter.core.RequestTemplate;
-import org.apache.shenyu.sdk.starter.core.util.Types;
-import org.apache.shenyu.sdk.starter.core.util.Util;
+import org.apache.shenyu.sdk.core.common.RequestTemplate;
+import org.apache.shenyu.sdk.core.util.Types;
+import org.apache.shenyu.sdk.core.util.Util;
 import org.springframework.context.ResourceLoaderAware;
 
 import java.lang.annotation.Annotation;
@@ -28,11 +28,12 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.shenyu.sdk.starter.core.util.Util.checkState;
+import static org.apache.shenyu.sdk.core.util.Util.checkState;
 
 
 /**
@@ -46,7 +47,7 @@ public interface Contract extends ResourceLoaderAware {
      * @param targetType targetType
      * @return {@link List}
      */
-    List<RequestTemplate> parseAndValidateMetadata(Class<?> targetType);
+    List<RequestTemplate> parseAndValidateRequestTemplate(Class<?> targetType);
 
     /**
      * BaseContract.
@@ -54,7 +55,7 @@ public interface Contract extends ResourceLoaderAware {
     abstract class BaseContract implements Contract {
 
         @Override
-        public List<RequestTemplate> parseAndValidateMetadata(final Class<?> targetType) {
+        public List<RequestTemplate> parseAndValidateRequestTemplate(final Class<?> targetType) {
             checkState(targetType.getTypeParameters().length == 0, "Parameterized types unsupported: %s",
                     targetType.getSimpleName());
             checkState(targetType.getInterfaces().length <= 1, "Only single inheritance supported: %s",
@@ -70,6 +71,7 @@ public interface Contract extends ResourceLoaderAware {
 
                 // paramMetadata
                 parseRequestTemplate.setParamMetadataList(analysisParamMetadata(method));
+
                 if (result.containsKey(method)) {
                     RequestTemplate existingMetadata = result.get(method);
                     Type existingReturnType = existingMetadata.getReturnType();
@@ -93,16 +95,17 @@ public interface Contract extends ResourceLoaderAware {
          * @return {@link List}
          */
         private List<RequestTemplate.ParamMetadata> analysisParamMetadata(final Method method) {
-            List<RequestTemplate.ParamMetadata> params = new ArrayList<>();
             Parameter[] parameters = method.getParameters();
-            if (parameters != null && parameters.length > 0) {
-                for (int index = 0; index < parameters.length; index++) {
-                    Annotation[] annotations = parameters[index].getAnnotations();
-                    if (annotations == null || annotations.length == 0) {
-                        continue;
-                    }
-                    params.add(new RequestTemplate.ParamMetadata(annotations, parameters[index].getType(), index));
+            if (parameters == null || parameters.length == 0) {
+                return Collections.emptyList();
+            }
+            List<RequestTemplate.ParamMetadata> params = new ArrayList<>(parameters.length);
+            for (int index = 0; index < parameters.length; index++) {
+                Annotation[] annotations = parameters[index].getAnnotations();
+                if (annotations == null || annotations.length == 0) {
+                    continue;
                 }
+                params.add(new RequestTemplate.ParamMetadata(annotations, parameters[index].getType(), index));
             }
             return params;
         }
