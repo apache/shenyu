@@ -75,7 +75,9 @@ public class ShenyuClientMethodHandler {
     }
 
     private Object handlerResponse(final ShenyuResponse shenyuResponse, final Class<?> returnType) {
-        if (ShenyuResponse.class == returnType) {
+        if (shenyuResponse == null || void.class == returnType) {
+            return null;
+        } else if (ShenyuResponse.class == returnType) {
             return shenyuResponse;
         } else if (StringUtils.hasText(shenyuResponse.getBody())) {
             return JsonUtils.jsonToObject(shenyuResponse.getBody(), returnType);
@@ -85,17 +87,18 @@ public class ShenyuClientMethodHandler {
     }
 
     private ShenyuRequest targetProcessor(final RequestTemplate requestTemplate, final Object[] args) {
-        for (RequestTemplate.ParamMetadata paramMetadata : requestTemplate.getParamMetadataList()) {
+        final RequestTemplate requestTemplateFrom = RequestTemplate.from(requestTemplate);
+        for (RequestTemplate.ParamMetadata paramMetadata : requestTemplateFrom.getParamMetadataList()) {
             final Annotation[] paramAnnotations = paramMetadata.getParamAnnotations();
             for (Annotation paramAnnotation : paramAnnotations) {
-                final AnnotatedParameterProcessor processor = annotatedArgumentProcessors.get(paramAnnotation);
+                final AnnotatedParameterProcessor processor = annotatedArgumentProcessors.get(paramAnnotation.annotationType());
                 if (ObjectUtils.isEmpty(processor)) {
                     continue;
                 }
-                processor.processArgument(requestTemplate, paramAnnotation, args[paramMetadata.getParamIndexOnMethod()]);
+                processor.processArgument(requestTemplateFrom, paramAnnotation, args[paramMetadata.getParamIndexOnMethod()]);
             }
         }
-        return requestTemplate.request();
+        return requestTemplateFrom.request();
     }
 
     private Map<Class<? extends Annotation>, AnnotatedParameterProcessor> toAnnotatedArgumentProcessorMap(
@@ -106,5 +109,4 @@ public class ShenyuClientMethodHandler {
         }
         return result;
     }
-
 }

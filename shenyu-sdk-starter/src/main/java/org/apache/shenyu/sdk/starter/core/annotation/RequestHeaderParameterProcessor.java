@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.lang.annotation.Annotation;
 
+import static com.google.common.base.Strings.emptyToNull;
+import static org.apache.shenyu.sdk.core.util.Util.checkState;
+
 /**
  * {@link RequestHeader} parameter processor.
  */
@@ -37,17 +40,8 @@ public class RequestHeaderParameterProcessor implements AnnotatedParameterProces
 
     @Override
     public boolean processArgument(final RequestTemplate requestTemplate, final Annotation annotation, final Object arg) {
-//        int parameterIndex = context.getParameterIndex();
-//        Class<?> parameterType = method.getParameterTypes()[parameterIndex];
-//        MethodMetadata data = context.getMethodMetadata();
-//
-//
-//        String name = ANNOTATION.cast(annotation).value();
-//        checkState(emptyToNull(name) != null, "RequestHeader.value() was empty on parameter %s", parameterIndex);
-//        context.setParameterName(name);
-//
-//        Collection<String> header = context.setTemplateParameter(name, data.template().headers().get(name));
-//        data.template().header(name, header);
+        String name = ANNOTATION.cast(annotation).value();
+        checkState(emptyToNull(name) != null, "RequestHeader.value() was empty on parameter %s", requestTemplate.getMethod().getName());
         return true;
     }
 

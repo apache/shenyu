@@ -56,6 +56,24 @@ public final class RequestTemplate implements Serializable {
 
     private String body;
 
+    public RequestTemplate() {
+    }
+
+    public RequestTemplate(final Class<?> returnType, final Method method, final String name, final String url, final String contextId,
+                           final String path, final ShenyuRequest.HttpMethod httpMethod, final List<ParamMetadata> paramMetadataList,
+                           final Map<String, Collection<String>> headers, final String body) {
+        this.returnType = returnType;
+        this.method = method;
+        this.name = name;
+        this.url = url;
+        this.contextId = contextId;
+        this.path = path;
+        this.httpMethod = httpMethod;
+        this.paramMetadataList = paramMetadataList;
+        this.headers = headers;
+        this.body = body;
+    }
+
     /**
      * request.
      *
@@ -63,6 +81,26 @@ public final class RequestTemplate implements Serializable {
      */
     public ShenyuRequest request() {
         return ShenyuRequest.create(this.httpMethod, this.url + this.path, this.headers, this.body, this);
+    }
+
+    /**
+     * Create a Request Template from an existing Request Template.
+     *
+     * @param requestTemplate to copy from.
+     * @return a new Request Template.
+     */
+    public static RequestTemplate from(final RequestTemplate requestTemplate) {
+        return new RequestTemplate(
+                requestTemplate.getReturnType(),
+                requestTemplate.getMethod(),
+                requestTemplate.getName(),
+                requestTemplate.getUrl(),
+                requestTemplate.getContextId(),
+                requestTemplate.getPath(),
+                requestTemplate.getHttpMethod(),
+                requestTemplate.getParamMetadataList(),
+                requestTemplate.getHeaders(),
+                requestTemplate.getBody());
     }
 
     /**

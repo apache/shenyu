@@ -22,6 +22,10 @@ import org.apache.shenyu.sdk.starter.core.factory.AnnotatedParameterProcessor;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.lang.annotation.Annotation;
+import java.util.Map;
+
+import static com.google.common.base.Strings.emptyToNull;
+import static org.apache.shenyu.sdk.core.util.Util.checkState;
 
 /**
  * {@link RequestParam} parameter processor.
@@ -37,24 +41,24 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
 
     @Override
     public boolean processArgument(final RequestTemplate requestTemplate, final Annotation annotation, final Object arg) {
-//        int parameterIndex = context.getParameterIndex();
-//        Class<?> parameterType = method.getParameterTypes()[parameterIndex];
-//        MethodMetadata data = context.getMethodMetadata();
-//
-//        if (Map.class.isAssignableFrom(parameterType)) {
-//            checkState(data.queryMapIndex() == null, "Query map can only be present once.");
-//            data.queryMapIndex(parameterIndex);
-//
-//            return true;
-//        }
-//
-//        RequestParam requestParam = ANNOTATION.cast(annotation);
-//        String name = requestParam.value();
-//        checkState(emptyToNull(name) != null, "RequestParam.value() was empty on parameter %s", parameterIndex);
-//        context.setParameterName(name);
-//
-//        Collection<String> query = context.setTemplateParameter(name, data.template().queries().get(name));
-//        data.template().query(name, query);
+        RequestParam requestParam = ANNOTATION.cast(annotation);
+        String name = requestParam.value();
+        checkState(emptyToNull(name) != null, "RequestParam.value() was empty on parameter %s#%s",
+                requestTemplate.getMethod().getDeclaringClass().getSimpleName(), requestTemplate.getMethod().getName());
+        StringBuilder pathResult = new StringBuilder(requestTemplate.getPath());
+        if (arg instanceof String) {
+            if (pathResult.indexOf("?") > 0) {
+                pathResult.append("&");
+            } else {
+                pathResult.append("?");
+            }
+            pathResult.append(name).append("=").append(arg);
+        } else if (arg instanceof Map) {
+            ((Map<?, ?>) arg).forEach((key, value) -> {
+                pathResult.append(key).append("=").append(value);
+            });
+        }
+        requestTemplate.setPath(pathResult.toString());
         return true;
     }
 

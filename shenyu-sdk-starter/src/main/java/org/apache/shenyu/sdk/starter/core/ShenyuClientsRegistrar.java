@@ -100,7 +100,7 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
                 // verify annotated class is an interface
                 AnnotatedBeanDefinition beanDefinition = (AnnotatedBeanDefinition) candidateComponent;
                 AnnotationMetadata annotationMetadata = beanDefinition.getMetadata();
-                Assert.isTrue(annotationMetadata.isInterface(), "@ShenyuClient can only be specified on an interface");
+                Assert.isTrue(annotationMetadata.isInterface(), "@ShenyuClient can only be specified on an interface " + candidateComponent.getBeanClassName());
 
                 Map<String, Object> attributes = annotationMetadata
                         .getAnnotationAttributes(ShenyuClient.class.getCanonicalName());
@@ -136,7 +136,7 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
                 factoryBean.setFallbackFactory(fallbackFactory instanceof Class ? (Class<?>) fallbackFactory
                         : ClassUtils.resolveClassName(fallbackFactory.toString(), null));
             }
-            return factoryBean.getObject();
+            return factoryBean;
         });
         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
         definition.setLazyInit(true);
