@@ -22,6 +22,10 @@ import org.apache.shenyu.sdk.starter.core.factory.AnnotatedParameterProcessor;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
@@ -42,6 +46,18 @@ public class RequestHeaderParameterProcessor implements AnnotatedParameterProces
     public boolean processArgument(final RequestTemplate requestTemplate, final Annotation annotation, final Object arg) {
         String name = ANNOTATION.cast(annotation).value();
         checkState(emptyToNull(name) != null, "RequestHeader.value() was empty on parameter %s", requestTemplate.getMethod().getName());
+        final Map<String, Collection<String>> requestTemplateHeaders = requestTemplate.getHeaders();
+        if (arg instanceof Map) {
+            ((Map<?, ?>) arg).forEach((key, value) -> {
+                if (key instanceof String && value instanceof Collection) {
+                    requestTemplateHeaders.put((String) key, (Collection) value);
+                }
+            });
+        } else if (arg instanceof String) {
+            Collection<String> headerColl = Optional.ofNullable(requestTemplate.getHeaders().get(name)).orElseGet(ArrayList::new);
+            headerColl.add((String) arg);
+            requestTemplate.getHeaders().put(name, headerColl);
+        }
         return true;
     }
 

@@ -24,7 +24,6 @@ import org.apache.shenyu.sdk.starter.core.annotation.PathVariableParameterProces
 import org.apache.shenyu.sdk.starter.core.annotation.RequestBodyParameterProcessor;
 import org.apache.shenyu.sdk.starter.core.annotation.RequestHeaderParameterProcessor;
 import org.apache.shenyu.sdk.starter.core.annotation.RequestParamParameterProcessor;
-import org.apache.shenyu.sdk.starter.core.annotation.RequestPartParameterProcessor;
 import org.apache.shenyu.sdk.starter.core.factory.AnnotatedParameterProcessor;
 import org.apache.shenyu.sdk.starter.core.factory.Contract;
 import org.apache.shenyu.sdk.starter.core.support.SpringMvcContract;
@@ -77,7 +76,6 @@ public class ShenyuClientAutoConfiguration {
             annotatedParameterProcessors.add(new PathVariableParameterProcessor());
             annotatedParameterProcessors.add(new RequestHeaderParameterProcessor());
             annotatedParameterProcessors.add(new RequestParamParameterProcessor());
-            annotatedParameterProcessors.add(new RequestPartParameterProcessor());
             annotatedParameterProcessors.add(new RequestBodyParameterProcessor());
 
             for (AnnotatedParameterProcessor annotatedParameterProcessor : annotatedParameterProcessors) {
