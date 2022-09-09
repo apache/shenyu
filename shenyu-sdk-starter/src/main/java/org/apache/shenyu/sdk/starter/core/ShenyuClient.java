@@ -65,9 +65,7 @@ public @interface ShenyuClient {
 
     /**
      * @return the <code>@Qualifiers</code> value for the feign client.
-     *
-     * to the default =
-     * <code>contextId + "ShenyuClient"</code>.
+     * to the default = <code>contextId + "ShenyuClient"</code>.
      */
     String[] qualifiers() default {};
 
@@ -102,7 +100,8 @@ public @interface ShenyuClient {
 
     /**
      * primary.
-     * @return whether to mark the feign proxy as a primary bean. Defaults to true.
+     *
+     * @return {@link boolean}
      */
     boolean primary() default true;
 
