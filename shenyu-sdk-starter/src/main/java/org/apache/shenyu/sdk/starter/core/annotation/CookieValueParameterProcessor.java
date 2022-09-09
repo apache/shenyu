@@ -32,7 +32,6 @@ import static org.apache.shenyu.sdk.core.util.Util.checkState;
 
 /**
  * annotation processor.
- *
  */
 public class CookieValueParameterProcessor implements AnnotatedParameterProcessor {
 

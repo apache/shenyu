@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * Annotation for interfaces declaring that a REST client with that interface should be
  * created (e.g. for autowiring into another component). If SC LoadBalancer is available
  * it will be used to load balance the backend requests, and the load balancer can be
- * configured using the same name (i.e. value) as the feign client.
+ * configured using the same name (i.e. value) as the Shenyu client.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -64,8 +64,8 @@ public @interface ShenyuClient {
 
 
     /**
-     * @return the <code>@Qualifiers</code> value for the feign client.
-     * to the default = <code>contextId + "ShenyuClient"</code>.
+     * qualifiers.
+     * @return the @Qualifiers value for the Shenyu client to the default = contextId + "ShenyuClient"
      */
     String[] qualifiers() default {};
 
@@ -76,19 +76,19 @@ public @interface ShenyuClient {
     String url() default "";
 
     /**
-     * Fallback class for the specified Feign client interface. The fallback class must
+     * Fallback class for the specified Shenyu client interface. The fallback class must
      * implement the interface annotated by this annotation and be a valid spring bean.
-     * @return fallback class for the specified Feign client interface
+     * @return fallback class for the specified Shenyu client interface
      */
     Class<?> fallback() default void.class;
 
     /**
-     * Define a fallback factory for the specified Feign client interface. The fallback
+     * Define a fallback factory for the specified Shenyu client interface. The fallback
      * factory must produce instances of fallback classes that implement the interface
      * annotated by {@link ShenyuClient}. The fallback factory must be a valid spring bean.
      *
      * @see FallbackFactory for details.
-     * @return fallback factory for the specified Feign client interface
+     * @return fallback factory for the specified Shenyu client interface
      */
     Class<?> fallbackFactory() default void.class;
 

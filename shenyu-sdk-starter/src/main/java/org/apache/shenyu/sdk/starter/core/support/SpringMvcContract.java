@@ -35,6 +35,9 @@ import java.util.Collections;
 
 import static org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation;
 
+/**
+ * SpringMvcContract.
+ */
 public class SpringMvcContract extends Contract.BaseContract {
 
     private static final String ACCEPT = "Accept";

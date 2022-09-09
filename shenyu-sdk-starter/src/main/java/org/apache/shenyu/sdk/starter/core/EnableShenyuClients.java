@@ -26,7 +26,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Scans for interfaces that declare they are feign clients (via
+ * Scans for interfaces that declare they are Shenyu clients (via
  * {@link ShenyuClient} <code>@ShenyuClient</code>).
  * Configures component scanning directives for use with
  * {@link org.springframework.context.annotation.Configuration}
@@ -49,9 +49,9 @@ public @interface EnableShenyuClients {
     /**
      * Base packages to scan for annotated components.
      *
-     * <p> {@link #value()} is an alias for (and mutually exclusive with) this attribute.
+     * <p>{@link #value()} is an alias for (and mutually exclusive with) this attribute.
      *
-     * <p> Use {@link #basePackageClasses()} for a type-safe alternative to String-based
+     * <p>Use {@link #basePackageClasses()} for a type-safe alternative to String-based
      * package names.
      * @return the array of 'basePackages'.
      */
@@ -61,8 +61,8 @@ public @interface EnableShenyuClients {
      * Type-safe alternative to {@link #basePackages()} for specifying the packages to
      * scan for annotated components. The package of each class specified will be scanned.
      *
-     * <p> Consider creating a special no-op marker class or interface in each package that
-     * serves no purpose other than being referenced by this attribute. </p>
+     * <p>Consider creating a special no-op marker class or interface in each package that
+     * serves no purpose other than being referenced by this attribute.
      * @return the array of 'basePackageClasses'.
      */
     Class<?>[] basePackageClasses() default {};

@@ -30,20 +30,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * {@code
  * // This instance will be invoked if there are errors of any kind.
  * FallbackFactory<GitHub> fallbackFactory = cause -> (owner, repo) -> {
- *   if (cause instanceof FeignException && ((FeignException) cause).status() == 403) {
+ *   if (cause instanceof ShenyuException && ((ShenyuException) cause).status() == 403) {
  *     return Collections.emptyList();
  *   } else {
  *     return Arrays.asList("yogi");
  *   }
  * };
  *
- * GitHub github = FeignCircuitBreaker.builder()
+ * GitHub github = ShenyuCircuitBreaker.builder()
  *                             ...
  *                             .target(GitHub.class, "https://api.github.com", fallbackFactory);
  * }
  * </pre>
  *
- * @param <T> the feign interface type
+ * @param <T> the Shenyu interface type
  */
 public interface FallbackFactory<T> {
 
