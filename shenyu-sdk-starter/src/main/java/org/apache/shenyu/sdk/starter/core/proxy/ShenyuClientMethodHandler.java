@@ -24,17 +24,12 @@ import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.http.api.ShenyuHttpClient;
 import org.apache.shenyu.sdk.starter.core.ShenyuClient;
 import org.apache.shenyu.sdk.starter.core.factory.AnnotatedParameterProcessor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * ShenyuClientMethodHandler.
@@ -51,14 +46,12 @@ public class ShenyuClientMethodHandler {
 
     public ShenyuClientMethodHandler(final ShenyuClient shenyuClient,
                                      final RequestTemplate requestTemplate,
-                                     final ApplicationContext applicationContext) {
+                                     final ShenyuHttpClient shenyuHttpClient,
+                                     final Map<Class<? extends Annotation>, AnnotatedParameterProcessor> annotatedArgumentProcessors) {
         this.shenyuClient = shenyuClient;
         this.requestTemplate = requestTemplate;
-        this.shenyuHttpClient = applicationContext.getBean(ShenyuHttpClient.class);
-        final Map<String, AnnotatedParameterProcessor> annotatedParameterProcessorMap = applicationContext.getBeansOfType(AnnotatedParameterProcessor.class);
-        Collection<AnnotatedParameterProcessor> annotatedParameterProcessors = annotatedParameterProcessorMap.values();
-        annotatedParameterProcessors = annotatedParameterProcessors.stream().sorted(Comparator.comparing(AnnotatedParameterProcessor::order)).collect(Collectors.toList());
-        annotatedArgumentProcessors = toAnnotatedArgumentProcessorMap(annotatedParameterProcessors);
+        this.shenyuHttpClient = shenyuHttpClient;
+        this.annotatedArgumentProcessors = annotatedArgumentProcessors;
     }
 
     /**
@@ -99,14 +92,5 @@ public class ShenyuClientMethodHandler {
             }
         }
         return requestTemplateFrom.request();
-    }
-
-    private Map<Class<? extends Annotation>, AnnotatedParameterProcessor> toAnnotatedArgumentProcessorMap(
-            final Collection<AnnotatedParameterProcessor> processors) {
-        Map<Class<? extends Annotation>, AnnotatedParameterProcessor> result = new HashMap<>();
-        for (AnnotatedParameterProcessor processor : processors) {
-            result.put(processor.getAnnotationType(), processor);
-        }
-        return result;
     }
 }

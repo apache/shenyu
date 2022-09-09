@@ -17,28 +17,56 @@
 
 package org.apache.shenyu.sdk.starter.core;
 
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.sdk.http.api.ShenyuHttpClient;
 import org.apache.shenyu.sdk.starter.core.annotation.CookieValueParameterProcessor;
 import org.apache.shenyu.sdk.starter.core.annotation.PathVariableParameterProcessor;
+import org.apache.shenyu.sdk.starter.core.annotation.RequestBodyParameterProcessor;
 import org.apache.shenyu.sdk.starter.core.annotation.RequestHeaderParameterProcessor;
 import org.apache.shenyu.sdk.starter.core.annotation.RequestParamParameterProcessor;
 import org.apache.shenyu.sdk.starter.core.annotation.RequestPartParameterProcessor;
 import org.apache.shenyu.sdk.starter.core.factory.AnnotatedParameterProcessor;
+import org.apache.shenyu.sdk.starter.core.factory.Contract;
+import org.apache.shenyu.sdk.starter.core.support.SpringMvcContract;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
 public class ShenyuClientAutoConfiguration {
+
+    /**
+     * springMvcContract.
+     *
+     * @return {@link Contract}
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public Contract springMvcContract() {
+        return new SpringMvcContract();
+    }
+
+    /**
+     * shenyuHttpClient.
+     *
+     * @return {@link ShenyuHttpClient}
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ShenyuHttpClient shenyuHttpClient() {
+        return request -> {
+            throw new ShenyuException("please implement ShenyuHttpClient");
+        };
+    }
 
     @Configuration(proxyBeanMethods = false)
     public static class ParameterProcessorRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
@@ -50,6 +78,7 @@ public class ShenyuClientAutoConfiguration {
             annotatedParameterProcessors.add(new RequestHeaderParameterProcessor());
             annotatedParameterProcessors.add(new RequestParamParameterProcessor());
             annotatedParameterProcessors.add(new RequestPartParameterProcessor());
+            annotatedParameterProcessors.add(new RequestBodyParameterProcessor());
 
             for (AnnotatedParameterProcessor annotatedParameterProcessor : annotatedParameterProcessors) {
                 GenericBeanDefinition beanDefinition = new GenericBeanDefinition();

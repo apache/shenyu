@@ -53,8 +53,8 @@ public class ShenyuClientFactoryBean implements FactoryBean<Object>, Initializin
 
     @Override
     public void afterPropertiesSet() {
-//        Assert.hasText(contextId, "Context id must be set");
-//        Assert.hasText(name, "Name must be set");
+        Assert.hasText(contextId, "Context id must be set");
+        Assert.hasText(name, "Name must be set");
     }
 
     @Override

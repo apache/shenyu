@@ -19,18 +19,25 @@ package org.apache.shenyu.sdk.starter.core.proxy;
 
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
+import org.apache.shenyu.sdk.http.api.ShenyuHttpClient;
 import org.apache.shenyu.sdk.starter.core.ShenyuClient;
 import org.apache.shenyu.sdk.starter.core.ShenyuClientFactoryBean;
+import org.apache.shenyu.sdk.starter.core.factory.AnnotatedParameterProcessor;
 import org.apache.shenyu.sdk.starter.core.factory.Contract;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class ShenyuClientInvocationHandler implements InvocationHandler {
 
@@ -63,6 +70,12 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
     private void buildMethodHandlerMap(final Class<?> apiClass, final ShenyuClient shenyuClient) {
         // parseAndValidate RequestTemplate
         final List<RequestTemplate> requestTemplates = contract.parseAndValidateRequestTemplate(apiClass);
+
+        final ShenyuHttpClient shenyuHttpClient = applicationContext.getBean(ShenyuHttpClient.class);
+        final Map<String, AnnotatedParameterProcessor> annotatedParameterProcessorMap = applicationContext.getBeansOfType(AnnotatedParameterProcessor.class);
+        Collection<AnnotatedParameterProcessor> annotatedParameterProcessors = annotatedParameterProcessorMap.values();
+        annotatedParameterProcessors = annotatedParameterProcessors.stream().sorted(Comparator.comparing(AnnotatedParameterProcessor::order)).collect(Collectors.toList());
+        Map<Class<? extends Annotation>, AnnotatedParameterProcessor> annotatedArgumentProcessors = toAnnotatedArgumentProcessorMap(annotatedParameterProcessors);
         for (RequestTemplate requestTemplate : requestTemplates) {
             requestTemplate.setUrl(shenyuClientFactoryBean.getUrl());
             requestTemplate.setName(shenyuClientFactoryBean.getName());
@@ -71,7 +84,16 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
                 requestTemplate.setPath(shenyuClientFactoryBean.getPath() + "/" + requestTemplate.getPath());
             }
             methodHandlerMap.put(requestTemplate.getMethod(),
-                    new ShenyuClientMethodHandler(shenyuClient, requestTemplate, applicationContext));
+                    new ShenyuClientMethodHandler(shenyuClient, requestTemplate, shenyuHttpClient, annotatedArgumentProcessors));
         }
+    }
+
+    private Map<Class<? extends Annotation>, AnnotatedParameterProcessor> toAnnotatedArgumentProcessorMap(
+            final Collection<AnnotatedParameterProcessor> processors) {
+        Map<Class<? extends Annotation>, AnnotatedParameterProcessor> result = new HashMap<>();
+        for (AnnotatedParameterProcessor processor : processors) {
+            result.put(processor.getAnnotationType(), processor);
+        }
+        return result;
     }
 }
