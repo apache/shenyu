@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.http.api;
+package org.apache.shenyu.sdk.core.http;
 
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;

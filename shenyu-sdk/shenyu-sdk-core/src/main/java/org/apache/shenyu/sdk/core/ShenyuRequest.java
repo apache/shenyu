@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.sdk.core;
 
+import org.apache.shenyu.sdk.core.common.RequestTemplate;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
