@@ -309,7 +309,7 @@ public final class RequestTemplate implements Serializable {
         /**
          * paramAnnotations.
          *
-         * @return java.lang.annotation.Annotation[]
+         * @return Annotation
          */
         public Annotation[] getParamAnnotations() {
             return paramAnnotations;
@@ -318,7 +318,7 @@ public final class RequestTemplate implements Serializable {
         /**
          * paramType.
          *
-         * @return java.lang.Class<?>
+         * @return Class
          */
         public Class<?> getParamType() {
             return paramType;
