@@ -92,7 +92,7 @@ public class SpringMvcClientEventListenerTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         // config with full
         SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(true);
-        springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
+        springMvcClientEventListener.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
         verify(applicationContext, never()).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
