@@ -151,7 +151,13 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu jwt end-->
-
+        <!--shenyu auth plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu jwt end-->
         <!-- shenyu modify response plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
