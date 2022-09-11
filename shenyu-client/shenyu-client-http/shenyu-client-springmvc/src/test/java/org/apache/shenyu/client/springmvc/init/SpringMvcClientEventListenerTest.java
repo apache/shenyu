@@ -20,6 +20,8 @@ package org.apache.shenyu.client.springmvc.init;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.PortUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
@@ -31,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,6 +72,9 @@ public class SpringMvcClientEventListenerTest {
 
     @Mock
     private ApplicationContext applicationContext;
+    
+    @Mock
+    private AutowireCapableBeanFactory beanFactory;
 
     private ContextRefreshedEvent contextRefreshedEvent;
 
@@ -134,7 +140,44 @@ public class SpringMvcClientEventListenerTest {
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
         return new SpringMvcClientEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
-
+    }
+    
+    @Test
+    public void testOnApplicationEvent() {
+        init();
+        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener();
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
+        MockedStatic<PortUtils> portUtilsMockedStatic = mockStatic(PortUtils.class);
+        portUtilsMockedStatic.when(() -> PortUtils.findPort(beanFactory)).thenReturn(8080);
+        springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
+    
+        // hit `!registered.compareAndSet(false, true)`
+        springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
+        portUtilsMockedStatic.close();
+    }
+    
+    @Test
+    public void testOnApplicationEventError() {
+        init();
+        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener();
+        Assert.assertThrows(ShenyuException.class, () -> springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent));
+        registerUtilsMockedStatic.close();
+    }
+    
+    private SpringMvcClientEventListener buildSpringMvcClientEventListener() {
+        Properties properties = new Properties();
+        properties.setProperty("contextPath", "/mvc");
+        properties.setProperty("isFull", Boolean.FALSE.toString());
+        properties.setProperty("ip", "127.0.0.1");
+        properties.setProperty("username", "admin");
+        properties.setProperty("password", "123456");
+        PropertiesConfig config = new PropertiesConfig();
+        config.setProps(properties);
+        ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
+        mockRegisterCenter.setServerLists("http://127.0.0.1:9095");
+        mockRegisterCenter.setRegisterType("http");
+        mockRegisterCenter.setProps(properties);
+        return new SpringMvcClientEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
     }
 
     @RestController
