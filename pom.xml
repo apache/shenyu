@@ -44,6 +44,8 @@
         <module>shenyu-dist</module>
         <module>shenyu-alert</module>
         <module>shenyu-sdk</module>
+        <module>shenyu-spring-boot-starter/shenyu-spring-boot-starter-plugin/shenyu-sprimg-boot-starter-plugin-auth
+        </module>
     </modules>
 
     <licenses>
