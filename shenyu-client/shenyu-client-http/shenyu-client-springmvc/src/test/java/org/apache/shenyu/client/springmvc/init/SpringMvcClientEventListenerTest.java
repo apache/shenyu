@@ -97,7 +97,7 @@ public class SpringMvcClientEventListenerTest {
     public void testShenyuBeanProcess() {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         // config with full
-        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(true);
+        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(true, true);
         springMvcClientEventListener.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
         verify(applicationContext, never()).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
@@ -107,7 +107,7 @@ public class SpringMvcClientEventListenerTest {
     public void testNormalBeanProcess() {
         init();
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
-        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false);
+        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, true);
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
         verify(applicationContext, times(1)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
@@ -119,18 +119,20 @@ public class SpringMvcClientEventListenerTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         registerUtilsMockedStatic.when(() -> RegisterUtils.doRegister(any(), any(), any()))
                 .thenAnswer((Answer<Void>) invocation -> null);
-        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false);
+        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, true);
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
         verify(applicationContext, times(1)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
-    private SpringMvcClientEventListener buildSpringMvcClientEventListener(final boolean full) {
+    private SpringMvcClientEventListener buildSpringMvcClientEventListener(final boolean full, final boolean port) {
         Properties properties = new Properties();
         properties.setProperty("contextPath", "/mvc");
         properties.setProperty("isFull", full + "");
         properties.setProperty("ip", "127.0.0.1");
-        properties.setProperty("port", "8289");
+        if (port) {
+            properties.setProperty("port", "8289");
+        }
         properties.setProperty("username", "admin");
         properties.setProperty("password", "123456");
         PropertiesConfig config = new PropertiesConfig();
@@ -145,7 +147,7 @@ public class SpringMvcClientEventListenerTest {
     @Test
     public void testOnApplicationEvent() {
         init();
-        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener();
+        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, false);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
         MockedStatic<PortUtils> portUtilsMockedStatic = mockStatic(PortUtils.class);
         portUtilsMockedStatic.when(() -> PortUtils.findPort(beanFactory)).thenReturn(8080);
@@ -159,27 +161,11 @@ public class SpringMvcClientEventListenerTest {
     @Test
     public void testOnApplicationEventError() {
         init();
-        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener();
+        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, false);
         Assert.assertThrows(ShenyuException.class, () -> springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent));
         registerUtilsMockedStatic.close();
     }
     
-    private SpringMvcClientEventListener buildSpringMvcClientEventListener() {
-        Properties properties = new Properties();
-        properties.setProperty("contextPath", "/mvc");
-        properties.setProperty("isFull", Boolean.FALSE.toString());
-        properties.setProperty("ip", "127.0.0.1");
-        properties.setProperty("username", "admin");
-        properties.setProperty("password", "123456");
-        PropertiesConfig config = new PropertiesConfig();
-        config.setProps(properties);
-        ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
-        mockRegisterCenter.setServerLists("http://127.0.0.1:9095");
-        mockRegisterCenter.setRegisterType("http");
-        mockRegisterCenter.setProps(properties);
-        return new SpringMvcClientEventListener(config, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
-    }
-
     @RestController
     @RequestMapping("/order")
     @ShenyuSpringMvcClient(path = "/order")
