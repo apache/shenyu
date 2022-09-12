@@ -66,8 +66,9 @@ public enum PluginEnum {
      * OAuth2 plugin enum.
      */
     OAUTH2(40, 0, "oauth2"),
+
     /**
-     * Auth plugin enum
+     * Auth plugin enum.
      */
     AUTH(40, 0, "auth"),
 
