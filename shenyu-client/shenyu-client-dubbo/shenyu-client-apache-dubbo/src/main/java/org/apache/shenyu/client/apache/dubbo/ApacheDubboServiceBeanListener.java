@@ -177,9 +177,9 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
                 .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : CommonConstants.DEFAULT_LOADBALANCE)
-                .retries(Objects.isNull(serviceBean.getRetries()) ? CommonConstants.DEFAULT_RETRIES : serviceBean.getRetries())
-                .timeout(Objects.isNull(serviceBean.getTimeout()) ? DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
-                .sent(Objects.isNull(serviceBean.getSent()) ? Boolean.FALSE : serviceBean.getSent())
+                .retries(Optional.ofNullable(serviceBean.getRetries()).orElse(CommonConstants.DEFAULT_RETRIES))
+                .timeout(Optional.ofNullable(serviceBean.getTimeout()).orElse(DEFAULT_CONNECT_TIMEOUT))
+                .sent(Optional.ofNullable(serviceBean.getSent()).orElse(Boolean.FALSE))
                 .cluster(StringUtils.isNotEmpty(serviceBean.getCluster()) ? serviceBean.getCluster() : Constants.DEFAULT_CLUSTER)
                 .url("")
                 .build();
