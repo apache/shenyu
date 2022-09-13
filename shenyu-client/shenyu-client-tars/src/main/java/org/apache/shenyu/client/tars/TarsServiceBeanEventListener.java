@@ -63,8 +63,6 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
 
     private final String ipAndPort;
 
-    private final Boolean isFull;
-
     public TarsServiceBeanEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
         Properties props = clientConfig.getProps();
@@ -75,16 +73,11 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
         }
         this.contextPath = contextPath;
         this.ipAndPort = this.getHost() + ":" + port;
-        this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
     protected Map<String, Object> getBeans(final ApplicationContext context) {
-        // Filter out
-        if (Boolean.TRUE.equals(isFull)) {
-            return null;
-        }
         return context.getBeansWithAnnotation(ShenyuTarsService.class);
     }
 
