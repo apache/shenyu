@@ -126,7 +126,7 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
                                final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, pathJoin(getContextPath(), superPath), clazz, method));
+            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, buildApiPath(method, superPath, null), clazz, method));
         }
     }
 

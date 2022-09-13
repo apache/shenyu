@@ -121,7 +121,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
         }
         return "";
     }
-    
+
     @Override
     protected void handleClass(final Class<?> clazz,
                                final ServiceBean bean,
@@ -129,7 +129,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                                final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, pathJoin(getContextPath(), superPath), clazz, method));
+            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, buildApiPath(method, superPath, null), clazz, method));
         }
     }
     
