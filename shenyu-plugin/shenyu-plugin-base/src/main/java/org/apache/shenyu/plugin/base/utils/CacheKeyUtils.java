@@ -36,6 +36,6 @@ public enum CacheKeyUtils {
      * @return string string
      */
     public String getKey(final RuleData ruleData) {
-        return String.join(ruleData.getSelectorId(), "_", ruleData.getId());
+        return String.join("_", ruleData.getSelectorId(), ruleData.getId());
     }
 }
