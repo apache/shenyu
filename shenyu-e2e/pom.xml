@@ -53,7 +53,7 @@
         <slf4j.version>1.7.35</slf4j.version>
         <jackson.version>2.13.3</jackson.version>
         <rest-assured.version>5.2.0</rest-assured.version>
-        <jetbrain-annotations.version>23.0.0</jetbrain-annotations.version>
+        <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
         <apache-rat-plugin.version>0.13</apache-rat-plugin.version>
     </properties>
 
@@ -138,7 +138,9 @@
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-bom</artifactId>
-                <version>${log4j.version}</version>
+                <version>2.18.0</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <dependency>

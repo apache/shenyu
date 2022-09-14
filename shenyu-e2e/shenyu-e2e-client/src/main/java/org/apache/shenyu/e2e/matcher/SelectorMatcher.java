@@ -38,7 +38,7 @@ public class SelectorMatcher {
     private final ObjectMapper mapper = new ObjectMapper();
     private final SelectorData expected;
     
-    public SelectorMatcher(SelectorData expected) {
+    private SelectorMatcher(SelectorData expected) {
         this.expected = expected;
     }
     
@@ -51,21 +51,23 @@ public class SelectorMatcher {
         } else {
             assertThat(actual, hasProperty("handle", isEmptyOrNullString()));
         }
-//        assertThat(actual, hasProperty("selectorConditions", IsIterableContainingInAnyOrder.containsInAnyOrder(expected.getConditionList()));
         
         assertThat(actual, hasProperty("name", startsWith(expected.getName())));
         assertThat(actual, hasProperty("pluginId", equalTo(expected.getPlugin().getId())));
-        assertThat(actual, hasProperty("type", equalTo(expected.getType().getId())));
-        assertThat(actual, hasProperty("matchMode", equalTo(expected.getMatchMode().getId())));
+        assertThat(actual, hasProperty("type", equalTo(Integer.parseInt(expected.getType().getId()))));
+        assertThat(actual, hasProperty("matchMode", equalTo(Integer.parseInt(expected.getMatchMode().getId()))));
         assertThat(actual, hasProperty("sort", equalTo(expected.getSort())));
         assertThat(actual, hasProperty("logged", equalTo(expected.isLogged())));
         assertThat(actual, hasProperty("enabled", equalTo(expected.isEnabled())));
-    
-        assertThat(actual, hasProperty("typeName", equalTo(expected.getType().name())));
-        assertThat(actual, hasProperty("matchModeName", equalTo(expected.getMatchMode().name())));
+        
+        assertThat(actual, hasProperty("typeName", equalTo(expected.getType().alias())));
+        assertThat(actual, hasProperty("matchModeName", equalTo(expected.getMatchMode().alias())));
         
         assertThat(actual, hasProperty("dateCreated", notNullValue()));
         assertThat(actual, hasProperty("dateUpdated", notNullValue()));
     }
     
+    public static SelectorMatcher verify(SelectorData expected) {
+        return new SelectorMatcher(expected);
+    }
 }

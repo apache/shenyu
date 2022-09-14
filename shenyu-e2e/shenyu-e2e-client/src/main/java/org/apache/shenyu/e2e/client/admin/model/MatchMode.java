@@ -19,8 +19,10 @@ package org.apache.shenyu.e2e.client.admin.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum MatchMode {
+import java.util.Locale;
 
+public enum MatchMode {
+    
     AND(0), OR(1);
     
     private final String id;
@@ -32,6 +34,10 @@ public enum MatchMode {
     @JsonValue
     public String getId() {
         return id;
+    }
+    
+    public String alias() {
+        return name().toLowerCase(Locale.ROOT);
     }
     
 }

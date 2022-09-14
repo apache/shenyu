@@ -19,8 +19,10 @@ package org.apache.shenyu.e2e.client.admin.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum SelectorType {
+import java.util.Locale;
 
+public enum SelectorType {
+    
     FULL(0), CUSTOM(1);
     
     private final String id;
@@ -32,6 +34,10 @@ public enum SelectorType {
     @JsonValue
     public String getId() {
         return id;
+    }
+    
+    public String alias() {
+        return name().toLowerCase(Locale.ROOT);
     }
     
 }
