@@ -37,7 +37,6 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-auth</artifactId>
             <version>2.5.1-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 

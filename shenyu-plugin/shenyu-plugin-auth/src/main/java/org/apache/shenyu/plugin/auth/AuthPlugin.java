@@ -28,8 +28,10 @@ import org.casbin.casdoor.service.CasdoorAuthService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 public class AuthPlugin implements ShenyuPlugin {
 
@@ -42,22 +44,22 @@ public class AuthPlugin implements ShenyuPlugin {
     };
 
     @Override
-    public reactor.core.publisher.Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String token = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (token != null) {
+        if (Objects.nonNull(token)) {
             CasdoorUser casdoorUser = casdoorAuthService.parseJwtToken(token);
-            if (casdoorUser != null) {
+            if (Objects.nonNull(casdoorUser)) {
                 return chain.execute(handleToken(exchange, casdoorUser));
             }
         }
         org.springframework.util.MultiValueMap<String, String> queryParams = request.getQueryParams();
         String code = queryParams.getFirst("code");
         String state = queryParams.getFirst("state");
-        if (code != null || state != null) {
+        if (Objects.nonNull(code) || Objects.nonNull(state)) {
             token = casdoorAuthService.getOAuthToken(code, state);
             CasdoorUser casdoorUser = casdoorAuthService.parseJwtToken(token);
-            if (token != null) {
+            if (Objects.nonNull(casdoorUser)) {
                 return chain.execute(handleToken(exchange, casdoorUser));
             }
         }
