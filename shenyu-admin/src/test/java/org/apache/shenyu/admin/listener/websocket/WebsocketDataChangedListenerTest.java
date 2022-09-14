@@ -196,7 +196,7 @@ public final class WebsocketDataChangedListenerTest {
         ruleData.setId("1336350040008105984");
         ruleData.setLoged(true);
         ruleData.setMatchMode(1);
-        ruleData.setName("test");
+        ruleData.setId("test");
         ruleData.setPluginName("waf");
         ruleData.setSelectorId("1336349806465064960");
         ruleData.setSort(1);
