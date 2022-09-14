@@ -48,7 +48,7 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
         this.loggingElasticSearchPluginDataHandler = new LoggingElasticSearchPluginDataHandler();
         selectorData.setId("1");
         selectorData.setType(1);
-        selectorData.setHandle("{\"index\":\"test\", \"sampleRate\":\"1\"}");
+        selectorData.setHandle("{\"index\":\"test\", \"sampleRate\":\"1\", \"topic\":\"1\"}");
         conditionData.setParamName("id");
         conditionData.setParamType("uri");
         conditionData.setParamValue("11");
@@ -73,9 +73,9 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
     @Test
     public void testHandlerSelector() throws NoSuchFieldException, IllegalAccessException {
         loggingElasticSearchPluginDataHandler.handlerSelector(selectorData);
-        Field field1 = loggingElasticSearchPluginDataHandler.getClass().getDeclaredField("SELECT_ID_URI_LIST_MAP");
+        Field field1 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_ID_URI_LIST_MAP");
         field1.setAccessible(true);
-        Field field2 = loggingElasticSearchPluginDataHandler.getClass().getDeclaredField("SELECT_API_CONFIG_MAP");
+        Field field2 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_API_CONFIG_MAP");
         field2.setAccessible(true);
         Assertions.assertEquals(field1.get("1").toString(), "{1=[11]}");
         Assertions.assertNotEquals(field2.get("1").toString(), "{}");
@@ -84,16 +84,16 @@ public final class LoggingElasticSearchPluginDataHandlerTest {
     @Test
     public void testRemoveSelector() throws NoSuchFieldException, IllegalAccessException {
         loggingElasticSearchPluginDataHandler.handlerSelector(selectorData);
-        Field field1 = loggingElasticSearchPluginDataHandler.getClass().getDeclaredField("SELECT_ID_URI_LIST_MAP");
+        Field field1 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_ID_URI_LIST_MAP");
         field1.setAccessible(true);
-        Field field2 = loggingElasticSearchPluginDataHandler.getClass().getDeclaredField("SELECT_API_CONFIG_MAP");
+        Field field2 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_API_CONFIG_MAP");
         field2.setAccessible(true);
         Assertions.assertEquals(field1.get("1").toString(), "{1=[11]}");
         Assertions.assertNotEquals(field2.get("1").toString(), "{}");
         loggingElasticSearchPluginDataHandler.removeSelector(selectorData);
-        Field field3 = loggingElasticSearchPluginDataHandler.getClass().getDeclaredField("SELECT_ID_URI_LIST_MAP");
+        Field field3 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_ID_URI_LIST_MAP");
         field3.setAccessible(true);
-        Field field4 = loggingElasticSearchPluginDataHandler.getClass().getDeclaredField("SELECT_API_CONFIG_MAP");
+        Field field4 = loggingElasticSearchPluginDataHandler.getClass().getSuperclass().getDeclaredField("SELECT_API_CONFIG_MAP");
         field4.setAccessible(true);
         Assertions.assertEquals(field3.get("1").toString(), "{}");
         Assertions.assertEquals(field4.get("1").toString(), "{}");

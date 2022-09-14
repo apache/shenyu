@@ -18,9 +18,11 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.mybatis.oracle.OracleSQLPrepareInterceptor;
+import org.apache.shenyu.admin.mybatis.oracle.OracleSQLUpdateInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLPrepareInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSQLQueryInterceptor;
 import org.apache.shenyu.admin.mybatis.pg.interceptor.PostgreSqlUpdateInterceptor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,57 +35,73 @@ import org.springframework.context.annotation.Configuration;
 public class MapperConfig {
 
     /**
-     * Add the plugin to the MyBatis plugin interceptor chain.
-     *
-     * @return {@linkplain PostgreSQLQueryInterceptor}
+     * The type PostgreSQL.
      */
-    @Bean
+    @Configuration
     @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "postgresql")
-    public PostgreSQLQueryInterceptor postgreSqlQueryInterceptor() {
-        return new PostgreSQLQueryInterceptor();
+    static class PostgreSQLConfig {
+
+        /**
+         * Add the plugin to the MyBatis plugin interceptor chain.
+         *
+         * @return {@linkplain PostgreSQLQueryInterceptor}
+         */
+        @Bean
+        @ConditionalOnMissingBean(PostgreSQLQueryInterceptor.class)
+        public PostgreSQLQueryInterceptor postgreSqlQueryInterceptor() {
+            return new PostgreSQLQueryInterceptor();
+        }
+
+        /**
+         * Add the plugin to the MyBatis plugin interceptor chain.
+         *
+         * @return {@linkplain PostgreSQLPrepareInterceptor}
+         */
+        @Bean
+        @ConditionalOnMissingBean(PostgreSQLPrepareInterceptor.class)
+        public PostgreSQLPrepareInterceptor postgreSqlPrepareInterceptor() {
+            return new PostgreSQLPrepareInterceptor();
+        }
+
+        /**
+         * Add the plugin to the MyBatis plugin interceptor chain.
+         *
+         * @return {@linkplain PostgreSqlUpdateInterceptor}
+         */
+        @Bean
+        @ConditionalOnMissingBean(PostgreSqlUpdateInterceptor.class)
+        public PostgreSqlUpdateInterceptor postgreSqlUpdateInterceptor() {
+            return new PostgreSqlUpdateInterceptor();
+        }
     }
 
     /**
-     * Add the plugin to the MyBatis plugin interceptor chain.
-     *
-     * @return {@linkplain PostgreSQLPrepareInterceptor}
+     * The type OracleSQL.
      */
-    @Bean
-    @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "postgresql")
-    public PostgreSQLPrepareInterceptor postgreSqlPrepareInterceptor() {
-        return new PostgreSQLPrepareInterceptor();
-    }
-
-    /**
-     * Add the plugin to the MyBatis plugin interceptor chain.
-     *
-     * @return {@linkplain OracleSQLPrepareInterceptor}
-     */
-    @Bean
+    @Configuration
     @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "oracle")
-    public OracleSQLPrepareInterceptor oracleSqlPrepareInterceptor() {
-        return new OracleSQLPrepareInterceptor();
-    }
+    static class OracleSQLConfig {
 
-    /**
-     * Add the plugin to the MyBatis plugin interceptor chain.
-     *
-     * @return {@linkplain PostgreSqlUpdateInterceptor}
-     */
-    @Bean
-    @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "oracle")
-    public PostgreSqlUpdateInterceptor oracleSqlUpdateInterceptor() {
-        return new PostgreSqlUpdateInterceptor();
-    }
+        /**
+         * Add the plugin to the MyBatis plugin interceptor chain.
+         *
+         * @return {@linkplain OracleSQLPrepareInterceptor}
+         */
+        @Bean
+        @ConditionalOnMissingBean(OracleSQLPrepareInterceptor.class)
+        public OracleSQLPrepareInterceptor oracleSqlPrepareInterceptor() {
+            return new OracleSQLPrepareInterceptor();
+        }
 
-    /**
-     * Add the plugin to the MyBatis plugin interceptor chain.
-     *
-     * @return {@linkplain PostgreSqlUpdateInterceptor}
-     */
-    @Bean
-    @ConditionalOnProperty(name = "shenyu.database.dialect", havingValue = "postgresql")
-    public PostgreSqlUpdateInterceptor postgreSqlUpdateInterceptor() {
-        return new PostgreSqlUpdateInterceptor();
+        /**
+         * Add the plugin to the MyBatis plugin interceptor chain.
+         *
+         * @return {@linkplain OracleSQLUpdateInterceptor}
+         */
+        @Bean
+        @ConditionalOnMissingBean(OracleSQLUpdateInterceptor.class)
+        public OracleSQLUpdateInterceptor oracleSqlUpdateInterceptor() {
+            return new OracleSQLUpdateInterceptor();
+        }
     }
 }

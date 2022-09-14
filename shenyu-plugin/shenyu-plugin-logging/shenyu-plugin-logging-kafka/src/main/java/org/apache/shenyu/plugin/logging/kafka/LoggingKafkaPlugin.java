@@ -17,18 +17,10 @@
 
 package org.apache.shenyu.plugin.logging.kafka;
 
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
-import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
-import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
-import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.kafka.collector.KafkaLogCollector;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
 /**
  * Integrated kafka collect log.
@@ -36,35 +28,17 @@ import reactor.core.publisher.Mono;
 public class LoggingKafkaPlugin extends AbstractLoggingPlugin {
 
     @Override
-    public Mono<Void> doLogExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                   final SelectorData selector, final RuleData rule,
-                                   final ServerHttpRequest request, final ShenyuRequestLog requestInfo) {
-        LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
-        LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
-                requestInfo, KafkaLogCollector.getInstance());
-        ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
-                .response(loggingServerHttpResponse).build();
-        loggingServerHttpResponse.setExchange(webExchange);
-        return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
+    protected LogCollector logCollector() {
+        return KafkaLogCollector.getInstance();
     }
 
     /**
-     * get plugin order.
+     * pluginEnum.
      *
-     * @return order
+     * @return plugin
      */
     @Override
-    public int getOrder() {
-        return PluginEnum.LOGGING_KAFKA.getCode();
-    }
-
-    /**
-     * get plugin name.
-     *
-     * @return plugin name
-     */
-    @Override
-    public String named() {
-        return PluginEnum.LOGGING_KAFKA.getName();
+    public PluginEnum pluginEnum() {
+        return PluginEnum.LOGGING_KAFKA;
     }
 }

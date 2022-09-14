@@ -31,7 +31,6 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -147,7 +146,7 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
                 .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
 
         list.clear();
-        list.add(URIRegisterDTO.builder().protocol("http://").appName("test1").rpcType(RpcTypeEnum.DUBBO.getName()).host(LOCALHOST).port(8090).eventType(EventType.DELETED).build());
+        list.add(URIRegisterDTO.builder().protocol("http://").appName("test1").rpcType(RpcTypeEnum.DUBBO.getName()).host(LOCALHOST).port(8090)/*.eventType(EventType.DELETED)*/.build());
         doReturn(false).when(shenyuClientRegisterDubboService).doSubmit(any(), any());
         selectorDO = mock(SelectorDO.class);
         when(selectorDO.getHandle()).thenReturn(returnStr);

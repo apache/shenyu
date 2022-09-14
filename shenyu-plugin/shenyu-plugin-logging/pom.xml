@@ -33,5 +33,8 @@
         <module>shenyu-plugin-logging-kafka</module>
         <module>shenyu-plugin-logging-elasticsearch</module>
         <module>shenyu-plugin-logging-aliyun-sls</module>
+        <module>shenyu-plugin-logging-pulsar</module>
+        <module>shenyu-plugin-logging-tencent-cls</module>
+        <module>shenyu-plugin-logging-clickhouse</module>
     </modules>
 </project>

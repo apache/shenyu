@@ -32,6 +32,7 @@
         <module>shenyu-spring-boot-starter-sync-data-center</module>
         <module>shenyu-spring-boot-starter-client</module>
         <module>shenyu-spring-boot-starter-instance</module>
+        <module>shenyu-spring-boot-starter-sdk</module>
     </modules>
 
     <dependencies>

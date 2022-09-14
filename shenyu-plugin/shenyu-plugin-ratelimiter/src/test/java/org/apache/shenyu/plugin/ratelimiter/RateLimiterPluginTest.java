@@ -85,7 +85,7 @@ public final class RateLimiterPluginTest {
     public void doExecuteAllowedTest() {
         doExecutePreInit();
         when(redisRateLimiter.isAllowed(anyString(), any(RateLimiterHandle.class))).thenReturn(
-                Mono.just(new RateLimiterResponse(true, 1)));
+                Mono.just(new RateLimiterResponse(true, 1, null)));
         Mono<Void> result = rateLimiterPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
@@ -97,7 +97,7 @@ public final class RateLimiterPluginTest {
     public void doExecuteNotAllowedTest() {
         doExecutePreInit();
         when(redisRateLimiter.isAllowed(anyString(), any(RateLimiterHandle.class))).thenReturn(
-                Mono.just(new RateLimiterResponse(false, 1)));
+                Mono.just(new RateLimiterResponse(false, 1, null)));
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils.getInstance().setApplicationContext(context);

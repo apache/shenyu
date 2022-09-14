@@ -17,44 +17,41 @@
 
 package org.apache.shenyu.plugin.logging.kafka.client;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
+import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.errors.AuthorizationException;
 import org.apache.kafka.common.errors.OutOfOrderSequenceException;
 import org.apache.kafka.common.errors.ProducerFencedException;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.LZ4CompressData;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.kafka.config.KafkaLogCollectConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
+
+import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 
 /**
  * queue-based logging collector.
  */
-public class KafkaLogCollectClient implements LogConsumeClient {
-
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaLogCollectClient.class);
+public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogCollectConfig.KafkaLogConfig> {
 
     private static Map<String, String> apiTopicMap = new HashMap<>();
-
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
 
     private KafkaProducer<String, String> producer;
 
@@ -63,29 +60,43 @@ public class KafkaLogCollectClient implements LogConsumeClient {
     /**
      * init producer.
      *
-     * @param props kafka props
+     * @param config kafka props
      */
-    public void initProducer(final Properties props) {
-        if (MapUtils.isEmpty(props)) {
+    @Override
+    public void initClient0(@NonNull final KafkaLogCollectConfig.KafkaLogConfig config) {
+        if (Objects.isNull(config)
+                || StringUtils.isBlank(config.getNamesrvAddr())
+                || StringUtils.isBlank(config.getTopic())) {
             LOG.error("kafka props is empty. failed init kafka producer");
             return;
         }
-        if (isStarted.get()) {
-            close();
-        }
         String topic = "shenyu-access-logging";
-        String nameserverAddress = props.getProperty("bootstrap.servers");
+        String nameserverAddress = config.getNamesrvAddr();
+
         if (StringUtils.isBlank(topic) || StringUtils.isBlank(nameserverAddress)) {
             LOG.error("init kafkaLogCollectClient error, please check topic or nameserverAddress");
             return;
         }
         this.topic = topic;
+
+        Properties props = new Properties();
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, config.getNamesrvAddr());
+        if (!StringUtils.isBlank(config.getSecurityProtocol())
+                && !StringUtils.isBlank(config.getSaslMechanism())) {
+            props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, config.getSecurityProtocol());
+            props.put(SaslConfigs.SASL_MECHANISM, config.getSaslMechanism());
+            props.put(SaslConfigs.SASL_JAAS_CONFIG,
+                    MessageFormat
+                            .format("org.apache.kafka.common.security.scram.ScramLoginModule required username=\"{0}\" password=\"{1}\";",
+                                    config.getUserName(), config.getPassWord()));
+        }
         producer = new KafkaProducer<>(props);
         ProducerRecord<String, String> record = new ProducerRecord<>("shenyu-access-logging", StringSerializer.class.getName(), StringSerializer.class.getName());
         try {
             producer.send(record);
             LOG.info("init kafkaLogCollectClient success");
-            isStarted.set(true);
         } catch (ProducerFencedException | OutOfOrderSequenceException | AuthorizationException e) {
             // We can't recover from these exceptions, so our only option is to close the producer and exit.
             LOG.error("Init kafkaLogCollectClient error, We can't recover from these exceptions, so our only option is to close the producer and exit", e);
@@ -103,10 +114,7 @@ public class KafkaLogCollectClient implements LogConsumeClient {
      * @param logs list of log
      */
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
-            return;
-        }
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         logs.forEach(log -> {
             String logTopic = StringUtils.defaultIfBlank(LogCollectConfigUtils.getTopic(log.getPath(), apiTopicMap), topic);
             try {
@@ -147,10 +155,9 @@ public class KafkaLogCollectClient implements LogConsumeClient {
      * close producer.
      */
     @Override
-    public void close() {
-        if (Objects.nonNull(producer) && isStarted.get()) {
+    public void close0() {
+        if (Objects.nonNull(producer)) {
             producer.close();
-            isStarted.set(false);
         }
     }
 }

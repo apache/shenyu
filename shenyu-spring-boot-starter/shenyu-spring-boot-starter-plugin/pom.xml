@@ -64,5 +64,8 @@
         <module>shenyu-spring-boot-starter-plugin-cache</module>
         <module>shenyu-spring-boot-starter-plugin-mock</module>
         <module>shenyu-spring-boot-starter-plugin-logging-aliyun-sls</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-pulsar</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-tencent-cls</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-clickhouse</module>
     </modules>
 </project>
