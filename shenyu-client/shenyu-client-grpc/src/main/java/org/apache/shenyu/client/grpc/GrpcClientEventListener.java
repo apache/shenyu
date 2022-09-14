@@ -70,10 +70,10 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     @Override
     public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
         super.onApplicationEvent(contextRefreshedEvent);
-        
         Map<String, BindableService> beans = getBeans(contextRefreshedEvent.getApplicationContext());
         for (Entry<String, BindableService> entry : beans.entrySet()) {
             exportJsonGenericService(entry.getValue());
+            handle(entry.getKey(), entry.getValue());
         }
     }
     
