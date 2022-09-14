@@ -83,12 +83,11 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, BindableService> beans) {
-        String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
         return URIRegisterDTO.builder()
                 .contextPath(getContextPath())
                 .appName(getIpAndPort())
                 .rpcType(RpcTypeEnum.GRPC.getName())
-                .host(host)
+                .host(buildHost())
                 .port(Integer.parseInt(getPort()))
                 .build();
     }
@@ -124,7 +123,6 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final BindableService bean, @NonNull final ShenyuGrpcClient shenyuClient, final String path, final Class<?> clazz, final Method method) {
         String desc = shenyuClient.desc();
-        String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
         String configRuleName = shenyuClient.ruleName();
         String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
         String methodName = method.getName();
@@ -138,7 +136,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .serviceName(packageName)
                 .methodName(methodName)
                 .contextPath(getContextPath())
-                .host(host)
+                .host(buildHost())
                 .port(Integer.parseInt(getPort()))
                 .path(path)
                 .ruleName(ruleName)
@@ -148,6 +146,11 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .rpcExt(buildRpcExt(shenyuClient, methodType))
                 .enabled(shenyuClient.enabled())
                 .build();
+    }
+    
+    private String buildHost() {
+        final String host = this.getHost();
+        return IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host);
     }
 
     private String buildRpcExt(final ShenyuGrpcClient shenyuGrpcClient,
