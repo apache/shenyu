@@ -37,6 +37,7 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
+import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -52,7 +53,7 @@ import java.util.stream.Collectors;
 public class GrpcClientEventListener extends AbstractContextRefreshedEventListener<BindableService, ShenyuGrpcClient> {
     
     private final List<ServerServiceDefinition> serviceDefinitions = Lists.newArrayList();
-
+    
     /**
      * Instantiates a new Shenyu client bean post processor.
      *
@@ -82,7 +83,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, BindableService> beans) {
-        String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
+        String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
         return URIRegisterDTO.builder()
                 .contextPath(getContextPath())
                 .appName(getIpAndPort())
@@ -113,9 +114,17 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     }
     
     @Override
+    protected void handleClass(final Class<?> clazz, final BindableService bean, @NonNull final ShenyuGrpcClient beanShenyuClient, final String superPath) {
+        Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
+        for (Method method : methods) {
+            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, pathJoin(getContextPath(), superPath), clazz, method));
+        }
+    }
+    
+    @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final BindableService bean, @NonNull final ShenyuGrpcClient shenyuClient, final String path, final Class<?> clazz, final Method method) {
         String desc = shenyuClient.desc();
-        String host = IpUtils.isCompleteHost(getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
+        String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
         String configRuleName = shenyuClient.ruleName();
         String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
         String methodName = method.getName();
