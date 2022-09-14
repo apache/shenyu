@@ -97,7 +97,7 @@ public final class SpringCloudPluginDataHandlerTest {
     public void testHandlerRule() {
         ruleData.setSelectorId("1");
         ruleData.setHandle("{\"urlPath\":\"test\"}");
-        ruleData.setName("test");
+        ruleData.setId("test");
         springCloudPluginDataHandler.handlerRule(ruleData);
         Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> cache = SpringCloudPluginDataHandler.RULE_CACHED;
         Assertions.assertNotEquals(cache.get().obtainHandle("1_test"), null);
@@ -107,12 +107,12 @@ public final class SpringCloudPluginDataHandlerTest {
     public void testRemoveRule() {
         ruleData.setSelectorId("1");
         ruleData.setHandle("{\"urlPath\":\"test\"}");
-        ruleData.setName("test");
+        ruleData.setId("test");
         Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> cache = SpringCloudPluginDataHandler.RULE_CACHED;
         cache.get().cachedHandle("1_test", new SpringCloudRuleHandle());
         Assertions.assertNotEquals(cache.get().obtainHandle("1_test"), null);
         springCloudPluginDataHandler.removeRule(ruleData);
-        Assertions.assertEquals(cache.get().obtainHandle("1_test"), null);
+        Assertions.assertNull(cache.get().obtainHandle("1_test"));
     }
 
     @Test
