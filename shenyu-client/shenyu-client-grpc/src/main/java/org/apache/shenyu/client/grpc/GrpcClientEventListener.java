@@ -115,7 +115,19 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         if (basePath.contains("*")) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
-                getPublisher().publishEvent(buildMetaDataDTO(serviceBean, beanShenyuClient, basePath, clazz, method));
+                LOG.error("=====1{}", buildMetaDataDTO1(packageName, beanShenyuClient, method, basePath).toString());
+                LOG.error("=====2{}", buildMetaDataDTO(serviceBean, beanShenyuClient, basePath, clazz, method).toString());
+                getPublisher().publishEvent(buildMetaDataDTO1(packageName, beanShenyuClient, method, basePath));
+            }
+            return;
+        }
+        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
+        for (Method method : methods) {
+            ShenyuGrpcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
+            if (Objects.nonNull(methodShenyuClient)) {
+                LOG.error("=====1{}", buildMetaDataDTO1(packageName, beanShenyuClient, method, basePath).toString());
+                LOG.error("=====2{}", buildMetaDataDTO(serviceBean, beanShenyuClient, basePath, clazz, method).toString());
+                getPublisher().publishEvent(buildMetaDataDTO1(packageName, beanShenyuClient, method, basePath));
             }
         }
     }
@@ -162,6 +174,37 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         for (Method method : methods) {
             getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, buildApiPath(method, superPath, beanShenyuClient), clazz, method));
         }
+    }
+    
+    private MetaDataRegisterDTO buildMetaDataDTO1(final String packageName, final ShenyuGrpcClient shenyuGrpcClient,
+                                                 final Method method, final String basePath) {
+        String path = basePath.contains("*")
+                ? buildAbsolutePath("/", getContextPath(), basePath.replace("*", ""), method.getName())
+                : buildAbsolutePath("/", getContextPath(), basePath, shenyuGrpcClient.path());
+        String desc = shenyuGrpcClient.desc();
+        String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
+        String configRuleName = shenyuGrpcClient.ruleName();
+        String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
+        String methodName = method.getName();
+        Class<?>[] parameterTypesClazz = method.getParameterTypes();
+        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
+                .collect(Collectors.joining(","));
+        MethodDescriptor.MethodType methodType = JsonServerServiceInterceptor.getMethodTypeMap().get(packageName + "/" + methodName);
+        return MetaDataRegisterDTO.builder()
+                .appName(getIpAndPort())
+                .serviceName(packageName)
+                .methodName(methodName)
+                .contextPath(getContextPath())
+                .host(host)
+                .port(Integer.parseInt(getPort()))
+                .path(path)
+                .ruleName(ruleName)
+                .pathDesc(desc)
+                .parameterTypes(parameterTypes)
+                .rpcType(RpcTypeEnum.GRPC.getName())
+                .rpcExt(buildRpcExt(shenyuGrpcClient, methodType))
+                .enabled(shenyuGrpcClient.enabled())
+                .build();
     }
     
     @Override
