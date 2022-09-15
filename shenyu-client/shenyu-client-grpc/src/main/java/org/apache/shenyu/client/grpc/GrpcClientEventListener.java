@@ -44,6 +44,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -165,11 +166,13 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final BindableService bean, @NonNull final ShenyuGrpcClient shenyuClient, final String path, final Class<?> clazz, final Method method) {
-        String xpath = buildApiPath(method, path, shenyuClient);
+        String xpath = path.contains("*")
+                ? buildAbsolutePath("/", getContextPath(), path.replace("*", ""), method.getName())
+                : buildAbsolutePath("/", getContextPath(), path, shenyuClient.path());
         String desc = shenyuClient.desc();
         String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
         String configRuleName = shenyuClient.ruleName();
-        String ruleName = StringUtils.defaultIfBlank(configRuleName, xpath);
+        String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
         String methodName = method.getName();
         Class<?> parent = clazz.getSuperclass();
         Class<?> classes = parent.getDeclaringClass();
@@ -201,6 +204,19 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .rpcExt(buildRpcExt(shenyuClient, methodType))
                 .enabled(shenyuClient.enabled())
                 .build();
+    }
+    
+    private String buildAbsolutePath(final String separator, final String... paths) {
+        List<String> pathList = new ArrayList<>();
+        for (String path : paths) {
+            if (StringUtils.isBlank(path)) {
+                continue;
+            }
+            String newPath = StringUtils.removeStart(path, separator);
+            newPath = StringUtils.removeEnd(newPath, separator);
+            pathList.add(newPath);
+        }
+        return separator + String.join(separator, pathList);
     }
     
     private String buildHost() {
