@@ -66,14 +66,13 @@ public class ShenyuSofaClientConfigurationTest {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         applicationContextRunner.run(context -> {
-                    SofaServiceEventListener eventListener = context.getBean("sofaServiceEventListener", SofaServiceEventListener.class);
-                    assertNotNull(eventListener);
-                    assertEquals(eventListener.getAppName(), "sofa");
-                    assertEquals(eventListener.getHost(), "127.0.0.1");
-                    assertEquals(eventListener.getPort(), "8888");
-                    assertEquals(eventListener.getContextPath(), "/sofa");
-                }
-        );
+            SofaServiceEventListener eventListener = context.getBean("sofaServiceEventListener", SofaServiceEventListener.class);
+            assertNotNull(eventListener);
+            assertEquals(eventListener.getAppName(), "sofa");
+            assertEquals(eventListener.getHost(), "127.0.0.1");
+            assertEquals(eventListener.getPort(), "8888");
+            assertEquals(eventListener.getContextPath(), "/sofa");
+        });
         registerUtilsMockedStatic.close();
     }
 }
