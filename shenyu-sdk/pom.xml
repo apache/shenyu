@@ -31,6 +31,7 @@
     <modules>
         <module>shenyu-sdk-core</module>
         <module>shenyu-sdk-spring</module>
+        <module>shenyu-sdk-httpclient</module>
     </modules>
 
     <properties>
