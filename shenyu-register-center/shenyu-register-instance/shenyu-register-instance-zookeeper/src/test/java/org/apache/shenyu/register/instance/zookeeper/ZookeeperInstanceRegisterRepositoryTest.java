@@ -21,12 +21,16 @@ import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ZookeeperInstanceRegisterRepositoryTest {
 
@@ -60,5 +64,33 @@ public class ZookeeperInstanceRegisterRepositoryTest {
         repository.persistInstance(data);
         String value = client.get("/shenyu/register/instance/shenyu-host:9195");
         assertEquals(value, GsonUtils.getInstance().toJson(data));
+    }
+
+    @Test
+    public void testSelectInstancesAndWatcher() throws InterruptedException {
+        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
+                .appName("shenyu-test")
+                .host("shenyu-host")
+                .port(9195)
+                .build();
+        repository.persistInstance(data);
+        AtomicInteger atomicInteger = new AtomicInteger();
+        final int time = 1;
+        CountDownLatch countDownLatch = new CountDownLatch(time);
+        repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), list -> {
+            assertFalse(list.isEmpty());
+            atomicInteger.incrementAndGet();
+            countDownLatch.countDown();
+        });
+        for (int i = 1; i <= time; i++) {
+            data = InstanceRegisterDTO.builder()
+                    .appName("shenyu-test-" + i)
+                    .host("shenyu-host-" + i)
+                    .port(9195)
+                    .build();
+            repository.persistInstance(data);
+        }
+        countDownLatch.await();
+        assertEquals(atomicInteger.get(), time);
     }
 }
