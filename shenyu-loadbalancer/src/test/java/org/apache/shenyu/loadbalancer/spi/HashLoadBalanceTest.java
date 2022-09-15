@@ -129,8 +129,8 @@ public final class HashLoadBalanceTest {
                 .weight(1)
                 .build()), 1);
         Assertions.assertEquals(hashLoadBalance.getWeight(Upstream.builder()
-                .timestamp(System.currentTimeMillis() - 3L)
-                .warmup(4)
+                .timestamp(System.currentTimeMillis() - 3000L)
+                .warmup(4000)
                 .weight(4)
                 .build()), 3);
         Assertions.assertEquals(hashLoadBalance.getWeight(Upstream.builder()
