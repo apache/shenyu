@@ -126,21 +126,10 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final BindableService bean, @NonNull final ShenyuGrpcClient shenyuClient, final String path, final Class<?> clazz, final Method method) {
         String desc = shenyuClient.desc();
-        String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
         String configRuleName = shenyuClient.ruleName();
         String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
         String methodName = method.getName();
-        Class<?> parent = clazz.getSuperclass();
-        Class<?> classes = parent.getDeclaringClass();
-        String packageName = null;
-        try {
-            String serviceName = ShenyuClientConstants.SERVICE_NAME;
-            Field field = classes.getField(serviceName);
-            field.setAccessible(true);
-            packageName = field.get(null).toString();
-        } catch (Exception e) {
-            LOG.error(String.format("SERVICE_NAME field not found: %s", classes), e);
-        }
+        String packageName = buildPackageName(clazz);
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
@@ -150,7 +139,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .serviceName(packageName)
                 .methodName(methodName)
                 .contextPath(getContextPath())
-                .host(host)
+                .host(buildHost())
                 .port(Integer.parseInt(getPort()))
                 .path(path)
                 .ruleName(ruleName)
@@ -166,7 +155,22 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         final String host = this.getHost();
         return IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host);
     }
-
+    
+    private String buildPackageName(final Class<?> clazz) {
+        Class<?> parent = clazz.getSuperclass();
+        Class<?> classes = parent.getDeclaringClass();
+        String packageName = null;
+        try {
+            String serviceName = ShenyuClientConstants.SERVICE_NAME;
+            Field field = classes.getField(serviceName);
+            field.setAccessible(true);
+            packageName = field.get(null).toString();
+        } catch (Exception e) {
+            LOG.error(String.format("SERVICE_NAME field not found: %s", classes), e);
+        }
+        return packageName;
+    }
+    
     private String buildRpcExt(final ShenyuGrpcClient shenyuGrpcClient,
                                final MethodDescriptor.MethodType methodType) {
         GrpcExt build = GrpcExt.builder()
