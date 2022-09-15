@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.starter.client.sofa;
 
 import org.apache.shenyu.client.sofa.SofaServiceEventListener;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 
@@ -39,29 +41,38 @@ import static org.mockito.Mockito.mockStatic;
 @EnableConfigurationProperties
 public class ShenyuSofaClientConfigurationTest {
 
+    private ApplicationContextRunner applicationContextRunner;
+
+    @BeforeEach
+    public void before() {
+        applicationContextRunner = new ApplicationContextRunner()
+                .withConfiguration(AutoConfigurations.of(ShenyuSofaClientConfiguration.class))
+                .withBean(ShenyuSofaClientConfigurationTest.class)
+                .withPropertyValues(
+                        "debug=true",
+                        "shenyu.register.registerType=http",
+                        "shenyu.register.serverLists=http://localhost:9095",
+                        "shenyu.register.props.username=admin",
+                        "shenyu.register.props.password=123456",
+                        "shenyu.client.sofa.props[contextPath]=/sofa",
+                        "shenyu.client.sofa.props[appName]=sofa",
+                        "shenyu.client.sofa.props[host]=127.0.0.1",
+                        "shenyu.client.sofa.props[port]=8888"
+                );
+    }
+
     @Test
     public void testSofaServiceEventListener() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
-        new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(ShenyuSofaClientConfiguration.class))
-            .withBean(ShenyuSofaClientConfigurationTest.class)
-            .withPropertyValues(
-                    "debug=true",
-                    "shenyu.register.registerType=http",
-                    "shenyu.register.serverLists=http://localhost:9095",
-                    "shenyu.register.props.username=admin",
-                    "shenyu.register.props.password=123456",
-                    "shenyu.client.sofa.props[contextPath]=/sofa",
-                    "shenyu.client.sofa.props[appName]=sofa",
-                    "shenyu.client.sofa.props[host]=127.0.0.1",
-                    "shenyu.client.sofa.props[port]=8888"
-            )
-            .run(context -> {
-                        SofaServiceEventListener eventListener = context.getBean("sofaServiceEventListener", SofaServiceEventListener.class);
-                        assertNotNull(eventListener);
-                    }
-            );
+        applicationContextRunner.run(context -> {
+            SofaServiceEventListener eventListener = context.getBean("sofaServiceEventListener", SofaServiceEventListener.class);
+            assertNotNull(eventListener);
+            assertEquals(eventListener.getAppName(), "sofa");
+            assertEquals(eventListener.getHost(), "127.0.0.1");
+            assertEquals(eventListener.getPort(), "8888");
+            assertEquals(eventListener.getContextPath(), "/sofa");
+        });
         registerUtilsMockedStatic.close();
     }
 }
