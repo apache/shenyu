@@ -171,7 +171,17 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         String configRuleName = shenyuClient.ruleName();
         String ruleName = StringUtils.defaultIfBlank(configRuleName, xpath);
         String methodName = method.getName();
-        String packageName = clazz.getPackage().getName();
+        Class<?> parent = clazz.getSuperclass();
+        Class<?> classes = parent.getDeclaringClass();
+        String packageName = null;
+        try {
+            String serviceName = ShenyuClientConstants.SERVICE_NAME;
+            Field field = classes.getField(serviceName);
+            field.setAccessible(true);
+            packageName = field.get(null).toString();
+        } catch (Exception e) {
+            LOG.error(String.format("SERVICE_NAME field not found: %s", classes), e);
+        }
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
