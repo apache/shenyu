@@ -35,19 +35,14 @@ public class MemorySafeLRUMapTest {
         lru.put("3", "3");
         Assert.assertEquals(3, lru.size());
     }
-
+    
     @Test
     public void testLru() {
-        MemorySafeLRUMap<Integer, Integer> lru = new MemorySafeLRUMap<Integer, Integer>(1, 1024) {
-
-            private static final long serialVersionUID = 8897028073615563875L;
-
-            @Override
-            public boolean isFull() {
-                //just for test
-                return size() > 0;
-            }
-        };
+        MemorySafeLRUMap<Integer, Integer> lru = new MemorySafeLRUMap<>(1024, 0.75f,
+                (weightedSize, capacity, size) -> {
+                    //just for test
+                    return size > 1;
+                });
         lru.put(1, 1);
         Assert.assertEquals(1, lru.size());
         lru.put(2, 2);

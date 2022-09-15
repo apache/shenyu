@@ -17,56 +17,42 @@
 
 package org.apache.shenyu.common.cache;
 
-import org.apache.commons.collections4.map.LRUMap;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
 
 import java.util.Map;
 
 /**
- * The only difference between this class and {@link org.apache.commons.collections4.map.LRUMap}
+ * The only difference between this class and {@link org.apache.shenyu.common.cache.ConcurrentLinkedHashMap}
  * is that it handles memory issues via {@link org.apache.shenyu.common.concurrent.MemoryLimitCalculator}.
  */
-public class MemorySafeLRUMap<K, V> extends LRUMap<K, V> {
-
-    private final int maxFreeMemory;
-
+public class MemorySafeLRUMap<K, V> extends ConcurrentLinkedHashMap<K, V> {
+    
+    public MemorySafeLRUMap(final int maxFreeMemory,
+                            final Map<? extends K, ? extends V> map) {
+        this(maxFreeMemory, map.size());
+    }
+    
     public MemorySafeLRUMap(final int maxFreeMemory,
                             final int initialSize) {
-        super(MAXIMUM_CAPACITY, initialSize);
-        this.maxFreeMemory = maxFreeMemory;
+        this(maxFreeMemory, initialSize, 0.75f);
     }
-
+    
     public MemorySafeLRUMap(final int maxFreeMemory,
                             final int initialSize,
                             final float loadFactor) {
-        super(MAXIMUM_CAPACITY, initialSize, loadFactor);
-        this.maxFreeMemory = maxFreeMemory;
+        this(initialSize, loadFactor, (weightedSize, capacity, size) -> {
+            // when free memory less than certain value, consider it's full
+            return size > 0 && MemoryLimitCalculator.maxAvailable() < maxFreeMemory;
+        });
     }
-
-    public MemorySafeLRUMap(final int maxFreeMemory,
-                            final int initialSize,
+    
+    @SuppressWarnings("unchecked")
+    public MemorySafeLRUMap(final int initialSize,
                             final float loadFactor,
-                            final boolean scanUntilRemovable) {
-        super(MAXIMUM_CAPACITY, initialSize, loadFactor, scanUntilRemovable);
-        this.maxFreeMemory = maxFreeMemory;
-    }
-
-    public MemorySafeLRUMap(final int maxFreeMemory,
-                            final Map<? extends K, ? extends V> map) {
-        super(map);
-        this.maxFreeMemory = maxFreeMemory;
-    }
-
-    public MemorySafeLRUMap(final int maxFreeMemory,
-                            final Map<? extends K, ? extends V> map,
-                            final boolean scanUntilRemovable) {
-        super(map, scanUntilRemovable);
-        this.maxFreeMemory = maxFreeMemory;
-    }
-
-    @Override
-    public boolean isFull() {
-        // when free memory less than certain value, consider it's full
-        return size() > 0 && MemoryLimitCalculator.maxAvailable() < maxFreeMemory;
+                            final OverflowChecker checker) {
+        super(16, initialSize, MAXIMUM_CAPACITY,
+                loadFactor, checker,
+                (EvictionListener<K, V>) DiscardingListener.INSTANCE,
+                Weighers.entrySingleton());
     }
 }
