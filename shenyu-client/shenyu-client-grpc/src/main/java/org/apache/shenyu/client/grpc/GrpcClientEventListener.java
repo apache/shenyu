@@ -114,7 +114,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         if (basePath.contains("*")) {
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
             for (Method method : methods) {
-                getPublisher().publishEvent(buildMetaDataDTO(packageName, beanShenyuClient, method, basePath));
+                getPublisher().publishEvent(buildMetaDataDTO1(packageName, beanShenyuClient, method, basePath));
             }
             return;
         }
@@ -122,12 +122,12 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         for (Method method : methods) {
             ShenyuGrpcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
             if (Objects.nonNull(methodShenyuClient)) {
-                getPublisher().publishEvent(buildMetaDataDTO(packageName, methodShenyuClient, method, basePath));
+                getPublisher().publishEvent(buildMetaDataDTO1(packageName, methodShenyuClient, method, basePath));
             }
         }
     }
     
-    private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final ShenyuGrpcClient shenyuGrpcClient,
+    private MetaDataRegisterDTO buildMetaDataDTO1(final String packageName, final ShenyuGrpcClient shenyuGrpcClient,
                                                  final Method method, final String basePath) {
         String path = buildApiPath(method, basePath, shenyuGrpcClient);
         String desc = shenyuGrpcClient.desc();
