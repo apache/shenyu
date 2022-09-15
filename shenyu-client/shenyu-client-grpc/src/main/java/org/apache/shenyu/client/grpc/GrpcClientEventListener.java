@@ -35,22 +35,18 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -79,59 +75,10 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         Map<String, BindableService> beans = getBeans(contextRefreshedEvent.getApplicationContext());
         for (Entry<String, BindableService> entry : beans.entrySet()) {
             exportJsonGenericService(entry.getValue());
-            handler(entry.getValue());
+            handle(entry.getKey(), entry.getValue());
         }
     }
     
-    private void handler(final BindableService serviceBean) {
-        Class<?> clazz;
-        try {
-            clazz = serviceBean.getClass();
-        } catch (Exception e) {
-            LOG.error("failed to get grpc target class", e);
-            return;
-        }
-        if (AopUtils.isAopProxy(serviceBean)) {
-            clazz = AopUtils.getTargetClass(serviceBean);
-        }
-        Class<?> parent = clazz.getSuperclass();
-        Class<?> classes = parent.getDeclaringClass();
-        String packageName;
-        try {
-            String serviceName = ShenyuClientConstants.SERVICE_NAME;
-            Field field = classes.getField(serviceName);
-            field.setAccessible(true);
-            packageName = field.get(null).toString();
-        } catch (Exception e) {
-            LOG.error(String.format("SERVICE_NAME field not found: %s", classes), e);
-            return;
-        }
-        if (StringUtils.isEmpty(packageName)) {
-            LOG.error(String.format("grpc SERVICE_NAME can not found: %s", classes));
-            return;
-        }
-        ShenyuGrpcClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuGrpcClient.class);
-        String basePath = Optional.ofNullable(beanShenyuClient).map(annotation -> StringUtils.defaultIfBlank(beanShenyuClient.path(), "")).orElse("");
-        if (basePath.contains("*")) {
-            Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
-            for (Method method : methods) {
-                LOG.error("=====1{}", buildMetaDataDTO1(packageName, beanShenyuClient, method, basePath).toString());
-                LOG.error("=====2{}", buildMetaDataDTO(serviceBean, beanShenyuClient, basePath, clazz, method).toString());
-                getPublisher().publishEvent(buildMetaDataDTO1(packageName, beanShenyuClient, method, basePath));
-            }
-            return;
-        }
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
-        for (Method method : methods) {
-            ShenyuGrpcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
-            if (Objects.nonNull(methodShenyuClient)) {
-                LOG.error("=====1{}", buildMetaDataDTO1(packageName, methodShenyuClient, method, basePath).toString());
-                LOG.error("=====2{}", buildMetaDataDTO(serviceBean, methodShenyuClient, basePath, clazz, method).toString());
-                getPublisher().publishEvent(buildMetaDataDTO1(packageName, methodShenyuClient, method, basePath));
-            }
-        }
-    }
-
     @Override
     protected Map<String, BindableService> getBeans(final ApplicationContext context) {
         return context.getBeansOfType(BindableService.class);
@@ -172,50 +119,16 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     protected void handleClass(final Class<?> clazz, final BindableService bean, @NonNull final ShenyuGrpcClient beanShenyuClient, final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, buildApiPath(method, superPath, beanShenyuClient), clazz, method));
+            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, buildApiSuperPath(clazz, beanShenyuClient), clazz, method));
         }
-    }
-    
-    private MetaDataRegisterDTO buildMetaDataDTO1(final String packageName, final ShenyuGrpcClient shenyuGrpcClient,
-                                                 final Method method, final String basePath) {
-        String path = basePath.contains("*")
-                ? buildAbsolutePath("/", getContextPath(), basePath.replace("*", ""), method.getName())
-                : buildAbsolutePath("/", getContextPath(), basePath, shenyuGrpcClient.path());
-        String desc = shenyuGrpcClient.desc();
-        String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
-        String configRuleName = shenyuGrpcClient.ruleName();
-        String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
-        String methodName = method.getName();
-        Class<?>[] parameterTypesClazz = method.getParameterTypes();
-        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
-                .collect(Collectors.joining(","));
-        MethodDescriptor.MethodType methodType = JsonServerServiceInterceptor.getMethodTypeMap().get(packageName + "/" + methodName);
-        return MetaDataRegisterDTO.builder()
-                .appName(getIpAndPort())
-                .serviceName(packageName)
-                .methodName(methodName)
-                .contextPath(getContextPath())
-                .host(host)
-                .port(Integer.parseInt(getPort()))
-                .path(path)
-                .ruleName(ruleName)
-                .pathDesc(desc)
-                .parameterTypes(parameterTypes)
-                .rpcType(RpcTypeEnum.GRPC.getName())
-                .rpcExt(buildRpcExt(shenyuGrpcClient, methodType))
-                .enabled(shenyuGrpcClient.enabled())
-                .build();
     }
     
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final BindableService bean, @NonNull final ShenyuGrpcClient shenyuClient, final String path, final Class<?> clazz, final Method method) {
-        String xpath = path.contains("*")
-                ? buildAbsolutePath("/", getContextPath(), path.replace("*", ""), method.getName())
-                : buildAbsolutePath("/", getContextPath(), path, shenyuClient.path());
         String desc = shenyuClient.desc();
         String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
         String configRuleName = shenyuClient.ruleName();
-        String ruleName = StringUtils.defaultIfBlank(configRuleName, xpath);
+        String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
         String methodName = method.getName();
         Class<?> parent = clazz.getSuperclass();
         Class<?> classes = parent.getDeclaringClass();
@@ -239,7 +152,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .contextPath(getContextPath())
                 .host(host)
                 .port(Integer.parseInt(getPort()))
-                .path(xpath)
+                .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
@@ -247,19 +160,6 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .rpcExt(buildRpcExt(shenyuClient, methodType))
                 .enabled(shenyuClient.enabled())
                 .build();
-    }
-    
-    private String buildAbsolutePath(final String separator, final String... paths) {
-        List<String> pathList = new ArrayList<>();
-        for (String path : paths) {
-            if (StringUtils.isBlank(path)) {
-                continue;
-            }
-            String newPath = StringUtils.removeStart(path, separator);
-            newPath = StringUtils.removeEnd(newPath, separator);
-            pathList.add(newPath);
-        }
-        return separator + String.join(separator, pathList);
     }
     
     private String buildHost() {
