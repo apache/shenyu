@@ -75,7 +75,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
 
     @Override
     public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
-        super.onApplicationEvent(contextRefreshedEvent);
+        //super.onApplicationEvent(contextRefreshedEvent);
         Map<String, BindableService> beans = getBeans(contextRefreshedEvent.getApplicationContext());
         for (Entry<String, BindableService> entry : beans.entrySet()) {
             exportJsonGenericService(entry.getValue());
@@ -125,9 +125,9 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         for (Method method : methods) {
             ShenyuGrpcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
             if (Objects.nonNull(methodShenyuClient)) {
-                LOG.error("=====1{}", buildMetaDataDTO1(packageName, beanShenyuClient, method, basePath).toString());
-                LOG.error("=====2{}", buildMetaDataDTO(serviceBean, beanShenyuClient, basePath, clazz, method).toString());
-                getPublisher().publishEvent(buildMetaDataDTO1(packageName, beanShenyuClient, method, basePath));
+                LOG.error("=====1{}", buildMetaDataDTO1(packageName, methodShenyuClient, method, basePath).toString());
+                LOG.error("=====2{}", buildMetaDataDTO(serviceBean, methodShenyuClient, basePath, clazz, method).toString());
+                getPublisher().publishEvent(buildMetaDataDTO1(packageName, methodShenyuClient, method, basePath));
             }
         }
     }
@@ -215,7 +215,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         String desc = shenyuClient.desc();
         String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
         String configRuleName = shenyuClient.ruleName();
-        String ruleName = StringUtils.defaultIfBlank(configRuleName, path);
+        String ruleName = StringUtils.defaultIfBlank(configRuleName, xpath);
         String methodName = method.getName();
         Class<?> parent = clazz.getSuperclass();
         Class<?> classes = parent.getDeclaringClass();
