@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -188,7 +189,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
     private final long[] readBufferReadCount;
     
     @GuardedBy("evictionLock")
-    private final LinkedDeque<Node<K, V>> evictionDeque;
+    private final LinkedList<Node<K, V>> evictionDeque;
     
     // must write under lock
     @GuardedBy("evictionLock")
@@ -262,7 +263,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         this.weigher = weigher;
         evictionLock = new ReentrantLock();
         weightedSize = new AtomicLong();
-        evictionDeque = new LinkedDeque<>();
+        evictionDeque = new LinkedList<>();
         writeBuffer = new ConcurrentLinkedQueue<>();
         drainStatus = new AtomicReference<>(DrainStatus.IDLE);
         
@@ -528,7 +529,8 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         // removing it. If the entry is no longer linked then it does not need to
         // be processed.
         if (evictionDeque.contains(node)) {
-            evictionDeque.moveToBack(node);
+            evictionDeque.remove(node);
+            evictionDeque.addLast(node);
         }
     }
     
