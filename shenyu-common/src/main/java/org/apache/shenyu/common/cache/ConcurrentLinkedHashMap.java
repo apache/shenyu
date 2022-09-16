@@ -133,6 +133,11 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         implements ConcurrentMap<K, V>, Serializable {
     
+    /**
+     * The maximum weighted capacity of the map.
+     */
+    protected static final long MAXIMUM_CAPACITY = Long.MAX_VALUE - Integer.MAX_VALUE;
+    
     private static final long serialVersionUID = 1;
     
     /**
@@ -174,11 +179,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * A queue that discards all entries.
      */
     private static final Queue<?> DISCARDING_QUEUE = new DiscardingQueue();
-    
-    /**
-     * The maximum weighted capacity of the map.
-     */
-    protected static final long MAXIMUM_CAPACITY = Long.MAX_VALUE - Integer.MAX_VALUE;
     
     // The backing data store holding the key-value associations
     private final ConcurrentMap<K, Node<K, V>> data;
