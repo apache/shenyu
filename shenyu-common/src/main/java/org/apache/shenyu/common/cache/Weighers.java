@@ -204,7 +204,8 @@ public final class Weighers {
     
     static final class EntryWeigherView<K, V> implements EntryWeigher<K, V>, Serializable {
         static final long serialVersionUID = 1;
-        final Weigher<? super V> weigher;
+        
+        private final Weigher<? super V> weigher;
         
         EntryWeigherView(final Weigher<? super V> weigher) {
             checkNotNull(weigher);

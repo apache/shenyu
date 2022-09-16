@@ -45,7 +45,44 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A hash table supporting full concurrency of retrievals, adjustable expected
+ * This class performs a best-effort bounding of a ConcurrentHashMap using a
+ * page-replacement algorithm to determine which entries to evict when the
+ * capacity is exceeded.
+ *
+ * <p>The page replacement algorithm's data structures are kept eventually
+ * consistent with the map. An update to the map and recording of reads may
+ * not be immediately reflected on the algorithm's data structures. These
+ * structures are guarded by a lock and operations are applied in batches to
+ * avoid lock contention. The penalty of applying the batches is spread across
+ * threads so that the amortized cost is slightly higher than performing just
+ * the ConcurrentHashMap operation.
+ *
+ * <p>A memento of the reads and writes that were performed on the map are
+ * recorded in buffers. These buffers are drained at the first opportunity
+ * after a write or when the read buffer exceeds a threshold size. The reads
+ * are recorded in a lossy buffer, allowing the reordering operations to be
+ * discarded if the draining process cannot keep up. Due to the concurrent
+ * nature of the read and write operations a strict policy ordering is not
+ * possible, but is observably strict when single threaded.
+ *
+ * <p>Due to a lack of a strict ordering guarantee, a task can be executed
+ * out-of-order, such as a removal followed by its addition. The state of the
+ * entry is encoded within the value's weight.
+ *
+ * <p>Alive: The entry is in both the hash-table and the page replacement policy.
+ * This is represented by a positive weight.
+ *
+ * <p>Retired: The entry is not in the hash-table and is pending removal from the
+ * page replacement policy. This is represented by a negative weight.
+ *
+ * <p>Dead: The entry is not in the hash-table and is not in the page replacement
+ * policy. This is represented by a weight of zero.
+ *
+ * <p>The Least Recently Used page replacement algorithm was chosen due to its
+ * simplicity, high hit rate, and ability to be implemented with O(1) time
+ * complexity.
+ *
+ * <p>A hash table supporting full concurrency of retrievals, adjustable expected
  * concurrency for updates, and a maximum capacity to bound the map by. This
  * implementation differs from {@link java.util.concurrent.ConcurrentHashMap} in that it maintains a
  * page replacement algorithm that is used to evict an entry when the map has
@@ -96,47 +133,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         implements ConcurrentMap<K, V>, Serializable {
     
-    /*
-     * This class performs a best-effort bounding of a ConcurrentHashMap using a
-     * page-replacement algorithm to determine which entries to evict when the
-     * capacity is exceeded.
-     *
-     * The page replacement algorithm's data structures are kept eventually
-     * consistent with the map. An update to the map and recording of reads may
-     * not be immediately reflected on the algorithm's data structures. These
-     * structures are guarded by a lock and operations are applied in batches to
-     * avoid lock contention. The penalty of applying the batches is spread across
-     * threads so that the amortized cost is slightly higher than performing just
-     * the ConcurrentHashMap operation.
-     *
-     * A memento of the reads and writes that were performed on the map are
-     * recorded in buffers. These buffers are drained at the first opportunity
-     * after a write or when the read buffer exceeds a threshold size. The reads
-     * are recorded in a lossy buffer, allowing the reordering operations to be
-     * discarded if the draining process cannot keep up. Due to the concurrent
-     * nature of the read and write operations a strict policy ordering is not
-     * possible, but is observably strict when single threaded.
-     *
-     * Due to a lack of a strict ordering guarantee, a task can be executed
-     * out-of-order, such as a removal followed by its addition. The state of the
-     * entry is encoded within the value's weight.
-     *
-     * Alive: The entry is in both the hash-table and the page replacement policy.
-     * This is represented by a positive weight.
-     *
-     * Retired: The entry is not in the hash-table and is pending removal from the
-     * page replacement policy. This is represented by a negative weight.
-     *
-     * Dead: The entry is not in the hash-table and is not in the page replacement
-     * policy. This is represented by a weight of zero.
-     *
-     * The Least Recently Used page replacement algorithm was chosen due to its
-     * simplicity, high hit rate, and ability to be implemented with O(1) time
-     * complexity.
-     */
-    
     /**
-     * The number of CPUs
+     * The number of CPUs.
      */
     static final int NCPU = Runtime.getRuntime().availableProcessors();
     
@@ -192,35 +190,49 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
     
     // The backing data store holding the key-value associations
     private final ConcurrentMap<K, Node<K, V>> data;
+    
     private final int concurrencyLevel;
     
     // These fields provide support to bound the map by a maximum capacity
     @GuardedBy("evictionLock")
     private final long[] readBufferReadCount;
+    
     @GuardedBy("evictionLock")
     private final LinkedDeque<Node<K, V>> evictionDeque;
     
-    @GuardedBy("evictionLock") // must write under lock
+    // must write under lock
+    @GuardedBy("evictionLock")
     private final AtomicLong weightedSize;
-    @GuardedBy("evictionLock") // must write under lock
+    
+    // must write under lock
+    @GuardedBy("evictionLock")
     private final AtomicLong capacity;
     
     private final Lock evictionLock;
+    
     private final Queue<Runnable> writeBuffer;
+    
     private final AtomicLong[] readBufferWriteCount;
+    
     private final AtomicLong[] readBufferDrainAtWriteCount;
+    
     private final AtomicReference<Node<K, V>>[][] readBuffers;
     
     private final AtomicReference<DrainStatus> drainStatus;
+    
     private final EntryWeigher<? super K, ? super V> weigher;
     
     // These fields provide support for notifying a listener.
     private final Queue<Node<K, V>> pendingNotifications;
+    
     private final EvictionListener<K, V> listener;
+    
     private final OverflowChecker checker;
     
     private transient Set<K> keySet;
+    
     private transient Collection<V> values;
+    
     private transient Set<Entry<K, V>> entrySet;
     
     public ConcurrentLinkedHashMap(final int initialCapacity,
