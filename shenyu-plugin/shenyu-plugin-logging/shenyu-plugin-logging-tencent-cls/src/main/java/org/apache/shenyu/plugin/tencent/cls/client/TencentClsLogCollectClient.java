@@ -76,32 +76,21 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
             return;
         }
 
-        String totalSizeInBytes = shenyuConfig.getTotalSizeInBytes();
-        String maxSendThreadCount = shenyuConfig.getMaxSendThreadCount();
-        String maxBlockSec = shenyuConfig.getMaxBlockSec();
-        String maxBatchSize = shenyuConfig.getMaxBatchSize();
-        String maxBatchCount = shenyuConfig.getMaxBatchCount();
-        String lingerMs = shenyuConfig.getLingerMs();
-        String retries = shenyuConfig.getRetries();
-        String maxReservedAttempts = shenyuConfig.getMaxReservedAttempts();
-        String baseRetryBackoffMs = shenyuConfig.getBaseRetryBackoffMs();
-        String maxRetryBackoffMs = shenyuConfig.getMaxRetryBackoffMs();
         // init AsyncProducerConfig, AsyncProducerClient
         final AsyncProducerConfig config = new AsyncProducerConfig(endpoint, secretId, secretKey, NetworkUtils.getLocalMachineIP());
-
         // Optional parameters
-        Optional.ofNullable(totalSizeInBytes).map(Integer::valueOf).ifPresent(config::setTotalSizeInBytes);
-        Optional.ofNullable(maxSendThreadCount).map(Integer::valueOf).ifPresent(config::setSendThreadCount);
-        Optional.ofNullable(maxBlockSec).map(Long::valueOf).ifPresent(config::setMaxBlockMs);
-        Optional.ofNullable(maxBatchSize).map(Integer::valueOf).ifPresent(config::setBatchSizeThresholdInBytes);
-        Optional.ofNullable(maxBatchCount).map(Integer::valueOf).ifPresent(config::setBatchCountThreshold);
-        Optional.ofNullable(lingerMs).map(Integer::valueOf).ifPresent(config::setLingerMs);
-        Optional.ofNullable(retries).map(Integer::valueOf).ifPresent(config::setRetries);
-        Optional.ofNullable(maxReservedAttempts).map(Integer::valueOf).ifPresent(config::setMaxReservedAttempts);
-        Optional.ofNullable(baseRetryBackoffMs).map(Long::valueOf).ifPresent(config::setBaseRetryBackoffMs);
-        Optional.ofNullable(maxRetryBackoffMs).map(Long::valueOf).ifPresent(config::setMaxRetryBackoffMs);
+        Optional.ofNullable(shenyuConfig.getTotalSizeInBytes()).map(Integer::valueOf).ifPresent(config::setTotalSizeInBytes);
+        Optional.ofNullable(shenyuConfig.getMaxSendThreadCount()).map(Integer::valueOf).ifPresent(config::setSendThreadCount);
+        Optional.ofNullable(shenyuConfig.getMaxBlockSec()).map(Long::valueOf).ifPresent(config::setMaxBlockMs);
+        Optional.ofNullable(shenyuConfig.getMaxBatchSize()).map(Integer::valueOf).ifPresent(config::setBatchSizeThresholdInBytes);
+        Optional.ofNullable(shenyuConfig.getMaxBatchCount()).map(Integer::valueOf).ifPresent(config::setBatchCountThreshold);
+        Optional.ofNullable(shenyuConfig.getLingerMs()).map(Integer::valueOf).ifPresent(config::setLingerMs);
+        Optional.ofNullable(shenyuConfig.getRetries()).map(Integer::valueOf).ifPresent(config::setRetries);
+        Optional.ofNullable(shenyuConfig.getMaxReservedAttempts()).map(Integer::valueOf).ifPresent(config::setMaxReservedAttempts);
+        Optional.ofNullable(shenyuConfig.getBaseRetryBackoffMs()).map(Long::valueOf).ifPresent(config::setBaseRetryBackoffMs);
+        Optional.ofNullable(shenyuConfig.getMaxRetryBackoffMs()).map(Long::valueOf).ifPresent(config::setMaxRetryBackoffMs);
 
-        threadExecutor = createThreadPoolExecutor(config.getSendThreadCount());
+        threadExecutor = createThreadPoolExecutor(shenyuConfig.getSendThreadCount());
 
         try {
             client = new AsyncProducerClient(config);
