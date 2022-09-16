@@ -24,7 +24,6 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -34,7 +33,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * The type Web client plugin.
@@ -81,9 +79,6 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                     }
                     exchange.getResponse().setStatusCode(res.statusCode());
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
-                    // watcher httpStatus
-                    final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
-                    Optional.ofNullable(consumer).ifPresent(c -> c.accept(res.statusCode()));
                 });
     }
     
