@@ -401,7 +401,7 @@ public final class ExtensionLoader<T> {
          */
         private Class<?> clazz;
         
-        private ClassEntity(final String name, final Integer order, final Class<?> clazz, boolean isSingleton) {
+        private ClassEntity(final String name, final Integer order, final Class<?> clazz, final boolean isSingleton) {
             this.name = name;
             this.order = order;
             this.clazz = clazz;
