@@ -138,47 +138,47 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
     /**
      * The number of pending read operations before attempting to drain.
      */
-    static final int READ_BUFFER_THRESHOLD = 32;
+    private static final int READ_BUFFER_THRESHOLD = 32;
     
     /**
      * The maximum number of read operations to perform per amortized drain.
      */
-    static final int READ_BUFFER_DRAIN_THRESHOLD = 2 * READ_BUFFER_THRESHOLD;
+    private static final int READ_BUFFER_DRAIN_THRESHOLD = 2 * READ_BUFFER_THRESHOLD;
     
     /**
      * The maximum number of pending reads per buffer.
      */
-    static final int READ_BUFFER_SIZE = 2 * READ_BUFFER_DRAIN_THRESHOLD;
+    private static final int READ_BUFFER_SIZE = 2 * READ_BUFFER_DRAIN_THRESHOLD;
     
     /**
      * Mask value for indexing into the read buffer.
      */
-    static final int READ_BUFFER_INDEX_MASK = READ_BUFFER_SIZE - 1;
+    private static final int READ_BUFFER_INDEX_MASK = READ_BUFFER_SIZE - 1;
     
     /**
      * The maximum number of write operations to perform per amortized drain.
      */
-    static final int WRITE_BUFFER_DRAIN_THRESHOLD = 16;
+    private static final int WRITE_BUFFER_DRAIN_THRESHOLD = 16;
     
     /**
      * The maximum weighted capacity of the map.
      */
-    static final long MAXIMUM_CAPACITY = Long.MAX_VALUE - Integer.MAX_VALUE;
+    private static final long MAXIMUM_CAPACITY = Long.MAX_VALUE - Integer.MAX_VALUE;
     
     /**
      * The number of read buffers to use.
      */
-    static final int NUMBER_OF_READ_BUFFERS = ceilingNextPowerOfTwo(Runtime.getRuntime().availableProcessors());
+    private static final int NUMBER_OF_READ_BUFFERS = ceilingNextPowerOfTwo(Runtime.getRuntime().availableProcessors());
     
     /**
      * Mask value for indexing into the read buffers.
      */
-    static final int READ_BUFFERS_MASK = NUMBER_OF_READ_BUFFERS - 1;
+    private static final int READ_BUFFERS_MASK = NUMBER_OF_READ_BUFFERS - 1;
     
     /**
      * A queue that discards all entries.
      */
-    static final Queue<?> DISCARDING_QUEUE = new DiscardingQueue();
+    private static final Queue<?> DISCARDING_QUEUE = new DiscardingQueue();
     
     // The backing data store holding the key-value associations
     private final ConcurrentMap<K, Node<K, V>> data;
