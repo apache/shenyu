@@ -161,11 +161,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
     private static final int WRITE_BUFFER_DRAIN_THRESHOLD = 16;
     
     /**
-     * The maximum weighted capacity of the map.
-     */
-    private static final long MAXIMUM_CAPACITY = Long.MAX_VALUE - Integer.MAX_VALUE;
-    
-    /**
      * The number of read buffers to use.
      */
     private static final int NUMBER_OF_READ_BUFFERS = ceilingNextPowerOfTwo(Runtime.getRuntime().availableProcessors());
@@ -179,6 +174,11 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * A queue that discards all entries.
      */
     private static final Queue<?> DISCARDING_QUEUE = new DiscardingQueue();
+    
+    /**
+     * The maximum weighted capacity of the map.
+     */
+    protected static final long MAXIMUM_CAPACITY = Long.MAX_VALUE - Integer.MAX_VALUE;
     
     // The backing data store holding the key-value associations
     private final ConcurrentMap<K, Node<K, V>> data;
