@@ -136,26 +136,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
     private static final long serialVersionUID = 1;
     
     /**
-     * The number of CPUs.
-     */
-    static final int NCPU = Runtime.getRuntime().availableProcessors();
-    
-    /**
-     * The maximum weighted capacity of the map.
-     */
-    static final long MAXIMUM_CAPACITY = Long.MAX_VALUE - Integer.MAX_VALUE;
-    
-    /**
-     * The number of read buffers to use.
-     */
-    static final int NUMBER_OF_READ_BUFFERS = ceilingNextPowerOfTwo(NCPU);
-    
-    /**
-     * Mask value for indexing into the read buffers.
-     */
-    static final int READ_BUFFERS_MASK = NUMBER_OF_READ_BUFFERS - 1;
-    
-    /**
      * The number of pending read operations before attempting to drain.
      */
     static final int READ_BUFFER_THRESHOLD = 32;
@@ -179,6 +159,21 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * The maximum number of write operations to perform per amortized drain.
      */
     static final int WRITE_BUFFER_DRAIN_THRESHOLD = 16;
+    
+    /**
+     * The maximum weighted capacity of the map.
+     */
+    static final long MAXIMUM_CAPACITY = Long.MAX_VALUE - Integer.MAX_VALUE;
+    
+    /**
+     * The number of read buffers to use.
+     */
+    static final int NUMBER_OF_READ_BUFFERS = ceilingNextPowerOfTwo(Runtime.getRuntime().availableProcessors());
+    
+    /**
+     * Mask value for indexing into the read buffers.
+     */
+    static final int READ_BUFFERS_MASK = NUMBER_OF_READ_BUFFERS - 1;
     
     /**
      * A queue that discards all entries.
@@ -713,11 +708,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         return put(key, value, false);
     }
     
-    @Override
-    public V putIfAbsent(final K key, final V value) {
-        return put(key, value, true);
-    }
-    
     /**
      * Adds a node to the list and the data store. If an existing node is found,
      * then its value is updated if allowed.
@@ -736,7 +726,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         final WeightedValue<V> weightedValue = new WeightedValue<V>(value, weight);
         final Node<K, V> node = new Node<>(key, weightedValue);
         
-        for (; ; ) {
+        while (true) {
             final Node<K, V> prior = data.putIfAbsent(node.key, node);
             if (prior == null) {
                 afterWrite(new AddTask(node, weight));
@@ -745,7 +735,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
                 afterRead(prior);
                 return prior.getValue();
             }
-            for (; ; ) {
+            while (true) {
                 final WeightedValue<V> oldWeightedValue = prior.get();
                 if (!oldWeightedValue.isAlive()) {
                     break;
@@ -762,6 +752,11 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
                 }
             }
         }
+    }
+    
+    @Override
+    public V putIfAbsent(final K key, final V value) {
+        return put(key, value, true);
     }
     
     @Override
@@ -784,7 +779,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         }
         
         WeightedValue<V> weightedValue = node.get();
-        for (; ; ) {
+        while (true) {
             if (weightedValue.contains(value)) {
                 if (tryToRetire(node, weightedValue)) {
                     if (data.remove(key, node)) {
@@ -816,7 +811,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         if (node == null) {
             return null;
         }
-        for (; ; ) {
+        while (true) {
             final WeightedValue<V> oldWeightedValue = node.get();
             if (!oldWeightedValue.isAlive()) {
                 return null;
@@ -846,7 +841,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         if (node == null) {
             return false;
         }
-        for (; ; ) {
+        while (true) {
             final WeightedValue<V> weightedValue = node.get();
             if (!weightedValue.isAlive() || !weightedValue.contains(oldValue)) {
                 return false;
@@ -1238,7 +1233,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         
         @Override
         public boolean remove(final Object obj) {
-            return (map.remove(obj) != null);
+            return map.remove(obj) != null;
         }
         
         @Override
@@ -1365,7 +1360,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         
         @Override
         public boolean add(final Entry<K, V> entry) {
-            return (map.putIfAbsent(entry.getKey(), entry.getValue()) == null);
+            return map.putIfAbsent(entry.getKey(), entry.getValue()) == null;
         }
         
         @Override
@@ -1609,7 +1604,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         
         private final Node<K, V> node;
         
-        public UpdateTask(final Node<K, V> node, final int weightDifference) {
+        UpdateTask(final Node<K, V> node, final int weightDifference) {
             this.weightDifference = weightDifference;
             this.node = node;
         }
