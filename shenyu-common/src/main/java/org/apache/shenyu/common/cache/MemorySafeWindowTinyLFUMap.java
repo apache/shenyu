@@ -46,13 +46,13 @@ public class MemorySafeWindowTinyLFUMap<K, V> extends AbstractMap<K, V> implemen
     
     private static final long serialVersionUID = -3288161459386389022L;
     
-    private final int maxFreeMemory;
-    
-    private final Cache<K, V> cache;
-    
     private static final AtomicBoolean GLOBAL = new AtomicBoolean(false);
     
     private static final Set<MemorySafeWindowTinyLFUMap<?, ?>> ALL = new LinkedHashSet<>();
+    
+    private final int maxFreeMemory;
+    
+    private final Cache<K, V> cache;
     
     public MemorySafeWindowTinyLFUMap(final int maxFreeMemory,
                                       final int initialSize) {
@@ -90,6 +90,9 @@ public class MemorySafeWindowTinyLFUMap<K, V> extends AbstractMap<K, V> implemen
         return cache.asMap().entrySet();
     }
     
+    /**
+     * clean invalidated cache now.
+     */
     public void cleanUp() {
         cache.policy().eviction().ifPresent(eviction -> {
             while (isFull()) {
@@ -100,6 +103,11 @@ public class MemorySafeWindowTinyLFUMap<K, V> extends AbstractMap<K, V> implemen
         });
     }
     
+    /**
+     * whether to full.
+     *
+     * @return true if it's full
+     */
     public boolean isFull() {
         // when free memory less than certain value, consider it's full
         return cache.estimatedSize() > 0 && MemoryLimitCalculator.maxAvailable() < maxFreeMemory;
