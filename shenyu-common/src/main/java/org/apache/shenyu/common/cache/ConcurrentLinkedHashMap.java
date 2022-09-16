@@ -133,6 +133,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         implements ConcurrentMap<K, V>, Serializable {
     
+    private static final long serialVersionUID = 1;
+    
     /**
      * The number of CPUs.
      */
@@ -182,11 +184,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * A queue that discards all entries.
      */
     static final Queue<?> DISCARDING_QUEUE = new DiscardingQueue();
-    
-    static int ceilingNextPowerOfTwo(final int x) {
-        // From Hacker's Delight, Chapter 3, Harry S. Warren Jr.
-        return 1 << (Integer.SIZE - Integer.numberOfLeadingZeros(x - 1));
-    }
     
     // The backing data store holding the key-value associations
     private final ConcurrentMap<K, Node<K, V>> data;
@@ -297,6 +294,11 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
                 : new ConcurrentLinkedQueue<>();
     }
     
+    static int ceilingNextPowerOfTwo(final int x) {
+        // From Hacker's Delight, Chapter 3, Harry S. Warren Jr.
+        return 1 << (Integer.SIZE - Integer.numberOfLeadingZeros(x - 1));
+    }
+    
     /**
      * Ensures that the object is not null.
      */
@@ -322,6 +324,15 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         if (!expression) {
             throw new IllegalStateException();
         }
+    }
+    /* ---------------- Serialization Support -------------- */
+    
+    Object writeReplace() {
+        return new SerializationProxy<>(this);
+    }
+    
+    private void readObject(final ObjectInputStream stream) throws InvalidObjectException {
+        throw new InvalidObjectException("Proxy required");
     }
     
     /* ---------------- Eviction Support -------------- */
@@ -436,8 +447,8 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * @param writeCount  the number of writes on the chosen read buffer
      */
     void drainOnReadIfNeeded(final int bufferIndex, final long writeCount) {
-        final long pending = (writeCount - readBufferDrainAtWriteCount[bufferIndex].get());
-        final boolean delayable = (pending < READ_BUFFER_THRESHOLD);
+        final long pending = writeCount - readBufferDrainAtWriteCount[bufferIndex].get();
+        final boolean delayable = pending < READ_BUFFER_THRESHOLD;
         final DrainStatus status = drainStatus.get();
         if (status.shouldDrainBuffers(delayable)) {
             tryToDrainBuffers();
@@ -565,7 +576,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * @param node the entry in the page replacement policy
      */
     void makeRetired(final Node<K, V> node) {
-        for (; ; ) {
+        while (true) {
             final WeightedValue<V> current = node.get();
             if (!current.isAlive()) {
                 return;
@@ -585,7 +596,7 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      */
     @GuardedBy("evictionLock")
     void makeDead(final Node<K, V> node) {
-        for (; ; ) {
+        while (true) {
             WeightedValue<V> current = node.get();
             WeightedValue<V> dead = new WeightedValue<>(current.value, 0);
             if (node.compareAndSet(current, dead)) {
@@ -602,72 +613,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         Node<K, V> node;
         while ((node = pendingNotifications.poll()) != null) {
             listener.onEviction(node.key, node.getValue());
-        }
-    }
-    
-    /**
-     * Adds the node to the page replacement policy.
-     */
-    final class AddTask implements Runnable {
-        private final Node<K, V> node;
-        
-        private final int weight;
-        
-        AddTask(final Node<K, V> node, final int weight) {
-            this.weight = weight;
-            this.node = node;
-        }
-        
-        @Override
-        @GuardedBy("evictionLock")
-        public void run() {
-            weightedSize.lazySet(weightedSize.get() + weight);
-            
-            // ignore out-of-order write operations
-            if (node.get().isAlive()) {
-                evictionDeque.add(node);
-                evict();
-            }
-        }
-    }
-    
-    /**
-     * Removes a node from the page replacement policy.
-     */
-    final class RemovalTask implements Runnable {
-        private final Node<K, V> node;
-        
-        RemovalTask(final Node<K, V> node) {
-            this.node = node;
-        }
-        
-        @Override
-        @GuardedBy("evictionLock")
-        public void run() {
-            // add may not have been processed yet
-            evictionDeque.remove(node);
-            makeDead(node);
-        }
-    }
-    
-    /**
-     * Updates the weighted size and evicts an entry on overflow.
-     */
-    final class UpdateTask implements Runnable {
-        final int weightDifference;
-        final Node<K, V> node;
-        
-        public UpdateTask(final Node<K, V> node, final int weightDifference) {
-            this.weightDifference = weightDifference;
-            this.node = node;
-        }
-        
-        @Override
-        @GuardedBy("evictionLock")
-        public void run() {
-            weightedSize.lazySet(weightedSize.get() + weightDifference);
-            applyRead(node);
-            evict();
         }
     }
     
@@ -1552,18 +1497,6 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         }
     }
     
-    /* ---------------- Serialization Support -------------- */
-    
-    static final long serialVersionUID = 1;
-    
-    Object writeReplace() {
-        return new SerializationProxy<>(this);
-    }
-    
-    private void readObject(final ObjectInputStream stream) throws InvalidObjectException {
-        throw new InvalidObjectException("Proxy required");
-    }
-    
     /**
      * A proxy that is serialized instead of the map. The page-replacement
      * algorithm's data structures are not serialized so the deserialized
@@ -1620,6 +1553,73 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
         @Override
         public boolean hasOverflowed(final long weightedSize, final long capacity, final int size) {
             return weightedSize > capacity;
+        }
+    }
+    
+    /**
+     * Adds the node to the page replacement policy.
+     */
+    final class AddTask implements Runnable {
+        private final Node<K, V> node;
+        
+        private final int weight;
+        
+        AddTask(final Node<K, V> node, final int weight) {
+            this.weight = weight;
+            this.node = node;
+        }
+        
+        @Override
+        @GuardedBy("evictionLock")
+        public void run() {
+            weightedSize.lazySet(weightedSize.get() + weight);
+            
+            // ignore out-of-order write operations
+            if (node.get().isAlive()) {
+                evictionDeque.add(node);
+                evict();
+            }
+        }
+    }
+    
+    /**
+     * Removes a node from the page replacement policy.
+     */
+    final class RemovalTask implements Runnable {
+        private final Node<K, V> node;
+        
+        RemovalTask(final Node<K, V> node) {
+            this.node = node;
+        }
+        
+        @Override
+        @GuardedBy("evictionLock")
+        public void run() {
+            // add may not have been processed yet
+            evictionDeque.remove(node);
+            makeDead(node);
+        }
+    }
+    
+    /**
+     * Updates the weighted size and evicts an entry on overflow.
+     */
+    final class UpdateTask implements Runnable {
+        private final int weightDifference;
+        
+        private final Node<K, V> node;
+        
+        public UpdateTask(final Node<K, V> node, final int weightDifference) {
+            this.weightDifference = weightDifference;
+            this.node = node;
+        }
+        
+        @Override
+        @GuardedBy("evictionLock")
+        public void run() {
+            weightedSize.lazySet(weightedSize.get() + weightDifference);
+            applyRead(node);
+            evict();
         }
     }
 }
