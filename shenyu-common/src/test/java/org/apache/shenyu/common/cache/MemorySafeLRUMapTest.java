@@ -39,10 +39,10 @@ public class MemorySafeLRUMapTest {
     @Test
     public void testLru() {
         MemorySafeLRUMap<Integer, Integer> lru = new MemorySafeLRUMap<>(1024, 0.75f,
-                (weightedSize, capacity, size) -> {
-                    //just for test
-                    return size > 1;
-                });
+            (weightedSize, capacity, size) -> {
+                //just for test
+                return size > 1;
+            });
         lru.put(1, 1);
         Assert.assertEquals(1, lru.size());
         lru.put(2, 2);

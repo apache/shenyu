@@ -1,9 +1,10 @@
 /*
- * Copyright 2010 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -49,8 +50,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * implementation differs from {@link java.util.concurrent.ConcurrentHashMap} in that it maintains a
  * page replacement algorithm that is used to evict an entry when the map has
  * exceeded its capacity.
- * <p>
- * An entry is evicted from the map when the <tt>weighted capacity</tt> exceeds
+ *
+ * <p>An entry is evicted from the map when the <tt>weighted capacity</tt> exceeds
  * its <tt>maximum weighted capacity</tt> threshold. A {@link com.googlecode.concurrentlinkedhashmap.EntryWeigher}
  * determines how many units of capacity that an entry consumes. The default
  * weigher assigns each value a weight of <tt>1</tt> to bound the map by the
@@ -59,8 +60,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * by the total number of elements that it contains. A change to a value that
  * modifies its weight requires that an update operation is performed on the
  * map.
- * <p>
- * An {@link com.googlecode.concurrentlinkedhashmap.EvictionListener} may be supplied for notification when an entry
+ *
+ * <p>An {@link com.googlecode.concurrentlinkedhashmap.EvictionListener} may be supplied for notification when an entry
  * is evicted from the map. This listener is invoked on a caller's thread and
  * will not block other threads from operating on the map. An implementation
  * should be aware that the caller's thread will not expect long execution
@@ -68,19 +69,19 @@ import java.util.concurrent.locks.ReentrantLock;
  * safety and a fast turn around time can be achieved by performing the
  * operation asynchronously, such as by submitting a task to an
  * {@link java.util.concurrent.ExecutorService}.
- * <p>
- * The <tt>concurrency level</tt> determines the number of threads that can
+ *
+ * <p>The <tt>concurrency level</tt> determines the number of threads that can
  * concurrently modify the table. Using a significantly higher or lower value
  * than needed can waste space or lead to thread contention, but an estimate
  * within an order of magnitude of the ideal value does not usually have a
  * noticeable impact. Because placement in hash tables is essentially random,
  * the actual concurrency will vary.
- * <p>
- * This class and its views and iterators implement all of the
+ *
+ * <p>This class and its views and iterators implement all of the
  * <em>optional</em> methods of the {@link java.util.Map} and {@link java.util.Iterator}
  * interfaces.
- * <p>
- * Like {@link java.util.Hashtable} but unlike {@link java.util.HashMap}, this class
+ *
+ * <p>Like {@link java.util.Hashtable} but unlike {@link java.util.HashMap}, this class
  * does <em>not</em> allow <tt>null</tt> to be used as a key or value. Unlike
  * {@link java.util.LinkedHashMap}, this class does <em>not</em> provide
  * predictable iteration order. A snapshot of the keys and entries may be
@@ -190,37 +191,37 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
     }
     
     // The backing data store holding the key-value associations
-    final ConcurrentMap<K, Node<K, V>> data;
-    final int concurrencyLevel;
+    private final ConcurrentMap<K, Node<K, V>> data;
+    private final int concurrencyLevel;
     
     // These fields provide support to bound the map by a maximum capacity
     @GuardedBy("evictionLock")
-    final long[] readBufferReadCount;
+    private final long[] readBufferReadCount;
     @GuardedBy("evictionLock")
-    final LinkedDeque<Node<K, V>> evictionDeque;
+    private final LinkedDeque<Node<K, V>> evictionDeque;
     
     @GuardedBy("evictionLock") // must write under lock
-    final AtomicLong weightedSize;
+    private final AtomicLong weightedSize;
     @GuardedBy("evictionLock") // must write under lock
-    final AtomicLong capacity;
+    private final AtomicLong capacity;
     
-    final Lock evictionLock;
-    final Queue<Runnable> writeBuffer;
-    final AtomicLong[] readBufferWriteCount;
-    final AtomicLong[] readBufferDrainAtWriteCount;
-    final AtomicReference<Node<K, V>>[][] readBuffers;
+    private final Lock evictionLock;
+    private final Queue<Runnable> writeBuffer;
+    private final AtomicLong[] readBufferWriteCount;
+    private final AtomicLong[] readBufferDrainAtWriteCount;
+    private final AtomicReference<Node<K, V>>[][] readBuffers;
     
-    final AtomicReference<DrainStatus> drainStatus;
-    final EntryWeigher<? super K, ? super V> weigher;
+    private final AtomicReference<DrainStatus> drainStatus;
+    private final EntryWeigher<? super K, ? super V> weigher;
     
     // These fields provide support for notifying a listener.
-    final Queue<Node<K, V>> pendingNotifications;
-    final EvictionListener<K, V> listener;
-    final OverflowChecker checker;
+    private final Queue<Node<K, V>> pendingNotifications;
+    private final EvictionListener<K, V> listener;
+    private final OverflowChecker checker;
     
-    transient Set<K> keySet;
-    transient Collection<V> values;
-    transient Set<Entry<K, V>> entrySet;
+    private transient Set<K> keySet;
+    private transient Collection<V> values;
+    private transient Set<Entry<K, V>> entrySet;
     
     public ConcurrentLinkedHashMap(final int initialCapacity,
                                    final long capacity) {
@@ -915,8 +916,8 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * this map. The set's iterator returns the keys whose order of iteration is
      * the ascending order in which its entries are considered eligible for
      * retention, from the least-likely to be retained to the most-likely.
-     * <p>
-     * Beware that, unlike in {@link #keySet()}, obtaining the set is <em>NOT</em>
+     *
+     * <p>Beware that, unlike in {@link #keySet()}, obtaining the set is <em>NOT</em>
      * a constant-time operation. Because of the asynchronous nature of the page
      * replacement policy, determining the retention ordering requires a traversal
      * of the keys.
@@ -932,8 +933,8 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * this map. The set's iterator returns the keys whose order of iteration is
      * the ascending order in which its entries are considered eligible for
      * retention, from the least-likely to be retained to the most-likely.
-     * <p>
-     * Beware that, unlike in {@link #keySet()}, obtaining the set is <em>NOT</em>
+     *
+     * <p>Beware that, unlike in {@link #keySet()}, obtaining the set is <em>NOT</em>
      * a constant-time operation. Because of the asynchronous nature of the page
      * replacement policy, determining the retention ordering requires a traversal
      * of the keys.
@@ -951,8 +952,8 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * this map. The set's iterator returns the keys whose order of iteration is
      * the descending order in which its entries are considered eligible for
      * retention, from the most-likely to be retained to the least-likely.
-     * <p>
-     * Beware that, unlike in {@link #keySet()}, obtaining the set is <em>NOT</em>
+     *
+     * <p>Beware that, unlike in {@link #keySet()}, obtaining the set is <em>NOT</em>
      * a constant-time operation. Because of the asynchronous nature of the page
      * replacement policy, determining the retention ordering requires a traversal
      * of the keys.
@@ -968,8 +969,8 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * this map. The set's iterator returns the keys whose order of iteration is
      * the descending order in which its entries are considered eligible for
      * retention, from the most-likely to be retained to the least-likely.
-     * <p>
-     * Beware that, unlike in {@link #keySet()}, obtaining the set is <em>NOT</em>
+     *
+     * <p>Beware that, unlike in {@link #keySet()}, obtaining the set is <em>NOT</em>
      * a constant-time operation. Because of the asynchronous nature of the page
      * replacement policy, determining the retention ordering requires a traversal
      * of the keys.
@@ -1022,8 +1023,8 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * iteration is the ascending order in which its entries are considered
      * eligible for retention, from the least-likely to be retained to the
      * most-likely.
-     * <p>
-     * Beware that obtaining the mappings is <em>NOT</em> a constant-time
+     *
+     * <p>Beware that obtaining the mappings is <em>NOT</em> a constant-time
      * operation. Because of the asynchronous nature of the page replacement
      * policy, determining the retention ordering requires a traversal of the
      * entries.
@@ -1040,8 +1041,8 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * iteration is the ascending order in which its entries are considered
      * eligible for retention, from the least-likely to be retained to the
      * most-likely.
-     * <p>
-     * Beware that obtaining the mappings is <em>NOT</em> a constant-time
+     *
+     * <p>Beware that obtaining the mappings is <em>NOT</em> a constant-time
      * operation. Because of the asynchronous nature of the page replacement
      * policy, determining the retention ordering requires a traversal of the
      * entries.
@@ -1060,8 +1061,8 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * iteration is the descending order in which its entries are considered
      * eligible for retention, from the most-likely to be retained to the
      * least-likely.
-     * <p>
-     * Beware that obtaining the mappings is <em>NOT</em> a constant-time
+     *
+     * <p>Beware that obtaining the mappings is <em>NOT</em> a constant-time
      * operation. Because of the asynchronous nature of the page replacement
      * policy, determining the retention ordering requires a traversal of the
      * entries.
@@ -1078,8 +1079,8 @@ public class ConcurrentLinkedHashMap<K, V> extends AbstractMap<K, V>
      * iteration is the descending order in which its entries are considered
      * eligible for retention, from the most-likely to be retained to the
      * least-likely.
-     * <p>
-     * Beware that obtaining the mappings is <em>NOT</em> a constant-time
+     *
+     * <p>Beware that obtaining the mappings is <em>NOT</em> a constant-time
      * operation. Because of the asynchronous nature of the page replacement
      * policy, determining the retention ordering requires a traversal of the
      * entries.

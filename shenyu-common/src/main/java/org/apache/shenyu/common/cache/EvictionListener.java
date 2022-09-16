@@ -1,9 +1,10 @@
 /*
- * Copyright 2010 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -23,8 +24,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * may be called concurrently by multiple threads to process entries. An
  * implementation should avoid performing blocking calls or synchronizing on
  * shared resources.
- * <p>
- * The listener is invoked by {@link ConcurrentLinkedHashMap} on a caller's
+ *
+ * <p>The listener is invoked by {@link ConcurrentLinkedHashMap} on a caller's
  * thread and will not block other threads from operating on the map. An
  * implementation should be aware that the caller's thread will not expect
  * long execution times or failures as a side effect of the listener being
