@@ -81,7 +81,7 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                     }
                     exchange.getResponse().setStatusCode(res.statusCode());
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
-                    // sentinel watcher httpStatus
+                    // watcher httpStatus
                     final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
                     Optional.ofNullable(consumer).ifPresent(c -> c.accept(res.statusCode()));
                 });
