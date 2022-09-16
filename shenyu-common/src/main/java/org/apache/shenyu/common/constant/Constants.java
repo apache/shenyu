@@ -148,6 +148,11 @@ public interface Constants {
     String MODULE = "module";
 
     /**
+     * WATCHER_HTTP_STATUS.
+     */
+    String WATCHER_HTTP_STATUS = "WATCHER_HTTP_STATUS";
+
+    /**
      * The constant METHOD.
      */
     String METHOD = "method";
