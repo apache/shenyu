@@ -212,8 +212,7 @@ public final class SentinelPluginTest {
 
         Mono mono = Mono.empty().doOnSuccess(v -> exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS));
         when(chain.execute(exchange)).thenReturn(mono);
-        StepVerifier.create(sentinelPlugin.doExecute(exchange, chain, selectorData, data))
-                .expectError(HttpStatusCodeException.class).verify();
+        StepVerifier.create(sentinelPlugin.doExecute(exchange, chain, selectorData, data)).expectComplete().verify();
 
         // remove rule
         sentinelRuleHandle.removeRule(data);
