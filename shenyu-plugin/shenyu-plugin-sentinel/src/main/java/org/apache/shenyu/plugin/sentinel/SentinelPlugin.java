@@ -57,7 +57,6 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
         sentinelHandle.checkData(sentinelHandle);
         exchange.getAttributes().put(Constants.WATCHER_HTTP_STATUS, (Consumer<HttpStatus>) status -> {
             if (status == null || !status.is2xxSuccessful()) {
-                exchange.getResponse().setStatusCode(null);
                 throw new SentinelFallbackException(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);
             }
         });
