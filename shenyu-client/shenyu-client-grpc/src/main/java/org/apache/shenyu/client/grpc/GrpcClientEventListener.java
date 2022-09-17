@@ -44,7 +44,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -69,12 +68,14 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     }
     
     @Override
+    protected void handle(final String beanName, final BindableService bean) {
+        exportJsonGenericService(bean);
+        super.handle(beanName, bean);
+    }
+    
+    @Override
     protected Map<String, BindableService> getBeans(final ApplicationContext context) {
-        Map<String, BindableService> result = context.getBeansOfType(BindableService.class);
-        for (Entry<String, BindableService> entry : result.entrySet()) {
-            exportJsonGenericService(entry.getValue());
-        }
-        return result;
+        return context.getBeansOfType(BindableService.class);
     }
     
     @Override
