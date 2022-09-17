@@ -94,12 +94,19 @@ public class MemorySafeWindowTinyLFUMap<K, V> extends AbstractMap<K, V> implemen
      * clean invalidated cache now.
      */
     public void cleanUp() {
+        while (isFull()) {
+            invalidate();
+        }
+    }
+    
+    /**
+     * invalidate coldest cache now.
+     */
+    public void invalidate() {
         cache.policy().eviction().ifPresent(eviction -> {
-            while (isFull()) {
-                final Map<@NonNull K, @NonNull V> coldest = eviction.coldest(1);
-                Optional.ofNullable(coldest.entrySet().iterator().next())
-                        .ifPresent(entry -> remove(entry.getKey()));
-            }
+            final Map<@NonNull K, @NonNull V> coldest = eviction.coldest(1);
+            Optional.ofNullable(coldest.entrySet().iterator().next())
+                    .ifPresent(entry -> remove(entry.getKey()));
         });
     }
     
@@ -151,8 +158,12 @@ public class MemorySafeWindowTinyLFUMap<K, V> extends AbstractMap<K, V> implemen
     }
     
     private static void refresh() {
-        for (MemorySafeWindowTinyLFUMap<?, ?> map : ALL) {
-            map.cleanUp();
+        boolean anyFull = ALL.stream().anyMatch(MemorySafeWindowTinyLFUMap::isFull);
+        while (anyFull) {
+            for (MemorySafeWindowTinyLFUMap<?, ?> map : ALL) {
+                map.invalidate();
+            }
+            anyFull = ALL.stream().anyMatch(MemorySafeWindowTinyLFUMap::isFull);
         }
     }
 }
