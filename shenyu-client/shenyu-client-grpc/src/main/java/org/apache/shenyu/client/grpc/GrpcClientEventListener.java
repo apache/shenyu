@@ -36,7 +36,6 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
@@ -68,20 +67,14 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
             throw new ShenyuClientIllegalArgumentException("grpc client must config the contextPath, ipAndPort");
         }
     }
-
-    @Override
-    public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
-        super.onApplicationEvent(contextRefreshedEvent);
-        Map<String, BindableService> beans = getBeans(contextRefreshedEvent.getApplicationContext());
-        for (Entry<String, BindableService> entry : beans.entrySet()) {
-            exportJsonGenericService(entry.getValue());
-            handle(entry.getKey(), entry.getValue());
-        }
-    }
     
     @Override
     protected Map<String, BindableService> getBeans(final ApplicationContext context) {
-        return context.getBeansOfType(BindableService.class);
+        Map<String, BindableService> beans = context.getBeansOfType(BindableService.class);
+        for (Entry<String, BindableService> entry : beans.entrySet()) {
+            exportJsonGenericService(entry.getValue());
+        }
+        return beans;
     }
     
     @Override
