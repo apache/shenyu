@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -35,8 +36,10 @@ import reactor.core.publisher.Mono;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 /**
  * The type Web client message writer.
@@ -79,17 +82,23 @@ public class WebClientMessageWriter implements MessageWriter {
                 }
             }
             clientResponse = ResponseUtils.buildClientResponse(response, clientResponse.body(BodyExtractors.toDataBuffers()));
-            return clientResponse.bodyToMono(byte[].class)
+
+            Mono<Void> responseMono = clientResponse.bodyToMono(byte[].class)
                     .flatMap(originData -> WebFluxResultUtils.result(exchange, originData))
                     .doOnCancel(() -> clean(exchange));
+            exchange.getAttributes().put(Constants.RESPONSE_MONO, responseMono);
+            // watcher httpStatus
+            final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
+            Optional.ofNullable(consumer).ifPresent(c -> c.accept(response.getStatusCode()));
+            return responseMono;
         }));
     }
-    
+
     @Override
     public List<String> supportTypes() {
         return Lists.newArrayList(RpcTypeEnum.HTTP.getName(), RpcTypeEnum.SPRING_CLOUD.getName());
     }
-    
+
     private void redrawResponseHeaders(final ServerHttpResponse response,
                                        final ClientResponse clientResponse) {
         response.getCookies().putAll(clientResponse.cookies());
