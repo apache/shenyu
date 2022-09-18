@@ -25,13 +25,23 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DataMaskConfig {
 
+    /**
+     * config bean.
+     *
+     * @return dataMaskByCharReplace bean
+     */
     @Bean
-    public DataMaskByCharReplace dataMaskByCharReplace(){
+    public DataMaskByCharReplace dataMaskByCharReplace() {
         return new DataMaskByCharReplace();
     }
 
+    /**
+     * config bean.
+     *
+     * @return dataMaskByMD5 bean
+     */
     @Bean
-    public DataMaskByMD5 dataMaskByMD5(){
+    public DataMaskByMD5 dataMaskByMD5() {
         return new DataMaskByMD5();
     }
 }

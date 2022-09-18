@@ -27,6 +27,7 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.datamask.DataMaskInterface;
+import org.apache.shenyu.plugin.logging.common.datamask.KeyWordMatch;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,11 +65,13 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(LoggingConsolePlugin.class);
 
-    private static boolean MASK_FLAG;
+    private static boolean maskFlag;
 
     private static Set<String> keyWordSet = new HashSet<>();
 
     private static DataMaskInterface dataMaskInterface;
+
+    private static KeyWordMatch keyWordMatch;
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
@@ -76,13 +79,15 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         Map<String, String> handleMap = JsonUtils
                 .jsonToMap(Optional.ofNullable(rule).map(RuleData::getHandle).orElse(""), String.class);
         String keyWords = handleMap.get("keyword");
-        MASK_FLAG = StringUtils.isBlank(keyWords) ? false : true;
-        if (MASK_FLAG) {
+        maskFlag = StringUtils.isBlank(keyWords) ? false : true;
+        if (maskFlag) {
             Collections.addAll(keyWordSet, keyWords.split(";"));
             dataMaskInterface = SpringBeanUtils.getInstance().getBean(handleMap.get("maskType"));
+            keyWordMatch = new KeyWordMatch(keyWordSet);
         }
         ServerHttpRequest request = exchange.getRequest();
-        StringBuilder requestInfo = new StringBuilder("Print Request Info: ").append(System.lineSeparator());
+        //"Print Request Info: "
+        StringBuilder requestInfo = new StringBuilder().append(System.lineSeparator());
         requestInfo.append(getRequestUri(request)).append(getRequestMethod(request)).append(System.lineSeparator())
                 .append(getRequestHeaders(request)).append(System.lineSeparator())
                 .append(getQueryParams(request)).append(System.lineSeparator());
@@ -102,15 +107,15 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
 
     private String getRequestMethod(final ServerHttpRequest request) {
 
-        String requestMethod = MASK_FLAG && keyWordSet.contains(GenericLoggingConstant.METHOD) ?
-                dataMaskInterface.mask(request.getMethod().toString()) : request.getMethod().toString();
+        String requestMethod = maskFlag && keyWordMatch.matches(GenericLoggingConstant.REQUEST_METHOD)
+                ? dataMaskInterface.mask(request.getMethod().toString()) : request.getMethod().toString();
         return "Request Method: " + requestMethod + System.lineSeparator();
     }
 
     private String getRequestUri(final ServerHttpRequest request) {
 
-        String requestUri = MASK_FLAG && keyWordSet.contains(GenericLoggingConstant.REQUEST_URI) ?
-                dataMaskInterface.mask(request.getURI().toString()) : request.getURI().toString();
+        String requestUri = maskFlag && keyWordMatch.matches(GenericLoggingConstant.REQUEST_URI)
+                ? dataMaskInterface.mask(request.getURI().toString()) : request.getURI().toString();
         return "Request Uri: " + requestUri + System.lineSeparator();
     }
 
@@ -156,12 +161,12 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         return logInfo.toString();
     }
 
-    private static String maskOutput(String output) {
+    private static String maskOutput(final String output) {
 
         Map<String, String> body = JsonUtils.jsonToMap(output, String.class);
-        if (MASK_FLAG) {
+        if (maskFlag) {
             body.forEach((key, value) -> {
-                if (keyWordSet.contains(key)) {
+                if (keyWordMatch.matches(key)) {
                     body.put(key, dataMaskInterface.mask(value));
                 }
             });
@@ -169,9 +174,9 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         return JsonUtils.toJson(body);
     }
 
-    private static void maskList(String key, List<String> value) {
+    private static void maskList(final String key, final List<String> value) {
 
-        if (MASK_FLAG && keyWordSet.contains(key)) {
+        if (maskFlag && keyWordMatch.matches(key)) {
             for (int i = 0; i < value.size(); i++) {
                 value.set(i, dataMaskInterface.mask(value.get(i)));
             }

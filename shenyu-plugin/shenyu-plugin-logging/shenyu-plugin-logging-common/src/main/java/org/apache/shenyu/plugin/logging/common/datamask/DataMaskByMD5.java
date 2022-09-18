@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
 public class DataMaskByMD5 implements DataMaskInterface {
 
     @Override
-    public String mask(String data) {
+    public String mask(final String data) {
 
         if (!StringUtils.hasLength(data)) {
             return "";

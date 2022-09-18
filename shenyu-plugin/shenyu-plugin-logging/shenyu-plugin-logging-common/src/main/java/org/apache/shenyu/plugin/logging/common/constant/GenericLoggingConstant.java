@@ -21,94 +21,134 @@ package org.apache.shenyu.plugin.logging.common.constant;
  * generic logging constant.
  */
 public class GenericLoggingConstant {
-    
+
     /**
      * logging user agent.
      */
     public static final String USER_AGENT = "User-Agent";
-    
+
     /**
      * logging user host.
      */
     public static final String HOST = "Host";
-    
+
     /**
      * shenyu agent trace id.
      */
     public static final String SHENYU_AGENT_TRACE_ID = "shenyu-agent-trace-id";
-    
+
     /**
      * system default, max threads.
      */
     public static final Integer MAX_ALLOW_THREADS = 500;
-    
+
     /**
      * max queue.
      */
     public static final Integer MAX_QUEUE_NUMBER = 10000;
-    
+
     /**
      * default source.
      */
     public static final String DEFAULT_SOURCE = "shenyu-gateway";
-    
+
     /**
      * The constant INDEX.
      */
     public static final String INDEX = "shenyu-access-logging";
 
     /**
-     * logging clientIp
+     * logging clientIp.
      */
-    public static final String CLIENT_IP="clientIp";
+    public static final String CLIENT_IP = "clientIp";
 
     /**
-     * logging timeLocal
+     * logging timeLocal.
      */
-    public static final String TIME_LOCAL="timeLocal";
+    public static final String TIME_LOCAL = "timeLocal";
 
     /**
-     * logging method
+     * logging method.
      */
-    public static final String METHOD="method";
+    public static final String METHOD = "method";
 
     /**
-     * logging request uri
+     * logging request method.
      */
-    public static final String REQUEST_URI="requestUri";
+    public static final String REQUEST_METHOD = "request method";
 
     /**
-     * logging response content length
+     * logging request header.
      */
-    public static final String RESPONSE_CONTENT_LENGTH="responseContentLength";
+    public static final String REQUEST_HEADER = "requestHeader";
 
     /**
-     * logging rpcType
+     * logging response header.
      */
-    public static final String RPC_TYPE="rpcType";
+    public static final String RESPONSE_HEADER = "responseHeader";
 
     /**
-     * logging status
+     * logging query params.
      */
-    public static final String STATUS="status";
+    public static final String QUERY_PARAMS = "queryParams";
 
     /**
-     * logging upstreamIp
+     * logging request body.
      */
-    public static final String UP_STREAM_IP="upstreamIp";
+    public static final String REQUEST_BODY = "requestBody";
 
     /**
-     * logging upstreamResponseTime
+     * logging request uri.
      */
-    public static final String UP_STREAM_RESPONSE_TIME="upstreamResponseTime";
+    public static final String REQUEST_URI = "requestUri";
 
     /**
-     * logging module
+     * logging response body.
      */
-    public static final String MODULE="module";
+    public static final String RESPONSE_BODY = "responseBody";
 
     /**
-     * logging traceId
+     * logging response content length.
      */
-    public static final String TRACE_ID="traceId";
+    public static final String RESPONSE_CONTENT_LENGTH = "responseContentLength";
+
+    /**
+     * logging rpcType.
+     */
+    public static final String RPC_TYPE = "rpcType";
+
+    /**
+     * logging status.
+     */
+    public static final String STATUS = "status";
+
+    /**
+     * logging upstreamIp.
+     */
+    public static final String UP_STREAM_IP = "upstreamIp";
+
+    /**
+     * logging upstreamResponseTime.
+     */
+    public static final String UP_STREAM_RESPONSE_TIME = "upstreamResponseTime";
+
+    /**
+     * logging userAgent.
+     */
+    public static final String USERAGENT = "userAgent";
+
+    /**
+     * logging module.
+     */
+    public static final String MODULE = "module";
+
+    /**
+     * logging traceId.
+     */
+    public static final String TRACE_ID = "traceId";
+
+    /**
+     * logging path.
+     */
+    public static final String PATH = "path";
 }

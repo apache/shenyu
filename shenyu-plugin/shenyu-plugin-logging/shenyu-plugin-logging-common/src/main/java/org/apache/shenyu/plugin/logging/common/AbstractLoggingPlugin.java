@@ -50,6 +50,12 @@ import static org.apache.shenyu.plugin.logging.common.constant.GenericLoggingCon
  */
 public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
 
+    private static boolean maskFlag;
+
+    private static Set<String> keyWordSet = new HashSet<>();
+
+    private static DataMaskInterface dataMaskInterface;
+
     /**
      * LogCollector.
      *
@@ -64,20 +70,14 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
      */
     protected abstract PluginEnum pluginEnum();
 
-    private static boolean MASK_FLAG;
-
-    private static Set<String> keyWordSet = new HashSet<>();
-
-    private static DataMaskInterface dataMaskInterface;
-
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                 final SelectorData selector, final RuleData rule) {
 
         Map<String, String> handleMap = JsonUtils.jsonToMap(
                 Optional.ofNullable(rule).map(RuleData::getHandle).orElse(""), String.class);
-        MASK_FLAG = handleMap.containsKey("keyword") ? true : false;
-        if (MASK_FLAG) {
+        maskFlag = handleMap.containsKey("keyword") ? true : false;
+        if (maskFlag) {
             Collections.addAll(keyWordSet, handleMap.get("keyword").split(";"));
             dataMaskInterface = SpringBeanUtils.getInstance().getBean(handleMap.get("maskType"));
         }
@@ -97,7 +97,7 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
         requestInfo.setPath(request.getURI().getPath());
         LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
         LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
-                requestInfo, this.logCollector(), MASK_FLAG, keyWordSet, dataMaskInterface);
+                requestInfo, this.logCollector(), maskFlag, keyWordSet, dataMaskInterface);
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
                 .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);

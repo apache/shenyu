@@ -36,7 +36,7 @@ public class DataMaskByCharReplace implements DataMaskInterface {
 
     private String doMask(final String data, final int maskNum) {
 
-        if(data.length()==1){
+        if (data.length() == 1) {
             return "*";
         }
         StringBuilder sb = new StringBuilder(data);
@@ -45,7 +45,7 @@ public class DataMaskByCharReplace implements DataMaskInterface {
         int r = mid;
         int currentMaskNum = 0;
         while (currentMaskNum < maskNum) {
-            int tempMaskNum = currentMaskNum;
+            final int tempMaskNum = currentMaskNum;
             if (r < data.length()) {
                 sb.setCharAt(r, MASK);
                 r++;
