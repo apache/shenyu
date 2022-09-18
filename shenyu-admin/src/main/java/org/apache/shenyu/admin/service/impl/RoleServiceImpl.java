@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
@@ -61,6 +62,8 @@ public class RoleServiceImpl implements RoleService {
     
     private final RoleMapper roleMapper;
     
+    private final DashboardProperties properties;
+    
     private final PermissionMapper permissionMapper;
     
     private final ResourceMapper resourceMapper;
@@ -68,10 +71,12 @@ public class RoleServiceImpl implements RoleService {
     private final RoleEventPublisher roleEventPublisher;
     
     public RoleServiceImpl(final RoleMapper roleMapper,
+                           final DashboardProperties properties,
                            final PermissionMapper permissionMapper,
                            final ResourceMapper resourceMapper,
                            final RoleEventPublisher roleEventPublisher) {
         this.roleMapper = roleMapper;
+        this.properties = properties;
         this.permissionMapper = permissionMapper;
         this.resourceMapper = resourceMapper;
         this.roleEventPublisher = roleEventPublisher;
@@ -183,7 +188,11 @@ public class RoleServiceImpl implements RoleService {
      * @return {@linkplain PermissionInfo}
      */
     private PermissionInfo getAllPermissions() {
-        final List<ResourceVO> resourceVOList = ListUtil.map(resourceMapper.selectAll(), ResourceVO::buildResourceVO);
+        List<ResourceVO> resourceVOList = resourceMapper.selectAll()
+                .stream()
+                .filter(r -> !properties.getOnlySuperAdminPermission().contains(r.getPerms()))
+                .map(ResourceVO::buildResourceVO)
+                .collect(Collectors.toList());
         return PermissionInfo.builder()
                 .treeList(getTreeModelList(resourceVOList))
                 .permissionIds(ListUtil.map(resourceVOList, ResourceVO::getId))
