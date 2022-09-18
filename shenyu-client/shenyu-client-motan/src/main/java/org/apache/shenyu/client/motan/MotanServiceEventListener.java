@@ -74,7 +74,6 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
 
     private final String port;
 
-
     public MotanServiceEventListener(final PropertiesConfig clientConfig,
                                      final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
