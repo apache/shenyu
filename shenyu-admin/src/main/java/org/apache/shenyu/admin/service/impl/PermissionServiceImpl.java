@@ -165,7 +165,7 @@ public class PermissionServiceImpl implements PermissionService {
      * @return {@linkplain List}
      */
     private List<ResourceVO> getResourceListByUserName(final String userName) {
-        if (SessionUtil.isAdmin()){
+        if (SessionUtil.isAdmin()) {
             return ListUtil.map(resourceMapper.selectByUserName(userName), ResourceVO::buildResourceVO);
         }
         // filter [Only the super administrator root user has the privileges]
