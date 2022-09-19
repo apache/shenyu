@@ -612,6 +612,16 @@ INSERT INTO "public"."permission" VALUES ('1529403932886044766', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1529403932886044767', '1346358560427216896', '1534577121923309568', '2022-06-09 00:44:32', '2022-06-09 00:44:31');
 INSERT INTO "public"."permission" VALUES ('1529403932886044768', '1346358560427216896', '1534585430311051264', '2022-06-09 01:17:33', '2022-06-09 01:17:32');
 INSERT INTO "public"."permission" VALUES ('1529403932886044769', '1346358560427216896', '1534585531108564992', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
+INSERT INTO "public"."permission" VALUES ('1568879456483248858', '1346358560427216896', '1529402639284355100', '2022-09-18 21:45:10', '2022-09-18 21:45:10');
+INSERT INTO "public"."permission" VALUES ('1568879456483248859', '1346358560427216896', '1529402639372435663', '2022-09-18 21:45:10', '2022-09-18 21:45:10');
+INSERT INTO "public"."permission" VALUES ('1568879456483248860', '1346358560427216896', '1529402639372435664', '2022-09-18 21:45:10', '2022-09-18 21:45:10');
+INSERT INTO "public"."permission" VALUES ('1568879456483248861', '1346358560427216896', '1529402639372435665', '2022-09-18 21:45:10', '2022-09-18 21:45:10');
+INSERT INTO "public"."permission" VALUES ('1568879456483248862', '1346358560427216896', '1529402639372435666', '2022-09-18 21:45:10', '2022-09-18 21:45:10');
+INSERT INTO "public"."permission" VALUES ('1568879456483248863', '1346358560427216896', '1529402639372435667', '2022-09-18 21:45:10', '2022-09-18 21:45:10');
+INSERT INTO "public"."permission" VALUES ('1568879456483248864', '1346358560427216896', '1529402639372435668', '2022-09-18 21:45:10', '2022-09-18 21:45:10');
+INSERT INTO "public"."permission" VALUES ('1568879456483248865', '1346358560427216896', '1529402639372435669', '2022-09-18 21:45:10', '2022-09-18 21:45:10');
+INSERT INTO "public"."permission" VALUES ('1568879456483248866', '1346358560427216896', '1529402639372435670', '2022-09-18 21:45:10', '2022-09-18 21:45:10');
+INSERT INTO "public"."permission" VALUES ('1568879456483248867', '1346358560427216896', '1529402639372435671', '2022-09-18 21:45:10', '2022-09-18 21:45:10');
 
 -- ----------------------------
 -- Table structure for plugin
@@ -939,6 +949,13 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172799', '38', 'port'
 INSERT INTO "public"."plugin_handle" VALUES ('1556899301440503808', '38', 'database', 'database', 2, 2, 0, '{"required":"0","defaultValue":"shenyu-gateway","placeholder":"database"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1556899400849702912', '38', 'username', 'username', 2, 2, 0, '{"required":"0","defaultValue":"foo","placeholder":"username"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1556899492809818112', '38', 'password', 'password', 2, 2, 0, '{"required":"0","defaultValue":"bar","placeholder":"password"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1570590990341775360', '39', 'endpoint', 'casdoor endpoint', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
+INSERT INTO "public"."plugin_handle" VALUES ('1570591047635968000', '39', 'client_id', 'client_id', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
+INSERT INTO "public"."plugin_handle" VALUES ('1570591109623586816', '39', 'client_secrect', 'client_secrect', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
+INSERT INTO "public"."plugin_handle" VALUES ('1570591165374275584', '39', 'certificate', 'certificate', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
+INSERT INTO "public"."plugin_handle" VALUES ('1570591215131303936', '39', 'organization-name', 'organization-name', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
+INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312064', '39', 'application-name', 'application-name', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
+
 
 -- ----------------------------
 -- Table structure for resource
@@ -1330,6 +1347,16 @@ INSERT INTO "public"."resource" VALUES ('1529403932881850511', '1529403932781187
 INSERT INTO "public"."resource" VALUES ('1534577121923309568', '', 'Document', '', '/document', '', 0, 3, 'file-text', 0, 0, '', 1, '2022-06-09 00:44:32', '2022-06-09 01:06:45');
 INSERT INTO "public"."resource" VALUES ('1534585430311051264', '1534577121923309568', 'API document', '', '/document/apidoc', '', 1, 0, 'api', 0, 0, '', 1, '2022-06-09 01:17:32', '2022-06-09 01:17:32');
 INSERT INTO "public"."resource" VALUES ('1534585531108564992', '1534585430311051264', 'send', '', '', '', 2, 0, '', 1, 0, 'document:apirun:send', 1, '2022-06-09 01:17:56', '2022-06-09 01:17:56');
+INSERT INTO "public"."resource" VALUES ('1529402639284355100', '1346775491550474240', 'auth', 'auth', '/plug/auth', 'auth', 1, 0, 'block', 0, 0, '', 1, '2022-09-18 21:43:21', '2022-09-18 21:43:21');
+INSERT INTO "public"."resource" VALUES ('1529402639372435663', '1529402639284355100', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:authSelector:add', 1, '2022-09-19 09:33:29', '2022-09-19 09:33:29');
+INSERT INTO "public"."resource" VALUES ('1529402639372435664', '1529402639284355100', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:authSelector:query', 1, '2022-09-19 09:33:29', '2022-09-19 09:33:29');
+INSERT INTO "public"."resource" VALUES ('1529402639372435665', '1529402639284355100', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:authSelector:edit', 1, '2022-09-19 09:33:29', '2022-09-19 09:33:29');
+INSERT INTO "public"."resource" VALUES ('1529402639372435666', '1529402639284355100', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:authSelector:delete', 1, '2022-09-19 09:33:29', '2022-09-19 09:33:29');
+INSERT INTO "public"."resource" VALUES ('1529402639372435667', '1529402639284355100', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:authRule:add', 1, '2022-09-19 09:33:29', '2022-09-19 09:33:29');
+INSERT INTO "public"."resource" VALUES ('1529402639372435668', '1529402639284355100', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:authRule:query', 1, '2022-09-19 09:33:29', '2022-09-19 09:33:29');
+INSERT INTO "public"."resource" VALUES ('1529402639372435669', '1529402639284355100', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:authRule:edit', 1, '2022-09-19 09:33:29', '2022-09-19 09:33:29');
+INSERT INTO "public"."resource" VALUES ('1529402639372435670', '1529402639284355100', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:authRule:delete', 1, '2022-09-19 09:33:29', '2022-09-19 09:33:29');
+INSERT INTO "public"."resource" VALUES ('1529402639372435671', '1529402639284355100', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:auth:modify', 1, '2022-09-19 09:33:29', '2022-09-19 09:33:29');
 
 -- ----------------------------
 -- Table structure for role

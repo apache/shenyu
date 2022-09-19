@@ -30,7 +30,7 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-api</artifactId>
+            <artifactId>shenyu-plugin-base</artifactId>
             <version>${project.version}</version>
         </dependency>
 

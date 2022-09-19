@@ -19,6 +19,8 @@ package org.apache.shenyu.springboot.starter.plugin.auth;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.auth.AuthPlugin;
+import org.apache.shenyu.plugin.auth.handle.AuthPluginDateHandler;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,5 +36,15 @@ public class AuthPluginConfiguration {
     @Bean
     public ShenyuPlugin contextPathPlugin() {
         return new AuthPlugin();
+    }
+
+    /**
+     * Auth plugin data handler.
+     *
+     * @return the plugin data handler
+     */
+    @Bean
+    public PluginDataHandler authPluginDataHandler() {
+        return new AuthPluginDateHandler();
     }
 }
