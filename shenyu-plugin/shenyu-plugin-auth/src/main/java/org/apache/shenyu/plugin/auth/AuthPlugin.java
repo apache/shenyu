@@ -17,12 +17,17 @@
 
 package org.apache.shenyu.plugin.auth;
 
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.auth.config.AuthConfig;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.casbin.casdoor.config.CasdoorConfig;
 import org.casbin.casdoor.entity.CasdoorUser;
 import org.casbin.casdoor.service.CasdoorAuthService;
 import org.springframework.http.HttpHeaders;
@@ -33,18 +38,26 @@ import reactor.core.publisher.Mono;
 import javax.annotation.Resource;
 import java.util.Objects;
 
-public class AuthPlugin implements ShenyuPlugin {
+public class AuthPlugin extends AbstractShenyuPlugin {
+
+    private String[] withe = {
+        "http://localhost:9195/favicon.ico",
+    };
 
     @Resource
     private CasdoorAuthService casdoorAuthService;
 
-    private String[] withe = {
-        "http://localhost:9195/http/hi",
-        "http://localhost:9195/favicon.ico",
-    };
-
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        AuthConfig authConfig = Singleton.INST.get(AuthConfig.class);
+        CasdoorConfig casdoorConfig = new CasdoorConfig();
+        casdoorConfig.setApplicationName(authConfig.getApplicationName());
+        casdoorConfig.setCertificate(authConfig.getCertificate());
+        casdoorConfig.setClientId(authConfig.getClientId());
+        casdoorConfig.setEndpoint(authConfig.getEndpoint());
+        casdoorConfig.setOrganizationName(authConfig.getOrganizationName());
+        casdoorConfig.setClientSecret(authConfig.getClientSecret());
+        CasdoorAuthService casdoorAuthService = new CasdoorAuthService(casdoorConfig);
         ServerHttpRequest request = exchange.getRequest();
         String token = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (Objects.nonNull(token)) {
@@ -95,4 +108,5 @@ public class AuthPlugin implements ShenyuPlugin {
         mutate.header("organization", casdoorUser.getOwner());
         return exchange.mutate().request(mutate.build()).build();
     }
+
 }
