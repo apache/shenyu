@@ -22,7 +22,6 @@ import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
-import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
@@ -34,9 +33,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ReflectionUtils;
@@ -48,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -66,53 +62,25 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
 
     private String group;
 
-    private final String appName;
-
-    private final String contextPath;
-
-    private final String host;
-
-    private final String port;
-
     public MotanServiceEventListener(final PropertiesConfig clientConfig,
                                      final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
-        Properties props = clientConfig.getProps();
-        String contextPath = props.getProperty(ShenyuClientConstants.CONTEXT_PATH);
-        String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
-        if (StringUtils.isEmpty(contextPath)) {
-            throw new ShenyuClientIllegalArgumentException("motan client must config the contextPath");
-        }
-        this.contextPath = contextPath;
-        this.appName = appName;
-        this.host = props.getProperty(ShenyuClientConstants.HOST);
-        this.port = props.getProperty(ShenyuClientConstants.PORT);
-        publisher.start(shenyuClientRegisterRepository);
-
-    }
-
-    @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) throws BeansException {
-        applicationContext = contextRefreshedEvent.getApplicationContext();
-        Map<String, Object> beans = applicationContext.getBeansWithAnnotation(ShenyuMotanClient.class);
-        for (Map.Entry<String, Object> entry : beans.entrySet()) {
-            handle("ShenyuMotanClient", entry.getValue());
-        }
     }
 
     @Override
     protected Map<String, Object> getBeans(final ApplicationContext context) {
+        applicationContext = context;
         return context.getBeansWithAnnotation(ShenyuMotanClient.class);
     }
 
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans) {
         return URIRegisterDTO.builder()
-                .contextPath(contextPath)
-                .appName(appName)
+                .contextPath(this.getContextPath())
+                .appName(this.getAppName())
                 .rpcType(RpcTypeEnum.MOTAN.getName())
-                .host(host)
-                .port(Integer.parseInt(port))
+                .host(this.getHost())
+                .port(Integer.parseInt(this.getPort()))
                 .build();
     }
 
@@ -132,11 +100,11 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, final ShenyuMotanClient shenyuMotanClient, final String superPath, final Class<?> clazz, final Method method) {
         Integer timeout = Optional.ofNullable(((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getRequestTimeout()).orElse(1000);
-        MotanService service = clazz.getAnnotation(MotanService.class);
+        MotanService service = AnnotatedElementUtils.getMergedAnnotation(clazz, MotanService.class);
         String path = superPath.contains("*") ? pathJoin(getContextPath(), superPath.replace("*", ""), method.getName()) : pathJoin(getContextPath(), superPath, shenyuMotanClient.path());
         String desc = shenyuMotanClient.desc();
-        String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-        int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
+        String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
+        int port = StringUtils.isBlank(this.getPort()) ? -1 : Integer.parseInt(this.getPort());
         String configRuleName = shenyuMotanClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
@@ -155,10 +123,10 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
             serviceName = service.interfaceClass().getName();
         }
         return MetaDataRegisterDTO.builder()
-                .appName(this.appName)
+                .appName(this.getAppName())
                 .serviceName(serviceName)
                 .methodName(methodName)
-                .contextPath(this.contextPath)
+                .contextPath(this.getContextPath())
                 .path(path)
                 .port(port)
                 .host(host)
@@ -174,8 +142,8 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     @Override
     protected String buildApiPath(final Method method, final String superPath, final ShenyuMotanClient methodShenyuClient) {
         return superPath.contains("*")
-                ? pathJoin(this.contextPath, superPath.replace("*", ""), method.getName())
-                : pathJoin(this.contextPath, superPath, methodShenyuClient.path());
+                ? pathJoin(this.getContextPath(), superPath.replace("*", ""), method.getName())
+                : pathJoin(this.getContextPath(), superPath, methodShenyuClient.path());
     }
 
     @Override
@@ -184,7 +152,6 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
             group = ((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getGroup();
         }
         Class<?> clazz = getCorrectedClass(bean);
-        MotanService service = clazz.getAnnotation(MotanService.class);
         ShenyuMotanClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuMotanClient.class);
         String superPath = buildApiSuperPath(clazz, beanShenyuClient);
 
