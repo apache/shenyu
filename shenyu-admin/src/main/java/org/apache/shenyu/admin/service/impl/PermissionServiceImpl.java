@@ -18,15 +18,12 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.DashboardUserMapper;
+import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
-import org.apache.shenyu.admin.mapper.UserRoleMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.PermissionDTO;
 import org.apache.shenyu.admin.model.entity.PermissionDO;
-import org.apache.shenyu.admin.model.entity.UserRoleDO;
 import org.apache.shenyu.admin.model.event.resource.BatchResourceCreatedEvent;
 import org.apache.shenyu.admin.model.event.resource.BatchResourceDeletedEvent;
 import org.apache.shenyu.admin.model.event.resource.ResourceCreatedEvent;
@@ -40,6 +37,7 @@ import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ResourceUtil;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.springframework.context.event.EventListener;
@@ -58,22 +56,18 @@ import java.util.stream.Collectors;
 @Service
 public class PermissionServiceImpl implements PermissionService {
     
-    private final DashboardUserMapper dashboardUserMapper;
-    
-    private final UserRoleMapper userRoleMapper;
-    
     private final PermissionMapper permissionMapper;
     
     private final ResourceMapper resourceMapper;
     
-    public PermissionServiceImpl(final DashboardUserMapper dashboardUserMapper,
-                                 final UserRoleMapper userRoleMapper,
-                                 final PermissionMapper permissionMapper,
-                                 final ResourceMapper resourceMapper) {
-        this.dashboardUserMapper = dashboardUserMapper;
-        this.userRoleMapper = userRoleMapper;
+    private final DashboardProperties dashboardProperties;
+    
+    public PermissionServiceImpl(final PermissionMapper permissionMapper,
+                                 final ResourceMapper resourceMapper,
+                                 final DashboardProperties dashboardProperties) {
         this.permissionMapper = permissionMapper;
         this.resourceMapper = resourceMapper;
+        this.dashboardProperties = dashboardProperties;
     }
     
     /**
@@ -93,7 +87,6 @@ public class PermissionServiceImpl implements PermissionService {
         if (CollectionUtils.isEmpty(resourceVOList)) {
             return null;
         }
-        
         return new PermissionMenuVO(ResourceUtil.buildMenu(resourceVOList), getAuthPerm(resourceVOList), getAllAuthPerms());
     }
     
@@ -107,7 +100,9 @@ public class PermissionServiceImpl implements PermissionService {
     public Set<String> getAuthPermByUserName(final String userName) {
         List<ResourceVO> resourceVOList = getResourceListByUserName(userName);
         if (CollectionUtils.isNotEmpty(resourceVOList)) {
-            return getAuthPerm(resourceVOList).stream().map(AuthPerm::getPerms).collect(Collectors.toSet());
+            return getAuthPerm(resourceVOList).stream()
+                    .map(AuthPerm::getPerms)
+                    .collect(Collectors.toSet());
         }
         return Collections.emptySet();
     }
@@ -170,18 +165,15 @@ public class PermissionServiceImpl implements PermissionService {
      * @return {@linkplain List}
      */
     private List<ResourceVO> getResourceListByUserName(final String userName) {
-        List<UserRoleDO> userRoles = userRoleMapper.findByUserId(dashboardUserMapper.selectByUserName(userName).getId());
-        Set<String> resourceIds = permissionMapper.findByObjectIds(ListUtil.map(userRoles, UserRoleDO::getRoleId))
-                .stream()
-                .map(PermissionDO::getResourceId)
-                .filter(StringUtils::isNoneBlank)
-                .collect(Collectors.toSet());
-        
-        if (CollectionUtils.isEmpty(resourceIds)) {
-            return Collections.emptyList();
+        if (SessionUtil.isAdmin()) {
+            return ListUtil.map(resourceMapper.selectByUserName(userName), ResourceVO::buildResourceVO);
         }
-        
-        return ListUtil.map(resourceMapper.selectByIdsBatch(resourceIds), ResourceVO::buildResourceVO);
+        // filter [Only the super administrator root user has the privileges]
+        return resourceMapper.selectByUserName(userName)
+                .stream()
+                .filter(r -> !dashboardProperties.getOnlySuperAdminPermission().contains(r.getPerms()))
+                .map(ResourceVO::buildResourceVO)
+                .collect(Collectors.toList());
     }
     
     private PermissionDO buildPermissionFromResourceId(final String resourceId) {
