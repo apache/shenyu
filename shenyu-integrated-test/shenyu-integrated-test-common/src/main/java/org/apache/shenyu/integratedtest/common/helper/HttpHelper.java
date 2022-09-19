@@ -45,8 +45,9 @@ public class HttpHelper {
 
     /**
      * The constant GATEWAY_END_POINT.
+     * k8s need ports higher than 30000.
      */
-    public static final String GATEWAY_END_POINT = "http://localhost:9195";
+    public static final String GATEWAY_END_POINT = "http://localhost:31195";
 
     /**
      * The constant JSON.
