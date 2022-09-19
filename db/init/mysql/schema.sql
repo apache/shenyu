@@ -853,11 +853,12 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172933', '36', 'retries', 'ret
 INSERT INTO `plugin_handle` VALUES ('1529402613204172934', '36', 'maxReservedAttempts', 'maxReservedAttempts', 1, 3, 13, '{\"required\":\"0\",\"defaultValue\":11}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172935', '36', 'baseRetryBackoffMs', 'baseRetryBackoffMs', 1, 3, 14, '{\"required\":\"0\",\"defaultValue\":100}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172936', '36', 'maxRetryBackoffMs', 'maxRetryBackoffMs', 1, 3, 15, '{\"required\":\"0\",\"defaultValue\":50000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172737', '38', 'host', 'host', 2, 3, 1, '{"required":"0","defaultValue":"127.0.0.1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172738', '38', 'port', 'port', 2, 3, 2, '{"required":"0","defaultValue":"8123"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172739', '38', 'database', 'database', 2, 2, 0, '{"required":"0","defaultValue":"shenyu-gateway","placeholder":"database"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172740', '38', 'username', 'username', 2, 2, 0, '{"required":"0","defaultValue":"foo","placeholder":"username"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172741', '38', 'password', 'password', 2, 2, 0, '{"required":"0","defaultValue":"bar","placeholder":"password"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172737', '38', 'host', 'host', 2, 3, 1, '{\"required\":\"0\",\"defaultValue\":\"127.0.0.1\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172738', '38', 'port', 'port', 2, 3, 2, '{\"required\":\"0\",\"defaultValue\":\"8123\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172739', '38', 'database', 'database', 2, 2, 0, '{\"required\":\"0\",\"defaultValue\":\"shenyu-gateway\",\"placeholder\":\"database\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172740', '38', 'username', 'username', 2, 2, 0, '{\"required\":\"0\",\"defaultValue\":\"foo\",\"placeholder\":\"username\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172741', '38', 'password', 'password', 2, 2, 0, '{\"required\":\"0\",\"defaultValue\":\"bar\",\"placeholder\":\"password\"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172742', '8', 'loadBalance', 'loadStrategy', 3, 2, 3, '{\"defaultValue\":\"roundRobin\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1570590990341775360', '39', 'endpoint', 'casdoor endpoint', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46.925', '2022-09-16 09:50:46.925');
 INSERT INTO `plugin_handle` VALUES ('1570591047635968000', '39', 'client_id', 'client_id', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46.925', '2022-09-16 09:50:46.925');
 INSERT INTO `plugin_handle` VALUES ('1570591109623586816', '39', 'client_secrect', 'client_secrect', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46.925', '2022-09-16 09:50:46.925');

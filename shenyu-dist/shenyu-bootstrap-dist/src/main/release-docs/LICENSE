@@ -230,6 +230,7 @@ The text of each license is the standard Apache 2.0 license.
     btf 1.2: https://github.com/fge/btf, LGPL and Apache 2.0
     byte-buddy 1.12.6: https://bytebuddy.net/byte-buddy, Apache 2.0
     byte-buddy-agent 1.11.22: https://bytebuddy.net/byte-buddy, Apache 2.0
+    caffeine 2.9.3 https://github.com/ben-manes/caffeine, Apache 2.0
     classmate 1.5.1: https://github.com/FasterXML/java-classmate, Apache 2.0
     collector 0.15.0: http://github.com/prometheus/jmx_exporter, Apache 2.0
     commons-beanutils 1.9.4: https://github.com/apache/commons-beanutils, Apache 2.0

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.core.client;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -67,6 +68,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     
     private final String contextPath;
     
+    private final String ipAndPort;
+    
     private final String host;
     
     private final String port;
@@ -87,6 +90,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             LOG.error(errorMsg);
             throw new ShenyuClientIllegalArgumentException(errorMsg);
         }
+        this.ipAndPort = props.getProperty(ShenyuClientConstants.IP_PORT);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
         publisher.start(shenyuClientRegisterRepository);
@@ -99,7 +103,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         final ApplicationContext context = event.getApplicationContext();
         Map<String, T> beans = getBeans(context);
-        if (beans.isEmpty()) {
+        if (MapUtils.isEmpty(beans)) {
             return;
         }
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
@@ -123,7 +127,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            handleMethod(bean, clazz, method, superPath);
+            handleMethod(bean, clazz, beanShenyuClient, method, superPath);
         }
     }
     
@@ -147,6 +151,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     
     protected void handleMethod(final T bean,
                                 final Class<?> clazz,
+                                @Nullable final A beanShenyuClient,
                                 final Method method,
                                 final String superPath) {
         A methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, getAnnotationType());
@@ -203,6 +208,15 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      */
     public String getContextPath() {
         return contextPath;
+    }
+    
+    /**
+     * Get the ip and port.
+     *
+     * @return the ip and port
+     */
+    public String getIpAndPort() {
+        return ipAndPort;
     }
     
     /**

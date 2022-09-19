@@ -30,6 +30,8 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
+import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.utils.ShaUtils;
@@ -182,7 +184,8 @@ public class DashboardUserController {
     @DeleteMapping("/batch")
     @RequiresPermissions("system:manager:delete")
     public ShenyuAdminResult deleteDashboardUser(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        Integer deleteCount = dashboardUserService.delete(new HashSet<>(ids));
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+        // [mandatory] This function can only be used by the admin user
+        Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dashboardUserService.delete(new HashSet<>(ids)));
     }
 }

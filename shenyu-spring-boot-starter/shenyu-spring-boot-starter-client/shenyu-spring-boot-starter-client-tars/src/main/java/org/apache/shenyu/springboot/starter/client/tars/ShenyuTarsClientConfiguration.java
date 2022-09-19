@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.client.tars;
 
-import org.apache.shenyu.client.tars.TarsContextRefreshedEventListener;
 import org.apache.shenyu.client.tars.TarsServiceBeanEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -46,16 +45,5 @@ public class ShenyuTarsClientConfiguration {
     @Bean
     public TarsServiceBeanEventListener tarsServiceBeanEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new TarsServiceBeanEventListener(clientConfig.getClient().get(RpcTypeEnum.TARS.getName()), shenyuClientRegisterRepository);
-    }
-
-    /**
-     * Tars context refreshed event listener.
-     *
-     * @param clientConfig the client config
-     * @return the tars context refreshed event listener
-     */
-    @Bean
-    public TarsContextRefreshedEventListener tarsContextRefreshedEventListener(final ShenyuClientConfig clientConfig) {
-        return new TarsContextRefreshedEventListener(clientConfig.getClient().get(RpcTypeEnum.TARS.getName()));
     }
 }
