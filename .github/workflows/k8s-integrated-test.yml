@@ -38,7 +38,7 @@ jobs:
       -
         name: Helm Charts Install
         # if: steps.filter.outputs.changed == 'true'
-        uses: deliverybot/helm@v1
+        uses: glopezep/helm@v1.7.1
         with:
           release: shenyu
           namespace: default
