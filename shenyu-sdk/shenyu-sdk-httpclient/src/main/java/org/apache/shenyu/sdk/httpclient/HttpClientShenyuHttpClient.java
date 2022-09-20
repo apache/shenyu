@@ -58,7 +58,7 @@ public class HttpClientShenyuHttpClient implements ShenyuHttpClient {
     public ShenyuResponse execute(final ShenyuRequest request) throws IOException {
         String url = request.getUrl();
         String body = request.getBody();
-        RequestBuilder requestBuilder ;
+        RequestBuilder requestBuilder;
 
         switch (request.getHttpMethod()) {
             case GET:
