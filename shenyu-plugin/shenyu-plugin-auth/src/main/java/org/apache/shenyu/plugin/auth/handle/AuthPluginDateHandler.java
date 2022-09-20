@@ -23,6 +23,8 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.auth.config.AuthConfig;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.casbin.casdoor.config.CasdoorConfig;
+import org.casbin.casdoor.service.CasdoorAuthService;
 
 import java.util.Map;
 import java.util.Optional;
@@ -38,8 +40,15 @@ public class AuthPluginDateHandler implements PluginDataHandler {
         certificate = certificate.replace("\\n", "\n");
         String organization = Optional.ofNullable(configMap.get("organization-name")).orElse("");
         String application = Optional.ofNullable(configMap.get("application-name")).orElse("");
-        AuthConfig authConfig = new AuthConfig(endpoint, clientId, clientSecrect, certificate, organization, application);
-        Singleton.INST.single(AuthConfig.class, authConfig);
+        CasdoorConfig casdoorConfig = new CasdoorConfig();
+        casdoorConfig.setApplicationName(application);
+        casdoorConfig.setCertificate(certificate);
+        casdoorConfig.setClientId(clientId);
+        casdoorConfig.setEndpoint(endpoint);
+        casdoorConfig.setOrganizationName(organization);
+        casdoorConfig.setClientSecret(clientSecrect);
+        CasdoorAuthService casdoorAuthService = new CasdoorAuthService(casdoorConfig);
+        Singleton.INST.single(CasdoorAuthService.class, casdoorAuthService);
     }
 
     @Override

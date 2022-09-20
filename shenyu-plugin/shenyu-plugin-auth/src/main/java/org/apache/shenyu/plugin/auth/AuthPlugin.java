@@ -44,20 +44,9 @@ public class AuthPlugin extends AbstractShenyuPlugin {
         "http://localhost:9195/favicon.ico",
     };
 
-    @Resource
-    private CasdoorAuthService casdoorAuthService;
-
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        AuthConfig authConfig = Singleton.INST.get(AuthConfig.class);
-        CasdoorConfig casdoorConfig = new CasdoorConfig();
-        casdoorConfig.setApplicationName(authConfig.getApplicationName());
-        casdoorConfig.setCertificate(authConfig.getCertificate());
-        casdoorConfig.setClientId(authConfig.getClientId());
-        casdoorConfig.setEndpoint(authConfig.getEndpoint());
-        casdoorConfig.setOrganizationName(authConfig.getOrganizationName());
-        casdoorConfig.setClientSecret(authConfig.getClientSecret());
-        CasdoorAuthService casdoorAuthService = new CasdoorAuthService(casdoorConfig);
+        CasdoorAuthService casdoorAuthService = Singleton.INST.get(CasdoorAuthService.class);;
         ServerHttpRequest request = exchange.getRequest();
         String token = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (Objects.nonNull(token)) {

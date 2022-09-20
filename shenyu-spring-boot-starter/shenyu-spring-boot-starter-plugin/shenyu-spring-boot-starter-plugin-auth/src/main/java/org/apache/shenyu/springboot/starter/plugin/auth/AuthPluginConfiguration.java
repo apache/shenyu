@@ -34,7 +34,7 @@ public class AuthPluginConfiguration {
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin contextPathPlugin() {
+    public ShenyuPlugin authPathPlugin() {
         return new AuthPlugin();
     }
 

@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.auth.config;
 
 import java.io.Serializable;
 
-public class AuthConfig implements Serializable {
+public class AuthConfig{
     private String endpoint;
 
     private String clientId;
