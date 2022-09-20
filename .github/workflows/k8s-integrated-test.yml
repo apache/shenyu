@@ -35,7 +35,13 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
-      - uses: engineerd/setup-kind@v0.5.0
+      - uses: helm/kind-action@v1.3.0
+      -
+        name: some test
+        run: |
+          ls -al ~/.kube/
+          cat ~/.kube/config
+          export KUBECONFIG_FILE=$(cat ~/.kube/config)
       -
         name: Helm Charts Install
         # if: steps.filter.outputs.changed == 'true'
