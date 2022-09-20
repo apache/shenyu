@@ -18,7 +18,6 @@
 package org.apache.springboot.starter.client.grpc;
 
 import org.apache.shenyu.client.grpc.GrpcClientEventListener;
-import org.apache.shenyu.client.grpc.GrpcContextRefreshedEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -49,17 +48,6 @@ public class ShenyuGrpcClientConfiguration {
     public GrpcClientEventListener grpcClientEventListener(final ShenyuClientConfig clientConfig,
                                                                 final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new GrpcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()), shenyuClientRegisterRepository);
-    }
-    
-    /**
-     * Grpc context refreshed event listener.
-     *
-     * @param clientConfig the client config
-     * @return the grpc context refreshed event listener
-     */
-    @Bean
-    public GrpcContextRefreshedEventListener grpcContextRefreshedEventListener(final ShenyuClientConfig clientConfig) {
-        return new GrpcContextRefreshedEventListener(clientConfig.getClient().get(RpcTypeEnum.GRPC.getName()));
     }
     
     /**

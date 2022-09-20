@@ -161,6 +161,7 @@
         <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
         <spring-cloud.version>3.1.2</spring-cloud.version>
         <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
+        <caffeine.version>2.9.3</caffeine.version>
     </properties>
 
     <dependencyManagement>
@@ -482,6 +483,12 @@
                 <groupId>io.etcd</groupId>
                 <artifactId>jetcd-core</artifactId>
                 <version>${jetcd-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

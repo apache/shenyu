@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -24,6 +25,7 @@ import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.assertj.core.util.Lists;
@@ -152,6 +154,7 @@ public final class DashboardUserControllerTest {
     public void deleteDashboardUser() throws Exception {
         final String url = "/dashboardUser/batch";
         final List<String> ids = Lists.newArrayList();
+        SessionUtil.setLocalVisitor(UserInfo.builder().userId("1").userName("admin").build());
         given(dashboardUserService.delete(any())).willReturn(0);
         mockMvc.perform(delete(url, ids)
                 .content(GsonUtils.getInstance().toJson(ids))

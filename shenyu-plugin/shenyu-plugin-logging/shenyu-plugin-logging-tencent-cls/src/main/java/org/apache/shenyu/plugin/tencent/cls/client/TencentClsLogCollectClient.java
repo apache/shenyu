@@ -63,45 +63,34 @@ public class TencentClsLogCollectClient extends AbstractLogConsumeClient<Tencent
     /**
      * init Tencent cls client.
      *
-     * @param shenyuConfig shenyu log config
+     * @param tencentClsLogConfig shenyu log config
      */
     @Override
-    public void initClient0(@NonNull final TencentLogCollectConfig.TencentClsLogConfig shenyuConfig) {
-        String secretId = shenyuConfig.getSecretId();
-        String secretKey = shenyuConfig.getSecretKey();
-        String endpoint = shenyuConfig.getEndpoint();
-        this.topic = shenyuConfig.getTopic();
+    public void initClient0(@NonNull final TencentLogCollectConfig.TencentClsLogConfig tencentClsLogConfig) {
+        String secretId = tencentClsLogConfig.getSecretId();
+        String secretKey = tencentClsLogConfig.getSecretKey();
+        String endpoint = tencentClsLogConfig.getEndpoint();
+        this.topic = tencentClsLogConfig.getTopic();
         if (StringUtils.isBlank(secretId) || StringUtils.isBlank(secretKey) || StringUtils.isBlank(topic) || StringUtils.isBlank(endpoint)) {
             LOG.error("init Tencent cls client error, please check secretId, secretKey, topic or host");
             return;
         }
 
-        String totalSizeInBytes = shenyuConfig.getTotalSizeInBytes();
-        String maxSendThreadCount = shenyuConfig.getMaxSendThreadCount();
-        String maxBlockSec = shenyuConfig.getMaxBlockSec();
-        String maxBatchSize = shenyuConfig.getMaxBatchSize();
-        String maxBatchCount = shenyuConfig.getMaxBatchCount();
-        String lingerMs = shenyuConfig.getLingerMs();
-        String retries = shenyuConfig.getRetries();
-        String maxReservedAttempts = shenyuConfig.getMaxReservedAttempts();
-        String baseRetryBackoffMs = shenyuConfig.getBaseRetryBackoffMs();
-        String maxRetryBackoffMs = shenyuConfig.getMaxRetryBackoffMs();
         // init AsyncProducerConfig, AsyncProducerClient
         final AsyncProducerConfig config = new AsyncProducerConfig(endpoint, secretId, secretKey, NetworkUtils.getLocalMachineIP());
-
         // Optional parameters
-        Optional.ofNullable(totalSizeInBytes).map(Integer::valueOf).ifPresent(config::setTotalSizeInBytes);
-        Optional.ofNullable(maxSendThreadCount).map(Integer::valueOf).ifPresent(config::setSendThreadCount);
-        Optional.ofNullable(maxBlockSec).map(Long::valueOf).ifPresent(config::setMaxBlockMs);
-        Optional.ofNullable(maxBatchSize).map(Integer::valueOf).ifPresent(config::setBatchSizeThresholdInBytes);
-        Optional.ofNullable(maxBatchCount).map(Integer::valueOf).ifPresent(config::setBatchCountThreshold);
-        Optional.ofNullable(lingerMs).map(Integer::valueOf).ifPresent(config::setLingerMs);
-        Optional.ofNullable(retries).map(Integer::valueOf).ifPresent(config::setRetries);
-        Optional.ofNullable(maxReservedAttempts).map(Integer::valueOf).ifPresent(config::setMaxReservedAttempts);
-        Optional.ofNullable(baseRetryBackoffMs).map(Long::valueOf).ifPresent(config::setBaseRetryBackoffMs);
-        Optional.ofNullable(maxRetryBackoffMs).map(Long::valueOf).ifPresent(config::setMaxRetryBackoffMs);
+        Optional.ofNullable(tencentClsLogConfig.getTotalSizeInBytes()).map(Integer::valueOf).ifPresent(config::setTotalSizeInBytes);
+        Optional.ofNullable(tencentClsLogConfig.getMaxSendThreadCount()).map(Integer::valueOf).ifPresent(config::setSendThreadCount);
+        Optional.ofNullable(tencentClsLogConfig.getMaxBlockSec()).map(Long::valueOf).ifPresent(config::setMaxBlockMs);
+        Optional.ofNullable(tencentClsLogConfig.getMaxBatchSize()).map(Integer::valueOf).ifPresent(config::setBatchSizeThresholdInBytes);
+        Optional.ofNullable(tencentClsLogConfig.getMaxBatchCount()).map(Integer::valueOf).ifPresent(config::setBatchCountThreshold);
+        Optional.ofNullable(tencentClsLogConfig.getLingerMs()).map(Integer::valueOf).ifPresent(config::setLingerMs);
+        Optional.ofNullable(tencentClsLogConfig.getRetries()).map(Integer::valueOf).ifPresent(config::setRetries);
+        Optional.ofNullable(tencentClsLogConfig.getMaxReservedAttempts()).map(Integer::valueOf).ifPresent(config::setMaxReservedAttempts);
+        Optional.ofNullable(tencentClsLogConfig.getBaseRetryBackoffMs()).map(Long::valueOf).ifPresent(config::setBaseRetryBackoffMs);
+        Optional.ofNullable(tencentClsLogConfig.getMaxRetryBackoffMs()).map(Long::valueOf).ifPresent(config::setMaxRetryBackoffMs);
 
-        threadExecutor = createThreadPoolExecutor(config.getSendThreadCount());
+        threadExecutor = createThreadPoolExecutor(tencentClsLogConfig.getSendThreadCount());
 
         try {
             client = new AsyncProducerClient(config);

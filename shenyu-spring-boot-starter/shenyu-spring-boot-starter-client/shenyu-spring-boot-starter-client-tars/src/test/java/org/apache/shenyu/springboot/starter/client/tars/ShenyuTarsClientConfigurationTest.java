@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.client.tars;
 
-import org.apache.shenyu.client.tars.TarsContextRefreshedEventListener;
 import org.apache.shenyu.client.tars.TarsServiceBeanEventListener;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,17 +66,6 @@ public class ShenyuTarsClientConfigurationTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
         applicationContextRunner.run(context -> {
             TarsServiceBeanEventListener listener = context.getBean("tarsServiceBeanEventListener", TarsServiceBeanEventListener.class);
-            assertNotNull(listener);
-        });
-        registerUtilsMockedStatic.close();
-    }
-
-    @Test
-    public void testTarsContextRefreshedEventListener() {
-        MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
-        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
-        applicationContextRunner.run(context -> {
-            TarsContextRefreshedEventListener listener = context.getBean("tarsContextRefreshedEventListener", TarsContextRefreshedEventListener.class);
             assertNotNull(listener);
         });
         registerUtilsMockedStatic.close();

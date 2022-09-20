@@ -17,15 +17,20 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * admin dashboard properties.
  */
 @Configuration
 @ConfigurationProperties(prefix = "shenyu.dashboard.core")
-public class DashboardProperties {
+public class DashboardProperties implements InitializingBean {
     
     /**
      * record log limit.
@@ -45,6 +50,21 @@ public class DashboardProperties {
      * default is false.
      */
     private Boolean enablePrintApiLog = false;
+    
+    /**
+     * enable OnlySuperAdminPermission.
+     * default is true
+     */
+    private Boolean enableOnlySuperAdminPermission = true;
+    
+    
+    /**
+     * Only the super administrator root user has the privileges.
+     * default is 3.
+     *
+     * @see #afterPropertiesSet()
+     */
+    private List<String> onlySuperAdminPermission;
     
     /**
      * get recordLogLimit.
@@ -98,5 +118,67 @@ public class DashboardProperties {
      */
     public void setEnablePrintApiLog(final Boolean enablePrintApiLog) {
         this.enablePrintApiLog = enablePrintApiLog;
+    }
+    
+    /**
+     * get enableOnlySuperAdminPermission.
+     *
+     * @return enable
+     */
+    public Boolean getEnableOnlySuperAdminPermission() {
+        return enableOnlySuperAdminPermission;
+    }
+    
+    /**
+     * set enableOnlySuperAdminPermission.
+     *
+     * @param enableOnlySuperAdminPermission enable
+     */
+    public void setEnableOnlySuperAdminPermission(final Boolean enableOnlySuperAdminPermission) {
+        this.enableOnlySuperAdminPermission = enableOnlySuperAdminPermission;
+    }
+    
+    /**
+     * get onlySuperAdminPermission.
+     *
+     * @return super admin permission
+     */
+    public List<String> getOnlySuperAdminPermission() {
+        return onlySuperAdminPermission;
+    }
+    
+    /**
+     * set onlySuperAdminPermission.
+     *
+     * @param onlySuperAdminPermission onlySuperAdminPermission
+     */
+    public void setOnlySuperAdminPermission(final List<String> onlySuperAdminPermission) {
+        this.onlySuperAdminPermission = onlySuperAdminPermission;
+    }
+    
+    @Override
+    public void afterPropertiesSet() {
+        if (!Boolean.TRUE.equals(enableOnlySuperAdminPermission)) {
+            onlySuperAdminPermission = new ArrayList<>();
+            return;
+        }
+        if (CollectionUtils.isEmpty(onlySuperAdminPermission)) {
+            onlySuperAdminPermission = new ArrayList<>();
+            // user
+            onlySuperAdminPermission.add("system:manager:add");
+            onlySuperAdminPermission.add("system:manager:edit");
+            onlySuperAdminPermission.add("system:manager:delete");
+            // role
+            onlySuperAdminPermission.add("system:role:edit");
+            onlySuperAdminPermission.add("system:role:add");
+            onlySuperAdminPermission.add("system:role:delete");
+            // resource
+            onlySuperAdminPermission.add("system:resource:addButton");
+            onlySuperAdminPermission.add("system:resource:addMenu");
+            onlySuperAdminPermission.add("system:resource:editButton");
+            onlySuperAdminPermission.add("system:resource:editMenu");
+            onlySuperAdminPermission.add("system:resource:deleteMenu");
+            onlySuperAdminPermission.add("system:resource:deleteButton");
+        }
     }
 }
