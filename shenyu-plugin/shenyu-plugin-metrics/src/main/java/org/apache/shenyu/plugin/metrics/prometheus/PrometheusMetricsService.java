@@ -55,7 +55,7 @@ public final class PrometheusMetricsService implements MetricsService {
     @Override
     public void stop() {
         Optional.ofNullable(server).ifPresent(server -> {
-            server.stop();
+            server.close();
             registered.set(false);
             CollectorRegistry.defaultRegistry.clear();
         });

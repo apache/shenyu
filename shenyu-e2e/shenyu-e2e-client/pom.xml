@@ -18,23 +18,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>e2e</artifactId>
+        <artifactId>shenyu-e2e</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-
-    <groupId>org.apache.shenyu.e2e</groupId>
-    <artifactId>client</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-
-    <name>shenyu-e2e-client</name>
-
+    <artifactId>shenyu-e2e-client</artifactId>
+    
     <dependencies>
         <dependency>
-            <groupId>org.apache.shenyu.e2e</groupId>
-            <artifactId>common</artifactId>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-e2e-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
