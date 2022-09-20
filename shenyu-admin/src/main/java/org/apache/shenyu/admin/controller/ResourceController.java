@@ -108,7 +108,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/button")
-    @RequiresPermissions("system:resource:addButton")
+    @RequiresPermissions(value = {"system:resource:addButton", "system:resource:list"}, logical = Logical.OR)
     public ShenyuAdminResult getButton(final String id) {
         List<ResourceVO> resourceVOList = resourceService.findByParentId(id);
         if (CollectionUtils.isNotEmpty(resourceVOList)) {
@@ -124,7 +124,7 @@ public class ResourceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    @RequiresPermissions(value = {"system:resource:editButton", "system:resource:editMenu"}, logical = Logical.OR)
+    @RequiresPermissions(value = {"system:resource:list", "system:resource:editMenu", "system:resource:list"}, logical = Logical.OR)
     public ShenyuAdminResult detailResource(@PathVariable("id") final String id) {
         return Optional.ofNullable(resourceService.findById(id))
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))

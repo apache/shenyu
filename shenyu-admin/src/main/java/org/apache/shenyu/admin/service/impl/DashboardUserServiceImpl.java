@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
@@ -43,17 +44,9 @@ import org.apache.shenyu.admin.transfer.DashboardUserTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.ShaUtils;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.NameNotFoundException;
@@ -62,7 +55,12 @@ import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.DashboardUserService}.
@@ -118,6 +116,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     
     @Override
     public int create(final DashboardUserDTO dashboardUserDTO) {
+        Assert.notBlack(dashboardUserDTO.getPassword(), "password is not null");
+        Assert.notEmpty(dashboardUserDTO.getRoles(), "role is not empty");
+        Assert.isNull(dashboardUserMapper.selectByUserName(dashboardUserDTO.getUserName()), "the user is existed");
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         // create new user
         final int insertCount = dashboardUserMapper.insertSelective(dashboardUserDO);
@@ -130,7 +131,14 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     
     @Override
     public int update(final DashboardUserDTO dashboardUserDTO) {
+        // 【mandatory】This function can only be used by the admin user
+        Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
+        if (Objects.equals(dashboardUserDO.getUserName(), SessionUtil.visitorName())) {
+            Assert.isTrue(Boolean.TRUE.equals(dashboardUserDO.getEnabled()), "You cannot disable yourself");
+        } else {
+            Assert.isTrue(!Objects.equals(dashboardUserDO.getId(), SessionUtil.visitor().getUserId()), "Super administrator name is not allowed to be modified");
+        }
         // update old user
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
             if (!AdminConstants.ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
@@ -139,6 +147,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
         }
         final DashboardUserDO before = dashboardUserMapper.selectById(dashboardUserDO.getId());
+        if (StringUtils.isBlank(dashboardUserDO.getPassword())) {
+            dashboardUserDO.setPassword(before.getPassword());
+        }
         final int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
         if (updateCount > 0) {
             publisher.onUpdated(dashboardUserDO, before);
@@ -160,6 +171,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                 // skip default admin user
                 .filter(u -> !Objects.equals(u.getUserName(), AdminConstants.ADMIN_NAME))
                 .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(deletedUser)) {
+            return 0;
+        }
         final List<String> deletedIds = ListUtil.map(deletedUser, DashboardUserDO::getId);
         int deleteCount = dashboardUserMapper.deleteByIdList(deletedIds);
         if (deleteCount > 0) {
@@ -261,7 +275,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
         }).orElse(null);
     }
-
+    
     /**
      * modify password.
      *
@@ -278,7 +292,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         }
         return updateCount;
     }
-
+    
     private DashboardUserVO loginByLdap(final String userName, final String password) {
         Assert.notNull(ldapProperties, "ldap config is not enable");
         String searchBase = String.format("%s=%s,%s", ldapProperties.getLoginField(), LdapEncoder.nameEncode(userName), ldapProperties.getBaseDn());

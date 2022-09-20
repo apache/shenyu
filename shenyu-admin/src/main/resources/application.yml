@@ -98,8 +98,21 @@ shenyu:
       - /csrf
   swagger:
     enable: true
-
-logging:
+  dashboard:
+    core:
+      onlySuperAdminPermission:
+        - system:manager:add
+        - system:manager:edit
+        - system:manager:delete
+        - system:role:add
+        - system:role:edit
+        - system:role:delete
+        - system:resource:addButton
+        - system:resource:addMenu
+        - system:resource:editButton
+        - system:resource:editMenu
+        - system:resource:deleteButton
+        - system:resource:deleteMenu
   level:
     root: info
     org.springframework.boot: info
