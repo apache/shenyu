@@ -17,9 +17,8 @@
 
 package org.apache.shenyu.plugin.auth.config;
 
-import java.io.Serializable;
+public class AuthConfig {
 
-public class AuthConfig{
     private String endpoint;
 
     private String clientId;

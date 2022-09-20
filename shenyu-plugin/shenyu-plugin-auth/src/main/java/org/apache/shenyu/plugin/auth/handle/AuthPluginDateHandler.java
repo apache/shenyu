@@ -21,7 +21,6 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.plugin.auth.config.AuthConfig;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.casbin.casdoor.config.CasdoorConfig;
 import org.casbin.casdoor.service.CasdoorAuthService;
@@ -33,9 +32,9 @@ public class AuthPluginDateHandler implements PluginDataHandler {
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         Map<String, String> configMap = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
-        String endpoint = Optional.ofNullable(configMap.get("endpoint")).orElse("");
-        String clientSecrect = Optional.ofNullable(configMap.get("client_secrect")).orElse("");
-        String clientId = Optional.ofNullable(configMap.get("client_id")).orElse("");
+        final String endpoint = Optional.ofNullable(configMap.get("endpoint")).orElse("");
+        final String clientSecrect = Optional.ofNullable(configMap.get("client_secrect")).orElse("");
+        final String clientId = Optional.ofNullable(configMap.get("client_id")).orElse("");
         String certificate = Optional.ofNullable(configMap.get("certificate")).orElse("");
         certificate = certificate.replace("\\n", "\n");
         String organization = Optional.ofNullable(configMap.get("organization-name")).orElse("");

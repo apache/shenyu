@@ -25,9 +25,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
-import org.apache.shenyu.plugin.auth.config.AuthConfig;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.casbin.casdoor.config.CasdoorConfig;
 import org.casbin.casdoor.entity.CasdoorUser;
 import org.casbin.casdoor.service.CasdoorAuthService;
 import org.springframework.http.HttpHeaders;
@@ -35,7 +33,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.Resource;
 import java.util.Objects;
 
 public class AuthPlugin extends AbstractShenyuPlugin {
@@ -46,7 +43,7 @@ public class AuthPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        CasdoorAuthService casdoorAuthService = Singleton.INST.get(CasdoorAuthService.class);;
+        CasdoorAuthService casdoorAuthService = Singleton.INST.get(CasdoorAuthService.class);
         ServerHttpRequest request = exchange.getRequest();
         String token = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (Objects.nonNull(token)) {
