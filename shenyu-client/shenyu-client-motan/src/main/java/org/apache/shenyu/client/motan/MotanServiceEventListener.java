@@ -172,6 +172,5 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
         list.add(buildRpcExt(method));
         MotanRpcExt buildList = new MotanRpcExt(list, group, timeout);
         return GsonUtils.getInstance().toJson(buildList);
-
     }
 }
