@@ -70,6 +70,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     @Override
     protected Map<String, Object> getBeans(final ApplicationContext context) {
         applicationContext = context;
+        group = ((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getGroup();
         return context.getBeansWithAnnotation(ShenyuMotanClient.class);
     }
 
@@ -147,28 +148,10 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     }
 
     @Override
-    protected void handle(final String beanName, final Object bean) {
-        if (group == null) {
-            group = ((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getGroup();
-        }
-        Class<?> clazz = getCorrectedClass(bean);
-        ShenyuMotanClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, ShenyuMotanClient.class);
-        String superPath = buildApiSuperPath(clazz, beanShenyuClient);
-
-        if (superPath.contains("*") && Objects.nonNull(beanShenyuClient)) {
-            Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
-            for (Method method : methods) {
-                publisher.publishEvent(buildMetaDataDTO(bean, beanShenyuClient, superPath, clazz, method));
-            }
-            return;
-        }
-        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
+    protected void handleClass(final Class<?> clazz, final Object bean, final ShenyuMotanClient beanShenyuClient, final String superPath) {
+        Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            ShenyuMotanClient shenyuMotanClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuMotanClient.class);
-            if (Objects.nonNull(shenyuMotanClient)) {
-                publisher.publishEvent(buildMetaDataDTO(bean, shenyuMotanClient, superPath, clazz, method));
-
-            }
+            publisher.publishEvent(buildMetaDataDTO(bean, beanShenyuClient, superPath, clazz, method));
         }
     }
 
