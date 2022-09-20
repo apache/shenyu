@@ -18,11 +18,18 @@
 package org.apache.shenyu.e2e.client.admin.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.shenyu.e2e.client.admin.model.response.PluginDTO;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 public enum Plugin {
     
     SIGN("sign", 1),
@@ -58,6 +65,9 @@ public enum Plugin {
     LOGGING_ELASTIC_SEARCH("loggingElasticSearch", 32),
     LOGGING_KAFKA("loggingKafka", 33),
     LOGGING_ALIYUN_SLS("loggingAliyunSls", 34),
+    LOGGING_TENCENT_CLS("loggingTencentCls", 36),
+    LOGGING_PULSAR("loggingPulsar", 35),
+    LOGGING_CLICK_HOUSE("loggingClickHouse", 38),
     ;
     
     private final String id;
@@ -79,5 +89,30 @@ public enum Plugin {
     
     public static Map<String, String> toMap() {
         return Arrays.stream(Plugin.values()).collect(Collectors.toUnmodifiableMap(Plugin::getAlias, Plugin::getId));
+    }
+    
+    public static void check(List<PluginDTO> plugins) {
+        StringBuilder builder = new StringBuilder();
+        Map<String, String> pluginMap = toMap();
+        AssertionError error = null;
+        
+        for (PluginDTO plugin : plugins) {
+            try {
+                Assertions.assertEquals(
+                        plugin.getId(),
+                        pluginMap.get(plugin.getName()),
+                        "checking Plugin[" + plugin.getName() + "]'s id"
+                );
+            } catch (AssertionError e) {
+                String name = plugin.getName().replaceAll("(\\p{Lu})", "_$1").toUpperCase(Locale.ROOT);
+                builder.append(System.lineSeparator())
+                        .append(String.format("%s(\"%s\", %s),", name, plugin.getName(), plugin.getId()));
+                error = e;
+            }
+        }
+        if (Objects.nonNull(error)) {
+            log.warn("please paste follow lines to org.apache.shenyu.e2e.client.admin.model.Plugin:{}", builder);
+//            throw error; // TODO Don't throw it temporarily
+        }
     }
 }

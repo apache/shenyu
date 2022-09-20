@@ -21,12 +21,13 @@
 
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>e2e</artifactId>
+        <artifactId>shenyu-e2e</artifactId>
         <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>org.apache.shenyu.e2e</groupId>
-    <artifactId>common</artifactId>
+    <artifactId>shenyu-e2e-common</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <name>shenyu-e2e-common</name>

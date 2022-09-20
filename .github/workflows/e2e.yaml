@@ -1,0 +1,121 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: e2e
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '**/resources/static/'
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '**/resources/static/'
+
+env:
+  TAG: ${{ github.sha }}
+
+jobs:
+  build-docker-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Set up JDK 11 for Compiling ShenYu E2E Egnine
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build shenyu-e2e-engin with Maven
+        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-engine clean install
+      - name: Set up JDK 8 for Building ShenYu
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build Apache ShenYu with Maven
+        run: ./mvnw -B clean -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Export Admin Image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./shenyu-dist/shenyu-admin-dist
+          build-args: APP_NAME=apache-shenyu-*-admin-bin
+          tags: shenyu/admin:latest
+          outputs: type=docker,dest=/tmp/apache-shenyu-admin.tar
+
+      - name: Build and Export Bootstrap Image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./shenyu-dist/shenyu-bootstrap-dist
+          build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
+          tags: shenyu/bootstrap:latest
+          outputs: type=docker,dest=/tmp/apache-shenyu-bootstrap.tar
+
+      - name: Upload Docker Image Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: shenyu-images
+          path: /tmp/apache-shenyu-*.tar
+          retention-days: 1
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [ "build-docker-images" ]
+    strategy:
+      matrix:
+        storage: [ "h2" ]
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: shenyu-images
+          path: /tmp/
+
+      - name: Load ShenYu Docker Images
+        run: |
+          docker load --input /tmp/apache-shenyu-admin.tar
+          docker load --input /tmp/apache-shenyu-bootstrap.tar
+          docker image ls -a
+
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run ShenYu E2E Tests
+        env:
+          storage: ${{ matrix.storage }}
+        run: |
+          ./mvnw -B -f shenyu-e2e/pom.xml -pl shenyu-e2e-case test
