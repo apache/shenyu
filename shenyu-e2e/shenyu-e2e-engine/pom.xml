@@ -21,27 +21,21 @@
 
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>e2e</artifactId>
+        <artifactId>shenyu-e2e</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-
-    <groupId>org.apache.shenyu.e2e</groupId>
-    <artifactId>engine</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-
-    <name>shenyu-e2e-engine</name>
-
-
+    <artifactId>shenyu-e2e-engine</artifactId>
+    
     <dependencies>
         <dependency>
-            <groupId>org.apache.shenyu.e2e</groupId>
-            <artifactId>client</artifactId>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-e2e-client</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.shenyu.e2e</groupId>
-            <artifactId>common</artifactId>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-e2e-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
