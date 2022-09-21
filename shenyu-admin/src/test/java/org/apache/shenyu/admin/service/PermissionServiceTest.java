@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
@@ -64,24 +65,27 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class PermissionServiceTest {
-
+    
     @Mock
     private DashboardUserMapper mockDashboardUserMapper;
-
+    
     @Mock
     private UserRoleMapper mockUserRoleMapper;
-
+    
     @Mock
     private PermissionMapper mockPermissionMapper;
-
+    
     @Mock
     private ResourceMapper mockResourceMapper;
-
+    
     private PermissionServiceImpl permissionServiceImplUnderTest;
-
+    
     @Mock
     private org.apache.shiro.mgt.SecurityManager securityManager;
-
+    
+    @Mock
+    private DashboardProperties dashboardProperties;
+    
     @BeforeEach
     public void setUp() throws Exception {
         SecurityUtils.setSecurityManager(securityManager);
@@ -124,11 +128,11 @@ public final class PermissionServiceTest {
 //        when(mockResourceMapper.selectById("1346777157943259136")).thenReturn(resourceDO3);
 //        when(mockResourceMapper.selectById("1347053375029653504")).thenReturn(resourceDO4);
 //        when(mockResourceMapper.selectAll()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
-        when(mockResourceMapper.selectByIdsBatch(resourceIds)).thenReturn(Arrays.asList(resourceDO2, resourceDO3, resourceDO1, resourceDO4));
+        when(mockResourceMapper.selectByUserName("admin")).thenReturn(Arrays.asList(resourceDO2, resourceDO3, resourceDO1, resourceDO4));
         when(mockResourceMapper.selectByResourceType(ResourceTypeConstants.MENU_TYPE_2)).thenReturn(Collections.singletonList(resourceDO4));
-        permissionServiceImplUnderTest = new PermissionServiceImpl(mockDashboardUserMapper, mockUserRoleMapper, mockPermissionMapper, mockResourceMapper);
+        permissionServiceImplUnderTest = new PermissionServiceImpl(mockPermissionMapper, mockResourceMapper, dashboardProperties);
     }
-
+    
     @Test
     public void testGetPermissionMenu() {
         try (MockedStatic<JwtUtils> mocked = mockStatic(JwtUtils.class)) {
@@ -150,7 +154,7 @@ public final class PermissionServiceTest {
             assertThat(result, is(expectedResult));
         }
     }
-
+    
     @Test
     public void testGetAuthPermByUserName() {
         final Set<String> result = permissionServiceImplUnderTest.getAuthPermByUserName("admin");

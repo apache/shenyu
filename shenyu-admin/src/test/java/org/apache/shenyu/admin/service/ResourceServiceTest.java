@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
@@ -75,6 +76,9 @@ public class ResourceServiceTest {
     
     @Mock
     private ResourceEventPublisher publisher;
+    
+    @Mock
+    private DashboardProperties properties;
     
     @Test
     public void testCreateResourceBatch() {
@@ -223,7 +227,7 @@ public class ResourceServiceTest {
         
         reset(resourceMapper);
         when(resourceMapper.selectAll()).thenReturn(mockSelectAllResult);
-        
+   
         List<PermissionMenuVO.MenuInfo> menuInfoList = ResourceUtil.buildMenu(mockSelectAllResult.stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()));
         assertThat(resourceService.getMenuTree(), equalTo(menuInfoList));
     }
