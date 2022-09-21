@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: default
+  name: shenyu-admin
+  labels:
+    "app.kubernetes.io/name": shenyu-admin
+    "app.kubernetes.io/component": shenyu-admin
+    "app.kubernetes.io/instance": shenyu
+spec:
+  selector:
+    "app.kubernetes.io/component": shenyu-admin
+    "app.kubernetes.io/instance": shenyu
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 9095
+      targetPort: 9095
+      nodePort: 31095

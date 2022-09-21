@@ -1,0 +1,106 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: k8s-it
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - k8s-it
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        case:
+          - shenyu-integrated-test-alibaba-dubbo
+    runs-on: ubuntu-latest
+    # if: (github.repository == 'apache/shenyu')
+    steps:
+      -
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: helm/kind-action@v1.3.0
+      -
+        name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.9.3
+      -
+        name: install shenyu-admin
+        run: |
+          cd .. && git clone https://github.com/apache/shenyu-helm-chart
+          cd shenyu-helm-chart/charts/shenyu
+          helm dependency build
+          helm install shenyu . --set bootstrap.enabled=false
+      -
+        name: Cache Maven Repos
+        # if: steps.filter.outputs.changed == 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      -
+        uses: actions/setup-java@v1
+        # if: steps.filter.outputs.changed == 'true'
+        with:
+          java-version: 8
+      -
+        name: Build with Maven
+        # if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+      -
+        run: |
+          kubectl describe pods
+          kubectl get events --all-namespaces
+      -
+        name: Build examples
+        # if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+      -
+        name: Build integrated tests
+        # if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+      -
+        name: Build k8s cluster
+        # if: steps.filter.outputs.changed == 'true'
+        run: |
+          kubectl apply -f ./shenyu-integrated-test/${{ matrix.case }}/k8s/${{ matrix.case }}-deployment.yaml
+          kubectl apply -f ./shenyu-integrated-test/${{ matrix.case }}/k8s/${{ matrix.case }}-service.yaml
+      -
+        name: Wait for docker compose start up completely
+        # if: steps.filter.outputs.changed == 'true'
+        run: |
+          kubectl get all
+          bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
+          kubectl get all
+      -
+        name: Run test
+        id: test
+        # if: steps.filter.outputs.changed == 'true'
+        run: |
+          kubectl get all
+          ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+        continue-on-error: true
+      -
+        name: Check test result
+        # if: steps.filter.outputs.changed == 'true'
+        run: |
+          kubectl logs -l all=${{ matrix.case }}
