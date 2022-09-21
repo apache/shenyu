@@ -22,6 +22,7 @@ import org.apache.shenyu.e2e.client.admin.model.data.Condition.Operator;
 import org.apache.shenyu.e2e.client.admin.model.data.Condition.ParamType;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
+import org.apache.shenyu.e2e.engine.service.NamingResolver;
 import org.apache.shenyu.e2e.testcase.common.specification.ShenYuAfterEachSpec;
 import org.apache.shenyu.e2e.testcase.common.specification.ShenYuBeforeEachSpec;
 import org.apache.shenyu.e2e.testcase.common.specification.ShenYuCaseSpec;
@@ -42,7 +43,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     
     @Override
     public List<ScenarioSpec> get() {
-        
+        final String address = NamingResolver.INSTANCE.resolve("httpbin");
         return List.of(
                 ShenYuScenarioSpec.builder()
                         .name("divide-single rule[uri=]")
@@ -50,7 +51,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 ShenYuBeforeEachSpec.builder()
                                         .addSelectorAndRule(
                                                 newSelectorBuilder("httpbin", Plugin.DIVIDE)
-                                                        .handle(newUpstreamsBuilder("34.227.213.82:80"))
+                                                        .handle(newUpstreamsBuilder(address + ":80"))
                                                         .conditionList(newConditions(ParamType.URI, Operator.EQUAL, ANYTHING))
                                                         .build(),
                                                 newRuleBuilder("rule")
