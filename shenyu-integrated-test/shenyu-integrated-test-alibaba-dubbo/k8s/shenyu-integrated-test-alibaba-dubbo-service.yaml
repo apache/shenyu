@@ -27,6 +27,7 @@ spec:
     - name: "8011"
       port: 8011
       targetPort: 8011
+      nodePort: 30011
     - name: "20888"
       port: 20888
       targetPort: 20888

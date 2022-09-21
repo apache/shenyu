@@ -37,11 +37,17 @@ jobs:
           submodules: true
       - uses: helm/kind-action@v1.3.0
       -
-        name: Install shenyu-admin
+        name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.9.3
+      -
+        name: install shenyu-admin
         run: |
-          kubectl apply -f .github/workflows/k8s/shenyu-admin-deployment.yml
-          kubectl apply -f .github/workflows/k8s/shenyu-admin-service.yml
-          kubectl get all
+          cd .. && git clone https://github.com/apache/shenyu-helm-chart
+          cd shenyu-helm-chart/charts/shenyu
+          helm dependency build
+          helm install shenyu . --set bootstrap.enabled=false
       -
         name: Cache Maven Repos
         # if: steps.filter.outputs.changed == 'true'
@@ -61,6 +67,10 @@ jobs:
         # if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       -
+        run: |
+          kubectl describe pods
+          kubectl get events --all-namespaces
+      -
         name: Build examples
         # if: steps.filter.outputs.changed == 'true'
         run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
@@ -77,12 +87,17 @@ jobs:
       -
         name: Wait for docker compose start up completely
         # if: steps.filter.outputs.changed == 'true'
-        run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
+        run: |
+          kubectl get all
+          bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
+          kubectl get all
       -
         name: Run test
         id: test
         # if: steps.filter.outputs.changed == 'true'
-        run: ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+        run: |
+          kubectl get all
+          ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
         continue-on-error: true
       -
         name: Check test result
