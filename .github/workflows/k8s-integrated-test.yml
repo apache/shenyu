@@ -37,23 +37,11 @@ jobs:
           submodules: true
       - uses: helm/kind-action@v1.3.0
       -
-        name: some test
+        name: Install shenyu-admin
         run: |
-          ls -al ~/.kube/
-          cat ~/.kube/config
-          export KUBECONFIG_FILE=$(cat ~/.kube/config)
-      -
-        name: Helm Charts Install
-        # if: steps.filter.outputs.changed == 'true'
-        uses: glopezep/helm@v1.7.1
-        with:
-          release: shenyu
-          namespace: default
-          chart: shenyu/shenyu
-          token: ${{ github.token }}
-          repository: https://apache.github.io/shenyu-helm-chart
-          values: |
-            bootstrap.enabled: false
+          kubectl apply -f .github/workflows/k8s/shenyu-admin-deployment.yml
+          kubectl apply -f .github/workflows/k8s/shenyu-admin-service.yml
+          kubectl get all
       -
         name: Cache Maven Repos
         # if: steps.filter.outputs.changed == 'true'
