@@ -85,3 +85,7 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784281', 'saslMechanism
 /*fix issue #3945 */
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172802', '8', 'loadBalance', 'loadStrategy', 3, 2, 3, '{"defaultValue":"roundRobin","rule":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
+/*create plugin resource and permission for admin #3964 */
+INSERT INTO "public"."resource" VALUES ('1572525965625266176','1346777449787125760','SHENYU.BUTTON.SYSTEM.RESOURCE','','','','2','6','','1','0','system:plugin:resource','1');
+INSERT INTO "public"."permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176');
+

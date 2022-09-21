@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+#xyzj1a2y3
 shenyu:
   database:
     dialect: mysql
@@ -22,5 +22,5 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
     username: root
-    password: xyzj1a2y3
+    password:
     driver-class-name: com.mysql.cj.jdbc.Driver

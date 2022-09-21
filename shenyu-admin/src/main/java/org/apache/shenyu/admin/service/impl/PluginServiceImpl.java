@@ -79,7 +79,13 @@ public class PluginServiceImpl implements PluginService {
     public String createOrUpdate(final PluginDTO pluginDTO) {
         return StringUtils.isBlank(pluginDTO.getId()) ? this.create(pluginDTO) : this.update(pluginDTO);
     }
-    
+
+    @Override
+    public String createPluginResource(PluginDTO pluginDTO) {
+       pluginEventPublisher.onCreated(PluginDO.buildPluginDO(pluginDTO));
+       return ShenyuResultMessage.CREATE_SUCCESS;
+    }
+
     /**
      * delete plugins.
      *

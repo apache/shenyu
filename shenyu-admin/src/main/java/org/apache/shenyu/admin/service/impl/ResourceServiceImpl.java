@@ -34,8 +34,10 @@ import org.apache.shenyu.admin.model.vo.PermissionMenuVO.MenuInfo;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.service.publish.ResourceEventPublisher;
+import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ResourceUtil;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 
 import java.util.List;
@@ -209,6 +211,7 @@ public class ResourceServiceImpl implements ResourceService {
      */
     @EventListener(value = PluginCreatedEvent.class)
     public void onPluginCreated(final PluginCreatedEvent event) {
+        Assert.isNull(resourceMapper.nameExisted(event.getPlugin().getName()), AdminConstants.RESOURCE_NAME_IS_EXIST);
         ResourceDO resourceDO = ResourceUtil.buildPluginResource(event.getPlugin().getName());
         this.createOne(resourceDO);
         insertResourceBatch(ResourceUtil.buildPluginDataPermissionResource(resourceDO.getId(), event.getPlugin().getName()));

@@ -32,7 +32,7 @@ import java.util.List;
  * this is plugin service.
  */
 public interface PluginService extends PageService<PluginQueryCondition, PluginVO> {
-    
+
     /**
      * Create or update string.
      *
@@ -40,6 +40,13 @@ public interface PluginService extends PageService<PluginQueryCondition, PluginV
      * @return the string
      */
     String createOrUpdate(PluginDTO pluginDTO);
+
+    /**
+     * create plugin resource.
+     * @param pluginDTO the plugin dto
+     * @return the string
+     */
+    String createPluginResource(PluginDTO pluginDTO);
     
     /**
      * Delete string.
