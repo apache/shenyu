@@ -19,11 +19,11 @@ version: '2.3'
 
 services:
   admin:
-    image: ghcr.io/apache/shenyu/admin:latest
+    image: shenyu/admin:latest
     expose:
       - 9095
   gateway:
-    image: ghcr.io/apache/shenyu/bootstrap:latest
+    image: shenyu/bootstrap:latest
     expose:
       - 9095
   httpbin:
