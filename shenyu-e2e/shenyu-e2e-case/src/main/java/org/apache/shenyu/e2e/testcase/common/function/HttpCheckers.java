@@ -37,7 +37,7 @@ public class HttpCheckers {
                     .log()
                     .ifValidationFails()
                     .body("code", lessThan(0))
-                    .body("message", containsString("Can not find selector, please check your configuration!"));
+                    .body("message", containsString("please check your configuration!"));
         };
     }
     
@@ -52,7 +52,7 @@ public class HttpCheckers {
                     .log()
                     .ifValidationFails()
                     .body("code", nullValue())
-                    .body("message", not(containsString("Can not find selector, please check your configuration!")));
+                    .body("message", not(containsString("please check your configuration!")));
         };
     }
     
