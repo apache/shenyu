@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.exception.NacosException;
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
 import org.apache.shenyu.common.constant.NacosPathConstants;
@@ -45,7 +46,11 @@ public class NacosDataChangedListener extends AbstractListDataChangedListener {
     @Override
     public void publishConfig(final String dataId, final Object data) {
         try {
-            configService.publishConfig(dataId, NacosPathConstants.GROUP, GsonUtils.getInstance().toJson(data));
+            configService.publishConfig(
+                    dataId, 
+                    NacosPathConstants.GROUP, 
+                    GsonUtils.getInstance().toJson(data),
+                    ConfigType.JSON.getType());
         } catch (NacosException e) {
             LOG.error("Publish data to nacos error.", e);
             throw new ShenyuException(e.getMessage());
