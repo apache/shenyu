@@ -47,7 +47,6 @@ jobs:
         uses: engineerd/setup-kind@v0.5.0
         with:
           version: v0.14.0
-      - run: minikube start
       -
         name: Set up Helm
         uses: azure/setup-helm@v1
@@ -97,15 +96,25 @@ jobs:
           kubectl apply -f ./shenyu-integrated-test/${{ matrix.case }}/k8s/${{ matrix.case }}-deployment.yaml
           kubectl apply -f ./shenyu-integrated-test/${{ matrix.case }}/k8s/${{ matrix.case }}-service.yaml
       -
+        name: Image test
+        run: |
+          kind load docker-image apache/shenyu-integrated-test-alibaba-dubbo shenyu-examples-alibaba-dubbo-service
+          kubectl get all
+          docker images
+          docker ps -a
+          docker exec -it kind-control-plane crictl images
+          kubectl get events --all-namespaces
+      -
         name: Wait for docker compose start up completely
         # if: steps.filter.outputs.changed == 'true'
         run: |
-          kind load apache/shenyu-integrated-test-alibaba-dubbo shenyu-examples-alibaba-dubbo-service
-          kubectl get all
-          docker images
           bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
+      -
+        name: Image test after healthcheck
+        run: |
           kubectl get all
           docker images
+          kubectl logs -l app.kubernetes.io/name=shenyu-admin
           kubectl get events --all-namespaces
       -
         name: Run test
