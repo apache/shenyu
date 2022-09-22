@@ -80,6 +80,12 @@ public class PluginServiceImpl implements PluginService {
         return StringUtils.isBlank(pluginDTO.getId()) ? this.create(pluginDTO) : this.update(pluginDTO);
     }
 
+    /**
+     * create plugin resource.
+     *
+     * @param pluginDTO the plugin dto
+     * @return result message
+     */
     @Override
     public String createPluginResource(PluginDTO pluginDTO) {
        pluginEventPublisher.onCreated(PluginDO.buildPluginDO(pluginDTO));
