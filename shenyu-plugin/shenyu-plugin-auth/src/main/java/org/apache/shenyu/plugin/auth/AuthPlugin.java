@@ -30,16 +30,13 @@ import org.casbin.casdoor.entity.CasdoorUser;
 import org.casbin.casdoor.service.CasdoorAuthService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
 public class AuthPlugin extends AbstractShenyuPlugin {
-
-    private String[] withe = {
-        "http://localhost:9195/favicon.ico",
-    };
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
@@ -52,7 +49,7 @@ public class AuthPlugin extends AbstractShenyuPlugin {
                 return chain.execute(handleToken(exchange, casdoorUser));
             }
         }
-        org.springframework.util.MultiValueMap<String, String> queryParams = request.getQueryParams();
+        MultiValueMap<String, String> queryParams = request.getQueryParams();
         String code = queryParams.getFirst("code");
         String state = queryParams.getFirst("state");
         if (Objects.nonNull(code) || Objects.nonNull(state)) {
@@ -78,12 +75,6 @@ public class AuthPlugin extends AbstractShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        String uri = exchange.getRequest().getURI().toString();
-        for (int i = 0; i < withe.length; i++) {
-            if (uri.equals(withe[i])) {
-                return true;
-            }
-        }
         return false;
     }
 
