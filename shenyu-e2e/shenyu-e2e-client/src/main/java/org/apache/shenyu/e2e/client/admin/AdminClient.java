@@ -55,7 +55,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -126,11 +125,8 @@ public class AdminClient {
         Assertions.assertNotNull(token, "checking token not null");
         Assertions.assertNotEquals("", token, "checking token not empty");
         basicAuth.set("X-Access-Token", token);
-    
-        Map<String, String> nameNidMap = Plugin.toMap();
-        listPlugins().forEach(dto -> {
-            Assertions.assertEquals(dto.getId(), nameNidMap.get(dto.getName()), "checking Plugin[" + dto.getName() + "]'s id");
-        });
+        
+        Plugin.check(listPlugins());
     }
     
     public List<PluginDTO> listPlugins() {
@@ -210,7 +206,7 @@ public class AdminClient {
         
         HttpEntity<SearchCondition> entity = new HttpEntity<>(searchCondition, basicAuth);
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + uri, entity, ShenYuResult.class);
-        ShenYuResult rst = assertAndGet(response, "ok");
+        ShenYuResult rst = assertAndGet(response, "query success");
         
         return Assertions.assertDoesNotThrow(
                 () -> mapper.readValue(rst.getData().traverse(), valueType),

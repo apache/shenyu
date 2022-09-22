@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 public class AdminClientTest {
     static AdminClient client;
     
-    static GenericContainer<?> container = new GenericContainer<>("ghcr.io/apache/incubator-shenyu/admin:782867187a76f8a273ccc8029e53e3db3f23eb6b")
+    static GenericContainer<?> container = new GenericContainer<>("ghcr.io/apache/shenyu/admin:latest")
             .withExposedPorts(9095)
             .withLogConsumer(new Slf4jLogConsumer(log));
     
