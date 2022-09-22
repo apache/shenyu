@@ -87,9 +87,9 @@ public class PluginServiceImpl implements PluginService {
      * @return result message
      */
     @Override
-    public String createPluginResource(PluginDTO pluginDTO) {
-       pluginEventPublisher.onCreated(PluginDO.buildPluginDO(pluginDTO));
-       return ShenyuResultMessage.CREATE_SUCCESS;
+    public String createPluginResource(final PluginDTO pluginDTO) {
+        pluginEventPublisher.onCreated(PluginDO.buildPluginDO(pluginDTO));
+        return ShenyuResultMessage.CREATE_SUCCESS;
     }
 
     /**
