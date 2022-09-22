@@ -23,6 +23,8 @@ import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 
 /**
  * The type Zookeeper data changed init.
+ *
+ * @since 2.5.0
  */
 public class ZookeeperDataChangedInit extends AbstractDataChangedInit {
 

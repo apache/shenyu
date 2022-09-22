@@ -54,11 +54,12 @@ public class DashboardUserDTO implements Serializable {
     /**
      * current role list.
      */
-    private List<String> roles;
+    private List<@NotBlank String> roles;
 
     /**
      * whether enabled.
      */
+    @NotNull
     private Boolean enabled;
 
     public DashboardUserDTO() {

@@ -160,16 +160,21 @@
                     #{id, jdbcType=VARCHAR}
                 </foreach>
             </if>
+            <if test="condition.userId != null and condition.userId != ''">
+                AND exists(select true
+                    from data_permission
+                    where data_id = rule.id
+                        and user_id = #{condition.userId})
+            </if>
         </where>
     </select>
 
-    <select id="getPluginNameByRuleId" resultType="java.lang.String">
+    <select id="getPluginNameBySelectorId" resultType="java.lang.String">
         select p.name
         from plugin p
-                 inner join selector s on p.id = s.plugin_id
-                 inner join rule r on s.id = r.selector_id
-        where r.id = #{ruleId}
-        limit 1
+        inner join selector s on p.id = s.plugin_id
+        where s.id = #{selectorId}
+        limit 1;
     </select>
     <select id="selectByIds" resultType="org.apache.shenyu.admin.model.entity.RuleDO">
         select *

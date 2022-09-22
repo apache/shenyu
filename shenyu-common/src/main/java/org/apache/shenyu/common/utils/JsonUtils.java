@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.type.MapType;
@@ -41,6 +42,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -65,14 +67,14 @@ public final class JsonUtils {
         javaTimeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         javaTimeModule.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ofPattern("HH:mm:ss")));
         MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-                .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
-                .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
-                .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
-                .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true)
-                .setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
-                .registerModule(javaTimeModule)
-                .addMixIn(Map.class, IgnoreType.class);
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
+            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
+            .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
+            .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true)
+            .setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
+            .registerModule(javaTimeModule)
+            .addMixIn(Map.class, IgnoreType.class);
     }
 
     /**
@@ -110,6 +112,24 @@ public final class JsonUtils {
     /**
      * String to Map.
      *
+     * @param json         the object
+     * @param valueTypeRef class
+     * @param <T>          generic
+     * @return the converted map
+     */
+    public static <T> Map<String, T> jsonToMap(final String json, final Class<T> valueTypeRef) {
+        try {
+            JavaType t = MAPPER.getTypeFactory().constructParametricType(HashMap.class, String.class, valueTypeRef);
+            return MAPPER.readValue(json, t);
+        } catch (IOException e) {
+            LOG.warn("write to map error: " + json, e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * String to Map.
+     *
      * @param json the object
      * @return the converted map
      */
@@ -120,6 +140,23 @@ public final class JsonUtils {
         } catch (IOException e) {
             LOG.warn("write to map error: " + json, e);
             return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * String to Object.
+     *
+     * @param json         the object
+     * @param valueTypeRef class
+     * @param <T>          generic
+     * @return the converted map
+     */
+    public static <T> T jsonToObject(final String json, final Class<T> valueTypeRef) {
+        try {
+            return MAPPER.readValue(json, valueTypeRef);
+        } catch (IOException e) {
+            LOG.warn("write to Object error: " + json, e);
+            return null;
         }
     }
 

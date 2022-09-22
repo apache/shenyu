@@ -27,11 +27,18 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import redis.embedded.RedisServer;
 
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * RedisCacheTest.
@@ -59,13 +66,28 @@ public class RedisCacheTest {
     public void testRedisCache() {
         final String testKey = "testRedisCache";
         final ICache cache = new RedisCache(getConfig());
-        assertEquals(Boolean.FALSE, cache.isExist(testKey));
-        boolean flag = cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);
-        assertEquals(Boolean.TRUE, flag);
-        assertEquals(Boolean.TRUE, cache.isExist(testKey));
-        final byte[] value = cache.getData(testKey);
-        assert null != value;
-        assertEquals(testKey, new String(value, StandardCharsets.UTF_8));
+        cache.isExist(testKey).subscribe(v -> assertEquals(Boolean.FALSE, v));
+        cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000)
+                .subscribe(v -> assertEquals(Boolean.TRUE, v));
+        cache.isExist(testKey).subscribe(s -> assertEquals(Boolean.TRUE, s));
+        cache.getData(testKey).subscribe(data -> assertEquals(testKey, new String(data, StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void closeCache() throws NoSuchFieldException, IllegalAccessException {
+        final ICache cache = new RedisCache(getConfig());
+        cache.close();
+        final Field redisTemplate = RedisCache.class.getDeclaredField("redisTemplate");
+        redisTemplate.setAccessible(true);
+        redisTemplate.set(cache, null);
+        cache.close();
+        final ReactiveRedisTemplate reactiveRedisTemplate = mock(ReactiveRedisTemplate.class);
+        final ReactiveRedisConnectionFactory redisConnectionFactory = mock(ReactiveRedisConnectionFactory.class);
+        redisTemplate.set(cache, reactiveRedisTemplate);
+        when(reactiveRedisTemplate.getConnectionFactory()).thenReturn(redisConnectionFactory);
+        when(redisConnectionFactory.getReactiveClusterConnection()).thenReturn(mock(ReactiveRedisClusterConnection.class));
+        when(redisConnectionFactory.getReactiveConnection()).thenReturn(mock(ReactiveRedisConnection.class));
+        cache.close();
     }
 
     @Test
@@ -73,13 +95,11 @@ public class RedisCacheTest {
         final ICacheBuilder cacheBuilder = ExtensionLoader.getExtensionLoader(ICacheBuilder.class).getJoin("redis");
         ICache cache = cacheBuilder.builderCache(GsonUtils.getInstance().toJson(getConfig()));
         final String testKey = "testLoadRedisCache";
-        assertEquals(Boolean.FALSE, cache.isExist(testKey));
-        boolean flag = cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000);
-        assertEquals(Boolean.TRUE, flag);
-        assertEquals(Boolean.TRUE, cache.isExist(testKey));
-        final byte[] value = cache.getData(testKey);
-        assert null != value;
-        assertEquals(testKey, new String(value, StandardCharsets.UTF_8));
+        cache.isExist(testKey).subscribe(v -> assertEquals(Boolean.FALSE, v));
+        cache.cacheData(testKey, testKey.getBytes(StandardCharsets.UTF_8), 1000)
+                .subscribe(v -> assertEquals(Boolean.TRUE, v));
+        cache.isExist(testKey).subscribe(s -> assertEquals(Boolean.TRUE, s));
+        cache.getData(testKey).subscribe(s -> assertEquals(testKey, new String(s, StandardCharsets.UTF_8)));
     }
 
     private RedisConfigProperties getConfig() {

@@ -25,6 +25,8 @@ import java.util.Objects;
 
 /**
  * The type Consul data changed init.
+ *
+ * @since 2.5.0
  */
 public class ConsulDataChangedInit extends AbstractDataChangedInit {
 

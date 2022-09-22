@@ -50,4 +50,9 @@ public class PhoneGenerator implements Generator<String> {
     public boolean match(final String rule) {
         return rule.matches("^phone$");
     }
+    
+    @Override
+    public String[] getPrefixAndSuffix() {
+        return new String[]{"\"", "\""};
+    }
 }

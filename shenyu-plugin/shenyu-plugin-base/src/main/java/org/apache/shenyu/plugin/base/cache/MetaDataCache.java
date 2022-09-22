@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
-import org.apache.shenyu.common.cache.MemorySafeLRUMap;
+import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.PathMatchUtils;
@@ -41,11 +41,11 @@ public final class MetaDataCache {
     private static final MetaDataCache INSTANCE = new MetaDataCache();
 
     /**
-     * path -> MetaData.
+     * id -> MetaData.
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
-    private static final MemorySafeLRUMap<String, MetaData> CACHE = new MemorySafeLRUMap<>(Constants.THE_256_MB, 1 << 16);
+    private static final MemorySafeWindowTinyLFUMap<String, MetaData> CACHE = new MemorySafeWindowTinyLFUMap<>(Constants.THE_256_MB, 1 << 16);
 
     /**
      * pathPattern -> path.
@@ -70,11 +70,20 @@ public final class MetaDataCache {
      * @param data the data
      */
     public void cache(final MetaData data) {
-        META_DATA_MAP.put(data.getPath(), data);
-        // the update is also need to clean, but there is
-        // no way to distinguish between crate and update,
-        // so it is always clean
-        clean(data.getPath());
+        // clean old path data
+        if (META_DATA_MAP.containsKey(data.getId())) {
+            // the update is also need to clean, but there is
+            // no way to distinguish between crate and update,
+            // so it is always clean
+            clean(META_DATA_MAP.get(data.getId()).getPath());
+        }
+        META_DATA_MAP.put(data.getId(), data);
+        final String path = data.getPath();
+        clean(path);
+        if (!path.contains("*")) {
+            // only in this condition, we need to init cache
+            initCache(path, data, path);
+        }
     }
 
     /**
@@ -83,7 +92,7 @@ public final class MetaDataCache {
      * @param data the data
      */
     public void remove(final MetaData data) {
-        META_DATA_MAP.remove(data.getPath());
+        META_DATA_MAP.remove(data.getId());
         clean(data.getPath());
     }
 
@@ -111,30 +120,39 @@ public final class MetaDataCache {
      * @return the meta data
      */
     public MetaData obtain(final String path) {
-        final MetaData metaData = Optional.ofNullable(META_DATA_MAP.get(path))
+        final MetaData metaData = Optional.ofNullable(CACHE.get(path))
                 .orElseGet(() -> {
-                    final MetaData exist = CACHE.get(path);
-                    if (Objects.nonNull(exist)) {
-                        return exist;
-                    }
-                    final String key = META_DATA_MAP.keySet()
+                    final MetaData value = META_DATA_MAP.values()
                             .stream()
-                            .filter(k -> PathMatchUtils.match(k, path))
+                            .filter(data -> PathMatchUtils.match(data.getPath(), path))
                             .findFirst()
+                            .orElse(null);
+                    final String metaPath = Optional.ofNullable(value)
+                            .map(MetaData::getPath)
                             .orElse(DIVIDE_CACHE_KEY);
-                    final MetaData value = META_DATA_MAP.get(key);
-                    // The extreme case will lead to OOM, that's why use LRU
-                    CACHE.put(path, Objects.isNull(value) ? NULL : value);
-
-                    Set<String> paths = MAPPING.get(key);
-                    if (Objects.isNull(paths)) {
-                        MAPPING.putIfAbsent(key, new ConcurrentSkipListSet<>());
-                        paths = MAPPING.get(key);
-                    }
-                    paths.add(path);
-
+                    // init cache
+                    initCache(path, value, metaPath);
                     return value;
                 });
         return NULL.equals(metaData) ? null : metaData;
+    }
+
+    /**
+     * cacheMap.
+     *
+     * @param path     the path
+     * @param value    the MetaData
+     * @param metaPath the metaPath
+     */
+    public void initCache(final String path, final MetaData value, final String metaPath) {
+        // The extreme case will lead to OOM, that's why use LRU
+        CACHE.put(path, Optional.ofNullable(value).orElse(NULL));
+        // spring/** -> Collections 'spring/A', 'spring/B'
+        Set<String> paths = MAPPING.get(metaPath);
+        if (Objects.isNull(paths)) {
+            MAPPING.putIfAbsent(metaPath, new ConcurrentSkipListSet<>());
+            paths = MAPPING.get(metaPath);
+        }
+        paths.add(path);
     }
 }

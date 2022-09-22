@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.model.vo;
 
 import java.util.Collection;
 import java.util.List;
-import org.apache.shenyu.admin.config.properties.ApiDocProperties;
 
 /**
  * DocVO.
@@ -32,7 +31,7 @@ public class DocVO {
 
     private String gatewayUrl;
 
-    private List<ApiDocProperties.EnvConfig> envProps;
+    private List<EnvConfig> envProps;
 
     private Collection<MenuProject> menuProjects;
 
@@ -59,7 +58,7 @@ public class DocVO {
      * getEnvProps.
      * @return List
      */
-    public List<ApiDocProperties.EnvConfig> getEnvProps() {
+    public List<EnvConfig> getEnvProps() {
         return envProps;
     }
 
@@ -67,7 +66,7 @@ public class DocVO {
      * setEnvProps.
      * @param envProps envProps
      */
-    public void setEnvProps(final List<ApiDocProperties.EnvConfig> envProps) {
+    public void setEnvProps(final List<EnvConfig> envProps) {
         this.envProps = envProps;
     }
 
@@ -107,24 +106,6 @@ public class DocVO {
         this.appKey = appKey;
     }
 
-//    /**
-//     * getAppType.
-//     *
-//     * @return String
-//     */
-//    public String getAppType() {
-//        return appType;
-//    }
-//
-//    /**
-//     * setAppType.
-//     *
-//     * @param appType appType
-//     */
-//    public void setAppType(final String appType) {
-//        this.appType = appType;
-//    }
-
     /**
      * getMenuProjects.
      *
@@ -141,5 +122,65 @@ public class DocVO {
      */
     public void setMenuProjects(final Collection<MenuProject> menuProjects) {
         this.menuProjects = menuProjects;
+    }
+
+    /**
+     * environment config.
+     */
+    public static class EnvConfig {
+
+        private String envLabel;
+
+        private String envDesc;
+
+        private String addressUrl;
+
+        /**
+         * getEnvLabel.
+         * @return String
+         */
+        public String getEnvLabel() {
+            return envLabel;
+        }
+
+        /**
+         * setEnvLabel.
+         * @param envLabel envLabel
+         */
+        public void setEnvLabel(final String envLabel) {
+            this.envLabel = envLabel;
+        }
+
+        /**
+         * get environment description.
+         * @return String
+         */
+        public String getEnvDesc() {
+            return envDesc;
+        }
+
+        /**
+         * set environment description.
+         * @param envDesc envDesc
+         */
+        public void setEnvDesc(final String envDesc) {
+            this.envDesc = envDesc;
+        }
+
+        /**
+         * getAddressUrl.
+         * @return String
+         */
+        public String getAddressUrl() {
+            return addressUrl;
+        }
+
+        /**
+         * setAddressUrl.
+         * @param addressUrl addressUrl
+         */
+        public void setAddressUrl(final String addressUrl) {
+            this.addressUrl = addressUrl;
+        }
     }
 }

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
-import org.apache.shenyu.client.springmvc.init.ContextRegisterListener;
 import org.apache.shenyu.client.springmvc.init.SpringMvcClientEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -47,16 +46,5 @@ public class ShenyuSpringMvcClientConfiguration {
     public SpringMvcClientEventListener springHttpClientEventListener(final ShenyuClientConfig clientConfig,
                                                                           final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new SpringMvcClientEventListener(clientConfig.getClient().get(RpcTypeEnum.HTTP.getName()), shenyuClientRegisterRepository);
-    }
-
-    /**
-     * Context register listener.
-     *
-     * @param clientConfig the client config
-     * @return the context register listener
-     */
-    @Bean
-    public ContextRegisterListener contextRegisterListener(final ShenyuClientConfig clientConfig) {
-        return new ContextRegisterListener(clientConfig.getClient().get(RpcTypeEnum.HTTP.getName()));
     }
 }

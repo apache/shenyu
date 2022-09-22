@@ -21,8 +21,9 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -79,7 +80,8 @@ public class HierarchicalWheelTimer implements Timer {
                                   final Integer wheelSize,
                                   final Long startMs) {
         ThreadFactory threadFactory = ShenyuThreadFactory.create(executorName, false);
-        taskExecutor = Executors.newFixedThreadPool(1, threadFactory);
+        taskExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>(), threadFactory);
         workerThread = threadFactory.newThread(new Worker(this));
         timingWheel = new TimingWheel(tickMs, wheelSize, startMs, taskCounter, delayQueue);
     }

@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.cache.memory;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.shenyu.plugin.cache.ICache;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 import java.util.Objects;
@@ -46,11 +48,11 @@ public final class MemoryCache implements ICache {
      * @return success or not
      */
     @Override
-    public boolean cacheData(final String key, final byte[] bytes, final long timeoutSeconds) {
+    public Mono<Boolean> cacheData(final String key, final byte[] bytes, final long timeoutSeconds) {
         final Cache<String, byte[]> cache = CacheBuilder.newBuilder().expireAfterWrite(timeoutSeconds, TimeUnit.SECONDS).build();
         cache.put(key, bytes);
         this.mainCache.put(key, cache);
-        return true;
+        return Mono.fromCallable(() -> Boolean.TRUE).subscribeOn(Schedulers.boundedElastic());
     }
 
     /**
@@ -60,14 +62,14 @@ public final class MemoryCache implements ICache {
      * @return true exist
      */
     @Override
-    public boolean isExist(final String key) {
+    public Mono<Boolean> isExist(final String key) {
         final Cache<String, byte[]> cache = this.mainCache.get(key);
         if (Objects.isNull(cache) || !cache.asMap().containsKey(key)) {
             // remove from main cache
             this.mainCache.remove(key);
-            return false;
+            return Mono.fromCallable(() -> Boolean.FALSE).subscribeOn(Schedulers.boundedElastic());
         }
-        return true;
+        return Mono.fromCallable(() -> Boolean.TRUE).subscribeOn(Schedulers.boundedElastic());
     }
 
     /**
@@ -77,11 +79,13 @@ public final class MemoryCache implements ICache {
      * @return the data
      */
     @Override
-    public byte[] getData(final String key) {
-        if (!isExist(key)) {
+    public Mono<byte[]> getData(final String key) {
+        return isExist(key).mapNotNull(exist -> {
+            if (exist) {
+                return this.mainCache.get(key).asMap().get(key);
+            }
             return null;
-        }
-        return this.mainCache.get(key).asMap().get(key);
+        });
     }
 
     /**

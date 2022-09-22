@@ -18,6 +18,8 @@
 package org.apache.shenyu.examples.websocket.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
@@ -28,55 +30,55 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class WsSessionManager {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(WsSessionManager.class);
+    
     /**
      * save the connection session.
      */
-    private static ConcurrentHashMap<String, WebSocketSession> SESSION_POOL = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, WebSocketSession> SESSION_POOL = new ConcurrentHashMap<>();
 
     /**
      * add session.
-     *
-     * @param key
+     * @param key key
+     * @param session session
      */
-    public static void add(String key, WebSocketSession session) {
-        // 添加 session
+    public static void add(final String key, final WebSocketSession session) {
+        log.info("add session: {}", key);
         SESSION_POOL.put(key, session);
     }
 
     /**
      * Deleting a session will return the deleted session.
-     *
-     * @param key
-     * @return
+     * @param key key
+     * @return the session just removed
      */
-    public static WebSocketSession remove(String key) {
-        // 删除 session
+    public static WebSocketSession remove(final String key) {
+        log.info("remove session: {}", key);
         return SESSION_POOL.remove(key);
     }
 
     /**
      * Delete and close the connection synchronously.
-     *
-     * @param key
+     * @param key key
      */
-    public static void removeAndClose(String key) {
+    public static void removeAndClose(final String key) {
         WebSocketSession session = remove(key);
         if (session != null) {
             try {
                 session.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("session:{} close failed !", key, e);
             }
         }
     }
 
     /**
      * Get session.
-     *
-     * @param key
-     * @return
+     * @param key key
+     * @return session
      */
-    public static WebSocketSession get(String key) {
+    public static WebSocketSession get(final String key) {
         return SESSION_POOL.get(key);
     }
 }

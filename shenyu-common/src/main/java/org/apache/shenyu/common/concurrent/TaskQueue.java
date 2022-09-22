@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.concurrent;
 
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +43,7 @@ public interface TaskQueue<E> extends BlockingQueue<E> {
 
     @Override
     default boolean offer(final E e) {
-        if (getExecutor() == null) {
+        if (Objects.isNull(getExecutor())) {
             throw new RejectedExecutionException("The task queue does not have executor!");
         }
 

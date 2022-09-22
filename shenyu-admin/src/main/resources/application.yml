@@ -49,6 +49,7 @@ shenyu:
     websocket:
       enabled: true
       messageMaxSize: 10240
+      allowOrigins: ws://localhost:9095;ws://localhost:9195;
 #      zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000
@@ -97,17 +98,21 @@ shenyu:
       - /csrf
   swagger:
     enable: true
-  apidoc:
-    gatewayUrl: http://127.0.0.1:9195
-    envProps:
-      - envLabel: Test environment
-        addressLabel: Request Address
-        addressUrl: http://127.0.0.1:9195
-      - envLabel: Prod environment
-        addressLabel: Request Address
-        addressUrl: http://127.0.0.1:9195
-
-logging:
+  dashboard:
+    core:
+      onlySuperAdminPermission:
+        - system:manager:add
+        - system:manager:edit
+        - system:manager:delete
+        - system:role:add
+        - system:role:edit
+        - system:role:delete
+        - system:resource:addButton
+        - system:resource:addMenu
+        - system:resource:editButton
+        - system:resource:editMenu
+        - system:resource:deleteButton
+        - system:resource:deleteMenu
   level:
     root: info
     org.springframework.boot: info

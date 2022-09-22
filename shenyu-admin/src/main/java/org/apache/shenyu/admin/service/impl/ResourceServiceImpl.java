@@ -19,7 +19,9 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
+import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.ResourceDO;
@@ -35,12 +37,13 @@ import org.apache.shenyu.admin.service.publish.ResourceEventPublisher;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.ResourceService}.
@@ -52,10 +55,14 @@ public class ResourceServiceImpl implements ResourceService {
     
     private final ResourceEventPublisher publisher;
     
+    private final DashboardProperties properties;
+    
     public ResourceServiceImpl(final ResourceMapper resourceMapper,
-                               final ResourceEventPublisher publisher) {
+                               final ResourceEventPublisher publisher,
+                               final DashboardProperties properties) {
         this.resourceMapper = resourceMapper;
         this.publisher = publisher;
+        this.properties = properties;
     }
     
     /**
@@ -68,24 +75,24 @@ public class ResourceServiceImpl implements ResourceService {
     public int createResourceBatch(final List<ResourceDO> resourceDOList) {
         return this.insertResourceBatch(resourceDOList);
     }
-    
+
     /**
-     * create or update resource.
+     * create Resource.
+     *
+     * @param createResourceDTO list of {@linkplain CreateResourceDTO}
+     * @return rows int
+     */
+    @Override
+    public int create(final CreateResourceDTO createResourceDTO) {
+        return this.createOne(ResourceDO.buildResourceDO(createResourceDTO));
+    }
+
+    /**
+     * update resource.
      *
      * @param resourceDTO {@linkplain ResourceDTO}
      * @return rows int
      */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public int createOrUpdate(final ResourceDTO resourceDTO) {
-        return ResourceService.super.createOrUpdate(resourceDTO);
-    }
-    
-    @Override
-    public int create(final ResourceDTO resourceDTO) {
-        return createOne(ResourceDO.buildResourceDO(resourceDTO));
-    }
-    
     @Override
     public int update(final ResourceDTO resourceDTO) {
         final ResourceDO before = resourceMapper.selectById(resourceDTO.getId());
@@ -95,16 +102,6 @@ public class ResourceServiceImpl implements ResourceService {
             publisher.onUpdated(resource, before);
         }
         return updateCount;
-    }
-    
-    /**
-     * create resource and return data.
-     *
-     * @param resourceDO {@linkplain ResourceDO}
-     */
-    @Override
-    public void createResource(final ResourceDO resourceDO) {
-        createOne(resourceDO);
     }
     
     /**
@@ -180,7 +177,12 @@ public class ResourceServiceImpl implements ResourceService {
      */
     @Override
     public List<MenuInfo> getMenuTree() {
-        List<ResourceVO> resourceVOList = ListUtil.map(resourceMapper.selectAll(), ResourceVO::buildResourceVO);
+        // Hide super administrator special privileges
+        List<ResourceVO> resourceVOList = resourceMapper.selectAll()
+                .stream()
+                .filter(r -> !properties.getOnlySuperAdminPermission().contains(r.getPerms()))
+                .map(ResourceVO::buildResourceVO)
+                .collect(Collectors.toList());
         return CollectionUtils.isEmpty(resourceVOList) ? null : ResourceUtil.buildMenu(resourceVOList);
     }
     
@@ -208,7 +210,7 @@ public class ResourceServiceImpl implements ResourceService {
     @EventListener(value = PluginCreatedEvent.class)
     public void onPluginCreated(final PluginCreatedEvent event) {
         ResourceDO resourceDO = ResourceUtil.buildPluginResource(event.getPlugin().getName());
-        createOne(resourceDO);
+        this.createOne(resourceDO);
         insertResourceBatch(ResourceUtil.buildPluginDataPermissionResource(resourceDO.getId(), event.getPlugin().getName()));
     }
     
@@ -234,7 +236,7 @@ public class ResourceServiceImpl implements ResourceService {
         return insertCount;
     }
     
-    
+
     /**
      * insert Resources.
      *

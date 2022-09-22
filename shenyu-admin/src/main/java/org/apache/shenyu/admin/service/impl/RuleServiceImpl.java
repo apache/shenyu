@@ -44,6 +44,7 @@ import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -89,6 +90,13 @@ public class RuleServiceImpl implements RuleService {
         this.selectorMapper = selectorMapper;
         this.pluginMapper = pluginMapper;
         this.ruleEventPublisher = ruleEventPublisher;
+    }
+    
+    @Override
+    public void doConditionPreProcessing(final RuleQueryCondition condition) {
+        if (SessionUtil.isAdmin()) {
+            condition.setUserId(null);
+        }
     }
     
     @Override
@@ -229,7 +237,7 @@ public class RuleServiceImpl implements RuleService {
             final int deleteCount = ruleMapper.deleteByIds(ruleIds);
             ruleConditionMapper.deleteByRuleIds(ruleIds);
             if (deleteCount > 0) {
-                ruleEventPublisher.onDeleted(ruleDOList);
+                ruleEventPublisher.onDeleted(ruleDOList, event);
             }
         }
     }

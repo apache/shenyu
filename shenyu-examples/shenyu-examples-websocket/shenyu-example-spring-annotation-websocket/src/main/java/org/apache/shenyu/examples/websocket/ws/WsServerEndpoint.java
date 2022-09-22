@@ -17,55 +17,50 @@
 
 package org.apache.shenyu.examples.websocket.ws;
 
-import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
+import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
- * WsServerEndpoint
+ * WsServerEndpoint.
  */
-@ShenyuSpringWebSocketClient("/myWs")
-@ServerEndpoint("/myWs")
 @Component
+@ShenyuServerEndpoint("/myWs")
 public class WsServerEndpoint {
 
-    private static Map<String, Session> onlineUserCache = new HashMap<>();
+    private static final Logger LOG = LoggerFactory.getLogger(WsServerEndpoint.class);
 
     /**
      * connect successful.
-     *
-     * @param session
+     * @param session session
      */
     @OnOpen
-    public void onOpen(Session session) {
-        System.out.println("connect successful");
+    public void onOpen(final Session session) {
+        LOG.info("connect successful");
     }
 
     /**
      * connect close.
-     *
-     * @param session
+     * @param session session
      */
     @OnClose
-    public void onClose(Session session) {
-        System.out.println("connect closed");
+    public void onClose(final Session session) {
+        LOG.info("connect closed");
     }
 
     /**
-     * received message
-     *
-     * @param text
+     * received message.
+     * @param text message
+     * @return response
      */
     @OnMessage
-    public String onMsg(String text) throws IOException {
+    public String onMsg(final String text) {
         return "server send message：" + text;
     }
 }

@@ -20,7 +20,9 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -52,7 +54,8 @@ public class AppAuthDTO implements Serializable {
     private String appSecret;
     
     private String userId;
-    
+
+    @Pattern(regexp = "\\+?\\d{7,11}", message = "number is illegal, length 7 to 11! e.g. +1234567 or 1234567")
     private String phone;
     
     private String extInfo;
@@ -66,9 +69,11 @@ public class AppAuthDTO implements Serializable {
      * whether enabled.
      */
     private Boolean enabled;
-    
+
+    @Valid
     private List<AuthParamDTO> authParamDTOList;
-    
+
+    @Valid
     private List<AuthPathDTO> authPathDTOList;
     
     /**

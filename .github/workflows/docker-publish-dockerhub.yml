@@ -1,0 +1,92 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: docker-publish-dockerhub
+
+on:
+  release:
+    # pre-release or draft status don't trigger this job.
+    # this job called if and only if pre-release -> release or release directly.
+    types: ["released"]
+
+env:
+  REPOSITORY: ${{ github.repository }}
+  TAG: ${{ github.ref_name }}
+
+jobs:
+  dockerhub:
+    runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+
+      - name: Cache Maven Repos
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+
+      - name: Build with Maven
+        run: ./mvnw -B clean -Prelease -Dmaven.javadoc.skip=true -B -Drat.skip=true -Djacoco.skip=true -DskipITs -DskipTests package
+
+      - name: Build and push (admin) (dockerhub)
+        uses: docker/build-push-action@v3
+        with:
+          context: ./shenyu-dist/shenyu-admin-dist
+          build-args: APP_NAME=apache-shenyu-*-admin-bin
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            apache/shenyu-admin:latest
+            apache/shenyu-admin:${{ env.TAG }}
+
+      - name: Build and push (bootstrap) (dockerhub)
+        uses: docker/build-push-action@v3
+        with:
+          context: ./shenyu-dist/shenyu-bootstrap-dist
+          build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            apache/shenyu-bootstrap:latest
+            apache/shenyu-bootstrap:${{ env.TAG }}

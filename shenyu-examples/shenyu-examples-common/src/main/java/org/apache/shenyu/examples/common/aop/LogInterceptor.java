@@ -29,18 +29,29 @@ public class LogInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(LogInterceptor.class);
 
+    /**
+     * log annotation pointcut.
+     */
     @Pointcut("@annotation(org.apache.shenyu.examples.common.aop.Log)")
     public void logPointcut() {
         //just for pointcut
     }
 
+    /**
+     * define log pointcut with around advice.
+     * @param point joinPoint
+     * @return the result of proceeding
+     */
     @Around("logPointcut()")
-    public Object around(ProceedingJoinPoint point) throws Throwable {
+    public Object around(final ProceedingJoinPoint point) {
         try {
             log.info("before");
             return point.proceed(point.getArgs());
+        } catch (Throwable throwable) {
+            log.error("log point cut throw exception:", throwable);
         } finally {
             log.info("after");
         }
+        return null;
     }
 }

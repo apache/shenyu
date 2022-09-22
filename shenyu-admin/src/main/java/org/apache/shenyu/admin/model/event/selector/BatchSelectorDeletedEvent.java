@@ -27,6 +27,8 @@ import org.apache.shenyu.admin.utils.ListUtil;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -37,7 +39,11 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
     private final List<String> deletedIds;
     
     private final List<PluginDO> plugins;
-    
+
+    private final Map<String, PluginDO> pluginMap;
+
+    private final Map<String, SelectorDO> selectorDataMap;
+
     /**
      * Create a new {@code BatchChangedEvent}.operator is unknown.
      *
@@ -49,6 +55,9 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
         super(source, null, EventTypeEnum.SELECTOR_DELETE, operator);
         this.deletedIds = ListUtil.map(source, BaseDO::getId);
         this.plugins = plugins;
+
+        this.pluginMap = ListUtil.toMap(plugins, PluginDO::getId);
+        this.selectorDataMap = ListUtil.toMap(source, SelectorDO::getId);
     }
     
     @Override
@@ -70,6 +79,17 @@ public class BatchSelectorDeletedEvent extends BatchChangedEvent {
                 .stream()
                 .map(SelectorDO.class::cast)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * find plugin by selector id.
+     *
+     * @param selectorId  selectorId
+     * @return PluginDO
+     */
+    public PluginDO findPluginBySelectorId(final String selectorId) {
+        return Optional.ofNullable(selectorDataMap.get(selectorId))
+                .flatMap(selectorDO -> Optional.ofNullable(pluginMap.get(selectorDO.getPluginId()))).orElse(null);
     }
     
     /**

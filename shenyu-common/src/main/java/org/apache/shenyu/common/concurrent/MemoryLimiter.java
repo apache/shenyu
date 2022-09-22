@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.concurrent;
 
 import java.lang.instrument.Instrumentation;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Condition;
@@ -137,7 +138,7 @@ public class MemoryLimiter {
      * @return true if acquire success
      */
     public boolean acquire(final Object o) {
-        if (o == null) {
+        if (Objects.isNull(o)) {
             throw new NullPointerException();
         }
         if (memory.sum() >= memoryLimit) {
@@ -175,7 +176,7 @@ public class MemoryLimiter {
      */
     public boolean acquire(final Object o, final long timeout,
                            final TimeUnit unit) throws InterruptedException {
-        if (o == null) {
+        if (Objects.isNull(o)) {
             throw new NullPointerException();
         }
         long nanos = unit.toNanos(timeout);
@@ -209,7 +210,7 @@ public class MemoryLimiter {
      * @throws InterruptedException the InterruptedException
      */
     public void acquireInterruptibly(final Object o) throws InterruptedException {
-        if (o == null) {
+        if (Objects.isNull(o)) {
             throw new NullPointerException();
         }
         acquireLock.lockInterruptibly();
@@ -237,7 +238,7 @@ public class MemoryLimiter {
      * @param o memory size to be applied by calculating
      */
     public void release(final Object o) {
-        if (null == o) {
+        if (Objects.isNull(o)) {
             return;
         }
         if (memory.sum() == 0) {
@@ -268,7 +269,7 @@ public class MemoryLimiter {
      * @throws InterruptedException the InterruptedException
      */
     public void releaseInterruptibly(final Object o) throws InterruptedException {
-        if (null == o) {
+        if (Objects.isNull(o)) {
             return;
         }
         releaseLock.lockInterruptibly();
@@ -300,7 +301,7 @@ public class MemoryLimiter {
      */
     public void releaseInterruptibly(final Object o, final long timeout,
                                      final TimeUnit unit) throws InterruptedException {
-        if (null == o) {
+        if (Objects.isNull(o)) {
             return;
         }
         long nanos = unit.toNanos(timeout);

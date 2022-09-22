@@ -119,7 +119,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
-                .path(PathUtils.decoratorPath(contextPath))
+                .path(PathUtils.decoratorPathWithSlash(contextPath))
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .enabled(true)
                 .ruleName(contextPath)

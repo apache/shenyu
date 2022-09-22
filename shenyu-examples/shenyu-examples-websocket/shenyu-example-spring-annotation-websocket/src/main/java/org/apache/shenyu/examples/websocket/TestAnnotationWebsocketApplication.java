@@ -31,14 +31,17 @@ import java.util.Map;
 @SpringBootApplication
 public class TestAnnotationWebsocketApplication {
 
-    public static void main(String[] args) {
+    /**
+     * Main Entrance.
+     * @param args startup arguments
+     */
+    public static void main(final String[] args) {
         SpringApplication.run(TestAnnotationWebsocketApplication.class, args);
     }
 
     /**
      * Use map as simple cache.
-     *
-     * @return
+     * @return  session cache
      */
     @Bean
     public Map<String, WebSocketSession> onlineUserCache() {

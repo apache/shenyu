@@ -189,9 +189,9 @@ public class MetaDataServiceImpl implements MetaDataService {
             publisher.onCreated(metaDataDO);
         }
         
-        // publish AppAuthData's creste event
+        // publish MetaData's create event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
-                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
+                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
     

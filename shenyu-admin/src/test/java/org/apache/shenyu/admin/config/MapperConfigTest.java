@@ -32,11 +32,34 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class MapperConfigTest {
 
     @InjectMocks
-    private MapperConfig mapperConfig;
+    private MapperConfig.OracleSQLConfig oracleSQLConfig;
+
+    @InjectMocks
+    private MapperConfig.PostgreSQLConfig postgreSQLConfig;
     
     @Test
     public void testPostgreSQLQueryInterceptor() {
-        PostgreSQLQueryInterceptor postgreSQLQueryInterceptor = mapperConfig.postgreSqlQueryInterceptor();
+        PostgreSQLQueryInterceptor postgreSQLQueryInterceptor = postgreSQLConfig.postgreSqlQueryInterceptor();
         assertNotNull(postgreSQLQueryInterceptor);
+    }
+
+    @Test
+    public void postgreSqlPrepareInterceptorTest() {
+        assertNotNull(postgreSQLConfig.postgreSqlPrepareInterceptor());
+    }
+
+    @Test
+    public void oracleSqlPrepareInterceptorTest() {
+        assertNotNull(oracleSQLConfig.oracleSqlPrepareInterceptor());
+    }
+
+    @Test
+    public void oracleSqlUpdateInterceptorTest() {
+        assertNotNull(oracleSQLConfig.oracleSqlUpdateInterceptor());
+    }
+
+    @Test
+    public void postgreSqlUpdateInterceptorTest() {
+        assertNotNull(postgreSQLConfig.postgreSqlUpdateInterceptor());
     }
 }

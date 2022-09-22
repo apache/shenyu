@@ -21,6 +21,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.cloud.client.DefaultServiceInstance;
-import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClient;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryProperties;
 
@@ -71,13 +71,13 @@ public class ShenyuSpringCloudServiceChooserTest {
 
     @Test
     public void testChoose() {
-        LoadBalanceKey loadBalanceKey = buildDefaultLoadBalanceKey();
-
-        LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
+        final String ip = "0.0.0.0";
+        final String selectorId = "1";
+        final String loadbalancer = "roundRobin";
 
         // serviceInstance is null
-        ServiceInstance serviceInstanceIsNull = serviceChooser.choose("test");
-        Assertions.assertNull(serviceInstanceIsNull);
+        Upstream upstreamIsNull = serviceChooser.choose("test", selectorId, ip, loadbalancer);
+        Assertions.assertNull(upstreamIsNull);
 
         // not gray flow
         List<DivideUpstream> divideUpstreams = new ArrayList<>();
@@ -95,9 +95,9 @@ public class ShenyuSpringCloudServiceChooserTest {
                 .id("1")
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorData);
-        ServiceInstance serviceInstance = serviceChooser.choose("serviceId");
-        Assertions.assertNotNull(serviceInstance);
-        Assertions.assertEquals(serviceInstance.getInstanceId(), "serviceId");
+        Upstream upstream = serviceChooser.choose("serviceId", selectorId, ip, loadbalancer);
+        Assertions.assertNotNull(upstream);
+        Assertions.assertEquals(upstream.getUrl(), "localhost:8080");
 
         // gray flow
         springCloudSelectorHandle.setGray(true);
@@ -106,9 +106,9 @@ public class ShenyuSpringCloudServiceChooserTest {
                 .id("1")
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorDataGray);
-        ServiceInstance serviceInstanceGray = serviceChooser.choose("serviceId");
-        Assertions.assertNotNull(serviceInstanceGray);
-        Assertions.assertEquals(serviceInstanceGray.getHost(), "localhost");
+        Upstream upstreamGray = serviceChooser.choose("serviceId", selectorId, ip, loadbalancer);
+        Assertions.assertNotNull(upstreamGray);
+        Assertions.assertEquals(upstreamGray.getUrl(), "localhost:8080");
     }
 
     @Test
@@ -137,8 +137,9 @@ public class ShenyuSpringCloudServiceChooserTest {
         final SimpleDiscoveryClient simpleDiscoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
         final ShenyuSpringCloudServiceChooser shenyuServiceChoose = new ShenyuSpringCloudServiceChooser(simpleDiscoveryClient);
 
-        LoadBalanceKey loadBalanceKey = buildDefaultLoadBalanceKey();
-        LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
+        final String ip = "0.0.0.0";
+        final String selectorId = "1";
+        final String loadbalancer = "roundRobin";
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
                 .serviceId("serviceId")
                 .gray(false)
@@ -148,18 +149,9 @@ public class ShenyuSpringCloudServiceChooserTest {
                 .id("1")
                 .build();
         springCloudPluginDataHandler.handlerSelector(selectorData);
-        ServiceInstance serviceInstance = shenyuServiceChoose.choose("serviceId");
-        ServiceInstance serviceInstance2 = shenyuServiceChoose.choose("serviceId");
-        // if roundRobin, serviceInstance not equals serviceInstance2
-        Assertions.assertNotEquals(serviceInstance, serviceInstance2);
-    }
-
-    private static LoadBalanceKey buildDefaultLoadBalanceKey() {
-        LoadBalanceKey loadBalanceKey = new LoadBalanceKey();
-        loadBalanceKey.setIp("0.0.0.0");
-        loadBalanceKey.setSelectorId("1");
-        loadBalanceKey.setLoadBalance("roundRobin");
-        LoadBalanceKeyHolder.setLoadBalanceKey(loadBalanceKey);
-        return loadBalanceKey;
+        Upstream upstream1 = shenyuServiceChoose.choose("serviceId", selectorId, ip, loadbalancer);
+        Upstream upstream2 = shenyuServiceChoose.choose("serviceId", selectorId, ip, loadbalancer);
+        // if roundRobin, upstream1 not equals upstream2
+        Assertions.assertNotEquals(upstream1, upstream2);
     }
 }

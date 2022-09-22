@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.concurrent;
 
+import java.util.Objects;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
@@ -41,7 +42,7 @@ public class ShenyuThreadPoolExecutor extends ThreadPoolExecutor implements Eage
 
     @Override
     public void execute(final Runnable command) {
-        if (command == null) {
+        if (Objects.isNull(command)) {
             throw new NullPointerException();
         }
 

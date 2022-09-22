@@ -20,12 +20,19 @@ package org.apache.shenyu.web.forward;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.util.Collections;
+
+import static org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver.X_FORWARDED_FOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for ForwardedRemoteAddressResolver.
@@ -74,6 +81,14 @@ public final class ForwardedRemoteAddressResolverTest {
         instance.resolve(forwardExchange);
         instance.resolve(multiForwardExchangeError);
         instance.resolve(multiForwardExchange);
+
+        ServerWebExchange headerEmptyExchange = mock(ServerWebExchange.class);
+        ServerHttpRequest headerEmptyServerHttpRequest = mock(ServerHttpRequest.class);
+        HttpHeaders headerEmptyHttpHeaders = mock(HttpHeaders.class);
+        when(headerEmptyExchange.getRequest()).thenReturn(headerEmptyServerHttpRequest);
+        when(headerEmptyServerHttpRequest.getHeaders()).thenReturn(headerEmptyHttpHeaders);
+        when(headerEmptyHttpHeaders.get(X_FORWARDED_FOR)).thenReturn(Collections.emptyList());
+        instance.resolve(headerEmptyExchange);
     }
 
 }

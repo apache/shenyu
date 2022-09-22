@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -87,6 +88,11 @@ public class CrossFilter implements WebFilter {
                         })
                         .collect(Collectors.toSet()));
                 allowCors = allowedOrigin.contains(origin) || allowedOrigin.contains(ALL);
+                // if the origin is not allow check match origin again
+                String originRegex;
+                if (!allowCors && StringUtils.isNotBlank(originRegex = this.filterConfig.getAllowedOrigin().getOriginRegex())) {
+                    allowCors = Pattern.matches(originRegex.trim(), origin);
+                }
             }
             if (allowCors) {
                 // "Access-Control-Allow-Origin"

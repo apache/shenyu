@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -203,5 +204,16 @@ public final class ConsulCacheHandlerTest {
         consulCacheHandler.updateAuthMap(appAuthDataParam);
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
+    }
+
+    @Test
+    public void testError() {
+        ConsulCacheHandler consulCacheHandler = new ConsulCacheHandler(null,
+                Collections.emptyList(), Collections.emptyList());
+        assertDoesNotThrow(() -> consulCacheHandler.updateAuthMap("errorJson"));
+        assertDoesNotThrow(() -> consulCacheHandler.updateMetaDataMap("errorJson"));
+        assertDoesNotThrow(() -> consulCacheHandler.updateRuleMap("errorJson"));
+        assertDoesNotThrow(() -> consulCacheHandler.updatePluginData("errorJson"));
+        assertDoesNotThrow(() -> consulCacheHandler.updateSelectorMap("errorJson"));
     }
 }

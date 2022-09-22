@@ -70,8 +70,8 @@ COMMENT ON COLUMN "public"."app_auth"."app_secret" IS 'encryption algorithm secr
 COMMENT ON COLUMN "public"."app_auth"."user_id" IS 'user id';
 COMMENT ON COLUMN "public"."app_auth"."phone" IS 'phone number when the user applies';
 COMMENT ON COLUMN "public"."app_auth"."ext_info" IS 'extended parameter json';
-COMMENT ON COLUMN "public"."app_auth"."open" IS 'open auth path or not';
-COMMENT ON COLUMN "public"."app_auth"."enabled" IS 'delete or not';
+COMMENT ON COLUMN "public"."app_auth"."open" IS 'open auth path or not (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."app_auth"."enabled" IS 'delete or not (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."app_auth"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."app_auth"."date_updated" IS 'update time';
 
@@ -121,7 +121,7 @@ COMMENT ON COLUMN "public"."auth_path"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."auth_path"."auth_id" IS 'auth table id';
 COMMENT ON COLUMN "public"."auth_path"."app_name" IS 'module';
 COMMENT ON COLUMN "public"."auth_path"."path" IS 'path';
-COMMENT ON COLUMN "public"."auth_path"."enabled" IS 'whether pass 1 is';
+COMMENT ON COLUMN "public"."auth_path"."enabled" IS 'whether pass 1 is (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."auth_path"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."auth_path"."date_updated" IS 'update time';
 
@@ -147,7 +147,7 @@ COMMENT ON COLUMN "public"."dashboard_user"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."dashboard_user"."user_name" IS 'user name';
 COMMENT ON COLUMN "public"."dashboard_user"."password" IS 'user password';
 COMMENT ON COLUMN "public"."dashboard_user"."role" IS 'role';
-COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not';
+COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."dashboard_user"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."dashboard_user"."date_updated" IS 'update time';
 
@@ -211,7 +211,7 @@ COMMENT ON COLUMN "public"."meta_data"."parameter_types" IS 'parameter types are
 COMMENT ON COLUMN "public"."meta_data"."rpc_ext" IS 'rpc extended information, json format';
 COMMENT ON COLUMN "public"."meta_data"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."meta_data"."date_updated" IS 'update time';
-COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state';
+COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state (0 close, 1 open) ';
 
 -- ----------------------------
 -- Records of meta_data
@@ -671,8 +671,11 @@ INSERT INTO "public"."plugin" VALUES ('29', 'loggingRocketMQ', '{"topic":"shenyu
 INSERT INTO "public"."plugin" VALUES ('30', 'cache', '{"cacheType":"memory"}', 'Cache', 10, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin" VALUES ('31', 'mock', null, 'Mock', 1, 0, '2022-06-16 14:40:35', '2022-06-16 14:40:55');
 INSERT INTO "public"."plugin" VALUES ('32', 'loggingElasticSearch', '{"host":"localhost", "port": "9200"}', 'Logging', 190, 0, '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO "public"."plugin" VALUES ('33', 'loggingKafka', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:8082"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin" VALUES ('33', 'loggingKafka', '{"topic":"shenyu-access-logging", "namesrvAddr": "localhost:9092"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin" VALUES ('34', 'loggingAliyunSls', '{"projectName": "shenyu", "logStoreName": "shenyu-logstore", "topic": "shenyu-topic"}', 'Logging', 175, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin" VALUES ('35', 'loggingPulsar', '{"topic":"shenyu-access-logging", "serviceUrl": "pulsar://localhost:6650"}', 'Logging', 185, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin" VALUES ('36', 'loggingTencentCls', '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', 'Logging', 176, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin" VALUES ('38', 'loggingClickHouse', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 'Logging', 195, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
 -- ----------------------------
 -- Table structure for plugin_handle
@@ -840,10 +843,12 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524892', '28', 'leakD
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524893', '29', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524894', '29', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:9876"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524895', '29', 'producerGroup', 'producerGroup', 2, 3, 3, '{"required":"1","defaultValue":"shenyu-plugin-logging-rocketmq"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524896', '29', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524897', '29', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524898', '29', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524899', '29', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524975', '29', 'accessKey', 'accessKey', 2, 3, 4, '{"required":"0","defaultValue":"","placeholder":"accessKey"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524976', '29', 'secretKey', 'secretKey', 2, 3, 5, '{"required":"0","defaultValue":"","placeholder":"secretKey"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524896', '29', 'sampleRate', 'sampleRate', 2, 3, 6, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524897', '29', 'maxResponseBody', 'maxResponseBody', 1, 3, 7, '{"required":"0","defaultValue":524288}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524898', '29', 'maxRequestBody', 'maxRequestBody', 1, 3, 8, '{"required":"0","defaultValue":524288}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524899', '29', 'compressAlg', 'compressAlg', 3, 3, 9, '{"required":"0","defaultValue":"none"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524900', '29', 'topic', 'topic', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524901', '29', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524902', '30', 'cacheType', 'cacheType', 3, 3, 1, '{"required":"1","defaultValue":"memory","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
@@ -869,36 +874,71 @@ INSERT INTO "public"."plugin_handle" VALUES ('1537326008606343168', '31', 'respo
 INSERT INTO "public"."plugin_handle" VALUES ('1537325892176658432', '31', 'httpStatusCode', 'httpStatusCode', 1, 2, 0, '{"required":"0","defaultValue":"200","rule":""}', '2022-06-16 14:47:09', '2022-06-16 14:50:39');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524921', '32', 'host', 'host', 2, 3, 2, '{"required":"1","defaultValue":"localhost"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524922', '32', 'port', 'port', 2, 3, 3, '{"required":"1","defaultValue":"9200"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524923', '32', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524924', '32', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524925', '32', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524926', '32', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524972', '32', 'username', 'username', 2, 3, 4, '{"required":"0","defaultValue":"","placeholder":"username"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524973', '32', 'password', 'password', 2, 3, 5, '{"required":"0","defaultValue":"","placeholder":"username"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524974', '32', 'authCache', 'authCache', 2, 3, 6, '{"required":"0","defaultValue":"","placeholder":"true|false"}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524923', '32', 'sampleRate', 'sampleRate', 2, 3, 7, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524924', '32', 'maxResponseBody', 'maxResponseBody', 1, 3, 8, '{"required":"0","defaultValue":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524925', '32', 'maxRequestBody', 'maxRequestBody', 1, 3, 9, '{"required":"0","defaultValue":524288}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524926', '32', 'compressAlg', 'compressAlg', 3, 3, 10, '{"required":"0","defaultValue":"none"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524927', '32', 'index', 'index', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524928', '32', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-06-19 22:00:00', '2022-06-19 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524929', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}', '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524950', '33', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524951', '33', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:8082"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524951', '33', 'namesrvAddr', 'namesrvAddr', 2, 3, 2, '{"required":"1","defaultValue":"localhost:9092"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524952', '33', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524953', '33', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524954', '33', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524955', '33', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524956', '33', 'topic', 'topic', 2, 1, 1, '{"required":"0","defaultValue":"","placeholder":"optional"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524957', '33', 'sampleRate', 'sampleRate', 2, 1, 2, '{"required":"0","defaultValue":"","placeholder":"optional,0,0.01~1"}', '2022-07-04 22:00:00', '2022-07-04 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172858', '33', 'securityProtocol', 'securityProtocol', 3, 3, 8, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172859', '33', 'saslMechanism', 'saslMechanism', 3, 3, 9, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172860', '33', 'userName', 'userName', 2, 3, 10, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172861', '33', 'passWord', 'passWord', 2, 3, 11, '{"required":"0","defaultValue":""}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524958', '34', 'accessId', 'accessId', 2, 3, 0, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524959', '34', 'accessKey', 'accessKey', 2, 3, 1, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524960', '34', 'host', 'host', 2, 3, 2, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524961', '34', 'projectName', 'projectName', 2, 3, 3, '{"required":"0","defaultValue":"shenyu","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524962', '34', 'logStoreName', 'logStoreName', 2, 3, 4, '{"required":"0","defaultValue":"shenyu-logstore","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524963', '34', 'topic', 'topic', 2, 3, 5, '{"required":"0","defaultValue":"shenyu-topic","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524964', '34', 'ttlInDay', 'ttlInDay', 1, 3, 6, '{"required":"0","defaultValue":3,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524965', '34', 'shardCount', 'shardCount', 1, 3, 7, '{"required":"0","defaultValue":10,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524966', '34', 'sendThreadCount', 'sendThreadCount', 1, 3, 8, '{"required":"0","defaultValue":1,"placeholder":"1-500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524967', '34', 'ioThreadCount', 'ioThreadCount', 1, 3, 9, '{"required":"0","defaultValue":1,"placeholder":"1-500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524968', '34', 'sampleRate', 'sampleRate', 2, 3, 10, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524969', '34', 'maxRequestBody', 'maxRequestBody', 1, 3, 11, '{"required":"0","defaultValue":524288,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524970', '34', 'maxResponseBody', 'maxResponseBody', 1, 3, 12, '{"required":"0","defaultValue":524288,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
-INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524971', '34', 'bufferQueueSize', 'bufferQueueSize', 1, 3, 13, '{"required":"0","defaultValue":50000,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524962', '34', 'accessId', 'accessId', 2, 3, 0, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524963', '34', 'accessKey', 'accessKey', 2, 3, 1, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524964', '34', 'host', 'host', 2, 3, 2, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524965', '34', 'projectName', 'projectName', 2, 3, 3, '{"required":"0","defaultValue":"shenyu","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524966', '34', 'logStoreName', 'logStoreName', 2, 3, 4, '{"required":"0","defaultValue":"shenyu-logstore","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524967', '34', 'topic', 'topic', 2, 3, 5, '{"required":"0","defaultValue":"shenyu-topic","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524968', '34', 'ttlInDay', 'ttlInDay', 1, 3, 6, '{"required":"0","defaultValue":3,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524969', '34', 'shardCount', 'shardCount', 1, 3, 7, '{"required":"0","defaultValue":10,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524970', '34', 'sendThreadCount', 'sendThreadCount', 1, 3, 8, '{"required":"0","defaultValue":1,"placeholder":"1-500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524971', '34', 'ioThreadCount', 'ioThreadCount', 1, 3, 9, '{"required":"0","defaultValue":1,"placeholder":"1-500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524972', '34', 'sampleRate', 'sampleRate', 2, 3, 10, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524973', '34', 'maxRequestBody', 'maxRequestBody', 1, 3, 11, '{"required":"0","defaultValue":524288,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524974', '34', 'maxResponseBody', 'maxResponseBody', 1, 3, 12, '{"required":"0","defaultValue":524288,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524975', '34', 'bufferQueueSize', 'bufferQueueSize', 1, 3, 13, '{"required":"0","defaultValue":50000,"placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524976', '35', 'topic', 'topic', 2, 3, 1, '{"required":"1","defaultValue":"shenyu-access-logging"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524977', '35', 'serviceUrl', 'serviceUrl', 2, 3, 2, '{"required":"1","defaultValue":"pulsar://localhost:6650"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524978', '35', 'sampleRate', 'sampleRate', 2, 3, 4, '{"required":"0","defaultValue":"1","placeholder":"optional,0,0.01~1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524979', '35', 'maxResponseBody', 'maxResponseBody', 1, 3, 5, '{"required":"0","defaultValue":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524980', '35', 'maxRequestBody', 'maxRequestBody', 1, 3, 6, '{"required":"0","defaultValue":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524981', '35', 'compressAlg', 'compressAlg', 3, 3, 7, '{"required":"0","defaultValue":"none"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524982', '36', 'secretId', 'secretId', 2, 3, 1, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524983', '36', 'secretKey', 'secretKey', 2, 3, 2, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524984', '36', 'endpoint', 'endpoint', 2, 3, 3, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524985', '36', 'topic', 'topic', 2, 3, 4, '{"required":"1","defaultValue":"","placeholder":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524986', '36', 'sendThreadCount', 'sendThreadCount', 1, 3, 5, '{"required":"0","defaultValue":1,"placeholder":"1-500"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524987', '36', 'totalSizeInBytes', 'totalSizeInBytes', 1, 3, 6, '{"required":"0","defaultValue":104857600}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524988', '36', 'maxSendThreadCount', 'maxSendThreadCount', 1, 3, 7, '{"required":"0","defaultValue":1,"placeholder":"availableProcessors + 1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524989', '36', 'maxBlockSec', 'maxBlockSec', 1, 3, 8, '{"required":"0","defaultValue":60000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524990', '36', 'maxBatchSize', 'maxBatchSize', 1, 3, 9, '{"required":"0","defaultValue":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524991', '36', 'maxBatchCount', 'maxBatchCount', 1, 3, 10, '{"required":"0","defaultValue":4096}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524992', '36', 'lingerMs', 'lingerMs', 1, 3, 11, '{"required":"0","defaultValue":2000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524993', '36', 'retries', 'retries', 1, 3, 12, '{"required":"0","defaultValue":10}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524994', '36', 'maxReservedAttempts', 'maxReservedAttempts', 1, 3, 13, '{"required":"0","defaultValue":11}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524995', '36', 'baseRetryBackoffMs', 'baseRetryBackoffMs', 1, 3, 14, '{"required":"0","defaultValue":100}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524996', '36', 'maxRetryBackoffMs', 'maxRetryBackoffMs', 1, 3, 15, '{"required":"0","defaultValue":50000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524997', '38', 'host', 'host', 2, 3, 1, '{"required":"0","defaultValue":"127.0.0.1"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524998', '38', 'port', 'port', 2, 3, 2, '{"required":"0","defaultValue":"8123"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524999', '38', 'database', 'database', 2, 2, 0, '{"required":"0","defaultValue":"shenyu-gateway","placeholder":"database"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172800', '38', 'username', 'username', 2, 2, 0, '{"required":"0","defaultValue":"foo","placeholder":"username"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172801', '38', 'password', 'password', 2, 2, 0, '{"required":"0","defaultValue":"bar","placeholder":"password"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172802', '8', 'loadBalance', 'loadStrategy', 3, 2, 3, '{"defaultValue":"roundRobin","rule":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
 -- ----------------------------
 -- Table structure for resource
@@ -906,17 +946,17 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524971', '34', 'buffe
 DROP TABLE IF EXISTS "public"."resource";
 CREATE TABLE "public"."resource" (
   "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "parent_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "parent_id" varchar(128) COLLATE "pg_catalog"."default" NULL,
   "title" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-  "name" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "url" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
-  "component" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+  "name" varchar(32) COLLATE "pg_catalog"."default" NULL,
+  "url" varchar(32) COLLATE "pg_catalog"."default" NULL,
+  "component" varchar(32) COLLATE "pg_catalog"."default" NULL,
   "resource_type" int4 NOT NULL,
   "sort" int4 NOT NULL,
-  "icon" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+  "icon" varchar(32) COLLATE "pg_catalog"."default" NULL,
   "is_leaf" int2 NOT NULL,
   "is_route" int4 NOT NULL,
-  "perms" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
+  "perms" varchar(64) COLLATE "pg_catalog"."default" NULL,
   "status" int4 NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
@@ -1337,8 +1377,8 @@ COMMENT ON COLUMN "public"."rule"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."rule"."selector_id" IS 'selector id';
 COMMENT ON COLUMN "public"."rule"."match_mode" IS 'matching mode (0 and 1 or)';
 COMMENT ON COLUMN "public"."rule"."name" IS 'rule name';
-COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open';
-COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not';
+COMMENT ON COLUMN "public"."rule"."enabled" IS 'whether to open (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."rule"."loged" IS 'whether to log or not (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."rule"."sort" IS 'sort';
 COMMENT ON COLUMN "public"."rule"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
 COMMENT ON COLUMN "public"."rule"."date_created" IS 'create time';
@@ -1402,8 +1442,8 @@ COMMENT ON COLUMN "public"."selector"."match_mode" IS 'matching mode (0 and 1 or
 COMMENT ON COLUMN "public"."selector"."type" IS 'type (0, full flow, 1 custom flow)';
 COMMENT ON COLUMN "public"."selector"."sort" IS 'sort';
 COMMENT ON COLUMN "public"."selector"."handle" IS 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)';
-COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open';
-COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log';
+COMMENT ON COLUMN "public"."selector"."enabled" IS 'whether to open (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."selector"."loged" IS 'whether to print the log (0 no print, 1 print) ';
 COMMENT ON COLUMN "public"."selector"."continued" IS 'whether to continue execution';
 COMMENT ON COLUMN "public"."selector"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."selector"."date_updated" IS 'update time';
@@ -1464,7 +1504,7 @@ COMMENT ON COLUMN "public"."shenyu_dict"."dict_name" IS 'dictionary name';
 COMMENT ON COLUMN "public"."shenyu_dict"."dict_value" IS 'dictionary value';
 COMMENT ON COLUMN "public"."shenyu_dict"."desc" IS 'dictionary description or remarks';
 COMMENT ON COLUMN "public"."shenyu_dict"."sort" IS 'sort';
-COMMENT ON COLUMN "public"."shenyu_dict"."enabled" IS 'whether it is enabled';
+COMMENT ON COLUMN "public"."shenyu_dict"."enabled" IS 'whether it is enabled (0 close, 1 open) ';
 COMMENT ON COLUMN "public"."shenyu_dict"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."shenyu_dict"."date_updated" IS 'update time';
 
@@ -1506,6 +1546,7 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107807', 'operator', 'O
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107808', 'operator', 'OPERATOR', 'exclude', 'exclude', 'exclude', 6, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107809', 'operator', 'OPERATOR', 'startsWith', 'startsWith', 'startsWith', 7, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107810', 'operator', 'OPERATOR', 'endsWith', 'endsWith', 'endWiths', 8, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
+INSERT INTO "public"."shenyu_dict" VALUES ('1629403902796107810', 'operator', 'OPERATOR', 'pathPattern', 'pathPattern', 'pathPattern', 9, 1, '2022-07-19 18:08:02', '2022-07-19 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107811', 'paramType', 'PARAM_TYPE', 'post', 'post', 'post', 0, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107812', 'paramType', 'PARAM_TYPE', 'uri', 'uri', 'uri', 1, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902796107813', 'paramType', 'PARAM_TYPE', 'query', 'query', 'query', 2, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
@@ -1542,6 +1583,22 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302093', 'table', 'INIT
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302098', 'threadpool', 'THREADPOOL', 'default', 'default', '', 5, 1, '2022-05-25 18:08:02', '2022-05-25 18:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302099', 'signRequestBody', 'SIGN_REQUEST_BODY', 'close', 'false', 'close', 1, 1, '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 INSERT INTO "public"."shenyu_dict" VALUES ('1529403902800302100', 'signRequestBody', 'SIGN_REQUEST_BODY', 'open', 'true', 'open', 0, 1, '2022-06-29 10:08:02', '2022-06-29 10:08:02');
+INSERT INTO "public".`shenyu_dict` VALUES ('1545811989312315392', 'apidoc', 'API_DOC_GLOBAL_FLAG', 'status', 'true', 'Global switching (on or off) of API documents.', 0, 1, '2022-07-10 00:47:52', '2022-07-10 00:47:52');
+INSERT INTO "public".`shenyu_dict` VALUES ('1545812101056962560', 'apidocEnv', 'ENV_LABEL_OFFLINE', 'Offline', 'http://127.0.0.1:9195', 'Offline environment', 0, 1, '2022-07-10 00:48:19', '2022-07-10 00:48:19');
+INSERT INTO "public".`shenyu_dict` VALUES ('1545812228228259840', 'apidocEnv', 'ENV_LABEL_ONLINE', 'Online', 'http://127.0.0.1:9196', 'Online environment', 1, 1, '2022-07-10 00:48:49', '2022-07-10 00:48:49');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784271', 'securityProtocol', 'SECURITY_PROTOCOL', 'default', '', '', 0, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784272', 'securityProtocol', 'SECURITY_PROTOCOL', 'SSL', 'SSL', '', 1, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784273', 'securityProtocol', 'SECURITY_PROTOCOL', 'PLAINTEXT', 'PLAINTEXT', '', 2, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784274', 'securityProtocol', 'SECURITY_PROTOCOL', 'SASL_PLAINTEXT', 'SASL_PLAINTEXT', '', 3, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784275', 'securityProtocol', 'SECURITY_PROTOCOL', 'SASL_SSL', 'SASL_SSL', '', 4, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784276', 'saslMechanism', 'SASL_MECHANISM', 'default', '', '', 0, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784277', 'saslMechanism', 'SASL_MECHANISM', 'GSSAPI', 'GSSAPI', '', 1, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784278', 'saslMechanism', 'SASL_MECHANISM', 'PLAIN', 'PLAIN', '', 2, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784279', 'saslMechanism', 'SASL_MECHANISM', 'OAUTHBEARER', 'OAUTHBEARER', '', 3, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784280', 'saslMechanism', 'SASL_MECHANISM', 'SCRAM-SHA-256', 'SCRAM-SHA-256', '', 4, 1,'2022-09-02 00:00:00', '2022-09-02 00:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784281', 'saslMechanism', 'SASL_MECHANISM', 'SCRAM-SHA-512', 'SCRAM-SHA-512', '', 5, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
+
+
 
 -- ----------------------------
 -- Table structure for user_role

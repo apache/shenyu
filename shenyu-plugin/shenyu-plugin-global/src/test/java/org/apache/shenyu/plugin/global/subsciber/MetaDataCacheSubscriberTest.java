@@ -41,6 +41,7 @@ public final class MetaDataCacheSubscriberTest {
         metaDataCacheSubscriber = new MetaDataCacheSubscriber();
         metaDataCache = MetaDataCache.getInstance();
         metaData = MetaData.builder()
+                .id("1")
                 .path("/home")
                 .build();
     }

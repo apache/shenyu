@@ -19,15 +19,19 @@ package org.apache.shenyu.register.client.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.agent.model.NewService;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Properties;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+
 import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
 import static org.apache.shenyu.common.constant.DefaultPathConstants.SELECTOR_JOIN_RULE;
+
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ContextPathUtils;
@@ -48,8 +52,6 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsulClientRegisterRepository.class);
 
     private static final char SEPARATOR = '-';
-
-    private static MetaDataRegisterDTO metaDataRegisterDTO;
 
     private ConsulClient consulClient;
 
@@ -131,7 +133,8 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
 
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
-        metaDataRegisterDTO = metadata;
+        registerMetadata(metadata);
+        LogUtils.info(LOGGER, "{} Consul client register success: {}", metadata.getRpcType(), metadata);
     }
 
     /**
@@ -142,19 +145,12 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
     @Override
     public void persistURI(final URIRegisterDTO registerDTO) {
         registerURI(registerDTO);
-        registerMetadata(metaDataRegisterDTO);
-        LogUtils.info(LOGGER, "{} Consul client register success: {}", metaDataRegisterDTO.getRpcType(), metaDataRegisterDTO);
+        LogUtils.info(LOGGER, "{} Consul client register success: {}", registerDTO.getRpcType(), registerDTO);
     }
 
     @Override
     public void close() {
-        try {
-            consulClient.agentServiceDeregister(this.service.getId());
-        } finally {
-            metaDataRegisterDTO.setTimeMillis(System.currentTimeMillis());
-            registerMetadata(metaDataRegisterDTO);
-            LogUtils.info(LOGGER, "{} Consul client deregister success: {}", metaDataRegisterDTO.getRpcType(), metaDataRegisterDTO);
-        }
+        consulClient.agentServiceDeregister(this.service.getId());
     }
 
     private void registerMetadata(final MetaDataRegisterDTO metadata) {
@@ -171,7 +167,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         this.service.getMeta().put(Constants.URI, GsonUtils.getInstance().toJson(metadata));
         consulClient.agentServiceRegister(this.service);
     }
-    
+
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();

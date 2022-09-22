@@ -44,6 +44,10 @@
         <property name="format" value="@author"/>
         <property name="message" value="Please remove @author tag in javadoc!"/>
     </module>
+    <module name="RegexpSingleline">
+        <property name="format" value="\.printStackTrace"/>
+        <property name="message" value="Prohibit invoking .printStackTrace in source code ! Please use org.slf4j.Logger and write log instead."/>
+    </module>
 
     <module name="TreeWalker">
 

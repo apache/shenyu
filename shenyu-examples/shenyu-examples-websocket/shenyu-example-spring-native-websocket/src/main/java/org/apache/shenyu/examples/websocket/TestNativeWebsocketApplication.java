@@ -26,7 +26,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class TestNativeWebsocketApplication {
 
-    public static void main(String[] args) {
+    /**
+     * Main Entrance.
+     * @param args startup arguments
+     */
+    public static void main(final String[] args) {
         SpringApplication.run(TestNativeWebsocketApplication.class, args);
     }
 }

@@ -190,7 +190,7 @@ public class GsonUtils {
                         .append(URLDecoder.decode(v, Constants.DECODE))
                         .append(AND);
             } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                LOG.error("decode:{} failed !", v, e);
             }
         });
         final String r = stringBuilder.toString();
@@ -326,7 +326,13 @@ public class GsonUtils {
                 list.add(null);
                 continue;
             }
-            String objStr = jsonElement.getAsString();
+            String objStr;
+            if (jsonElement instanceof JsonObject) {
+                JsonObject asJsonObject = jsonElement.getAsJsonObject();
+                objStr = toJson(asJsonObject);
+            } else {
+                objStr = jsonElement.getAsString();
+            }
             if (objStr.startsWith(LEFT_ANGLE_BRACKETS) && objStr.endsWith(RIGHT_ANGLE_BRACKETS)) {
                 list.add(convertToMap(jsonElement.toString()));
             } else {

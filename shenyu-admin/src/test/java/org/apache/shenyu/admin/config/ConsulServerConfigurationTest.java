@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.admin.config;
 
+import com.ecwid.consul.v1.ConsulClient;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.client.server.consul.ShenyuConsulConfigWatch;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Properties;
@@ -27,6 +29,7 @@ import java.util.Properties;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 /**
@@ -44,5 +47,18 @@ public final class ConsulServerConfigurationTest {
         ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
         ShenyuConsulConfigWatch shenyuConsulConfigWatch = configuration.shenyuConsulConfigWatch(config, publisher);
         assertNotNull(shenyuConsulConfigWatch);
+    }
+
+    @Test
+    public void consulClientTest() {
+        try (MockedConstruction<ConsulClient> consulClientMockedConstruction = mockConstruction(ConsulClient.class)) {
+            ConsulServerConfiguration configuration = new ConsulServerConfiguration();
+            ShenyuRegisterCenterConfig config = mock(ShenyuRegisterCenterConfig.class);
+            Properties properties = mock(Properties.class);
+            when(config.getProps()).thenReturn(properties);
+            when(config.getProps().getProperty(any(), any())).thenReturn("1", "30", "mocked valued");
+            ConsulClient consulClient = configuration.consulClient(config);
+            assertNotNull(consulClient);
+        }
     }
 }

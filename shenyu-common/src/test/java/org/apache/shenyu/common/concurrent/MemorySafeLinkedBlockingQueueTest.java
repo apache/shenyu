@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class MemorySafeLinkedBlockingQueueTest {
     @Test
@@ -34,5 +35,13 @@ public class MemorySafeLinkedBlockingQueueTest {
         queue.setMaxFreeMemory(1);
         assertThat(queue.offer(() -> {
         }), is(true));
+    }
+
+    @Test
+    public void testCustomReject() throws Exception {
+        MemorySafeLinkedBlockingQueue<Runnable> queue = new MemorySafeLinkedBlockingQueue<>(Integer.MAX_VALUE);
+        queue.setRejector(new AbortPolicy<>());
+        assertThrows(RejectException.class, () -> queue.offer(() -> {
+        }));
     }
 }

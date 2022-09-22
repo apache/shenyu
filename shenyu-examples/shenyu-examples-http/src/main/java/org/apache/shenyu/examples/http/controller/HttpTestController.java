@@ -407,4 +407,29 @@ public class HttpTestController {
         response.setMsg(new Date().toString());
         return response;
     }
+
+    /**
+     * test null response body.
+     *
+     * @return response body
+     */
+    @GetMapping("/nullResponse")
+    public Object testResponseBodyIsNull() {
+        return null;
+    }
+
+
+    /**
+     * test big request body.
+     *
+     * @param params request body
+     * @return the result of post
+     */
+    @PostMapping("/bigRequestBody")
+    public ResultBean postBigRequestBody(@RequestBody final UserDTO params) {
+        ResultBean resultBean = new ResultBean();
+        resultBean.setCode(200);
+        resultBean.setData(params);
+        return resultBean;
+    }
 }

@@ -35,12 +35,11 @@ public class MemoryCacheTest {
     public void testMemoryCache() {
         final MemoryCache memoryCache = new MemoryCache();
         final String key = "data";
-        assertEquals(Boolean.FALSE, memoryCache.isExist(key));
-        memoryCache.cacheData(key, "data".getBytes(StandardCharsets.UTF_8), 10);
-        assertEquals(Boolean.TRUE, memoryCache.isExist(key));
-        final byte[] data = memoryCache.getData(key);
-        assert data != null;
-        assertEquals("data", new String(data, StandardCharsets.UTF_8));
+        memoryCache.isExist(key).subscribe(v -> assertEquals(Boolean.FALSE, v));
+        memoryCache.cacheData(key, "data".getBytes(StandardCharsets.UTF_8), 10)
+                .subscribe(v -> assertEquals(Boolean.TRUE, v));
+        memoryCache.isExist(key).subscribe(v -> assertEquals(Boolean.TRUE, v));
+        memoryCache.getData(key).subscribe(v -> assertEquals("data", new String(v, StandardCharsets.UTF_8)));
     }
 
 }

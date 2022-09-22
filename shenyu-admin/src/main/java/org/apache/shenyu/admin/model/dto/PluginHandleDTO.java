@@ -45,7 +45,7 @@ public class PluginHandleDTO implements Serializable {
     private String pluginId;
     
     /**
-     * the attribute name.
+     * the field name.
      */
     @NotBlank
     private String field;
@@ -65,15 +65,17 @@ public class PluginHandleDTO implements Serializable {
     private Integer dataType;
     
     /**
-     * the attribute type.
+     * the field type.
      * 1  selector,
      * 2  rule.
      */
+    @NotNull
     private Integer type;
     
     /**
      * the attribute sort.
      */
+    @NotNull
     private Integer sort;
     
     /**

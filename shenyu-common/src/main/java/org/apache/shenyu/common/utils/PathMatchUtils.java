@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.common.utils;
 
-import com.google.common.base.Splitter;
+import org.springframework.http.server.PathContainer;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,32 +31,39 @@ import java.util.regex.Pattern;
 public class PathMatchUtils {
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
-
+    
     /**
      * replace url {id} to real param.
      *
-     * @param path        the total path
-     * @param regex       the regex content
+     * @param path the total path
+     * @param regex the regex content
      * @param replacement the replacement content
      * @return the string
      */
     public static String replaceAll(final String path, final String regex, final String replacement) {
         return path.replaceAll(Pattern.quote(regex), Matcher.quoteReplacement(replacement));
     }
-
+    
     /**
      * Match boolean.
      *
-     * @param matchUrls to ignore urls
-     * @param path      the path
+     * @param matchUrls the path pattern
+     * @param realPath the real path
      * @return the boolean
      */
-    public static boolean match(final String matchUrls, final String path) {
-        return Splitter.on(",").omitEmptyStrings().trimResults().splitToList(matchUrls).stream().anyMatch(url -> reg(url, path));
+    public static boolean match(final String matchUrls, final String realPath) {
+        return MATCHER.match(matchUrls, realPath);
     }
-
-    private static boolean reg(final String pattern, final String path) {
-        return MATCHER.match(pattern, path);
+    
+    /**
+     * Path pattern boolean.
+     *
+     * @param pathPattern the path pattern
+     * @param realPath the real path
+     * @return the boolean
+     */
+    public static boolean pathPattern(final String pathPattern, final String realPath) {
+        PathPattern pattern = PathPatternParser.defaultInstance.parse(pathPattern);
+        return pattern.matches(PathContainer.parsePath(realPath));
     }
-
 }

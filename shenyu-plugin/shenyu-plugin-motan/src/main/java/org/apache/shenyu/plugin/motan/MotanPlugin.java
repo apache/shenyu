@@ -101,6 +101,16 @@ public class MotanPlugin extends AbstractShenyuPlugin {
     public boolean skip(final ServerWebExchange exchange) {
         return skipExcept(exchange, RpcTypeEnum.MOTAN);
     }
+    
+    @Override
+    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
+    }
+    
+    @Override
+    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return WebFluxResultUtils.noRuleResult(pluginName, exchange);
+    }
 
     @Override
     public int getOrder() {

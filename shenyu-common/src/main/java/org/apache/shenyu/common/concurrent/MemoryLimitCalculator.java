@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.common.concurrent;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -41,7 +41,7 @@ public class MemoryLimitCalculator {
             refresh();
             if (REFRESH_STARTED.compareAndSet(false, true)) {
                 ScheduledExecutorService scheduledExecutorService =
-                        Executors.newSingleThreadScheduledExecutor(ShenyuThreadFactory.create("Shenyu-Memory-Calculator-", false));
+                        new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("Shenyu-Memory-Calculator-", false));
                 // check every 50 ms to improve performance
                 scheduledExecutorService.scheduleWithFixedDelay(MemoryLimitCalculator::refresh, 50, 50, TimeUnit.MILLISECONDS);
                 Runtime.getRuntime().addShutdownHook(new Thread(() -> {

@@ -44,4 +44,14 @@ public final class PathUtils {
     public static String decoratorContextPath(final String contextPath) {
         return StringUtils.contains(contextPath, AdminConstants.URI_SUFFIX) ? StringUtils.substringBefore(contextPath, AdminConstants.URI_SUFFIX) : contextPath;
     }
+
+    /**
+     * Decorator path string with slash.
+     *
+     * @param contextPath the context path
+     * @return the string
+     */
+    public static String decoratorPathWithSlash(final String contextPath) {
+        return StringUtils.endsWith(contextPath, AdminConstants.URI_SLASH_SUFFIX) ? contextPath : contextPath + AdminConstants.URI_SLASH_SUFFIX;
+    }
 }

@@ -81,24 +81,10 @@ public class SandboxController {
      */
     @PostMapping(path = "/proxyGateway")
     public void proxyGateway(@RequestBody @Valid final ProxyGatewayDTO proxyGatewayDTO,
-        final HttpServletRequest request,
-        final HttpServletResponse response) throws IOException {
-        // Public request parameters.
-        Map<String, Object> reqParams = new HashMap<>();
-        try {
-            String reqJson = JsonUtils.toJson(proxyGatewayDTO.getBizParam());
-            reqJson = StringEscapeUtils.escapeHtml4(reqJson);
-            Map<String, Object> reqMap = JsonUtils.toMap(reqJson);
-            LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
-            if (Objects.nonNull(reqMap)) {
-                reqParams.putAll(reqMap);
-            }
-        } catch (Exception e) {
-            LOG.error("proxyGateway JsonUtils.toMap error={}", e);
-        }
-
-        Map<String, String> header = new HashMap<>();
-        header.put("Cookie", proxyGatewayDTO.getCookie());
+                            final HttpServletRequest request,
+                            final HttpServletResponse response) throws IOException {
+        // Public request headers.
+        Map<String, String> header = this.buildReqHeaders(proxyGatewayDTO);
 
         String appKey = proxyGatewayDTO.getAppKey();
         UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(proxyGatewayDTO.getRequestUrl()).build();
@@ -117,7 +103,9 @@ public class SandboxController {
             header.put("version", ShenyuSignatureUtils.VERSION);
         }
 
-        List<HttpUtils.UploadFile> files = uploadFiles(request);
+        // Public request parameters.
+        Map<String, Object> reqParams = this.buildReqBizParams(proxyGatewayDTO);
+        List<HttpUtils.UploadFile> files = this.uploadFiles(request);
         Response resp = HTTP_UTILS.requestCall(uriComponents.toUriString(), reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files);
         ResponseBody body = resp.body();
         if (Objects.isNull(body)) {
@@ -129,6 +117,35 @@ public class SandboxController {
         }
         IOUtils.copy(body.byteStream(), response.getOutputStream());
         response.flushBuffer();
+    }
+
+    private Map<String, String> buildReqHeaders(final ProxyGatewayDTO proxyGatewayDTO) {
+        Map<String, String> reqHeaders = new HashMap<>();
+        reqHeaders.put("Cookie", proxyGatewayDTO.getCookie());
+        try {
+            String reqJson = JsonUtils.toJson(proxyGatewayDTO.getHeaders());
+            reqJson = StringEscapeUtils.escapeHtml4(reqJson);
+            Map<String, String> reqMap = JsonUtils.jsonToMap(reqJson, String.class);
+            LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
+            reqHeaders.putAll(reqMap);
+        } catch (Exception e) {
+            LOG.error("proxyGateway JsonUtils.toMap error={}", e);
+        }
+        return reqHeaders;
+    }
+
+    private Map<String, Object> buildReqBizParams(final ProxyGatewayDTO proxyGatewayDTO) {
+        Map<String, Object> reqParams = new HashMap<>();
+        try {
+            String reqJson = JsonUtils.toJson(proxyGatewayDTO.getBizParam());
+            reqJson = StringEscapeUtils.escapeHtml4(reqJson);
+            Map<String, Object> reqMap = JsonUtils.toMap(reqJson);
+            LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
+            reqParams.putAll(reqMap);
+        } catch (Exception e) {
+            LOG.error("proxyGateway JsonUtils.toMap error={}", e);
+        }
+        return reqParams;
     }
 
     private String getSecureKey(final String appKey) {

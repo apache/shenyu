@@ -195,6 +195,7 @@ public final class ShenyuDictControllerTest {
         shenyuDictDTO.setDictValue("v");
         shenyuDictDTO.setDictCode("code");
         shenyuDictDTO.setSort(1);
+        shenyuDictDTO.setEnabled(true);
         return shenyuDictDTO;
     }
 }

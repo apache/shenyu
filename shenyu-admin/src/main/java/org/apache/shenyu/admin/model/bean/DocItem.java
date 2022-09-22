@@ -58,6 +58,8 @@ public class DocItem {
      */
     private int apiOrder;
 
+    private List<DocParameter> requestHeaders;
+
     private List<DocParameter> requestParameters;
 
     private List<DocParameter> responseParameters;
@@ -262,6 +264,23 @@ public class DocItem {
      */
     public void setApiOrder(final int apiOrder) {
         this.apiOrder = apiOrder;
+    }
+
+    /**
+     * getRequestHeaders.
+     * @return request headers
+     */
+    public List<DocParameter> getRequestHeaders() {
+        return requestHeaders;
+    }
+
+    /**
+     * setRequestHeaders.
+     *
+     * @param requestHeaders requestHeaders
+     */
+    public void setRequestHeaders(final List<DocParameter> requestHeaders) {
+        this.requestHeaders = requestHeaders;
     }
 
     /**

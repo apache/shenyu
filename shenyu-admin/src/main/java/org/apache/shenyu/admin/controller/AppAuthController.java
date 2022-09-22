@@ -71,7 +71,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
      */
     @PostMapping("/apply")
     @RequiresPermissions("system:authen:add")
-    public ShenyuAdminResult apply(@RequestBody final AuthApplyDTO authApplyDTO) {
+    public ShenyuAdminResult apply(@Valid @RequestBody final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isNoneBlank(authApplyDTO.getAppKey())) {
             return appAuthService.applyUpdate(authApplyDTO);
         }

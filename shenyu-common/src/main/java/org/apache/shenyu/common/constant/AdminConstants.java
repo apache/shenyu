@@ -226,4 +226,30 @@ public final class AdminConstants {
      * The constant URI_SUFFIX.
      */
     public static final String URI_SUFFIX = "/**";
+
+    /**
+     * The constant URI_SLASH_SUFFIX.
+     */
+    public static final String URI_SLASH_SUFFIX = "/";
+
+    /**
+     * The constant URI_VARIABLE_SUFFIX.
+     */
+    public static final String URI_VARIABLE_SUFFIX = "{";
+
+    /**
+     * the constant api document global flag dict code.
+     */
+    public static final String DICT_API_DOC_FLAG_DICTCODE = "API_DOC_GLOBAL_FLAG";
+
+    /**
+     * the constant api document global flag dict name.
+     */
+    public static final String DICT_API_DOC_FLAG_DICTNAME = "status";
+
+    /**
+     * the constant api document environment dict name.
+     */
+    public static final String DICT_TYPE_API_DOC_ENV = "apidocEnv";
+
 }

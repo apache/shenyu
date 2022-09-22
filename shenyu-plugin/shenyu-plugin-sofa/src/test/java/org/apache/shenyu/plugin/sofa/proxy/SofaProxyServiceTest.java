@@ -24,8 +24,12 @@ import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.convert.plugin.SofaRegisterConfig;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.junit.jupiter.api.AfterEach;
@@ -33,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.lang.NonNull;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -40,7 +45,9 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Field;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -73,6 +80,7 @@ public final class SofaProxyServiceTest {
         metaData.setServiceName("org.apache.shenyu.test.dubbo.api.service.DubboTestService");
         metaData.setMethodName(METHOD_NAME);
         metaData.setRpcType(RpcTypeEnum.SOFA.getName());
+        metaData.setRpcExt("{\"loadbalance\": \"loadbalance\"}");
     }
     
     @AfterEach
@@ -97,6 +105,46 @@ public final class SofaProxyServiceTest {
         SofaProxyService sofaProxyService = new SofaProxyService(new SofaParamResolveServiceImpl());
         sofaProxyService.genericInvoker("", metaData, exchange);
         RpcInvokeContext.getContext().getResponseCallback().onAppResponse("success", null, null);
+        final SofaRegisterConfig sofaRegisterConfig = new SofaRegisterConfig();
+        sofaRegisterConfig.setThreadpool(Constants.SHARED);
+        applicationConfigCache.init(sofaRegisterConfig);
+    }
+
+    @Test
+    public void applicationConfigCacheTest() throws NoSuchFieldException, IllegalAccessException {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        final ShenyuThreadPoolExecutor shenyuThreadPoolExecutor = mock(ShenyuThreadPoolExecutor.class);
+        when(context.getBean(ShenyuThreadPoolExecutor.class)).thenReturn(shenyuThreadPoolExecutor);
+        ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
+        final SofaRegisterConfig sofaRegisterConfig = new SofaRegisterConfig();
+        sofaRegisterConfig.setThreadpool(Constants.SHARED);
+        assertDoesNotThrow(() -> applicationConfigCache.init(sofaRegisterConfig));
+        final Field threadPool = ApplicationConfigCache.class.getDeclaredField("threadPool");
+        threadPool.setAccessible(true);
+        threadPool.set(applicationConfigCache, null);
+        sofaRegisterConfig.setThreadpool(Constants.FIXED);
+        assertThrows(UnsupportedOperationException.class, () -> applicationConfigCache.init(sofaRegisterConfig));
+        threadPool.set(applicationConfigCache, null);
+        sofaRegisterConfig.setThreadpool(Constants.EAGER);
+        assertThrows(UnsupportedOperationException.class, () -> applicationConfigCache.init(sofaRegisterConfig));
+        threadPool.set(applicationConfigCache, null);
+        sofaRegisterConfig.setThreadpool(Constants.LIMITED);
+        assertThrows(UnsupportedOperationException.class, () -> applicationConfigCache.init(sofaRegisterConfig));
+        threadPool.set(applicationConfigCache, null);
+        sofaRegisterConfig.setThreadpool(Constants.CACHED);
+        assertDoesNotThrow(() -> applicationConfigCache.init(sofaRegisterConfig));
+        threadPool.set(applicationConfigCache, null);
+        sofaRegisterConfig.setThreadpool("other");
+        assertDoesNotThrow(() -> applicationConfigCache.init(sofaRegisterConfig));
+    }
+
+    @Test
+    public void buildTest() {
+        ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
+        final SofaRegisterConfig sofaRegisterConfig = new SofaRegisterConfig();
+        applicationConfigCache.init(sofaRegisterConfig);
+        applicationConfigCache.build(metaData);
     }
     
     static class SofaParamResolveServiceImpl implements SofaParamResolveService {

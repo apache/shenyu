@@ -1,5 +1,5 @@
-![Light Logo](https://raw.githubusercontent.com/apache/incubator-shenyu-website/main/static/img/logo-light.svg#gh-dark-mode-only)
-![Dark Logo](https://raw.githubusercontent.com/apache/incubator-shenyu-website/main/static/img/logo.svg#gh-light-mode-only)
+![Light Logo](https://raw.githubusercontent.com/apache/shenyu-website/main/static/img/logo-light.svg#gh-dark-mode-only)
+![Dark Logo](https://raw.githubusercontent.com/apache/shenyu-website/main/static/img/logo.svg#gh-light-mode-only)
 
 <p align="center">
   <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
@@ -39,8 +39,8 @@
    <a target="_blank" href='https://github.com/apache/shenyu'>
         <img src="https://img.shields.io/github/contributors/apache/shenyu.svg" alt="github contributors"/>
    </a>
-   <a target="_blank" href="https://codecov.io/gh/apache/incubator-shenyu">
-        <img src="https://codecov.io/gh/apache/incubator-shenyu/branch/master/graph/badge.svg" />
+   <a target="_blank" href="https://codecov.io/gh/apache/shenyu">
+        <img src="https://codecov.io/gh/apache/shenyu/branch/master/graph/badge.svg" />
    </a>
   <a target="_blank" href="https://hub.docker.com/r/apache/shenyu-bootstrap/tags">
     <image src="https://img.shields.io/docker/pulls/apache/shenyu-bootstrap" alt="Docker Pulls"/>
@@ -52,7 +52,7 @@
 
 # Architecture
  
- ![](https://shenyu.apache.org/img/architecture/shenyu-framework.png)  
+ ![](https://shenyu.apache.org/img/architecture/shenyu-architecture-3d.png)  
  
 ---- 
 
@@ -195,7 +195,7 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
         
 # Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/apache/incubator-shenyu.svg)](https://starchart.cc/apache/incubator-shenyu.svg)
+[![Stargazers over time](https://starchart.cc/apache/shenyu.svg)](https://starchart.cc/apache/shenyu.svg)
 
 ---  
 
@@ -208,6 +208,6 @@ curl --location --request POST 'http://localhost:9195/shenyu/plugin/selectorAndR
 
 # Known Users
 
-In order of registration, More access companies are welcome to register at [https://github.com/apache/incubator-shenyu/issues/68](https://github.com/apache/incubator-shenyu/issues/68) (For open source users only) .
+In order of registration, More access companies are welcome to register at [https://github.com/apache/shenyu/issues/68](https://github.com/apache/shenyu/issues/68) (For open source users only) .
 
 All Users : [Known Users](https://shenyu.apache.org/community/user-registration)

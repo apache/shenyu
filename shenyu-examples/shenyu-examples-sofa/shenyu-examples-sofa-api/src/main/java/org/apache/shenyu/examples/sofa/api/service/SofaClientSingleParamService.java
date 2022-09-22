@@ -48,5 +48,4 @@ public interface SofaClientSingleParamService {
      * @return SofaSimpleTypeBean
      */
     SofaSimpleTypeBean insert(SofaSimpleTypeBean sofaSimpleTypeBean);
-    
 }

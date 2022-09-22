@@ -43,11 +43,19 @@ public class ExtendsShenyuPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         return chain.execute(exchange);
     }
-    
+
+    /**
+     * get the zer bean from custom plugin.
+     * @return  ExtendsShenyuZerBean
+     */
     public ExtendsShenyuZerBean getZerBean() {
         return zerBean;
     }
-    
+
+    /**
+     * get the dispatcher handler.
+     * @return  dispatcherHandler
+     */
     public DispatcherHandler getDispatcherHandler() {
         return dispatcherHandler;
     }

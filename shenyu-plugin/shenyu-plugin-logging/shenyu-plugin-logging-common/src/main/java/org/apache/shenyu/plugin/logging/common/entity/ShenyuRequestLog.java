@@ -404,4 +404,29 @@ public class ShenyuRequestLog {
     public void setPath(final String path) {
         this.path = path;
     }
+
+    @Override
+    public String toString() {
+        return "ShenyuRequestLog{"
+                + "timeLocal='" + timeLocal + '\''
+                + ", clientIp='" + clientIp + '\''
+                + ", method=" + method
+                + ", requestHeader=" + requestHeader
+                + ", responseHeader=" + responseHeader
+                + ", queryParams=" + queryParams
+                + ", requestBody=" + requestBody
+                + ", requestUri=" + requestUri
+                + ", responseBody=" + responseBody
+                + ", responseContentLength=" + responseContentLength
+                + ", rpcType=" + rpcType
+                + ", status=" + status
+                + ", upstreamIp=" + upstreamIp
+                + ", upstreamResponseTime=" + upstreamResponseTime
+                + ", userAgent=" + userAgent
+                + ", host=" + host
+                + ", module=" + module
+                + ", traceId=" + traceId
+                + ", path=" + path
+                + '}';
+    }
 }

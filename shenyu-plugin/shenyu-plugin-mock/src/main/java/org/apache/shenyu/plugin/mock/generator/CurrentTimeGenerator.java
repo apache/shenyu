@@ -61,7 +61,7 @@ public class CurrentTimeGenerator implements Generator<String> {
     }
     
     @Override
-    public void initParam(final List<String> params) {
+    public void initParam(final List<String> params, final String rule) {
         if (params.size() >= 1) {
             format = params.get(0);
         } else {
@@ -72,5 +72,10 @@ public class CurrentTimeGenerator implements Generator<String> {
     @Override
     public boolean match(final String rule) {
         return rule.matches("^current(\\|.+)?");
+    }
+    
+    @Override
+    public String[] getPrefixAndSuffix() {
+        return new String[]{"\"", "\""};
     }
 }

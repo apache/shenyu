@@ -18,12 +18,12 @@
 package org.apache.shenyu.examples.springmvc.dto;
 
 /**
- * The type OAuth Authorization dto
+ * The type OAuth Authorization dto.
  */
 public class OAuth2DTO {
 
     /**
-     * oauth token
+     * oauth token.
      */
     private String token;
 
