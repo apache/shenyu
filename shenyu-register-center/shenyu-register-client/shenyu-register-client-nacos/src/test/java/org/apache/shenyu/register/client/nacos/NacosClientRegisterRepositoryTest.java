@@ -93,7 +93,7 @@ public class NacosClientRegisterRepositoryTest {
             String value = invocationOnMock.getArgument(2);
             nacosBroker.put(key, value);
             return true;
-        }).when(configService).publishConfig(anyString(), anyString(), anyString());
+        }).when(configService).publishConfig(anyString(), anyString(), anyString(), anyString());
 
         return configService;
     }
@@ -133,13 +133,13 @@ public class NacosClientRegisterRepositoryTest {
         String dataStr = GsonUtils.getInstance().toJson(data);
         assertEquals(nacosBroker.get(configPath), GsonUtils.getInstance().toJson(Collections.singletonList(dataStr)));
 
-        doThrow(NacosException.class).when(configService).publishConfig(any(), any(), any());
+        doThrow(NacosException.class).when(configService).publishConfig(any(), any(), any(), any());
         Assertions.assertThrows(ShenyuException.class, () -> repository.persistInterface(data));
 
-        doReturn(false).when(configService).publishConfig(any(), any(), any());
+        doReturn(false).when(configService).publishConfig(any(), any(), any(), any());
         Assertions.assertThrows(ShenyuException.class, () -> repository.persistInterface(data));
     }
-    
+
     @Test
     public void testPersistUri() throws NacosException {
         final URIRegisterDTO data = URIRegisterDTO.builder()
