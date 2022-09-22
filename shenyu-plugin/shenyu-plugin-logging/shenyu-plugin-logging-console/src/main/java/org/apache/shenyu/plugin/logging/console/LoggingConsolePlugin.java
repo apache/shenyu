@@ -79,7 +79,7 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         Map<String, String> handleMap = JsonUtils
                 .jsonToMap(Optional.ofNullable(rule).map(RuleData::getHandle).orElse(""), String.class);
         String keyWords = handleMap.get("keyword");
-        maskFlag = StringUtils.isBlank(keyWords) ? false : true;
+        maskFlag = StringUtils.isNotBlank(keyWords)&&"true".equals(handleMap.get("maskStatus")) ? true : false;
         if (maskFlag) {
             Collections.addAll(keyWordSet, keyWords.split(";"));
             dataMaskInterface = SpringBeanUtils.getInstance().getBean(handleMap.get("maskType"));
@@ -240,7 +240,6 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
                 String responseBody = maskOutput(writer.output());
                 logInfo.append(responseBody).append(System.lineSeparator());
                 logInfo.append("[Response Body End]").append(System.lineSeparator());
-                Map<String, String> stringObjectMap = JsonUtils.jsonToMap(logInfo.toString(), String.class);
                 // when response, print all request info.
                 print(logInfo.toString());
             });

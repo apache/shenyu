@@ -25,11 +25,6 @@ import java.util.regex.Pattern;
  */
 public class KeyWordMatch {
 
-    /**
-     * keyWord set.
-     */
-    private Set<String> keyWordSet;
-
     private Pattern p;
 
     /**
@@ -39,7 +34,6 @@ public class KeyWordMatch {
      */
     public KeyWordMatch(final Set<String> keyWordSet) {
 
-        this.keyWordSet = keyWordSet;
         StringBuilder sb = new StringBuilder();
         keyWordSet.forEach(tempKeyWord -> {
             sb.append("(?i)");

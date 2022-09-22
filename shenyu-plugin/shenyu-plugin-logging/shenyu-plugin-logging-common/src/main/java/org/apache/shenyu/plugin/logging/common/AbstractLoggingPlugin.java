@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.common;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -76,9 +77,10 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
 
         Map<String, String> handleMap = JsonUtils.jsonToMap(
                 Optional.ofNullable(rule).map(RuleData::getHandle).orElse(""), String.class);
-        maskFlag = handleMap.containsKey("keyword") ? true : false;
+        String keyWords = handleMap.get("keyword");
+        maskFlag = StringUtils.isNotBlank(keyWords) && "true".equals(handleMap.get("maskStatus")) ? true : false;
         if (maskFlag) {
-            Collections.addAll(keyWordSet, handleMap.get("keyword").split(";"));
+            Collections.addAll(keyWordSet, keyWords.split(";"));
             dataMaskInterface = SpringBeanUtils.getInstance().getBean(handleMap.get("maskType"));
         }
         ServerHttpRequest request = exchange.getRequest();
