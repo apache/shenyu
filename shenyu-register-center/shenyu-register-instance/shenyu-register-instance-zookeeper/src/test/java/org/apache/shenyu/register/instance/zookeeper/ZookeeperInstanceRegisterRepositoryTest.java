@@ -17,48 +17,31 @@
 
 package org.apache.shenyu.register.instance.zookeeper;
 
-import org.apache.curator.test.TestingServer;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.listen.Listenable;
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 
-import java.lang.reflect.Field;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 public class ZookeeperInstanceRegisterRepositoryTest {
 
-    private final ZookeeperInstanceRegisterRepository repository
-            = new ZookeeperInstanceRegisterRepository();
-
-    private ZookeeperClient client;
-
-    @BeforeEach
-    public void setup() throws Exception {
-        TestingServer server = new TestingServer();
-        ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
-        config.setServerLists(server.getConnectString());
-        this.repository.init(config);
-
-        Class<? extends ZookeeperInstanceRegisterRepository> clazz = this.repository.getClass();
-
-        String fieldString = "client";
-        Field field = clazz.getDeclaredField(fieldString);
-        field.setAccessible(true);
-        this.client = (ZookeeperClient) field.get(repository);
-    }
-
     @Test
-    public void testPersistInstance() {
-        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
-                .appName("shenyu-test")
-                .host("shenyu-host")
-                .port(9195)
-                .build();
-        repository.persistInstance(data);
-        String value = client.get("/shenyu/register/instance/shenyu-host:9195");
-        assertEquals(value, GsonUtils.getInstance().toJson(data));
+    public void testZookeeperInstanceRegisterRepository() {
+        try (MockedConstruction<ZookeeperClient> construction = mockConstruction(ZookeeperClient.class, (mock, context) -> {
+            final CuratorFramework curatorFramework = mock(CuratorFramework.class);
+            when(mock.getClient()).thenReturn(curatorFramework);
+            when(curatorFramework.getConnectionStateListenable()).thenReturn(mock(Listenable.class));
+        })) {
+            final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
+            ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+            repository.init(config);
+            repository.persistInstance(mock(InstanceRegisterDTO.class));
+            repository.close();
+        }
     }
 }
