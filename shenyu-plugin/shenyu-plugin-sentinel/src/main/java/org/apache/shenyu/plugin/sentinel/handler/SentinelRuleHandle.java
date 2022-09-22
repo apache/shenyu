@@ -51,6 +51,8 @@ public class SentinelRuleHandle implements PluginDataHandler {
             rule.setCount(sentinelHandle.getFlowRuleCount());
             rule.setGrade(sentinelHandle.getFlowRuleGrade());
             rule.setControlBehavior(sentinelHandle.getFlowRuleControlBehavior());
+            rule.setMaxQueueingTimeMs(sentinelHandle.getFlowRuleMaxQueueingTimeMs());
+            rule.setWarmUpPeriodSec(sentinelHandle.getFlowRuleWarmUpPeriodSec());
             flowRules.add(rule);
         }
         FlowRuleManager.loadRules(flowRules);

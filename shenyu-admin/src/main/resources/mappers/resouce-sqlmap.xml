@@ -139,6 +139,12 @@
         select true from resource where id = #{id} limit 1
     </select>
 
+    <select id="nameExisted" resultType="java.lang.Boolean">
+        SELECT true
+        FROM resource
+        WHERE name = #{name} LIMIT 1
+    </select>
+
     <select id="selectByUserName" resultType="org.apache.shenyu.admin.model.entity.ResourceDO">
         select
             <include refid="Base_Column_List"/>

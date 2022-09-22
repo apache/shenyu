@@ -56,12 +56,14 @@ public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport 
         return this.serverContainer;
     }
 
+    @Override
     protected void initServletContext(final ServletContext servletContext) {
         if (this.serverContainer == null) {
             this.serverContainer = (ServerContainer) servletContext.getAttribute("javax.websocket.server.ServerContainer");
         }
     }
 
+    @Override
     protected boolean isContextRequired() {
         return false;
     }
@@ -83,7 +85,7 @@ public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport 
             try {
                 configurator = (ServerEndpointConfig.Configurator) annotation.configurator().getConstructor().newInstance();
             } catch (ReflectiveOperationException ex) {
-                LOG.error("ShenyuServerEndpoint configurator init fail! Class name: {}, configurator name: {}", pojo.getClass().getName(), annotation.configurator().getName());
+                LOG.error("ShenyuServerEndpoint configurator init fail! Class name: {}, configurator name: {}", pojo.getName(), annotation.configurator().getName());
                 throw new ShenyuException(ex);
             }
         }
