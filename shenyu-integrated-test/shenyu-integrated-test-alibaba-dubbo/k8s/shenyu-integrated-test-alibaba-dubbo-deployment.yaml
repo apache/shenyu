@@ -1,0 +1,145 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: shenyu-examples-alibaba-dubbo-service
+    all: shenyu-integrated-test-alibaba-dubbo
+  name: shenyu-examples-alibaba-dubbo-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shenyu-examples-alibaba-dubbo-service
+      all: shenyu-integrated-test-alibaba-dubbo
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        network/shenyu: "true"
+        app: shenyu-examples-alibaba-dubbo-service
+        all: shenyu-integrated-test-alibaba-dubbo
+    spec:
+      containers:
+        - env:
+            - name: dubbo.zk
+              value: zookeeper://shenyu-zk:2181
+            - name: shenyu.register.serverLists
+              value: http://shenyu-admin:9095
+          image: shenyu-examples-alibaba-dubbo-service:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - wget -q -O - http://localhost:8011/actuator/health | grep UP || exit 1
+            failureThreshold: 3
+            timeoutSeconds: 2
+          name: shenyu-examples-alibaba-dubbo-service
+          ports:
+            - containerPort: 8011
+            - containerPort: 20888
+          resources:
+            limits:
+              memory: "2147483648"
+      restartPolicy: Always
+status: {}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: shenyu-integrated-test-alibaba-dubbo
+    all: shenyu-integrated-test-alibaba-dubbo
+  name: shenyu-integrated-test-alibaba-dubbo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shenyu-integrated-test-alibaba-dubbo
+      all: shenyu-integrated-test-alibaba-dubbo
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        network/shenyu: "true"
+        app: shenyu-integrated-test-alibaba-dubbo
+        all: shenyu-integrated-test-alibaba-dubbo
+    spec:
+      containers:
+        - env:
+            - name: shenyu.sync.websocket.urls
+              value: ws://shenyu-admin:9095/websocket
+          image: apache/shenyu-integrated-test-alibaba-dubbo:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - wget
+                - -q
+                - -O
+                - '-'
+                - http://shenyu-integrated-test-alibaba-dubbo:9195/actuator/health
+            failureThreshold: 3
+            timeoutSeconds: 2
+          name: shenyu-integrated-test-alibaba-dubbo
+          ports:
+            - containerPort: 9195
+          resources:
+            limits:
+              memory: "2147483648"
+      restartPolicy: Always
+status: {}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: shenyu-zk
+    all: shenyu-integrated-test-alibaba-dubbo
+  name: shenyu-zk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shenyu-zk
+      all: shenyu-integrated-test-alibaba-dubbo
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        network/shenyu: "true"
+        app: shenyu-zk
+        all: shenyu-integrated-test-alibaba-dubbo
+    spec:
+      containers:
+        - image: zookeeper:3.5
+          name: shenyu-zk
+          resources: {}
+          ports:
+            - containerPort: 2181
+              name: client
+            - containerPort: 2888
+              name: server
+            - containerPort: 3888
+              name: leader-election
+            - containerPort: 8080
+              name: website
+      restartPolicy: Always
+status: {}
