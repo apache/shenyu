@@ -26,11 +26,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ZookeeperInstanceRegisterRepositoryTest {
 
@@ -77,19 +77,18 @@ public class ZookeeperInstanceRegisterRepositoryTest {
         AtomicInteger atomicInteger = new AtomicInteger();
         final int time = 1;
         CountDownLatch countDownLatch = new CountDownLatch(time);
-        repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), list -> {
-            assertFalse(list.isEmpty());
+        List<InstanceRegisterDTO> instanceRegisterDTOS = repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), list -> {
+            assertEquals(list.size(), time + 1);
             atomicInteger.incrementAndGet();
             countDownLatch.countDown();
         });
-        for (int i = 1; i <= time; i++) {
-            data = InstanceRegisterDTO.builder()
-                    .appName("shenyu-test-" + i)
-                    .host("shenyu-host-" + i)
-                    .port(9195)
-                    .build();
-            repository.persistInstance(data);
-        }
+        assertEquals(instanceRegisterDTOS.size(), 1);
+        data = InstanceRegisterDTO.builder()
+                .appName("shenyu-test-1")
+                .host("shenyu-host-1")
+                .port(9195)
+                .build();
+        repository.persistInstance(data);
         countDownLatch.await();
         assertEquals(atomicInteger.get(), time);
     }

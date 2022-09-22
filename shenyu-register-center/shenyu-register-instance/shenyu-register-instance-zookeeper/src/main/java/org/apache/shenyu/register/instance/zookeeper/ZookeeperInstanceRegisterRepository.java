@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.Collections;
@@ -106,27 +106,25 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
     @Override
     public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
-        final AtomicReference<List<InstanceRegisterDTO>> listAtomicReference = new AtomicReference<>();
-        client.subscribeChildrenChanges(selectKey, new CuratorWatcher() {
+        final Function<List<String>, List<InstanceRegisterDTO>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath -> {
+            String instanceRegisterJsonStr = client.get(RegisterPathConstants.buildRealNode(selectKey, childPath));
+            return GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceRegisterDTO.class);
+        }).collect(Collectors.toList());
+
+        List<String> childrenPathList = client.subscribeChildrenChanges(selectKey, new CuratorWatcher() {
             @Override
             public void process(final WatchedEvent event) throws Exception {
                 if (watcherListener != null) {
                     String path = Objects.isNull(event.getPath()) ? "" : event.getPath();
                     List<String> childrenList = StringUtils.isNotBlank(path) ? client.subscribeChildrenChanges(path, this)
-                            : Collections.<String>emptyList();
-
+                            : Collections.emptyList();
                     if (!childrenList.isEmpty()) {
-                        List<InstanceRegisterDTO> currInstanceRegisterDTOList = childrenList.stream().map(childPath -> {
-                            String instanceRegisterJsonStr = client.get(RegisterPathConstants.buildRealNode(selectKey, childPath));
-                            return GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceRegisterDTO.class);
-                        }).collect(Collectors.toList());
-                        listAtomicReference.set(currInstanceRegisterDTOList);
-                        watcherListener.listener(currInstanceRegisterDTOList);
+                        watcherListener.listener(getInstanceRegisterFun.apply(childrenList));
                     }
                 }
             }
         });
-        return listAtomicReference.get();
+        return getInstanceRegisterFun.apply(childrenPathList);
     }
 
     @Override
