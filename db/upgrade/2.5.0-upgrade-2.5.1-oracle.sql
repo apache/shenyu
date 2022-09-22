@@ -170,3 +170,8 @@ values ('1518229897214468228', '10', 'flowRuleMaxQueueingTimeMs', 'flowRuleMaxQu
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468229', '10', 'flowRuleWarmUpPeriodSec', 'flowRuleWarmUpPeriodSec', 1, 2, 8, '{"required":"0","defaultValue":"10"}');
 
+/*create plugin resource and permission for admin #3964 */
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO resource  (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
+values ('1572525965625266176','1346777449787125760','SHENYU.BUTTON.SYSTEM.RESOURCE','','','','2','6','','1','0','system:plugin:resource','1');
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id)
+VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176');

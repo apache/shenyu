@@ -33,6 +33,11 @@ public final class AdminConstants {
     public static final String PLUGIN_NAME_IS_EXIST = "The plugin name already exists and can't be added repeatedly!";
 
     /**
+     * The constant RESOURCE_NAME_IS_EXIST.
+     */
+    public static final String RESOURCE_NAME_IS_EXIST = "The resource name already exists and can't be added repeatedly!";
+
+    /**
      * The constant ID_NOT_EXIST.
      */
     public static final String ID_NOT_EXIST = "ID NOT EXIST!";

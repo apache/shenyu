@@ -139,7 +139,23 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         pluginDTO.setId(id);
         return createPlugin(pluginDTO);
     }
-    
+
+    /**
+     * create plugin resource.
+     * @param id primary key
+     * @param pluginDTO plugin
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PutMapping("/createPluginResource/{id}")
+    @RequiresPermissions("system:plugin:resource")
+    public ShenyuAdminResult createPluginResource(@PathVariable("id")
+                                                  @Existed(message = "plugin is not existed",
+                                                          provider = PluginMapper.class) final String id,
+                                                  @Valid @RequestBody final PluginDTO pluginDTO) {
+        pluginDTO.setId(id);
+        return ShenyuAdminResult.success(pluginService.createPluginResource(pluginDTO));
+    }
+
     /**
      * delete plugins.
      *
