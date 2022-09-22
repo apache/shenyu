@@ -18,6 +18,7 @@
 package org.apache.shenyu.sync.data.nacos.handler;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
 
@@ -46,16 +47,16 @@ public final class NacosMockConfigService implements ConfigService {
     }
 
     @Override
-    public boolean publishConfig(final String key, final String group, final String result) {
-        Map<String, String> row = store.getOrDefault(key, new HashMap<>());
-        row.put(group, result);
-        store.put(key, row);
-        return true;
+    public boolean publishConfig(final String dataId, final String group, final String result) throws NacosException {
+        return publishConfig(dataId, group, result, ConfigType.getDefaultType().getType());
     }
 
     @Override
     public boolean publishConfig(final String dataId, final String group, final String content, final String type) throws NacosException {
-        return false;
+        Map<String, String> row = store.getOrDefault(dataId, new HashMap<>());
+        row.put(group, content);
+        store.put(dataId, row);
+        return true;
     }
 
     @Override
