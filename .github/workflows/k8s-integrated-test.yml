@@ -92,7 +92,7 @@ jobs:
         name: Wait for docker compose start up completely
         # if: steps.filter.outputs.changed == 'true'
         run: |
-          kind load apache/shenyu-integrated-test-alibaba-dubbo shenyu-examples-alibaba-dubbo-service
+          kind load docker-image apache/shenyu-integrated-test-alibaba-dubbo shenyu-examples-alibaba-dubbo-service
           docker images
           kubectl get all
           bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
