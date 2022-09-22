@@ -21,6 +21,7 @@ import org.apache.shenyu.common.utils.UriUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -50,7 +51,8 @@ public interface FallbackHandler {
      * @return Mono
      */
     default Mono<Void> fallback(ServerWebExchange exchange, URI uri, Throwable t) {
-        if (Objects.isNull(uri)) {
+        // client HttpStatusCodeException, return the client response directly
+        if (t instanceof HttpStatusCodeException || Objects.isNull(uri)) {
             return withoutFallback(exchange, t);
         }
 

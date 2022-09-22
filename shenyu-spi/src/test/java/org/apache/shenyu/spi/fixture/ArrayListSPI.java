@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * ArrayListSpi .
  */
-@Join(order = 1)
+@Join(order = 1, isSingleton = false)
 public class ArrayListSPI implements ListSPI {
     /**
      * Gets list.

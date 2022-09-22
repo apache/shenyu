@@ -68,6 +68,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     
     private final String contextPath;
     
+    private final String ipAndPort;
+    
     private final String host;
     
     private final String port;
@@ -88,6 +90,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             LOG.error(errorMsg);
             throw new ShenyuClientIllegalArgumentException(errorMsg);
         }
+        this.ipAndPort = props.getProperty(ShenyuClientConstants.IP_PORT);
         this.host = props.getProperty(ShenyuClientConstants.HOST);
         this.port = props.getProperty(ShenyuClientConstants.PORT);
         publisher.start(shenyuClientRegisterRepository);
@@ -205,6 +208,15 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      */
     public String getContextPath() {
         return contextPath;
+    }
+    
+    /**
+     * Get the ip and port.
+     *
+     * @return the ip and port
+     */
+    public String getIpAndPort() {
+        return ipAndPort;
     }
     
     /**

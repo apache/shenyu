@@ -54,7 +54,7 @@ public final class SentinelRuleHandleTest {
     public void removeRule() {
         RuleData data = new RuleData();
         data.setSelectorId("sentinel");
-        data.setName("removeRule");
+        data.setId("removeRule");
         SentinelHandle sentinelHandle = new SentinelHandle();
         sentinelHandle.setFlowRuleCount(10);
         sentinelHandle.setFlowRuleGrade(0);

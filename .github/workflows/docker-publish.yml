@@ -19,9 +19,9 @@ on:
   push:
     branches: [ "master" ]
     tags: [ 'v*.*.*' ]
-    paths:
-      - '!**.md'
-      - '!**/resources/static/'
+    paths-ignore:
+      - '**.md'
+      - '**/resources/static/'
 
 env:
   REGISTRY: ghcr.io

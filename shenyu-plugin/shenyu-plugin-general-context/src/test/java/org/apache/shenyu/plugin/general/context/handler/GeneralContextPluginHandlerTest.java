@@ -60,7 +60,7 @@ public class GeneralContextPluginHandlerTest {
         this.generalContextPluginDataHandler.handlerRule(this.ruleData);
         RuleData ruleData = new RuleData();
         ruleData.setSelectorId("test");
-        ruleData.setName("test");
+        ruleData.setId("test");
         this.generalContextPluginDataHandler.removeRule(this.ruleData);
         assertNull(GeneralContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(this.ruleData)));
         this.generalContextPluginDataHandler.removeRule(ruleData);

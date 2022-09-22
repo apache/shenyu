@@ -17,145 +17,35 @@
 
 package org.apache.shenyu.admin.listener.zookeeper;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.admin.listener.DataChangedListener;
-import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 import org.apache.zookeeper.CreateMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.List;
 
 /**
  * Use zookeeper to push data changes.
  */
-public class ZookeeperDataChangedListener implements DataChangedListener {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperDataChangedListener.class);
+public class ZookeeperDataChangedListener extends AbstractNodeDataChangedListener {
 
     private final ZookeeperClient zkClient;
-
-    private final Object ruleSyncObject = new Object();
-
-    private final Object selectorSyncObject = new Object();
 
     public ZookeeperDataChangedListener(final ZookeeperClient zkClient) {
         this.zkClient = zkClient;
     }
 
     @Override
-    public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
-        for (AppAuthData data : changed) {
-            String appAuthPath = DefaultPathConstants.buildAppAuthPath(data.getAppKey());
-            // delete
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deleteZkPath(appAuthPath);
-                continue;
-            }
-            // create or update
-            insertZkNode(appAuthPath, data);
-        }
-    }
-
-    @Override
-    public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
-        for (MetaData data : changed) {
-            try {
-                String metaDataPath = DefaultPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
-                // delete
-                if (eventType == DataEventTypeEnum.DELETE) {
-                    deleteZkPath(metaDataPath);
-                    continue;
-                }
-                // create or update
-                insertZkNode(metaDataPath, data);
-            } catch (UnsupportedEncodingException e) {
-                LOG.error("Url encode error.", e);
-                throw new ShenyuException(e.getMessage());
-            }
-        }
-    }
-
-    @Override
-    public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
-        for (PluginData data : changed) {
-            String pluginPath = DefaultPathConstants.buildPluginPath(data.getName());
-            // delete
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deleteZkPathRecursive(pluginPath);
-                String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(data.getName());
-                deleteZkPathRecursive(selectorParentPath);
-                String ruleParentPath = DefaultPathConstants.buildRuleParentPath(data.getName());
-                deleteZkPathRecursive(ruleParentPath);
-                continue;
-            }
-            //create or update
-            insertZkNode(pluginPath, data);
-            LOG.debug("created path: {} with data: {}", pluginPath, data);
-        }
-    }
-
-    @Override
-    public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH && CollectionUtils.isNotEmpty(changed)) {
-            String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(changed.get(0).getPluginName());
-            deleteZkPathRecursive(selectorParentPath);
-        }
-        for (SelectorData data : changed) {
-            String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(data.getPluginName(), data.getId());
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deleteZkPath(selectorRealPath);
-                continue;
-            }
-            //create or update
-            synchronized (selectorSyncObject) {
-                insertZkNode(selectorRealPath, data);
-            }
-            LOG.debug("created path: {} with data: {}", selectorRealPath, data);
-        }
-    }
-
-    @Override
-    public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH && CollectionUtils.isNotEmpty(changed)) {
-            String selectorParentPath = DefaultPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
-            deleteZkPathRecursive(selectorParentPath);
-        }
-        for (RuleData data : changed) {
-            String ruleRealPath = DefaultPathConstants.buildRulePath(data.getPluginName(), data.getSelectorId(), data.getId());
-            if (eventType == DataEventTypeEnum.DELETE) {
-                deleteZkPath(ruleRealPath);
-                continue;
-            }
-            //create or update
-            synchronized (ruleSyncObject) {
-                insertZkNode(ruleRealPath, data);
-            }
-            LOG.debug("created path: {} with data: {}", ruleRealPath, data);
-        }
-    }
-
-    private void insertZkNode(final String path, final Object data) {
+    public void createOrUpdate(final String path, final Object data) {
         zkClient.createOrUpdate(path, data, CreateMode.PERSISTENT);
     }
 
-    private void deleteZkPath(final String path) {
+    @Override
+    public void deleteNode(final String path) {
         if (zkClient.isExist(path)) {
             zkClient.delete(path);
         }
     }
 
-    private void deleteZkPathRecursive(final String path) {
+    @Override
+    public void deletePathRecursive(final String path) {
         if (zkClient.isExist(path)) {
             zkClient.delete(path);
         }
