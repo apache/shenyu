@@ -21,6 +21,7 @@ on:
     branches:
       - master
       - old-k8s-it
+      - bake-k8s
 
 jobs:
   build:
@@ -36,17 +37,20 @@ jobs:
         with:
           submodules: true
       -
-        name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      -
         name: install k8s
-        uses: engineerd/setup-kind@v0.5.0
-        with:
-          version: v0.14.0
+        run: |
+          curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE=777 sh -
+          cat /etc/rancher/k3s/k3s.yaml
+          mkdir -p ~/.kube
+          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+      -
+        name: Test k8s installation
+        run: |
+          kubectl version --short
+          kubectl cluster-info
+          kubectl get po
+          docker ps -a
+          docker images
       -
         name: Set up Helm
         uses: azure/setup-helm@v1
@@ -97,12 +101,11 @@ jobs:
           kubectl apply -f ./shenyu-integrated-test/${{ matrix.case }}/k8s/${{ matrix.case }}-service.yaml
       -
         name: Image test
+        # kind load docker-image apache/shenyu-integrated-test-alibaba-dubbo shenyu-examples-alibaba-dubbo-service
         run: |
-          kind load docker-image apache/shenyu-integrated-test-alibaba-dubbo shenyu-examples-alibaba-dubbo-service
           kubectl get all
           docker images
           docker ps -a
-          docker exec -it kind-control-plane crictl images
           kubectl get events --all-namespaces
       -
         name: Wait for docker compose start up completely
@@ -110,10 +113,15 @@ jobs:
         run: |
           bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
       -
+        name: especially
+        run: |
+          docker ps -a
+      -
         name: Image test after healthcheck
         run: |
           kubectl get all
           docker images
+          docker ps -a
           kubectl logs -l app.kubernetes.io/name=shenyu-admin
           kubectl get events --all-namespaces
       -
