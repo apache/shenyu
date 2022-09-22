@@ -19,7 +19,7 @@ VERSION := "2.5.1-SNAPSHOT"
 REGISTRY = "docker.io"
 REPOSITORY_PREF := "apache/shenyu"
 ADMIN_REPOSITORY := "${REPOSITORY_PREF}-admin"
-BOOTSTRAP_REPOSITORY := "${REPOSITORY_PREF}-admin"
+BOOTSTRAP_REPOSITORY := "${REPOSITORY_PREF}-bootstrap"
 
 TAG := latest
 
@@ -59,7 +59,7 @@ build-admin-image: build-admin ## build admin image for local
 	@echo "build admin image"
 	@docker buildx build --load \
 		-t ${REGISTRY}/${ADMIN_REPOSITORY}:${TAG} \
-		-f ${SHENYU_HOME}/shenyu-dist/shenyu-admin-dist/Dockerfile \
+		-f ${SHENYU_HOME}/shenyu-dist/shenyu-admin-dist/docker/Dockerfile \
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-admin-bin \
 		${SHENYU_HOME}/shenyu-dist/shenyu-admin-dist
 
@@ -67,7 +67,7 @@ build-bootstrap-image: build-bootstrap ## build bootstrap image for local
 	@echo "build bootstrap image"
 	@docker buildx build --load \
 		-t ${REGISTRY}/${BOOTSTRAP_REPOSITORY}:${TAG} \
-		-f ${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist/Dockerfile \
+		-f ${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile \
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-bootstrap-bin \
 		${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist
 
@@ -80,20 +80,21 @@ init:
 	@docker buildx use shenyu
 
 publish-admin-image: build-admin
-	@docker buildx rm shenyu
+	@echo "build and push admin image"
 	@docker buildx build --push \
 		--platform=linux/arm64,linux/amd64 \
 		-t ${REGISTRY}/${ADMIN_REPOSITORY}:latest \
 		-t ${REGISTRY}/${ADMIN_REPOSITORY}:${VERSION} \
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-admin-bin \
-		-f ${SHENYU_HOME}/shenyu-dist/shenyu-admin-dist/Dockerfile \
+		-f ${SHENYU_HOME}/shenyu-dist/shenyu-admin-dist/docker/Dockerfile \
 		${SHENYU_HOME}/shenyu-dist/shenyu-admin-dist
 
 publish-bootstrap-image: build-bootstrap
+	@echo "build and push bootstrap image"
 	@docker buildx build --push \
 		--platform=linux/arm64,linux/amd64 \
 		-t ${REGISTRY}/${BOOSTRAP_REPOSITORY}:latest \
 		-t ${REGISTRY}/${BOOSTRAP_REPOSITORY}:${VERSION} \
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-bootstrap-bin \
-		-f ${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist/Dockerfile \
+		-f ${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile \
 		${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist

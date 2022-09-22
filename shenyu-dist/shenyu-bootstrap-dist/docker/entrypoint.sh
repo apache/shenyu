@@ -32,4 +32,4 @@ else
 fi
 
 echo "Starting the Apache ShenYu Bootstrap ..."
-${JAVA_HOME}/bin/java ${JAVA_OPTS} -classpath ${CLASS_PATH} org.apache.shenyu.bootstrap.ShenyuBootstrapApplication
+exec ${JAVA_HOME}/bin/java ${JAVA_OPTS} -classpath ${CLASS_PATH} org.apache.shenyu.bootstrap.ShenyuBootstrapApplication "$@"

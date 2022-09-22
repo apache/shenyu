@@ -24,6 +24,12 @@
     <property name="ASYNC_DISCARDING_THRESHOLD" value="${log.async.discarding-threshold:-0}"/>
     <property name="ASYNC_LOG_QUEUE_SIZE" value="${log.async.queue-size:-256}"/>
 
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
     <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
         <discardingThreshold>${ASYNC_DISCARDING_THRESHOLD}</discardingThreshold>
         <queueSize>${ASYNC_LOG_QUEUE_SIZE}</queueSize>

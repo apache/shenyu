@@ -66,6 +66,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./shenyu-dist/shenyu-admin-dist
+          file: ./shenyu-dist/shenyu-admin-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-admin-bin
           tags: shenyu/admin:latest
           outputs: type=docker,dest=/tmp/apache-shenyu-admin.tar
@@ -74,6 +75,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./shenyu-dist/shenyu-bootstrap-dist
+          file: ./shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
           tags: shenyu/bootstrap:latest
           outputs: type=docker,dest=/tmp/apache-shenyu-bootstrap.tar
