@@ -26,7 +26,8 @@ RUN apk --no-cache add procps
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
-COPY entrypoint.sh ${LOCAL_PATH}/entrypoint.sh
+COPY docker/logback.xml ${LOCAL_PATH}/conf/logback.xml
+COPY docker/entrypoint.sh ${LOCAL_PATH}/entrypoint.sh
 RUN chmod +x ${LOCAL_PATH}/entrypoint.sh
 
 WORKDIR /opt/shenyu-admin
