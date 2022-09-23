@@ -55,6 +55,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -64,7 +65,6 @@ class ZookeeperClientTest {
     private ZookeeperClient client;
 
     private CuratorFramework curatorFramework;
-
 
     @BeforeEach
     public void setup() {
@@ -79,8 +79,14 @@ class ZookeeperClientTest {
             when(builder.namespace(anyString())).thenReturn(builder);
             when(builder.build()).thenReturn(curatorFramework);
             ZookeeperConfig config = new ZookeeperConfig("services");
+            config.setNamespace("namespace");
+            config.setDigest("digest");
             client = new ZookeeperClient(config);
             client.start();
+            doThrow(InterruptedException.class).when(curatorFramework).blockUntilConnected();
+            assertDoesNotThrow(() -> client.start());
+        } catch (Exception e) {
+            throw new ShenyuException(e);
         }
     }
 
