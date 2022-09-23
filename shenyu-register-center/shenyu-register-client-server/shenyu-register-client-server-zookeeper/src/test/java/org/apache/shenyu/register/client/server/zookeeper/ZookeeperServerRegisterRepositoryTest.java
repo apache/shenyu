@@ -96,7 +96,7 @@ public class ZookeeperServerRegisterRepositoryTest {
         }
     }
 
-    private static TreeCacheEvent treeCacheEvent(String path) {
+    private static TreeCacheEvent treeCacheEvent(final String path) {
         TreeCacheEvent treeCacheEvent = mock(TreeCacheEvent.class);
         ChildData childData = mock(ChildData.class);
         when(treeCacheEvent.getData()).thenReturn(childData);
