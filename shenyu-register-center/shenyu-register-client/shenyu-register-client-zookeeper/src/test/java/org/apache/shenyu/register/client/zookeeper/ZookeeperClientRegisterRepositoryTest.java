@@ -81,15 +81,4 @@ public class ZookeeperClientRegisterRepositoryTest {
             repository.close();
         }
     }
-
-
-    private MetaDataRegisterDTO buildMetaDataRegisterDTO() {
-        MetaDataRegisterDTO metaDataRegisterDTO = new MetaDataRegisterDTO();
-        metaDataRegisterDTO.setAppName("test");
-        metaDataRegisterDTO.setPath("/test");
-        metaDataRegisterDTO.setHost("127.0.0.1");
-        metaDataRegisterDTO.setPort(13307);
-        metaDataRegisterDTO.setRpcType("http");
-        return metaDataRegisterDTO;
-    }
 }
