@@ -42,7 +42,7 @@ public class Condition {
         
         POST("post"),
         
-        METHOD("method"),
+        METHOD("req_method"),
     
         URI("uri"),
         QUERY("query"),

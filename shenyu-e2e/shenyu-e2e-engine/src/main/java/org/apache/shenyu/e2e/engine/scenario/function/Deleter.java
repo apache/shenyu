@@ -19,10 +19,12 @@ package org.apache.shenyu.e2e.engine.scenario.function;
 
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 
+import java.util.List;
+
 @FunctionalInterface
 public interface Deleter {
     
-    void delete(AdminClient client);
+    void delete(AdminClient client, List<String> selectorIds);
     
-    Deleter DEFAULT = client -> {};
+    Deleter DEFAULT = (client, ids) -> client.deleteSelectors(ids);
 }

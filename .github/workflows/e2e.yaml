@@ -92,7 +92,7 @@ jobs:
     needs: [ "build-docker-images" ]
     strategy:
       matrix:
-        storage: [ "h2" ]
+        storage: [ "h2", "mysql" ]
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -120,4 +120,5 @@ jobs:
         env:
           storage: ${{ matrix.storage }}
         run: |
-          ./mvnw -B -f shenyu-e2e/pom.xml -pl shenyu-e2e-case test
+          bash ./shenyu-e2e/script/storage_init.sh
+          ./mvnw -B -f shenyu-e2e/pom.xml -pl shenyu-e2e-case -Dstorage=${{ matrix.storage }} test
