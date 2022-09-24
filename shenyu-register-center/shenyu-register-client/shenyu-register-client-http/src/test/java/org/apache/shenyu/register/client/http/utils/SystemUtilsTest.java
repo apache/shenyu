@@ -39,7 +39,7 @@ class SystemUtilsTest {
             if (osName.isPresent() && !osName.get().toLowerCase().contains("mac")) {
                 final Properties mock = mock(Properties.class);
                 System.setProperties(mock);
-                when(mock.getProperty(anyString())).thenThrow(SecurityException.class);
+                when(System.getProperty(anyString())).thenThrow(SecurityException.class);
                 SystemUtils.getOsName();
             }
         } catch (Exception e) {
