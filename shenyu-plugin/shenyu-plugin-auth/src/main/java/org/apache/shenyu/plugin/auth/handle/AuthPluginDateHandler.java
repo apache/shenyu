@@ -39,13 +39,7 @@ public class AuthPluginDateHandler implements PluginDataHandler {
         certificate = certificate.replace("\\n", "\n");
         String organization = Optional.ofNullable(configMap.get("organization-name")).orElse("");
         String application = Optional.ofNullable(configMap.get("application-name")).orElse("");
-        CasdoorConfig casdoorConfig = new CasdoorConfig();
-        casdoorConfig.setApplicationName(application);
-        casdoorConfig.setCertificate(certificate);
-        casdoorConfig.setClientId(clientId);
-        casdoorConfig.setEndpoint(endpoint);
-        casdoorConfig.setOrganizationName(organization);
-        casdoorConfig.setClientSecret(clientSecrect);
+        CasdoorConfig casdoorConfig = new CasdoorConfig(endpoint,clientId,clientSecrect,certificate,organization,application);
         CasdoorAuthService casdoorAuthService = new CasdoorAuthService(casdoorConfig);
         Singleton.INST.single(CasdoorAuthService.class, casdoorAuthService);
     }
