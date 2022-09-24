@@ -37,6 +37,17 @@ public class SentinelHandle {
     private Integer flowRuleGrade = Constants.SENTINEL_QPS_FLOW_GRADE;
 
     /**
+     * Max queueing time in rate limiter behavior (ms).
+     */
+    private int flowRuleMaxQueueingTimeMs = 500;
+
+
+    /**
+     * The flow control warm-up time (s).
+     */
+    private int flowRuleWarmUpPeriodSec = 10;
+
+    /**
      * Flow rule count.
      */
     private Integer flowRuleCount;
@@ -302,6 +313,42 @@ public class SentinelHandle {
         this.fallbackUri = fallbackUri;
     }
 
+    /**
+     * flowRuleMaxQueueingTimeMs.
+     *
+     * @return FlowRuleMaxQueueingTimeMs
+     */
+    public int getFlowRuleMaxQueueingTimeMs() {
+        return flowRuleMaxQueueingTimeMs;
+    }
+
+    /**
+     * set flowRuleMaxQueueingTimeMs.
+     *
+     * @param flowRuleMaxQueueingTimeMs flowRuleMaxQueueingTimeMs
+     */
+    public void setFlowRuleMaxQueueingTimeMs(final int flowRuleMaxQueueingTimeMs) {
+        this.flowRuleMaxQueueingTimeMs = flowRuleMaxQueueingTimeMs;
+    }
+
+    /**
+     * flowRuleWarmUpPeriodSec.
+     *
+     * @return FlowRuleWarmUpPeriodSec
+     */
+    public int getFlowRuleWarmUpPeriodSec() {
+        return flowRuleWarmUpPeriodSec;
+    }
+
+    /**
+     * set flowRuleWarmUpPeriodSec.
+     *
+     * @param flowRuleWarmUpPeriodSec flowRuleWarmUpPeriodSec
+     */
+    public void setFlowRuleWarmUpPeriodSec(final int flowRuleWarmUpPeriodSec) {
+        this.flowRuleWarmUpPeriodSec = flowRuleWarmUpPeriodSec;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -316,13 +363,15 @@ public class SentinelHandle {
                 && Objects.equals(flowRuleControlBehavior, that.flowRuleControlBehavior) && Objects.equals(degradeRuleEnable, that.degradeRuleEnable)
                 && Objects.equals(degradeRuleGrade, that.degradeRuleGrade) && Objects.equals(degradeRuleCount, that.degradeRuleCount)
                 && Objects.equals(degradeRuleTimeWindow, that.degradeRuleTimeWindow) && Objects.equals(degradeRuleMinRequestAmount, that.degradeRuleMinRequestAmount)
-                && Objects.equals(degradeRuleSlowRatioThreshold, that.degradeRuleSlowRatioThreshold) && Objects.equals(fallbackUri, that.fallbackUri);
+                && Objects.equals(degradeRuleSlowRatioThreshold, that.degradeRuleSlowRatioThreshold) && Objects.equals(fallbackUri, that.fallbackUri)
+                && Objects.equals(flowRuleMaxQueueingTimeMs, that.flowRuleMaxQueueingTimeMs) && Objects.equals(flowRuleWarmUpPeriodSec, that.flowRuleWarmUpPeriodSec);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(flowRuleEnable, flowRuleGrade, flowRuleCount, flowRuleControlBehavior, degradeRuleEnable, degradeRuleGrade,
-                degradeRuleCount, degradeRuleTimeWindow, degradeRuleMinRequestAmount, degradeRuleSlowRatioThreshold, degradeRuleStatIntervals, fallbackUri);
+                degradeRuleCount, degradeRuleTimeWindow, degradeRuleMinRequestAmount, degradeRuleSlowRatioThreshold, degradeRuleStatIntervals,
+                fallbackUri, flowRuleMaxQueueingTimeMs, flowRuleWarmUpPeriodSec);
     }
 
     @Override
@@ -352,6 +401,10 @@ public class SentinelHandle {
                 + degradeRuleStatIntervals
                 + ", fallbackUri='"
                 + fallbackUri
+                + ", flowRuleMaxQueueingTimeMs='"
+                + flowRuleMaxQueueingTimeMs
+                + ", flowRuleWarmUpPeriodSec='"
+                + flowRuleWarmUpPeriodSec
                 + '\''
                 + '}';
     }

@@ -17,23 +17,22 @@
 
 package org.apache.shenyu.e2e.engine.service;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import junit.framework.AssertionFailedError;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.e2e.client.ExternalServiceClient;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.apache.shenyu.e2e.common.TableView;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure.DockerServiceConfigure;
 import org.apache.shenyu.e2e.engine.service.docker.DockerComposeFile;
 import org.apache.shenyu.e2e.engine.service.docker.ShenYuLogConsumer;
-import org.apache.shenyu.e2e.common.TableView;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.DockerComposeContainer;
-import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,6 +46,8 @@ public class DockerServiceCompose implements ServiceCompose {
     private final DockerServiceConfigure adminConfigure;
     private final DockerServiceConfigure gatewayConfigure;
     
+    private List<DockerServiceConfigure> externalServiceConfigurations;
+    
     public DockerServiceCompose(DockerConfigure configure) {
         this.configure = configure;
         this.adminConfigure = configure.getAdmin();
@@ -56,25 +57,54 @@ public class DockerServiceCompose implements ServiceCompose {
         container = new DockerComposeContainer<>("e2e", parsedDockerComposeFile.getFile());
         
         List<String> services = parsedDockerComposeFile.getServices();
-        services.forEach(name -> container.withLogConsumer(name, new ShenYuLogConsumer()));
+        services.forEach(name -> container.withLogConsumer(name, new ShenYuLogConsumer(name)));
     }
     
-    @SneakyThrows
     public void start() {
-        List<DockerServiceConfigure> externalServices = configure.getExternalServices();
-        if (Objects.nonNull(adminConfigure)) {
-            externalServices.add(adminConfigure);
-        }
-        if (Objects.nonNull(gatewayConfigure)) {
-            externalServices.add(gatewayConfigure);
-        }
-        externalServices.stream().filter(conf -> conf.getPort() > 1024)
-                .forEach(conf -> container.withExposedService(conf.getServiceName(), conf.getPort()));
+        exposedServices();
+        waitingForAvailable();
         
         container.start();
+    
+        NamingResolver.INSTANCE.ofDockerConfigure(container);
+        printServices();
+    }
+    
+    private void exposedServices() {
+        Builder<DockerServiceConfigure> builder = ImmutableList.<DockerServiceConfigure>builder()
+                .addAll(configure.getExternalServices());
+        if (Objects.nonNull(adminConfigure)) {
+            builder.add(adminConfigure);
+        }
+        if (Objects.nonNull(gatewayConfigure)) {
+            builder.add(gatewayConfigure);
+        }
+        externalServiceConfigurations = builder.build();
         
+        externalServiceConfigurations.stream()
+                .filter(conf -> conf.getPort() > 1024)
+                .forEach(conf -> container.withExposedService(conf.getServiceName(), conf.getPort()));
+    }
+    
+    private void waitingForAvailable() {
+        if (Objects.nonNull(adminConfigure)) {
+            container.waitingFor(
+                    adminConfigure.getServiceName(),
+                    WaitingForStrategies.newAdminStrategy(adminConfigure.getPort())
+            );
+        }
+        if (Objects.nonNull(gatewayConfigure)) {
+            container.waitingFor(
+                    gatewayConfigure.getServiceName(),
+                    WaitingForStrategies.newGatewayStrategy(gatewayConfigure.getPort())
+            );
+        }
+    
+    }
+    
+    private void printServices() {
         TableView tableView = new TableView("service name", "container port", "mapped host port");
-        for (DockerServiceConfigure serviceConfigure : externalServices) {
+        for (DockerServiceConfigure serviceConfigure : externalServiceConfigurations) {
             Optional<ContainerState> stateOpt = container.getContainerByServiceName(serviceConfigure.getServiceName());
             if (stateOpt.isPresent()) {
                 ContainerState state = stateOpt.get();
@@ -90,33 +120,7 @@ public class DockerServiceCompose implements ServiceCompose {
             }
         }
         log.info(System.lineSeparator() + tableView.printAsString() + System.lineSeparator());
-    
-        if (Objects.nonNull(adminConfigure)) {
-            container.waitingFor(
-                    adminConfigure.getServiceName(),
-                    new HttpWaitStrategy()
-                            .allowInsecure()
-                            .forPort(adminConfigure.getPort())
-                            .withMethod("GET")
-                            .forPath("/actuator")
-                            .forStatusCode(200)
-                            .withReadTimeout(Duration.ofMinutes(1))
-                            .withStartupTimeout(Duration.ofMinutes(3))
-            );
-        }
-        if (Objects.nonNull(gatewayConfigure)) {
-            container.waitingFor(
-                    gatewayConfigure.getServiceName(),
-                    new HttpWaitStrategy()
-                            .allowInsecure()
-                            .forPort(gatewayConfigure.getPort())
-                            .withMethod("GET")
-                            .forPath("/actuator")
-                            .forStatusCode(200)
-                            .withReadTimeout(Duration.ofMinutes(1))
-                            .withStartupTimeout(Duration.ofMinutes(3))
-            );
-        }
+        
         if (Objects.isNull(adminConfigure) && Objects.isNull(gatewayConfigure)) {
             log.warn("configure of shenyu-admin or shenyu-bootstrap(gateway) has not seen");
         }

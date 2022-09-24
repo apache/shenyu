@@ -20,6 +20,7 @@ package org.apache.shenyu.register.client.nacos;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigFactory;
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
@@ -151,7 +152,10 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
         String configName = RegisterPathConstants.buildServiceConfigPath(rpcType, contextPath);
         try {
             final String defaultGroup = NacosPathConstants.GROUP;
-            if (configService.publishConfig(configName, defaultGroup, GsonUtils.getInstance().toJson(metadataCache))) {
+            if (configService.publishConfig(configName, 
+                    defaultGroup, 
+                    GsonUtils.getInstance().toJson(metadataCache),
+                    ConfigType.JSON.getType())) {
                 LOGGER.info("register metadata success: {}", metadata.getRuleName());
             } else {
                 throw new ShenyuException("register metadata fail , please check ");

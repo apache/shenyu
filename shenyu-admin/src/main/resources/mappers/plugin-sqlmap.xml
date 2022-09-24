@@ -154,7 +154,7 @@
         from plugin p
                  left join plugin_handle ph on p.id = ph.plugin_id
                  left join selector s on p.id = s.plugin_id
-        where p.enabled = true
+        where p.enabled = 1
         <if test="userId != null">
             and p.name in (
                 select r.name

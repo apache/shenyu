@@ -4,6 +4,7 @@ changed:
     resources/static/**,\
     .asf.yaml,.gitignore,.licenserc.yaml,\
     LICENSE,NOTICE,\
+    Makefile,\
     .github/(ISSUE_TEMPLATE/**|PULL_REQUEST_TEMPLATE)\
     }"
 pom:

@@ -23,8 +23,9 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 @Slf4j(topic = "docker-compose")
 public class ShenYuLogConsumer extends Slf4jLogConsumer {
     
-    public ShenYuLogConsumer() {
+    public ShenYuLogConsumer(String serviceName) {
         super(log);
+        withPrefix("service_name:" + serviceName);
     }
     
 }

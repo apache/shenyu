@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.e2e.engine.service;
 
+import com.google.common.collect.Lists;
 import junit.framework.AssertionFailedError;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,6 +27,9 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.HostConfigure;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.HostConfigure.HostServiceConfigure;
 
+import java.util.List;
+import java.util.Objects;
+
 @Getter
 @AllArgsConstructor
 public class HostServiceCompose implements ServiceCompose {
@@ -33,7 +37,14 @@ public class HostServiceCompose implements ServiceCompose {
     private HostConfigure configure;
     
     public void start() {
-    
+        List<HostServiceConfigure> configures = Lists.newArrayList(configure.getExternalServices());
+        if (Objects.nonNull(configure.getAdmin())) {
+            configures.add(configure.getAdmin());
+        }
+        if (Objects.nonNull(configure.getGateway())) {
+            configures.add(configure.getGateway());
+        }
+        NamingResolver.INSTANCE.ofHostConfigure(configures);
     }
     
     @Override
