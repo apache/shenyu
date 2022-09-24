@@ -20,6 +20,7 @@ package org.apache.shenyu.register.client.http.utils;
 import okhttp3.Call;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Assertions;
@@ -81,7 +82,7 @@ public final class OkHttpToolsTest {
         final OkHttpClient okHttpClient = mock(OkHttpClient.class);
         client.set(OkHttpTools.getInstance(), okHttpClient);
         final Call call = mock(Call.class);
-        when(okHttpClient.newCall(any())).thenReturn(call);
+        when(okHttpClient.newCall(any(Request.class))).thenReturn(call);
         final Response response = mock(Response.class);
         when(call.execute()).thenReturn(response);
         final ResponseBody responseBody = mock(ResponseBody.class);
