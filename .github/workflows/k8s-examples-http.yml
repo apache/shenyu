@@ -45,18 +45,6 @@ jobs:
           mkdir -p ~/.kube
           cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
       -
-        uses: azure/setup-helm@v1
-        if: steps.filter.outputs.changed == 'true'
-        with:
-          version: v3.9.3
-      -
-        name: Install shenyu-admin & shenyu-bootstrap
-        if: steps.filter.outputs.changed == 'true'
-        run: |
-          cd .. && git clone --branch shenyu-0.1.1 --depth=1 https://github.com/apache/shenyu-helm-chart
-          cd shenyu-helm-chart/charts/shenyu
-          helm install shenyu .
-      -
         name: Cache Maven Repos
         if: steps.filter.outputs.changed == 'true'
         uses: actions/cache@v2
@@ -82,8 +70,9 @@ jobs:
         name: Build k8s Cluster
         if: steps.filter.outputs.changed == 'true'
         run: |
-          docker save shenyu-examples-http:latest | sudo k3s ctr images import -
-
+          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest shenyu-examples-http:latest | sudo k3s ctr images import -
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-deployment.yml
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-service.yml
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http-deployment.yml
           kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http-service.yml
       -
@@ -97,5 +86,4 @@ jobs:
         run: |
           kubectl get all
           kubectl get events --all-namespaces
-          kubectl logs -l app.kubernetes.io/name=shenyu-admin
           kubectl logs -l all=shenyu-examples-http

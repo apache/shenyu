@@ -32,5 +32,9 @@ do
     done
 done
 
+sleep 5
+
+curl -X POST -H "Content-Type:application/json" http://localhost:31195/http/order/save --data '{"name":"test", "id": 123}'
+
 sleep 3
 echo -e "\n-------------------"
