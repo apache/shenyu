@@ -65,20 +65,19 @@ public class WaitForHelper {
                     }
                     return;
                 } catch (AssertionError e) {
-                    log.info("failed to check endpoint '" + endpoint + "'\n {}", e.getMessage());
+                    log.debug("failed to check endpoint '" + endpoint + "'\n {}", e.getMessage());
                 }
                 
                 try {
                     TimeUnit.MILLISECONDS.sleep(timeInRetry.toMillis());
                 } catch (InterruptedException ignore) {
-                    break;
                 }
             }
-            log.info("check endpoint({}) successful", endpoint);
         });
         
         try {
             future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            log.info("check endpoint({}) successful", endpoint);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             future.cancel(true);
             throw new TimeoutException("checking endpoint '" + endpoint + "' timeout after " + timeout);
@@ -93,7 +92,7 @@ public class WaitForHelper {
                     checker.check(supplier);
                     return;
                 } catch (AssertionError e) {
-                    log.info(e.getMessage());
+                    log.debug(e.getMessage());
                 }
                 
                 try {

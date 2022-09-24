@@ -169,4 +169,12 @@ public interface ResourceMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<ResourceDO> selectAll();
+
+    /**
+     * resource existed.
+     *
+     * @param name name
+     * @return existed
+     */
+    Boolean nameExisted(@Param("name") Serializable name);
 }

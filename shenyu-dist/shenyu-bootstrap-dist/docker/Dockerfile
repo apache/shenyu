@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -16,7 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[[ -d ./conf-ext ]] && cp -f ./conf-ext/* ./conf
+FROM openjdk:8-jre-alpine
 
-/bin/sh ${LOCAL_PATH}/bin/start.sh $1 && tail -f ${LOCAL_PATH}/logs/shenyu-bootstrap.log
+ARG APP_NAME
 
+ENV LOCAL_PATH /opt/shenyu-bootstrap
+ENV BOOT_JVM ""
+
+RUN apk --no-cache add procps
+
+ADD target/${APP_NAME}.tar.gz /opt
+RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
+
+COPY docker/logback.xml ${LOCAL_PATH}/conf/logback.xml
+COPY docker/entrypoint.sh ${LOCAL_PATH}/entrypoint.sh
+RUN chmod +x ${LOCAL_PATH}/entrypoint.sh
+
+WORKDIR ${LOCAL_PATH}
+
+EXPOSE 9195
+
+ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
