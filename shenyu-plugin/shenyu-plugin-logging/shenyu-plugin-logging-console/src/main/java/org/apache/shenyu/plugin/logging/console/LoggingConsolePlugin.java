@@ -79,7 +79,7 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         Map<String, String> handleMap = JsonUtils
                 .jsonToMap(Optional.ofNullable(rule).map(RuleData::getHandle).orElse(""), String.class);
         String keyWords = handleMap.get("keyword");
-        maskFlag = StringUtils.isNotBlank(keyWords)&&"true".equals(handleMap.get("maskStatus")) ? true : false;
+        maskFlag = StringUtils.isNotBlank(keyWords) && "true".equals(handleMap.get("maskStatus")) ? true : false;
         if (maskFlag) {
             Collections.addAll(keyWordSet, keyWords.split(";"));
             dataMaskInterface = SpringBeanUtils.getInstance().getBean(handleMap.get("maskType"));

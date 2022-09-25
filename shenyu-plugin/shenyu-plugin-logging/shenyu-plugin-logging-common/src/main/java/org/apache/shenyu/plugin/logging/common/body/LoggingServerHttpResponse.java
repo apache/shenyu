@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.logging.common.body;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -80,9 +79,12 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
     /**
      * Constructor LoggingServerHttpResponse.
      *
-     * @param delegate     delegate ServerHttpResponse
-     * @param logInfo      access log
-     * @param logCollector LogCollector  instance
+     * @param delegate          delegate ServerHttpResponse
+     * @param logInfo           access log
+     * @param logCollector      LogCollector  instance
+     * @param maskFlag          mask flag
+     * @param keyWordSet        user keyWord set
+     * @param dataMaskInterface mask function
      */
     public LoggingServerHttpResponse(final ServerHttpResponse delegate, final ShenyuRequestLog logInfo,
                                      final LogCollector logCollector, final boolean maskFlag,
@@ -276,104 +278,52 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
 
     private void mask(final ShenyuRequestLog logInfo) {
 
-        if (keyWordMatch.matches(GenericLoggingConstant.CLIENT_IP)
-                && StringUtils.isNotBlank(logInfo.getClientIp())) {
-            logInfo.setClientIp(dataMaskInterface.mask(logInfo.getClientIp()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.TIME_LOCAL)
-                &&
-                StringUtils.isNotBlank(logInfo.getTimeLocal())) {
-            logInfo.setTimeLocal(dataMaskInterface.mask(logInfo.getTimeLocal()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.METHOD)
-                && StringUtils.isNotBlank(logInfo.getMethod())) {
-            logInfo.setMethod(dataMaskInterface.mask(logInfo.getMethod()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.REQUEST_URI)
-                && StringUtils.isNotBlank(logInfo.getRequestUri())) {
-            logInfo.setRequestUri(dataMaskInterface.mask(logInfo.getRequestUri()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.RESPONSE_CONTENT_LENGTH)
-                && ObjectUtils.isNotEmpty(logInfo.getResponseContentLength())) {
-            logInfo.setResponseContentLength(
-                    Integer.valueOf(dataMaskInterface.mask(logInfo.getResponseContentLength().toString())));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.RPC_TYPE)
-                && StringUtils.isNotBlank(logInfo.getRpcType())) {
-            logInfo.setRpcType(dataMaskInterface.mask(logInfo.getRpcType()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.STATUS)
-                && ObjectUtils.isNotEmpty(logInfo.getStatus())) {
-            logInfo.setStatus(Integer.valueOf(dataMaskInterface.mask(logInfo.getStatus().toString())));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.UP_STREAM_IP)
-                && StringUtils.isNotBlank(logInfo.getUpstreamIp())) {
-            logInfo.setUpstreamIp(dataMaskInterface.mask(logInfo.getUpstreamIp()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.UP_STREAM_RESPONSE_TIME)
-                && ObjectUtils.isNotEmpty(logInfo.getUpstreamResponseTime())) {
-            logInfo.setUpstreamResponseTime(
-                    Long.valueOf(dataMaskInterface.mask(logInfo.getUpstreamResponseTime().toString())));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.USERAGENT)
-                && StringUtils.isNotBlank(logInfo.getUserAgent())) {
-            logInfo.setUserAgent(dataMaskInterface.mask(logInfo.getUserAgent()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.HOST)
-                && StringUtils.isNotBlank(logInfo.getHost())) {
-            logInfo.setHost(dataMaskInterface.mask(logInfo.getHost()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.MODULE)
-                && StringUtils.isNotBlank(logInfo.getModule())) {
-            logInfo.setModule(dataMaskInterface.mask(logInfo.getModule()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.TRACE_ID)
-                && StringUtils.isNotBlank(logInfo.getTraceId())) {
-            logInfo.setTraceId(dataMaskInterface.mask(logInfo.getTraceId()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.REQUEST_HEADER)
-                && StringUtils.isNotBlank(logInfo.getRequestHeader())) {
-            logInfo.setRequestHeader(dataMaskInterface.mask(logInfo.getRequestHeader()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.RESPONSE_HEADER)
-                && StringUtils.isNotBlank(logInfo.getResponseHeader())) {
-            logInfo.setResponseHeader(dataMaskInterface.mask(logInfo.getResponseHeader()));
-        }
-        if (keyWordMatch.matches(GenericLoggingConstant.PATH)
-                && StringUtils.isNotBlank(logInfo.getPath())) {
-            logInfo.setPath(dataMaskInterface.mask(logInfo.getPath()));
-        }
-        maskForBody(logInfo);
+        logInfo.setClientIp(maskForSingle(GenericLoggingConstant.CLIENT_IP, logInfo.getClientIp()));
+        logInfo.setTimeLocal(maskForSingle(GenericLoggingConstant.TIME_LOCAL, logInfo.getTimeLocal()));
+        logInfo.setMethod(maskForSingle(GenericLoggingConstant.METHOD, logInfo.getMethod()));
+        logInfo.setRequestUri(maskForSingle(GenericLoggingConstant.REQUEST_URI, logInfo.getRequestUri()));
+        logInfo.setResponseContentLength(Integer.valueOf(maskForSingle(GenericLoggingConstant.RESPONSE_CONTENT_LENGTH,
+                logInfo.getResponseContentLength().toString())));
+        logInfo.setRpcType(maskForSingle(GenericLoggingConstant.RPC_TYPE, logInfo.getRpcType()));
+        logInfo.setStatus(Integer.valueOf(maskForSingle(GenericLoggingConstant.STATUS, logInfo.getStatus().toString())));
+        logInfo.setUpstreamIp(maskForSingle(GenericLoggingConstant.UP_STREAM_IP, logInfo.getUpstreamIp()));
+        logInfo.setUpstreamResponseTime(Long.valueOf(maskForSingle(GenericLoggingConstant.UP_STREAM_RESPONSE_TIME,
+                logInfo.getUpstreamResponseTime().toString())));
+        logInfo.setUserAgent(maskForSingle(GenericLoggingConstant.USERAGENT, logInfo.getUserAgent()));
+        logInfo.setHost(maskForSingle(GenericLoggingConstant.HOST, logInfo.getHost()));
+        logInfo.setModule(maskForSingle(GenericLoggingConstant.MODULE, logInfo.getModule()));
+        logInfo.setTraceId(maskForSingle(GenericLoggingConstant.TRACE_ID, logInfo.getTraceId()));
+        logInfo.setPath(maskForSingle(GenericLoggingConstant.PATH, logInfo.getPath()));
+        logInfo.setRequestHeader(maskForSingle(GenericLoggingConstant.REQUEST_HEADER, logInfo.getRequestHeader()));
+        logInfo.setResponseHeader(maskForSingle(GenericLoggingConstant.RESPONSE_HEADER,
+                logInfo.getResponseHeader()));
+        logInfo.setQueryParams(maskForSingle(GenericLoggingConstant.QUERY_PARAMS, logInfo.getQueryParams()));
+        logInfo.setRequestBody(maskForSingle(GenericLoggingConstant.REQUEST_BODY, logInfo.getRequestBody()));
+        logInfo.setResponseBody(maskForSingle(GenericLoggingConstant.RESPONSE_BODY, logInfo.getResponseBody()));
+        logInfo.setRequestHeader(maskForBody(logInfo.getRequestHeader()));
+        logInfo.setResponseHeader(maskForBody(logInfo.getResponseHeader()));
+        logInfo.setQueryParams(maskForBody(logInfo.getQueryParams()));
+        logInfo.setRequestBody(maskForBody(logInfo.getRequestBody()));
+        logInfo.setResponseBody(maskForBody(logInfo.getResponseBody()));
     }
 
-    private void maskForBody(final ShenyuRequestLog logInfo) {
+    private String maskForSingle(final String keyWord, final String val) {
 
-        if (StringUtils.isNotBlank(logInfo.getRequestBody())) {
-            Map<String, String> requestBodyMap = JsonUtils.jsonToMap(logInfo.getRequestBody(), String.class);
-            requestBodyMap.forEach((key, value) -> {
+        return StringUtils.isNotBlank(val) && keyWordMatch.matches(keyWord) ? dataMaskInterface.mask(val) : val;
+    }
+
+    private String maskForBody(final String body) {
+
+        if (StringUtils.isNotBlank(body)) {
+            Map<String, String> bodyMap = JsonUtils.jsonToMap(body, String.class);
+            bodyMap.forEach((key, value) -> {
                 if (keyWordMatch.matches(key)) {
-                    requestBodyMap.put(key, dataMaskInterface.mask(value));
+                    bodyMap.put(key, dataMaskInterface.mask(value));
                 }
             });
-            logInfo.setRequestBody(requestBodyMap.toString());
-        }
-        if (StringUtils.isNotBlank(logInfo.getResponseBody())) {
-            Map<String, String> responseBodyMap = JsonUtils.jsonToMap(logInfo.getResponseBody(), String.class);
-            responseBodyMap.forEach((key, value) -> {
-                if (keyWordMatch.matches(key)) {
-                    responseBodyMap.put(key, dataMaskInterface.mask(value));
-                }
-            });
-            logInfo.setResponseBody(responseBodyMap.toString());
-        }
-        if (StringUtils.isNotBlank(logInfo.getQueryParams())) {
-            Map<String, String> queryParamsMap = JsonUtils.jsonToMap(logInfo.getQueryParams(), String.class);
-            queryParamsMap.forEach((key, value) -> {
-                if (keyWordMatch.matches(key)) {
-                    queryParamsMap.put(key, dataMaskInterface.mask(value));
-                }
-            });
-            logInfo.setQueryParams(queryParamsMap.toString());
+            return bodyMap.toString();
+        } else {
+            return body;
         }
     }
 }
