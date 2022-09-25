@@ -58,7 +58,7 @@ import java.util.List;
                         type = ServiceType.SHENYU_GATEWAY
                 )
         },
-        dockerComposeFile = "classpath:./docker-compose.{storage}.yml"
+        dockerComposeFile = "classpath:./docker-compose.{storage:h2}.yml"
 )
 public class PluginsTest {
     List<String> selectorIds = Lists.newArrayList();

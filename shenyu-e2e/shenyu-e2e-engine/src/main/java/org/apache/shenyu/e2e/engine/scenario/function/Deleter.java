@@ -26,5 +26,5 @@ public interface Deleter {
     
     void delete(AdminClient client, List<String> selectorIds);
     
-    Deleter DEFAULT = (client, ids) -> client.deleteSelectors(ids);
+    Deleter DEFAULT = AdminClient::deleteSelectors;
 }

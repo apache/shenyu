@@ -47,8 +47,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build shenyu-e2e-engin with Maven
+      - name: Build shenyu-e2e-engine with Maven
         run: ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-engine clean install
+
       - name: Set up JDK 8 for Building ShenYu
         uses: actions/setup-java@v3
         with:
@@ -121,4 +122,4 @@ jobs:
           storage: ${{ matrix.storage }}
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
-          ./mvnw -B -f shenyu-e2e/pom.xml -pl shenyu-e2e-case -Dstorage=${{ matrix.storage }} test
+          ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-case -Dstorage=${{ matrix.storage }} test
