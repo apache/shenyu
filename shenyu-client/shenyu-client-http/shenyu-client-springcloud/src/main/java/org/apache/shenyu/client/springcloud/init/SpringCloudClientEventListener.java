@@ -109,7 +109,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans) {
         try {
-            final String host =  getHost();
+            final String host = getHost();
             final int port = Integer.parseInt(Optional.ofNullable(getPort()).orElseGet(() -> "-1"));
             final int mergedPort = port <= 0 ? PortUtils.findPort(context.getAutowireCapableBeanFactory()) : port;
             return URIRegisterDTO.builder()
@@ -119,8 +119,8 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                     .port(mergedPort)
                     .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                     .build();
-        }catch (ShenyuException e) {
-            throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !" );
+        } catch (ShenyuException e) {
+            throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
         }
     }
 
