@@ -94,11 +94,6 @@
             select operation_record_log_seq.nextval from dual
         </selectKey>
 
-        <!-- Generated after auto increment primary key is inserted -->
-        <selectKey keyProperty="id" resultType="java.lang.Long" order="AFTER">
-            select LAST_INSERT_ID()
-        </selectKey>
-
         insert into operation_record_log(
         <if test="id != null">
             id,
