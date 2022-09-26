@@ -252,6 +252,10 @@ public class AdminClient {
         return (R) created;
     }
     
+    public void deleteSelectors(List<String> ids) {
+        delete("/selector/batch", ids);
+    }
+    
     public void deleteSelectors(String... ids) {
         delete("/selector/batch", Lists.newArrayList(ids));
     }
