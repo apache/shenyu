@@ -92,6 +92,7 @@ public class ZookeeperInstanceRegisterRepositoryTest {
             when(mock.get(anyString())).thenReturn(GsonUtils.getInstance().toJson(data));
             when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
         })) {
+
             final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
             ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
             repository.init(config);
