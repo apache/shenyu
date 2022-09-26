@@ -26,6 +26,7 @@ import java.util.Map;
  * Test cases for MemorySafeWindowTinyLFUMap.
  */
 public class MemorySafeWindowTinyLFUMapTest {
+    
     @Test
     public void testPut() {
         MemorySafeWindowTinyLFUMap<String, String> lru = new MemorySafeWindowTinyLFUMap<>(1 << 10, 16);

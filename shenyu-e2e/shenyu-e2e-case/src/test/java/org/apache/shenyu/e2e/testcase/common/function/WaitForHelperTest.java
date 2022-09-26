@@ -32,12 +32,12 @@ import static org.hamcrest.CoreMatchers.containsString;
 public class WaitForHelperTest {
     
     @Test
-    void test() throws TimeoutException {
+    void testSuccess() throws TimeoutException {
         new WaitForHelper().waitFor(
-                () -> given().baseUri("http://localhost:8080").when(),
+                () -> given().baseUri("http://httpbin.org").when(),
                 Method.GET,
-                "/delay/1",
-                new ResponseSpecBuilder().expectBody("url", containsString("/anything")).build()
+                "/delay/0",
+                new ResponseSpecBuilder().expectBody("url", containsString("/delay/0")).build()
         );
     }
     
@@ -45,10 +45,10 @@ public class WaitForHelperTest {
     void testTimeout() {
         Assertions.assertThrows(TimeoutException.class, () -> {
             new WaitForHelper(10, Duration.ofSeconds(1), Duration.ofMillis(500)).waitFor(
-                    () -> given().baseUri("http://localhost:8080").when(),
+                    () -> given().baseUri("http://httpbin.org").when(),
                     Method.GET,
                     "/delay/1x",
-                    new ResponseSpecBuilder().expectBody("message", containsString("/anything")).build()
+                    new ResponseSpecBuilder().expectBody("message", containsString("/delay/1x")).build()
             );
         });
     }

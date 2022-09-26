@@ -17,79 +17,93 @@
 
 package org.apache.shenyu.register.instance.zookeeper;
 
-import org.apache.curator.test.TestingServer;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.listen.Listenable;
+import org.apache.curator.framework.state.ConnectionState;
+import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.shenyu.register.common.subsriber.WatcherListener;
+import org.apache.zookeeper.WatchedEvent;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 
-import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 
 public class ZookeeperInstanceRegisterRepositoryTest {
 
-    private final ZookeeperInstanceRegisterRepository repository
-            = new ZookeeperInstanceRegisterRepository();
-
-    private ZookeeperClient client;
-
-    @BeforeEach
-    public void setup() throws Exception {
-        TestingServer server = new TestingServer();
-        ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
-        config.setServerLists(server.getConnectString());
-        this.repository.init(config);
-
-        Class<? extends ZookeeperInstanceRegisterRepository> clazz = this.repository.getClass();
-
-        String fieldString = "client";
-        Field field = clazz.getDeclaredField(fieldString);
-        field.setAccessible(true);
-        this.client = (ZookeeperClient) field.get(repository);
+    @Test
+    public void testZookeeperInstanceRegisterRepository() {
+        final Listenable listenable = mock(Listenable.class);
+        try (MockedConstruction<ZookeeperClient> construction = mockConstruction(ZookeeperClient.class, (mock, context) -> {
+            final CuratorFramework curatorFramework = mock(CuratorFramework.class);
+            when(mock.getClient()).thenReturn(curatorFramework);
+            when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
+        })) {
+            final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
+            ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+            repository.init(config);
+            final Properties configProps = config.getProps();
+            configProps.setProperty("digest", "digest");
+            List<ConnectionStateListener> connectionStateListeners = new ArrayList<>();
+            doAnswer(invocationOnMock -> {
+                connectionStateListeners.add(invocationOnMock.getArgument(0));
+                return null;
+            }).when(listenable).addListener(any());
+            repository.init(config);
+            repository.persistInstance(mock(InstanceRegisterDTO.class));
+            connectionStateListeners.forEach(connectionStateListener -> {
+                connectionStateListener.stateChanged(null, ConnectionState.RECONNECTED);
+            });
+            repository.close();
+        }
     }
 
     @Test
-    public void testPersistInstance() {
+    public void testSelectInstancesAndWatcher() throws Exception {
         InstanceRegisterDTO data = InstanceRegisterDTO.builder()
                 .appName("shenyu-test")
                 .host("shenyu-host")
                 .port(9195)
                 .build();
-        repository.persistInstance(data);
-        String value = client.get("/shenyu/register/instance/shenyu-host:9195");
-        assertEquals(value, GsonUtils.getInstance().toJson(data));
+        final Listenable listenable = mock(Listenable.class);
+        final CuratorWatcher[] watcherArr = new CuratorWatcher[1];
+        try (MockedConstruction<ZookeeperClient> construction = mockConstruction(ZookeeperClient.class, (mock, context) -> {
+            final CuratorFramework curatorFramework = mock(CuratorFramework.class);
+            when(mock.getClient()).thenReturn(curatorFramework);
+            when(mock.subscribeChildrenChanges(anyString(), any(CuratorWatcher.class))).thenAnswer(invocation -> {
+                Object[] args = invocation.getArguments();
+                watcherArr[0] = (CuratorWatcher) args[1];
+                return Collections.singletonList("shenyu-test");
+            });
+            when(mock.get(anyString())).thenReturn(GsonUtils.getInstance().toJson(data));
+            when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
+        })) {
+            final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
+            ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+            repository.init(config);
+            final Properties configProps = config.getProps();
+            configProps.setProperty("digest", "digest");
+            repository.init(config);
+            repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+            WatchedEvent mockEvent = mock(WatchedEvent.class);
+            when(mockEvent.getPath()).thenReturn(RegisterPathConstants.buildInstanceParentPath());
+            watcherArr[0].process(mockEvent);
+            repository.close();
+        }
     }
 
-    @Test
-    public void testSelectInstancesAndWatcher() throws InterruptedException {
-        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
-                .appName("shenyu-test")
-                .host("shenyu-host")
-                .port(9195)
-                .build();
-        repository.persistInstance(data);
-        AtomicInteger atomicInteger = new AtomicInteger();
-        final int time = 1;
-        CountDownLatch countDownLatch = new CountDownLatch(time);
-        List<InstanceRegisterDTO> instanceRegisterDTOS = repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), list -> {
-            assertEquals(list.size(), time + 1);
-            atomicInteger.incrementAndGet();
-            countDownLatch.countDown();
-        });
-        assertEquals(instanceRegisterDTOS.size(), 1);
-        data = InstanceRegisterDTO.builder()
-                .appName("shenyu-test-1")
-                .host("shenyu-host-1")
-                .port(9195)
-                .build();
-        repository.persistInstance(data);
-        countDownLatch.await();
-        assertEquals(atomicInteger.get(), time);
-    }
 }

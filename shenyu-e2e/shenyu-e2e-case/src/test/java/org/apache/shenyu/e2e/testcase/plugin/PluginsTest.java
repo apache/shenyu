@@ -37,11 +37,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 @ShenYuTest(
-        mode = Mode.HOST,
+        mode = Mode.DOCKER,
         services = {
                 @ServiceConfigure(
                         serviceName = "admin",
-                        baseUrl = "http://{hostname:localhost}:9095",
+                        port = 9095,
                         parameters = {
                                 @Parameter(key = "username", value = "admin"),
                                 @Parameter(key = "password", value = "123456"),
@@ -49,10 +49,11 @@ import org.junit.jupiter.api.BeforeEach;
                 ),
                 @ServiceConfigure(
                         serviceName = "gateway",
-                        baseUrl = "http://{hostname:localhost}:9195",
+                        port = 9195,
                         type = ServiceType.SHENYU_GATEWAY
                 )
-        }
+        },
+        dockerComposeFile = "classpath:./docker-compose.yml"
 )
 public class PluginsTest {
     
@@ -81,8 +82,7 @@ public class PluginsTest {
     
     @ShenYuScenario(provider = DividePluginCases.class)
     void testDivide(GatewayClient gateway, CaseSpec spec) {
-        spec.getVerifiers()
-                .forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
+        spec.getVerifiers().forEach(verifier -> verifier.verify(gateway.getHttpRequesterSupplier().get()));
     }
     
     @AfterEach

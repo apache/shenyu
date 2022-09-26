@@ -110,12 +110,14 @@
                                     <name>apache/shenyu-admin:latest</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
+                                        <dockerFile>${project.basedir}/docker/Dockerfile</dockerFile>
                                     </build>
                                 </image>
                                 <image>
                                     <name>apache/shenyu-admin:${project.version}</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
+                                        <dockerFile>${project.basedir}/docker/Dockerfile</dockerFile>
                                     </build>
                                 </image>
                             </images>

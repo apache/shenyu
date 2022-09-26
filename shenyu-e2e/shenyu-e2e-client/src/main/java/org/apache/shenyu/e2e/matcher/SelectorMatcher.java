@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.shenyu.e2e.client.admin.model.data.SelectorData;
 import org.apache.shenyu.e2e.client.admin.model.response.SelectorDTO;
-import org.apache.shenyu.e2e.common.IdManagers.Plugins;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
