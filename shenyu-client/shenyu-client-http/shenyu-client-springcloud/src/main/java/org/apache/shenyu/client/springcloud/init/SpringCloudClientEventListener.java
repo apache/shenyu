@@ -62,6 +62,8 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
     private final Environment env;
     
     private final String servletContextPath;
+
+    private final boolean addPrefixed;
     
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(3);
 
@@ -83,6 +85,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
             LOG.error(errorMsg);
             throw new ShenyuClientIllegalArgumentException(errorMsg);
         }
+        this.addPrefixed = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.ADD_PREFIXED, Boolean.FALSE.toString()));
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         this.servletContextPath = env.getProperty("server.servlet.context-path", "");
         mappingAnnotation.add(ShenyuSpringCloudClient.class);
@@ -204,6 +207,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                                                    final String path, final Class<?> clazz, final Method method) {
         return MetaDataRegisterDTO.builder()
                 .contextPath(StringUtils.defaultIfBlank(getContextPath(), this.servletContextPath))
+                .addPrefixed(addPrefixed)
                 .appName(getAppName())
                 .serviceName(clazz.getName())
                 .methodName(Optional.ofNullable(method).map(Method::getName).orElse(null))
