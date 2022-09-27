@@ -98,7 +98,7 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
         if (StringUtils.isNoneBlank(contextPath)) {
             context.setContextPath(contextPath);
             context.setModule(contextPath);
-            if (Constants.PREFIX_FORWARD_ENABLE == handle.getPrefixForwardEnable()) {
+            if (handle.getAddPrefixed()) {
                 realURI = context.getPath();
             } else {
                 realURI = context.getPath().substring(contextPath.length());

@@ -42,7 +42,6 @@ public class URIRegisterDTO implements DataTypeParent {
 
     private EventType eventType;
 
-    private Integer prefixForwardEnable;
     
     /**
      * Instantiates a new Uri register dto.
@@ -54,7 +53,6 @@ public class URIRegisterDTO implements DataTypeParent {
      * @param host the host
      * @param port the port
      * @param eventType the event type
-     * @param prefixForwardEnable the prefix forward status
      */
     public URIRegisterDTO(final String protocol, final String appName, final String contextPath,
                           final String rpcType, final String host, final Integer port,
@@ -66,7 +64,6 @@ public class URIRegisterDTO implements DataTypeParent {
         this.host = host;
         this.port = port;
         this.eventType = eventType;
-        this.prefixForwardEnable = prefixForwardEnable;
     }
     
     /**
@@ -95,7 +92,6 @@ public class URIRegisterDTO implements DataTypeParent {
         return URIRegisterDTO.builder()
                 .appName(metaDataRegisterDTO.getAppName())
                 .contextPath(metaDataRegisterDTO.getContextPath())
-                .prefixForwardEnable(metaDataRegisterDTO.getPrefixForwardEnable())
                 .rpcType(metaDataRegisterDTO.getRpcType())
                 .host(metaDataRegisterDTO.getHost())
                 .port(metaDataRegisterDTO.getPort()).build();
@@ -246,24 +242,6 @@ public class URIRegisterDTO implements DataTypeParent {
         this.eventType = eventType;
     }
 
-    /**
-     * getPrefixForwardEnable.
-     *
-     * @return prefix forward status
-     */
-    public Integer getPrefixForwardEnable() {
-        return prefixForwardEnable;
-    }
-
-    /**
-     * setPrefixForwardEnabled.
-     *
-     * @param prefixForwardEnable prefixForwardEnable
-     */
-    public void setPrefixForwardEnabled(final Integer prefixForwardEnable) {
-        this.prefixForwardEnable = prefixForwardEnable;
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -281,14 +259,12 @@ public class URIRegisterDTO implements DataTypeParent {
                 && Objects.equals(getRpcType(), that.getRpcType())
                 && Objects.equals(getHost(), that.getHost())
                 && Objects.equals(getPort(), that.getPort())
-                && getEventType() == that.getEventType()
-                && Objects.equals(getPrefixForwardEnable(), that.getPrefixForwardEnable());
+                && getEventType() == that.getEventType();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getProtocol(), getAppName(), getContextPath(), getRpcType(), getHost(), getPort(),
-                getEventType(), getPrefixForwardEnable());
+        return Objects.hash(getProtocol(), getAppName(), getContextPath(), getRpcType(), getHost(), getPort(), getEventType());
     }
 
     @Override
@@ -313,8 +289,6 @@ public class URIRegisterDTO implements DataTypeParent {
                 + port
                 + ", eventType="
                 + eventType
-                + ", prefixForwardEnable="
-                + prefixForwardEnable
                 + '}';
     }
 
@@ -336,8 +310,6 @@ public class URIRegisterDTO implements DataTypeParent {
         private Integer port;
 
         private EventType eventType;
-
-        private Integer prefixForwardEnable;
 
         private Builder() {
         }
@@ -416,17 +388,6 @@ public class URIRegisterDTO implements DataTypeParent {
          */
         public Builder eventType(final EventType eventType) {
             this.eventType = eventType;
-            return this;
-        }
-
-        /**
-         * prefixForwardEnabled.
-         *
-         * @param prefixForwardEnable prefixForwardEnable
-         * @return Builder builder
-         */
-        public Builder prefixForwardEnable(final Integer prefixForwardEnable) {
-            this.prefixForwardEnable = prefixForwardEnable;
             return this;
         }
 

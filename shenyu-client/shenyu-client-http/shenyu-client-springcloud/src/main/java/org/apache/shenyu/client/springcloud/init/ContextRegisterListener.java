@@ -66,7 +66,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private BeanFactory beanFactory;
 
-    private final Integer prefixForwardEnable;
+    private final boolean addPrefixed;
 
     /**
      * Instantiates a new Context register listener.
@@ -85,7 +85,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 throw new ShenyuClientIllegalArgumentException(errorMsg);
             }
         }
-        this.prefixForwardEnable = Integer.parseInt(props.getProperty(ShenyuClientConstants.PREFIX_FORWARD_ENABLE, Integer.toString(0)));
+        this.addPrefixed = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.ADD_PREFIXED, Boolean.FALSE.toString()));
         this.port = Integer.parseInt(Optional.ofNullable(props.getProperty(ShenyuClientConstants.PORT)).orElseGet(() -> "-1"));
         this.appName = env.getProperty("spring.application.name");
         this.host = props.getProperty(ShenyuClientConstants.HOST);
@@ -111,7 +111,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     private URIRegisterDTO buildUriRegisterDTO(final int port) {
         return URIRegisterDTO.builder()
                 .contextPath(this.contextPath)
-                .prefixForwardEnable(prefixForwardEnable)
                 .appName(appName)
                 .host(IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host))
                 .port(port)
@@ -122,7 +121,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     private MetaDataRegisterDTO buildMetaDataDTO() {
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
-                .prefixForwardEnable(prefixForwardEnable)
+                .addPrefixed(addPrefixed)
                 .appName(appName)
                 .path(PathUtils.decoratorPathWithSlash(contextPath))
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())

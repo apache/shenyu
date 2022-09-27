@@ -75,5 +75,5 @@ public final class ShenyuClientConstants {
     /**
      * prefix forward status.
      */
-    public static final String PREFIX_FORWARD_ENABLE = "prefixForwardEnable";
+    public static final String ADD_PREFIXED = "addPrefixed";
 }

@@ -75,7 +75,7 @@ public class SpringCloudClientEventListener implements ApplicationListener<Conte
     
     private final String servletContextPath;
 
-    private final Integer prefixForwardEnable;
+    private final boolean addPrefixed;
     
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(7);
     
@@ -99,7 +99,7 @@ public class SpringCloudClientEventListener implements ApplicationListener<Conte
             LOG.error(errorMsg);
             throw new ShenyuClientIllegalArgumentException(errorMsg);
         }
-        this.prefixForwardEnable = Integer.parseInt(props.getProperty(ShenyuClientConstants.PREFIX_FORWARD_ENABLE, Integer.toString(0)));
+        this.addPrefixed = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.ADD_PREFIXED, Boolean.FALSE.toString()));
         this.env = env;
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         this.servletContextPath = env.getProperty("server.servlet.context-path", "");
@@ -215,7 +215,7 @@ public class SpringCloudClientEventListener implements ApplicationListener<Conte
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         return MetaDataRegisterDTO.builder()
                 .contextPath(StringUtils.defaultIfBlank(this.contextPath, this.servletContextPath))
-                .prefixForwardEnable(prefixForwardEnable)
+                .addPrefixed(addPrefixed)
                 .appName(appName)
                 .serviceName(clazz.getName())
                 .methodName(Optional.ofNullable(method).map(Method::getName).orElse(null))

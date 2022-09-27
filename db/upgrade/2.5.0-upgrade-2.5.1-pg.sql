@@ -93,4 +93,6 @@ INSERT INTO "public"."resource" VALUES ('1572525965625266176','13467774497871257
 INSERT INTO "public"."permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176');
 
 /* fix issue 3966 */
-INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172805', '14', 'prefixForwardEnable', 'prefixForwardEnable', 1, 2, 3, '{"required":"1","defaultValue":"0"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172805', '14', 'addPrefixed', 'addPrefixed', 3, 2, 3, '{"required":"1","defaultValue":"false"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784282', 'addPrefixed', 'ADD_PREFIXED', 'open', 'true', '', 0, 1, '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO "public"."shenyu_dict" VALUES ('1529402613195784283', 'addPrefixed', 'ADD_PREFIXED', 'close', 'false', '', 1, 1, '2022-09-27 12:00:00', '2022-09-27 12:00:00');

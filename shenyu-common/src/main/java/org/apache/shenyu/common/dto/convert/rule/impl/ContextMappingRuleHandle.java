@@ -27,7 +27,7 @@ import java.util.Objects;
  */
 public class ContextMappingRuleHandle implements RuleHandle {
 
-    private Integer prefixForwardEnable = Constants.PREFIX_FORWARD_ENABLE;
+    private boolean addPrefixed;
 
     private String contextPath;
 
@@ -38,17 +38,17 @@ public class ContextMappingRuleHandle implements RuleHandle {
      *
      * @return prefix-forward status
      */
-    public Integer getPrefixForwardEnable() {
-        return prefixForwardEnable;
+    public boolean getAddPrefixed() {
+        return addPrefixed;
     }
 
     /**
      * set prefix forward.
      *
-     * @param prefixForwardEnable status
+     * @param addPrefixed status
      */
-    public void setPrefixForwardEnable(final Integer prefixForwardEnable) {
-        this.prefixForwardEnable = prefixForwardEnable;
+    public void setAddPrefixed(final boolean addPrefixed) {
+        this.addPrefixed = addPrefixed;
     }
 
     /**
@@ -97,7 +97,7 @@ public class ContextMappingRuleHandle implements RuleHandle {
         }
         ContextMappingRuleHandle that = (ContextMappingRuleHandle) o;
         return Objects.equals(contextPath, that.contextPath) && Objects.equals(addPrefix, that.addPrefix)
-                && Objects.equals(prefixForwardEnable, that.prefixForwardEnable);
+                && Objects.equals(addPrefixed, that.addPrefixed);
     }
 
     @Override
@@ -109,14 +109,14 @@ public class ContextMappingRuleHandle implements RuleHandle {
                 + ", addPrefix='"
                 + addPrefix
                 + '\''
-                + "prefixForwardEnabled='"
-                + prefixForwardEnable
+                + "addPrefixed='"
+                + addPrefixed
                 + '\''
                 + '}';
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contextPath, addPrefix, prefixForwardEnable);
+        return Objects.hash(contextPath, addPrefix, addPrefixed);
     }
 }
