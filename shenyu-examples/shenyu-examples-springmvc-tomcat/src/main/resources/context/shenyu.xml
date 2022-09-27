@@ -19,6 +19,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
     <!-- ClientPropertiesConfig -->
     <bean id="clientPropertiesConfig"
           class="org.apache.shenyu.register.common.config.ShenyuClientConfig.ClientPropertiesConfig">
@@ -47,14 +48,10 @@
         <constructor-arg ref="shenyuRegisterCenterConfig"/>
     </bean>
 
-    <bean id="SpringMvcClientEventListener"
+    <bean id="springMvcClientEventListener"
           class="org.apache.shenyu.client.springmvc.init.SpringMvcClientEventListener">
         <constructor-arg ref="clientPropertiesConfig"/>
         <constructor-arg ref="clientRegisterRepository"/>
-    </bean>
-
-    <bean id="contextRegisterListener" class="org.apache.shenyu.client.springmvc.init.ContextRegisterListener">
-        <constructor-arg ref="clientPropertiesConfig"/>
     </bean>
 
     <bean id="shenyuClientShutdownHook" class="org.apache.shenyu.client.core.shutdown.ShenyuClientShutdownHook">
