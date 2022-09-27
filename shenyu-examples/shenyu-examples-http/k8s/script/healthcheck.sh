@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -15,22 +16,33 @@
 # limitations under the License.
 #
 
-version: '2.3'
+PRGDIR=`dirname "$0"`
+for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
+do
+    for loop in `seq 1 30`
+    do
+        status=`curl -o /dev/null -s -w %{http_code} $service`
+        echo -e "curl $service response $status"
 
-services:
-  admin:
-    image: shenyu/admin:latest
-    expose:
-      - 9095
-  gateway:
-    image: shenyu/bootstrap:latest
-    expose:
-      - 9095
-  httpbin:
-    image: kennethreitz/httpbin:latest
-    expose:
-      - 80
-  mysql:
-    image: mysql:8
-    expose:
-      - 3306
+        if [ $status -eq 200  ]; then
+            break
+        fi
+
+        sleep 2
+    done
+done
+
+sleep 5
+
+status=`curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type:application/json" http://localhost:31195/http/order/save --data '{"name":"test", "id": 123}'`
+
+sleep 3
+
+if [ $status -eq 200 ]; then
+    echo -e "Success to send request: $status"
+    echo -e "\n-------------------"
+    exit 0
+fi
+echo -e "Failed to send request from shenyu-bootstrap to http example: $status"
+echo -e "\n-------------------"
+exit 1
