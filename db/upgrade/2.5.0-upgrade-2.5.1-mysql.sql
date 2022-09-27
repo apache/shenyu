@@ -89,3 +89,8 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172744', '10', 'flowRuleWarmUp
 /*create plugin resource and permission for admin #3964 */
 INSERT INTO "resource" VALUES ('1572525965625266176','1346777449787125760','SHENYU.BUTTON.SYSTEM.RESOURCE','','','','2','6','','1','0','system:plugin:resource','1');
 INSERT INTO "permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176');
+
+/* fix issue 3966 */
+INSERT INTO `plugin_handle` VALUES ('1529402613204172745', '14', 'addPrefixed', 'addPrefixed', 3, 2, 3, '{\"required\":\"1\",\"defaultValue\":\"false\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO `shenyu_dict` VALUES ('1529402613195784282', 'addPrefixed', 'ADD_PREFIXED', 'open', 'true', '', 0, 1, '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO `shenyu_dict` VALUES ('1529402613195784283', 'addPrefixed', 'ADD_PREFIXED', 'close', 'false', '', 1, 1, '2022-09-27 12:00:00', '2022-09-27 12:00:00');
