@@ -287,7 +287,8 @@ public class URIRegisterDTO implements DataTypeParent {
 
     @Override
     public int hashCode() {
-        return Objects.hash(protocol, appName, contextPath, rpcType, host, port, eventType, prefixForwardEnable);
+        return Objects.hash(getProtocol(), getAppName(), getContextPath(), getRpcType(), getHost(), getPort(),
+                getEventType(), getPrefixForwardEnable());
     }
 
     @Override

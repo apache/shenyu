@@ -47,7 +47,7 @@ public class ContextMappingRuleHandle implements RuleHandle {
      *
      * @param prefixForwardEnable status
      */
-    public void setPrefixForwardEnable(Integer prefixForwardEnable) {
+    public void setPrefixForwardEnable(final Integer prefixForwardEnable) {
         this.prefixForwardEnable = prefixForwardEnable;
     }
 
@@ -114,6 +114,7 @@ public class ContextMappingRuleHandle implements RuleHandle {
                 + '\''
                 + '}';
     }
+
     @Override
     public int hashCode() {
         return Objects.hash(contextPath, addPrefix, prefixForwardEnable);
