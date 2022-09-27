@@ -1,0 +1,89 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: k8s-examples-http
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  k8s-examples-http:
+    runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
+    steps:
+      -
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      -
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: '.github/filters.yml'
+          list-files: json
+      -
+        name: Install k8s
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE=777 sh -
+          cat /etc/rancher/k3s/k3s.yaml
+          mkdir -p ~/.kube
+          cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+      -
+        name: Cache Maven Repos
+        if: steps.filter.outputs.changed == 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      -
+        uses: actions/setup-java@v1
+        if: steps.filter.outputs.changed == 'true'
+        with:
+          java-version: 8
+      -
+        name: Build with Maven
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+      -
+        name: Build examples
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+      -
+        name: Build k8s Cluster
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest shenyu-examples-http:latest | sudo k3s ctr images import -
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-deployment.yml
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-service.yml
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http-deployment.yml
+          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http-service.yml
+      -
+        name: Wait for k8s Cluster Start up
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          bash ./shenyu-examples/shenyu-examples-http/k8s/script/healthcheck.sh
+      -
+        name: Cluster Test after Healthcheck
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          kubectl get all
+          kubectl get events --all-namespaces
+          kubectl logs -l all=shenyu-examples-http
