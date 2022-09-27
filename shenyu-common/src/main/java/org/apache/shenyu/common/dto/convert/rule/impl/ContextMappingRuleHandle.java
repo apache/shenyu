@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 
 import java.util.Objects;
@@ -26,9 +27,29 @@ import java.util.Objects;
  */
 public class ContextMappingRuleHandle implements RuleHandle {
 
+    private Integer prefixForwardEnable = Constants.PREFIX_FORWARD_ENABLE;
+
     private String contextPath;
 
     private String addPrefix;
+
+    /**
+     * get prefix forward status.
+     *
+     * @return prefix-forward status
+     */
+    public Integer getPrefixForwardEnable() {
+        return prefixForwardEnable;
+    }
+
+    /**
+     * set prefix forward.
+     *
+     * @param prefixForwardEnable status
+     */
+    public void setPrefixForwardEnable(Integer prefixForwardEnable) {
+        this.prefixForwardEnable = prefixForwardEnable;
+    }
 
     /**
      * get contextPath.
@@ -57,6 +78,15 @@ public class ContextMappingRuleHandle implements RuleHandle {
         return addPrefix;
     }
 
+    /**
+     * set addPrefix.
+     *
+     * @param addPrefix addPrefix
+     */
+    public void setAddPrefix(final String addPrefix) {
+        this.addPrefix = addPrefix;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -66,7 +96,8 @@ public class ContextMappingRuleHandle implements RuleHandle {
             return false;
         }
         ContextMappingRuleHandle that = (ContextMappingRuleHandle) o;
-        return Objects.equals(contextPath, that.contextPath) && Objects.equals(addPrefix, that.addPrefix);
+        return Objects.equals(contextPath, that.contextPath) && Objects.equals(addPrefix, that.addPrefix)
+                && Objects.equals(prefixForwardEnable, that.prefixForwardEnable);
     }
 
     @Override
@@ -78,20 +109,13 @@ public class ContextMappingRuleHandle implements RuleHandle {
                 + ", addPrefix='"
                 + addPrefix
                 + '\''
+                + "prefixForwardEnabled='"
+                + prefixForwardEnable
+                + '\''
                 + '}';
     }
-
     @Override
     public int hashCode() {
-        return Objects.hash(contextPath, addPrefix);
-    }
-
-    /**
-     * set addPrefix.
-     *
-     * @param addPrefix addPrefix
-     */
-    public void setAddPrefix(final String addPrefix) {
-        this.addPrefix = addPrefix;
+        return Objects.hash(contextPath, addPrefix, prefixForwardEnable);
     }
 }

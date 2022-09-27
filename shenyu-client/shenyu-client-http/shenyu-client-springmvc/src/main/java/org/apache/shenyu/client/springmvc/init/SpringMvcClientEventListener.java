@@ -60,6 +60,8 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     private final Boolean isFull;
     
     private final String protocol;
+
+    private final Integer prefixForwardEnable;
     
     /**
      * Instantiates a new context refreshed event listener.
@@ -73,6 +75,8 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         Properties props = clientConfig.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         this.protocol = props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.HTTP);
+        this.prefixForwardEnable = Integer.parseInt(props.getProperty(ShenyuClientConstants.PREFIX_FORWARD_ENABLE,
+                Integer.toString(0)));
         mappingAnnotation.add(ShenyuSpringMvcClient.class);
         mappingAnnotation.add(RequestMapping.class);
     }
@@ -83,6 +87,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         if (Boolean.TRUE.equals(isFull)) {
             getPublisher().publishEvent(MetaDataRegisterDTO.builder()
                     .contextPath(getContextPath())
+                    .prefixForwardEnable(prefixForwardEnable)
                     .appName(getAppName())
                     .path(PathUtils.decoratorPathWithSlash(getContextPath()))
                     .rpcType(RpcTypeEnum.HTTP.getName())
@@ -103,6 +108,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
             final int mergedPort = port <= 0 ? PortUtils.findPort(context.getAutowireCapableBeanFactory()) : port;
             return URIRegisterDTO.builder()
                     .contextPath(getContextPath())
+                    .prefixForwardEnable(prefixForwardEnable)
                     .appName(getAppName())
                     .protocol(protocol)
                     .host(IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host))
@@ -192,6 +198,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                                                    final Method method) {
         return MetaDataRegisterDTO.builder()
                 .contextPath(getContextPath())
+                .prefixForwardEnable(prefixForwardEnable)
                 .appName(getAppName())
                 .serviceName(clazz.getName())
                 .methodName(Optional.ofNullable(method).map(Method::getName).orElse(null))

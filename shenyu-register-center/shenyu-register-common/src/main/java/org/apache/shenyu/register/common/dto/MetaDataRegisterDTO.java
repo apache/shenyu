@@ -60,6 +60,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
 
     private long timeMillis;
 
+    private Integer prefixForwardEnable;
+
     /**
      * Instantiates a new Meta data register dto.
      *
@@ -78,6 +80,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
      * @param port the port
      * @param pluginNames the plugin names
      * @param registerMetaData the register meta data
+     * @param prefixForwardEnable the prefix forward status
      */
     public MetaDataRegisterDTO(final String appName, final String contextPath,
                                final String path, final String pathDesc,
@@ -86,7 +89,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                                final String parameterTypes, final String rpcExt,
                                final boolean enabled, final String host,
                                final Integer port, final List<String> pluginNames,
-                               final boolean registerMetaData) {
+                               final boolean registerMetaData, final Integer prefixForwardEnable) {
         this.appName = appName;
         this.contextPath = contextPath;
         this.path = path;
@@ -103,6 +106,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         this.pluginNames = pluginNames;
         this.registerMetaData = registerMetaData;
         this.timeMillis = System.currentTimeMillis();
+        this.prefixForwardEnable = prefixForwardEnable;
     }
     
     /**
@@ -128,6 +132,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         pluginNames = builder.pluginNames;
         registerMetaData = builder.registerMetaData;
         timeMillis = System.currentTimeMillis();
+        prefixForwardEnable = builder.prefixForwardEnable;
     }
     
     /**
@@ -432,6 +437,24 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         this.timeMillis = timeMillis;
     }
 
+    /**
+     * get prefix forward status.
+     *
+     * @return prefix forward status
+     */
+    public Integer getPrefixForwardEnable() {
+        return prefixForwardEnable;
+    }
+
+    /**
+     * set prefix forward status.
+     *
+     * @param prefixForwardEnable prefixForwardEnabled
+     */
+    public void setPrefixForwardEnable(final Integer prefixForwardEnable) {
+        this.prefixForwardEnable = prefixForwardEnable;
+    }
+
     @Override
     public String toString() {
         return "MetaDataRegisterDTO{" 
@@ -467,6 +490,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                 + registerMetaData
                 + ", timeMillis="
                 + timeMillis
+                + ", prefixForwardEnable="
+                + prefixForwardEnable
                 + '}';
     }
     
@@ -506,6 +531,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         private boolean registerMetaData;
 
         private long timeMillis;
+
+        private Integer prefixForwardEnable;
 
         private Builder() {
         }
@@ -686,6 +713,16 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             return this;
         }
 
+        /**
+         * prefixForward status.
+         *
+         * @param prefixForwardEnable prefixForwardEnabled
+         * @return Builder builder
+         */
+        public Builder prefixForwardEnable(final Integer prefixForwardEnable) {
+            this.prefixForwardEnable = prefixForwardEnable;
+            return this;
+        }
         /**
          * build.
          *
