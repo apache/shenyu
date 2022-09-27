@@ -139,6 +139,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         }
     }
 
+    @Override
     protected String buildApiPath(final Method method, final String superPath,
                                   @NonNull final ShenyuSpringCloudClient methodShenyuClient) {
         final String contextPath = getContextPath();
@@ -177,7 +178,8 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         }
         return null;
     }
-    
+
+    @Override
     protected String buildApiSuperPath(final Class<?> clazz, @Nullable final ShenyuSpringCloudClient beanShenyuClient) {
         if (Objects.nonNull(beanShenyuClient) && StringUtils.isNotBlank(beanShenyuClient.path())) {
             return beanShenyuClient.path();
