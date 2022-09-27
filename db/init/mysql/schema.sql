@@ -852,6 +852,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172741', '38', 'password', 'pa
 INSERT INTO `plugin_handle` VALUES ('1529402613204172742', '8', 'loadBalance', 'loadStrategy', 3, 2, 3, '{\"defaultValue\":\"roundRobin\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172743', '10', 'flowRuleMaxQueueingTimeMs', 'flowRuleMaxQueueingTimeMs', 1, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"500\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172744', '10', 'flowRuleWarmUpPeriodSec', 'flowRuleWarmUpPeriodSec', 1, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"10\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172745', '14', 'prefixForwardEnable', 'prefixForwardEnable', 1, 2, 3, '{\"required\":\"1\",\"defaultValue\":\"0\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
 
 -- ----------------------------
 -- Table structure for resource

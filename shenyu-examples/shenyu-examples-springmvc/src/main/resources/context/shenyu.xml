@@ -47,7 +47,7 @@
                 <entry key="appName" value="springmvc"/>
                 <entry key="port" value="8289"/>
                 <entry key="isFull" value="false"/>
-                <entry key="prefixForwardEnable" value="0"/>
+                <entry key="prefixForwardEnable" value="1"/>
             </map>
         </property>
     </bean>

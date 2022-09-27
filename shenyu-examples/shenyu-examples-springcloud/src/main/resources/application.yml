@@ -55,6 +55,7 @@ shenyu:
     springCloud:
       props:
         contextPath: /springcloud
+        prefixForwardEnable: 0
 #        port: 8884
 
 logging:
