@@ -723,6 +723,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
             this.prefixForwardEnable = prefixForwardEnable;
             return this;
         }
+
         /**
          * build.
          *
