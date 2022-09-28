@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.logging.common.datamask;
 
 /**
- * dataMask common interface.
+ * dataMask interface.
  */
 public interface DataMaskInterface {
 
