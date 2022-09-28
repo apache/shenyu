@@ -47,6 +47,7 @@ public class MotanRpcExt {
      *
      * @param methodInfo methodInfo
      * @param group group
+     * @param timeout timeout
      */
     public MotanRpcExt(final List<RpcExt> methodInfo, final String group, final Integer timeout) {
         this.methodInfo = methodInfo;
