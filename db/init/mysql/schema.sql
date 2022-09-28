@@ -919,6 +919,13 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172741', '38', 'password', 'pa
 INSERT INTO `plugin_handle` VALUES ('1529402613204172742', '8', 'loadBalance', 'loadStrategy', 3, 2, 3, '{\"defaultValue\":\"roundRobin\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172743', '10', 'flowRuleMaxQueueingTimeMs', 'flowRuleMaxQueueingTimeMs', 1, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"500\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172744', '10', 'flowRuleWarmUpPeriodSec', 'flowRuleWarmUpPeriodSec', 1, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"10\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1529402613204172745', '14', 'addPrefixed', 'addPrefixed', 3, 2, 3, '{\"required\":\"1\",\"defaultValue\":\"false\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO `plugin_handle` VALUES ('1570590990341775360', '39', 'endpoint', 'casdoor endpoint', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO `plugin_handle` VALUES ('1570591047635968000', '39', 'client_id', 'client_id', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO `plugin_handle` VALUES ('1570591109623586816', '39', 'client_secrect', 'client_secrect', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO `plugin_handle` VALUES ('1570591165374275584', '39', 'certificate', 'certificate', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO `plugin_handle` VALUES ('1570591215131303936', '39', 'organization-name', 'organization-name', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
+INSERT INTO `plugin_handle` VALUES ('1570591265492312064', '39', 'application-name', 'application-name', 2, 3, 0, '{\"required\":\"1\",\"rule\":\"\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
 
 -- ----------------------------
 -- Table structure for resource

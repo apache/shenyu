@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 public class CasdoorPluginConfiguration {
 
     /**
-     * the auth plugin.
+     * the casdoor plugin.
      * @return the shenyu plugin
      */
     @Bean
@@ -39,7 +39,7 @@ public class CasdoorPluginConfiguration {
     }
 
     /**
-     * Auth plugin data handler.
+     * Casdoor plugin data handler.
      *
      * @return the plugin data handler
      */
