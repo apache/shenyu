@@ -47,8 +47,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build shenyu-e2e-engin with Maven
+      - name: Build shenyu-e2e-engine with Maven
         run: ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-engine clean install
+
       - name: Set up JDK 8 for Building ShenYu
         uses: actions/setup-java@v3
         with:
@@ -66,6 +67,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./shenyu-dist/shenyu-admin-dist
+          file: ./shenyu-dist/shenyu-admin-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-admin-bin
           tags: shenyu/admin:latest
           outputs: type=docker,dest=/tmp/apache-shenyu-admin.tar
@@ -74,6 +76,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./shenyu-dist/shenyu-bootstrap-dist
+          file: ./shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
           tags: shenyu/bootstrap:latest
           outputs: type=docker,dest=/tmp/apache-shenyu-bootstrap.tar
@@ -90,7 +93,7 @@ jobs:
     needs: [ "build-docker-images" ]
     strategy:
       matrix:
-        storage: [ "h2" ]
+        storage: [ "h2", "mysql" ]
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -118,4 +121,5 @@ jobs:
         env:
           storage: ${{ matrix.storage }}
         run: |
-          ./mvnw -B -f shenyu-e2e/pom.xml -pl shenyu-e2e-case test
+          bash ./shenyu-e2e/script/storage_init.sh
+          ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-case -Dstorage=${{ matrix.storage }} test

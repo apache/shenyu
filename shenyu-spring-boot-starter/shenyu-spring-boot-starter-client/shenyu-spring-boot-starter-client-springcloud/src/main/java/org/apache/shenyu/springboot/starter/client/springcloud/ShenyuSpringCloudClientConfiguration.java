@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.client.springcloud;
 
-import org.apache.shenyu.client.springcloud.init.ContextRegisterListener;
 import org.apache.shenyu.client.springcloud.init.SpringCloudClientEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -50,17 +49,5 @@ public class ShenyuSpringCloudClientConfiguration {
                                                                         final ShenyuClientRegisterRepository shenyuClientRegisterRepository,
                                                                         final Environment env) {
         return new SpringCloudClientEventListener(clientConfig.getClient().get(RpcTypeEnum.SPRING_CLOUD.getName()), shenyuClientRegisterRepository, env);
-    }
-    
-    /**
-     * Context register listener.
-     *
-     * @param clientConfig the client config
-     * @param env the env
-     * @return the context register listener
-     */
-    @Bean
-    public ContextRegisterListener contextRegisterListener(final ShenyuClientConfig clientConfig, final Environment env) {
-        return new ContextRegisterListener(clientConfig.getClient().get(RpcTypeEnum.SPRING_CLOUD.getName()), env);
     }
 }

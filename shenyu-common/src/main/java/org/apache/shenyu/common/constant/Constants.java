@@ -647,6 +647,8 @@ public interface Constants {
      */
     String DEFAULT_CLUSTER = "failover";
 
+    int PREFIX_FORWARD_ENABLE = 1;
+
     /**
      * String q.
      */

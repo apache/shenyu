@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[[ -d ./conf-ext ]] && cp -f ./conf-ext/* ./conf
+HOME="$(cd "$(dirname $0)"; pwd)"
 
-/bin/sh ${LOCAL_PATH}/bin/start.sh && tail -f ${LOCAL_PATH}/logs/shenyu-admin.log
+if [[ "$storage" == "mysql" ]]; then
+  bash ${HOME}/storage_init_mysql.sh
+fi
