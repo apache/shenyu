@@ -55,7 +55,7 @@ public final class LoggingPulsarPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testPass() {
-        final PulsarLogCollectConfig.PulsarLogConfig  pulsarLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), PulsarLogCollectConfig.PulsarLogConfig.class);
+        final PulsarLogCollectConfig.PulsarLogConfig pulsarLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), PulsarLogCollectConfig.PulsarLogConfig.class);
 
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
