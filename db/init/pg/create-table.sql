@@ -693,8 +693,7 @@ CREATE TABLE "public"."plugin" (
   "enabled" int2 NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
-)
-;
+);
 COMMENT ON COLUMN "public"."plugin"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."plugin"."name" IS 'plugin name';
 COMMENT ON COLUMN "public"."plugin"."config" IS 'plugin configuration';
