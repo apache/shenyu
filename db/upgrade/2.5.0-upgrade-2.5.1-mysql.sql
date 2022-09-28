@@ -83,9 +83,6 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172901', '33', 'passWord', 'pa
 /* fix issue #3945 */
 INSERT INTO `plugin_handle` VALUES ('1529402613204172742', '8', 'loadBalance', 'loadStrategy', 3, 2, 3, '{\"defaultValue\":\"roundRobin\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 
-INSERT INTO `plugin_handle` VALUES ('1529402613204172743', '10', 'flowRuleEnable', 'flowRuleMaxQueueingTimeMs', 1, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"500\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-INSERT INTO `plugin_handle` VALUES ('1529402613204172744', '10', 'flowRuleEnable', 'flowRuleWarmUpPeriodSec', 1, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"10\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
-
 /*create plugin resource and permission for admin #3964 */
 INSERT INTO "resource" VALUES ('1572525965625266176','1346777449787125760','SHENYU.BUTTON.SYSTEM.RESOURCE','','','','2','6','','1','0','system:plugin:resource','1');
 INSERT INTO "permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176');
@@ -93,7 +90,7 @@ INSERT INTO "permission" VALUES ('1572525965658820608', '1346358560427216896', '
 /*insert plugin for casdoor*/
 INSERT INTO `plugin` VALUES ('39', 'casdoor', '{\"endpoint\":\"localhost:8080\"}', 'Authentication', 40, 0, '2022-09-11 12:00:00', '2022-09-11 12:00:00');
 
-/* insert plugin_handle data for plugin auth */
+/* insert plugin_handle data for plugin casdoor */
 INSERT INTO `plugin_handle` VALUES ('1570590990341775360', '39', 'endpoint', 'casdoor endpoint', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46.925', '2022-09-16 09:50:46.925');
 INSERT INTO `plugin_handle` VALUES ('1570591047635968000', '39', 'client_id', 'client_id', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46.925', '2022-09-16 09:50:46.925');
 INSERT INTO `plugin_handle` VALUES ('1570591109623586816', '39', 'client_secrect', 'client_secrect', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46.925', '2022-09-16 09:50:46.925');
@@ -104,9 +101,6 @@ INSERT INTO `plugin_handle` VALUES ('1570591265492312064', '39', 'application-na
 INSERT INTO `plugin_handle` VALUES ('1529402613204172743', '10', 'flowRuleMaxQueueingTimeMs', 'flowRuleMaxQueueingTimeMs', 1, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"500\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172744', '10', 'flowRuleWarmUpPeriodSec', 'flowRuleWarmUpPeriodSec', 1, 2, 6, '{\"required\":\"0\",\"defaultValue\":\"10\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 
-/*create plugin resource and permission for admin #3964 */
-INSERT INTO "resource" VALUES ('1572525965625266176','1346777449787125760','SHENYU.BUTTON.SYSTEM.RESOURCE','','','','2','6','','1','0','system:plugin:resource','1');
-INSERT INTO "permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176');
 
 /* fix issue 3966 */
 INSERT INTO `plugin_handle` VALUES ('1529402613204172745', '14', 'addPrefixed', 'addPrefixed', 3, 2, 3, '{\"required\":\"1\",\"defaultValue\":\"false\"}', '2022-09-27 12:00:00', '2022-09-27 12:00:00');
