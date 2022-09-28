@@ -93,7 +93,7 @@ INSERT INTO "public"."resource" VALUES ('1572525965625266176','13467774497871257
 INSERT INTO "public"."permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176');
 
 /*insert plugin for casdoor*/
-INSERT INTO "public"."plugin" VALUES ('39', 'auth', Null, 'Authentication', 40, 0, '2022-09-11 12:00:00', '2022-09-11 12:00:00');
+INSERT INTO "public"."plugin" VALUES ('39', 'casdoor', '{"endpoint":"localhost:8080"}', 'Authentication', 40, 0, '2022-09-11 12:00:00', '2022-09-11 12:00:00');
 
 /* insert plugin_handle data for plugin auth */
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172802', '8', 'loadBalance', 'loadStrategy', 3, 2, 3, '{"defaultValue":"roundRobin","rule":""}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
