@@ -679,6 +679,7 @@ INSERT INTO "public"."permission" VALUES ('1529403932886044827', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1529403932886044828', '1346358560427216896', '1534585531108565051', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
 INSERT INTO "public"."permission" VALUES ('1529403932886044829', '1346358560427216896', '1534585531108565052', '2022-06-09 01:17:57', '2022-06-09 01:17:56');
 
+INSERT INTO "public"."permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176', '2022-09-28 11:50:58', '2022-09-28 11:50:58');
 -- ----------------------------
 -- Table structure for plugin
 -- ----------------------------
@@ -692,8 +693,7 @@ CREATE TABLE "public"."plugin" (
   "enabled" int2 NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
-)
-;
+);
 COMMENT ON COLUMN "public"."plugin"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."plugin"."name" IS 'plugin name';
 COMMENT ON COLUMN "public"."plugin"."config" IS 'plugin configuration';
@@ -1474,6 +1474,8 @@ INSERT INTO "public"."resource" VALUES ('1534585531108565049', '1534585531108565
 INSERT INTO "public"."resource" VALUES ('1534585531108565050', '1534585531108565043', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingClickHouseRule:edit', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1534585531108565051', '1534585531108565043', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingClickHouseRule:delete', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
 INSERT INTO "public"."resource" VALUES ('1534585531108565052', '1534585531108565043', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingClickHouse:modify', 1, '2022-05-25 18:08:07', '2022-05-25 18:08:07');
+
+INSERT INTO "public"."resource" VALUES ('1572525965625266176', '1346777449787125760', 'SHENYU.BUTTON.SYSTEM.RESOURCE', '', '', '', 2, 6, '', 1, 0, 'system:plugin:resource', 1, '2022-09-28 11:50:58', '2022-09-28 11:50:58');
 -- ----------------------------
 -- Table structure for role
 -- ----------------------------

@@ -89,8 +89,8 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172803', '10', 'flowR
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172804', '10', 'flowRuleWarmUpPeriodSec', 'flowRuleWarmUpPeriodSec', 1, 2, 6, '{"required":"0","defaultValue":"10"}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
 /*create plugin resource and permission for admin #3964 */
-INSERT INTO "public"."resource" VALUES ('1572525965625266176','1346777449787125760','SHENYU.BUTTON.SYSTEM.RESOURCE','','','','2','6','','1','0','system:plugin:resource','1');
-INSERT INTO "public"."permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176');
+INSERT INTO "public"."resource" VALUES ('1572525965625266176', '1346777449787125760', 'SHENYU.BUTTON.SYSTEM.RESOURCE', '', '', '', 2, 6, '', 1, 0, 'system:plugin:resource', 1, '2022-09-28 11:50:58', '2022-09-28 11:50:58');
+INSERT INTO "public"."permission" VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176', '2022-09-28 11:50:58', '2022-09-28 11:50:58');
 
 /*insert plugin for casdoor*/
 INSERT INTO "public"."plugin" VALUES ('39', 'casdoor', '{"endpoint":"localhost:8080"}', 'Authentication', 40, 0, '2022-09-11 12:00:00', '2022-09-11 12:00:00');
