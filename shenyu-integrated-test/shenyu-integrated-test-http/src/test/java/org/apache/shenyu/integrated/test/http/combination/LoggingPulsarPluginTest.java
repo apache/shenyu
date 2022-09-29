@@ -49,7 +49,7 @@ public final class LoggingPulsarPluginTest extends AbstractPluginDataInit {
     @BeforeEach
     public void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.LOGGING_PULSAR.getName(),
-                "{\"topic\":\"pulsar-test\", \"serviceUrl\":\"pulsar://shenyu-pulsar:6650\"");
+                "{\"topic\":\"pulsar-test\", \"serviceUrl\":\"pulsar://shenyu-pulsar:6650\"}");
         assertThat(pluginResult, is("success"));
     }
 
