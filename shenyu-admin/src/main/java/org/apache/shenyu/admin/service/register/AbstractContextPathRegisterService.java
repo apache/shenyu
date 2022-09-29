@@ -32,6 +32,7 @@ public abstract class AbstractContextPathRegisterService extends AbstractShenyuC
         String contextPathSelectorId = getSelectorService().registerDefault(dto, PluginEnum.CONTEXT_PATH.getName(), "");
         ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
         handle.setContextPath(PathUtils.decoratorContextPath(dto.getContextPath()));
+        handle.setAddPrefixed(dto.getAddPrefixed());
         getRuleService().registerDefault(buildContextPathDefaultRuleDTO(contextPathSelectorId, dto, handle.toJson()));
     }
 }

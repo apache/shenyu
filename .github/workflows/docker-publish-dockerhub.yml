@@ -73,6 +73,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./shenyu-dist/shenyu-admin-dist
+          file: ./shenyu-dist/shenyu-admin-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-admin-bin
           platforms: linux/amd64,linux/arm64
           push: true
@@ -84,6 +85,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./shenyu-dist/shenyu-bootstrap-dist
+          file: ./shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
           platforms: linux/amd64,linux/arm64
           push: true

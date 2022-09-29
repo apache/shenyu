@@ -42,11 +42,7 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
         String key = upstreamList.get(0).getUrl();
-        ConcurrentMap<String, WeightedRoundRobin> map = methodWeightMap.get(key);
-        if (Objects.isNull(map)) {
-            methodWeightMap.putIfAbsent(key, new ConcurrentHashMap<>(16));
-            map = methodWeightMap.get(key);
-        }
+        ConcurrentMap<String, WeightedRoundRobin> map = methodWeightMap.computeIfAbsent(key, k -> new ConcurrentHashMap<>(16));
         int totalWeight = 0;
         long maxCurrent = Long.MIN_VALUE;
         long now = System.currentTimeMillis();

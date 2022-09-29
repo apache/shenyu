@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.cryptor.response.CryptorResponsePlugin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.codec.ServerCodecConfigurer;
 
 /**
  *  Cryptor plugin.
@@ -37,11 +38,12 @@ public class CryptorPluginConfiguration {
     /**
      * Cryptor request plugin.
      *
+     * @param configurer configurer
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin cryptorRequestPlugin() {
-        return new CryptorRequestPlugin();
+    public ShenyuPlugin cryptorRequestPlugin(final ServerCodecConfigurer configurer) {
+        return new CryptorRequestPlugin(configurer.getReaders());
     }
 
     /**
