@@ -31,8 +31,8 @@ import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.apache.shenyu.plugin.cryptor.decorator.CryptorRequestDecorator;
-import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
 import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
 import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
@@ -43,7 +43,6 @@ import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -59,7 +58,16 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(CryptorRequestPlugin.class);
 
-    private static final List<HttpMessageReader<?>> MESSAGE_READERS = HandlerStrategies.builder().build().messageReaders();
+    private final List<HttpMessageReader<?>> messageReaders;
+
+    /**
+     * CryptorRequestPlugin.
+     *
+     * @param messageReaders messageReaders
+     */
+    public CryptorRequestPlugin(final List<HttpMessageReader<?>> messageReaders) {
+        this.messageReaders = messageReaders;
+    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -77,7 +85,7 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
 
-        ServerRequest serverRequest = ServerRequest.create(exchange, MESSAGE_READERS);
+        ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
         Mono<String> mono = serverRequest.bodyToMono(String.class)
                 .switchIfEmpty(Mono.defer(() -> Mono.just("")))
                 .flatMap(originalBody -> strategyMatch(ruleHandle, originalBody, exchange));
