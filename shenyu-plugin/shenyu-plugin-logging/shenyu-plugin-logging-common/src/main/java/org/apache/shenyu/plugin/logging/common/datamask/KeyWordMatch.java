@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  */
 public class KeyWordMatch {
 
-    private Pattern p;
+    private final Pattern p;
 
     /**
      * generate regex.

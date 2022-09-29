@@ -32,6 +32,7 @@ import org.apache.shenyu.plugin.logging.common.datamask.KeyWordMatch;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
+import org.apache.shenyu.plugin.logging.mask.factory.DataMaskFactory;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +73,7 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
 
     private final boolean maskFlag;
 
-    private final DataMaskInterface dataMaskInterface;
+    private final String dataMaskAlg;
 
     private final KeyWordMatch keyWordMatch;
 
@@ -84,17 +85,17 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
      * @param logCollector      LogCollector  instance
      * @param maskFlag          mask flag
      * @param keyWordSet        user keyWord set
-     * @param dataMaskInterface mask function
+     * @param dataMaskAlg mask function
      */
     public LoggingServerHttpResponse(final ServerHttpResponse delegate, final ShenyuRequestLog logInfo,
                                      final LogCollector logCollector, final boolean maskFlag,
-                                     final Set<String> keyWordSet, final DataMaskInterface dataMaskInterface) {
+                                     final Set<String> keyWordSet, final String dataMaskAlg) {
 
         super(delegate);
         this.logInfo = logInfo;
         this.logCollector = logCollector;
         this.maskFlag = maskFlag;
-        this.dataMaskInterface = dataMaskInterface;
+        this.dataMaskAlg = dataMaskAlg;
         this.keyWordMatch = new KeyWordMatch(keyWordSet);
     }
 
@@ -277,7 +278,6 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
     }
 
     private void mask(final ShenyuRequestLog logInfo) {
-
         logInfo.setClientIp(maskForSingle(GenericLoggingConstant.CLIENT_IP, logInfo.getClientIp()));
         logInfo.setTimeLocal(maskForSingle(GenericLoggingConstant.TIME_LOCAL, logInfo.getTimeLocal()));
         logInfo.setMethod(maskForSingle(GenericLoggingConstant.METHOD, logInfo.getMethod()));
@@ -308,8 +308,8 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
     }
 
     private String maskForSingle(final String keyWord, final String val) {
-
-        return StringUtils.isNotBlank(val) && keyWordMatch.matches(keyWord) ? dataMaskInterface.mask(val) : val;
+        return StringUtils.isNotBlank(val) && keyWordMatch.matches(keyWord) ?
+                DataMaskFactory.selectMask(val, dataMaskAlg) : val;
     }
 
     private String maskForBody(final String body) {
@@ -318,7 +318,7 @@ public class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
             Map<String, String> bodyMap = JsonUtils.jsonToMap(body, String.class);
             bodyMap.forEach((key, value) -> {
                 if (keyWordMatch.matches(key)) {
-                    bodyMap.put(key, dataMaskInterface.mask(value));
+                    bodyMap.put(key, DataMaskFactory.selectMask(value, dataMaskAlg));
                 }
             });
             return bodyMap.toString();

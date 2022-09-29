@@ -151,4 +151,14 @@ public class GenericLoggingConstant {
      * logging path.
      */
     public static final String PATH = "path";
+
+    /**
+     * mask keyword
+     */
+    public static final String MASK_KEYWORD = "keyword";
+
+    /**
+     * mask status.
+     */
+    public static final String MASK_STATUS = "maskStatus";
 }

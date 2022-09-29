@@ -101,7 +101,7 @@ public class LoggingServerHttpResponseTest {
         Set<String> keyWordSet = new HashSet<>();
         DataMaskInterface dataMaskInterface = new DataMaskByMD5();
         this.loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(), requestInfo,
-                logCollector, false, keyWordSet, dataMaskInterface);
+                logCollector, false, keyWordSet, "dataMaskByCharReplace");
     }
 
     @Test

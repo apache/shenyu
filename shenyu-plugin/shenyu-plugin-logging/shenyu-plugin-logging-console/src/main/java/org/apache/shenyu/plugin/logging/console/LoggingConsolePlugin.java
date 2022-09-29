@@ -175,7 +175,6 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
     }
 
     private static void maskList(final String key, final List<String> value) {
-
         if (maskFlag && keyWordMatch.matches(key)) {
             for (int i = 0; i < value.size(); i++) {
                 value.set(i, dataMaskInterface.mask(value.get(i)));

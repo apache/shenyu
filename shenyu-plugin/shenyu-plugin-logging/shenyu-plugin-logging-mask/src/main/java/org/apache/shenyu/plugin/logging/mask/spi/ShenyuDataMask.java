@@ -15,33 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.datamask;
+package org.apache.shenyu.plugin.logging.mask.spi;
 
-import org.springframework.util.StringUtils;
+import org.apache.shenyu.spi.SPI;
 
 /**
- * dataMask interface.
+ * shenyu logging data mask.
  */
-public interface DataMaskInterface {
+@SPI
+public interface ShenyuDataMask {
 
     /**
      * mask data.
      *
-     * @param data data
-     * @return masked data
-     */
-    default String mask(String data) {
-        if (!StringUtils.hasLength(data)) {
-            return "";
-        }
-        return doMask(data);
-    }
-
-    /**
-     * do mask data.
-     *
      * @param source source data
      * @return masked data
      */
-    String doMask(String source);
+    String mask(String source);
 }
