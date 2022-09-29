@@ -22,14 +22,15 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.param.mapping.ParamMappingPlugin;
 import org.apache.shenyu.plugin.param.mapping.handler.ParamMappingPluginDataHandler;
+import org.apache.shenyu.plugin.param.mapping.strategy.DefaultOperator;
 import org.apache.shenyu.plugin.param.mapping.strategy.FormDataOperator;
 import org.apache.shenyu.plugin.param.mapping.strategy.JsonOperator;
-import org.apache.shenyu.plugin.param.mapping.strategy.DefaultOperator;
 import org.apache.shenyu.plugin.param.mapping.strategy.Operator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerCodecConfigurer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,13 +45,14 @@ public class ParamMappingPluginConfiguration {
     /**
      * Param mapping plugin.
      *
+     * @param configurer configurer
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin paramMappingPlugin() {
+    public ShenyuPlugin paramMappingPlugin(final ServerCodecConfigurer configurer) {
         Map<String, Operator> operatorMap = new HashMap<>(4);
         operatorMap.put(Constants.DEFAULT, new DefaultOperator());
-        operatorMap.put(MediaType.APPLICATION_JSON.toString(), new JsonOperator());
+        operatorMap.put(MediaType.APPLICATION_JSON.toString(), new JsonOperator(configurer.getReaders()));
         operatorMap.put(MediaType.APPLICATION_FORM_URLENCODED.toString(), new FormDataOperator());
         return new ParamMappingPlugin(operatorMap);
     }
