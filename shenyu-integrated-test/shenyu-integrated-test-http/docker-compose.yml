@@ -151,9 +151,6 @@ services:
     image: apachepulsar/pulsar:2.10.1
     container_name: shenyu-pulsar
     restart: always
-    depends_on:
-      shenyu-integrated-test-http:
-        condition: service_healthy
     networks:
       - shenyu
     ports:
