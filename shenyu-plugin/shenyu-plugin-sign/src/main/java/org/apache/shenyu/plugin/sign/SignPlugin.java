@@ -44,7 +44,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -58,17 +57,18 @@ import java.util.function.Function;
  */
 public class SignPlugin extends AbstractShenyuPlugin {
 
-    private static final List<HttpMessageReader<?>> MESSAGE_READERS = HandlerStrategies.builder().build().messageReaders();
+    private final List<HttpMessageReader<?>> messageReaders;
 
     private final SignService signService;
 
     /**
      * Instantiates a new Sign plugin.
-     *
+     * @param readers the sign use readers
      * @param signService the sign service
      */
-    public SignPlugin(final SignService signService) {
+    public SignPlugin(final List<HttpMessageReader<?>> readers, final SignService signService) {
         this.signService = signService;
+        messageReaders = readers;
     }
 
     @Override
@@ -86,7 +86,7 @@ public class SignPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selectorData, final RuleData rule) {
         SignRuleHandler ruleHandler = SignPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (!ObjectUtils.isEmpty(ruleHandler) && ruleHandler.getSignRequestBody()) {
-            ServerRequest serverRequest = ServerRequest.create(exchange, MESSAGE_READERS);
+            ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
             Mono<String> mono = serverRequest.bodyToMono(String.class)
                     .switchIfEmpty(Mono.defer(() -> Mono.just("")))
                     .flatMap(originalBody -> signBody(originalBody, exchange));
