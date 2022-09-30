@@ -66,7 +66,12 @@ public enum PluginEnum {
      * OAuth2 plugin enum.
      */
     OAUTH2(40, 0, "oauth2"),
-    
+
+    /**
+     * Casdoor plugin enum.
+     */
+    CASDOOR(40, 0, "casdoor"),
+
     /**
      * Waf plugin enum.
      */

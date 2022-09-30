@@ -29,6 +29,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -71,7 +72,7 @@ public class JsonOperatorTest {
         this.paramMappingRuleHandle.setRemoveParameterKeys(remove);
         this.paramMappingRuleHandle.setAddParameterKeys(Collections.singletonList(add));
         this.paramMappingRuleHandle.setReplaceParameterKeys(Collections.singletonList(replace));
-        this.jsonOperator = new JsonOperator();
+        this.jsonOperator = new JsonOperator(HandlerStrategies.builder().build().messageReaders());
         final String body = "{\"name\":\"shenyu\",\"age\":\"18\"}";
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.POST, "localhost")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).body(body));

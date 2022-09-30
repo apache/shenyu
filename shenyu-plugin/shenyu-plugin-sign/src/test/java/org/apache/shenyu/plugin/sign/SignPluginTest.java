@@ -43,6 +43,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -83,7 +84,7 @@ public final class SignPluginTest {
         this.ruleData.setName("test-sign-plugin");
         this.signPluginDataHandler = new SignPluginDataHandler();
         signService = mock(SignService.class);
-        this.signPlugin = new SignPlugin(signService);
+        this.signPlugin = new SignPlugin(HandlerStrategies.builder().build().messageReaders(), signService);
 
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
