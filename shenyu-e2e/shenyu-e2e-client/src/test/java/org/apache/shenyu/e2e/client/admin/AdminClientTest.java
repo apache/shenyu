@@ -37,6 +37,7 @@ import org.apache.shenyu.e2e.matcher.SelectorMatcher;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,7 @@ import java.util.stream.Collectors;
 public class AdminClientTest {
     static AdminClient client;
     
-    static GenericContainer<?> container = new GenericContainer<>("ghcr.io/apache/shenyu/admin:latest")
+    static GenericContainer<?> container = new GenericContainer<>("shenyu/admin:latest")
             .withExposedPorts(9095)
             .withLogConsumer(new Slf4jLogConsumer(log));
     

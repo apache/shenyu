@@ -40,16 +40,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Set up JDK 11 for Compiling ShenYu E2E Egnine
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-          cache: maven
-
-      - name: Build shenyu-e2e-engine with Maven
-        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-engine clean install
-
       - name: Set up JDK 8 for Building ShenYu
         uses: actions/setup-java@v3
         with:
@@ -81,6 +71,22 @@ jobs:
           tags: shenyu/bootstrap:latest
           outputs: type=docker,dest=/tmp/apache-shenyu-bootstrap.tar
 
+      - name: Load ShenYu Docker Images
+        run: |
+          docker load --input /tmp/apache-shenyu-admin.tar
+          docker load --input /tmp/apache-shenyu-bootstrap.tar
+          docker image ls -a
+
+      - name: Set up JDK 11 for Compiling ShenYu E2E Egnine
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build shenyu-e2e-engine with Maven
+        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-engine clean install
+
       - name: Upload Docker Image Artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -93,7 +99,7 @@ jobs:
     needs: [ "build-docker-images" ]
     strategy:
       matrix:
-        storage: [ "h2", "mysql" ]
+        storage: [ "h2", "mysql", "postgres" ]
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -122,4 +128,4 @@ jobs:
           storage: ${{ matrix.storage }}
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
-          ./mvnw -B -f ./shenyu-e2e/pom.xml -am -pl shenyu-e2e-case -Dstorage=${{ matrix.storage }} test
+          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case -Dstorage=${{ matrix.storage }} test

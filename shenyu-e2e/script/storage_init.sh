@@ -18,6 +18,6 @@
 
 HOME="$(cd "$(dirname $0)"; pwd)"
 
-if [[ "$storage" == "mysql" ]]; then
-  bash ${HOME}/storage_init_mysql.sh
+if [[ "$storage" != "h2" ]]; then
+  bash ${HOME}/storage_init_${storage}.sh
 fi
