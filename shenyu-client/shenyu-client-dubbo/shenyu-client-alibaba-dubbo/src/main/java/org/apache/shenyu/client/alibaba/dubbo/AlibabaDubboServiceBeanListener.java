@@ -102,7 +102,7 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
 
     private int buildPort(final ServiceBean<?> serviceBean) {
         final String port = this.getPort();
-        return StringUtils.isBlank(port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(port);
+        return StringUtils.isBlank(port) || "-1".equals(port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(port);
     }
 
     @Override
