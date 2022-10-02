@@ -26,7 +26,7 @@ import org.apache.shenyu.spi.Join;
 @Join
 public class Md5EncryptDataMask extends AbstractShenyuDataMask {
     @Override
-    protected String doMask(String source) {
+    protected String doMask(final String source) {
         return Md5Utils.md5(source);
     }
 }

@@ -28,7 +28,7 @@ public class CharacterReplaceDataMask extends AbstractShenyuDataMask {
     private static final Character MASK = '*';
 
     @Override
-    protected String doMask(String source) {
+    protected String doMask(final String source) {
         return maskData(source, source.length() / 2);
     }
 

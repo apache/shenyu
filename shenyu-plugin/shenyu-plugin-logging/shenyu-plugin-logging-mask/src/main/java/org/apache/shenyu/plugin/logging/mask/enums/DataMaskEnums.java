@@ -24,11 +24,11 @@ public enum DataMaskEnums {
 
     CHARACTER_REPLACE("dataMaskByCharReplace"),
 
-    MD5_ENCRYPT("dataMaskByMD5"),
-    ;
+    MD5_ENCRYPT("dataMaskByMD5");
+
     private final String dataMaskAlg;
 
-    DataMaskEnums(String dataMaskAlg) {
+    DataMaskEnums(final String dataMaskAlg) {
         this.dataMaskAlg = dataMaskAlg;
     }
 
