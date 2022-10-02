@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.datamask;
+package org.apache.shenyu.plugin.logging.mask.matcher;
 
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -33,7 +33,6 @@ public class KeyWordMatch {
      * @param keyWordSet keyWord set
      */
     public KeyWordMatch(final Set<String> keyWordSet) {
-
         StringBuilder sb = new StringBuilder();
         keyWordSet.forEach(tempKeyWord -> {
             sb.append("(?i)");
@@ -54,7 +53,6 @@ public class KeyWordMatch {
      * @return isMatch
      */
     public boolean matches(final String keyWord) {
-
         return p.matcher(keyWord).matches();
     }
 }

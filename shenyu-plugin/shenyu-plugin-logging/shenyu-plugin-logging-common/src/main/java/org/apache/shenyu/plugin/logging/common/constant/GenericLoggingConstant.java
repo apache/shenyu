@@ -75,7 +75,7 @@ public class GenericLoggingConstant {
     /**
      * logging request method.
      */
-    public static final String REQUEST_METHOD = "request method";
+    public static final String REQUEST_METHOD = "requestMethod";
 
     /**
      * logging request header.
@@ -151,14 +151,4 @@ public class GenericLoggingConstant {
      * logging path.
      */
     public static final String PATH = "path";
-
-    /**
-     * mask keyword
-     */
-    public static final String MASK_KEYWORD = "keyword";
-
-    /**
-     * mask status.
-     */
-    public static final String MASK_STATUS = "maskStatus";
 }

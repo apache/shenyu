@@ -25,8 +25,6 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
-import org.apache.shenyu.plugin.logging.common.datamask.DataMaskByMD5;
-import org.apache.shenyu.plugin.logging.common.datamask.DataMaskInterface;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
 import org.junit.jupiter.api.Assertions;
@@ -99,7 +97,6 @@ public class LoggingServerHttpResponseTest {
         requestInfo.setHost(serverHttpRequest.getHeaders().getFirst(GenericLoggingConstant.HOST));
         requestInfo.setPath(serverHttpRequest.getURI().getPath());
         Set<String> keyWordSet = new HashSet<>();
-        DataMaskInterface dataMaskInterface = new DataMaskByMD5();
         this.loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(), requestInfo,
                 logCollector, false, keyWordSet, "dataMaskByCharReplace");
     }

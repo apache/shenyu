@@ -15,30 +15,35 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.datamask;
+package org.apache.shenyu.plugin.logging.mask.matcher;
 
-import org.apache.shenyu.common.utils.Md5Utils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-class DataMaskByMD5Test {
+import java.util.HashSet;
+import java.util.Set;
 
-    private DataMaskByMD5 dataMaskByMD5;
+@ExtendWith(MockitoExtension.class)
+class KeyWordMatchTest {
+
+    private KeyWordMatch keyWordMatch;
 
     @BeforeEach
-    void setUp() {
-
-        dataMaskByMD5 = new DataMaskByMD5();
+    public void setUp() {
+        Set<String> set = new HashSet<>();
+        set.add("name");
+        set.add("TesT");
+        set.add("dsadsader");
+        keyWordMatch = new KeyWordMatch(set);
     }
 
     @Test
-    void mask() {
-
-        String maskData = "123456789";
-        String mask = dataMaskByMD5.mask(maskData);
-        Assertions.assertEquals(Md5Utils.md5(maskData), mask);
-        String nullMask = dataMaskByMD5.mask("");
-        Assertions.assertEquals("", nullMask);
+    public void matches() {
+        Assertions.assertTrue(keyWordMatch.matches("name"));
+        Assertions.assertTrue(keyWordMatch.matches("test"));
+        Assertions.assertFalse(keyWordMatch.matches("dsaer"));
     }
 }
