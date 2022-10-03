@@ -35,7 +35,7 @@ public class CommonLoggingRuleHandle implements RuleHandle {
     private String maskType;
 
     /**
-     * mask status, include true and false
+     * mask status, include true and false.
      */
     private Boolean maskStatus;
 
@@ -68,7 +68,7 @@ public class CommonLoggingRuleHandle implements RuleHandle {
     /**
      * set mask type.
      *
-     * @param maskType
+     * @param maskType mask type
      */
     public void setMaskType(final String maskType) {
         this.maskType = maskType;

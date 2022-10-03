@@ -54,13 +54,13 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
 
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractLogPluginDataHandler.class);
 
+    public static final Supplier<CommonHandleCache<String, CommonLoggingRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+
     private static final String EMPTY_JSON = "{}";
 
     private static final Map<String, List<String>> SELECT_ID_URI_LIST_MAP = new ConcurrentHashMap<>();
 
     private static final Map<String, GenericApiConfig> SELECT_API_CONFIG_MAP = new ConcurrentHashMap<>();
-
-    public static final Supplier<CommonHandleCache<String, CommonLoggingRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     /**
      * get selectId uriList map.

@@ -69,9 +69,9 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(LoggingConsolePlugin.class);
 
-    private static boolean maskFlag;
-
     private static String dataMaskAlg = DataMaskEnums.CHARACTER_REPLACE.getDataMaskAlg();
+
+    private static boolean maskFlag;
 
     private static KeyWordMatch keyWordMatch;
 
