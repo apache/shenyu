@@ -15,37 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.datamask;
+package org.apache.shenyu.plugin.logging.mask.spi;
 
+import org.apache.shenyu.common.utils.Md5Utils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-class DataMaskByCharReplaceTest {
-
-    private DataMaskByCharReplace dataMaskByCharReplace;
-
-    @BeforeEach
-    void setUp() {
-
-        dataMaskByCharReplace = new DataMaskByCharReplace();
-    }
+@ExtendWith(MockitoExtension.class)
+public class Md5EncryptDataMaskTest {
 
     @Test
-    void mask() {
-
-        String maskData = "123456789";
-        String mask = dataMaskByCharReplace.mask(maskData);
-        int maskNum = 0;
-        for (char c : mask.toCharArray()) {
-            if (c == '*') {
-                maskNum++;
-            }
-        }
-        Assertions.assertEquals(maskData.length() / 2, maskNum);
-        String nullMask = dataMaskByCharReplace.mask("");
-        Assertions.assertEquals("", nullMask);
-        String oneMask = dataMaskByCharReplace.mask("1");
-        Assertions.assertEquals("*", oneMask);
+    public void doMask() {
+        Md5EncryptDataMask md5EncryptDataMask = new Md5EncryptDataMask();
+        Assertions.assertEquals(Md5Utils.md5("test"), md5EncryptDataMask.doMask("test"));
     }
 }

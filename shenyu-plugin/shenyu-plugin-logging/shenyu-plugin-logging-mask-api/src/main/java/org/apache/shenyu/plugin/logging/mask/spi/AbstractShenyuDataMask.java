@@ -15,33 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.console.config;
+package org.apache.shenyu.plugin.logging.mask.spi;
 
-import org.apache.shenyu.plugin.logging.common.datamask.DataMaskByCharReplace;
-import org.apache.shenyu.plugin.logging.common.datamask.DataMaskByMD5;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.apache.commons.lang3.StringUtils;
 
-@Configuration
-public class DataMaskConfig {
-
-    /**
-     * config bean.
-     *
-     * @return dataMaskByCharReplace bean
-     */
-    @Bean
-    public DataMaskByCharReplace dataMaskByCharReplace() {
-        return new DataMaskByCharReplace();
+/**
+ * AbstractShenyuDataMask.
+ */
+public abstract class AbstractShenyuDataMask implements ShenyuDataMask {
+    @Override
+    public String mask(final String source) {
+        if (StringUtils.isBlank(source)) {
+            return "";
+        }
+        return doMask(source);
     }
 
     /**
-     * config bean.
+     * do mask data.
      *
-     * @return dataMaskByMD5 bean
+     * @param source source
+     * @return masked data
      */
-    @Bean
-    public DataMaskByMD5 dataMaskByMD5() {
-        return new DataMaskByMD5();
-    }
+    protected abstract String doMask(String source);
+
 }

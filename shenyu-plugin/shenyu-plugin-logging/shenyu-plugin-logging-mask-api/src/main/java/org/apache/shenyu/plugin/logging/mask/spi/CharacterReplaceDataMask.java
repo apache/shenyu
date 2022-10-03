@@ -15,27 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.datamask;
+package org.apache.shenyu.plugin.logging.mask.spi;
 
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.apache.shenyu.spi.Join;
 
-@Service
-public class DataMaskByCharReplace implements DataMaskInterface {
+/**
+ * character replaces data mask.
+ */
+@Join
+public class CharacterReplaceDataMask extends AbstractShenyuDataMask {
 
     private static final Character MASK = '*';
 
     @Override
-    public String mask(final String data) {
-
-        if (!StringUtils.hasLength(data)) {
-            return "";
-        }
-        return doMask(data, data.length() / 2);
+    protected String doMask(final String source) {
+        return maskData(source, source.length() / 2);
     }
 
-    private String doMask(final String data, final int maskNum) {
-
+    private String maskData(final String data, final int maskNum) {
         if (data.length() == 1) {
             return "*";
         }

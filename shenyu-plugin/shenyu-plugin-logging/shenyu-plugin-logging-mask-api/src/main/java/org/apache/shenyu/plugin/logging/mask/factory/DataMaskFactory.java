@@ -15,30 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.datamask;
+package org.apache.shenyu.plugin.logging.mask.factory;
 
-import org.apache.shenyu.common.utils.Md5Utils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.apache.shenyu.plugin.logging.mask.spi.ShenyuDataMask;
+import org.apache.shenyu.spi.ExtensionLoader;
 
-class DataMaskByMD5Test {
+/**
+ * shenyu logging mask factory.
+ */
+public final class DataMaskFactory {
 
-    private DataMaskByMD5 dataMaskByMD5;
-
-    @BeforeEach
-    void setUp() {
-
-        dataMaskByMD5 = new DataMaskByMD5();
+    public DataMaskFactory() {
     }
 
-    @Test
-    void mask() {
-
-        String maskData = "123456789";
-        String mask = dataMaskByMD5.mask(maskData);
-        Assertions.assertEquals(Md5Utils.md5(maskData), mask);
-        String nullMask = dataMaskByMD5.mask("");
-        Assertions.assertEquals("", nullMask);
+    /**
+     * shenyu logging mask algorithm selector.
+     *
+     * @param source source data
+     * @param algorithm mask algorithm
+     * @return masked data
+     */
+    public static String selectMask(final String source, final String algorithm) {
+        ShenyuDataMask dataMask = ExtensionLoader.getExtensionLoader(ShenyuDataMask.class).getJoin(algorithm);
+        return dataMask.mask(source);
     }
 }
