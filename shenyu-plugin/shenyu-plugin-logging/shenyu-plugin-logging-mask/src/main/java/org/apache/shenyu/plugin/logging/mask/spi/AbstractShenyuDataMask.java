@@ -37,6 +37,6 @@ public abstract class AbstractShenyuDataMask implements ShenyuDataMask {
      * @param source source
      * @return masked data
      */
-    protected abstract String doMask(final String source);
+    protected abstract String doMask(String source);
 
 }

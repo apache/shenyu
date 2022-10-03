@@ -32,6 +32,11 @@ public enum DataMaskEnums {
         this.dataMaskAlg = dataMaskAlg;
     }
 
+    /**
+     * get mask algorithm.
+     *
+     * @return mask algorithm
+     */
     public String getDataMaskAlg() {
         return dataMaskAlg;
     }
