@@ -52,9 +52,9 @@ import java.util.function.Supplier;
  */
 public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig, C extends GenericApiConfig> implements PluginDataHandler {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(AbstractLogPluginDataHandler.class);
-
     public static final Supplier<CommonHandleCache<String, CommonLoggingRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractLogPluginDataHandler.class);
 
     private static final String EMPTY_JSON = "{}";
 
