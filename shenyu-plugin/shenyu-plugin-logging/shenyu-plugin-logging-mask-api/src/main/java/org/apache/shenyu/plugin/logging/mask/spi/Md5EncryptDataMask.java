@@ -15,21 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.datamask;
+package org.apache.shenyu.plugin.logging.mask.spi;
 
 import org.apache.shenyu.common.utils.Md5Utils;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.apache.shenyu.spi.Join;
 
-@Service
-public class DataMaskByMD5 implements DataMaskInterface {
-
+/**
+ * md5 encrypt data mask.
+ */
+@Join
+public class Md5EncryptDataMask extends AbstractShenyuDataMask {
     @Override
-    public String mask(final String data) {
-
-        if (!StringUtils.hasLength(data)) {
-            return "";
-        }
-        return Md5Utils.md5(data);
+    protected String doMask(final String source) {
+        return Md5Utils.md5(source);
     }
 }

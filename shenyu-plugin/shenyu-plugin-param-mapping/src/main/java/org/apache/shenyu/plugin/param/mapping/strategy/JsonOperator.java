@@ -31,7 +31,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
@@ -47,11 +46,20 @@ public class JsonOperator implements Operator {
 
     private static final Logger LOG = LoggerFactory.getLogger(JsonOperator.class);
 
-    private static final List<HttpMessageReader<?>> MESSAGE_READERS = HandlerStrategies.builder().build().messageReaders();
+    private final List<HttpMessageReader<?>> messageReaders;
+
+    /**
+     * JsonOperator.
+     *
+     * @param messageReaders messageReaders
+     */
+    public JsonOperator(final List<HttpMessageReader<?>> messageReaders) {
+        this.messageReaders = messageReaders;
+    }
 
     @Override
     public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingRuleHandle paramMappingRuleHandle) {
-        ServerRequest serverRequest = ServerRequest.create(exchange, MESSAGE_READERS);
+        ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
         Mono<String> mono = serverRequest.bodyToMono(String.class).switchIfEmpty(Mono.defer(() -> Mono.just(""))).flatMap(originalBody -> {
             LOG.info("get body data success data:{}", originalBody);
             //process entity

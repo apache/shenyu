@@ -15,18 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.datamask;
+package org.apache.shenyu.plugin.logging.mask.spi;
+
+import org.apache.shenyu.spi.SPI;
 
 /**
- * dataMask interface.
+ * shenyu logging data mask.
  */
-public interface DataMaskInterface {
+@SPI
+public interface ShenyuDataMask {
 
     /**
      * mask data.
      *
-     * @param data data
+     * @param source source data
      * @return masked data
      */
-    String mask(String data);
+    String mask(String source);
 }

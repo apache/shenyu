@@ -15,34 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.datamask;
+package org.apache.shenyu.plugin.logging.mask.enums;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+/**
+ * data mask enums.
+ */
+public enum DataMaskEnums {
 
-import java.util.HashSet;
-import java.util.Set;
+    CHARACTER_REPLACE("dataMaskByCharReplace"),
 
-class KeyWordMatchTest {
+    MD5_ENCRYPT("dataMaskByMD5");
 
-    private KeyWordMatch keyWordMatch;
+    private final String dataMaskAlg;
 
-    @BeforeEach
-    void setUp() {
-
-        Set<String> set = new HashSet<>();
-        set.add("name");
-        set.add("TesT");
-        set.add("dsadsader");
-        keyWordMatch = new KeyWordMatch(set);
+    DataMaskEnums(final String dataMaskAlg) {
+        this.dataMaskAlg = dataMaskAlg;
     }
 
-    @Test
-    void matches() {
-
-        Assertions.assertTrue(keyWordMatch.matches("name"));
-        Assertions.assertTrue(keyWordMatch.matches("test"));
-        Assertions.assertFalse(keyWordMatch.matches("dsaer"));
+    /**
+     * get mask algorithm.
+     *
+     * @return mask algorithm
+     */
+    public String getDataMaskAlg() {
+        return dataMaskAlg;
     }
 }
