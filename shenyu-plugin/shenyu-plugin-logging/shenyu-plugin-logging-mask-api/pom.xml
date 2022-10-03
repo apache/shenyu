@@ -23,7 +23,7 @@
         <version>2.5.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-plugin-logging-mask</artifactId>
+    <artifactId>shenyu-plugin-logging-mask-api</artifactId>
 
     <dependencies>
         <dependency>
