@@ -27,7 +27,7 @@
 
     <properties>
         <aliyun-log.version>0.6.70</aliyun-log.version>
-        <protobuf-java.version>3.19.2</protobuf-java.version>
+        <protobuf-java.version>3.19.6</protobuf-java.version>
         <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
     </properties>
 
