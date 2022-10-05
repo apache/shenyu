@@ -22,8 +22,6 @@ services:
     image: shenyu/admin:latest
     expose:
       - 9095
-    ports:
-      - 9095:9095
     volumes:
       - /tmp/shenyu-e2e/pg/postgresql.jar:/opt/shenyu-admin/ext-lib/postgresql.jar
     environment:
@@ -41,8 +39,6 @@ services:
       - shenyu.sync.websocket.urls=ws://admin:9095/websocket
     expose:
       - 9095
-    ports:
-      - 9195:9195
 
   httpbin:
     image: kennethreitz/httpbin:latest
@@ -53,8 +49,6 @@ services:
     image: postgres:14
     expose:
       - 5432
-    ports:
-      - 5432:5432
     environment:
       - POSTGRES_USER=shenyue2e
       - POSTGRES_PASSWORD=123456

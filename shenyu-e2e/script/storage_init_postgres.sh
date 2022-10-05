@@ -18,5 +18,12 @@
 
 mkdir -p /tmp/shenyu-e2e/pg
 
-wget -O /tmp/shenyu-e2e/pg/create-table.sql https://raw.githubusercontent.com/apache/shenyu/master/db/init/pg/create-table.sql
-wget -O /tmp/shenyu-e2e/pg/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.5.0.jar
+wget -O /tmp/shenyu-e2e/pg/create-table.sql \
+  https://raw.githubusercontent.com/apache/shenyu/master/db/init/pg/create-table.sql || \
+  wget -O /tmp/shenyu-e2e/pg/create-table.sql \
+  https://raw.githubusercontent.com/apache/shenyu/master/db/init/pg/create-table.sql
+
+wget -O /tmp/shenyu-e2e/pg/postgresql.jar \
+  https://jdbc.postgresql.org/download/postgresql-42.5.0.jar || \
+  wget -O /tmp/shenyu-e2e/pg/postgresql.jar \
+  https://jdbc.postgresql.org/download/postgresql-42.5.0.jar
