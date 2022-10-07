@@ -14,14 +14,15 @@
 # limitations under the License.
 
 SHENYU_HOME :=  "."
-VERSION := "2.5.1-SNAPSHOT"
+VERSION ?= "2.5.1-SNAPSHOT"
 
-REGISTRY = "docker.io"
-REPOSITORY_PREF := "apache/shenyu"
-ADMIN_REPOSITORY := "${REPOSITORY_PREF}-admin"
-BOOTSTRAP_REPOSITORY := "${REPOSITORY_PREF}-bootstrap"
+REGISTRY ?= "docker.io"
+REPOSITORY_PREF ?= "apache/shenyu"
+ADMIN_REPOSITORY ?= "${REPOSITORY_PREF}-admin"
+BOOTSTRAP_REPOSITORY ?= "${REPOSITORY_PREF}-bootstrap"
 
-TAG := latest
+TAG ?= latest
+COMMIT_ID := $(shell git rev-parse HEAD)
 
 default: build-all-image
 
@@ -30,8 +31,7 @@ build-all: build-admin build-bootstrap
 
 build-admin:
 	@echo "build admin"
-	@cd ${SHENYU_HOME} && \
-		./mvnw -am \
+	@${SHENYU_HOME}/mvnw -am \
 		-pl shenyu-dist/shenyu-admin-dist \
 		-Dmaven.javadoc.skip=true \
 		-Drat.skip=true \
@@ -42,8 +42,7 @@ build-admin:
 
 build-bootstrap:
 	@echo "build bootstrap"
-	@cd ${SHENYU_HOME} && \
-		./mvnw -am \
+	@${SHENYU_HOME}/mvnw -am \
 		-pl shenyu-dist/shenyu-bootstrap-dist \
 		-Dmaven.javadoc.skip=true \
 		-Drat.skip=true \
@@ -61,6 +60,7 @@ build-admin-image: build-admin ## build admin image for local
 		-t ${REGISTRY}/${ADMIN_REPOSITORY}:${TAG} \
 		-f ${SHENYU_HOME}/shenyu-dist/shenyu-admin-dist/docker/Dockerfile \
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-admin-bin \
+		--label "commit.id=${COMMIT_ID}" \
 		${SHENYU_HOME}/shenyu-dist/shenyu-admin-dist
 
 build-bootstrap-image: build-bootstrap ## build bootstrap image for local
@@ -69,6 +69,7 @@ build-bootstrap-image: build-bootstrap ## build bootstrap image for local
 		-t ${REGISTRY}/${BOOTSTRAP_REPOSITORY}:${TAG} \
 		-f ${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile \
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-bootstrap-bin \
+		--label "commit.id=${COMMIT_ID}" \
 		${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist
 
 publish-all-images: init publish-admin-image publish-bootstrap-image ## build and publish images on buildx, for producing multi platform images
@@ -86,6 +87,7 @@ publish-admin-image: build-admin
 		-t ${REGISTRY}/${ADMIN_REPOSITORY}:latest \
 		-t ${REGISTRY}/${ADMIN_REPOSITORY}:${VERSION} \
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-admin-bin \
+		--label "commit.id=${COMMIT_ID}" \
 		-f ${SHENYU_HOME}/shenyu-dist/shenyu-admin-dist/docker/Dockerfile \
 		${SHENYU_HOME}/shenyu-dist/shenyu-admin-dist
 
@@ -96,5 +98,6 @@ publish-bootstrap-image: build-bootstrap
 		-t ${REGISTRY}/${BOOSTRAP_REPOSITORY}:latest \
 		-t ${REGISTRY}/${BOOSTRAP_REPOSITORY}:${VERSION} \
 		--build-arg APP_NAME=apache-shenyu-${VERSION}-bootstrap-bin \
+		--label "commit.id=${COMMIT_ID}" \
 		-f ${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile \
 		${SHENYU_HOME}/shenyu-dist/shenyu-bootstrap-dist
