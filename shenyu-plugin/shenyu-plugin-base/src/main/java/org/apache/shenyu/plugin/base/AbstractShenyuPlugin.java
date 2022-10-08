@@ -92,15 +92,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 Pair<Boolean, SelectorData> matchSelectorData = matchSelector(exchange, selectors);
                 selectorData = matchSelectorData.getRight();
                 if (Objects.isNull(selectorData)) {
-                    if (matchSelectorData.getLeft()){
+                    if (matchCacheConfig.getEnabled() && matchSelectorData.getLeft()) {
                         selectorData = new SelectorData();
                         selectorData.setPluginName(named());
-                        cacheSelectorDataIfEnabled(path, selectorData);
+                        cacheSelectorData(path, selectorData);
                     }
                     return handleSelectorIfNull(pluginName, exchange, chain);
                 } else {
-                    if (matchSelectorData.getLeft()) {
-                        cacheSelectorDataIfEnabled(path, selectorData);
+                    if (matchCacheConfig.getEnabled() && matchSelectorData.getLeft()) {
+                        cacheSelectorData(path, selectorData);
                     }
                 }
             } else {
@@ -139,18 +139,16 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
 
-    private void cacheSelectorDataIfEnabled(final String path, final SelectorData selectorData) {
-        if (matchCacheConfig.getEnabled()) {
-            if (StringUtils.isBlank(selectorData.getId())) {
+    private void cacheSelectorData(final String path, final SelectorData selectorData) {
+        if (StringUtils.isBlank(selectorData.getId())) {
+            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getMaxFreeMemory());
+            return;
+        }
+        List<ConditionData> conditionList = selectorData.getConditionList();
+        if (CollectionUtils.isNotEmpty(conditionList)) {
+            boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
+            if (isUriCondition) {
                 MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getMaxFreeMemory());
-                return;
-            }
-            List<ConditionData> conditionList = selectorData.getConditionList();
-            if (CollectionUtils.isNotEmpty(conditionList)) {
-                boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
-                if (isUriCondition) {
-                    MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getMaxFreeMemory());
-                }
             }
         }
     }
