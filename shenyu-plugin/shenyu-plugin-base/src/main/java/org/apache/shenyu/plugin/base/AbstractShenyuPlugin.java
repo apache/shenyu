@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -90,12 +91,22 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 }
                 Pair<Boolean, SelectorData> matchSelectorData = matchSelector(exchange, selectors);
                 selectorData = matchSelectorData.getRight();
-                if (matchSelectorData.getLeft()) {
-                    cacheSelectorDataIfEnabled(path, selectorData);
+                if (Objects.isNull(selectorData)) {
+                    if (matchSelectorData.getLeft()){
+                        selectorData = new SelectorData();
+                        selectorData.setPluginName(named());
+                        cacheSelectorDataIfEnabled(path, selectorData);
+                    }
+                    return handleSelectorIfNull(pluginName, exchange, chain);
+                } else {
+                    if (matchSelectorData.getLeft()) {
+                        cacheSelectorDataIfEnabled(path, selectorData);
+                    }
                 }
-            }
-            if (Objects.isNull(selectorData)) {
-                return handleSelectorIfNull(pluginName, exchange, chain);
+            } else {
+                if (StringUtils.isBlank(selectorData.getId())) {
+                    return handleSelectorIfNull(pluginName, exchange, chain);
+                }
             }
             selectorLog(selectorData, pluginName);
             if (Objects.nonNull(selectorData.getContinued()) && selectorData.getContinued()) {
@@ -129,7 +140,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private void cacheSelectorDataIfEnabled(final String path, final SelectorData selectorData) {
-        if (matchCacheConfig.getEnabled() && Objects.nonNull(selectorData)) {
+        if (matchCacheConfig.getEnabled()) {
+            if (StringUtils.isBlank(selectorData.getId())) {
+                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getMaxFreeMemory());
+                return;
+            }
             List<ConditionData> conditionList = selectorData.getConditionList();
             if (CollectionUtils.isNotEmpty(conditionList)) {
                 boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
