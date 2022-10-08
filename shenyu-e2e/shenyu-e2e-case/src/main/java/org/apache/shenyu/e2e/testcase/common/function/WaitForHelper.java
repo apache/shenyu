@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions;
 import org.slf4j.MDC;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,7 +52,10 @@ public class WaitForHelper {
     public Duration timeout = Duration.ofMinutes(3);
     
     public void waitFor(Supplier<RequestSpecification> supplier, Method method, String endpoint, ResponseSpecification expected) throws TimeoutException {
+        final Map<String, String> contextMap = MDC.getCopyOfContextMap();
         Future<?> future = executor.submit(() -> {
+            MDC.setContextMap(contextMap);
+            
             for (int i = 0; i < retryTimes; i++) {
                 try {
                     ValidatableResponse response = supplier.get()
@@ -86,7 +90,10 @@ public class WaitForHelper {
     
     
     public void waitFor(Supplier<RequestSpecification> supplier, HttpChecker checker) throws TimeoutException {
+        final Map<String, String> contextMap = MDC.getCopyOfContextMap();
         Future<?> future = executor.submit(() -> {
+            MDC.setContextMap(contextMap);
+            
             for (int i = 0; i < retryTimes; i++) {
                 try {
                     checker.check(supplier);
