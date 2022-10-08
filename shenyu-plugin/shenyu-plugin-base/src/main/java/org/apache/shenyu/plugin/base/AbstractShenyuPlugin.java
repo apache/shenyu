@@ -98,7 +98,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 return handleSelectorIfNull(pluginName, exchange, chain);
             }
             selectorLog(selectorData, pluginName);
-            if (selectorData.getContinued()) {
+            if (Objects.nonNull(selectorData.getContinued()) && selectorData.getContinued()) {
                 // if continued， not match rules
                 return doExecute(exchange, chain, selectorData, defaultRuleData(selectorData));
             }
