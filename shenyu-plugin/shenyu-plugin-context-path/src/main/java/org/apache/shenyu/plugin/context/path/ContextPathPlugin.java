@@ -46,23 +46,31 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
     
     private static final Logger LOG = LoggerFactory.getLogger(ContextPathPlugin.class);
     
+    private final ContextMappingRuleHandle defaultRuleHandle;
+    
+    {
+        defaultRuleHandle = new ContextMappingRuleHandle();
+        defaultRuleHandle.setAddPrefixed(true);
+        defaultRuleHandle.setContextPath("/default");
+    }
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        ContextMappingRuleHandle contextMappingRuleHandle = ContextPathPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (Objects.isNull(contextMappingRuleHandle)) {
+        ContextMappingRuleHandle ruleHandle = buildRuleHandle(rule);
+        if (Objects.isNull(ruleHandle)) {
             LOG.error("context path rule configuration is null ：{}", rule);
             return chain.execute(exchange);
         }
-        String contextPath = contextMappingRuleHandle.getContextPath();
+        String contextPath = ruleHandle.getContextPath();
         if (StringUtils.isNoneBlank(contextPath) && !shenyuContext.getPath().startsWith(contextPath)) {
             LOG.error("the context path '{}' is invalid.", contextPath);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CONTEXT_PATH_ERROR.getCode(),
                     String.format("%s [invalid context path:'%s']", ShenyuResultEnum.CONTEXT_PATH_ERROR.getMsg(), contextPath), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        buildContextPath(shenyuContext, contextMappingRuleHandle);
+        buildContextPath(shenyuContext, ruleHandle);
         return chain.execute(exchange);
     }
     
@@ -84,6 +92,14 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
                 RpcTypeEnum.TARS,
                 RpcTypeEnum.MOTAN,
                 RpcTypeEnum.SOFA);
+    }
+    
+    private ContextMappingRuleHandle buildRuleHandle(final RuleData rule) {
+        if (StringUtils.isNotEmpty(rule.getId())) {
+            return ContextPathPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        } else {
+            return defaultRuleHandle;
+        }
     }
     
     /**

@@ -66,7 +66,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     protected abstract Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule);
-
+    
     /**
      * Process the Web request and (optionally) delegate to the next
      * {@code ShenyuPlugin} through the given {@link ShenyuPluginChain}.
@@ -98,7 +98,10 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 return handleSelectorIfNull(pluginName, exchange, chain);
             }
             selectorLog(selectorData, pluginName);
-
+            if (selectorData.getContinued()) {
+                // if continued， not match rules
+                return doExecute(exchange, chain, selectorData, defaultRuleData(selectorData));
+            }
             List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
@@ -146,6 +149,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return MatchDataCache.getInstance().obtainSelectorData(named(), exchange.getRequest().getURI().getPath());
         }
         return null;
+    }
+    
+    protected RuleData defaultRuleData(final SelectorData selectorData) {
+        RuleData ruleData = new RuleData();
+        ruleData.setSelectorId(selectorData.getId());
+        ruleData.setPluginName(selectorData.getPluginName());
+        return ruleData;
     }
 
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
