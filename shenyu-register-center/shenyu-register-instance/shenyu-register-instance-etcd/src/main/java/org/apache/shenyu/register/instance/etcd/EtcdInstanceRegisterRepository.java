@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
-
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.watch.WatchEvent;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +30,6 @@ import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,11 +67,10 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
 
     @Override
     public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String watchKey, final WatcherListener watcherListener) {
-        final Function<List<String>, List<InstanceRegisterDTO>> getInstanceRegisterFun =
-                childrenList -> childrenList.stream().map(childPath ->
-                        GsonUtils.getInstance().fromJson(childPath,InstanceRegisterDTO.class)).collect(Collectors.toList());
+        final Function<List<String>, List<InstanceRegisterDTO>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath ->
+                GsonUtils.getInstance().fromJson(childPath, InstanceRegisterDTO.class)).collect(Collectors.toList());
 
-        List<String> res =this.client.watchKeyChanges(watchKey, Watch.listener(response -> {
+        List<String> res = this.client.watchKeyChanges(watchKey, Watch.listener(response -> {
             List<String> values = new ArrayList<>();
             for (WatchEvent event : response.getEvents()) {
                 String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
@@ -83,7 +80,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
                         if (path.contains(watchKey) && StringUtils.isNotBlank(value)) {
                             values.add(value);
                         }
-                        LOGGER.info("watch key {} updated, values is {}",watchKey,values);
+                        LOGGER.info("watch key {} updated, values is {}", watchKey, values);
                         continue;
                     case DELETE:
                         this.client.removeWatchCache(watchKey);
@@ -91,7 +88,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
                     default:
                 }
             }
-            LOGGER.info("watch key {} start, values is {}",watchKey,values);
+            LOGGER.info("watch key {} start, values is {}", watchKey, values);
             watcherListener.listener(getInstanceRegisterFun.apply(values));
         }));
         return getInstanceRegisterFun.apply(res);
