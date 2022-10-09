@@ -36,6 +36,9 @@ import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
+/**
+ * The type Casdoor plugin.
+ */
 public class CasdoorPlugin extends AbstractShenyuPlugin {
 
     @Override
@@ -85,5 +88,4 @@ public class CasdoorPlugin extends AbstractShenyuPlugin {
         mutate.header("organization", casdoorUser.getOwner());
         return exchange.mutate().request(mutate.build()).build();
     }
-
 }
