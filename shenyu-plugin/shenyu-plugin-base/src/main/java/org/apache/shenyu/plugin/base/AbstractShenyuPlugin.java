@@ -158,10 +158,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private SelectorData obtainSelectorDataCacheIfEnabled(final ServerWebExchange exchange) {
-        if (matchCacheConfig.getEnabled()) {
-            return MatchDataCache.getInstance().obtainSelectorData(named(), exchange.getRequest().getURI().getPath());
-        }
-        return null;
+        return matchCacheConfig.getEnabled() ? MatchDataCache.getInstance().obtainSelectorData(named(), exchange.getRequest().getURI().getPath()) : null;
     }
     
     protected RuleData defaultRuleData(final SelectorData selectorData) {
