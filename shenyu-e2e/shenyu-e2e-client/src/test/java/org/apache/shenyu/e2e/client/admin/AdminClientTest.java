@@ -201,7 +201,9 @@ public class AdminClientTest {
                     .sort(1)
                     .build());
         }
-        Assertions.assertThat(client.listAllSelectors().size()).isGreaterThanOrEqualTo(20);
+        SearchedResources<SelectorDTO> searchedResources = client.searchSelectors(null);
+        Assertions.assertThat(searchedResources.getTotal()).isGreaterThan(20);
+        Assertions.assertThat(client.listAllSelectors().size()).isEqualTo(searchedResources.getTotal());
     }
     
     @Test

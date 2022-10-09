@@ -57,7 +57,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.QUERY_ALL;
@@ -184,7 +183,7 @@ public class AdminClient {
                     .map(mapper)
                     .forEach(result::add);
             total = resources.getPages();
-        } while (++curPage < total);
+        } while (++curPage <= total);
         
         return result;
     }
@@ -355,19 +354,8 @@ public class AdminClient {
         List<String> ids = list(listAllResourcesUrl, QUERY_ALL, FAKE_VALUE_TYPE, FakeResourceDTO::getId);
         
         delete(uri, ids);
-    
-        for (int i=0 ; i< 3; i++) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(200);
-            } catch (InterruptedException ignore) {
-            }
-            
-            List<FakeResourceDTO> result = list(listAllResourcesUrl, QUERY_ALL, FAKE_VALUE_TYPE, v -> v);
-            if (result.isEmpty()) {
-                return;
-            }
-        }
-        Assertions.fail("resource list is empty after deleted");
+        List<FakeResourceDTO> result = list(listAllResourcesUrl, QUERY_ALL, FAKE_VALUE_TYPE, v -> v);
+        Assertions.assertEquals(0, result.size(), "resource list is empty after deleted");
     }
     
     private void delete(String uri, List<String> ids) {
