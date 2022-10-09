@@ -17,20 +17,30 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
+
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
+import io.etcd.jetcd.Watch;
+import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
+import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
+import io.etcd.jetcd.options.WatchOption;
 import io.grpc.stub.StreamObserver;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
 
 /**
  * etcd client.
@@ -40,6 +50,8 @@ public class EtcdClient {
     public static final Charset UTF_8 = StandardCharsets.UTF_8;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdClient.class);
+
+    private final ConcurrentHashMap<String, Watch.Watcher> watchCache = new ConcurrentHashMap<>();
 
     private final Client client;
 
@@ -76,6 +88,73 @@ public class EtcdClient {
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("initLease error.", e);
         }
+    }
+
+    /**
+     * watch key changes.
+     * @param key
+     * @param listener
+     * @return
+     */
+    public List<String> watchKeyChanges(final String key,final Watch.Listener listener) {
+        WatchOption option = WatchOption.newBuilder()
+                .isPrefix(true)
+                .build();
+        Watch.Watcher watch = client.getWatchClient().watch(ByteSequence.from(key, StandardCharsets.UTF_8), option, listener);
+        watchCache.put(key, watch);
+        return getKeysByPrefix(key);
+    }
+
+    /**
+     * remove watchCache.
+     * @param key
+     */
+    public void removeWatchCache(final String key){
+        watchCache.remove(key);
+    }
+
+
+    /**
+     * get keys by prefix.
+     *
+     * @param prefix key prefix.
+     * @return key values
+     */
+    public List<String> getKeysByPrefix(final String prefix){
+        GetOption getOption = GetOption.newBuilder()
+                .isPrefix(true)
+                .build();
+        try {
+            return getRange(prefix, getOption)
+                    .getKvs()
+                    .stream()
+                    .map(x ->x.getValue().toString(StandardCharsets.UTF_8))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            LOGGER.error("getKeysByPrefix prefix {} error {}",prefix,e);
+            throw new ShenyuException(e);
+        }
+
+    }
+
+    /**
+     * get keyResponse.
+     * @param key
+     * @param getOption
+     * @return
+     * @throws Exception
+     */
+    public GetResponse getRange(final String key, final GetOption getOption) throws Exception {
+        return this.client.getKVClient().get(bytesOf(key), getOption).get();
+    }
+
+    /**
+     * bytesOf string.
+     * @param val
+     * @return
+     */
+    public  ByteSequence bytesOf(final String val) {
+        return ByteSequence.from(val, UTF_8);
     }
 
     /**

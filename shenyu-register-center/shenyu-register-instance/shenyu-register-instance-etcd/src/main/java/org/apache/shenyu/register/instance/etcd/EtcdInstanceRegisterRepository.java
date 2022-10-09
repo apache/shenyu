@@ -17,17 +17,27 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
+
+import io.etcd.jetcd.Watch;
+import io.etcd.jetcd.watch.WatchEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
+import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * The type Etcd instance register repository.
@@ -42,7 +52,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     @Override
     public void init(final InstanceConfig config) {
         Properties props = config.getProps();
-        long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
+        long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000000000000"));
         long ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
         client = new EtcdClient(config.getServerLists(), ttl, timeout);
     }
@@ -55,6 +65,36 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);
         LOGGER.info("etcd client register success: {}", nodeData);
+    }
+
+    @Override
+    public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String watchKey, final WatcherListener watcherListener) {
+        final Function<List<String>, List<InstanceRegisterDTO>> getInstanceRegisterFun =
+                childrenList -> childrenList.stream().map(childPath ->
+                        GsonUtils.getInstance().fromJson(childPath,InstanceRegisterDTO.class)).collect(Collectors.toList());
+
+        List<String> res =this.client.watchKeyChanges(watchKey, Watch.listener(response -> {
+            List<String> values = new ArrayList<>();
+            for (WatchEvent event : response.getEvents()) {
+                String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
+                String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
+                switch (event.getEventType()) {
+                    case PUT:
+                        if (path.contains(watchKey) && StringUtils.isNotBlank(value)) {
+                            values.add(value);
+                        }
+                        LOGGER.info("watch key {} updated, values is {}",watchKey,values);
+                        continue;
+                    case DELETE:
+                        this.client.removeWatchCache(watchKey);
+                        continue;
+                    default:
+                }
+            }
+            LOGGER.info("watch key {} start, values is {}",watchKey,values);
+            watcherListener.listener(getInstanceRegisterFun.apply(values));
+        }));
+        return getInstanceRegisterFun.apply(res);
     }
 
     private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
