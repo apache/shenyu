@@ -38,6 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,7 +118,8 @@ public final class ShenyuClientRegisterSpringCloudServiceImplTest {
         doReturn(false).when(shenyuClientRegisterSpringCloudService).doSubmit(any(), any());
         when(selectorDO.getHandle()).thenReturn(returnStr);
         String actual = shenyuClientRegisterSpringCloudService.buildHandle(list, selectorDO);
-        assertEquals(expected.replaceAll("\\d{13}", "0"), actual.replaceAll("\\d{13}", "0"));
+        JsonParser parser = new JsonParser();
+        assertEquals(parser.parse(expected.replaceAll("\\d{13}", "0")), parser.parse(actual.replaceAll("\\d{13}", "0")));
         SpringCloudSelectorHandle handle = GsonUtils.getInstance().fromJson(actual, SpringCloudSelectorHandle.class);
         assertEquals(handle.getDivideUpstreams().size(), 2);
         assertEquals(handle.getDivideUpstreams().stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))

@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import com.google.gson.JsonParser;
     
 import java.util.ArrayList;
 import java.util.List;
@@ -67,8 +68,8 @@ public final class ShenyuClientRegisterSofaServiceImplTest {
     
     @Test
     public void testRuleHandler() {
-        assertEquals("{\"retries\":0,\"loadBalance\":\"random\",\"timeout\":3000}",
-                shenyuClientRegisterSofaService.ruleHandler());
+        JsonParser parser = new JsonParser();
+        assertEquals(parser.parse("{\"retries\":0,\"loadBalance\":\"random\",\"timeout\":3000}"), parser.parse(shenyuClientRegisterSofaService.ruleHandler()));
     }
     
     @Test
