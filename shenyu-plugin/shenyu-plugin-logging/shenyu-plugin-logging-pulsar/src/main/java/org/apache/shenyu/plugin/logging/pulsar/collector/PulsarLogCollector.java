@@ -43,7 +43,7 @@ public class PulsarLogCollector extends AbstractLogCollector<PulsarLogCollectCli
     }
 
     @Override
-    protected void maskLog(ShenyuRequestLog log, KeyWordMatch keyWordMatch, String dataMaskAlg) {
+    protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
 
     }
 }
