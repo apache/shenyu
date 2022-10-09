@@ -72,11 +72,12 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
     protected abstract PluginEnum pluginEnum();
 
     /**
+     * collect log based on ShenyuRequestLog.
      *
-     * @param exchange
-     * @param selector
-     * @param rule
-     * @return
+     * @param exchange exchange
+     * @param selector selector
+     * @param rule rule
+     * @return based on ShenyuRequestLog
      */
     protected abstract L doLogExecute(ServerWebExchange exchange, SelectorData selector, RuleData rule);
 
