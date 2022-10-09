@@ -80,7 +80,7 @@ public final class RequestTemplate implements Serializable {
      * @return {@link ShenyuRequest}
      */
     public ShenyuRequest request() {
-        return ShenyuRequest.create(this.httpMethod, this.url + this.path, this.headers, this.body, this);
+        return ShenyuRequest.create(this.httpMethod, this.url + this.path, this.headers, this.body, contextId, this);
     }
 
     /**

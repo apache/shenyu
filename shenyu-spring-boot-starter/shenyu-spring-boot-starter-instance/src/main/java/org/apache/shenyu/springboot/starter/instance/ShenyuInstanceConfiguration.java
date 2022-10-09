@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.starter.instance;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,5 +40,20 @@ public class ShenyuInstanceConfiguration {
     @ConditionalOnProperty(name = "shenyu.instance.enabled", havingValue = "true")
     public InstanceRegisterListener instanceRegisterListener(final ShenyuConfig config) {
         return new InstanceRegisterListener(config.getInstance());
+    }
+
+    /**
+     * ShenYu Instance Register Repository.
+     * expose to shenYu-sdk.
+     *
+     * @param config the config
+     * @return ShenYu Instance Register Repository
+     */
+    @Bean
+    @ConditionalOnProperty(name = "shenyu.instance.clientEnable", havingValue = "true")
+    public ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository(final ShenyuConfig config) {
+        ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getInstance().getRegisterType());
+        repository.init(config.getInstance());
+        return repository;
     }
 }

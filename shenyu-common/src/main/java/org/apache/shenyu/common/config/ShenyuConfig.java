@@ -1248,6 +1248,8 @@ public class ShenyuConfig {
     public static class InstanceConfig {
     
         private boolean enabled;
+
+        private boolean clientEnable;
     
         private String registerType;
     
@@ -1292,7 +1294,25 @@ public class ShenyuConfig {
         public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
-    
+
+        /**
+         * gets Client Enable.
+         *
+         * @return boolean
+         */
+        public boolean getClientEnable() {
+            return clientEnable;
+        }
+
+        /**
+         * sets ClientEnable.
+         *
+         * @param clientEnable clientEnable
+         */
+        public void setClientEnable(final boolean clientEnable) {
+            this.clientEnable = clientEnable;
+        }
+
         /**
          * getRegisterType.
          *
