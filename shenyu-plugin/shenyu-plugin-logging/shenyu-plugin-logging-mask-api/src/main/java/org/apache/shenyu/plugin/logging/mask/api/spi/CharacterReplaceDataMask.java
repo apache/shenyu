@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.spi;
+package org.apache.shenyu.plugin.logging.mask.api.spi;
 
 import org.apache.shenyu.spi.Join;
 

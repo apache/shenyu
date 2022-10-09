@@ -21,25 +21,32 @@ import org.apache.shenyu.plugin.aliyun.sls.client.AliyunSlsLogCollectClient;
 import org.apache.shenyu.plugin.aliyun.sls.handler.LoggingAliyunSlsPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
 
 /**
  * aliyun sls log collector，depend a LogConsumeClient for consume logs.
  */
-public class AliyunSlsLogCollector extends AbstractLogCollector<AliyunSlsLogCollectClient> {
+public class AliyunSlsLogCollector extends AbstractLogCollector<AliyunSlsLogCollectClient, ShenyuRequestLog> {
 
-    private static final LogCollector INSTANCE = new AliyunSlsLogCollector();
+    private static final LogCollector<ShenyuRequestLog> INSTANCE = new AliyunSlsLogCollector();
 
     /**
      * get LogCollector instance.
      *
      * @return LogCollector instance
      */
-    public static LogCollector getInstance() {
+    public static LogCollector<ShenyuRequestLog> getInstance() {
         return INSTANCE;
     }
 
     @Override
     protected AliyunSlsLogCollectClient getLogConsumeClient() {
         return LoggingAliyunSlsPluginDataHandler.getAliyunSlsLogCollectClient();
+    }
+
+    @Override
+    protected void maskLog(ShenyuRequestLog log, KeyWordMatch keyWordMatch, String dataMaskAlg) {
+
     }
 }

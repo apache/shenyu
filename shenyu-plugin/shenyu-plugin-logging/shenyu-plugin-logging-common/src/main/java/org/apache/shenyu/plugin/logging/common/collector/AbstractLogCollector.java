@@ -25,8 +25,10 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
+import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
+import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,16 +42,20 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.apache.shenyu.plugin.logging.mask.api.utils.DataMaskUtils.maskForBody;
+import static org.apache.shenyu.plugin.logging.mask.api.utils.DataMaskUtils.maskForSingleWord;
+
 /**
  * abstract log collector,Contains common methods.
  */
-public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?>> implements LogCollector {
+public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?, L>, L extends ShenyuRequestLog>
+        implements LogCollector<L> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLogCollector.class);
 
     private int bufferSize;
 
-    private BlockingQueue<ShenyuRequestLog> bufferQueue;
+    private BlockingQueue<L> bufferQueue;
 
     private long lastPushTime;
 
@@ -71,13 +77,19 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?>
     }
 
     @Override
-    public void collect(final ShenyuRequestLog log) {
+    public void collect(final L log) {
         if (Objects.isNull(log) || Objects.isNull(getLogConsumeClient())) {
             return;
         }
         if (bufferQueue.size() < bufferSize) {
             bufferQueue.add(log);
         }
+    }
+
+    @Override
+    public void mask(final L logInfo, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
+        this.maskShenyuRequestLog(logInfo, keyWordMatch, dataMaskAlg);
+        this.maskLog(logInfo, keyWordMatch, dataMaskAlg);
     }
 
     /**
@@ -87,14 +99,14 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?>
         while (started.get()) {
             int diffTimeMSForPush = 100;
             try {
-                List<ShenyuRequestLog> logs = new ArrayList<>();
+                List<L> logs = new ArrayList<>();
                 int size = bufferQueue.size();
                 long time = System.currentTimeMillis();
                 long timeDiffMs = time - lastPushTime;
                 int batchSize = 100;
                 if (size >= batchSize || timeDiffMs > diffTimeMSForPush) {
                     bufferQueue.drainTo(logs, batchSize);
-                    AbstractLogConsumeClient<?> logCollectClient = getLogConsumeClient();
+                    AbstractLogConsumeClient<?, L> logCollectClient = getLogConsumeClient();
                     if (Objects.nonNull(logCollectClient)) {
                         logCollectClient.consume(logs);
                     }
@@ -109,6 +121,36 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?>
         }
     }
 
+    private void maskShenyuRequestLog(final L logInfo, KeyWordMatch keyWordMatch, String dataMaskAlg) {
+        logInfo.setClientIp(maskForSingleWord(GenericLoggingConstant.CLIENT_IP, logInfo.getClientIp(), keyWordMatch, dataMaskAlg));
+        logInfo.setTimeLocal(maskForSingleWord(GenericLoggingConstant.TIME_LOCAL, logInfo.getTimeLocal(), keyWordMatch, dataMaskAlg));
+        logInfo.setMethod(maskForSingleWord(GenericLoggingConstant.METHOD, logInfo.getMethod(), keyWordMatch, dataMaskAlg));
+        logInfo.setRequestUri(maskForSingleWord(GenericLoggingConstant.REQUEST_URI, logInfo.getRequestUri(), keyWordMatch, dataMaskAlg));
+        logInfo.setResponseContentLength(Integer.valueOf(maskForSingleWord(GenericLoggingConstant.RESPONSE_CONTENT_LENGTH,
+                logInfo.getResponseContentLength().toString(), keyWordMatch, dataMaskAlg)));
+        logInfo.setRpcType(maskForSingleWord(GenericLoggingConstant.RPC_TYPE, logInfo.getRpcType(), keyWordMatch, dataMaskAlg));
+        logInfo.setStatus(Integer.valueOf(maskForSingleWord(GenericLoggingConstant.STATUS, logInfo.getStatus().toString(), keyWordMatch, dataMaskAlg)));
+        logInfo.setUpstreamIp(maskForSingleWord(GenericLoggingConstant.UP_STREAM_IP, logInfo.getUpstreamIp(), keyWordMatch, dataMaskAlg));
+        logInfo.setUpstreamResponseTime(Long.valueOf(maskForSingleWord(GenericLoggingConstant.UP_STREAM_RESPONSE_TIME,
+                logInfo.getUpstreamResponseTime().toString(), keyWordMatch, dataMaskAlg)));
+        logInfo.setUserAgent(maskForSingleWord(GenericLoggingConstant.USERAGENT, logInfo.getUserAgent(), keyWordMatch, dataMaskAlg));
+        logInfo.setHost(maskForSingleWord(GenericLoggingConstant.HOST, logInfo.getHost(), keyWordMatch, dataMaskAlg));
+        logInfo.setModule(maskForSingleWord(GenericLoggingConstant.MODULE, logInfo.getModule(), keyWordMatch, dataMaskAlg));
+        logInfo.setTraceId(maskForSingleWord(GenericLoggingConstant.TRACE_ID, logInfo.getTraceId(), keyWordMatch, dataMaskAlg));
+        logInfo.setPath(maskForSingleWord(GenericLoggingConstant.PATH, logInfo.getPath(), keyWordMatch, dataMaskAlg));
+        logInfo.setRequestHeader(maskForSingleWord(GenericLoggingConstant.REQUEST_HEADER, logInfo.getRequestHeader(), keyWordMatch, dataMaskAlg));
+        logInfo.setResponseHeader(maskForSingleWord(GenericLoggingConstant.RESPONSE_HEADER, logInfo.getResponseHeader(),
+                keyWordMatch, dataMaskAlg));
+        logInfo.setQueryParams(maskForSingleWord(GenericLoggingConstant.QUERY_PARAMS, logInfo.getQueryParams(), keyWordMatch, dataMaskAlg));
+        logInfo.setRequestBody(maskForSingleWord(GenericLoggingConstant.REQUEST_BODY, logInfo.getRequestBody(), keyWordMatch, dataMaskAlg));
+        logInfo.setResponseBody(maskForSingleWord(GenericLoggingConstant.RESPONSE_BODY, logInfo.getResponseBody(), keyWordMatch, dataMaskAlg));
+        logInfo.setRequestHeader(maskForBody(logInfo.getRequestHeader(), keyWordMatch, dataMaskAlg));
+        logInfo.setResponseHeader(maskForBody(logInfo.getResponseHeader(), keyWordMatch, dataMaskAlg));
+        logInfo.setQueryParams(maskForBody(logInfo.getQueryParams(), keyWordMatch, dataMaskAlg));
+        logInfo.setRequestBody(maskForBody(logInfo.getRequestBody(), keyWordMatch, dataMaskAlg));
+        logInfo.setResponseBody(maskForBody(logInfo.getResponseBody(), keyWordMatch, dataMaskAlg));
+    }
+
     /**
      * get log consume client.
      *
@@ -116,10 +158,19 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?>
      */
     protected abstract T getLogConsumeClient();
 
+    /**
+     * mask log.
+     *
+     * @param log log
+     * @param keyWordMatch keyWordMathc
+     * @param dataMaskAlg data mask algorithm
+     */
+    protected abstract void maskLog(L log, KeyWordMatch keyWordMatch, String dataMaskAlg);
+
     @Override
     public void close() throws Exception {
         started.set(false);
-        AbstractLogConsumeClient<?> logCollectClient = getLogConsumeClient();
+        AbstractLogConsumeClient<?, ?> logCollectClient = getLogConsumeClient();
         if (logCollectClient != null) {
             logCollectClient.close();
         }

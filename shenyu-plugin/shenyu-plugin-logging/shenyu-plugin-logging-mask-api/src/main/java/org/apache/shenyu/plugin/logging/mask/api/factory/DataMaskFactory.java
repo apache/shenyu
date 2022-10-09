@@ -15,29 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.client;
+package org.apache.shenyu.plugin.logging.mask.api.factory;
 
-import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
-import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-
-import java.util.List;
+import org.apache.shenyu.plugin.logging.mask.api.spi.ShenyuDataMask;
+import org.apache.shenyu.spi.ExtensionLoader;
 
 /**
- * Used to collect logs, which can be stored in remote or local files or databases, or others.
+ * shenyu logging mask factory.
  */
-public interface LogConsumeClient<C extends GenericGlobalConfig, L extends ShenyuRequestLog> extends AutoCloseable {
-    
-    /**
-     * collect logs.
-     *
-     * @param logs list of log
-     * @throws Exception produce exception
-     */
-    void consume(List<L> logs) throws Exception;
+public final class DataMaskFactory {
+
+    public DataMaskFactory() {
+    }
 
     /**
-     * init client by config.
-     * @param config logClientConfig
+     * shenyu logging mask algorithm selector.
+     *
+     * @param source source data
+     * @param algorithm mask algorithm
+     * @return masked data
      */
-    void initClient(C config);
+    public static String selectMask(final String source, final String algorithm) {
+        ShenyuDataMask dataMask = ExtensionLoader.getExtensionLoader(ShenyuDataMask.class).getJoin(algorithm);
+        return dataMask.mask(source);
+    }
 }

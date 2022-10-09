@@ -17,18 +17,22 @@
 
 package org.apache.shenyu.plugin.tencent.cls;
 
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.tencent.cls.collector.TencentClsSlsLogCollector;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * LoggingTencentClsPlugin send log to Tencent cls service.
  */
-public class LoggingTencentClsPlugin extends AbstractLoggingPlugin {
+public class LoggingTencentClsPlugin extends AbstractLoggingPlugin<ShenyuRequestLog> {
 
     @Override
-    protected LogCollector logCollector() {
+    protected LogCollector<ShenyuRequestLog> logCollector() {
         return TencentClsSlsLogCollector.getInstance();
     }
 
@@ -40,5 +44,19 @@ public class LoggingTencentClsPlugin extends AbstractLoggingPlugin {
     @Override
     public PluginEnum pluginEnum() {
         return PluginEnum.LOGGING_TENCENT_CLS;
+    }
+
+    /**
+     * log collect extension.
+     * base on ShenyuRequestLog to extend log
+     *
+     * @param exchange exchange
+     * @param selector selector
+     * @param rule rule
+     * @return base ShenyuRequestLog
+     */
+    @Override
+    protected ShenyuRequestLog doLogExecute(ServerWebExchange exchange, SelectorData selector, RuleData rule) {
+        return new ShenyuRequestLog();
     }
 }

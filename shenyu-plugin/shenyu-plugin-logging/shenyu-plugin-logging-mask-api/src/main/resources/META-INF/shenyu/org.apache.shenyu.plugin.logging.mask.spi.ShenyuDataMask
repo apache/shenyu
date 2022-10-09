@@ -14,5 +14,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-dataMaskByMD5=org.apache.shenyu.plugin.logging.mask.spi.Md5EncryptDataMask
-dataMaskByCharReplace=org.apache.shenyu.plugin.logging.mask.spi.CharacterReplaceDataMask
+dataMaskByMD5=org.apache.shenyu.plugin.logging.mask.api.spi.Md5EncryptDataMask
+dataMaskByCharReplace=org.apache.shenyu.plugin.logging.mask.api.spi.CharacterReplaceDataMask

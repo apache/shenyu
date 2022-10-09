@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.utils;
+package org.apache.shenyu.plugin.logging.mask.api.utils;
 
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.plugin.logging.mask.factory.DataMaskFactory;
-import org.apache.shenyu.plugin.logging.mask.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.mask.api.factory.DataMaskFactory;
+import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -29,6 +29,32 @@ import java.util.Map;
  * data mask utils.
  */
 public final class DataMaskUtils {
+
+    /**
+     * mask for single key word.
+     *
+     * @param keyWord key word
+     * @param source source data
+     * @param keyWordMatch keyWordMatch
+     * @param dataMaskAlg dataMaskAlg
+     * @return masked data
+     */
+    public static String maskForSingleWord(final String keyWord, final String source,
+                                           final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
+        return DataMaskUtils.maskSingleKeyword(true, keyWord, source, keyWordMatch, dataMaskAlg);
+    }
+
+    /**
+     * mask for body.
+     *
+     * @param source source data.
+     * @param keyWordMatch keyWordMatch
+     * @param dataMaskAlg dataMaskAlg
+     * @return masked data.
+     */
+    public static String maskForBody(final String source, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
+        return DataMaskUtils.maskBody(true, source, keyWordMatch, dataMaskAlg);
+    }
 
     /**
      * mask single keyword.

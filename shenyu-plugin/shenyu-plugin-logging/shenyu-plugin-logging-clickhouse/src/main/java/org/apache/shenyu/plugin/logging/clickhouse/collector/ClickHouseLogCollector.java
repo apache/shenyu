@@ -21,22 +21,29 @@ import org.apache.shenyu.plugin.logging.clickhouse.client.ClickHouseLogCollectCl
 import org.apache.shenyu.plugin.logging.clickhouse.handler.LoggingClickHousePluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
 
-public class ClickHouseLogCollector extends AbstractLogCollector<ClickHouseLogCollectClient> {
+public class ClickHouseLogCollector extends AbstractLogCollector<ClickHouseLogCollectClient, ShenyuRequestLog> {
 
-    private static final LogCollector INSTANCE = new ClickHouseLogCollector();
+    private static final LogCollector<ShenyuRequestLog> INSTANCE = new ClickHouseLogCollector();
 
     /**
      * get LogCollector Instance.
      *
      * @return LogCollector instance
      */
-    public static LogCollector getInstance() {
+    public static LogCollector<ShenyuRequestLog> getInstance() {
         return INSTANCE;
     }
     
     @Override
     protected ClickHouseLogCollectClient getLogConsumeClient() {
         return LoggingClickHousePluginDataHandler.getClickHouseLogCollectClient();
+    }
+
+    @Override
+    protected void maskLog(ShenyuRequestLog log, KeyWordMatch keyWordMatch, String dataMaskAlg) {
+
     }
 }

@@ -15,29 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.enums;
+package org.apache.shenyu.plugin.logging.mask.api.spi;
+
+import org.apache.shenyu.common.utils.Md5Utils;
+import org.apache.shenyu.spi.Join;
 
 /**
- * data mask enums.
+ * md5 encrypt data mask.
  */
-public enum DataMaskEnums {
-
-    CHARACTER_REPLACE("dataMaskByCharReplace"),
-
-    MD5_ENCRYPT("dataMaskByMD5");
-
-    private final String dataMaskAlg;
-
-    DataMaskEnums(final String dataMaskAlg) {
-        this.dataMaskAlg = dataMaskAlg;
-    }
-
-    /**
-     * get mask algorithm.
-     *
-     * @return mask algorithm
-     */
-    public String getDataMaskAlg() {
-        return dataMaskAlg;
+@Join
+public class Md5EncryptDataMask extends AbstractShenyuDataMask {
+    @Override
+    protected String doMask(final String source) {
+        return Md5Utils.md5(source);
     }
 }

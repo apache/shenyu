@@ -17,18 +17,22 @@
 
 package org.apache.shenyu.plugin.aliyun.sls;
 
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.aliyun.sls.collector.AliyunSlsLogCollector;
 import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * LoggingAliYunSlsPlugin send log to aliyun sls service.
  */
-public class LoggingAliyunSlsPlugin extends AbstractLoggingPlugin {
+public class LoggingAliyunSlsPlugin extends AbstractLoggingPlugin<ShenyuRequestLog> {
 
     @Override
-    protected LogCollector logCollector() {
+    protected LogCollector<ShenyuRequestLog> logCollector() {
         return AliyunSlsLogCollector.getInstance();
     }
 
@@ -40,5 +44,19 @@ public class LoggingAliyunSlsPlugin extends AbstractLoggingPlugin {
     @Override
     public PluginEnum pluginEnum() {
         return PluginEnum.LOGGING_ALIYUN_SLS;
+    }
+
+    /**
+     * log collect extension.
+     * base on ShenyuRequestLog to extend log
+     *
+     * @param exchange exchange
+     * @param selector selector
+     * @param rule rule
+     * @return base ShenyuRequestLog's class
+     */
+    @Override
+    protected ShenyuRequestLog doLogExecute(ServerWebExchange exchange, SelectorData selector, RuleData rule) {
+        return new ShenyuRequestLog();
     }
 }

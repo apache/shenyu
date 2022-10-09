@@ -15,21 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.spi;
-
-import org.apache.shenyu.spi.SPI;
+package org.apache.shenyu.plugin.logging.mask.api.enums;
 
 /**
- * shenyu logging data mask.
+ * data mask enums.
  */
-@SPI
-public interface ShenyuDataMask {
+public enum DataMaskEnums {
+
+    CHARACTER_REPLACE("dataMaskByCharReplace"),
+
+    MD5_ENCRYPT("dataMaskByMD5");
+
+    private final String dataMaskAlg;
+
+    DataMaskEnums(final String dataMaskAlg) {
+        this.dataMaskAlg = dataMaskAlg;
+    }
 
     /**
-     * mask data.
+     * get mask algorithm.
      *
-     * @param source source data
-     * @return masked data
+     * @return mask algorithm
      */
-    String mask(String source);
+    public String getDataMaskAlg() {
+        return dataMaskAlg;
+    }
 }

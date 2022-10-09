@@ -18,11 +18,12 @@
 package org.apache.shenyu.plugin.logging.common.collector;
 
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
 
 /**
  * Collect logs and put into buffer queue.
  */
-public interface LogCollector extends AutoCloseable {
+public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable {
 
     /**
      * start log collector.
@@ -30,9 +31,16 @@ public interface LogCollector extends AutoCloseable {
     void start();
 
     /**
+     * mask data.
+     *
+     * @param log log
+     */
+    void mask(L log, KeyWordMatch keyWordMatch, String String);
+
+    /**
      * collect log.
      *
      * @param log access log
      */
-    void collect(ShenyuRequestLog log);
+    void collect(L log);
 }

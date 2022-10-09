@@ -19,22 +19,24 @@ package org.apache.shenyu.plugin.logging.elasticsearch.collector;
 
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.elasticsearch.client.ElasticSearchLogCollectClient;
 import org.apache.shenyu.plugin.logging.elasticsearch.handler.LoggingElasticSearchPluginDataHandler;
+import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
 
 /**
  * elastic search log collector，depend a LogConsumeClient for consume logs.
  */
-public class ElasticSearchLogCollector extends AbstractLogCollector<ElasticSearchLogCollectClient> {
+public class ElasticSearchLogCollector extends AbstractLogCollector<ElasticSearchLogCollectClient, ShenyuRequestLog> {
 
-    private static final LogCollector INSTANCE = new ElasticSearchLogCollector();
+    private static final LogCollector<ShenyuRequestLog> INSTANCE = new ElasticSearchLogCollector();
 
     /**
      * get LogCollector instance.
      *
      * @return LogCollector instance
      */
-    public static LogCollector getInstance() {
+    public static LogCollector<ShenyuRequestLog> getInstance() {
         return INSTANCE;
     }
 
@@ -42,4 +44,11 @@ public class ElasticSearchLogCollector extends AbstractLogCollector<ElasticSearc
     protected ElasticSearchLogCollectClient getLogConsumeClient() {
         return LoggingElasticSearchPluginDataHandler.getElasticSearchLogCollectClient();
     }
+
+    @Override
+    protected void maskLog(ShenyuRequestLog log, KeyWordMatch keyWordMatch, String dataMaskAlg) {
+
+    }
+
+
 }

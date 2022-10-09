@@ -15,20 +15,35 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.spi;
+package org.apache.shenyu.plugin.logging.mask.api.matcher;
 
-import org.apache.shenyu.common.utils.Md5Utils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @ExtendWith(MockitoExtension.class)
-public class Md5EncryptDataMaskTest {
+class KeyWordMatchTest {
+
+    private KeyWordMatch keyWordMatch;
+
+    @BeforeEach
+    public void setUp() {
+        Set<String> set = new HashSet<>();
+        set.add("name");
+        set.add("TesT");
+        set.add("dsadsader");
+        keyWordMatch = new KeyWordMatch(set);
+    }
 
     @Test
-    public void doMask() {
-        Md5EncryptDataMask md5EncryptDataMask = new Md5EncryptDataMask();
-        Assertions.assertEquals(Md5Utils.md5("test"), md5EncryptDataMask.doMask("test"));
+    public void matches() {
+        Assertions.assertTrue(keyWordMatch.matches("name"));
+        Assertions.assertTrue(keyWordMatch.matches("test"));
+        Assertions.assertFalse(keyWordMatch.matches("dsaer"));
     }
 }

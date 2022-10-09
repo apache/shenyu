@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.factory;
+package org.apache.shenyu.plugin.logging.mask.api.factory;
 
 import org.apache.shenyu.common.utils.Md5Utils;
-import org.apache.shenyu.plugin.logging.mask.enums.DataMaskEnums;
+import org.apache.shenyu.plugin.logging.mask.api.enums.DataMaskEnums;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
