@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.client.admin;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.e2e.client.admin.model.MatchMode;
@@ -32,12 +31,15 @@ import org.apache.shenyu.e2e.client.admin.model.handle.DivideRuleHandle;
 import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams;
 import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams.Upstream;
 import org.apache.shenyu.e2e.client.admin.model.response.RuleDTO;
+import org.apache.shenyu.e2e.client.admin.model.response.SearchedResources;
 import org.apache.shenyu.e2e.client.admin.model.response.SelectorDTO;
+import org.apache.shenyu.e2e.matcher.RuleMatcher;
 import org.apache.shenyu.e2e.matcher.SelectorMatcher;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -50,17 +52,19 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminClientTest {
     static AdminClient client;
-    
+
     static GenericContainer<?> container = new GenericContainer<>("shenyu/admin:latest")
             .withExposedPorts(9095)
             .withLogConsumer(new Slf4jLogConsumer(log));
+    
+    SelectorDTO selector;
+    RuleDTO rule;
     
     @BeforeAll
     static void setup() {
@@ -98,10 +102,10 @@ public class AdminClientTest {
                 )
                 .sort(1)
                 .build();
-        SelectorDTO selector = client.create(selectorData);
-        
+        selector = client.create(selectorData);
+    
         RuleData ruleData = RuleData.builder()
-                .name("my-rule")
+                .name("test-create-rule")
                 .enabled(true)
                 .logged(true)
                 .handle(DivideRuleHandle.builder()
@@ -122,14 +126,13 @@ public class AdminClientTest {
                         .operator(Operator.EQUAL)
                         .build()))
                 .build();
-        client.create(ruleData);
+        rule = client.create(ruleData);
     }
     
     @Test
-    @Order(0)
-    void testCreateSelector() throws JsonProcessingException {
+    void testCreateSelector() {
         SelectorData selectorData = SelectorData.builder()
-                .name("my-plugin-divide")
+                .name("test-create-selector")
                 .plugin(Plugin.DIVIDE)
                 .type(SelectorType.CUSTOM)
                 .matchMode(MatchMode.AND)
@@ -144,12 +147,17 @@ public class AdminClientTest {
                 .build();
         SelectorDTO selector = client.create(selectorData);
         
-        List<SelectorDTO> selectors = client.searchSelector(selector.getName());
+        List<SelectorDTO> selectors = client.searchSelectors(selector.getName()).getList();
         Assertions.assertThat(selectors.size()).isEqualTo(1);
         SelectorMatcher.verify(selectorData).matches(selector);
-        
-        RuleDTO ruleDTO = client.create(RuleData.builder()
-                .name("my-rule")
+    
+        client.deleteAllRules(selector.getId());
+    }
+    
+    @Test
+    void testCreateRule() {
+        RuleData ruleData = RuleData.builder()
+                .name("test-create-rule")
                 .enabled(true)
                 .logged(true)
                 .handle(DivideRuleHandle.builder()
@@ -169,25 +177,90 @@ public class AdminClientTest {
                         .paramName("/")
                         .operator(Operator.EQUAL)
                         .build()))
-                .build());
+                .build();
+        RuleDTO rule = client.create(ruleData);
+        RuleMatcher.verify(ruleData).matches(rule);
     }
     
     @Test
-    void testDeleteAllSelectors() {
-        client.deleteAllSelectors();
-        List<SelectorDTO> selectors = client.listAllSelectors();
-        Assertions.assertThat(selectors).isEmpty();
+    @Order(200)
+    void testListSelectors() {
+        for (int i = 0; i <= 20; i++) {
+            client.create(SelectorData.builder()
+                    .name("test-list-selectors")
+                    .plugin(Plugin.DIVIDE)
+                    .type(SelectorType.CUSTOM)
+                    .matchMode(MatchMode.AND)
+                    .logged(true)
+                    .enabled(true)
+                    .continued(true)
+                    .handle(Upstreams.builder().add(Upstream.builder().upstreamUrl("httpbin.org:80").build()).build())
+                    .conditionList(
+                            Lists.newArrayList(Condition.builder().paramType(ParamType.URI).operator(Operator.MATCH).paramName("/").paramValue("/**").build())
+                    )
+                    .sort(1)
+                    .build());
+        }
+        Assertions.assertThat(client.listAllSelectors().size()).isGreaterThanOrEqualTo(20);
     }
     
     @Test
-    void testListRules() {
-        List<String> list = client.listAllRules()
-                .stream()
-                .map(RuleDTO::getId)
-                .collect(Collectors.toList());
-        client.deleteRules(list.toArray(new String[]{}));
+    @Order(201)
+    // depends on {@link #testListSelectors}
+    void testSearchSelectors() {
+        SearchedResources<SelectorDTO> searched = client.searchSelectors("test-list-selectors");
+        Assertions.assertThat(searched.getTotal()).isGreaterThanOrEqualTo(20);
+        Assertions.assertThat(searched.getPages()).isGreaterThanOrEqualTo(2);
+        Assertions.assertThat(searched.getPageNum()).isEqualTo(1);
+        Assertions.assertThat(searched.getPageSize()).isEqualTo(10);
         
-        Assertions.assertThat(client.listAllRules()).isEmpty();
+        searched = client.searchSelectors("test-list-selectors", 2, 10);
+        Assertions.assertThat(searched.getTotal()).isGreaterThanOrEqualTo(20);
+        Assertions.assertThat(searched.getPages()).isGreaterThanOrEqualTo(2);
+        Assertions.assertThat(searched.getPageNum()).isEqualTo(2);
+        Assertions.assertThat(searched.getPageSize()).isEqualTo(10);
+    }
+    
+    @Test
+    void searchRules() {
+        SearchedResources<RuleDTO> searched = client.searchRules(rule.getName());
+        Assertions.assertThat(searched.getPageNum()).isEqualTo(1);
+        Assertions.assertThat(searched.getPageSize()).isEqualTo(10);
+        Assertions.assertThat(searched.getPages()).isEqualTo(1);
+        Assertions.assertThat(searched.getTotal()).isEqualTo(1);
+    
+        searched = client.searchRules(rule.getName(), selector.getId());
+        Assertions.assertThat(searched.getPageNum()).isEqualTo(1);
+        Assertions.assertThat(searched.getPageSize()).isEqualTo(10);
+        Assertions.assertThat(searched.getPages()).isEqualTo(1);
+        Assertions.assertThat(searched.getTotal()).isEqualTo(1);
+    
+        searched = client.searchRules(null, selector.getId());
+        Assertions.assertThat(searched.getPageNum()).isEqualTo(1);
+        Assertions.assertThat(searched.getPageSize()).isEqualTo(10);
+        Assertions.assertThat(searched.getPages()).isEqualTo(1);
+        Assertions.assertThat(searched.getTotal()).isEqualTo(1);
+    
+        searched = client.searchRules(null, "fake");
+        Assertions.assertThat(searched.getPageNum()).isEqualTo(1);
+        Assertions.assertThat(searched.getPageSize()).isEqualTo(10);
+        Assertions.assertThat(searched.getPages()).isEqualTo(0);
+        Assertions.assertThat(searched.getTotal()).isEqualTo(0);
+    }
+    
+    @AfterEach
+    void deleteResources() {
+        client.deleteSelectors(selector.getId());
+        Assertions.assertThat(client.getSelector(selector.getId())).isNull();
+        Assertions.assertThat(client.searchSelectors(selector.getName()).getTotal()).isZero();
+        Assertions.assertThat(client.searchRules(null, selector.getId()).getTotal()).isZero();
+    }
+    
+    @AfterAll
+    static void testDeleteAllSelectors() {
+        client.deleteAllSelectors();
+        
+        Assertions.assertThat(client.listAllSelectors()).isEmpty();
     }
     
 }
