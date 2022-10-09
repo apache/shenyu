@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.e2e.engine.config;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -59,7 +60,12 @@ public class ShenYuEngineConfigure {
     }
     
     public enum Mode {
-        HOST, DOCKER
+        HOST, DOCKER;
+        
+        @JsonValue
+        public String value() {
+            return name();
+        }
     }
     
     public enum ServiceType {

@@ -18,6 +18,7 @@
 package org.apache.shenyu.e2e.testcase.common.function;
 
 import io.restassured.http.Method;
+import org.junit.jupiter.api.Assertions;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.lessThan;
@@ -32,12 +33,16 @@ public class HttpCheckers {
     
     public static HttpChecker notExists(Method method, String endpoint) {
         return (request) -> {
-            request.request(method, endpoint)
-                    .then()
-                    .log()
-                    .ifValidationFails()
-                    .body("code", lessThan(0))
-                    .body("message", containsString("please check your configuration!"));
+            try {
+                request.request(method, endpoint)
+                        .then()
+                        .log()
+                        .ifValidationFails()
+                        .body("code", lessThan(0))
+                        .body("message", containsString("please check your configuration!"));
+            } catch (AssertionError error) {
+                Assertions.fail("endpoint '" + endpoint + "' already exists, but expected it does not exist.", error);
+            }
         };
     }
     
@@ -47,12 +52,16 @@ public class HttpCheckers {
     
     public static HttpChecker exists(Method method, String endpoint) {
         return (request) -> {
-            request.request(method, endpoint)
-                    .then()
-                    .log()
-                    .ifValidationFails()
-                    .body("code", nullValue())
-                    .body("message", not(containsString("please check your configuration!")));
+            try {
+                request.request(method, endpoint)
+                        .then()
+                        .log()
+                        .ifValidationFails()
+                        .body("code", nullValue())
+                        .body("message", not(containsString("please check your configuration!")));
+            } catch (AssertionError error) {
+                Assertions.fail("endpoint '" + endpoint + "' not exists", error);
+            }
         };
     }
     
