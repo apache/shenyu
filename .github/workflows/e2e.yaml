@@ -33,7 +33,19 @@ env:
   TAG: ${{ github.sha }}
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      e2e: ${{ steps.filter.outputs.e2e }}
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: '.github/filters.yml'
+          list-files: json
+
   build-docker-images:
+    needs: changes
+      if: ${{ needs.changes.outputs.e2e == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -96,7 +108,10 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    needs: [ "build-docker-images" ]
+    needs:
+      - changes
+      - build-docker-images
+      if: ${{ needs.changes.outputs.e2e == 'true' }}
     strategy:
       matrix:
         storage: [ "h2", "mysql", "postgres" ]
