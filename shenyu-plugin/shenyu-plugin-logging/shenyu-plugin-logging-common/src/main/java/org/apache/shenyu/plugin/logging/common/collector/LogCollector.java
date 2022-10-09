@@ -31,11 +31,13 @@ public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable 
     void start();
 
     /**
-     * mask data.
+     * mask log.
      *
      * @param log log
+     * @param keyWordMatch keyWordMatch
+     * @param dataMaskALg data mask algorithm
      */
-    void mask(L log, KeyWordMatch keyWordMatch, String String);
+    void mask(L log, KeyWordMatch keyWordMatch, String dataMaskALg);
 
     /**
      * collect log.
