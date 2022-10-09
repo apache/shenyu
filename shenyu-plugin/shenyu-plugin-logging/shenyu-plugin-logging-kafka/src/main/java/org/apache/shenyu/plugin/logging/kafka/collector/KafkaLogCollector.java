@@ -47,6 +47,5 @@ public class KafkaLogCollector extends AbstractLogCollector<KafkaLogCollectClien
 
     @Override
     protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
-
     }
 }

@@ -47,6 +47,5 @@ public class TencentClsSlsLogCollector extends AbstractLogCollector<TencentClsLo
 
     @Override
     protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
-
     }
 }

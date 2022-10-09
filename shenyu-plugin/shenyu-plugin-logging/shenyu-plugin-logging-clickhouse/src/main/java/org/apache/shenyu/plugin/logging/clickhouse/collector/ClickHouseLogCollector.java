@@ -44,6 +44,5 @@ public class ClickHouseLogCollector extends AbstractLogCollector<ClickHouseLogCo
 
     @Override
     protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
-
     }
 }

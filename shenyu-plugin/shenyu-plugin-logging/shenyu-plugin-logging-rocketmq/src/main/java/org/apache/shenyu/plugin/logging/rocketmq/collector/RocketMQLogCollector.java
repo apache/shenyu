@@ -47,6 +47,5 @@ public class RocketMQLogCollector extends AbstractLogCollector<RocketMQLogCollec
 
     @Override
     protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
-
     }
 }

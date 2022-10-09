@@ -47,6 +47,5 @@ public class AliyunSlsLogCollector extends AbstractLogCollector<AliyunSlsLogColl
 
     @Override
     protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
-
     }
 }
