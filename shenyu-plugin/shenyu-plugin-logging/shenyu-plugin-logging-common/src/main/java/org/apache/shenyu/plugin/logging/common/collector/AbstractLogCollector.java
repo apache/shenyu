@@ -121,7 +121,7 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         }
     }
 
-    private void maskShenyuRequestLog(final L logInfo, KeyWordMatch keyWordMatch, String dataMaskAlg) {
+    private void maskShenyuRequestLog(final L logInfo, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
         logInfo.setClientIp(maskForSingleWord(GenericLoggingConstant.CLIENT_IP, logInfo.getClientIp(), keyWordMatch, dataMaskAlg));
         logInfo.setTimeLocal(maskForSingleWord(GenericLoggingConstant.TIME_LOCAL, logInfo.getTimeLocal(), keyWordMatch, dataMaskAlg));
         logInfo.setMethod(maskForSingleWord(GenericLoggingConstant.METHOD, logInfo.getMethod(), keyWordMatch, dataMaskAlg));
