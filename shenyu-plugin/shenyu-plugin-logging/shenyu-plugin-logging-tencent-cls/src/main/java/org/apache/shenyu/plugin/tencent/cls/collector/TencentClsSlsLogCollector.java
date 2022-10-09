@@ -45,12 +45,6 @@ public class TencentClsSlsLogCollector extends AbstractLogCollector<TencentClsLo
         return LoggingTencentClsPluginDataHandler.getTencentClsLogCollectClient();
     }
 
-    /**
-     *
-     * @param log
-     * @param keyWordMatch
-     * @param dataMaskAlg
-     */
     @Override
     protected void maskLog(ShenyuRequestLog log, KeyWordMatch keyWordMatch, String dataMaskAlg) {
 
