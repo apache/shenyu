@@ -259,8 +259,6 @@ public class AdminClientTest {
     @AfterAll
     static void testDeleteAllSelectors() {
         client.deleteAllSelectors();
-        
-        Assertions.assertThat(client.listAllSelectors()).isEmpty();
     }
     
 }
