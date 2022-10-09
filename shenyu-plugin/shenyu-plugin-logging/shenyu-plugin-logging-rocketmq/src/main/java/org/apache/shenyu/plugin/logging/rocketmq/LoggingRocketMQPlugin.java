@@ -56,7 +56,7 @@ public class LoggingRocketMQPlugin extends AbstractLoggingPlugin<ShenyuRequestLo
      * @return base ShenyuRequestLog
      */
     @Override
-    protected ShenyuRequestLog doLogExecute(ServerWebExchange exchange, SelectorData selector, RuleData rule) {
+    protected ShenyuRequestLog doLogExecute(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
         return new ShenyuRequestLog();
     }
 }
