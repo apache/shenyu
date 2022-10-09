@@ -129,3 +129,9 @@ jobs:
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
           ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case -Dstorage=${{ matrix.storage }} test
+
+  requirement:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "test"

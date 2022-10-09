@@ -19,7 +19,6 @@ package org.apache.shenyu.sdk.core.common;
 
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 
-import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -34,7 +33,7 @@ import java.util.Map;
  * information also support template expressions.
  * </p>
  */
-public final class RequestTemplate implements Serializable {
+public final class RequestTemplate {
 
     private transient Class<?> returnType;
 
