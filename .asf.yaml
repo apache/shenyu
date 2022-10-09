@@ -36,9 +36,9 @@ github:
       required_status_checks:
         strict: true
         contexts:
-          - check-license-header
-          - build
-          - e2e
+          - Check License Header
+          - Build
+          - E2E
       required_pull_request_reviews:
         dismiss_stale_reviews: true
         required_approving_review_count: 1
