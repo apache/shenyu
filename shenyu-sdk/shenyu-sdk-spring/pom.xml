@@ -25,8 +25,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-sdk-spring</artifactId>
-
-
+    
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>

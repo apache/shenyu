@@ -37,8 +37,6 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -51,8 +49,6 @@ import java.util.Optional;
  * this cache data with zookeeper.
  */
 public class ZookeeperSyncDataService implements SyncDataService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperSyncDataService.class);
 
     private final ZookeeperClient zkClient;
 
@@ -171,7 +167,7 @@ public class ZookeeperSyncDataService implements SyncDataService {
         }
     }
 
-    abstract class AbstractDataSyncListener implements TreeCacheListener {
+    abstract static class AbstractDataSyncListener implements TreeCacheListener {
         @Override
         public final void childEvent(final CuratorFramework client, final TreeCacheEvent event) {
             ChildData childData = event.getData();
