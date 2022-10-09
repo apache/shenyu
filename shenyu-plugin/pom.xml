@@ -62,5 +62,6 @@
         <module>shenyu-plugin-cache</module>
         <module>shenyu-plugin-logging</module>
         <module>shenyu-plugin-mock</module>
+        <module>shenyu-plugin-casdoor</module>
     </modules>
 </project>

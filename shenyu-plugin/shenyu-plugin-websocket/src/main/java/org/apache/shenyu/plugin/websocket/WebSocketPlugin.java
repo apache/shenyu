@@ -22,10 +22,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
@@ -36,6 +35,8 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.RequestQueryCodecUtil;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.websocket.handler.WebSocketPluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -66,9 +67,12 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     
     private static final String SEC_WEB_SOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
     
+    private final WebSocketRuleHandle defaultRuleHandle = new WebSocketRuleHandle();
+    
     private final WebSocketClient webSocketClient;
     
     private final WebSocketService webSocketService;
+    
     
     /**
      * Instantiates a new Web socket plugin.
@@ -89,7 +93,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             LOG.error("websocket upstream configuration error：{}", rule);
             return chain.execute(exchange);
         }
-        final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
+        final WebSocketRuleHandle ruleHandle = buildRuleHandle(rule);
         final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         Upstream upstream = LoadBalancerFactory.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(upstream)) {
@@ -102,6 +106,14 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         HttpHeaders headers = exchange.getRequest().getHeaders();
         return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
+    }
+    
+    private WebSocketRuleHandle buildRuleHandle(final RuleData rule) {
+        if (StringUtils.hasLength(rule.getId())) {
+            return WebSocketPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        } else {
+            return defaultRuleHandle;
+        }
     }
     
     private String buildWsRealPath(final ServerWebExchange exchange, final Upstream upstream, final ShenyuContext shenyuContext) {

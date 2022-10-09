@@ -21,14 +21,19 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.BeanHolder;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.config.GenericApiConfig;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
+import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,12 +43,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * AbstractLogPluginDataHandler.
  */
 public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig, C extends GenericApiConfig> implements PluginDataHandler {
+
+    public static final Supplier<CommonHandleCache<String, CommonLoggingRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
 
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractLogPluginDataHandler.class);
 
@@ -146,5 +155,18 @@ public abstract class AbstractLogPluginDataHandler<T extends GenericGlobalConfig
         LOG.info("handler remove {} selector data:{}", pluginNamed(), GsonUtils.getGson().toJson(selectorData));
         SELECT_ID_URI_LIST_MAP.remove(selectorData.getId());
         SELECT_API_CONFIG_MAP.remove(selectorData.getId());
+    }
+
+    @Override
+    public void handlerRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            CommonLoggingRuleHandle commonLoggingRuleHandle = GsonUtils.getInstance().fromJson(s, CommonLoggingRuleHandle.class);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), commonLoggingRuleHandle);
+        });
+    }
+
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 }

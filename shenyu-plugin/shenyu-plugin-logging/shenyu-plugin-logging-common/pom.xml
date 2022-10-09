@@ -29,7 +29,7 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-base</artifactId>
+            <artifactId>shenyu-plugin-logging-mask-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

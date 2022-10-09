@@ -75,7 +75,7 @@ public class GenericLoggingConstant {
     /**
      * logging request method.
      */
-    public static final String REQUEST_METHOD = "request method";
+    public static final String REQUEST_METHOD = "requestMethod";
 
     /**
      * logging request header.

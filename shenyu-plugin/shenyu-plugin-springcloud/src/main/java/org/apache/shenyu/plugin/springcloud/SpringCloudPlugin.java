@@ -47,6 +47,8 @@ import java.util.Objects;
 public class SpringCloudPlugin extends AbstractShenyuPlugin {
 
     private final ShenyuSpringCloudServiceChooser serviceChooser;
+    
+    private final SpringCloudRuleHandle defaultRuleHandle = new SpringCloudRuleHandle();
 
     /**
      * Instantiates a new Spring cloud plugin.
@@ -66,7 +68,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudPluginDataHandler.SELECTOR_CACHED.get().obtainHandle(selector.getId());
-        final SpringCloudRuleHandle ruleHandle = SpringCloudPluginDataHandler.RULE_CACHED.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        final SpringCloudRuleHandle ruleHandle = buildRuleHandle(rule);
         String serviceId = springCloudSelectorHandle.getServiceId();
         if (StringUtils.isBlank(serviceId)) {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID);
@@ -114,6 +116,14 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
+    }
+    
+    private SpringCloudRuleHandle buildRuleHandle(final RuleData rule) {
+        if (StringUtils.isNotEmpty(rule.getId())) {
+            return SpringCloudPluginDataHandler.RULE_CACHED.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        } else {
+            return defaultRuleHandle;
+        }
     }
 
     private void setDomain(final URI uri, final ServerWebExchange exchange) {

@@ -54,12 +54,14 @@ import java.util.Objects;
 public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(DividePlugin.class);
+    
+    private final DivideRuleHandle defaultRuleHandle = new DivideRuleHandle();
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        DivideRuleHandle ruleHandle = buildRuleHandle(rule);
         if (ruleHandle.getHeaderMaxSize() > 0) {
             long headerSize = exchange.getRequest().getHeaders().values()
                     .stream()
@@ -81,7 +83,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
-            LOG.error("divide upstream configuration error： {}", rule);
+            LOG.error("divide upstream configuration error： {}", selector);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
@@ -128,5 +130,13 @@ public class DividePlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
+    }
+    
+    private DivideRuleHandle buildRuleHandle(final RuleData rule) {
+        if (StringUtils.isNotEmpty(rule.getId())) {
+            return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        } else {
+            return defaultRuleHandle;
+        }
     }
 }
