@@ -108,6 +108,7 @@ jobs:
           retention-days: 1
 
   e2e:
+    name: E2E
     runs-on: ubuntu-latest
     needs: [ "build-docker-images" ]
       if: ${{ needs.changes.outputs.backend == 'true' }}

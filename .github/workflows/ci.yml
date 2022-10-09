@@ -23,6 +23,7 @@ on:
 
 jobs:
   build:
+    name: Build
     strategy:
       matrix:
         java: [ 8, 11 ]
