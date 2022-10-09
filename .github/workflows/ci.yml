@@ -23,6 +23,7 @@ on:
 
 jobs:
   build:
+    name: build
     strategy:
       matrix:
         java: [ 8, 11 ]
@@ -71,7 +72,7 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
 
   check-license-header:
-    name: Check License Header
+    name: check-license-header
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
