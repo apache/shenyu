@@ -46,7 +46,7 @@ public final class ListUtil {
      */
     @SafeVarargs
     public static <T> List<T> list(final T... t) {
-        return Stream.of(t).filter(Objects::nonNull).collect(Collectors.toList());
+        return Stream.of(t).collect(Collectors.toList());
     }
     
     /**
@@ -54,11 +54,11 @@ public final class ListUtil {
      *
      * @param t   e
      * @param <T> type
-     * @return list
+     * @return unmodifiable list
      */
     @SafeVarargs
     public static <T> List<T> of(final T... t) {
-        return Stream.of(t).collect(Collectors.toList());
+        return Collections.unmodifiableList(Stream.of(t).filter(Objects::nonNull).collect(Collectors.toList()));
     }
     
     /**
