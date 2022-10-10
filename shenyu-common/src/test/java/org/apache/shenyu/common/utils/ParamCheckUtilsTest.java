@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.jupiter.api.Test;
+
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,11 +31,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public final class ParamCheckUtilsTest {
 
     @Test
-    public void testDubboBodyIsEmpty() {
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
-        assertFalse(ParamCheckUtils.dubboBodyIsEmpty("123"));
+    public void testBodyIsEmpty() {
+        assertTrue(ParamCheckUtils.bodyIsEmpty(null));
+        assertTrue(ParamCheckUtils.bodyIsEmpty(""));
+        assertTrue(ParamCheckUtils.bodyIsEmpty("null"));
+        assertFalse(ParamCheckUtils.bodyIsEmpty("123"));
+    }
+
+    @Test
+    public void testcheckParamsLength() {
+        try {
+            ParamCheckUtils.checkParamsLength(2, 2);
+        } catch (Exception ex) {
+            assertTrue(Objects.isNull(ex));
+        }
+    }
+
+    @Test
+    public void testcheckParamsLengthException() {
+        try {
+            ParamCheckUtils.checkParamsLength(1, 2);
+        } catch (Exception ex) {
+            assertTrue(ex instanceof ShenyuException);
+        }
     }
 }
