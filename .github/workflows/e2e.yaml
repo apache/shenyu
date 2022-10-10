@@ -17,17 +17,9 @@ name: e2e
 
 on:
   pull_request:
-    branches:
-      - master
-    paths-ignore:
-      - '**.md'
-      - '**/resources/static/'
   push:
     branches:
       - master
-    paths-ignore:
-      - '**.md'
-      - '**/resources/static/'
 
 env:
   TAG: ${{ github.sha }}
@@ -37,6 +29,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       e2e: ${{ steps.filter.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -45,7 +42,7 @@ jobs:
 
   build-docker-images:
     needs: changes
-      if: ${{ needs.changes.outputs.e2e == 'true' }}
+    if: ${{ needs.changes.outputs.e2e == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -111,7 +108,7 @@ jobs:
     needs:
       - changes
       - build-docker-images
-      if: ${{ needs.changes.outputs.e2e == 'true' }}
+    if: ${{ needs.changes.outputs.e2e == 'true' }}
     strategy:
       matrix:
         storage: [ "h2", "mysql", "postgres" ]
