@@ -48,10 +48,7 @@ public final class ListUtil {
      */
     @SafeVarargs
     public static <T> List<T> list(final T... t) {
-        if (Arrays.stream(t).noneMatch(Objects::nonNull)) {
-            return Collections.emptyList();
-        }
-        return Stream.of(t).collect(Collectors.toList());
+        return Stream.of(t).filter(Objects::nonNull).collect(Collectors.toList());
     }
     
     /**
