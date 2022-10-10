@@ -20,9 +20,10 @@ package org.apache.shenyu.common.utils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.jupiter.api.Test;
 
-import java.util.Objects;
-
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -40,19 +41,15 @@ public final class ParamCheckUtilsTest {
 
     @Test
     public void testcheckParamsLength() {
-        try {
-            ParamCheckUtils.checkParamsLength(2, 2);
-        } catch (Exception ex) {
-            assertTrue(Objects.isNull(ex));
-        }
+        assertDoesNotThrow(() -> {
+            ParamCheckUtils.checkParamsLength(2, 2); });
     }
 
     @Test
     public void testcheckParamsLengthException() {
-        try {
+        Throwable exception = assertThrows(ShenyuException.class, () -> {
             ParamCheckUtils.checkParamsLength(1, 2);
-        } catch (Exception ex) {
-            assertTrue(ex instanceof ShenyuException);
-        }
+        });
+        assertEquals("args.length < types.length", exception.getMessage());
     }
 }
