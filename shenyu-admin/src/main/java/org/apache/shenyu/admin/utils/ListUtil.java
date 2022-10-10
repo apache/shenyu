@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.utils;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
@@ -59,7 +60,7 @@ public final class ListUtil {
      */
     @SafeVarargs
     public static <T> List<T> of(final T... t) {
-        return new ArrayList<>(list(t));
+        return Stream.of(t).collect(Collectors.toList());
     }
     
     /**
