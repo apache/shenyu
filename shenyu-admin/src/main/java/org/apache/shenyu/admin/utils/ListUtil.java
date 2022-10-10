@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.utils;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +48,9 @@ public final class ListUtil {
      */
     @SafeVarargs
     public static <T> List<T> list(final T... t) {
+        if (Arrays.stream(t).noneMatch(Objects::nonNull)) {
+            return Collections.emptyList();
+        }
         return Stream.of(t).collect(Collectors.toList());
     }
     
