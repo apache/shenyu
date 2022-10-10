@@ -65,6 +65,24 @@ public class SearchCondition {
         private boolean switchStatus;
     }
     
+    public static QueryCondition QUERY_ALL = new QueryCondition() {
+    
+        @Override
+        public String getExcluded() {
+            return null;
+        }
+    
+        @Override
+        public String getKeyword() {
+            return null;
+        }
+    
+        @Override
+        public boolean isSwitchStatus() {
+            return true;
+        }
+    };
+    
     private int pageNum;
     
     private int pageSize;

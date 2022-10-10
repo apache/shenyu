@@ -19,6 +19,7 @@ package org.apache.shenyu.e2e.client.admin;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -58,6 +59,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.QUERY_ALL;
+
 @Slf4j
 @ShenYuAdminClient
 public class AdminClient {
@@ -68,14 +71,8 @@ public class AdminClient {
     private final String scenarioId;
     
     private final String baseURL;
-    private final Properties properties;
     private final ImmutableMap<String, String> loginInfo;
     
-    
-    private static final TypeReference<PaginatedResources<SelectorDTO>> PAGINATED_SELECTORS_TYPE_REFERENCE = new TypeReference<>() {
-    };
-    private static final TypeReference<PaginatedResources<RuleDTO>> PAGINATED_RULES_TYPE_REFERENCE = new TypeReference<>() {
-    };
     private static final TypeReference<PaginatedResources<PluginDTO>> PAGINATED_PLUGINS_TYPE_REFERENCE = new TypeReference<>() {
     };
     
@@ -83,21 +80,8 @@ public class AdminClient {
     };
     private static final TypeReference<SearchedResources<RuleDTO>> SEARCHED_RULES_TYPE_REFERENCE = new TypeReference<>() {
     };
-    private static final TypeReference<SearchedResources<PluginDTO>> SEARCHED_PLUGINS_TYPE_REFERENCE = new TypeReference<>() {
+    private static final TypeReference<SearchedResources<FakeResourceDTO>> FAKE_VALUE_TYPE = new TypeReference<>() {
     };
-    private static final TypeReference<PaginatedResources<FakeResourceDTO>> FAKE_VALUE_TYPE = new TypeReference<>() {
-    };
-    
-    @Deprecated
-    public AdminClient(String baseURL, String username, String password) {
-        this.baseURL = baseURL;
-        this.scenarioId = "";
-        this.loginInfo = ImmutableMap.<String, String>builder()
-                .put("username", username)
-                .put("password", password)
-                .build();
-        this.properties = null;
-    }
     
     public AdminClient(String scenarioId, String baseURL, Properties properties) {
         Preconditions.checkArgument(properties.containsKey("username"), "Property username does not exist");
@@ -105,13 +89,15 @@ public class AdminClient {
         
         this.baseURL = baseURL;
         this.scenarioId = scenarioId;
-        this.properties = properties;
         this.loginInfo = ImmutableMap.<String, String>builder()
                 .put("username", properties.getProperty("username"))
                 .put("password", properties.getProperty("password"))
                 .build();
     }
     
+    /**
+     * Login to ShenYu Admin and cache the token.
+     */
     public void login() {
         final String url = baseURL + "/platform/login?userName={username}&password={password}";
         ResponseEntity<ShenYuResult> response = template.getForEntity(
@@ -129,68 +115,125 @@ public class AdminClient {
         Plugin.check(listPlugins());
     }
     
+    /**
+     * List all plugins.
+     *
+     * @return a list of {@link PluginDTO}s
+     */
     public List<PluginDTO> listPlugins() {
-        return list("/plugin", PAGINATED_PLUGINS_TYPE_REFERENCE);
-    }
-    
-    public List<SelectorDTO> listAllSelectors() {
-        return list("/selector", PAGINATED_SELECTORS_TYPE_REFERENCE);
-    }
-    
-    public List<RuleDTO> listAllRules() {
-        return list("/rule", PAGINATED_RULES_TYPE_REFERENCE);
-    }
-    
-    private <T extends ResourceDTO, OUT> List<OUT> list(String uri, TypeReference<PaginatedResources<T>> valueType, Mapper<T, OUT> map) {
-        String url = baseURL + uri + "?currentPage={cur}&pageSize={size}";
-        List<OUT> result = Lists.newArrayList();
+        List<PluginDTO> result = Lists.newArrayList();
         
         int cur = 1;
-        while (true) {
+        int total;
+        do {
             ResponseEntity<ShenYuResult> response = template.exchange(
-                    url,
+                    baseURL + "/plugin?currentPage={cur}&pageSize={page}",
                     HttpMethod.GET,
                     new HttpEntity<>(basicAuth),
                     ShenYuResult.class,
                     cur,
-                    10
+                    30
             );
             ShenYuResult rst = assertAndGet(response, "query success");
             
-            PaginatedResources<T> pagination = Assertions.assertDoesNotThrow(
-                    () -> mapper.readValue(rst.getData().traverse(), valueType),
+            PaginatedResources<PluginDTO> pagination = Assertions.assertDoesNotThrow(
+                    () -> mapper.readValue(rst.getData().traverse(), PAGINATED_PLUGINS_TYPE_REFERENCE),
                     "checking cast to PaginatedResources<T>"
             );
-            pagination.getDataList().forEach(e -> result.add(map.map(e)));
+            result.addAll(pagination.getDataList());
             
-            if (cur >= pagination.getPage().getTotalPage()) {
-                break;
-            }
-            cur++;
-        }
+            total = pagination.getPage().getTotalPage();
+        } while (++cur < total);
         return result;
     }
     
-    private <T extends ResourceDTO> List<T> list(String uri, TypeReference<PaginatedResources<T>> valueType) {
-        return list(uri, valueType, value -> value);
+    /**
+     * List all existence selectors.
+     *
+     * @return a list of {@link SelectorDTO}s
+     */
+    public List<SelectorDTO> listAllSelectors() {
+        SelectorQueryCondition condition = SelectorQueryCondition.builder()
+                .switchStatus(true)
+                .build();
+        return list("/selector/list/search", condition, SEARCHED_SELECTORS_TYPE_REFERENCE, v -> v);
     }
     
-    public List<SelectorDTO> searchSelector(String keyword, String... plugins) {
+    /**
+     * List all existence rules.
+     *
+     * @return a list of {@link RuleDTO}s
+     */
+    public List<RuleDTO> listAllRules() {
+        RuleQueryCondition condition = RuleQueryCondition.builder()
+                .switchStatus(true)
+                .build();
+        return list("/rule/list/search", condition, SEARCHED_RULES_TYPE_REFERENCE, v -> v);
+    }
+    
+    private <T extends ResourceDTO, OUT> List<OUT> list(String uri, QueryCondition condition, TypeReference<SearchedResources<T>> valueType, Mapper<T, OUT> mapper) {
+        List<OUT> result = Lists.newArrayList();
+        
+        int curPage = 1;
+        int total;
+        
+        do {
+            SearchedResources<T> resources = search(uri, curPage, 20, condition, valueType);
+            resources.getList().stream()
+                    .map(mapper)
+                    .forEach(result::add);
+            total = resources.getPages();
+        } while (++curPage <= total);
+        
+        return result;
+    }
+    
+    /**
+     * Fetch the selectors by the given conditions.
+     *
+     * @param keyword expected selectors included the word. return all if absent.
+     * @param plugins expected selectors under specified plugins. return all if absent.
+     * @return paginated info with  list of {@link SelectorDTO}s
+     */
+    public SearchedResources<SelectorDTO> searchSelectors(String keyword, String... plugins) {
         SelectorQueryCondition condition = SelectorQueryCondition.builder()
                 .keyword(keyword)
                 .plugins(plugins)
                 .switchStatus(true)
                 .build();
-        return search("/selector/list/search", condition, SEARCHED_SELECTORS_TYPE_REFERENCE).getList();
+        return search("/selector/list/search", condition, SEARCHED_SELECTORS_TYPE_REFERENCE);
     }
     
-    public List<RuleDTO> searchRule(String keyword, String... selectors) {
+    /**
+     * Fetch the selectors by the given conditions.
+     *
+     * @param keyword expected selectors included the word. return all if absent.
+     * @param plugins expected selectors under specified plugins. return all if absent.
+     * @return paginated info with  list of {@link SelectorDTO}s
+     */
+    public SearchedResources<SelectorDTO> searchSelectors(String keyword, int page, int pageSize, String... plugins) {
+        SelectorQueryCondition condition = SelectorQueryCondition.builder()
+                .keyword(keyword)
+                .plugins(plugins)
+                .switchStatus(true)
+                .build();
+        return search("/selector/list/search", page, pageSize, condition, SEARCHED_SELECTORS_TYPE_REFERENCE);
+    }
+    
+    /**
+     * Fetch the rules by the given conditions.
+     *
+     * @param keyword   expected selectors included the word. return all if absent.
+     * @param selectors expected selectors under specified plugins. return all if absent.
+     * @return paginated info with list of {@link RuleDTO}s
+     */
+    public SearchedResources<RuleDTO> searchRules(String keyword, String... selectors) {
         RuleQueryCondition condition = RuleQueryCondition.builder()
                 .keyword(keyword)
                 .selectors(selectors)
                 .switchStatus(true)
                 .build();
-        return search("/rule/list/search", condition, SEARCHED_RULES_TYPE_REFERENCE).getList();
+        return search("/rule/list/search", condition, SEARCHED_RULES_TYPE_REFERENCE);
     }
     
     private <T extends ResourceDTO> SearchedResources<T> search(String uri, QueryCondition condition, TypeReference<SearchedResources<T>> valueType) {
@@ -220,6 +263,9 @@ public class AdminClient {
         return dto;
     }
     
+    /**
+     * Create Rule.
+     */
     public RuleDTO create(RuleData rule) {
         RuleDTO dto = create("/rule", rule);
         Rules.INSTANCE.put(rule.getName(), dto.getId());
@@ -240,49 +286,76 @@ public class AdminClient {
         Assertions.assertEquals(200, rst.getCode(), "checking shenyu result code");
         Assertions.assertEquals("create success", rst.getMessage(), "checking shenyu result message");
         
-        ResourceDTO created = null;
+        
+        SearchedResources<?> searchedResources = null;
         if (data instanceof SelectorData) {
-            created = searchSelector(data.getName()).get(0);
+            searchedResources = searchSelectors(data.getName());
         } else if (data instanceof RuleData) {
-            created = searchRule(data.getName()).get(0);
+            searchedResources = searchRules(data.getName());
         }
+        Assertions.assertNotNull(searchedResources, "checking searchedResources object is non-null");
+        Assertions.assertEquals(1, searchedResources.getTotal(), "checking the total hits of searching");
+    
+        ResourceDTO created = searchedResources.getList().get(0);
         Assertions.assertNotNull(created, "checking created object is non-null");
         log.info("create resource({}) successful. name: {}, id: {}", data.getClass().getSimpleName(), data.getName(), created.getId());
         
         return (R) created;
     }
     
+    /**
+     * Delete selectors in batch.
+     *
+     * @param ids ID of selectors that needs to delete.
+     */
     public void deleteSelectors(List<String> ids) {
         delete("/selector/batch", ids);
     }
     
+    /**
+     * Delete selectors in batch.
+     *
+     * @param ids ID of selectors that needs to delete.
+     */
     public void deleteSelectors(String... ids) {
         delete("/selector/batch", Lists.newArrayList(ids));
     }
     
+    /**
+     * Delete rules in batch.
+     *
+     * @param ids ID of rules that needs to delete.
+     */
     public void deleteRules(String... ids) {
         delete("/rule/batch", Lists.newArrayList(ids));
     }
     
+    /**
+     * Delete all selectors
+     */
     public void deleteAllSelectors() {
         deleteAll("/selector/batch");
     }
     
+    /**
+     * Delete all rules under given id of selector.
+     *
+     * @param selectorId ID of selector
+     */
     public void deleteAllRules(String selectorId) {
-        List<String> ids = searchRule(null, selectorId).stream().map(RuleDTO::getId).collect(Collectors.toList());
+        List<String> ids = searchRules(null, selectorId).getList().stream().map(RuleDTO::getId).collect(Collectors.toList());
         deleteRules(ids.toArray(new String[]{}));
     }
     
     private void deleteAll(String uri) {
         Preconditions.checkArgument(uri.endsWith("/batch"), "uri[{}] must be end with '/batch'", uri);
         
-        String listAllResourcesUrl = uri.replace("/batch", "");
-        List<String> ids = list(listAllResourcesUrl, FAKE_VALUE_TYPE, FakeResourceDTO::getId);
+        String listAllResourcesUrl = uri.replace("/batch", "") + "/list/search";
+        List<String> ids = list(listAllResourcesUrl, QUERY_ALL, FAKE_VALUE_TYPE, FakeResourceDTO::getId);
         
         delete(uri, ids);
-        
-        List<FakeResourceDTO> result = list(listAllResourcesUrl, FAKE_VALUE_TYPE);
-        Assertions.assertTrue(result.isEmpty(), "checking whether resource list is empty after deleted");
+        List<FakeResourceDTO> result = list(listAllResourcesUrl, QUERY_ALL, FAKE_VALUE_TYPE, v -> v);
+        Assertions.assertEquals(0, result.size(), "resource list is empty after deleted");
     }
     
     private void delete(String uri, List<String> ids) {
@@ -300,10 +373,30 @@ public class AdminClient {
         log.info("delete resources, effected size: {}, effected rows: {}", ids.size(), ids);
     }
     
-    public <T extends ResourceDTO> T getResource(String uri, QueryCondition condition, TypeReference<SearchedResources<T>> valueType) {
-        SearchedResources<T> searchedResources = (SearchedResources<T>) search(uri, condition, valueType);
-        Assertions.assertEquals(1, searchedResources.getTotal(), "checking the total hits of searching");
-        return searchedResources.getList().get(0);
+    /**
+     * Fetch Selector by given id.
+     * @param id of selector that needs to fetch
+     * @return {@link SelectorDTO}
+     */
+    public SelectorDTO getSelector(String id) {
+        return getResource("/selector", id, SelectorDTO.class);
+    }
+    
+    private <T extends ResourceDTO> T getResource(String uri, String id, Class<T> valueType) {
+        ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/{id}", HttpMethod.GET, new HttpEntity<>(basicAuth), ShenYuResult.class, id);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");
+    
+        ShenYuResult rst = response.getBody();
+        Assertions.assertNotNull(rst, "checking http response body");
+        
+        if (rst.getCode() == 500) {
+            Assertions.assertTrue(rst.getMessage().contains("selector is not existed"), "checking shenyu result message");
+            return null;
+        }
+    
+        Assertions.assertEquals("detail success", rst.getMessage(), "checking shenyu result message");
+        Assertions.assertEquals(200, rst.getCode(), "checking shenyu result code");
+        return Assertions.assertDoesNotThrow(() -> rst.toObject(valueType), "checking cast data to " + valueType.getSimpleName());
     }
     
     private ShenYuResult assertAndGet(ResponseEntity<ShenYuResult> response, String message) {
@@ -318,7 +411,7 @@ public class AdminClient {
     }
     
     @FunctionalInterface
-    interface Mapper<IN, OUT> {
-        OUT map(IN value);
+    interface Mapper<IN, OUT> extends Function<IN, OUT> {
+    
     }
 }
