@@ -15,18 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.spi;
+package org.apache.shenyu.plugin.logging.mask.api.spi;
 
-import org.apache.shenyu.common.utils.Md5Utils;
-import org.apache.shenyu.spi.Join;
+import org.apache.shenyu.spi.SPI;
 
 /**
- * md5 encrypt data mask.
+ * shenyu logging data mask.
  */
-@Join
-public class Md5EncryptDataMask extends AbstractShenyuDataMask {
-    @Override
-    protected String doMask(final String source) {
-        return Md5Utils.md5(source);
-    }
+@SPI
+public interface ShenyuDataMask {
+
+    /**
+     * mask data.
+     *
+     * @param source source data
+     * @return masked data
+     */
+    String mask(String source);
 }

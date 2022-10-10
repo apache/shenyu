@@ -15,28 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.factory;
+package org.apache.shenyu.plugin.logging.mask.api.spi;
 
-import org.apache.shenyu.plugin.logging.mask.spi.ShenyuDataMask;
-import org.apache.shenyu.spi.ExtensionLoader;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * shenyu logging mask factory.
+ * AbstractShenyuDataMask.
  */
-public final class DataMaskFactory {
-
-    public DataMaskFactory() {
+public abstract class AbstractShenyuDataMask implements ShenyuDataMask {
+    @Override
+    public String mask(final String source) {
+        if (StringUtils.isBlank(source)) {
+            return "";
+        }
+        return doMask(source);
     }
 
     /**
-     * shenyu logging mask algorithm selector.
+     * do mask data.
      *
-     * @param source source data
-     * @param algorithm mask algorithm
+     * @param source source
      * @return masked data
      */
-    public static String selectMask(final String source, final String algorithm) {
-        ShenyuDataMask dataMask = ExtensionLoader.getExtensionLoader(ShenyuDataMask.class).getJoin(algorithm);
-        return dataMask.mask(source);
-    }
+    protected abstract String doMask(String source);
+
 }

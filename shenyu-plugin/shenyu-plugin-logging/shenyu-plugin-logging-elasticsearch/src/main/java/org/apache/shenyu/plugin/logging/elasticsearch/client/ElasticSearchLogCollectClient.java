@@ -47,7 +47,7 @@ import java.util.Objects;
 /**
  * queue-based logging collector.
  */
-public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<ElasticSearchLogCollectConfig.ElasticSearchLogConfig> {
+public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<ElasticSearchLogCollectConfig.ElasticSearchLogConfig, ShenyuRequestLog> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchLogCollectClient.class);
 

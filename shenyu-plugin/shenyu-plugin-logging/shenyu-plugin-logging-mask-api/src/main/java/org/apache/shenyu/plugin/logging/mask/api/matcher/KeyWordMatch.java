@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.matcher;
+package org.apache.shenyu.plugin.logging.mask.api.matcher;
 
 import java.util.Set;
 import java.util.regex.Pattern;

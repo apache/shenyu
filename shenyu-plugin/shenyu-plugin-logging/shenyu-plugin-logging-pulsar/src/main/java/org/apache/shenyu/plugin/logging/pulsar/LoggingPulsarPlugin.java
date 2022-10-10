@@ -17,18 +17,22 @@
 
 package org.apache.shenyu.plugin.logging.pulsar;
 
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.pulsar.collector.PulsarLogCollector;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * Integrated pulsar collect log.
  */
-public class LoggingPulsarPlugin extends AbstractLoggingPlugin {
+public class LoggingPulsarPlugin extends AbstractLoggingPlugin<ShenyuRequestLog> {
 
     @Override
-    protected LogCollector logCollector() {
+    protected LogCollector<ShenyuRequestLog> logCollector() {
         return PulsarLogCollector.getInstance();
     }
 
@@ -40,5 +44,19 @@ public class LoggingPulsarPlugin extends AbstractLoggingPlugin {
     @Override
     public PluginEnum pluginEnum() {
         return PluginEnum.LOGGING_PULSAR;
+    }
+
+    /**
+     * log collect extension.
+     * base on ShenyuRequestLog to extend log
+     *
+     * @param exchange exchange
+     * @param selector selector
+     * @param rule rule
+     * @return base ShenyuRequestLog
+     */
+    @Override
+    protected ShenyuRequestLog doLogExecute(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
+        return new ShenyuRequestLog();
     }
 }

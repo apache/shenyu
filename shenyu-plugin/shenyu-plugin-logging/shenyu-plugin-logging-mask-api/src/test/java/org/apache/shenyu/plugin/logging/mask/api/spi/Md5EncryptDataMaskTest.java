@@ -15,28 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.spi;
+package org.apache.shenyu.plugin.logging.mask.api.spi;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.utils.Md5Utils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * AbstractShenyuDataMask.
- */
-public abstract class AbstractShenyuDataMask implements ShenyuDataMask {
-    @Override
-    public String mask(final String source) {
-        if (StringUtils.isBlank(source)) {
-            return "";
-        }
-        return doMask(source);
+@ExtendWith(MockitoExtension.class)
+public class Md5EncryptDataMaskTest {
+
+    @Test
+    public void doMask() {
+        Md5EncryptDataMask md5EncryptDataMask = new Md5EncryptDataMask();
+        Assertions.assertEquals(Md5Utils.md5("test"), md5EncryptDataMask.doMask("test"));
     }
-
-    /**
-     * do mask data.
-     *
-     * @param source source
-     * @return masked data
-     */
-    protected abstract String doMask(String source);
-
 }

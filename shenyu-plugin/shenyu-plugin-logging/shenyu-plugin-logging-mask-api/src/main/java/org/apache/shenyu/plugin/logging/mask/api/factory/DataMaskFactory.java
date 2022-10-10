@@ -15,34 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.collector;
+package org.apache.shenyu.plugin.logging.mask.api.factory;
 
-import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.mask.api.spi.ShenyuDataMask;
+import org.apache.shenyu.spi.ExtensionLoader;
 
 /**
- * Collect logs and put into buffer queue.
+ * shenyu logging mask factory.
  */
-public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable {
+public final class DataMaskFactory {
+
+    public DataMaskFactory() {
+    }
 
     /**
-     * start log collector.
-     */
-    void start();
-
-    /**
-     * mask log.
+     * shenyu logging mask algorithm selector.
      *
-     * @param log log
-     * @param keyWordMatch keyWordMatch
-     * @param dataMaskALg data mask algorithm
+     * @param source source data
+     * @param algorithm mask algorithm
+     * @return masked data
      */
-    void mask(L log, KeyWordMatch keyWordMatch, String dataMaskALg);
-
-    /**
-     * collect log.
-     *
-     * @param log access log
-     */
-    void collect(L log);
+    public static String selectMask(final String source, final String algorithm) {
+        ShenyuDataMask dataMask = ExtensionLoader.getExtensionLoader(ShenyuDataMask.class).getJoin(algorithm);
+        return dataMask.mask(source);
+    }
 }

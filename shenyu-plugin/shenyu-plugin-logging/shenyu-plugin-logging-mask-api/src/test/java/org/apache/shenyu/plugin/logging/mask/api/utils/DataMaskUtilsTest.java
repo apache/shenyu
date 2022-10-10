@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.mask.utils;
+package org.apache.shenyu.plugin.logging.mask.api.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.Md5Utils;
-import org.apache.shenyu.plugin.logging.mask.enums.DataMaskEnums;
-import org.apache.shenyu.plugin.logging.mask.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.mask.api.enums.DataMaskEnums;
+import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
