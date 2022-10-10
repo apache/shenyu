@@ -37,17 +37,5 @@
             <artifactId>shenyu-e2e-client</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-all</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 </project>

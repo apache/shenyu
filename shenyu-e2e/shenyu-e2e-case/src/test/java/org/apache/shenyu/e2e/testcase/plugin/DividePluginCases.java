@@ -46,7 +46,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     
     @Override
     public List<ScenarioSpec> get() {
-        return List.of(
+        return Lists.newArrayList(
                 ShenYuScenarioSpec.builder()
                         .name("single-divide uri =]")
                         .beforeEachSpec(
