@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.springboot.starter.sdk;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.apache.shenyu.sdk.core.http.ShenyuHttpClient;
 import org.apache.shenyu.sdk.spring.annotation.CookieValueParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessor;
@@ -34,6 +37,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -65,6 +69,20 @@ public class ShenyuClientAutoConfiguration {
         return request -> {
             throw new ShenyuException("please implement ShenyuHttpClient");
         };
+    }
+
+    /**
+     * ShenYu Instance Register Repository.
+     *
+     * @param config the config
+     * @return ShenYu Instance Register Repository
+     */
+    @Bean
+    @ConditionalOnProperty(name = "shenyu.instance.clientEnable", havingValue = "true")
+    public ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository(final ShenyuConfig config) {
+        ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getInstance().getRegisterType());
+        repository.init(config.getInstance());
+        return repository;
     }
 
     @Configuration(proxyBeanMethods = false)
