@@ -85,7 +85,11 @@ jobs:
 
   requirement:
     name: build
+    needs:
+      - build
     runs-on: ubuntu-latest
     steps:
-      - run: echo "test"
+      - name: checking job status
+        run: |
+          [[ "${{ needs.build.result }}" == "success" ]] || exit -1
 
