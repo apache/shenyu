@@ -77,7 +77,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
                                                        @RequestParam @NotNull final Integer pageSize) {
         final RuleQueryCondition condition = new RuleQueryCondition();
         condition.setUserId(SessionUtil.visitor().getUserId());
-        condition.setSelectors(ListUtil.list(selectorId));
+        condition.setSelectors(ListUtil.of(selectorId));
         condition.setKeyword(name);
         return searchAdaptor(new PageCondition<>(currentPage, pageSize, condition));
     }
