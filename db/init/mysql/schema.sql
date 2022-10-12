@@ -40,6 +40,52 @@ CREATE TABLE `alert_template`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for api
+-- ----------------------------
+DROP TABLE IF EXISTS `api`;
+CREATE TABLE `api` (
+                       `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+                       `context_path` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the context_path',
+                       `path` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the path',
+                       `http_method` int(0) NOT NULL COMMENT '0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace',
+                       `consume` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'consume',
+                       `produce` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'produce',
+                       `version` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'api version,for example V0.01',
+                       `rpc_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc',
+                       `status` tinyint(4) NOT NULL COMMENT '0-unpublished1-published2-offline',
+                       `ext` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'extended fields',
+                       `owner` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'owner',
+                       `api_desc` varchar(1024) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the api description',
+                       `document` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'complete documentation of the api, including request parameters and response parameters',
+                       `document_md5` char(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'document_md5',
+                       `source` int(0) NOT NULL COMMENT '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi',
+                       `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+                       `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+                       PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of api
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for api_rule_relation
+-- ----------------------------
+DROP TABLE IF EXISTS `api_rule_relation`;
+CREATE TABLE `api_rule_relation` (
+                                     `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+                                     `api_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the table api primary key id',
+                                     `rule_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the table rule primary key id',
+                                     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+                                     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+                                     PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of api_rule_relation
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for app_auth
 -- ----------------------------
 DROP TABLE IF EXISTS `app_auth`;
