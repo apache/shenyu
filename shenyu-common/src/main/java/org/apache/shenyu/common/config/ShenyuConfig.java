@@ -55,6 +55,8 @@ public class ShenyuConfig {
     
     private InstanceConfig instance = new InstanceConfig();
 
+    private SdkConfig sdk = new SdkConfig();
+
     private RibbonConfig ribbon = new RibbonConfig();
     
     private Local local = new Local();
@@ -172,7 +174,25 @@ public class ShenyuConfig {
     public void setInstance(final InstanceConfig instance) {
         this.instance = instance;
     }
-    
+
+    /**
+     * sdk.
+     *
+     * @return Sdk
+     */
+    public SdkConfig getSdk() {
+        return sdk;
+    }
+
+    /**
+     * set sdk.
+     *
+     * @param sdk sdk
+     */
+    public void setSdk(final SdkConfig sdk) {
+        this.sdk = sdk;
+    }
+
     /**
      * Gets switch config.
      *
@@ -1241,76 +1261,35 @@ public class ShenyuConfig {
             }
         }
     }
-    
-    /**
-     * The type Instance config.
-     */
-    public static class InstanceConfig {
-    
+
+    public static class RegisterConfig {
+
         private boolean enabled;
 
-        private boolean clientEnable;
-    
         private String registerType;
-    
+
         private String serverLists;
-    
+
         private Properties props = new Properties();
-    
+
         /**
-         * Instantiates a new Instance config.
+         * RegisterConfig.
          */
-        public InstanceConfig() {
-        
+        public RegisterConfig() {
+
         }
-    
+
         /**
-         * Instantiates a new Instance config.
+         * registerType.
          *
          * @param registerType the register type
          * @param serverLists the server lists
          * @param props the props
          */
-        public InstanceConfig(final String registerType, final String serverLists, final Properties props) {
+        public RegisterConfig(final String registerType, final String serverLists, final Properties props) {
             this.registerType = registerType;
             this.serverLists = serverLists;
             this.props = props;
-        }
-    
-        /**
-         * Gets enabled.
-         *
-         * @return the enabled
-         */
-        public boolean getEnabled() {
-            return enabled;
-        }
-    
-        /**
-         * Sets enabled.
-         *
-         * @param enabled the enabled
-         */
-        public void setEnabled(final boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        /**
-         * gets Client Enable.
-         *
-         * @return boolean
-         */
-        public boolean getClientEnable() {
-            return clientEnable;
-        }
-
-        /**
-         * sets ClientEnable.
-         *
-         * @param clientEnable clientEnable
-         */
-        public void setClientEnable(final boolean clientEnable) {
-            this.clientEnable = clientEnable;
         }
 
         /**
@@ -1321,7 +1300,7 @@ public class ShenyuConfig {
         public String getRegisterType() {
             return registerType;
         }
-    
+
         /**
          * setRegisterType.
          *
@@ -1330,7 +1309,7 @@ public class ShenyuConfig {
         public void setRegisterType(final String registerType) {
             this.registerType = registerType;
         }
-    
+
         /**
          * getServerLists.
          *
@@ -1339,7 +1318,7 @@ public class ShenyuConfig {
         public String getServerLists() {
             return serverLists;
         }
-    
+
         /**
          * setServerLists.
          *
@@ -1348,7 +1327,7 @@ public class ShenyuConfig {
         public void setServerLists(final String serverLists) {
             this.serverLists = serverLists;
         }
-    
+
         /**
          * getProps.
          *
@@ -1357,7 +1336,7 @@ public class ShenyuConfig {
         public Properties getProps() {
             return props;
         }
-    
+
         /**
          * setProps.
          *
@@ -1365,6 +1344,119 @@ public class ShenyuConfig {
          */
         public void setProps(final Properties props) {
             this.props = props;
+        }
+
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+    }
+
+    /**
+     * The type Instance config.
+     */
+    public static class InstanceConfig extends RegisterConfig {
+
+        /**
+         * Instantiates a new Instance config.
+         */
+        public InstanceConfig() {
+
+        }
+
+        /**
+         * Instantiates a new Instance config.
+         *
+         * @param registerType the register type
+         * @param serverLists the server lists
+         * @param props the props
+         */
+        public InstanceConfig(final String registerType, final String serverLists, final Properties props) {
+            super(registerType, serverLists, props);
+        }
+
+    }
+
+    /**
+     * The type Instance config.
+     */
+    public static class SdkConfig extends RegisterConfig {
+
+        /**
+         * The configured maximum for retry attempts..
+         */
+        private Integer retryMaxAttempts = 0;
+
+        /**
+         * max request time out (ms).
+         */
+        private Integer requestTimeOutMs;
+
+        /**
+         * SdkConfig.
+         */
+        public SdkConfig() {
+
+        }
+
+        /**
+         * SdkConfig.
+         *
+         * @param registerType the register type
+         * @param serverLists the server lists
+         * @param props the props
+         */
+        public SdkConfig(final String registerType, final String serverLists, final Properties props) {
+            super(registerType, serverLists, props);
+        }
+
+        /**
+         * retryMaxAttempts.
+         *
+         * @return RetryMaxAttempts
+         */
+        public Integer getRetryMaxAttempts() {
+            return retryMaxAttempts;
+        }
+
+        /**
+         * set retryMaxAttempts.
+         *
+         * @param retryMaxAttempts retryMaxAttempts
+         */
+        public void setRetryMaxAttempts(final Integer retryMaxAttempts) {
+            this.retryMaxAttempts = retryMaxAttempts;
+        }
+
+        /**
+         * requestTimeOutMs.
+         *
+         * @return RequestTimeOutMs
+         */
+        public Integer getRequestTimeOutMs() {
+            return requestTimeOutMs;
+        }
+
+        /**
+         * set requestTimeOutMs.
+         *
+         * @param requestTimeOutMs requestTimeOutMs
+         */
+        public void setRequestTimeOutMs(final Integer requestTimeOutMs) {
+            this.requestTimeOutMs = requestTimeOutMs;
         }
     }
     

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
-import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
@@ -40,7 +40,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     private EtcdClient client;
 
     @Override
-    public void init(final InstanceConfig config) {
+    public void init(final ShenyuConfig.RegisterConfig config) {
         Properties props = config.getProps();
         long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
         long ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));

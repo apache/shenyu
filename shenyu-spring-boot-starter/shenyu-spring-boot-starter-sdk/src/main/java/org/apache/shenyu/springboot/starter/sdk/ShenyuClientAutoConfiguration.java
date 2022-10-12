@@ -78,10 +78,10 @@ public class ShenyuClientAutoConfiguration {
      * @return ShenYu Instance Register Repository
      */
     @Bean
-    @ConditionalOnProperty(name = "shenyu.instance.clientEnable", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.sdk.enable", havingValue = "true")
     public ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository(final ShenyuConfig config) {
         ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getInstance().getRegisterType());
-        repository.init(config.getInstance());
+        repository.init(config.getSdk());
         return repository;
     }
 

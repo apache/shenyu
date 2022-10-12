@@ -19,7 +19,7 @@ package org.apache.shenyu.register.instance.zookeeper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.state.ConnectionState;
-import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
@@ -47,7 +47,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     private final Map<String, String> nodeDataMap = new HashMap<>();
 
     @Override
-    public void init(final InstanceConfig config) {
+    public void init(final ShenyuConfig.RegisterConfig config) {
         Properties props = config.getProps();
         int sessionTimeout = Integer.parseInt(props.getProperty("sessionTimeout", "3000"));
         int connectionTimeout = Integer.parseInt(props.getProperty("connectionTimeout", "3000"));
