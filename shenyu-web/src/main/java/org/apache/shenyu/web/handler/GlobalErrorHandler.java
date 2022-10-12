@@ -25,6 +25,7 @@ import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.lang.NonNull;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -51,11 +52,15 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
         LOG.error("handle error: {}{}", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        String errMsg = httpStatus.getReasonPhrase();
         if (throwable instanceof ResponseStatusException) {
             httpStatus = ((ResponseStatusException) throwable).getStatus();
+            if (StringUtils.hasLength(((ResponseStatusException) throwable).getReason())) {
+                errMsg = ((ResponseStatusException) throwable).getReason();
+            }
         }
         exchange.getResponse().setStatusCode(httpStatus);
-        Object error = ShenyuResultWrap.error(exchange, httpStatus.value(), httpStatus.getReasonPhrase(), throwable);
+        Object error = ShenyuResultWrap.error(exchange, httpStatus.value(), errMsg, throwable);
         return WebFluxResultUtils.result(exchange, error);
     }
     

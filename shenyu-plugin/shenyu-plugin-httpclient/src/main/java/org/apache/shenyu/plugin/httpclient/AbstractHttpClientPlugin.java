@@ -34,6 +34,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -89,13 +90,19 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                     .transientErrors(true)
                     .jitter(0.5d)
                     .filter(t -> t instanceof TimeoutException || t instanceof ConnectTimeoutException
-                            || t instanceof ReadTimeoutException || t instanceof IllegalStateException);
+                            || t instanceof ReadTimeoutException || t instanceof IllegalStateException)
+                    .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
+                        throw new ShenyuTimeoutException("Request timeout, the maximum number of retry times has been exceeded");
+                    });
             return response.retryWhen(retryBackoffSpec)
+                    .onErrorMap(ShenyuTimeoutException.class, th -> new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, th.getMessage(), th))
                     .onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
                     .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
         }
         final Set<URI> exclude = Sets.newHashSet(uri);
         return resend(response, exchange, duration, httpHeaders, exclude, retryTimes)
+                .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                        ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
                 .onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
                 .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
     }
