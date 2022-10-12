@@ -81,6 +81,7 @@ public class ZookeeperInstanceRegisterRepositoryTest {
                 .build();
         final Listenable listenable = mock(Listenable.class);
         final CuratorWatcher[] watcherArr = new CuratorWatcher[1];
+
         try (MockedConstruction<ZookeeperClient> construction = mockConstruction(ZookeeperClient.class, (mock, context) -> {
             final CuratorFramework curatorFramework = mock(CuratorFramework.class);
             when(mock.getClient()).thenReturn(curatorFramework);
