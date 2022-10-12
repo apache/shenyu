@@ -53,9 +53,9 @@ public class ShenyuConfig {
 
     private CrossFilterConfig cross = new CrossFilterConfig();
     
-    private InstanceConfig instance = new InstanceConfig();
+    private RegisterConfig register = new RegisterConfig();
 
-    private SdkConfig sdk = new SdkConfig();
+    private RegisterConfig sdk = new RegisterConfig();
 
     private RibbonConfig ribbon = new RibbonConfig();
     
@@ -156,23 +156,23 @@ public class ShenyuConfig {
     public void setRibbon(final RibbonConfig ribbon) {
         this.ribbon = ribbon;
     }
-    
+
     /**
-     * Gets instance.
+     * register.
      *
-     * @return the instance
+     * @return Register
      */
-    public InstanceConfig getInstance() {
-        return instance;
+    public RegisterConfig getRegister() {
+        return register;
     }
-    
+
     /**
-     * Sets instance.
+     * set register.
      *
-     * @param instance the instance
+     * @param register register
      */
-    public void setInstance(final InstanceConfig instance) {
-        this.instance = instance;
+    public void setRegister(final RegisterConfig register) {
+        this.register = register;
     }
 
     /**
@@ -180,7 +180,7 @@ public class ShenyuConfig {
      *
      * @return Sdk
      */
-    public SdkConfig getSdk() {
+    public RegisterConfig getSdk() {
         return sdk;
     }
 
@@ -189,7 +189,7 @@ public class ShenyuConfig {
      *
      * @param sdk sdk
      */
-    public void setSdk(final SdkConfig sdk) {
+    public void setSdk(final RegisterConfig sdk) {
         this.sdk = sdk;
     }
 
@@ -1362,101 +1362,6 @@ public class ShenyuConfig {
          */
         public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
-        }
-    }
-
-    /**
-     * The type Instance config.
-     */
-    public static class InstanceConfig extends RegisterConfig {
-
-        /**
-         * Instantiates a new Instance config.
-         */
-        public InstanceConfig() {
-
-        }
-
-        /**
-         * Instantiates a new Instance config.
-         *
-         * @param registerType the register type
-         * @param serverLists the server lists
-         * @param props the props
-         */
-        public InstanceConfig(final String registerType, final String serverLists, final Properties props) {
-            super(registerType, serverLists, props);
-        }
-
-    }
-
-    /**
-     * The type Instance config.
-     */
-    public static class SdkConfig extends RegisterConfig {
-
-        /**
-         * The configured maximum for retry attempts..
-         */
-        private Integer retryMaxAttempts = 0;
-
-        /**
-         * max request time out (ms).
-         */
-        private Integer requestTimeOutMs;
-
-        /**
-         * SdkConfig.
-         */
-        public SdkConfig() {
-
-        }
-
-        /**
-         * SdkConfig.
-         *
-         * @param registerType the register type
-         * @param serverLists the server lists
-         * @param props the props
-         */
-        public SdkConfig(final String registerType, final String serverLists, final Properties props) {
-            super(registerType, serverLists, props);
-        }
-
-        /**
-         * retryMaxAttempts.
-         *
-         * @return RetryMaxAttempts
-         */
-        public Integer getRetryMaxAttempts() {
-            return retryMaxAttempts;
-        }
-
-        /**
-         * set retryMaxAttempts.
-         *
-         * @param retryMaxAttempts retryMaxAttempts
-         */
-        public void setRetryMaxAttempts(final Integer retryMaxAttempts) {
-            this.retryMaxAttempts = retryMaxAttempts;
-        }
-
-        /**
-         * requestTimeOutMs.
-         *
-         * @return RequestTimeOutMs
-         */
-        public Integer getRequestTimeOutMs() {
-            return requestTimeOutMs;
-        }
-
-        /**
-         * set requestTimeOutMs.
-         *
-         * @param requestTimeOutMs requestTimeOutMs
-         */
-        public void setRequestTimeOutMs(final Integer requestTimeOutMs) {
-            this.requestTimeOutMs = requestTimeOutMs;
         }
     }
     

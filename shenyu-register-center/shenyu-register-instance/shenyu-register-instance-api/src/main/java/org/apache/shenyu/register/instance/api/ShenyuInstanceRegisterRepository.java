@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.register.instance.api;
 
-import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.apache.shenyu.spi.SPI;
@@ -36,7 +36,7 @@ public interface ShenyuInstanceRegisterRepository {
      *
      * @param config the config
      */
-    default void init(ShenyuConfig.RegisterConfig config) {
+    default void init(RegisterConfig config) {
     }
     
     /**
