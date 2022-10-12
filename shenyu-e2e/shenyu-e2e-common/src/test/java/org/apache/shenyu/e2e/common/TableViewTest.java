@@ -20,9 +20,9 @@ package org.apache.shenyu.e2e.common;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,7 +32,7 @@ public class TableViewTest {
     void testTableViewPrint() {
         TableView tableView = new TableView("header 1", "header 2", "header 3", "header 4");
         tableView.addRow("column 1", "column 2", "column 3", "column 4");
-        tableView.addRow(1, new Cell("123"), 1d, List.of("a", "b"));
+        tableView.addRow(1, new Cell("123"), 1d, Lists.newArrayList("a", "b"));
         
         Assertions.assertThat(tableView.printAsString())
                 .isEqualTo(Stream.<String>builder()

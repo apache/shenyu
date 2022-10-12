@@ -29,6 +29,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,7 +40,7 @@ public enum NamingResolver {
     
     public void ofHostConfigure(List<HostServiceConfigure> serviceConfigures) {
         namingMap = serviceConfigures.stream()
-                .collect(Collectors.toUnmodifiableMap(
+                .collect(Collectors.toMap(
                                 HostServiceConfigure::getServiceName,
                                 c -> getAddressFromBaseUrl(c.getBaseUrl())
                         )
@@ -54,18 +55,21 @@ public enum NamingResolver {
             Map<String, ?> serviceInstanceMap = (Map<String, ?>) field.get(container);
             
             serviceInstanceMap.keySet().forEach(e -> {
-                container.getContainerByServiceName(e).ifPresentOrElse(
-                        c -> {
-                            c.getContainerInfo().getNetworkSettings().getNetworks().entrySet()
-                                    .stream()
-                                    .findFirst()
-                                    .ifPresent(net -> {
-                                        String ip = net.getValue().getIpAddress();
-                                        net.getValue().getAliases().forEach(alias -> _namingMap.put(alias, ip));
-                                    });
-                        },
-                        () -> log.warn("service {} not exists", e)
-                );
+                if (container.getContainerByServiceName(e).isPresent()) {
+                    container.getContainerByServiceName(e).get()
+                            .getContainerInfo()
+                            .getNetworkSettings()
+                            .getNetworks()
+                            .entrySet()
+                            .stream()
+                            .findFirst()
+                            .ifPresent(net -> {
+                                String ip = net.getValue().getIpAddress();
+                                Objects.requireNonNull(net.getValue().getAliases()).forEach(alias -> _namingMap.put(alias, ip));
+                            });
+                } else {
+                    log.warn("service {} not exists", e);
+                }
             });
             System.out.println(_namingMap);
         } catch (NoSuchFieldException | IllegalAccessException ignore) {
@@ -105,7 +109,7 @@ public enum NamingResolver {
         } catch (UnknownHostException ignore) {
         }
         log.info("failed to resolve {}", name);
-    
+        
         return name;
     }
 }
