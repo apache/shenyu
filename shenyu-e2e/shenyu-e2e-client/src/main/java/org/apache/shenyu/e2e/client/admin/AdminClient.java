@@ -73,14 +73,13 @@ public class AdminClient {
     private final String baseURL;
     private final ImmutableMap<String, String> loginInfo;
     
-    private static final TypeReference<PaginatedResources<PluginDTO>> PAGINATED_PLUGINS_TYPE_REFERENCE = new TypeReference<>() {
+    private static final TypeReference<PaginatedResources<PluginDTO>> PAGINATED_PLUGINS_TYPE_REFERENCE = new TypeReference<PaginatedResources<PluginDTO>>() {
     };
-    
-    private static final TypeReference<SearchedResources<SelectorDTO>> SEARCHED_SELECTORS_TYPE_REFERENCE = new TypeReference<>() {
+    private static final TypeReference<SearchedResources<SelectorDTO>> SEARCHED_SELECTORS_TYPE_REFERENCE = new TypeReference<SearchedResources<SelectorDTO>>() {
     };
-    private static final TypeReference<SearchedResources<RuleDTO>> SEARCHED_RULES_TYPE_REFERENCE = new TypeReference<>() {
+    private static final TypeReference<SearchedResources<RuleDTO>> SEARCHED_RULES_TYPE_REFERENCE = new TypeReference<SearchedResources<RuleDTO>>() {
     };
-    private static final TypeReference<SearchedResources<FakeResourceDTO>> FAKE_VALUE_TYPE = new TypeReference<>() {
+    private static final TypeReference<SearchedResources<FakeResourceDTO>> FAKE_VALUE_TYPE = new TypeReference<SearchedResources<FakeResourceDTO>>() {
     };
     
     public AdminClient(String scenarioId, String baseURL, Properties properties) {
