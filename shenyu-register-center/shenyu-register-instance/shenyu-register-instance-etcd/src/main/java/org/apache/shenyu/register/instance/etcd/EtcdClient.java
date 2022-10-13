@@ -113,9 +113,10 @@ public class EtcdClient {
     }
 
     /**
-     * watch servernode
-     * @param prefixAddress
-     * @return
+     * watch servernode.
+     *
+     * @param prefixAddress prefixAddress
+     * @return return
      */
     public List<InstanceRegisterDTO> watchService(final String prefixAddress) {
         List<InstanceRegisterDTO> instanceRegisterDTOS = new ArrayList<>();
@@ -135,9 +136,10 @@ public class EtcdClient {
     }
 
     /**
-     * watch serverNode
-     * @param prefixAddress
-     * @param instanceRegisterDTOS
+     * watch serverNode.
+     *
+     * @param prefixAddress prefixAddress
+     * @param instanceRegisterDTOS instanceRegisterDTOS
      */
     public void watch(final String prefixAddress, final List<InstanceRegisterDTO> instanceRegisterDTOS) {
         WatchOption watchOption = WatchOption.newBuilder().withPrefix(ByteSequence.from(prefixAddress, UTF_8)).build();
