@@ -39,9 +39,9 @@ import java.util.Properties;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 public class ZookeeperInstanceRegisterRepositoryTest {
 
@@ -94,7 +94,7 @@ public class ZookeeperInstanceRegisterRepositoryTest {
             when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
         })) {
             final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
-            ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+            ShenyuConfig.RegisterConfig config = new ShenyuConfig.RegisterConfig();
             repository.init(config);
             final Properties configProps = config.getProps();
             configProps.setProperty("digest", "digest");
