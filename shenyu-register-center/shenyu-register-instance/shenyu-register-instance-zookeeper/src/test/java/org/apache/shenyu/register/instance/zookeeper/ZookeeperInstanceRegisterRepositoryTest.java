@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.register.instance.zookeeper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.framework.listen.Listenable;
@@ -35,12 +31,17 @@ import org.apache.zookeeper.WatchedEvent;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.when;
 
 public class ZookeeperInstanceRegisterRepositoryTest {
 
@@ -73,69 +74,37 @@ public class ZookeeperInstanceRegisterRepositoryTest {
 
     @Test
     public void testSelectInstancesAndWatcher() throws Exception {
-
         InstanceRegisterDTO data = InstanceRegisterDTO.builder()
-
                 .appName("shenyu-test")
-
                 .host("shenyu-host")
-
                 .port(9195)
-
                 .build();
-
         final Listenable listenable = mock(Listenable.class);
-
         final CuratorWatcher[] watcherArr = new CuratorWatcher[1];
 
         try (MockedConstruction<ZookeeperClient> construction = mockConstruction(ZookeeperClient.class, (mock, context) -> {
-
             final CuratorFramework curatorFramework = mock(CuratorFramework.class);
-
             when(mock.getClient()).thenReturn(curatorFramework);
-
             when(mock.subscribeChildrenChanges(anyString(), any(CuratorWatcher.class))).thenAnswer(invocation -> {
-
                 Object[] args = invocation.getArguments();
-
-                System.out.println(args[1]);
-
                 watcherArr[0] = (CuratorWatcher) args[1];
-
                 return Collections.singletonList("shenyu-test");
-
             });
-
             when(mock.get(anyString())).thenReturn(GsonUtils.getInstance().toJson(data));
-
             when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
-
         })) {
-
             final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
-
             ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
-
             repository.init(config);
-
             final Properties configProps = config.getProps();
-
             configProps.setProperty("digest", "digest");
-
             repository.init(config);
-
             repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
-
             WatchedEvent mockEvent = mock(WatchedEvent.class);
-
             when(mockEvent.getPath()).thenReturn(RegisterPathConstants.buildInstanceParentPath());
-
             watcherArr[0].process(mockEvent);
-
             repository.close();
-
         }
-
     }
 
 }

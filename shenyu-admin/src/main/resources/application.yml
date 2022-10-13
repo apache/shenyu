@@ -36,8 +36,8 @@ mybatis:
 
 shenyu:
   register:
-    registerType: etcd #nacos #consul
-    serverLists: http://localhost:2379 #localhost:8848
+    registerType: http #http #zookeeper #etcd #nacos #consul
+    serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
       sessionTimeout: 5000
       connectionTimeout: 2000
@@ -46,10 +46,10 @@ shenyu:
       scheduledTime: 10
       nacosNameSpace: ShenyuRegisterCenter
   sync:
-#    websocket:
-#      enabled: true
-#      messageMaxSize: 10240
-#      allowOrigins: ws://localhost:9095;ws://localhost:9195;
+    websocket:
+      enabled: true
+      messageMaxSize: 10240
+      allowOrigins: ws://localhost:9095;ws://localhost:9195;
 #      zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000
@@ -67,8 +67,8 @@ shenyu:
 #          namespace:
 #          accessKey:
 #          secretKey:
-    etcd:
-      url: http://localhost:2379
+#    etcd:
+#      url: http://localhost:2379
 #    consul:
 #      url: http://localhost:8500
   ldap:
