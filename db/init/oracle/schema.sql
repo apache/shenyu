@@ -360,12 +360,12 @@ comment on column API.owner
   is 'owner';
 comment on column API.api_desc
   is 'the api description';
+comment on column API.api_source
+  is '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi';
 comment on column API.document
   is 'complete documentation of the api, including request parameters and response parameters';
 comment on column API.document_md5
   is 'document_md5';
-comment on column API.api_source
-  is '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi';
 comment on column API.date_created
   is 'create time';
 comment on column API.date_updated

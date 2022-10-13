@@ -84,6 +84,11 @@ public class ApiDO {
     private String apiDesc;
 
     /**
+     * 0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi.
+     */
+    private Integer apiSource;
+
+    /**
      * complete documentation of the api, including request parameters and response parameters.
      */
     private String document;
@@ -92,11 +97,6 @@ public class ApiDO {
      * document_md5.
      */
     private String documentMd5;
-
-    /**
-     * 0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi.
-     */
-    private Integer apiSource;
 
     /**
      * create time.
@@ -301,6 +301,22 @@ public class ApiDO {
     }
 
     /**
+     * getApiSource.
+     * @return apiSource
+     */
+    public Integer getApiSource() {
+        return apiSource;
+    }
+
+    /**
+     * setSource.
+     * @param apiSource apiSource
+     */
+    public void setApiSource(final Integer apiSource) {
+        this.apiSource = apiSource;
+    }
+
+    /**
      * getDocument.
      * @return document
      */
@@ -330,22 +346,6 @@ public class ApiDO {
      */
     public void setDocumentMd5(final String documentMd5) {
         this.documentMd5 = documentMd5;
-    }
-
-    /**
-     * getApiSource.
-     * @return apiSource
-     */
-    public Integer getApiSource() {
-        return apiSource;
-    }
-
-    /**
-     * setSource.
-     * @param apiSource apiSource
-     */
-    public void setApiSource(final Integer apiSource) {
-        this.apiSource = apiSource;
     }
 
     /**

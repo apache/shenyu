@@ -65,9 +65,9 @@ CREATE TABLE "public"."api" (
                                      "ext"          varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
                                      "owner"        varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
                                      "api_desc"     varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+                                     "api_source"       int4 NOT NULL,
                                      "document"     text COLLATE "pg_catalog"."default" NOT NULL,
                                      "document_md5" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-                                     "api_source"       int4 NOT NULL,
                                      "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
                                      "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -84,9 +84,9 @@ COMMENT ON COLUMN "public"."api"."status" IS '0-unpublished1-published2-offline'
 COMMENT ON COLUMN "public"."api"."ext" IS 'extended fields';
 COMMENT ON COLUMN "public"."api"."owner" IS 'owner';
 COMMENT ON COLUMN "public"."api"."api_desc" IS 'the api description';
+COMMENT ON COLUMN "public"."api"."api_source" IS '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi';
 COMMENT ON COLUMN "public"."api"."document" IS 'complete documentation of the api, including request parameters and response parameters';
 COMMENT ON COLUMN "public"."api"."document_md5" IS 'document_md5';
-COMMENT ON COLUMN "public"."api"."api_source" IS '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi';
 COMMENT ON COLUMN "public"."api"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."api"."date_updated" IS 'update time';
 

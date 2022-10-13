@@ -33,16 +33,16 @@
     <result column="ext" jdbcType="VARCHAR" property="ext" />
     <result column="owner" jdbcType="VARCHAR" property="owner" />
     <result column="api_desc" jdbcType="VARCHAR" property="apiDesc" />
+    <result column="api_source" jdbcType="INTEGER" property="apiSource" />
     <result column="document" jdbcType="LONGVARCHAR" property="document" />
     <result column="document_md5" jdbcType="CHAR" property="documentMd5" />
-    <result column="api_source" jdbcType="INTEGER" property="apiSource" />
     <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated" />
     <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated" />
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
     id, context_path, `path`, http_method, consume, produce, version, rpc_type, `status`, 
-    ext, `owner`, api_desc, document, document_md5, api_source, date_created, date_updated
+    ext, `owner`, api_desc,api_source, document, document_md5, date_created, date_updated
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     <!--@mbg.generated-->
@@ -61,14 +61,14 @@
     insert into api (id, context_path, `path`, 
       http_method, consume, produce, 
       version, rpc_type, `status`, 
-      ext, `owner`, api_desc, 
-      document, document_md5, api_source,
+      ext, `owner`, api_desc, api_source,
+      document, document_md5,
       date_created, date_updated)
     values (#{id,jdbcType=VARCHAR}, #{contextPath,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, 
       #{httpMethod,jdbcType=INTEGER}, #{consume,jdbcType=VARCHAR}, #{produce,jdbcType=VARCHAR}, 
       #{version,jdbcType=VARCHAR}, #{rpcType,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, 
-      #{ext,jdbcType=VARCHAR}, #{owner,jdbcType=VARCHAR}, #{apiDesc,jdbcType=VARCHAR}, 
-      #{document,jdbcType=LONGVARCHAR}, #{documentMd5,jdbcType=CHAR}, #{apiSource,jdbcType=INTEGER},
+      #{ext,jdbcType=VARCHAR}, #{owner,jdbcType=VARCHAR}, #{apiDesc,jdbcType=VARCHAR},#{apiSource,jdbcType=INTEGER},
+      #{document,jdbcType=LONGVARCHAR}, #{documentMd5,jdbcType=CHAR},
       #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ApiDO">
@@ -111,14 +111,14 @@
       <if test="apiDesc != null">
         api_desc,
       </if>
+      <if test="apiSource != null">
+        api_source,
+      </if>
       <if test="document != null">
         document,
       </if>
       <if test="documentMd5 != null">
         document_md5,
-      </if>
-      <if test="apiSource != null">
-        api_source,
       </if>
       <if test="dateCreated != null">
         date_created,
@@ -164,14 +164,14 @@
       <if test="apiDesc != null">
         #{apiDesc,jdbcType=VARCHAR},
       </if>
+      <if test="apiSource != null">
+        #{apiSource,jdbcType=INTEGER},
+      </if>
       <if test="document != null">
         #{document,jdbcType=LONGVARCHAR},
       </if>
       <if test="documentMd5 != null">
         #{documentMd5,jdbcType=CHAR},
-      </if>
-      <if test="apiSource != null">
-        #{apiSource,jdbcType=INTEGER},
       </if>
       <if test="dateCreated != null">
         #{dateCreated,jdbcType=TIMESTAMP},
@@ -218,14 +218,14 @@
       <if test="apiDesc != null">
         api_desc = #{apiDesc,jdbcType=VARCHAR},
       </if>
+      <if test="apiSource != null">
+        api_source = #{apiSource,jdbcType=INTEGER},
+      </if>
       <if test="document != null">
         document = #{document,jdbcType=LONGVARCHAR},
       </if>
       <if test="documentMd5 != null">
         document_md5 = #{documentMd5,jdbcType=CHAR},
-      </if>
-      <if test="apiSource != null">
-        api_source = #{apiSource,jdbcType=INTEGER},
       </if>
       <if test="dateCreated != null">
         date_created = #{dateCreated,jdbcType=TIMESTAMP},
@@ -250,9 +250,9 @@
       ext = #{ext,jdbcType=VARCHAR},
       `owner` = #{owner,jdbcType=VARCHAR},
       api_desc = #{apiDesc,jdbcType=VARCHAR},
+      api_source = #{apiSource,jdbcType=INTEGER},
       document = #{document,jdbcType=LONGVARCHAR},
       document_md5 = #{documentMd5,jdbcType=CHAR},
-      api_source = #{apiSource,jdbcType=INTEGER},
       date_created = #{dateCreated,jdbcType=TIMESTAMP},
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=VARCHAR}
