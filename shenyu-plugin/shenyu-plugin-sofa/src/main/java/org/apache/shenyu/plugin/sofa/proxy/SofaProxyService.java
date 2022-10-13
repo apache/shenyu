@@ -31,6 +31,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.sofa.param.SofaParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
@@ -72,7 +73,7 @@ public class SofaProxyService {
         }
         
         Pair<String[], Object[]> pair;
-        if (StringUtils.isBlank(metaData.getParameterTypes()) || parameterIsNone(body)) {
+        if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.bodyIsEmpty(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
             pair = sofaParamResolveService.buildParameter(body, metaData.getParameterTypes());
@@ -106,16 +107,5 @@ public class SofaProxyService {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(ShenyuException::new);
-    }
-    
-    /**
-     * check request body.<br>
-     * if none [null, none, none json, null string].
-     *
-     * @param parameterBody parameter body
-     * @return check result
-     */
-    private boolean parameterIsNone(final String parameterBody) {
-        return null == parameterBody || "".equals(parameterBody) || "{}".equals(parameterBody) || "null".equals(parameterBody);
     }
 }

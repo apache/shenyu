@@ -238,6 +238,20 @@ public class ZookeeperClient {
     }
 
     /**
+     * add children watcher.
+     * @param key selectKey
+     * @param curatorWatcher watcher
+     * @return children List
+     */
+    public List<String> subscribeChildrenChanges(final String key, final CuratorWatcher curatorWatcher) {
+        try {
+            return client.getChildren().usingWatcher(curatorWatcher).forPath(key);
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    /**
      * find cache with  key.
      * @param key key.
      * @return cache.

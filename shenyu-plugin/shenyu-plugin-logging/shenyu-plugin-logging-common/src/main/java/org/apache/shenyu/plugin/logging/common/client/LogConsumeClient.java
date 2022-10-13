@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Used to collect logs, which can be stored in remote or local files or databases, or others.
  */
-public interface LogConsumeClient<C extends GenericGlobalConfig> extends AutoCloseable {
+public interface LogConsumeClient<C extends GenericGlobalConfig, L extends ShenyuRequestLog> extends AutoCloseable {
     
     /**
      * collect logs.
@@ -33,7 +33,7 @@ public interface LogConsumeClient<C extends GenericGlobalConfig> extends AutoClo
      * @param logs list of log
      * @throws Exception produce exception
      */
-    void consume(List<ShenyuRequestLog> logs) throws Exception;
+    void consume(List<L> logs) throws Exception;
 
     /**
      * init client by config.

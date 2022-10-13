@@ -29,11 +29,11 @@ import reactor.util.annotation.NonNull;
 /**
  * decorate ServerHttpRequest for read body.
  */
-public class LoggingServerHttpRequest extends ServerHttpRequestDecorator {
+public class LoggingServerHttpRequest<L extends ShenyuRequestLog> extends ServerHttpRequestDecorator {
     
-    private final ShenyuRequestLog logInfo;
+    private final L logInfo;
 
-    public LoggingServerHttpRequest(final ServerHttpRequest delegate, final ShenyuRequestLog logInfo) {
+    public LoggingServerHttpRequest(final ServerHttpRequest delegate, final L logInfo) {
         super(delegate);
         this.logInfo = logInfo;
     }

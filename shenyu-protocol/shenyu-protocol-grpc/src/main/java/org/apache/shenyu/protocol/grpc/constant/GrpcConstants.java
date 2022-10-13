@@ -37,4 +37,9 @@ public class GrpcConstants {
      */
     public static final String JSON_DESCRIPTOR_PROTO_FIELD_NAME = "data";
 
+    /**
+     * json descriptor proto field num.
+     */
+    public static final Integer JSON_DESCRIPTOR_PROTO_FIELD_NUM = 1;
+
 }

@@ -40,7 +40,7 @@
     </licenses>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>8</java.version>
         <testcontainers.version>1.17.3</testcontainers.version>
         <junit.version>5.8.2</junit.version>
         <assertj.version>3.22.0</assertj.version>

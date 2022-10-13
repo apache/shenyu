@@ -49,7 +49,7 @@ import java.util.Properties;
 /**
  * queue-based logging collector.
  */
-public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogCollectConfig.KafkaLogConfig> {
+public class KafkaLogCollectClient extends AbstractLogConsumeClient<KafkaLogCollectConfig.KafkaLogConfig, ShenyuRequestLog> {
 
     private static Map<String, String> apiTopicMap = new HashMap<>();
 

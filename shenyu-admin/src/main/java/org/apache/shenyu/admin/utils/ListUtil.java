@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -55,11 +54,11 @@ public final class ListUtil {
      *
      * @param t   e
      * @param <T> type
-     * @return list
+     * @return unmodifiable list
      */
     @SafeVarargs
     public static <T> List<T> of(final T... t) {
-        return new ArrayList<>(list(t));
+        return Collections.unmodifiableList(Stream.of(t).filter(Objects::nonNull).collect(Collectors.toList()));
     }
     
     /**

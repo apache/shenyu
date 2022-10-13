@@ -17,19 +17,27 @@
 
 package org.apache.shenyu.register.instance.zookeeper;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
+import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.spi.Join;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.WatchedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +89,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
         client.start();
     }
-    
+
     @Override
     public void persistInstance(final InstanceRegisterDTO instance) {
         String uriNodeName = buildInstanceNodeName(instance);
@@ -94,7 +102,30 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         nodeDataMap.put(realNode, nodeData);
         client.createOrUpdate(realNode, nodeData, CreateMode.EPHEMERAL);
     }
-    
+
+    @Override
+    public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+        final Function<List<String>, List<InstanceRegisterDTO>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath -> {
+            String instanceRegisterJsonStr = client.get(RegisterPathConstants.buildRealNode(selectKey, childPath));
+            return GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceRegisterDTO.class);
+        }).collect(Collectors.toList());
+
+        List<String> childrenPathList = client.subscribeChildrenChanges(selectKey, new CuratorWatcher() {
+            @Override
+            public void process(final WatchedEvent event) throws Exception {
+                if (watcherListener != null) {
+                    String path = Objects.isNull(event.getPath()) ? "" : event.getPath();
+                    List<String> childrenList = StringUtils.isNotBlank(path) ? client.subscribeChildrenChanges(path, this)
+                            : Collections.emptyList();
+                    if (!childrenList.isEmpty()) {
+                        watcherListener.listener(getInstanceRegisterFun.apply(childrenList));
+                    }
+                }
+            }
+        });
+        return getInstanceRegisterFun.apply(childrenPathList);
+    }
+
     @Override
     public void close() {
         client.close();

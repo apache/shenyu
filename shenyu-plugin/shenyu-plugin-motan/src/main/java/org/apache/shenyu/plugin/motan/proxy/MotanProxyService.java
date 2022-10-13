@@ -31,6 +31,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
@@ -91,6 +92,7 @@ public class MotanProxyService {
             int num = motanParamInfo.getParamTypes().length;
             params = new Object[num];
             Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
+            ParamCheckUtils.checkParamsLength(bodyMap.size(), motanParamInfo.getParamNames().length);
             for (int i = 0; i < num; i++) {
                 params[i] = bodyMap.get(motanParamInfo.getParamNames()[i]).toString();
             }

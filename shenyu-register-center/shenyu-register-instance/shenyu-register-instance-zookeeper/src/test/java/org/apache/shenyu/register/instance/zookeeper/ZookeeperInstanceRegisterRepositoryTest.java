@@ -40,7 +40,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ZookeeperInstanceRegisterRepositoryTest {
@@ -136,19 +135,6 @@ public class ZookeeperInstanceRegisterRepositoryTest {
             repository.close();
 
         }
-
-    }
-
-    @Test
-    public void testtest(){
-        //mock creation
-        List mockedList = mock(List.class);
-        //using mock object
-        mockedList.add("one");
-        mockedList.clear();
-        //verification
-        verify(mockedList).add("one");
-        verify(mockedList).clear();
 
     }
 
