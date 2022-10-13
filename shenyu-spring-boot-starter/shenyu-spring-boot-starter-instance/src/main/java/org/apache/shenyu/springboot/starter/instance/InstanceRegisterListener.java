@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.springboot.starter.instance;
 
-import java.util.concurrent.ExecutionException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -74,13 +73,7 @@ public class InstanceRegisterListener implements ApplicationListener<WebServerIn
         String configPort = props.getProperty("port");
         int port = StringUtils.isBlank(configPort) ? event.getWebServer().getPort() : Integer.parseInt(configPort);
         InstanceRegisterDTO registerDTO = buildInstanceRegisterDTO(port);
-        try {
-            repository.persistInstance(registerDTO);
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        repository.persistInstance(registerDTO);
     }
     
     private InstanceRegisterDTO buildInstanceRegisterDTO(final int port) {

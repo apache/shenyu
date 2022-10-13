@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.register.instance.api;
 
-import java.util.concurrent.ExecutionException;
 import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.WatcherListener;
@@ -45,7 +44,7 @@ public interface ShenyuInstanceRegisterRepository {
      *
      * @param instance instance
      */
-    void persistInstance(InstanceRegisterDTO instance) throws ExecutionException, InterruptedException;
+    void persistInstance(InstanceRegisterDTO instance);
 
     /**
      * selectInstancesAndWatcher.
@@ -54,7 +53,7 @@ public interface ShenyuInstanceRegisterRepository {
      * @param watcherListener watcherListener
      * @return {@link List}
      */
-    default List<InstanceRegisterDTO> selectInstancesAndWatcher(String selectKey, WatcherListener watcherListener) throws ExecutionException, InterruptedException {
+    default List<InstanceRegisterDTO> selectInstancesAndWatcher(String selectKey, WatcherListener watcherListener) {
         return Collections.emptyList();
     }
     
