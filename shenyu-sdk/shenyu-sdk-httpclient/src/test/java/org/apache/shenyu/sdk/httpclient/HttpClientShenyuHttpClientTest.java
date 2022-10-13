@@ -37,7 +37,7 @@ public class HttpClientShenyuHttpClientTest {
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
         ShenyuRequest shenyuRequest = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
-                headerMap, null, null);
+                headerMap, null, null, null);
         ShenyuResponse response = shenyuHttpClient.execute(shenyuRequest);
         Assertions.assertNotNull(response);
     }
