@@ -113,7 +113,7 @@ public class EtcdClient {
     }
 
     /**
-     *
+     * watch servernode
      * @param prefixAddress
      * @return
      */
@@ -135,7 +135,7 @@ public class EtcdClient {
     }
 
     /**
-     *
+     * watch serverNode
      * @param prefixAddress
      * @param instanceRegisterDTOS
      */
