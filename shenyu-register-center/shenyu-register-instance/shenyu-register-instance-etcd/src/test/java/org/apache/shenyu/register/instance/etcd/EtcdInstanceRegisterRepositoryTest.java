@@ -17,15 +17,11 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
-import com.google.common.collect.Lists;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.ClientBuilder;
 import io.etcd.jetcd.Lease;
-import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.lease.LeaseGrantResponse;
-import io.etcd.jetcd.watch.WatchResponse;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -140,7 +136,8 @@ public final class EtcdInstanceRegisterRepositoryTest {
                 .build();
 
         try (MockedConstruction<EtcdClient> construction = mockConstruction(EtcdClient.class, (mock, context) -> {
-        })){
+
+        })) {
             final EtcdInstanceRegisterRepository repository = new EtcdInstanceRegisterRepository();
             ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
 
@@ -158,9 +155,6 @@ public final class EtcdInstanceRegisterRepositoryTest {
 
             repository.close();
         }
-
-
-
 
     }
 }

@@ -114,17 +114,16 @@ public class EtcdClient {
 
     public InstanceRegisterDTO getEphemeral(final String key) throws ExecutionException, InterruptedException {
         String prefix = "/shenyu/register/instance";
-        CompletableFuture<GetResponse> getResponseCompletableFuture = client.getKVClient().get(ByteSequence.from(prefix, UTF_8), GetOption.newBuilder().withPrefix(ByteSequence.from(prefix, UTF_8)).build());
+        CompletableFuture<GetResponse> getResponseCompletableFuture =
+                client.getKVClient().get(ByteSequence.from(prefix, UTF_8), GetOption.newBuilder().withPrefix(ByteSequence.from(prefix, UTF_8)).build());
 
         List<KeyValue> keyValueList = getResponseCompletableFuture.get().getKvs();
-        System.out.println(keyValueList);
         KV kvClient = client.getKVClient();
         String nodeDataJson = String.valueOf(kvClient.get(ByteSequence.from(key, UTF_8)));
-        System.out.println(nodeDataJson);
         return GsonUtils.getInstance().fromJson(nodeDataJson, InstanceRegisterDTO.class);
     }
 
-    public List<InstanceRegisterDTO> watchService(String prefixAddress) {
+    public List<InstanceRegisterDTO> watchService(final String prefixAddress) {
         List<InstanceRegisterDTO> instanceRegisterDTOS = new ArrayList<>();
         CompletableFuture<GetResponse> getResponseCompletableFuture =
                 client.getKVClient().get(ByteSequence.from(prefixAddress, UTF_8),
@@ -136,26 +135,29 @@ public class EtcdClient {
                 instanceRegisterDTOS.add(GsonUtils.getInstance().fromJson(keyValue.getValue().toString(UTF_8), InstanceRegisterDTO.class));
             }
         } catch (Exception e) {
-
+            LOGGER.error("watchService error", e);
         }
         return instanceRegisterDTOS;
     }
 
-    public void watch(String prefixAddress,List<InstanceRegisterDTO> instanceRegisterDTOS) {
+    public void watch(final String prefixAddress, final List<InstanceRegisterDTO> instanceRegisterDTOS) {
         WatchOption watchOption = WatchOption.newBuilder().withPrefix(ByteSequence.from(prefixAddress, UTF_8)).build();
         Watch.Listener listener = Watch.listener(watchResponse -> {
             watchResponse.getEvents().forEach(watchEvent -> {
                 WatchEvent.EventType eventType = watchEvent.getEventType();
                 switch (eventType) {
                     case PUT:
-                        instanceRegisterDTOS.add(GsonUtils.getInstance().fromJson(watchEvent.getKeyValue().getValue().toString(),InstanceRegisterDTO.class));
+                        instanceRegisterDTOS.add(GsonUtils.getInstance().fromJson(watchEvent.getKeyValue().getValue().toString(), InstanceRegisterDTO.class));
                         break;
                     case DELETE:
-                        instanceRegisterDTOS.remove(GsonUtils.getInstance().fromJson(watchEvent.getKeyValue().getValue().toString(),InstanceRegisterDTO.class));
+                        instanceRegisterDTOS.remove(GsonUtils.getInstance().fromJson(watchEvent.getKeyValue().getValue().toString(), InstanceRegisterDTO.class));
+                        break;
+                    default:
                         break;
                 }
             });
         });
-        client.getWatchClient().watch(ByteSequence.from(prefixAddress,UTF_8),watchOption,listener);
+        client.getWatchClient().watch(ByteSequence.from(prefixAddress, UTF_8), watchOption, listener);
+
     }
 }

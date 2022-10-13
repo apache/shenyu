@@ -19,7 +19,6 @@ package org.apache.shenyu.register.instance.etcd;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -57,12 +56,6 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);
         LOGGER.info("etcd client register success: {}", nodeData);
-        try {
-            client.getEphemeral("");
-        } catch (Exception e) {
-
-        }
-
 
     }
 
@@ -73,9 +66,9 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     }
 
     @Override
-    public List<InstanceRegisterDTO> selectInstancesAndWatcher(String selectKey, WatcherListener watcherListener) throws ExecutionException, InterruptedException {
+    public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
         List<InstanceRegisterDTO> instanceRegisterDTOS = client.watchService(selectKey);
-        client.watch(selectKey,instanceRegisterDTOS);
+        client.watch(selectKey, instanceRegisterDTOS);
         watcherListener.listener(instanceRegisterDTOS);
         return instanceRegisterDTOS;
     }
