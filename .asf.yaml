@@ -34,7 +34,7 @@ github:
   protected_branches:
     master:
       required_status_checks:
-        strict: false
+        strict: true
         contexts:
           - check-license-header
           - build
