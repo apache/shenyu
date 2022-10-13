@@ -94,7 +94,7 @@ public class ZookeeperInstanceRegisterRepositoryTest {
             when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
         })) {
             final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
-            ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+            ShenyuConfig.RegisterConfig config = new ShenyuConfig.RegisterConfig();
             repository.init(config);
             final Properties configProps = config.getProps();
             configProps.setProperty("digest", "digest");
