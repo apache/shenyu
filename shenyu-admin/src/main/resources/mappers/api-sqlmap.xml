@@ -35,14 +35,14 @@
     <result column="api_desc" jdbcType="VARCHAR" property="apiDesc" />
     <result column="document" jdbcType="LONGVARCHAR" property="document" />
     <result column="document_md5" jdbcType="CHAR" property="documentMd5" />
-    <result column="source" jdbcType="INTEGER" property="source" />
+    <result column="api_source" jdbcType="INTEGER" property="apiSource" />
     <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated" />
     <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated" />
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
     id, context_path, `path`, http_method, consume, produce, version, rpc_type, `status`, 
-    ext, `owner`, api_desc, document, document_md5, `source`, date_created, date_updated
+    ext, `owner`, api_desc, document, document_md5, api_source, date_created, date_updated
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     <!--@mbg.generated-->
@@ -62,13 +62,13 @@
       http_method, consume, produce, 
       version, rpc_type, `status`, 
       ext, `owner`, api_desc, 
-      document, document_md5, `source`, 
+      document, document_md5, api_source,
       date_created, date_updated)
     values (#{id,jdbcType=VARCHAR}, #{contextPath,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, 
       #{httpMethod,jdbcType=INTEGER}, #{consume,jdbcType=VARCHAR}, #{produce,jdbcType=VARCHAR}, 
       #{version,jdbcType=VARCHAR}, #{rpcType,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, 
       #{ext,jdbcType=VARCHAR}, #{owner,jdbcType=VARCHAR}, #{apiDesc,jdbcType=VARCHAR}, 
-      #{document,jdbcType=LONGVARCHAR}, #{documentMd5,jdbcType=CHAR}, #{source,jdbcType=INTEGER}, 
+      #{document,jdbcType=LONGVARCHAR}, #{documentMd5,jdbcType=CHAR}, #{apiSource,jdbcType=INTEGER},
       #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ApiDO">
@@ -117,8 +117,8 @@
       <if test="documentMd5 != null">
         document_md5,
       </if>
-      <if test="source != null">
-        `source`,
+      <if test="apiSource != null">
+        api_source,
       </if>
       <if test="dateCreated != null">
         date_created,
@@ -170,8 +170,8 @@
       <if test="documentMd5 != null">
         #{documentMd5,jdbcType=CHAR},
       </if>
-      <if test="source != null">
-        #{source,jdbcType=INTEGER},
+      <if test="apiSource != null">
+        #{apiSource,jdbcType=INTEGER},
       </if>
       <if test="dateCreated != null">
         #{dateCreated,jdbcType=TIMESTAMP},
@@ -224,8 +224,8 @@
       <if test="documentMd5 != null">
         document_md5 = #{documentMd5,jdbcType=CHAR},
       </if>
-      <if test="source != null">
-        `source` = #{source,jdbcType=INTEGER},
+      <if test="apiSource != null">
+        api_source = #{apiSource,jdbcType=INTEGER},
       </if>
       <if test="dateCreated != null">
         date_created = #{dateCreated,jdbcType=TIMESTAMP},
@@ -252,7 +252,7 @@
       api_desc = #{apiDesc,jdbcType=VARCHAR},
       document = #{document,jdbcType=LONGVARCHAR},
       document_md5 = #{documentMd5,jdbcType=CHAR},
-      `source` = #{source,jdbcType=INTEGER},
+      api_source = #{apiSource,jdbcType=INTEGER},
       date_created = #{dateCreated,jdbcType=TIMESTAMP},
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=VARCHAR}

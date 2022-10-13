@@ -96,7 +96,7 @@ public class ApiDO {
     /**
      * 0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi.
      */
-    private Integer source;
+    private Integer apiSource;
 
     /**
      * create time.
@@ -333,19 +333,19 @@ public class ApiDO {
     }
 
     /**
-     * getSource.
-     * @return source
+     * getApiSource.
+     * @return apiSource
      */
-    public Integer getSource() {
-        return source;
+    public Integer getApiSource() {
+        return apiSource;
     }
 
     /**
      * setSource.
-     * @param source source
+     * @param apiSource apiSource
      */
-    public void setSource(final Integer source) {
-        this.source = source;
+    public void setApiSource(final Integer apiSource) {
+        this.apiSource = apiSource;
     }
 
     /**

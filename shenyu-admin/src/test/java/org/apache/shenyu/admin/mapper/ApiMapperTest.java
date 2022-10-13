@@ -89,6 +89,7 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         this.apiDO.setVersion("V0.03");
         this.apiDO.setRpcType("dubbo2");
         this.apiDO.setStatus((byte) 2);
+        this.apiDO.setApiSource(3);
         final int count = apiMapper.updateByPrimaryKeySelective(this.apiDO);
         assertEquals(1, count);
     }
@@ -116,7 +117,7 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         apiDO.setApiDesc("hello world api");
         apiDO.setDocument("{\"request\":{\"id\":\"123\"},\"response\":{\"id\":\"123\"}}");
         apiDO.setDocumentMd5("933833690e1710c7c1f26f9a9cb84659");
-        apiDO.setSource(2);
+        apiDO.setApiSource(2);
         apiDO.setDateCreated(now);
         apiDO.setDateUpdated(now);
         return apiDO;

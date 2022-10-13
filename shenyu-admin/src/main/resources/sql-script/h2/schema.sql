@@ -288,7 +288,7 @@ CREATE TABLE IF NOT EXISTS `api`
                                     `api_desc`     varchar(1024)   NOT NULL COMMENT 'the api description',
                                     `document`     text            NOT NULL COMMENT 'complete documentation of the api, including request parameters and response parameters',
                                     `document_md5` char(32)        NOT NULL COMMENT 'document_md5',
-                                    `source`       int(0)          NOT NULL COMMENT '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi',
+                                    `api_source`   int(0)          NOT NULL COMMENT '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi',
                                     `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
                                     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
                                     PRIMARY KEY (`id`)

@@ -330,7 +330,7 @@ create table api
     api_desc          VARCHAR2(1024) not null,
     document          CLOB not null,
     document_md5      VARCHAR2(32) not null,
-    source            NUMBER(10) not null,
+    api_source        NUMBER(10) not null,
     date_created      timestamp(3) default SYSDATE not null,
     date_updated      timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
@@ -364,6 +364,8 @@ comment on column API.document
   is 'complete documentation of the api, including request parameters and response parameters';
 comment on column API.document_md5
   is 'document_md5';
+comment on column API.api_source
+  is '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi';
 comment on column API.date_created
   is 'create time';
 comment on column API.date_updated
