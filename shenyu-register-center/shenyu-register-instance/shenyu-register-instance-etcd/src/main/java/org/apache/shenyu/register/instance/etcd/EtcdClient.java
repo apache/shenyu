@@ -112,6 +112,11 @@ public class EtcdClient {
         }
     }
 
+    /**
+     *
+     * @param prefixAddress
+     * @return
+     */
     public List<InstanceRegisterDTO> watchService(final String prefixAddress) {
         List<InstanceRegisterDTO> instanceRegisterDTOS = new ArrayList<>();
         CompletableFuture<GetResponse> getResponseCompletableFuture =
@@ -129,6 +134,11 @@ public class EtcdClient {
         return instanceRegisterDTOS;
     }
 
+    /**
+     *
+     * @param prefixAddress
+     * @param instanceRegisterDTOS
+     */
     public void watch(final String prefixAddress, final List<InstanceRegisterDTO> instanceRegisterDTOS) {
         WatchOption watchOption = WatchOption.newBuilder().withPrefix(ByteSequence.from(prefixAddress, UTF_8)).build();
         Watch.Listener listener = Watch.listener(watchResponse -> {
