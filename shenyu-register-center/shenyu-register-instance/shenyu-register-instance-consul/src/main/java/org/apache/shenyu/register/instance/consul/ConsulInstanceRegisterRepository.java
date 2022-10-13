@@ -19,7 +19,7 @@ package org.apache.shenyu.register.instance.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.agent.model.NewCheck;
-import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
@@ -44,7 +44,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
     private NewCheck check;
 
     @Override
-    public void init(final InstanceConfig config) {
+    public void init(final RegisterConfig config) {
         final Properties props = config.getProps();
         final String timeout = props.getProperty("consulTimeout", "3000");
         final String ttl = props.getProperty("consulTTL", "3000");

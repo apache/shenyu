@@ -22,7 +22,7 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
-import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
@@ -50,7 +50,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     private String serviceName;
 
     @Override
-    public void init(final InstanceConfig config) {
+    public void init(final RegisterConfig config) {
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         this.groupName = properties.getProperty("groupName", "DEFAULT_GROUP");

@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.instance;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
@@ -50,7 +50,7 @@ public class InstanceRegisterListener implements ApplicationListener<WebServerIn
      *
      * @param config the config
      */
-    public InstanceRegisterListener(final InstanceConfig config) {
+    public InstanceRegisterListener(final RegisterConfig config) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists)) {
