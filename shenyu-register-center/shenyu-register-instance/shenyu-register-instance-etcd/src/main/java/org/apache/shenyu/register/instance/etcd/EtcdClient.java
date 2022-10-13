@@ -112,17 +112,6 @@ public class EtcdClient {
         }
     }
 
-    public InstanceRegisterDTO getEphemeral(final String key) throws ExecutionException, InterruptedException {
-        String prefix = "/shenyu/register/instance";
-        CompletableFuture<GetResponse> getResponseCompletableFuture =
-                client.getKVClient().get(ByteSequence.from(prefix, UTF_8), GetOption.newBuilder().withPrefix(ByteSequence.from(prefix, UTF_8)).build());
-
-        List<KeyValue> keyValueList = getResponseCompletableFuture.get().getKvs();
-        KV kvClient = client.getKVClient();
-        String nodeDataJson = String.valueOf(kvClient.get(ByteSequence.from(key, UTF_8)));
-        return GsonUtils.getInstance().fromJson(nodeDataJson, InstanceRegisterDTO.class);
-    }
-
     public List<InstanceRegisterDTO> watchService(final String prefixAddress) {
         List<InstanceRegisterDTO> instanceRegisterDTOS = new ArrayList<>();
         CompletableFuture<GetResponse> getResponseCompletableFuture =
