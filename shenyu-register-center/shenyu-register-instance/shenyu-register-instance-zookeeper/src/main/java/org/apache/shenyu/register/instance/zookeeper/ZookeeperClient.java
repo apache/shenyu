@@ -20,6 +20,7 @@ package org.apache.shenyu.register.instance.zookeeper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
@@ -234,6 +235,20 @@ public class ZookeeperClient {
             throw new ShenyuException("failed to add curator cache.", e);
         }
         return cache;
+    }
+
+    /**
+     * add children watcher.
+     * @param key selectKey
+     * @param curatorWatcher watcher
+     * @return children List
+     */
+    public List<String> subscribeChildrenChanges(final String key, final CuratorWatcher curatorWatcher) {
+        try {
+            return client.getChildren().usingWatcher(curatorWatcher).forPath(key);
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
     }
 
     /**
