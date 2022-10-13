@@ -20,17 +20,27 @@ package org.apache.shenyu.register.instance.etcd;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
+import io.etcd.jetcd.KeyValue;
+import io.etcd.jetcd.Watch;
+import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
+import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
+import io.etcd.jetcd.options.WatchOption;
+import io.etcd.jetcd.watch.WatchEvent;
 import io.grpc.stub.StreamObserver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * etcd client.
@@ -87,17 +97,65 @@ public class EtcdClient {
 
     /**
      * put data as ephemeral.
-     * @param key key
+     *
+     * @param key   key
      * @param value value
      */
     public void putEphemeral(final String key, final String value) {
         try {
             KV kvClient = client.getKVClient();
             kvClient.put(ByteSequence.from(key, UTF_8), ByteSequence.from(value, UTF_8),
-                    PutOption.newBuilder().withLeaseId(globalLeaseId).build())
+                            PutOption.newBuilder().withLeaseId(globalLeaseId).build())
                     .get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             LOGGER.error("putEphemeral(key:{},value:{}) error.", key, value, e);
         }
+    }
+
+    public InstanceRegisterDTO getEphemeral(final String key) throws ExecutionException, InterruptedException {
+        String prefix = "/shenyu/register/instance";
+        CompletableFuture<GetResponse> getResponseCompletableFuture = client.getKVClient().get(ByteSequence.from(prefix, UTF_8), GetOption.newBuilder().withPrefix(ByteSequence.from(prefix, UTF_8)).build());
+
+        List<KeyValue> keyValueList = getResponseCompletableFuture.get().getKvs();
+        System.out.println(keyValueList);
+        KV kvClient = client.getKVClient();
+        String nodeDataJson = String.valueOf(kvClient.get(ByteSequence.from(key, UTF_8)));
+        System.out.println(nodeDataJson);
+        return GsonUtils.getInstance().fromJson(nodeDataJson, InstanceRegisterDTO.class);
+    }
+
+    public List<InstanceRegisterDTO> watchService(String prefixAddress) {
+        List<InstanceRegisterDTO> instanceRegisterDTOS = new ArrayList<>();
+        CompletableFuture<GetResponse> getResponseCompletableFuture =
+                client.getKVClient().get(ByteSequence.from(prefixAddress, UTF_8),
+                        GetOption.newBuilder().withPrefix(ByteSequence.from(prefixAddress, UTF_8)).build());
+
+        try {
+            List<KeyValue> keyValueList = getResponseCompletableFuture.get().getKvs();
+            for (KeyValue keyValue : keyValueList) {
+                instanceRegisterDTOS.add(GsonUtils.getInstance().fromJson(keyValue.getValue().toString(UTF_8), InstanceRegisterDTO.class));
+            }
+        } catch (Exception e) {
+
+        }
+        return instanceRegisterDTOS;
+    }
+
+    public void watch(String prefixAddress,List<InstanceRegisterDTO> instanceRegisterDTOS) {
+        WatchOption watchOption = WatchOption.newBuilder().withPrefix(ByteSequence.from(prefixAddress, UTF_8)).build();
+        Watch.Listener listener = Watch.listener(watchResponse -> {
+            watchResponse.getEvents().forEach(watchEvent -> {
+                WatchEvent.EventType eventType = watchEvent.getEventType();
+                switch (eventType) {
+                    case PUT:
+                        instanceRegisterDTOS.add(GsonUtils.getInstance().fromJson(watchEvent.getKeyValue().getValue().toString(),InstanceRegisterDTO.class));
+                        break;
+                    case DELETE:
+                        instanceRegisterDTOS.remove(GsonUtils.getInstance().fromJson(watchEvent.getKeyValue().getValue().toString(),InstanceRegisterDTO.class));
+                        break;
+                }
+            });
+        });
+        client.getWatchClient().watch(ByteSequence.from(prefixAddress,UTF_8),watchOption,listener);
     }
 }

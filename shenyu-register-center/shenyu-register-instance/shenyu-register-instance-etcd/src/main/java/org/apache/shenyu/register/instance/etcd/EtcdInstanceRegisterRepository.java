@@ -17,17 +17,19 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
+import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Properties;
 
 /**
  * The type Etcd instance register repository.
@@ -55,6 +57,13 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);
         LOGGER.info("etcd client register success: {}", nodeData);
+        try {
+            client.getEphemeral("");
+        } catch (Exception e) {
+
+        }
+
+
     }
 
     private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
@@ -64,7 +73,16 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     }
 
     @Override
+    public List<InstanceRegisterDTO> selectInstancesAndWatcher(String selectKey, WatcherListener watcherListener) throws ExecutionException, InterruptedException {
+        List<InstanceRegisterDTO> instanceRegisterDTOS = client.watchService(selectKey);
+        client.watch(selectKey,instanceRegisterDTOS);
+        watcherListener.listener(instanceRegisterDTOS);
+        return instanceRegisterDTOS;
+    }
+
+    @Override
     public void close() {
         client.close();
     }
+
 }

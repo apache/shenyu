@@ -148,9 +148,9 @@ shenyu:
 #      workerCount: 8
 #      daemon: true
   instance:
-    enabled: false
-    registerType: zookeeper #etcd #consul
-    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    enabled: true
+    registerType: etcd #etcd #consul
+    serverLists: http://localhost:2379 #localhost:8848
     props:
   cross:
     enabled: true
@@ -180,9 +180,9 @@ shenyu:
     enabled: true
     maxSize : 10
   sync:
-    websocket:
-      urls: ws://localhost:9095/websocket
-      allowOrigin: ws://localhost:9195
+#    websocket:
+#      urls: ws://localhost:9095/websocket
+#      allowOrigin: ws://localhost:9195
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000
@@ -202,8 +202,8 @@ shenyu:
 #        namespace:
 #        accessKey:
 #        secretKey:
-#    etcd:
-#      url: http://localhost:2379
+    etcd:
+      url: http://localhost:2379
 #    consul:
 #      url: http://localhost:8500
 #      waitTime: 1000

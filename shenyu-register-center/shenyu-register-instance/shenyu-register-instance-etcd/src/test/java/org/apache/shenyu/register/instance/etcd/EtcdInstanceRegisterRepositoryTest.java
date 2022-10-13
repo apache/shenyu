@@ -21,19 +21,22 @@ import io.etcd.jetcd.Client;
 import io.etcd.jetcd.ClientBuilder;
 import io.etcd.jetcd.Lease;
 import io.etcd.jetcd.lease.LeaseGrantResponse;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.apache.shenyu.register.common.path.RegisterPathConstants;
+import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
-
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,6 +44,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -116,5 +120,42 @@ public final class EtcdInstanceRegisterRepositoryTest {
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
+    }
+
+    @Test
+    public void testSelectInstancesAndWatcher() throws Exception {
+
+        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
+
+                .appName("shenyu-test")
+
+                .host("shenyu-host")
+
+                .port(9195)
+
+                .build();
+
+        try (MockedConstruction<EtcdClient> construction = mockConstruction(EtcdClient.class, (mock, context) -> {
+
+        })){
+            final EtcdInstanceRegisterRepository repository = new EtcdInstanceRegisterRepository();
+            ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+
+            repository.init(config);
+
+            final Properties configProps = config.getProps();
+
+            configProps.setProperty("digest", "digest");
+
+            repository.init(config);
+
+            repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+
+            repository.close();
+        }
+
+
+
+
     }
 }
