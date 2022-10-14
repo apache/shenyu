@@ -73,6 +73,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         final String timeout = props.getProperty("consulTimeout", "3000");
         final String ttl = props.getProperty("consulTTL", "3000");
         final String name = props.getProperty("consulName", "shenyu-gateway");
+        final String enabledServerRebalance = props.getProperty("enabledServerRebalance", "false");
         check = new NewCheck();
         check.setName(name);
         check.setId(name);
@@ -80,9 +81,11 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         check.setTimeout(timeout.concat("ms"));
         consulClient = new ConsulClient(config.getServerLists());
         consulClient.agentCheckRegister(check);
-        this.executor = new ScheduledThreadPoolExecutor(1,
-                ShenyuThreadFactory.create("consul-config-watch", true));
-        start();
+        if ("true".equals(enabledServerRebalance)) {
+            this.executor = new ScheduledThreadPoolExecutor(1,
+                    ShenyuThreadFactory.create("consul-config-watch", true));
+            start();
+        }
     }
 
     @Override
@@ -146,7 +149,8 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     /**
-     *  getInstanceRegisterDTOListByKey.
+     * getInstanceRegisterDTOListByKey.
+     *
      * @param selectKey key
      * @return return
      */
@@ -155,11 +159,10 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         if (res == null || CollectionUtils.isEmpty(res.getValue())) {
             return Collections.emptyList();
         }
-        List<InstanceRegisterDTO> instanceRegisterDTOS = new ArrayList<>();
+        List<InstanceRegisterDTO> cacheInstanceRegisters = new ArrayList<>();
         res.getValue().forEach(getValue -> {
-            instanceRegisterDTOS.add(GsonUtils.getInstance().fromJson(getValue.getDecodedValue(), InstanceRegisterDTO.class));
+            cacheInstanceRegisters.add(GsonUtils.getInstance().fromJson(getValue.getDecodedValue(), InstanceRegisterDTO.class));
         });
-        return instanceRegisterDTOS;
+        return cacheInstanceRegisters;
     }
-
 }
