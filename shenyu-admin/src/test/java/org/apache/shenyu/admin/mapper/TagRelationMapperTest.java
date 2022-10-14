@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.mapper;
 
-
 import java.sql.Timestamp;
 import javax.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
