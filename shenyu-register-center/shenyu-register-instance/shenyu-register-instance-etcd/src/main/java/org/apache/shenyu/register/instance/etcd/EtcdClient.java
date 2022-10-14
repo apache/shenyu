@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -48,8 +47,6 @@ public class EtcdClient {
     public static final Charset UTF_8 = StandardCharsets.UTF_8;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdClient.class);
-
-    private final ConcurrentHashMap<String, Watch.Watcher> watchCache = new ConcurrentHashMap<>();
 
     private final Client client;
 
@@ -91,25 +88,14 @@ public class EtcdClient {
 
     /**
      * watch key changes.
-     * @param key watch key.
+     *
+     * @param key      watch key.
      * @param listener watch listener.
-     * @return keyValues.
      */
-    public List<String> watchKeyChanges(final String key, final Watch.Listener listener) {
-        WatchOption option = WatchOption.newBuilder()
-                .isPrefix(true)
-                .build();
-        Watch.Watcher watch = client.getWatchClient().watch(ByteSequence.from(key, StandardCharsets.UTF_8), option, listener);
-        watchCache.put(key, watch);
-        return getKeysByPrefix(key);
-    }
+    public void watchKeyChanges(final String key, final Watch.Listener listener) {
+        WatchOption option = WatchOption.newBuilder().isPrefix(true).build();
 
-    /**
-     * remove watchCache.
-     * @param key watch key.
-     */
-    public void removeWatchCache(final String key) {
-        watchCache.remove(key);
+        client.getWatchClient().watch(bytesOf(key), option, listener);
     }
 
 

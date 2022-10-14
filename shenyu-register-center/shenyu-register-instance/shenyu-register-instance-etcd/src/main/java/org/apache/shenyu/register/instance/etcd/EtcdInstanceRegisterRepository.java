@@ -19,7 +19,6 @@ package org.apache.shenyu.register.instance.etcd;
 
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.watch.WatchEvent;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -31,7 +30,6 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
@@ -50,7 +48,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     @Override
     public void init(final InstanceConfig config) {
         Properties props = config.getProps();
-        long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000000000000"));
+        long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
         long ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
         client = new EtcdClient(config.getServerLists(), ttl, timeout);
     }
@@ -62,36 +60,33 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
         String realNode = RegisterPathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);
-        LOGGER.info("etcd client register success: {}", nodeData);
     }
 
     @Override
     public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String watchKey, final WatcherListener watcherListener) {
-        final Function<List<String>, List<InstanceRegisterDTO>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath ->
+        final Function<List<String>, List<InstanceRegisterDTO>> getInstanceRegisterFun = childrenList -> childrenList.stream().distinct().map(childPath ->
                 GsonUtils.getInstance().fromJson(childPath, InstanceRegisterDTO.class)).collect(Collectors.toList());
 
-        List<String> res = this.client.watchKeyChanges(watchKey, Watch.listener(response -> {
-            List<String> values = new ArrayList<>();
+        List<String> serverNodes = client.getKeysByPrefix(watchKey).stream().distinct().collect(Collectors.toList());
+
+        this.client.watchKeyChanges(watchKey, Watch.listener(response -> {
             for (WatchEvent event : response.getEvents()) {
-                String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
                 String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
                 switch (event.getEventType()) {
                     case PUT:
-                        if (path.contains(watchKey) && StringUtils.isNotBlank(value)) {
-                            values.add(value);
-                        }
-                        LOGGER.info("watch key {} updated, values is {}", watchKey, values);
+                        serverNodes.add(value);
+                        LOGGER.info("watch key {} updated, value is {}", watchKey, value);
                         continue;
                     case DELETE:
-                        this.client.removeWatchCache(watchKey);
+                        serverNodes.remove(value);
+                        LOGGER.info("watch key {} deleted, value is {}", watchKey, value);
                         continue;
                     default:
                 }
             }
-            LOGGER.info("watch key {} start, values is {}", watchKey, values);
-            watcherListener.listener(getInstanceRegisterFun.apply(values));
+            watcherListener.listener(getInstanceRegisterFun.apply(serverNodes));
         }));
-        return getInstanceRegisterFun.apply(res);
+        return getInstanceRegisterFun.apply(serverNodes);
     }
 
     private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
