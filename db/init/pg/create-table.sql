@@ -1925,3 +1925,48 @@ CREATE RULE "shenyu_dict_insert_ignore" AS ON INSERT TO "public"."shenyu_dict" W
 -- Primary Key structure for table shenyu_dict
 -- ----------------------------
 ALTER TABLE "public"."shenyu_dict" ADD CONSTRAINT "shenyu_dict_pkey" PRIMARY KEY ("id");
+
+
+-- ----------------------------
+-- Table structure for tag
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."tag";
+CREATE TABLE "public"."tag" (
+                                "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+                                "tag_desc"         varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+                                "parent_tag_id"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+                                "ext"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+                                "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."tag"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."tag"."name" IS 'tag name';
+COMMENT ON COLUMN "public"."tag"."tag_desc" IS 'tag desc';
+COMMENT ON COLUMN "public"."tag"."parent_tag_id" IS 'parent tag id';
+COMMENT ON COLUMN "public"."tag"."ext" IS 'extension';
+COMMENT ON COLUMN "public"."tag"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."tag"."date_updated" IS 'update time';
+
+
+
+-- ----------------------------
+-- Table structure for tag_relation
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."tag_relation";
+CREATE TABLE "public"."tag_relation" (
+                                         "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                         "api_id"       varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                         "rule_id"      varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                         "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+                                         "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."tag_relation"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."tag_relation"."api_id" IS 'the table api primary key id';
+COMMENT ON COLUMN "public"."tag_relation"."tag_id" IS 'tag id';
+COMMENT ON COLUMN "public"."tag_relation"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."tag_relation"."date_updated" IS 'update time';
+
+
