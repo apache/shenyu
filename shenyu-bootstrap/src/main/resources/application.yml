@@ -147,7 +147,7 @@ shenyu:
 #      selectCount: 1
 #      workerCount: 8
 #      daemon: true
-  instance:
+  register:
     enabled: false
     registerType: zookeeper #etcd #consul
     serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
