@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import java.sql.Timestamp;
+import java.util.Objects;
+
 public final class TagRelationDO extends BaseDO {
 
     private static final long serialVersionUID = -2968123108441795604L;
@@ -33,6 +36,7 @@ public final class TagRelationDO extends BaseDO {
 
     /**
      * getApiId.
+     *
      * @return apiId
      */
     public String getApiId() {
@@ -41,6 +45,7 @@ public final class TagRelationDO extends BaseDO {
 
     /**
      * setApiId.
+     *
      * @param apiId apiId
      */
     public void setApiId(final String apiId) {
@@ -49,6 +54,7 @@ public final class TagRelationDO extends BaseDO {
 
     /**
      * getTagId.
+     *
      * @return tagId
      */
     public String getTagId() {
@@ -57,9 +63,117 @@ public final class TagRelationDO extends BaseDO {
 
     /**
      * setTagId.
+     *
      * @param tagId tagId
      */
     public void setTagId(final String tagId) {
         this.tagId = tagId;
     }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        TagRelationDO tagRelationDO = (TagRelationDO) o;
+        return Objects.equals(apiId, tagRelationDO.apiId)
+                && Objects.equals(tagId, tagRelationDO.tagId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), apiId, tagId);
+    }
+
+    public static TagRelationDO.TagRelationDOBuilder builder() {
+        return new TagRelationDO.TagRelationDOBuilder();
+    }
+
+    public static final class TagRelationDOBuilder {
+
+        private String id;
+
+        private String apiId;
+
+        private String tagId;
+
+        private Timestamp dateCreated;
+
+        private Timestamp dateUpdated;
+
+        private TagRelationDOBuilder() {
+        }
+
+        /**
+         * id.
+         *
+         * @param id the id.
+         * @return RuleDOBuilder.
+         */
+        public TagRelationDO.TagRelationDOBuilder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * dateCreated.
+         *
+         * @param dateCreated the dateCreated.
+         * @return RuleDOBuilder.
+         */
+        public TagRelationDO.TagRelationDOBuilder dateCreated(final Timestamp dateCreated) {
+            this.dateCreated = dateCreated;
+            return this;
+        }
+
+        /**
+         * dateUpdated.
+         *
+         * @param dateUpdated the dateUpdated.
+         * @return RuleDOBuilder.
+         */
+        public TagRelationDO.TagRelationDOBuilder dateUpdated(final Timestamp dateUpdated) {
+            this.dateUpdated = dateUpdated;
+            return this;
+        }
+
+        /**
+         * tagId.
+         *
+         * @param tagId tagId.
+         * @return TagDOBuilder.
+         */
+        public TagRelationDO.TagRelationDOBuilder tagId(final String tagId) {
+            this.tagId = tagId;
+            return this;
+        }
+
+        /**
+         * ext.
+         *
+         * @param apiId apiId.
+         * @return TagRelationDO.
+         */
+        public TagRelationDO.TagRelationDOBuilder apiId(final String apiId) {
+            this.apiId = apiId;
+            return this;
+        }
+
+        public TagRelationDO build() {
+            TagRelationDO tagRelationDO = new TagRelationDO();
+            tagRelationDO.setApiId(apiId);
+            tagRelationDO.setId(id);
+            tagRelationDO.setTagId(tagId);
+            tagRelationDO.setDateCreated(dateCreated);
+            tagRelationDO.setDateUpdated(dateUpdated);
+            return tagRelationDO;
+        }
+    }
+
 }

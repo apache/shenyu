@@ -2521,7 +2521,7 @@ on column TAG.date_updated
 create table tag_relation
 (
     id                VARCHAR2(128) not null,
-    app_id            VARCHAR2(255) not null,
+    api_id            VARCHAR2(255) not null,
     tag_id            VARCHAR2(255) not null,
     date_created      timestamp(3) default SYSDATE not null,
     date_updated      timestamp(3) default SYSDATE not null,
@@ -2530,8 +2530,8 @@ create table tag_relation
 -- Add comments to the columns
 comment on column TAG_RELATION.id
   is 'primary key id';
-comment on column TAG_RELATION.app_id
-  is 'app_id';
+comment on column TAG_RELATION.api_id
+  is 'api_id';
 comment on column TAG_RELATION.parent_tag_id
   is 'parent tag id';
 comment on column TAG_RELATION.date_created

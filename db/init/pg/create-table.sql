@@ -1958,7 +1958,7 @@ DROP TABLE IF EXISTS "public"."tag_relation";
 CREATE TABLE "public"."tag_relation" (
                                          "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                          "api_id"       varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                         "rule_id"      varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+                                         "tag_id"      varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                          "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
                                          "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )

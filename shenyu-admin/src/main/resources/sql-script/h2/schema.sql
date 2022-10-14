@@ -1751,8 +1751,7 @@ IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('15345855313
 -- ----------------------------
 -- Table structure for tag
 -- ----------------------------
-DROP TABLE IF EXISTS `tag`;
-CREATE TABLE `tag`
+CREATE TABLE IF NOT EXISTS `tag`
 (
     `id`            varchar(128) NOT NULL COMMENT 'primary key id',
     `name`          varchar(128) NOT NULL COMMENT 'tag name',
@@ -1762,17 +1761,16 @@ CREATE TABLE `tag`
     `date_created`  timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     `date_updated`  timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
-)
+);
 -- ----------------------------
 -- Table structure for tag_relation
 -- ----------------------------
-DROP TABLE IF EXISTS `tag_relation`;
-CREATE TABLE `tag_relation`
+CREATE TABLE IF NOT EXISTS `tag_relation`
 (
     `id`           varchar(128) NOT NULL COMMENT 'primary key id',
-    `app_id`       varchar(128) NOT NULL COMMENT 'app id',
+    `api_id`       varchar(128) NOT NULL COMMENT 'api id',
     `tag_id`       varchar(128) NOT NULL COMMENT 'tag id',
     `date_created` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     `date_updated` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
-)
+);
