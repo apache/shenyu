@@ -1,4 +1,65 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.model.entity;
 
-public class TagRelationDO {
+public final class TagRelationDO extends BaseDO {
+
+    private static final long serialVersionUID = -2968123108441795604L;
+
+    /**
+     * appid.
+     */
+    private String apiId;
+
+    /**
+     * tagId.
+     */
+    private String tagId;
+
+    /**
+     * getApiId.
+     * @return apiId
+     */
+    public String getApiId() {
+        return apiId;
+    }
+
+    /**
+     * setApiId.
+     * @param apiId apiId
+     */
+    public void setApiId(final String apiId) {
+        this.apiId = apiId;
+    }
+
+    /**
+     * getTagId.
+     * @return tagId
+     */
+    public String getTagId() {
+        return tagId;
+    }
+
+    /**
+     * setTagId.
+     * @param tagId tagId
+     */
+    public void setTagId(final String tagId) {
+        this.tagId = tagId;
+    }
 }
