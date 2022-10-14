@@ -70,11 +70,11 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         this.apiDO.setDateUpdated(now);
         this.apiDO.setContextPath("/dubbo1");
-        this.apiDO.setPath("/demo/findById1");
+        this.apiDO.setApiPath("/demo/findById1");
         this.apiDO.setHttpMethod(1);
         this.apiDO.setVersion("V0.02");
         this.apiDO.setRpcType("dubbo1");
-        this.apiDO.setStatus((byte) 1);
+        this.apiDO.setState((byte) 1);
         final int count = apiMapper.updateByPrimaryKeySelective(this.apiDO);
         assertEquals(1, count);
     }
@@ -84,11 +84,11 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         this.apiDO.setDateUpdated(now);
         this.apiDO.setContextPath("/dubbo2");
-        this.apiDO.setPath("/demo/findById2");
+        this.apiDO.setApiPath("/demo/findById2");
         this.apiDO.setHttpMethod(2);
         this.apiDO.setVersion("V0.03");
         this.apiDO.setRpcType("dubbo2");
-        this.apiDO.setStatus((byte) 2);
+        this.apiDO.setState((byte) 2);
         this.apiDO.setApiSource(3);
         final int count = apiMapper.updateByPrimaryKeySelective(this.apiDO);
         assertEquals(1, count);
@@ -105,15 +105,15 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         ApiDO apiDO = new ApiDO();
         apiDO.setId(UUIDUtils.getInstance().generateShortUuid());
         apiDO.setContextPath("/dubbo");
-        apiDO.setPath("/demo/findById");
+        apiDO.setApiPath("/demo/findById");
         apiDO.setHttpMethod(2);
         apiDO.setConsume("application/json");
         apiDO.setProduce("accept");
         apiDO.setVersion("V0.01");
         apiDO.setRpcType("dubbo");
-        apiDO.setStatus((byte) 0);
+        apiDO.setState((byte) 0);
         apiDO.setExt("ext");
-        apiDO.setOwner("admin");
+        apiDO.setApiOwner("admin");
         apiDO.setApiDesc("hello world api");
         apiDO.setDocument("{\"request\":{\"id\":\"123\"},\"response\":{\"id\":\"123\"}}");
         apiDO.setDocumentMd5("933833690e1710c7c1f26f9a9cb84659");

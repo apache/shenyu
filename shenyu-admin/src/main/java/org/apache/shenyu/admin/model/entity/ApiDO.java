@@ -34,9 +34,9 @@ public class ApiDO {
     private String contextPath;
 
     /**
-     * the path.
+     * the apiPath.
      */
-    private String path;
+    private String apiPath;
 
     /**
      * 0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace.
@@ -66,7 +66,7 @@ public class ApiDO {
     /**
      * 0-unpublished1-published2-offline.
      */
-    private Byte status;
+    private Byte state;
 
     /**
      * extended fields.
@@ -74,9 +74,9 @@ public class ApiDO {
     private String ext;
 
     /**
-     * owner.
+     * apiOwner.
      */
-    private String owner;
+    private String apiOwner;
 
     /**
      * the api description.
@@ -141,19 +141,19 @@ public class ApiDO {
     }
 
     /**
-     * getPath.
-     * @return path
+     * getApiPath.
+     * @return apiPath
      */
-    public String getPath() {
-        return path;
+    public String getApiPath() {
+        return apiPath;
     }
 
     /**
-     * setPath.
-     * @param path path
+     * setApiPath.
+     * @param apiPath apiPath
      */
-    public void setPath(final String path) {
-        this.path = path;
+    public void setApiPath(final String apiPath) {
+        this.apiPath = apiPath;
     }
 
     /**
@@ -237,19 +237,19 @@ public class ApiDO {
     }
 
     /**
-     * getStatus.
-     * @return status.
+     * getState.
+     * @return state
      */
-    public Byte getStatus() {
-        return status;
+    public Byte getState() {
+        return state;
     }
 
     /**
-     * setStatus.
-     * @param status status
+     * setState.
+     * @param state state
      */
-    public void setStatus(final Byte status) {
-        this.status = status;
+    public void setState(final Byte state) {
+        this.state = state;
     }
 
     /**
@@ -269,19 +269,19 @@ public class ApiDO {
     }
 
     /**
-     * getOwner.
-     * @return owner
+     * getApiOwner.
+     * @return apiOwner
      */
-    public String getOwner() {
-        return owner;
+    public String getApiOwner() {
+        return apiOwner;
     }
 
     /**
-     * setOwner.
-     * @param owner owner
+     * setApiOwner.
+     * @param apiOwner apiOwner
      */
-    public void setOwner(final String owner) {
-        this.owner = owner;
+    public void setApiOwner(final String apiOwner) {
+        this.apiOwner = apiOwner;
     }
 
     /**

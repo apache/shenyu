@@ -274,24 +274,24 @@ CREATE TABLE IF NOT EXISTS `alert_template`
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `api`
 (
-                                    `id`           varchar(128)    NOT NULL COMMENT 'primary key id',
-                                    `context_path` varchar(255)    NOT NULL COMMENT 'the context_path',
-                                    `path`         varchar(255)    NOT NULL COMMENT 'the path',
-                                    `http_method`  int(0)          NOT NULL COMMENT '0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace',
-                                    `consume`      varchar(255)    NOT NULL COMMENT 'consume',
-                                    `produce`      varchar(255)    NOT NULL COMMENT 'produce',
-                                    `version`      varchar(255)    NOT NULL COMMENT 'api version,for example V0.01',
-                                    `rpc_type`     varchar(64)     NOT NULL COMMENT 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc',
-                                    `status`       tinyint         NOT NULL COMMENT '0-unpublished1-published2-offline',
-                                    `ext`          varchar(1024)   NOT NULL COMMENT 'extended fields',
-                                    `owner`        varchar(255)    NOT NULL COMMENT 'owner',
-                                    `api_desc`     varchar(1024)   NOT NULL COMMENT 'the api description',
-                                    `api_source`   int(0)          NOT NULL COMMENT '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi',
-                                    `document`     text            NOT NULL COMMENT 'complete documentation of the api, including request parameters and response parameters',
-                                    `document_md5` char(32)        NOT NULL COMMENT 'document_md5',
-                                    `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
-                                    `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
-                                    PRIMARY KEY (`id`)
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `context_path` varchar(255)  NOT NULL COMMENT 'the context_path',
+    `api_path`     varchar(255)  NOT NULL COMMENT 'the api_path',
+    `http_method`  int(0)        NOT NULL COMMENT '0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace',
+    `consume`      varchar(255)  NOT NULL COMMENT 'consume',
+    `produce`      varchar(255)  NOT NULL COMMENT 'produce',
+    `version`      varchar(255)  NOT NULL COMMENT 'api version,for example V0.01',
+    `rpc_type`     varchar(64)   NOT NULL COMMENT 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc',
+    `state`        tinyint       NOT NULL COMMENT '0-unpublished1-published2-offline',
+    `ext`          varchar(1024) NOT NULL COMMENT 'extended fields',
+    `api_owner`    varchar(255)  NOT NULL COMMENT 'api_owner',
+    `api_desc`     varchar(1024) NOT NULL COMMENT 'the api description',
+    `api_source`   int(0)        NOT NULL COMMENT '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi',
+    `document`     text          NOT NULL COMMENT 'complete documentation of the api, including request parameters and response parameters',
+    `document_md5` char(32)      NOT NULL COMMENT 'document_md5',
+    `date_created` timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `date_updated` timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+    PRIMARY KEY (`id`)
 );
 
 -- ----------------------------
@@ -299,12 +299,12 @@ CREATE TABLE IF NOT EXISTS `api`
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `api_rule_relation`
 (
-                                                  `id`           varchar(128)   NOT NULL COMMENT 'primary key id',
-                                                  `api_id`       varchar(128)   NOT NULL COMMENT 'the table api primary key id',
-                                                  `rule_id`      varchar(128)   NOT NULL COMMENT 'the table rule primary key id',
-                                                  `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
-                                                  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
-                                                  PRIMARY KEY (`id`)
+    `id`           varchar(128) NOT NULL COMMENT 'primary key id',
+    `api_id`       varchar(128) NOT NULL COMMENT 'the table api primary key id',
+    `rule_id`      varchar(128) NOT NULL COMMENT 'the table rule primary key id',
+    `date_created` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `date_updated` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+    PRIMARY KEY (`id`)
 );
 
 
