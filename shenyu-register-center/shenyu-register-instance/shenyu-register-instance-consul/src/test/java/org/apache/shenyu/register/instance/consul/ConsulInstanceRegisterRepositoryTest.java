@@ -94,7 +94,7 @@ class ConsulInstanceRegisterRepositoryTest {
     @Test
     public void testSelectInstancesAndWatcher() {
 
-        ShenyuConfig.InstanceConfig instanceConfig = new ShenyuConfig.InstanceConfig();
+        ShenyuConfig.RegisterConfig instanceConfig = new ShenyuConfig.RegisterConfig();
         instanceConfig.setServerLists("localhost");
         final ConsulInstanceRegisterRepository repository = new ConsulInstanceRegisterRepository();
         repository.init(instanceConfig);
