@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -64,22 +65,23 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
 
     @Override
     public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String watchKey, final WatcherListener watcherListener) {
-        final Function<List<String>, List<InstanceRegisterDTO>> getInstanceRegisterFun = childrenList -> childrenList.stream().distinct().map(childPath ->
-                GsonUtils.getInstance().fromJson(childPath, InstanceRegisterDTO.class)).collect(Collectors.toList());
+        final Function<Map<String, String>, List<InstanceRegisterDTO>> getInstanceRegisterFun = childrenList ->
+                childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceRegisterDTO.class)).collect(Collectors.toList());
 
-        List<String> serverNodes = client.getKeysByPrefix(watchKey).stream().distinct().collect(Collectors.toList());
+        Map<String, String> serverNodes = client.getKeysMapByPrefix(watchKey);
 
         this.client.watchKeyChanges(watchKey, Watch.listener(response -> {
             for (WatchEvent event : response.getEvents()) {
                 String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
+                String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
                 switch (event.getEventType()) {
                     case PUT:
-                        serverNodes.add(value);
+                        serverNodes.put(path, value);
                         LOGGER.info("watch key {} updated, value is {}", watchKey, value);
                         continue;
                     case DELETE:
-                        serverNodes.remove(value);
-                        LOGGER.info("watch key {} deleted, value is {}", watchKey, value);
+                        serverNodes.remove(path);
+                        LOGGER.info("watch key {} deleted, key is {}", watchKey, path);
                         continue;
                     default:
                 }

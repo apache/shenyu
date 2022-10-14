@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -105,16 +105,13 @@ public class EtcdClient {
      * @param prefix key prefix.
      * @return key values.
      */
-    public List<String> getKeysByPrefix(final String prefix) {
+    public Map<String, String> getKeysMapByPrefix(final String prefix) {
         GetOption getOption = GetOption.newBuilder()
                 .isPrefix(true)
                 .build();
 
-        return getRange(prefix, getOption)
-                    .getKvs()
-                    .stream()
-                    .map(x -> x.getValue().toString(StandardCharsets.UTF_8))
-                    .collect(Collectors.toList());
+        return getRange(prefix, getOption).getKvs().stream()
+                .collect(Collectors.toMap(e -> e.getKey().toString(StandardCharsets.UTF_8), e -> e.getValue().toString(StandardCharsets.UTF_8)));
 
     }
 

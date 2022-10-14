@@ -140,7 +140,7 @@ public final class EtcdInstanceRegisterRepositoryTest {
         })) {
             final EtcdInstanceRegisterRepository repository = new EtcdInstanceRegisterRepository();
 
-            ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+            ShenyuConfig.RegisterConfig config = new ShenyuConfig.RegisterConfig();
 
             repository.init(config);
 
