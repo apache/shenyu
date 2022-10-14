@@ -29,7 +29,7 @@ public class SearchedResources<T extends ResourceDTO> {
     private int pageNum;
     private int pageSize;
     private int total;
-    private int page;
+    private int pages;
     
     private List<T> list;
     

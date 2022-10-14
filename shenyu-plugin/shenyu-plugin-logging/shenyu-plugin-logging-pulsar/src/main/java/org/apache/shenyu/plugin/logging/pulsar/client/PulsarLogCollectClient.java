@@ -39,7 +39,7 @@ import java.util.Objects;
 /**
  * queue-based logging collector.
  */
-public class PulsarLogCollectClient extends AbstractLogConsumeClient<PulsarLogCollectConfig.PulsarLogConfig> {
+public class PulsarLogCollectClient extends AbstractLogConsumeClient<PulsarLogCollectConfig.PulsarLogConfig, ShenyuRequestLog> {
     private static final Logger LOG = LoggerFactory.getLogger(PulsarLogCollectClient.class);
 
     private PulsarClient client;

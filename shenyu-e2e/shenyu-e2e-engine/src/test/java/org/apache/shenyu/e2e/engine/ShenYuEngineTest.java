@@ -20,6 +20,7 @@ package org.apache.shenyu.e2e.engine;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.SelectorQueryCondition;
+import org.apache.shenyu.e2e.client.admin.model.response.SearchedResources;
 import org.apache.shenyu.e2e.client.admin.model.response.SelectorDTO;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest.Parameter;
@@ -38,7 +39,6 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import java.io.File;
 import java.net.URL;
 import java.time.Duration;
-import java.util.List;
 
 @Disabled
 @ShenYuTest(
@@ -91,7 +91,7 @@ public class ShenYuEngineTest {
                 .switchStatus(true)
                 .build();
         
-        List<SelectorDTO> divide = client.searchSelector("divide");
+        SearchedResources<SelectorDTO> divide = client.searchSelectors("divide");
     }
     
     @Test

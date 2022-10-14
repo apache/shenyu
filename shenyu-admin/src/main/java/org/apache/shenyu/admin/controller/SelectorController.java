@@ -77,7 +77,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
                                                                 @RequestParam @NotNull final Integer pageSize) {
         final SelectorQueryCondition condition = new SelectorQueryCondition();
         condition.setUserId(SessionUtil.visitor().getUserId());
-        condition.setPlugin(ListUtil.list(pluginId));
+        condition.setPlugin(ListUtil.of(pluginId));
         condition.setKeyword(name);
         return searchAdaptor(new PageCondition<>(currentPage, pageSize, condition));
     }

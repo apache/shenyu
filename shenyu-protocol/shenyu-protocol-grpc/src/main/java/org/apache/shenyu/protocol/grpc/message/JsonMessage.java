@@ -25,6 +25,7 @@ import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.ExtensionRegistryLite;
 import io.grpc.MethodDescriptor;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +84,7 @@ public class JsonMessage {
      * @return DynamicMessageList
      */
     public static List<DynamicMessage> buildJsonMessageList(final Map<String, Object> jsonParamMap) {
+        ParamCheckUtils.checkParamsLength(jsonParamMap.size(), GrpcConstants.JSON_DESCRIPTOR_PROTO_FIELD_NUM);
         JsonArray jsonParams = (JsonArray) jsonParamMap.get(GrpcConstants.JSON_DESCRIPTOR_PROTO_FIELD_NAME);
         List<DynamicMessage> jsonMessageList = new ArrayList<>(jsonParams.size());
         jsonParams.forEach(jsonParam -> {

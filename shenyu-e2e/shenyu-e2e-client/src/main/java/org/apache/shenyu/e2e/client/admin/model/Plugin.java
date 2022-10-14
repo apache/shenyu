@@ -88,7 +88,7 @@ public enum Plugin {
     }
     
     public static Map<String, String> toMap() {
-        return Arrays.stream(Plugin.values()).collect(Collectors.toUnmodifiableMap(Plugin::getAlias, Plugin::getId));
+        return Arrays.stream(Plugin.values()).collect(Collectors.toMap(Plugin::getAlias, Plugin::getId));
     }
     
     public static void check(List<PluginDTO> plugins) {

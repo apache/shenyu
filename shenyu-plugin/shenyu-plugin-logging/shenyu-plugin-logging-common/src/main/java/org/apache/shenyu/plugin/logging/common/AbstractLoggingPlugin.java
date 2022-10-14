@@ -34,7 +34,7 @@ import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
-import org.apache.shenyu.plugin.logging.mask.enums.DataMaskEnums;
+import org.apache.shenyu.plugin.logging.mask.api.enums.DataMaskEnums;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -51,7 +51,7 @@ import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 /**
  * abstract logging plugin.
  */
-public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
+public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLoggingPlugin.class);
 
@@ -62,7 +62,7 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
      *
      * @return LogCollector
      */
-    protected abstract LogCollector logCollector();
+    protected abstract LogCollector<L> logCollector();
 
     /**
      * pluginEnum.
@@ -70,6 +70,16 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
      * @return PluginEnum
      */
     protected abstract PluginEnum pluginEnum();
+
+    /**
+     * collect log based on ShenyuRequestLog.
+     *
+     * @param exchange exchange
+     * @param selector selector
+     * @param rule rule
+     * @return based on ShenyuRequestLog
+     */
+    protected abstract L doLogExecute(ServerWebExchange exchange, SelectorData selector, RuleData rule);
 
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
@@ -91,7 +101,7 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
         if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
             return chain.execute(exchange);
         }
-        ShenyuRequestLog requestInfo = new ShenyuRequestLog();
+        L requestInfo = this.doLogExecute(exchange, selector, rule);
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethodValue());
         requestInfo.setRequestHeader(LogCollectUtils.getHeaders(request.getHeaders()));
@@ -100,8 +110,8 @@ public abstract class AbstractLoggingPlugin extends AbstractShenyuPlugin {
         requestInfo.setUserAgent(request.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
         requestInfo.setHost(request.getHeaders().getFirst(GenericLoggingConstant.HOST));
         requestInfo.setPath(request.getURI().getPath());
-        LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
-        LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
+        LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo);
+        LoggingServerHttpResponse<L> loggingServerHttpResponse = new LoggingServerHttpResponse<>(exchange.getResponse(),
                 requestInfo, this.logCollector(), masked, keywordSets, dataMaskAlg);
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
                 .response(loggingServerHttpResponse).build();

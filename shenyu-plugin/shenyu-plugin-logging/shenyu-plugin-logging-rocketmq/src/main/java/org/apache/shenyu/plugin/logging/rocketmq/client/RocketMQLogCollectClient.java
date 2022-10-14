@@ -45,7 +45,7 @@ import java.util.Optional;
 /**
  * queue-based logging collector.
  */
-public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQLogCollectConfig.RocketMQLogConfig> {
+public class RocketMQLogCollectClient extends AbstractLogConsumeClient<RocketMQLogCollectConfig.RocketMQLogConfig, ShenyuRequestLog> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocketMQLogCollectClient.class);
 

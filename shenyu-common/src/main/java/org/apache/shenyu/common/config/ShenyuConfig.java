@@ -53,7 +53,9 @@ public class ShenyuConfig {
 
     private CrossFilterConfig cross = new CrossFilterConfig();
     
-    private InstanceConfig instance = new InstanceConfig();
+    private RegisterConfig register = new RegisterConfig();
+
+    private RegisterConfig sdk = new RegisterConfig();
 
     private RibbonConfig ribbon = new RibbonConfig();
     
@@ -154,25 +156,43 @@ public class ShenyuConfig {
     public void setRibbon(final RibbonConfig ribbon) {
         this.ribbon = ribbon;
     }
-    
+
     /**
-     * Gets instance.
+     * register.
      *
-     * @return the instance
+     * @return Register
      */
-    public InstanceConfig getInstance() {
-        return instance;
+    public RegisterConfig getRegister() {
+        return register;
     }
-    
+
     /**
-     * Sets instance.
+     * set register.
      *
-     * @param instance the instance
+     * @param register register
      */
-    public void setInstance(final InstanceConfig instance) {
-        this.instance = instance;
+    public void setRegister(final RegisterConfig register) {
+        this.register = register;
     }
-    
+
+    /**
+     * sdk.
+     *
+     * @return Sdk
+     */
+    public RegisterConfig getSdk() {
+        return sdk;
+    }
+
+    /**
+     * set sdk.
+     *
+     * @param sdk sdk
+     */
+    public void setSdk(final RegisterConfig sdk) {
+        this.sdk = sdk;
+    }
+
     /**
      * Gets switch config.
      *
@@ -1241,58 +1261,37 @@ public class ShenyuConfig {
             }
         }
     }
-    
-    /**
-     * The type Instance config.
-     */
-    public static class InstanceConfig {
-    
+
+    public static class RegisterConfig {
+
         private boolean enabled;
-    
+
         private String registerType;
-    
+
         private String serverLists;
-    
+
         private Properties props = new Properties();
-    
+
         /**
-         * Instantiates a new Instance config.
+         * RegisterConfig.
          */
-        public InstanceConfig() {
-        
+        public RegisterConfig() {
+
         }
-    
+
         /**
-         * Instantiates a new Instance config.
+         * registerType.
          *
          * @param registerType the register type
          * @param serverLists the server lists
          * @param props the props
          */
-        public InstanceConfig(final String registerType, final String serverLists, final Properties props) {
+        public RegisterConfig(final String registerType, final String serverLists, final Properties props) {
             this.registerType = registerType;
             this.serverLists = serverLists;
             this.props = props;
         }
-    
-        /**
-         * Gets enabled.
-         *
-         * @return the enabled
-         */
-        public boolean getEnabled() {
-            return enabled;
-        }
-    
-        /**
-         * Sets enabled.
-         *
-         * @param enabled the enabled
-         */
-        public void setEnabled(final boolean enabled) {
-            this.enabled = enabled;
-        }
-    
+
         /**
          * getRegisterType.
          *
@@ -1301,7 +1300,7 @@ public class ShenyuConfig {
         public String getRegisterType() {
             return registerType;
         }
-    
+
         /**
          * setRegisterType.
          *
@@ -1310,7 +1309,7 @@ public class ShenyuConfig {
         public void setRegisterType(final String registerType) {
             this.registerType = registerType;
         }
-    
+
         /**
          * getServerLists.
          *
@@ -1319,7 +1318,7 @@ public class ShenyuConfig {
         public String getServerLists() {
             return serverLists;
         }
-    
+
         /**
          * setServerLists.
          *
@@ -1328,7 +1327,7 @@ public class ShenyuConfig {
         public void setServerLists(final String serverLists) {
             this.serverLists = serverLists;
         }
-    
+
         /**
          * getProps.
          *
@@ -1337,7 +1336,7 @@ public class ShenyuConfig {
         public Properties getProps() {
             return props;
         }
-    
+
         /**
          * setProps.
          *
@@ -1345,6 +1344,24 @@ public class ShenyuConfig {
          */
         public void setProps(final Properties props) {
             this.props = props;
+        }
+
+        /**
+         * Gets enabled.
+         *
+         * @return the enabled
+         */
+        public boolean getEnabled() {
+            return enabled;
+        }
+
+        /**
+         * Sets enabled.
+         *
+         * @param enabled the enabled
+         */
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
         }
     }
     
