@@ -49,7 +49,7 @@ public class ShenyuConfigTest {
         ShenyuConfig.ExcludePath exclude = config.getExclude();
         ShenyuConfig.FallbackPath fallback = config.getFallback();
         ShenyuConfig.FileConfig file = config.getFile();
-        ShenyuConfig.InstanceConfig instance = config.getInstance();
+        ShenyuConfig.RegisterConfig instance = config.getRegister();
         ShenyuConfig.ExtPlugin extPlugin = config.getExtPlugin();
         ShenyuConfig.Local local = config.getLocal();
         ShenyuConfig.RibbonConfig ribbon = config.getRibbon();
@@ -187,7 +187,7 @@ public class ShenyuConfigTest {
 
     @Test
     public void testInstanceConfig() {
-        ShenyuConfig.InstanceConfig instance = config.getInstance();
+        ShenyuConfig.RegisterConfig instance = config.getRegister();
         instance.setEnabled(true);
         instance.setServerLists("test");
         instance.setRegisterType("test");
