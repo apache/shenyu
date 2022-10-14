@@ -97,12 +97,13 @@ COMMENT ON COLUMN "public"."api"."date_updated" IS 'update time';
 -- Table structure for api_rule_relation
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."api_rule_relation";
-CREATE TABLE "public"."api_rule_relation" (
-                                "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                "api_id"       varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                "rule_id"      varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-                                "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+CREATE TABLE "public"."api_rule_relation"
+(
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "api_id"       varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "rule_id"      varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6)                                NOT NULL DEFAULT timezone('UTC-8'::text, (now()):: timestamp (0) without time zone),
+    "date_updated" timestamp(6)                                NOT NULL DEFAULT timezone('UTC-8'::text, (now()):: timestamp (0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."api_rule_relation"."id" IS 'primary key id';

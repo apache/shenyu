@@ -374,11 +374,11 @@ comment on column API.date_updated
 
 create table api_rule_relation
 (
-    id                VARCHAR2(128) not null,
-    api_id            VARCHAR2(128) not null,
-    rule_id           VARCHAR2(128) not null,
-    date_created      timestamp(3) default SYSDATE not null,
-    date_updated      timestamp(3) default SYSDATE not null,
+    id VARCHAR2 (128) not null,
+    api_id VARCHAR2 (128) not null,
+    rule_id VARCHAR2 (128) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
 
