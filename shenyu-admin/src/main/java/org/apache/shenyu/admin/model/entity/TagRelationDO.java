@@ -91,6 +91,10 @@ public final class TagRelationDO extends BaseDO {
         return Objects.hash(super.hashCode(), apiId, tagId);
     }
 
+    /**
+     * builder .
+     * @return tagRelationDO
+     */
     public static TagRelationDO.TagRelationDOBuilder builder() {
         return new TagRelationDO.TagRelationDOBuilder();
     }
@@ -165,6 +169,10 @@ public final class TagRelationDO extends BaseDO {
             return this;
         }
 
+        /**
+         * build.
+         * @return TagRelationDO
+         */
         public TagRelationDO build() {
             TagRelationDO tagRelationDO = new TagRelationDO();
             tagRelationDO.setApiId(apiId);

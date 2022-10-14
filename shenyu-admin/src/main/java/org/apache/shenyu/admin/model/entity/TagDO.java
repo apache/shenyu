@@ -116,6 +116,10 @@ public final class TagDO extends BaseDO {
         this.ext = ext;
     }
 
+    /**
+     * builder.
+     * @return TagDO.TagDOBuilder
+     */
     public static TagDO.TagDOBuilder builder() {
         return new TagDO.TagDOBuilder();
     }
@@ -239,6 +243,10 @@ public final class TagDO extends BaseDO {
             return this;
         }
 
+        /**
+         * build.
+         * @return TagDO
+         */
         public TagDO build() {
             TagDO tagDO = new TagDO();
             tagDO.setExt(ext);

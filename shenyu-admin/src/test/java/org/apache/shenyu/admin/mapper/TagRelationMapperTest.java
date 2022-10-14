@@ -21,7 +21,6 @@ package org.apache.shenyu.admin.mapper;
 import java.sql.Timestamp;
 import javax.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
-import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
@@ -36,7 +35,7 @@ public class TagRelationMapperTest extends AbstractSpringIntegrationTest {
     private TagRelationMapper tagRelationMapper;
 
     @Test
-    public void testInsert(){
+    public void testInsert() {
         TagRelationDO record = buildTagRelationDO();
         int count = tagRelationMapper.insert(record);
         assertThat(count, greaterThan(0));
@@ -82,7 +81,6 @@ public class TagRelationMapperTest extends AbstractSpringIntegrationTest {
         TagRelationDO tagRelationDO = tagRelationMapper.selectByPrimaryKey(record.getId());
         assertThat(tagRelationDO.getTagId().equals("2222222"), equalTo(true));
     }
-
 
     private TagRelationDO buildTagRelationDO() {
         Timestamp now = new Timestamp(System.currentTimeMillis());
