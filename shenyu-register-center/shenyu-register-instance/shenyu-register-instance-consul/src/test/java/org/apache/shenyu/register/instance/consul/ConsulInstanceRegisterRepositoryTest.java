@@ -104,7 +104,6 @@ class ConsulInstanceRegisterRepositoryTest {
                 .host("shenyu-host")
                 .port(9195)
                 .build();
-
         try (MockedConstruction<ConsulClient> construction = mockConstruction(ConsulClient.class, (mock, context) -> {
             when(mock.agentCheckRegister(any())).thenReturn(any());
         })) {
