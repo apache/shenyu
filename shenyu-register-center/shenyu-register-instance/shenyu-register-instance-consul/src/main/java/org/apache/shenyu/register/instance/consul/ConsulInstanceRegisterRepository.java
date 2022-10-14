@@ -118,6 +118,9 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         return instanceRegisterDTOS;
     }
 
+    /**
+     * async to watch data change.
+     */
     public void start() {
         if (this.running.compareAndSet(false, true)) {
             this.watchFuture = this.executor.scheduleWithFixedDelay(this::watchConfigKeyValues,
@@ -125,6 +128,9 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         }
     }
 
+    /**
+     * watch key values.
+     */
     public void watchConfigKeyValues() {
         if (!running.get()) {
             return;
@@ -139,6 +145,11 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         });
     }
 
+    /**
+     *  getInstanceRegisterDTOListByKey.
+     * @param selectKey key
+     * @return return
+     */
     public List<InstanceRegisterDTO> getInstanceRegisterDTOListByKey(final String selectKey) {
         Response<List<GetValue>> res = consulClient.getKVValues(selectKey);
         if (res == null || CollectionUtils.isEmpty(res.getValue())) {
