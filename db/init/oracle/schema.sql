@@ -393,6 +393,86 @@ create sequence operation_record_log_seq
     NOCYCLE
     NOCACHE;
 
+create table api
+(
+    id VARCHAR2 (128) not null,
+    context_path VARCHAR2 (255) not null,
+    api_path VARCHAR2 (255) not null,
+    http_method NUMBER (10) not null,
+    consume VARCHAR2 (255) not null,
+    produce VARCHAR2 (255) not null,
+    version VARCHAR2 (255) not null,
+    rpc_type VARCHAR2 (64) not null,
+    state NUMBER (10) not null,
+    ext VARCHAR2 (1025) not null,
+    api_owner VARCHAR2 (255) not null,
+    api_desc VARCHAR2 (1024) not null,
+    document CLOB not null,
+    document_md5 VARCHAR2 (32) not null,
+    api_source NUMBER (10) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the columns
+comment on column API.id
+  is 'primary key id';
+comment on column API.context_path
+  is 'the context_path';
+comment on column API.api_path
+  is 'the api_path';
+comment on column API.http_method
+  is '0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace';
+comment on column API.consume
+  is 'consume';
+comment on column API.produce
+  is 'produce';
+comment on column API.version
+  is 'api version,for example V0.01';
+comment on column API.rpc_type
+  is 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc';
+comment on column API.state
+  is '0-unpublished1-published2-offline';
+comment on column API.ext
+  is 'extended fields';
+comment on column API.api_owner
+  is 'api_owner';
+comment on column API.api_desc
+  is 'the api description';
+comment on column API.api_source
+  is '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi';
+comment on column API.document
+  is 'complete documentation of the api, including request parameters and response parameters';
+comment on column API.document_md5
+  is 'document_md5';
+comment on column API.date_created
+  is 'create time';
+comment on column API.date_updated
+  is 'update time';
+
+
+create table api_rule_relation
+(
+    id VARCHAR2 (128) not null,
+    api_id VARCHAR2 (128) not null,
+    rule_id VARCHAR2 (128) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+
+-- Add comments to the columns
+comment on column API_RULE_RELATION.id
+  is 'primary key id';
+comment on column API_RULE_RELATION.api_id
+  is 'the table api primary key id';
+comment on column API_RULE_RELATION.rule_id
+  is 'the table rule primary key id';
+comment on column API_RULE_RELATION.date_created
+  is 'create time';
+comment on column API_RULE_RELATION.date_updated
+  is 'update time';
+
 create table app_auth
 (
     id           VARCHAR2(128) not null,

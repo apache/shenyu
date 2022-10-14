@@ -110,7 +110,7 @@ public final class EtcdInstanceRegisterRepositoryTest {
 
             when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
             when(completableFuture.get()).thenReturn(leaseGrantResponse);
-            final ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+            final ShenyuConfig.RegisterConfig config = new ShenyuConfig.RegisterConfig();
             config.setServerLists("url");
             Assertions.assertDoesNotThrow(() -> repository.init(config));
         } catch (Exception e) {
