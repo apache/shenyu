@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
@@ -68,7 +68,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
     private Map<String, WatcherListener> watcherListenerMap = new ConcurrentHashMap<>();
 
     @Override
-    public void init(final InstanceConfig config) {
+    public void init(final RegisterConfig config) {
         final Properties props = config.getProps();
         final String timeout = props.getProperty("consulTimeout", "3000");
         final String ttl = props.getProperty("consulTTL", "3000");
