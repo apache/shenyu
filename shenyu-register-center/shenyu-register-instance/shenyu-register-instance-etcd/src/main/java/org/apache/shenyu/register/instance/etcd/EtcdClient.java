@@ -103,7 +103,7 @@ public class EtcdClient {
      * get keys by prefix.
      *
      * @param prefix key prefix.
-     * @return key values.
+     * @return key valuesMap.
      */
     public Map<String, String> getKeysMapByPrefix(final String prefix) {
         GetOption getOption = GetOption.newBuilder()
