@@ -2058,11 +2058,11 @@ ALTER TABLE "public"."shenyu_dict" ADD CONSTRAINT "shenyu_dict_pkey" PRIMARY KEY
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."tag";
 CREATE TABLE "public"."tag" (
-    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "tag_desc"         varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "parent_tag_id"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "ext"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "tag_desc" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "parent_tag_id" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "ext" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
     "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )

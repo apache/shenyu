@@ -1989,7 +1989,7 @@ create table tag
     name          VARCHAR2(255) not null,
     tag_desc      VARCHAR2(255) not null,
     parent_tag_id VARCHAR2(128) not null,
-    ext           VARCHAR2(255) not null,
+    ext           VARCHAR2(1024) not null,
     date_created  timestamp(3) default SYSDATE not null,
     date_updated  timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
@@ -2007,6 +2007,8 @@ on column TAG.tag_desc
 comment
 on column TAG.parent_tag_id
   is 'parent tag id';
+on column TAG.ext
+  is 'extension info';
 comment
 on column TAG.date_created
   is 'create time';
