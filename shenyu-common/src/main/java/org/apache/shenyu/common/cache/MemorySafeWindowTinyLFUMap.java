@@ -56,10 +56,18 @@ public class MemorySafeWindowTinyLFUMap<K, V> extends AbstractMap<K, V> implemen
     
     public MemorySafeWindowTinyLFUMap(final int maxFreeMemory,
                                       final int initialSize) {
+        this(maxFreeMemory, initialSize, Long.MAX_VALUE, 1 << 30);
+    }
+    
+    public MemorySafeWindowTinyLFUMap(final int maxFreeMemory,
+                                      final int initialSize,
+                                      final long expireAfterWrite,
+                                      final long maximumSize) {
         this.maxFreeMemory = maxFreeMemory;
+        //see https://github.com/ben-manes/caffeine/issues/776
         this.cache = Caffeine.newBuilder()
-                .expireAfterWrite(Long.MAX_VALUE, TimeUnit.MILLISECONDS)
-                .maximumSize(1 << 30)
+                .expireAfterWrite(expireAfterWrite, TimeUnit.MILLISECONDS)
+                .maximumSize(maximumSize)
                 .initialCapacity(initialSize)
                 .build();
     }
