@@ -345,15 +345,15 @@ comment on column API.api_path
 comment on column API.http_method
   is '0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace';
 comment on column API.consume
-  is 'consume';
+  is 'consume content-type';
 comment on column API.produce
-  is 'produce';
+  is 'produce content-type';
 comment on column API.version
   is 'api version,for example V0.01';
 comment on column API.rpc_type
   is 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc';
 comment on column API.state
-  is '0-unpublished1-published2-offline';
+  is '0-unpublished,1-published,2-offline';
 comment on column API.ext
   is 'extended fields';
 comment on column API.api_owner
@@ -361,7 +361,7 @@ comment on column API.api_owner
 comment on column API.api_desc
   is 'the api description';
 comment on column API.api_source
-  is '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi';
+  is '0-swagger,1-annotation generation,2-create manually,3-import swagger,4-import yapi';
 comment on column API.document
   is 'complete documentation of the api, including request parameters and response parameters';
 comment on column API.document_md5
