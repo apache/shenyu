@@ -2618,4 +2618,3 @@ comment on column TAG_RELATION.date_created
   is 'create time';
 comment on column TAG_RELATION.date_updated
   is 'update time';
-

@@ -1788,7 +1788,6 @@ IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('15345854305
 INSERT
 IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1534585531389583360', '1346358560427216896', '1534585531108564992');
 
-
 -- ----------------------------
 -- Table structure for tag
 -- ----------------------------
@@ -1802,7 +1801,7 @@ CREATE TABLE IF NOT EXISTS `tag`
     `date_created`  timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     `date_updated`  timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
-);
+    );
 -- ----------------------------
 -- Table structure for tag_relation
 -- ----------------------------
@@ -1814,4 +1813,4 @@ CREATE TABLE IF NOT EXISTS `tag_relation`
     `date_created` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     `date_updated` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
-);
+    );
