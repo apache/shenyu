@@ -313,6 +313,29 @@ COMMENT ON COLUMN "public"."mock_request_record"."date_updated" IS 'update time'
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for model
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."model";
+CREATE TABLE "public"."model"  (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "model_desc" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+)
+;
+COMMENT ON COLUMN "public"."model"."id" IS 'id';
+COMMENT ON COLUMN "public"."model"."name" IS 'the model name';
+COMMENT ON COLUMN "public"."model"."model_desc" IS 'the model description';
+COMMENT ON COLUMN "public"."model"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."model"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Records of model
+-- ----------------------------
+-- todo add some simple model, like java.lang.String long java.lang.Long
+
+-- ----------------------------
 -- Table structure for operation_record_log
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."operation_record_log";

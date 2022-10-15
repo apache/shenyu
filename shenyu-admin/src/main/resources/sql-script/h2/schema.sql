@@ -124,8 +124,7 @@ CREATE TABLE  IF NOT EXISTS `meta_data` (
   PRIMARY KEY (`id`)
 );
 
-DROP TABLE IF EXISTS `mock_request_record`;
-CREATE TABLE `mock_request_record`  (
+CREATE TABLE IF NOT EXISTS `mock_request_record`  (
   `id` varchar(128) NOT NULL COMMENT 'primary key id',
   `api_id` varchar(128) NOT NULL COMMENT 'the api id',
   `host` varchar(32) NOT NULL COMMENT 'the request host',
@@ -138,6 +137,23 @@ CREATE TABLE `mock_request_record`  (
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`)
 );
+
+-- ----------------------------
+-- Table structure for model
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `model`  (
+  `id` varchar(128) NOT NULL COMMENT 'primary key id',
+  `name` varchar(128) NOT NULL COMMENT 'the model name',
+  `model_desc`   varchar(1024) NOT NULL COMMENT 'the model description',
+  `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+  PRIMARY KEY (`id`)
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of model
+-- ----------------------------
+-- todo add some simple model, like java.lang.String long java.lang.Long
 
 CREATE TABLE IF NOT EXISTS `app_auth`  (
   `id` varchar(128) NOT NULL COMMENT 'primary key id',

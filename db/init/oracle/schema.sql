@@ -322,6 +322,30 @@ comment on column MOCK_REQUEST_RECORD.date_created
 comment on column MOCK_REQUEST_RECORD.date_updated
   is 'update time';
 
+create table model
+(
+    id VARCHAR2(128) not null PRIMARY KEY,
+    name VARCHAR2(128) not null,
+    model_desc VARCHAR2(1024) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
+)
+-- Add comments to the table
+comment on table MODEL
+  is 'model desc table';
+-- Add comments to the columns
+comment on column MODEL.id
+  is 'id';
+comment on column MODEL.name
+  is 'the model name';
+comment on column MODEL.model_desc
+  is 'the model description';
+comment on column MODEL.date_created
+  is 'create time';
+comment on column MODEL.date_updated
+  is 'update time';
+-- todo add some simple model, like java.lang.String long java.lang.Long
+
 create table operation_record_log
 (
     id                NUMBER(20) not null PRIMARY KEY,

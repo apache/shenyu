@@ -230,6 +230,24 @@ CREATE TABLE `mock_request_record`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for model
+-- ----------------------------
+DROP TABLE IF EXISTS `model`;
+CREATE TABLE `model`  (
+  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+  `name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the model name',
+  `model_desc`   varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the model description',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of model
+-- ----------------------------
+-- todo add some simple model, like java.lang.String long java.lang.Long
+
+-- ----------------------------
 -- Table structure for operation_record_log
 -- ----------------------------
 DROP TABLE IF EXISTS `operation_record_log`;
