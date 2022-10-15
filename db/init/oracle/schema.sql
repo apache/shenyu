@@ -1908,7 +1908,7 @@ create table tag
     id            VARCHAR2(128) not null,
     name          VARCHAR2(255) not null,
     tag_desc      VARCHAR2(255) not null,
-    parent_tag_id VARCHAR2(255) not null,
+    parent_tag_id VARCHAR2(128) not null,
     ext           VARCHAR2(255) not null,
     date_created  timestamp(3) default SYSDATE not null,
     date_updated  timestamp(3) default SYSDATE not null,
@@ -1938,8 +1938,8 @@ on column TAG.date_updated
 create table tag_relation
 (
     id                VARCHAR2(128) not null,
-    api_id            VARCHAR2(255) not null,
-    tag_id            VARCHAR2(255) not null,
+    api_id            VARCHAR2(128) not null,
+    tag_id            VARCHAR2(128) not null,
     date_created      timestamp(3) default SYSDATE not null,
     date_updated      timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
