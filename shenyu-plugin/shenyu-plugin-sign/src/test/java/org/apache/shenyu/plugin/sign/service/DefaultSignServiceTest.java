@@ -274,7 +274,7 @@ public final class DefaultSignServiceTest {
         assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
     }
 
-    private String buildSign(final String signKey, final String timeStamp, final String path, Map<String, String> jsonParams, Map<String, String> queryParams) {
+    private String buildSign(final String signKey, final String timeStamp, final String path, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
         final String extSignKey = String.join("", Constants.TIMESTAMP, timeStamp, Constants.PATH, path, Constants.VERSION, "1.0.0", signKey);
         return SignUtils.generateSign(extSignKey, jsonParams, queryParams);
     }
