@@ -49,6 +49,8 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -107,7 +109,7 @@ public final class DefaultSignServiceTest {
         this.passed.setPath(path);
         final String timestamp = String.valueOf(System.currentTimeMillis());
         this.passed.setTimestamp(timestamp);
-        this.passed.setSign(buildSign(this.secretKey, timestamp, this.passed.getPath()));
+        this.passed.setSign(buildSign(this.secretKey, timestamp, this.passed.getPath(), null, null));
         this.passed.setAppKey(appKey);
         this.passed.setContextPath("/test-api");
         this.passed.setRealUrl("/demo/test");
@@ -156,7 +158,7 @@ public final class DefaultSignServiceTest {
     public void overdueTest() {
         long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - (long) ((delay + 1) * 1000 * 60);
         this.passed.setTimestamp(Long.toString(errorTimestamp));
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath()));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), null, null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
@@ -210,7 +212,7 @@ public final class DefaultSignServiceTest {
     @Test
     public void errorAuthPath() {
         this.passed.setPath("errorPath");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath()));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), null, null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
@@ -227,20 +229,57 @@ public final class DefaultSignServiceTest {
     }
 
     @Test
-    public void bodySign() {
+    public void errorBodySign() {
         this.passed.setSign("errorSign");
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "data");
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody);
+        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody, null);
         assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
     }
 
-    private String buildSign(final String signKey, final String timeStamp, final String path) {
-        Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
-        map.put(Constants.TIMESTAMP, timeStamp);
-        map.put(Constants.PATH, path);
-        map.put(Constants.VERSION, "1.0.0");
-        return SignUtils.generateSign(signKey, map);
+    @Test
+    public void bodySign() {
+        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
+        requestBody.put("data", "data");
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), transStringMap(requestBody), null));
+        this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody, null);
+        assertEquals(ret, Pair.of(true, ""));
+    }
+
+    @Test
+    public void bodyAndUrlQueryParamsSign() {
+        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
+        requestBody.put("data", "data");
+        Map<String, String> queryParams = Maps.newHashMapWithExpectedSize(1);
+        queryParams.put("data2", "data");
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), transStringMap(requestBody), queryParams));
+        this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody, queryParams);
+        assertEquals(ret, Pair.of(true, ""));
+    }
+
+    @Test
+    public void errorBodyAndUrlQueryParamsSign() {
+        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
+        requestBody.put("data", "data");
+        Map<String, String> queryParams = Maps.newHashMapWithExpectedSize(1);
+        queryParams.put("data", "data");
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), transStringMap(requestBody), null));
+        this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+        // Tamper with request body parameters
+        requestBody.put("data", "data2");
+        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody, queryParams);
+        assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
+    }
+
+    private String buildSign(final String signKey, final String timeStamp, final String path, Map<String, String> jsonParams, Map<String, String> queryParams) {
+        final String extSignKey = String.join("", Constants.TIMESTAMP, timeStamp, Constants.PATH, path, Constants.VERSION, "1.0.0", signKey);
+        return SignUtils.generateSign(extSignKey, jsonParams, queryParams);
+    }
+
+    private Map<String, String> transStringMap(final Map<String, Object> map) {
+        return map == null ? null : map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Objects.toString(e.getValue(), null)));
     }
 }

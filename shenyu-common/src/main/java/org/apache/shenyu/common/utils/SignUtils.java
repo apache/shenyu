@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.constant.Constants;
+import com.google.common.collect.Maps;
 import org.springframework.util.DigestUtils;
 
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
  * SignUtils.
  */
 public final class SignUtils {
+
+    private static final Map<String, String> EMPTY_HASH_MAP = Maps.newHashMap();
 
     private static final SignUtils SIGN_UTILS = new SignUtils();
 
@@ -49,16 +52,20 @@ public final class SignUtils {
      * acquired sign.
      *
      * @param signKey sign key
-     * @param params  params
+     * @param jsonParams json params
+     * @param queryParams  url query params
      * @return sign
      */
-    public static String generateSign(final String signKey, final Map<String, String> params) {
-        final String sign = params.keySet().stream()
+    public static String generateSign(final String signKey, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
+        final String jsonSign = Optional.ofNullable(jsonParams).orElse(EMPTY_HASH_MAP).keySet().stream()
                 .sorted(Comparator.naturalOrder())
-                .filter(key -> !Objects.equals(key, Constants.SIGN))
-                .map(key -> String.join("", key, params.get(key)))
-                .collect(Collectors.joining()).trim()
-                .concat(signKey);
+                .map(key -> String.join("", key, jsonParams.get(key)))
+                .collect(Collectors.joining()).trim();
+        final String querySign = Optional.ofNullable(queryParams).orElse(EMPTY_HASH_MAP).keySet().stream()
+                .sorted(Comparator.naturalOrder())
+                .map(key -> String.join("", key, queryParams.get(key)))
+                .collect(Collectors.joining()).trim();
+        final String sign = String.join("", jsonSign, querySign, signKey);
         // TODO this is a risk for error charset coding with getBytes
         return DigestUtils.md5DigestAsHex(sign.getBytes()).toUpperCase();
     }
@@ -67,12 +74,13 @@ public final class SignUtils {
      * isValid.
      *
      * @param sign    sign
-     * @param params  params
-     * @param signKey signKey
+     * @param jsonParams json params
+     * @param queryParams  url query params
+     * @param signKey sign key
      * @return boolean
      */
-    public boolean isValid(final String sign, final Map<String, String> params, final String signKey) {
-        return Objects.equals(sign, generateSign(signKey, params));
+    public boolean isValid(final String sign, final Map<String, String> jsonParams, final Map<String, String> queryParams, final String signKey) {
+        return Objects.equals(sign, generateSign(signKey, jsonParams, queryParams));
     }
 
     /**

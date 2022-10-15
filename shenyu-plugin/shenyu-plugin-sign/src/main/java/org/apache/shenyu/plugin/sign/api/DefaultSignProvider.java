@@ -30,11 +30,12 @@ public class DefaultSignProvider implements SignProvider {
      * acquired sign.
      *
      * @param signKey sign key
-     * @param params  params
+     * @param jsonParams json params
+     * @param queryParams  url query params
      * @return sign
      */
     @Override
-    public String generateSign(final String signKey, final Map<String, String> params) {
-        return SignUtils.generateSign(signKey, params);
+    public String generateSign(final String signKey, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
+        return SignUtils.generateSign(signKey, jsonParams, queryParams);
     }
 }
