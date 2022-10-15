@@ -245,6 +245,62 @@ COMMENT ON TABLE "public"."data_permission" IS 'data permission table';
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for detail
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."detail";
+CREATE TABLE "public"."detail" (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "field_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "is_example" int2 NOT NULL,
+  "field_value" text COLLATE "pg_catalog"."default" NOT NULL,
+  "value_desc" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."detail"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."detail"."field_id" IS 'the field id';
+COMMENT ON COLUMN "public"."detail"."is_example" IS 'is example or not (0 not, 1 is)';
+COMMENT ON COLUMN "public"."detail"."field_value" IS 'the field value';
+COMMENT ON COLUMN "public"."detail"."value_desc" IS 'field value description';
+COMMENT ON COLUMN "public"."detail"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."detail"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Records of detail
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for field
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."field";
+CREATE TABLE "public"."field" (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "model_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "self_model_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "field_desc" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+  "required" int2 NOT NULL,
+  "ext" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."field"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."field"."model_id" IS 'this field belongs to which model';
+COMMENT ON COLUMN "public"."field"."self_model_id" IS 'which model of this field is';
+COMMENT ON COLUMN "public"."field"."name" IS 'field name';
+COMMENT ON COLUMN "public"."field"."field_desc" IS 'field description';
+COMMENT ON COLUMN "public"."field"."required" IS 'whether to require (0 not required, 1 required)';
+COMMENT ON COLUMN "public"."field"."ext" IS 'extended fields,can store genericTypes,eg..{"genericTypes":[model_id1,model_id2]}';
+COMMENT ON COLUMN "public"."field"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."field"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Records of field
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for meta_data
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."meta_data";

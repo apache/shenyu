@@ -293,7 +293,7 @@ create table mock_request_record
     path_variable VARCHAR2(255) not null,
     query VARCHAR2(1024) not null,
     header VARCHAR2(1024) not null,
-    body CLOB not null COMMENT 'the request body',
+    body CLOB not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
 )
@@ -773,6 +773,72 @@ comment on column DATA_PERMISSION.data_type
 comment on column DATA_PERMISSION.date_created
   is 'create time';
 comment on column DATA_PERMISSION.date_updated
+  is 'update time';
+
+create table detail
+(
+    id           VARCHAR2(128) not null,
+    field_id     VARCHAR2(128) not null,
+    is_example   NUMBER(3) not null,
+    field_value  CLOB not null,
+    value_desc   VARCHAR2(1024) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the table
+comment on table DETAIL
+  is 'field value detail table';
+-- Add comments to the columns
+comment on column DETAIL.id
+  is 'primary key id';
+comment on column DETAIL.field_id
+  is 'the field id';
+comment on column DETAIL.is_example
+  is 'is example or not (0 not, 1 is)';
+comment on column DETAIL.field_value
+  is 'the field value';
+comment on column DETAIL.value_desc
+  is 'field value description';
+comment on column DETAIL.date_created
+  is 'create time';
+comment on column DETAIL.date_updated
+  is 'update time';
+
+create table field
+(
+    id           VARCHAR2(128) not null,
+    model_id     VARCHAR2(128) not null,
+    self_model_id VARCHAR2(128) not null,
+    name         VARCHAR2(128) not null,
+    field_desc   VARCHAR2(1024) not null,
+    required     NUMBER(3) not null,
+    ext          VARCHAR2(1024) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the table
+comment on table field
+  is 'field document table';
+-- Add comments to the columns
+comment on column FIELD.id
+  is 'primary key id';
+comment on column FIELD.model_id
+  is 'this field belongs to which model';
+comment on column FIELD.self_model_id
+  is 'which model of this field is';
+comment on column FIELD.name
+  is 'field name';
+comment on column FIELD.field_desc
+  is 'field description';
+comment on column FIELD.required
+  is 'whether to require (0 not required, 1 required)';
+comment on column FIELD.ext
+  is 'extended fields,can store genericTypes,eg..{"genericTypes":[model_id1,model_id2]}';
+comment on column FIELD.date_created
+  is 'create time';
+comment on column FIELD.date_updated
   is 'update time';
 
 /**default admin user**/
