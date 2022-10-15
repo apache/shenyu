@@ -1982,3 +1982,56 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1534585430587875328', '1346358560427216896', '1534585430311051264');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1534585531389583360', '1346358560427216896', '1534585531108564992');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176');
+
+create table tag
+(
+    id            VARCHAR2(128) not null,
+    name          VARCHAR2(255) not null,
+    tag_desc      VARCHAR2(255) not null,
+    parent_tag_id VARCHAR2(128) not null,
+    ext           VARCHAR2(255) not null,
+    date_created  timestamp(3) default SYSDATE not null,
+    date_updated  timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the columns
+comment
+on column TAG.id
+  is 'primary key id';
+comment
+on column TAG.name
+  is 'tag name';
+comment
+on column TAG.tag_desc
+  is 'tag desc';
+comment
+on column TAG.parent_tag_id
+  is 'parent tag id';
+comment
+on column TAG.date_created
+  is 'create time';
+comment
+on column TAG.date_updated
+  is 'update time';
+
+
+create table tag_relation
+(
+    id                VARCHAR2(128) not null,
+    api_id            VARCHAR2(128) not null,
+    tag_id            VARCHAR2(128) not null,
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the columns
+comment on column TAG_RELATION.id
+  is 'primary key id';
+comment on column TAG_RELATION.api_id
+  is 'api_id';
+comment on column TAG_RELATION.parent_tag_id
+  is 'parent tag id';
+comment on column TAG_RELATION.date_created
+  is 'create time';
+comment on column TAG_RELATION.date_updated
+  is 'update time';
