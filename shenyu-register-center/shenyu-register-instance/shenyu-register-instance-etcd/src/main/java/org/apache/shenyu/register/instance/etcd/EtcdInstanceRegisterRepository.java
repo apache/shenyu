@@ -61,6 +61,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
         String realNode = RegisterPathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);
+        LOGGER.info("etcd client register success: {}", nodeData);
     }
 
     @Override
