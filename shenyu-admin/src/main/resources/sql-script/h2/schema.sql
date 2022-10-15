@@ -860,7 +860,7 @@ CREATE TABLE IF NOT EXISTS `tag`
     `date_created`  timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     `date_updated`  timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
-    );
+);
 -- ----------------------------
 -- Table structure for tag_relation
 -- ----------------------------
@@ -872,4 +872,4 @@ CREATE TABLE IF NOT EXISTS `tag_relation`
     `date_created` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     `date_updated` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
-    );
+);
