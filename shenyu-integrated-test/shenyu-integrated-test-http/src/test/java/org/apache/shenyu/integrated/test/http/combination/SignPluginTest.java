@@ -19,7 +19,7 @@ package org.apache.shenyu.integrated.test.http.combination;
 
 import com.google.common.collect.Maps;
 import com.google.gson.reflect.TypeToken;
-import org.apache.commons.lang3.ObjectUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -43,9 +43,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public final class SignPluginTest extends AbstractPluginDataInit {
 
@@ -175,12 +175,8 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private Map<String, Object> buildHeadersMap(final String timestamp, final String path, final String appKey,
                                                 final String appSecret, final String version) {
-        Map<String, String> params = Maps.newHashMapWithExpectedSize(3);
-        params.put("timestamp", timestamp);
-        params.put("path", path);
-        params.put("version", version);
-        String sign = SignUtils.generateSign(appSecret, params);
-
+        String extSignKey = String.join("", Constants.TIMESTAMP, timestamp, Constants.PATH, path, Constants.VERSION, "1.0.0", appSecret);
+        String sign = SignUtils.generateSign(extSignKey, null, null);
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
         headers.put("timestamp", timestamp);
         headers.put("appKey", appKey);
@@ -191,14 +187,8 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private Map<String, Object> buildHeadersMapRequestBody(final String timestamp, final String path, final String appKey,
                                                 final String appSecret, final String version, final Map<String, String> requestBody) {
-        Map<String, String> params = Maps.newHashMapWithExpectedSize(3);
-        params.put("timestamp", timestamp);
-        params.put("path", path);
-        params.put("version", version);
-        if (!ObjectUtils.isEmpty(requestBody)) {
-            params.putAll(requestBody);
-        }
-        String sign = SignUtils.generateSign(appSecret, params);
+        String extSignKey = String.join("", Constants.TIMESTAMP, timestamp, Constants.PATH, path, Constants.VERSION, "1.0.0", appSecret);
+        String sign = SignUtils.generateSign(extSignKey, requestBody, null);
 
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
         headers.put("timestamp", timestamp);
