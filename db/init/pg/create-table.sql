@@ -1997,13 +1997,13 @@ ALTER TABLE "public"."shenyu_dict" ADD CONSTRAINT "shenyu_dict_pkey" PRIMARY KEY
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."tag";
 CREATE TABLE "public"."tag" (
-                                "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-                                "tag_desc"         varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-                                "parent_tag_id"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-                                "ext"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-                                "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-                                "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "tag_desc"         varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "parent_tag_id"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "ext"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."tag"."id" IS 'primary key id';
@@ -2014,18 +2014,16 @@ COMMENT ON COLUMN "public"."tag"."ext" IS 'extension';
 COMMENT ON COLUMN "public"."tag"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."tag"."date_updated" IS 'update time';
 
-
-
 -- ----------------------------
 -- Table structure for tag_relation
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."tag_relation";
 CREATE TABLE "public"."tag_relation" (
-                                         "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                         "api_id"       varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                         "tag_id"      varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                         "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-                                         "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "api_id"       varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "tag_id"      varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."tag_relation"."id" IS 'primary key id';
