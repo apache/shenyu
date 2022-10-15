@@ -19,20 +19,28 @@ package org.apache.shenyu.register.instance.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.agent.model.NewCheck;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
+import com.google.common.collect.Lists;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.apache.shenyu.register.common.path.RegisterPathConstants;
+import org.apache.shenyu.register.common.subsriber.WatcherListener;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 class ConsulInstanceRegisterRepositoryTest {
 
@@ -86,6 +94,30 @@ class ConsulInstanceRegisterRepositoryTest {
         assertTrue(consulBroker.containsKey(realNode));
         assertEquals(GsonUtils.getInstance().toJson(data), consulBroker.get(realNode));
         repository.close();
+    }
+
+    @Test
+    public void testSelectInstancesAndWatcher() {
+
+        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
+                .appName("shenyu-test")
+                .host("shenyu-host")
+                .port(9195)
+                .build();
+
+        try (MockedConstruction<ConsulClient> construction = mockConstruction(ConsulClient.class, (mock, context) -> {
+            when(mock.agentCheckRegister(any())).thenReturn(any());
+        })) {
+            ShenyuConfig.RegisterConfig instanceConfig = new ShenyuConfig.RegisterConfig();
+            final ConsulInstanceRegisterRepository repository = mock(ConsulInstanceRegisterRepository.class);
+            Properties properties = new Properties();
+            properties.setProperty("enabledServerRebalance", "true");
+            instanceConfig.setProps(properties);
+            repository.init(instanceConfig);
+            when(repository.getInstanceRegisterDTOListByKey(anyString())).thenReturn(Lists.newArrayList(data));
+            repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+            repository.close();
+        }
     }
 
 }
