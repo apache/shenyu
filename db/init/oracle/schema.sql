@@ -284,7 +284,7 @@ comment on column META_DATA.date_updated
 comment on column META_DATA.enabled
   is 'enabled state (0 close, 1 enabled) ';
 
-create table `mock_request_record`
+create table mock_request_record
 (
     id VARCHAR2(128) not null PRIMARY KEY,
     api_id VARCHAR2(128) not null,
@@ -297,6 +297,9 @@ create table `mock_request_record`
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
 )
+-- Add comments to the table
+comment on table MOCK_REQUEST_RECORD
+  is 'mock request records';
 -- Add comments to the columns
 comment on column MOCK_REQUEST_RECORD.id
   is 'id';
@@ -370,6 +373,9 @@ create table api
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id)
 );
+-- Add comments to the table
+comment on table API
+  is 'api document';
 -- Add comments to the columns
 comment on column API.id
   is 'primary key id';
@@ -599,6 +605,45 @@ comment on column USER_ROLE.role_id
 comment on column USER_ROLE.date_created
   is 'create time';
 comment on column USER_ROLE.date_updated
+  is 'update time';
+
+create table param
+(
+    id           VARCHAR2(128) not null,
+    api_id       VARCHAR2(128) not null,
+    model_id     VARCHAR2(128) not null,
+    type         NUMBER(10) not null,
+    name         VARCHAR2(255) not null,
+    param_desc   VARCHAR2(1024) not null,
+    required     NUMBER(3) not null,
+    ext          VARCHAR2(1024) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the table
+comment on table PARAM
+  is 'param document';
+-- Add comments to the columns
+comment on column PARAM.id
+  is 'primary key id';
+comment on column PARAM.api_id
+  is 'the api id';
+comment on column PARAM.model_id
+  is 'the model id, empty if not a model';
+comment on column PARAM.type
+  is '0-requestPathVariable,1-requestUrlParam,2-requestHeader,3-requestBody,4-responseHeader,5-responseBody';
+comment on column PARAM.name
+  is 'the param name';
+comment on column PARAM.param_desc
+  is 'the param description';
+comment on column PARAM.required
+  is 'whether to require (0 not required, 1 required)';
+comment on column PARAM.ext
+  is 'extended fields';
+comment on column PARAM.date_created
+  is 'create time';
+comment on column PARAM.date_updated
   is 'update time';
 
 create table permission
