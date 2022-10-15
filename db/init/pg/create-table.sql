@@ -281,6 +281,38 @@ COMMENT ON COLUMN "public"."meta_data"."enabled" IS 'enabled state (0 close, 1 o
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for mock_request_record
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."mock_request_record";
+CREATE TABLE "public"."mock_request_record"  (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "api_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "host" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+  "port" int4 NOT NULL,
+  "path_variable" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "query" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+  "header" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+  "body" text COLLATE "pg_catalog"."default" NOT NULL,
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+)
+;
+COMMENT ON COLUMN "public"."mock_request_record"."id" IS 'id';
+COMMENT ON COLUMN "public"."mock_request_record"."api_id" IS 'the api id';
+COMMENT ON COLUMN "public"."mock_request_record"."host" IS 'the request host';
+COMMENT ON COLUMN "public"."mock_request_record"."port" IS 'the request port';
+COMMENT ON COLUMN "public"."mock_request_record"."path_variable" IS 'the request param in url';
+COMMENT ON COLUMN "public"."mock_request_record"."query" IS 'the request param after url';
+COMMENT ON COLUMN "public"."mock_request_record"."header" IS 'the request param in header';
+COMMENT ON COLUMN "public"."mock_request_record"."body" IS 'the request body';
+COMMENT ON COLUMN "public"."mock_request_record"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."mock_request_record"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Records of mock_request_record
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for operation_record_log
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."operation_record_log";

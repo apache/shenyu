@@ -284,6 +284,41 @@ comment on column META_DATA.date_updated
 comment on column META_DATA.enabled
   is 'enabled state (0 close, 1 enabled) ';
 
+create table `mock_request_record`
+(
+    id VARCHAR2(128) not null PRIMARY KEY,
+    api_id VARCHAR2(128) not null,
+    host VARCHAR2(32) not null,
+    port NUMBER(5) not null,
+    path_variable VARCHAR2(255) not null,
+    query VARCHAR2(1024) not null,
+    header VARCHAR2(1024) not null,
+    body CLOB not null COMMENT 'the request body',
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
+)
+-- Add comments to the columns
+comment on column MOCK_REQUEST_RECORD.id
+  is 'id';
+comment on column MOCK_REQUEST_RECORD.api_id
+  is 'the api id';
+comment on column MOCK_REQUEST_RECORD.host
+  is 'the request host';
+comment on column MOCK_REQUEST_RECORD.port
+  is 'the request port';
+comment on column MOCK_REQUEST_RECORD.path_variable
+  is 'the request param in url';
+comment on column MOCK_REQUEST_RECORD.query
+  is 'the request param after url';
+comment on column MOCK_REQUEST_RECORD.header
+  is 'the request param in header';
+comment on column MOCK_REQUEST_RECORD.body
+  is 'the request body';
+comment on column MOCK_REQUEST_RECORD.date_created
+  is 'create time';
+comment on column MOCK_REQUEST_RECORD.date_updated
+  is 'update time';
+
 create table operation_record_log
 (
     id                NUMBER(20) not null PRIMARY KEY,
