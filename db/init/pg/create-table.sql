@@ -350,7 +350,7 @@ CREATE TABLE "public"."mock_request_record"  (
   "header" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
   "body" text COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."mock_request_record"."id" IS 'id';
@@ -377,7 +377,7 @@ CREATE TABLE "public"."model"  (
   "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
   "model_desc" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."model"."id" IS 'id';
