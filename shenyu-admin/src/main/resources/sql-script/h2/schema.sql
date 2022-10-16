@@ -124,6 +124,37 @@ CREATE TABLE  IF NOT EXISTS `meta_data` (
   PRIMARY KEY (`id`)
 );
 
+CREATE TABLE IF NOT EXISTS `mock_request_record`  (
+  `id` varchar(128) NOT NULL COMMENT 'primary key id',
+  `api_id` varchar(128) NOT NULL COMMENT 'the api id',
+  `host` varchar(32) NOT NULL COMMENT 'the request host',
+  `port` int(5) NOT NULL COMMENT 'the request port',
+  `path_variable` varchar(255) NOT NULL COMMENT 'the request param in url',
+  `query` varchar(1024) NOT NULL COMMENT 'the request param after url',
+  `header` varchar(1024) NOT NULL COMMENT 'the request param in header',
+  `body` text NOT NULL COMMENT 'the request body',
+  `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+  PRIMARY KEY (`id`)
+);
+
+-- ----------------------------
+-- Table structure for model
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `model`  (
+  `id` varchar(128) NOT NULL COMMENT 'primary key id',
+  `name` varchar(128) NOT NULL COMMENT 'the model name',
+  `model_desc`   varchar(1024) NOT NULL COMMENT 'the model description',
+  `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+  PRIMARY KEY (`id`)
+  );
+
+-- ----------------------------
+-- Records of model
+-- ----------------------------
+-- todo add some simple model, like java.lang.String long java.lang.Long
+
 CREATE TABLE IF NOT EXISTS `app_auth`  (
   `id` varchar(128) NOT NULL COMMENT 'primary key id',
   `app_key` varchar(32) NOT NULL COMMENT 'application identification key',
@@ -198,6 +229,24 @@ CREATE TABLE IF NOT EXISTS `user_role` (
     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
     );
+
+-- ----------------------------
+-- Table structure for param
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `param` (
+    `id`           varchar(128) NOT NULL COMMENT 'primary key id',
+    `api_id`       varchar(128) NOT NULL COMMENT 'the api id',
+    `model_id`     varchar(128) NOT NULL COMMENT 'the model id, empty if not a model',
+    `type`         int(0) NOT NULL COMMENT '0-requestPathVariable,1-requestUrlParam,2-requestHeader,3-requestBody,4-responseHeader,5-responseBody',
+    `name`         varchar(255) NOT NULL COMMENT 'the param name',
+    `param_desc`   varchar(1024) NOT NULL COMMENT 'the param description',
+    `required`     tinyint(4) NOT NULL COMMENT 'whether to require (0 not required, 1 required)',
+    `ext`          varchar(1024) NOT NULL COMMENT 'extended fields',
+    `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
 -- ----------------------------
 -- Table structure for permission
 -- ----------------------------
@@ -242,6 +291,39 @@ CREATE TABLE IF NOT EXISTS `data_permission` (
     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
     );
+
+-- ----------------------------
+-- Table structure for detail
+-- ----------------------------
+DROP TABLE IF EXISTS `detail`;
+CREATE TABLE `detail`  (
+    `id` varchar(128) NOT NULL COMMENT 'primary key id',
+    `field_id` varchar(128) NOT NULL COMMENT 'the field id',
+    `is_example` tinyint(0) NOT NULL COMMENT 'is example or not (0 not, 1 is)',
+    `field_value` text NOT NULL COMMENT 'the field value',
+    `value_desc` varchar(1024) NOT NULL COMMENT 'field value description',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+    );
+
+-- ----------------------------
+-- Table structure for field
+-- ----------------------------
+DROP TABLE IF EXISTS `field`;
+CREATE TABLE `field`  (
+    `id` varchar(128) NOT NULL COMMENT 'primary key id',
+    `model_id` varchar(128) NOT NULL COMMENT 'this field belongs to which model',
+    `self_model_id` varchar(128) NOT NULL COMMENT 'which model of this field is',
+    `name` varchar(128) NOT NULL COMMENT 'field name',
+    `field_desc` varchar(1024) NOT NULL COMMENT 'field description',
+    `required`     tinyint(0) NOT NULL COMMENT 'whether to require (0 not required, 1 required)',
+    `ext`          varchar(1024) NOT NULL COMMENT 'extended fields,can store genericTypes,eg..{"genericTypes":[model_id1,model_id2]}',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+    );
+
 -- ----------------------------
 -- Table structure for operation_record_log
 -- ----------------------------
@@ -282,11 +364,11 @@ CREATE TABLE IF NOT EXISTS `api`
     `produce`      varchar(255)  NOT NULL COMMENT 'produce',
     `version`      varchar(255)  NOT NULL COMMENT 'api version,for example V0.01',
     `rpc_type`     varchar(64)   NOT NULL COMMENT 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc',
-    `state`        tinyint       NOT NULL COMMENT '0-unpublished1-published2-offline',
+    `state`        tinyint       NOT NULL COMMENT '0-unpublished,1-published,2-offline',
     `ext`          varchar(1024) NOT NULL COMMENT 'extended fields',
     `api_owner`    varchar(255)  NOT NULL COMMENT 'api_owner',
     `api_desc`     varchar(1024) NOT NULL COMMENT 'the api description',
-    `api_source`   int(0)        NOT NULL COMMENT '0-swagger,1-annotation generation,2-create manuallym,3-import swagger,4-import yapi',
+    `api_source`   int(0)        NOT NULL COMMENT '0-swagger,1-annotation generation,2-create manually,3-import swagger,4-import yapi',
     `document`     text          NOT NULL COMMENT 'complete documentation of the api, including request parameters and response parameters',
     `document_md5` char(32)      NOT NULL COMMENT 'document_md5',
     `date_created` timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
@@ -847,4 +929,29 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1534
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1534585430587875328', '1346358560427216896', '1534585430311051264');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`) VALUES ('1534585531389583360', '1346358560427216896', '1534585531108564992');
 
-
+-- ----------------------------
+-- Table structure for tag
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `tag`
+(
+    `id`            varchar(128) NOT NULL COMMENT 'primary key id',
+    `name`          varchar(128) NOT NULL COMMENT 'tag name',
+    `tag_desc`      varchar(128) NOT NULL COMMENT 'tag description',
+    `parent_tag_id` varchar(128) NOT NULL COMMENT 'parent tag_id',
+    `ext`           varchar(1024) NOT NULL COMMENT 'extension info',
+    `date_created`  timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `date_updated`  timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+-- ----------------------------
+-- Table structure for tag_relation
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `tag_relation`
+(
+    `id`           varchar(128) NOT NULL COMMENT 'primary key id',
+    `api_id`       varchar(128) NOT NULL COMMENT 'api id',
+    `tag_id`       varchar(128) NOT NULL COMMENT 'tag id',
+    `date_created` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `date_updated` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
