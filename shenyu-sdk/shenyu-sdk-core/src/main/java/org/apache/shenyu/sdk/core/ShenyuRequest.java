@@ -94,6 +94,18 @@ public final class ShenyuRequest implements Serializable {
     }
 
     /**
+     * Builds a Request. All parameters must be effectively immutable, via safe copies.
+     *
+     * @param url for the request.
+     * @param request to include.
+     * @return a Request
+     */
+    public static ShenyuRequest create(final String url,
+                                       final ShenyuRequest request) {
+        return new ShenyuRequest(request.getHttpMethod(), url, request.getHeaders(), request.getBody(), request.getContextId(), request.getRequestTemplate());
+    }
+
+    /**
      * getHttpMethod.
      *
      * @return {@link HttpMethod}
