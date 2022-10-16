@@ -69,7 +69,7 @@ public class DefaultSignService implements SignService {
         final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Long.parseLong(shenyuContext.getTimestamp()));
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
-        if (between > delay) {
+        if (between > delay || -between > delay) {
             return Pair.of(Boolean.FALSE, String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay));
         }
 

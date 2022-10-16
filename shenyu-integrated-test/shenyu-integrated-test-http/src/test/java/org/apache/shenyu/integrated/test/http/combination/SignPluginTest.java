@@ -36,8 +36,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -64,7 +62,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         final String path = "/http/test/path/456";
         final String testUrlPath = "/http/test/path/456?name=Lee&data=3";
         final String version = "1.0.0";
-        String now = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli());
+        String now = String.valueOf(System.currentTimeMillis());
         Map<String, Object> normalHeaders = buildHeadersMap(now, path, APP_KEY, APP_SECRET, version);
         UserDTO normalRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath, normalHeaders,
                 UserDTO.class);
@@ -98,7 +96,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
                 }.getType());
         assertEquals("signature value is error!", rejectedErrorVersionRespFuture.getMessage());
 
-        String errorTime = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli() - 360000);
+        String errorTime = String.valueOf(System.currentTimeMillis() - 360000);
         Map<String, Object> errorTimestampHeaders = buildHeadersMap(errorTime, path, APP_KEY, APP_SECRET, version);
         AdminResponse<Object> rejectedErrorTimestampRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
                 errorTimestampHeaders,
@@ -120,7 +118,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         final String path = "/http/test/path/789";
         final String testUrlPath = "/http/test/path/789?name=Lee&data=3";
         final String version = "1.0.0";
-        String now = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli());
+        String now = String.valueOf(System.currentTimeMillis());
         Map<String, String> requestBody = Maps.newHashMapWithExpectedSize(2);
         requestBody.put("name", "Lee");
         requestBody.put("data", "3");
@@ -164,7 +162,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
                 }.getType());
         assertEquals("signature value is error!", rejectedErrorRequestBodyRespFuture.getMessage());
 
-        String errorTime = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli() - 360000);
+        String errorTime = String.valueOf(System.currentTimeMillis() - 360000);
         Map<String, Object> errorTimestampHeaders = buildHeadersMapRequestBody(errorTime, path, APP_KEY, APP_SECRET, version, requestBody);
         AdminResponse<Object> rejectedErrorTimestampRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
                 errorTimestampHeaders,
@@ -175,7 +173,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private Map<String, Object> buildHeadersMap(final String timestamp, final String path, final String appKey,
                                                 final String appSecret, final String version) {
-        String extSignKey = String.join("", Constants.TIMESTAMP, timestamp, Constants.PATH, path, Constants.VERSION, "1.0.0", appSecret);
+        String extSignKey = String.join("", Constants.TIMESTAMP, timestamp, Constants.PATH, path, Constants.VERSION, version, appSecret);
         String sign = SignUtils.generateSign(extSignKey, null, null);
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
         headers.put("timestamp", timestamp);
@@ -187,7 +185,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private Map<String, Object> buildHeadersMapRequestBody(final String timestamp, final String path, final String appKey,
                                                 final String appSecret, final String version, final Map<String, String> requestBody) {
-        String extSignKey = String.join("", Constants.TIMESTAMP, timestamp, Constants.PATH, path, Constants.VERSION, "1.0.0", appSecret);
+        String extSignKey = String.join("", Constants.TIMESTAMP, timestamp, Constants.PATH, path, Constants.VERSION, version, appSecret);
         String sign = SignUtils.generateSign(extSignKey, requestBody, null);
 
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
