@@ -144,6 +144,7 @@ jobs:
 
   requirement:
     name: e2e
+    if: always()
     needs:
       - e2e
     runs-on: ubuntu-latest
