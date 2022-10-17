@@ -102,6 +102,7 @@ public final class SandboxControllerTest {
         appAuthDO.setExtInfo("");
         appAuthDO.setOpen(true);
         appAuthDO.setPhone("1397891xxxx");
+        appAuthDO.setUserId("zhangsan");
         return appAuthDO;
     }
 
