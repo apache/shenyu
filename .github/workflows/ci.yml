@@ -85,6 +85,7 @@ jobs:
 
   requirement:
     name: build
+    if: always()
     needs:
       - build
     runs-on: ubuntu-latest
