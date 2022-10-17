@@ -29,11 +29,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpClientShenyuHttpClientTest {
+public class HttpShenyuSdkClientTest {
 
     @Test
     public void testShenyuHttpClient() throws IOException {
-        HttpClientShenyuHttpClient shenyuHttpClient = new HttpClientShenyuHttpClient(new PoolingHttpClientConnectionManager());
+        HttpShenyuSdkClient shenyuHttpClient = new HttpShenyuSdkClient(new PoolingHttpClientConnectionManager());
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
         ShenyuRequest shenyuRequest = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
