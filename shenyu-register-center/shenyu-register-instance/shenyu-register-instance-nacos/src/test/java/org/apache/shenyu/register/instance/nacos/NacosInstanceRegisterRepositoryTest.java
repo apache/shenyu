@@ -99,7 +99,7 @@ public final class NacosInstanceRegisterRepositoryTest {
     }
 
     @Test
-    public void testSelectInstancesAndWatcher() throws NacosException {
+    public void testSelectInstancesAndWatcher() {
         String selectKey = "shenyu-instances";
         WatcherListener watcherListener = mock(WatcherListener.class);
         repository.selectInstancesAndWatcher(selectKey, watcherListener);
