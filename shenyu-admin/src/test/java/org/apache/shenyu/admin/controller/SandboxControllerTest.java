@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
@@ -103,6 +105,8 @@ public final class SandboxControllerTest {
         appAuthDO.setOpen(true);
         appAuthDO.setPhone("1397891xxxx");
         appAuthDO.setUserId("zhangsan");
+        appAuthDO.setDateCreated(new Timestamp(new Date().getTime()));
+        appAuthDO.setDateUpdated(new Timestamp(new Date().getTime()));
         return appAuthDO;
     }
 
