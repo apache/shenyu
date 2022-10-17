@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
@@ -98,6 +99,10 @@ public final class SandboxControllerTest {
         AppAuthDO appAuthDO = new AppAuthDO();
         appAuthDO.setAppKey("123456");
         appAuthDO.setAppSecret("133333");
+        appAuthDO.setEnabled(true);
+        appAuthDO.setExtInfo("");
+        appAuthDO.setOpen(true);
+        appAuthDO.setPhone("1397891xxxx");
         return appAuthDO;
     }
 
