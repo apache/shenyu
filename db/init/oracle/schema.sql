@@ -284,6 +284,68 @@ comment on column META_DATA.date_updated
 comment on column META_DATA.enabled
   is 'enabled state (0 close, 1 enabled) ';
 
+create table mock_request_record
+(
+    id VARCHAR2(128) not null PRIMARY KEY,
+    api_id VARCHAR2(128) not null,
+    host VARCHAR2(32) not null,
+    port NUMBER(5) not null,
+    path_variable VARCHAR2(255) not null,
+    query VARCHAR2(1024) not null,
+    header VARCHAR2(1024) not null,
+    body CLOB not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
+)
+-- Add comments to the table
+comment on table MOCK_REQUEST_RECORD
+  is 'mock request records';
+-- Add comments to the columns
+comment on column MOCK_REQUEST_RECORD.id
+  is 'id';
+comment on column MOCK_REQUEST_RECORD.api_id
+  is 'the api id';
+comment on column MOCK_REQUEST_RECORD.host
+  is 'the request host';
+comment on column MOCK_REQUEST_RECORD.port
+  is 'the request port';
+comment on column MOCK_REQUEST_RECORD.path_variable
+  is 'the request param in url';
+comment on column MOCK_REQUEST_RECORD.query
+  is 'the request param after url';
+comment on column MOCK_REQUEST_RECORD.header
+  is 'the request param in header';
+comment on column MOCK_REQUEST_RECORD.body
+  is 'the request body';
+comment on column MOCK_REQUEST_RECORD.date_created
+  is 'create time';
+comment on column MOCK_REQUEST_RECORD.date_updated
+  is 'update time';
+
+create table model
+(
+    id VARCHAR2(128) not null PRIMARY KEY,
+    name VARCHAR2(128) not null,
+    model_desc VARCHAR2(1024) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
+)
+-- Add comments to the table
+comment on table MODEL
+  is 'model desc table';
+-- Add comments to the columns
+comment on column MODEL.id
+  is 'id';
+comment on column MODEL.name
+  is 'the model name';
+comment on column MODEL.model_desc
+  is 'the model description';
+comment on column MODEL.date_created
+  is 'create time';
+comment on column MODEL.date_updated
+  is 'update time';
+-- todo add some simple model, like java.lang.String long java.lang.Long
+
 create table operation_record_log
 (
     id                NUMBER(20) not null PRIMARY KEY,
@@ -313,6 +375,89 @@ create sequence operation_record_log_seq
     NOMAXVALUE
     NOCYCLE
     NOCACHE;
+
+create table api
+(
+    id VARCHAR2 (128) not null,
+    context_path VARCHAR2 (255) not null,
+    api_path VARCHAR2 (255) not null,
+    http_method NUMBER (10) not null,
+    consume VARCHAR2 (255) not null,
+    produce VARCHAR2 (255) not null,
+    version VARCHAR2 (255) not null,
+    rpc_type VARCHAR2 (64) not null,
+    state NUMBER (10) not null,
+    ext VARCHAR2 (1025) not null,
+    api_owner VARCHAR2 (255) not null,
+    api_desc VARCHAR2 (1024) not null,
+    document CLOB not null,
+    document_md5 VARCHAR2 (32) not null,
+    api_source NUMBER (10) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the table
+comment on table API
+  is 'api document';
+-- Add comments to the columns
+comment on column API.id
+  is 'primary key id';
+comment on column API.context_path
+  is 'the context_path';
+comment on column API.api_path
+  is 'the api_path';
+comment on column API.http_method
+  is '0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace';
+comment on column API.consume
+  is 'consume content-type';
+comment on column API.produce
+  is 'produce content-type';
+comment on column API.version
+  is 'api version,for example V0.01';
+comment on column API.rpc_type
+  is 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc';
+comment on column API.state
+  is '0-unpublished,1-published,2-offline';
+comment on column API.ext
+  is 'extended fields';
+comment on column API.api_owner
+  is 'api_owner';
+comment on column API.api_desc
+  is 'the api description';
+comment on column API.api_source
+  is '0-swagger,1-annotation generation,2-create manually,3-import swagger,4-import yapi';
+comment on column API.document
+  is 'complete documentation of the api, including request parameters and response parameters';
+comment on column API.document_md5
+  is 'document_md5';
+comment on column API.date_created
+  is 'create time';
+comment on column API.date_updated
+  is 'update time';
+
+
+create table api_rule_relation
+(
+    id VARCHAR2 (128) not null,
+    api_id VARCHAR2 (128) not null,
+    rule_id VARCHAR2 (128) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+
+-- Add comments to the columns
+comment on column API_RULE_RELATION.id
+  is 'primary key id';
+comment on column API_RULE_RELATION.api_id
+  is 'the table api primary key id';
+comment on column API_RULE_RELATION.rule_id
+  is 'the table rule primary key id';
+comment on column API_RULE_RELATION.date_created
+  is 'create time';
+comment on column API_RULE_RELATION.date_updated
+  is 'update time';
 
 create table app_auth
 (
@@ -486,6 +631,45 @@ comment on column USER_ROLE.date_created
 comment on column USER_ROLE.date_updated
   is 'update time';
 
+create table param
+(
+    id           VARCHAR2(128) not null,
+    api_id       VARCHAR2(128) not null,
+    model_id     VARCHAR2(128) not null,
+    type         NUMBER(10) not null,
+    name         VARCHAR2(255) not null,
+    param_desc   VARCHAR2(1024) not null,
+    required     NUMBER(3) not null,
+    ext          VARCHAR2(1024) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the table
+comment on table PARAM
+  is 'param document';
+-- Add comments to the columns
+comment on column PARAM.id
+  is 'primary key id';
+comment on column PARAM.api_id
+  is 'the api id';
+comment on column PARAM.model_id
+  is 'the model id, empty if not a model';
+comment on column PARAM.type
+  is '0-requestPathVariable,1-requestUrlParam,2-requestHeader,3-requestBody,4-responseHeader,5-responseBody';
+comment on column PARAM.name
+  is 'the param name';
+comment on column PARAM.param_desc
+  is 'the param description';
+comment on column PARAM.required
+  is 'whether to require (0 not required, 1 required)';
+comment on column PARAM.ext
+  is 'extended fields';
+comment on column PARAM.date_created
+  is 'create time';
+comment on column PARAM.date_updated
+  is 'update time';
+
 create table permission
 (
     id           VARCHAR2(128) not null,
@@ -589,6 +773,72 @@ comment on column DATA_PERMISSION.data_type
 comment on column DATA_PERMISSION.date_created
   is 'create time';
 comment on column DATA_PERMISSION.date_updated
+  is 'update time';
+
+create table detail
+(
+    id           VARCHAR2(128) not null,
+    field_id     VARCHAR2(128) not null,
+    is_example   NUMBER(3) not null,
+    field_value  CLOB not null,
+    value_desc   VARCHAR2(1024) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the table
+comment on table DETAIL
+  is 'field value detail table';
+-- Add comments to the columns
+comment on column DETAIL.id
+  is 'primary key id';
+comment on column DETAIL.field_id
+  is 'the field id';
+comment on column DETAIL.is_example
+  is 'is example or not (0 not, 1 is)';
+comment on column DETAIL.field_value
+  is 'the field value';
+comment on column DETAIL.value_desc
+  is 'field value description';
+comment on column DETAIL.date_created
+  is 'create time';
+comment on column DETAIL.date_updated
+  is 'update time';
+
+create table field
+(
+    id           VARCHAR2(128) not null,
+    model_id     VARCHAR2(128) not null,
+    self_model_id VARCHAR2(128) not null,
+    name         VARCHAR2(128) not null,
+    field_desc   VARCHAR2(1024) not null,
+    required     NUMBER(3) not null,
+    ext          VARCHAR2(1024) not null,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the table
+comment on table field
+  is 'field document table';
+-- Add comments to the columns
+comment on column FIELD.id
+  is 'primary key id';
+comment on column FIELD.model_id
+  is 'this field belongs to which model';
+comment on column FIELD.self_model_id
+  is 'which model of this field is';
+comment on column FIELD.name
+  is 'field name';
+comment on column FIELD.field_desc
+  is 'field description';
+comment on column FIELD.required
+  is 'whether to require (0 not required, 1 required)';
+comment on column FIELD.ext
+  is 'extended fields,can store genericTypes,eg..{"genericTypes":[model_id1,model_id2]}';
+comment on column FIELD.date_created
+  is 'create time';
+comment on column FIELD.date_updated
   is 'update time';
 
 /**default admin user**/
@@ -1822,3 +2072,58 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1534585430587875328', '1346358560427216896', '1534585430311051264');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1534585531389583360', '1346358560427216896', '1534585531108564992');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id) VALUES ('1572525965658820608', '1346358560427216896', '1572525965625266176');
+
+create table tag
+(
+    id            VARCHAR2(128) not null,
+    name          VARCHAR2(255) not null,
+    tag_desc      VARCHAR2(255) not null,
+    parent_tag_id VARCHAR2(128) not null,
+    ext           VARCHAR2(1024) not null,
+    date_created  timestamp(3) default SYSDATE not null,
+    date_updated  timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the columns
+comment
+on column TAG.id
+  is 'primary key id';
+comment
+on column TAG.name
+  is 'tag name';
+comment
+on column TAG.tag_desc
+  is 'tag desc';
+comment
+on column TAG.parent_tag_id
+  is 'parent tag id';
+on column TAG.ext
+  is 'extension info';
+comment
+on column TAG.date_created
+  is 'create time';
+comment
+on column TAG.date_updated
+  is 'update time';
+
+
+create table tag_relation
+(
+    id                VARCHAR2(128) not null,
+    api_id            VARCHAR2(128) not null,
+    tag_id            VARCHAR2(128) not null,
+    date_created      timestamp(3) default SYSDATE not null,
+    date_updated      timestamp(3) default SYSDATE not null,
+    PRIMARY KEY (id)
+);
+-- Add comments to the columns
+comment on column TAG_RELATION.id
+  is 'primary key id';
+comment on column TAG_RELATION.api_id
+  is 'api_id';
+comment on column TAG_RELATION.parent_tag_id
+  is 'parent tag id';
+comment on column TAG_RELATION.date_created
+  is 'create time';
+comment on column TAG_RELATION.date_updated
+  is 'update time';
