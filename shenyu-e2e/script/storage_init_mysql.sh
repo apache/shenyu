@@ -23,9 +23,6 @@ wget -O /tmp/shenyu-e2e/mysql/mysql-connector.jar \
   wget -O /tmp/shenyu-e2e/mysql/mysql-connector.jar \
     https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
 
-wget -O /tmp/shenyu-e2e/mysql/schema.sql \
-  https://raw.githubusercontent.com/apache/shenyu/master/db/init/mysql/schema.sql || \
-  wget -O /tmp/shenyu-e2e/mysql/schema.sql \
-    https://raw.githubusercontent.com/apache/shenyu/master/db/init/mysql/schema.sql
+cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema.sql
 
 echo "GRANT ALL PRIVILEGES ON shenyu.* TO 'shenyue2e'@'%';" >> /tmp/shenyu-e2e/mysql/schema.sql
