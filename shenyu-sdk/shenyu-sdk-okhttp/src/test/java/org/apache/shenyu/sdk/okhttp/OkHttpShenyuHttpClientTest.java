@@ -36,9 +36,9 @@ public class OkHttpShenyuHttpClientTest {
         OkHttpShenyuHttpClient okHttpShenyuHttpClient = new OkHttpShenyuHttpClient(new OkHttpClient());
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
-        ShenyuRequest shenyuRequest = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
+        ShenyuRequest request = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
                 headerMap, null, null, null);
-        ShenyuResponse response = okHttpShenyuHttpClient.execute(shenyuRequest);
+        ShenyuResponse response = okHttpShenyuHttpClient.execute(request);
         Assertions.assertNotNull(response);
     }
 
