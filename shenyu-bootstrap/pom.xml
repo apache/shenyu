@@ -286,7 +286,7 @@
             <artifactId>spring-cloud-commons</artifactId>
             <version>${spring-cloud-commons.version}</version>
         </dependency>
-        <!--shenyu springCloud plugin start-->
+        <!--shenyu springCloud plugin end-->
 
 
         <!--shenyu mock plugin start-->
