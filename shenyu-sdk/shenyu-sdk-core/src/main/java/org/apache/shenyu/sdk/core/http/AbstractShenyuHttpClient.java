@@ -38,7 +38,7 @@ public abstract class AbstractShenyuHttpClient implements ShenyuHttpClient {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractShenyuHttpClient.class);
 
-    private static final String URL_REWRITE_REGEX = "http:\\/\\/([a-z0-9(\\.|:)]+)+\\/";
+    private static final String URL_REWRITE_REGEX = "http:\\/\\/[a-z\\d\\.|:]+\\/";
 
     private final Retryer retryer;
 
