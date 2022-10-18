@@ -20,17 +20,24 @@ package org.apache.shenyu.register.instance.etcd;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
+import io.etcd.jetcd.Watch;
+import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
+import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
+import io.etcd.jetcd.options.WatchOption;
 import io.grpc.stub.StreamObserver;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
 
 /**
  * etcd client.
@@ -76,6 +83,60 @@ public class EtcdClient {
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("initLease error.", e);
         }
+    }
+
+
+    /**
+     * watch key changes.
+     *
+     * @param key      watch key.
+     * @param listener watch listener.
+     */
+    public void watchKeyChanges(final String key, final Watch.Listener listener) {
+        WatchOption option = WatchOption.newBuilder().isPrefix(true).build();
+
+        client.getWatchClient().watch(bytesOf(key), option, listener);
+    }
+
+
+    /**
+     * get keys by prefix.
+     *
+     * @param prefix key prefix.
+     * @return key valuesMap.
+     */
+    public Map<String, String> getKeysMapByPrefix(final String prefix) {
+        GetOption getOption = GetOption.newBuilder()
+                .isPrefix(true)
+                .build();
+
+        return getRange(prefix, getOption).getKvs().stream()
+                .collect(Collectors.toMap(e -> e.getKey().toString(StandardCharsets.UTF_8), e -> e.getValue().toString(StandardCharsets.UTF_8)));
+
+    }
+
+    /**
+     * get keyResponse.
+     * @param key watch key.
+     * @param getOption get option.
+     * @return key response.
+     */
+    public GetResponse getRange(final String key, final GetOption getOption) {
+        try {
+            return this.client.getKVClient().get(bytesOf(key), getOption).get();
+        } catch (ExecutionException | InterruptedException e) {
+            LOGGER.error("etcd getRange key {} error {}", key, e);
+            throw new ShenyuException(e);
+        }
+    }
+
+    /**
+     * bytesOf string.
+     * @param val val.
+     * @return bytes val.
+     */
+    public ByteSequence bytesOf(final String val) {
+        return ByteSequence.from(val, UTF_8);
     }
 
     /**
