@@ -30,6 +30,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 public class ModelMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
@@ -64,7 +67,7 @@ public class ModelMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count, greaterThan(0));
 
         int delete = modelMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
     @Test
@@ -74,7 +77,7 @@ public class ModelMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count, greaterThan(0));
 
         ModelDO modelDO = modelMapper.selectByPrimaryKey(record.getId());
-        assertThat(modelDO != null, equalTo(true));
+        assertNotNull(modelDO);
     }
 
     @Test
@@ -88,7 +91,7 @@ public class ModelMapperTest extends AbstractSpringIntegrationTest {
         assertThat(updateCount, greaterThan(0));
 
         ModelDO modelDO = modelMapper.selectByPrimaryKey(record.getId());
-        assertThat(modelDO.getName().equals("update"), equalTo(true));
+        assertEquals(modelDO.getName(), "update");
     }
 
     @Test
@@ -97,7 +100,7 @@ public class ModelMapperTest extends AbstractSpringIntegrationTest {
         int count = modelMapper.insertSelective(record);
         assertThat(count, greaterThan(0));
         int delete = modelMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
 }

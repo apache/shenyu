@@ -26,8 +26,10 @@ import javax.annotation.Resource;
 import java.sql.Timestamp;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class FieldMapperTest extends AbstractSpringIntegrationTest {
 
@@ -59,7 +61,7 @@ public class FieldMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count, greaterThan(0));
 
         int delete = fieldMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
     @Test
@@ -69,7 +71,7 @@ public class FieldMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count, greaterThan(0));
 
         int delete = fieldMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
     @Test
@@ -79,7 +81,7 @@ public class FieldMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count, greaterThan(0));
 
         FieldDO fieldDO = fieldMapper.selectByPrimaryKey(record.getId());
-        assertThat(fieldDO != null, equalTo(true));
+        assertNotNull(fieldDO);
     }
 
     @Test
@@ -93,7 +95,7 @@ public class FieldMapperTest extends AbstractSpringIntegrationTest {
         assertThat(updateCount, greaterThan(0));
 
         FieldDO fieldDO = fieldMapper.selectByPrimaryKey(record.getId());
-        assertThat(fieldDO.getName().equals("update"), equalTo(true));
+        assertEquals(fieldDO.getName(), "update");
     }
 
     @Test
@@ -102,7 +104,7 @@ public class FieldMapperTest extends AbstractSpringIntegrationTest {
         int count = fieldMapper.insertSelective(record);
         assertThat(count, greaterThan(0));
         int delete = fieldMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
 }
