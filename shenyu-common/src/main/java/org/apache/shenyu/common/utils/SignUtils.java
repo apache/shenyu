@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.common.utils;
 
-import com.google.common.collect.Maps;
-import org.springframework.util.DigestUtils;
-
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
@@ -27,12 +24,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.util.DigestUtils;
+
 /**
  * SignUtils.
  */
 public final class SignUtils {
-
-    private static final Map<String, String> EMPTY_HASH_MAP = Maps.newHashMap();
 
     private static final SignUtils SIGN_UTILS = new SignUtils();
 
@@ -57,14 +54,16 @@ public final class SignUtils {
      * @return sign
      */
     public static String generateSign(final String signKey, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
-        final String jsonSign = Optional.ofNullable(jsonParams).orElse(EMPTY_HASH_MAP).keySet().stream()
+        final String jsonSign = Optional.ofNullable(jsonParams).map(e -> e.keySet().stream()
                 .sorted(Comparator.naturalOrder())
                 .map(key -> String.join("", key, jsonParams.get(key)))
-                .collect(Collectors.joining()).trim();
-        final String querySign = Optional.ofNullable(queryParams).orElse(EMPTY_HASH_MAP).keySet().stream()
+                .collect(Collectors.joining()).trim())
+            .orElse(null);
+        final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
                 .sorted(Comparator.naturalOrder())
                 .map(key -> String.join("", key, queryParams.get(key)))
-                .collect(Collectors.joining()).trim();
+                .collect(Collectors.joining()).trim())
+            .orElse(null);
         final String sign = String.join("", jsonSign, querySign, signKey);
         // TODO this is a risk for error charset coding with getBytes
         return DigestUtils.md5DigestAsHex(sign.getBytes()).toUpperCase();

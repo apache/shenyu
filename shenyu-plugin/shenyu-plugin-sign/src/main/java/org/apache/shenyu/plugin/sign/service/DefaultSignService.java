@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -105,10 +106,10 @@ public class DefaultSignService implements SignService {
                 return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
             }
         }
-        String sigKey = ShenyuSignProviderWrap.generateSign(buildExtSignKey(appAuthData.getAppSecret(), shenyuContext), transStringMap(requestBody), queryParams);
-        boolean result = Objects.equals(sigKey, shenyuContext.getSign());
+        final String sign = ShenyuSignProviderWrap.generateSign(buildExtSignKey(appAuthData.getAppSecret(), shenyuContext), transStringMap(requestBody), queryParams);
+        boolean result = Objects.equals(sign, shenyuContext.getSign());
         if (!result) {
-            LOG.error("the SignUtils generated signature value is:{},the accepted value is:{}", sigKey, shenyuContext.getSign());
+            LOG.error("the SignUtils generated signature value is:{},the accepted value is:{}", sign, shenyuContext.getSign());
             return Pair.of(Boolean.FALSE, Constants.SIGN_VALUE_IS_ERROR);
         } else {
             List<AuthParamData> paramDataList = appAuthData.getParamDataList();
@@ -130,6 +131,8 @@ public class DefaultSignService implements SignService {
     }
 
     private Map<String, String> transStringMap(final Map<String, Object> map) {
-        return map == null ? null : map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Objects.toString(e.getValue(), null)));
+        return Optional.ofNullable(map)
+            .map(m -> m.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Objects.toString(e.getValue(), null))))
+            .orElse(null);
     }
 }
