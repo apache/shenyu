@@ -19,6 +19,8 @@ package org.apache.shenyu.sdk.core.client;
 
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 
+import java.util.Objects;
+
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
@@ -88,7 +90,7 @@ public interface Retryer extends Cloneable {
             }
 
             long interval;
-            if (e.retryAfter() != null) {
+            if (Objects.nonNull(e.retryAfter())) {
                 interval = e.retryAfter().getTime() - System.currentTimeMillis();
                 if (interval > maxPeriod) {
                     interval = maxPeriod;

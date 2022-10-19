@@ -32,6 +32,8 @@ import java.util.Optional;
  */
 public class RetryableException extends ShenyuException {
 
+    private static final long serialVersionUID = 9156957575330268250L;
+
     private final Long retryAfter;
 
     private final HttpMethod httpMethod;
