@@ -27,20 +27,20 @@ import org.apache.shenyu.admin.model.entity.ModelDO;
 public interface ModelMapper {
 
     /**
-     * insert record to table.
+     * insert modelDO to table.
      *
-     * @param record the record
+     * @param modelDO the modelDO
      * @return insert count
      */
-    int insert(ModelDO record);
+    int insert(ModelDO modelDO);
 
     /**
-     * insert record to table selective.
+     * insert modelDO to table selective.
      *
-     * @param record the record
+     * @param modelDO the modelDO
      * @return insert count
      */
-    int insertSelective(ModelDO record);
+    int insertSelective(ModelDO modelDO);
 
     /**
      * select by primary key.
@@ -51,20 +51,20 @@ public interface ModelMapper {
     ModelDO selectByPrimaryKey(String id);
 
     /**
-     * update record selective.
+     * update modelDO selective.
      *
-     * @param record the updated record
+     * @param modelDO the updated modelDO
      * @return update count
      */
-    int updateByPrimaryKeySelective(ModelDO record);
+    int updateByPrimaryKeySelective(ModelDO modelDO);
 
     /**
-     * update record.
+     * update modelDO.
      *
-     * @param record the updated record
+     * @param modelDO the updated modelDO
      * @return update count
      */
-    int updateByPrimaryKey(ModelDO record);
+    int updateByPrimaryKey(ModelDO modelDO);
 
     /**
      * delete by primary key.

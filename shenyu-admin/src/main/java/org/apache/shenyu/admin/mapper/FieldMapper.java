@@ -27,20 +27,20 @@ import org.apache.shenyu.admin.model.entity.FieldDO;
 public interface FieldMapper {
 
     /**
-     * insert record to table.
+     * insert fieldDO to table.
      *
-     * @param record the record
+     * @param fieldDO the fieldDO
      * @return insert count
      */
-    int insert(FieldDO record);
+    int insert(FieldDO fieldDO);
 
     /**
-     * insert record to table selective.
+     * insert fieldDO to table selective.
      *
-     * @param record the record
+     * @param fieldDO the fieldDO
      * @return insert count
      */
-    int insertSelective(FieldDO record);
+    int insertSelective(FieldDO fieldDO);
 
     /**
      * select by primary key.
@@ -51,20 +51,20 @@ public interface FieldMapper {
     FieldDO selectByPrimaryKey(String id);
 
     /**
-     * update record selective.
+     * update fieldDO selective.
      *
-     * @param record the updated record
+     * @param fieldDO the updated fieldDO
      * @return update count
      */
-    int updateByPrimaryKeySelective(FieldDO record);
+    int updateByPrimaryKeySelective(FieldDO fieldDO);
 
     /**
-     * update record.
+     * update fieldDO.
      *
-     * @param record the updated record
+     * @param fieldDO the updated fieldDO
      * @return update count
      */
-    int updateByPrimaryKey(FieldDO record);
+    int updateByPrimaryKey(FieldDO fieldDO);
 
     /**
      * delete by primary key.
