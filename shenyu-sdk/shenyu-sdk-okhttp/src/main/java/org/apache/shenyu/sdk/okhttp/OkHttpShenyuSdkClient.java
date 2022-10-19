@@ -17,16 +17,16 @@
 
 package org.apache.shenyu.sdk.okhttp;
 
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.MediaType;
 import okhttp3.internal.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
-import org.apache.shenyu.sdk.core.http.ShenyuHttpClient;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -36,16 +36,16 @@ import java.util.stream.Collectors;
 /**
  * shenyu okhttp.
  */
-public class OkHttpShenyuHttpClient implements ShenyuHttpClient {
-    private OkHttpClient okHttpClient;
+public class OkHttpShenyuSdkClient implements ShenyuSdkClient {
+    
+    private final OkHttpClient okHttpClient;
 
-    public OkHttpShenyuHttpClient(final OkHttpClient okHttpClient) {
+    public OkHttpShenyuSdkClient(final OkHttpClient okHttpClient) {
         this.okHttpClient = okHttpClient;
     }
 
     @Override
     public ShenyuResponse execute(final ShenyuRequest request) throws IOException {
-
         String url = request.getUrl();
         String body = request.getBody();
         Map<String, Collection<String>> headers = request.getHeaders();
@@ -55,8 +55,9 @@ public class OkHttpShenyuHttpClient implements ShenyuHttpClient {
                 builder.addHeader(name, value);
             }
         }
-        RequestBody requestBody = StringUtils.isNotBlank(request.getBody()) ? RequestBody.create(MediaType.parse("application/json;charset=UTF-8"), body) : Util.EMPTY_REQUEST;
-
+        RequestBody requestBody = StringUtils.isNotBlank(request.getBody()) 
+                ? RequestBody.create(MediaType.parse("application/json;charset=UTF-8"), body) 
+                : Util.EMPTY_REQUEST;
         switch (request.getHttpMethod()) {
             case GET:
                 builder = builder.get();
@@ -83,9 +84,7 @@ public class OkHttpShenyuHttpClient implements ShenyuHttpClient {
                 builder.patch(requestBody);
                 break;
         }
-
         Request okhttpRequest = builder.build();
-
         try (Response okhttpResponse = okHttpClient
                 .newCall(okhttpRequest)
                 .execute()) {
@@ -94,6 +93,5 @@ public class OkHttpShenyuHttpClient implements ShenyuHttpClient {
                     okhttpResponse.headers().names().stream().collect(Collectors.toMap(name -> name, name -> okhttpResponse.headers().values(name))),
                     bodyStr, request);
         }
-
     }
 }
