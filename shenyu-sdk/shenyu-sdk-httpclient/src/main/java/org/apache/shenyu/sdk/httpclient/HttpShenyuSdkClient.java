@@ -42,11 +42,11 @@ import java.util.stream.Collectors;
 /**
  * shenyu httpclient.
  */
-public class HttpClientShenyuHttpClient extends AbstractShenyuHttpClient {
+public class HttpShenyuSdkClient extends AbstractShenyuHttpClient {
 
     private final HttpClientConnectionManager connectionManager;
 
-    public HttpClientShenyuHttpClient(final HttpClientConnectionManager connectionManager) {
+    public HttpShenyuSdkClient(final HttpClientConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
 

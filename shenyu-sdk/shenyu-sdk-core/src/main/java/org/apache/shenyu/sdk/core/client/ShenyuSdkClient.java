@@ -15,31 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.okhttp;
+package org.apache.shenyu.sdk.core.client;
 
-import okhttp3.OkHttpClient;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
-public class OkHttpShenyuHttpClientTest {
+/**
+ * ShenyuSdkClient.
+ */
+public interface ShenyuSdkClient {
 
-    @Test
-    public void testShenyuHttpClient() throws IOException {
-        OkHttpShenyuHttpClient okHttpShenyuHttpClient = new OkHttpShenyuHttpClient(new OkHttpClient());
-        Map<String, Collection<String>> headerMap = new HashMap<>();
-        headerMap.put("header", Arrays.asList("test1", "test2"));
-        ShenyuRequest request = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
-                headerMap, null, null, null);
-        ShenyuResponse response = okHttpShenyuHttpClient.execute(request);
-        Assertions.assertNotNull(response);
-    }
+    /**
+     * execute.
+     *
+     * @param request request
+     * @return {@link ShenyuResponse}
+     * @throws IOException error
+     */
+    ShenyuResponse execute(ShenyuRequest request) throws IOException;
 
 }

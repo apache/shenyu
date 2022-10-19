@@ -32,11 +32,11 @@ import java.util.Map;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HttpClientShenyuHttpClientTest {
+public class HttpShenyuSdkClientTest {
 
     @Test
     public void testShenyuHttpClient() throws IOException {
-        HttpClientShenyuHttpClient shenyuHttpClient = mock(HttpClientShenyuHttpClient.class, Mockito.CALLS_REAL_METHODS);
+        HttpShenyuSdkClient shenyuHttpClient = mock(HttpShenyuSdkClientTest.class, Mockito.CALLS_REAL_METHODS);
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
         ShenyuRequest shenyuRequest = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
