@@ -28,8 +28,8 @@
 
     <dependencies>
         <dependency>
-            <artifactId>shenyu-sdk-core</artifactId>
             <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-sdk-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

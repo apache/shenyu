@@ -29,17 +29,24 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OkHttpShenyuHttpClientTest {
-
+/**
+ * The type Ok http shenyu sdk client test.
+ */
+public class OkHttpShenyuSdkClientTest {
+    
+    /**
+     * Test shenyu http client.
+     *
+     * @throws IOException the io exception
+     */
     @Test
     public void testShenyuHttpClient() throws IOException {
-        OkHttpShenyuHttpClient okHttpShenyuHttpClient = new OkHttpShenyuHttpClient(new OkHttpClient());
+        OkHttpShenyuSdkClient okHttpShenyuSdkClient = new OkHttpShenyuSdkClient(new OkHttpClient());
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
         ShenyuRequest request = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
                 headerMap, null, null, null);
-        ShenyuResponse response = okHttpShenyuHttpClient.execute(request);
+        ShenyuResponse response = okHttpShenyuSdkClient.execute(request);
         Assertions.assertNotNull(response);
     }
-
 }
