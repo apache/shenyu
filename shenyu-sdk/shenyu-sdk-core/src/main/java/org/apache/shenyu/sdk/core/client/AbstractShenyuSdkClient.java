@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.core.http;
+package org.apache.shenyu.sdk.core.client;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
@@ -35,9 +35,9 @@ import java.util.Optional;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-public abstract class AbstractShenyuHttpClient implements ShenyuHttpClient {
+public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractShenyuHttpClient.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractShenyuSdkClient.class);
 
     private static final String URL_REWRITE_REGEX = ":\\/\\/[a-z\\d\\.|:]+\\/";
 
@@ -47,7 +47,7 @@ public abstract class AbstractShenyuHttpClient implements ShenyuHttpClient {
 
     private final ShenyuConfig.RegisterConfig sdkConfig;
 
-    public AbstractShenyuHttpClient() {
+    public AbstractShenyuSdkClient() {
         this.sdkConfig = Singleton.INST.get(ShenyuConfig.class).getSdk();
         this.registerRepository = ShenyuInstanceRegisterRepositoryFactory.newInstance(sdkConfig.getRegisterType());
 

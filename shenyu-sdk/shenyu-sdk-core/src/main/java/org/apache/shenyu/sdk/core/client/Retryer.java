@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.core.http;
+package org.apache.shenyu.sdk.core.client;
 
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Cloned for each invocation to {@link ShenyuHttpClient#execute(ShenyuRequest)} .
+ * Cloned for each invocation to {@link ShenyuSdkClient#execute(ShenyuRequest)} .
  * Implementations may keep state to determine if retry operations should continue or not.
  * Reference to feign.Retryer.
  */

@@ -28,7 +28,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
-import org.apache.shenyu.sdk.core.http.AbstractShenyuHttpClient;
+import org.apache.shenyu.sdk.core.client.AbstractShenyuSdkClient;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -42,11 +42,12 @@ import java.util.stream.Collectors;
 /**
  * shenyu httpclient.
  */
-public class HttpShenyuSdkClient extends AbstractShenyuHttpClient {
+public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
 
     private final HttpClientConnectionManager connectionManager;
 
     public HttpShenyuSdkClient(final HttpClientConnectionManager connectionManager) {
+        super();
         this.connectionManager = connectionManager;
     }
 

@@ -36,7 +36,7 @@ public class HttpShenyuSdkClientTest {
 
     @Test
     public void testShenyuHttpClient() throws IOException {
-        HttpShenyuSdkClient shenyuHttpClient = mock(HttpShenyuSdkClientTest.class, Mockito.CALLS_REAL_METHODS);
+        HttpShenyuSdkClient shenyuHttpClient = mock(HttpShenyuSdkClient.class, Mockito.CALLS_REAL_METHODS);
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
         ShenyuRequest shenyuRequest = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
