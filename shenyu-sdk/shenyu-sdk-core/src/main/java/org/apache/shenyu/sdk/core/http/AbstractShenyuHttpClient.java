@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sdk.core.http;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
@@ -38,7 +39,7 @@ public abstract class AbstractShenyuHttpClient implements ShenyuHttpClient {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractShenyuHttpClient.class);
 
-    private static final String URL_REWRITE_REGEX = "http:\\/\\/[a-z\\d\\.|:]+\\/";
+    private static final String URL_REWRITE_REGEX = ":\\/\\/[a-z\\d\\.|:]+\\/";
 
     private final Retryer retryer;
 
@@ -47,14 +48,14 @@ public abstract class AbstractShenyuHttpClient implements ShenyuHttpClient {
     private final ShenyuConfig.RegisterConfig sdkConfig;
 
     public AbstractShenyuHttpClient() {
-        this.sdkConfig = Optional.ofNullable(Singleton.INST.get(ShenyuConfig.class)).orElse(new ShenyuConfig()).getSdk();
+        this.sdkConfig = Singleton.INST.get(ShenyuConfig.class).getSdk();
         this.registerRepository = ShenyuInstanceRegisterRepositoryFactory.newInstance(sdkConfig.getRegisterType());
 
         Boolean retryEnable = Optional.ofNullable(sdkConfig.getProps().get("retry.enable")).map(e -> (boolean) e).orElse(false);
         Long period = Optional.ofNullable(sdkConfig.getProps().get("retry.period")).map(l -> (Long) l).orElse(100L);
         long maxPeriod = Optional.ofNullable(sdkConfig.getProps().get("retry.maxPeriod")).map(l -> (Long) l).orElse(SECONDS.toMillis(1));
         int maxAttempts = Optional.ofNullable(sdkConfig.getProps().get("retry.maxAttempts")).map(l -> (int) l).orElse(5);
-        this.retryer = retryEnable ? new Retryer.Default(period, maxPeriod, maxAttempts) : Retryer.NEVER_RETRY;
+        this.retryer = retryEnable ? new Retryer.DefaultRetry(period, maxPeriod, maxAttempts) : Retryer.NEVER_RETRY;
 
     }
 
@@ -86,12 +87,16 @@ public abstract class AbstractShenyuHttpClient implements ShenyuHttpClient {
     private String getRewriteUrl(final ShenyuRequest request) {
         String url;
 
-        if (!sdkConfig.getRegisterType().equals("local")) {
+        if (StringUtils.isEmpty(sdkConfig.getRegisterType())) {
+            throw new IllegalArgumentException("configure registerType is required.");
+        }
+
+        if ("local".equals(sdkConfig.getRegisterType())) {
             List<InstanceRegisterDTO> instanceRegister = registerRepository.getInstanceRegisterList();
             InstanceRegisterDTO instanceRegisterDTO = instanceRegister.stream().findFirst().orElse(new InstanceRegisterDTO());
             url = request.getUrl().replaceAll(
                     URL_REWRITE_REGEX,
-                    String.format("http://%s:%s/%s",
+                    String.format("://%s:%s/%s",
                     instanceRegisterDTO.getHost(),
                     instanceRegisterDTO.getPort(),
                     instanceRegisterDTO.getAppName()
@@ -99,7 +104,7 @@ public abstract class AbstractShenyuHttpClient implements ShenyuHttpClient {
         } else {
             List<String> serverList = Arrays.asList(sdkConfig.getServerLists().split(","));
             if (serverList.isEmpty()) {
-                log.error("illegal param, serverLists configuration required if registerType equals local");
+                throw new IllegalArgumentException("illegal param, serverLists configuration required if registerType equals local.");
             }
             String serverAddress = serverList.stream().findFirst().orElse("");
             if (!serverAddress.startsWith("http://") && !serverAddress.startsWith("https://")) {

@@ -100,8 +100,7 @@ public final class ShenyuRequest implements Serializable {
      * @param request to include.
      * @return a Request
      */
-    public static ShenyuRequest create(final String url,
-                                       final ShenyuRequest request) {
+    public static ShenyuRequest create(final String url, final ShenyuRequest request) {
         return new ShenyuRequest(request.getHttpMethod(), url, request.getHeaders(), request.getBody(), request.getContextId(), request.getRequestTemplate());
     }
 

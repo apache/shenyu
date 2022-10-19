@@ -23,6 +23,7 @@ import org.apache.shenyu.sdk.core.ShenyuRequest.HttpMethod;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * This exception is raised when the {@link org.apache.shenyu.sdk.core.ShenyuResponse} is deemed to be retryable, typically via an
@@ -30,8 +31,6 @@ import java.util.Date;
  * Reference to feign.RetryableException.
  */
 public class RetryableException extends ShenyuException {
-
-    private static final long serialVersionUID = 1L;
 
     private final Long retryAfter;
 
@@ -45,11 +44,11 @@ public class RetryableException extends ShenyuException {
      * @param retryAfter usually corresponds to the retryAfter header.
      * @param request request
      */
-    public RetryableException(final String message, final java.lang.Throwable cause,
+    public RetryableException(final String message, final Throwable cause,
                      final Date retryAfter, final ShenyuRequest request) {
         super(message, cause);
         this.httpMethod = request.getHttpMethod();
-        this.retryAfter = retryAfter != null ? retryAfter.getTime() : null;
+        this.retryAfter = Optional.ofNullable(retryAfter).map(Date::getTime).orElse(null);
     }
 
     /**
@@ -59,7 +58,7 @@ public class RetryableException extends ShenyuException {
      * @return {@linkplain Date}
      */
     public Date retryAfter() {
-        return retryAfter != null ? new Date(retryAfter) : null;
+        return Optional.ofNullable(retryAfter).map(Date::new).orElse(null);
     }
 
     /**

@@ -59,7 +59,7 @@ public interface Retryer extends Cloneable {
      */
     Retryer instance();
 
-    class Default implements Retryer {
+    class DefaultRetry implements Retryer {
 
         private final int maxAttempts;
 
@@ -71,20 +71,15 @@ public interface Retryer extends Cloneable {
 
         private long sleptForMillis;
 
-        public Default() {
+        public DefaultRetry() {
             this(100, SECONDS.toMillis(1), 5);
         }
 
-        public Default(final long period, final long maxPeriod, final int maxAttempts) {
+        public DefaultRetry(final long period, final long maxPeriod, final int maxAttempts) {
             this.period = period;
             this.maxPeriod = maxPeriod;
             this.maxAttempts = maxAttempts;
             this.attempt = 1;
-        }
-
-        // visible for testing;
-        protected long currentTimeMillis() {
-            return System.currentTimeMillis();
         }
 
         public void continueOrPropagate(final RetryableException e) {
@@ -94,7 +89,7 @@ public interface Retryer extends Cloneable {
 
             long interval;
             if (e.retryAfter() != null) {
-                interval = e.retryAfter().getTime() - currentTimeMillis();
+                interval = e.retryAfter().getTime() - System.currentTimeMillis();
                 if (interval > maxPeriod) {
                     interval = maxPeriod;
                 }
@@ -127,7 +122,7 @@ public interface Retryer extends Cloneable {
 
         @Override
         public Retryer instance() {
-            return new Default(period, maxPeriod, maxAttempts);
+            return new DefaultRetry(period, maxPeriod, maxAttempts);
         }
     }
 
