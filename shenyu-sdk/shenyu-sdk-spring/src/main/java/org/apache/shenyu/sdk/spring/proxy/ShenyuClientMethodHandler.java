@@ -20,8 +20,8 @@ package org.apache.shenyu.sdk.spring.proxy;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
-import org.apache.shenyu.sdk.core.http.ShenyuHttpClient;
 import org.apache.shenyu.sdk.spring.ShenyuClient;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.springframework.util.ObjectUtils;
@@ -38,7 +38,7 @@ public class ShenyuClientMethodHandler {
 
     private final ShenyuClient shenyuClient;
 
-    private final ShenyuHttpClient shenyuHttpClient;
+    private final ShenyuSdkClient shenyuHttpClient;
 
     private RequestTemplate requestTemplate;
 
@@ -46,7 +46,7 @@ public class ShenyuClientMethodHandler {
 
     public ShenyuClientMethodHandler(final ShenyuClient shenyuClient,
                                      final RequestTemplate requestTemplate,
-                                     final ShenyuHttpClient shenyuHttpClient,
+                                     final ShenyuSdkClient shenyuHttpClient,
                                      final Map<Class<? extends Annotation>, AnnotatedParameterProcessor> annotatedArgumentProcessors) {
         this.shenyuClient = shenyuClient;
         this.requestTemplate = requestTemplate;
