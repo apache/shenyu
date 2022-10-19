@@ -15,25 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.core.http;
+package org.apache.shenyu.sdk.httpclient;
 
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * ShenyuHttpClient.
- */
-public interface ShenyuHttpClient {
+public class HttpShenyuSdkClientTest {
 
-    /**
-     * execute.
-     *
-     * @param request request
-     * @return {@link ShenyuResponse}
-     * @throws IOException error
-     */
-    ShenyuResponse execute(ShenyuRequest request) throws IOException;
+    @Test
+    public void testShenyuHttpClient() throws IOException {
+        HttpShenyuSdkClient shenyuHttpClient = new HttpShenyuSdkClient(new PoolingHttpClientConnectionManager());
+        Map<String, Collection<String>> headerMap = new HashMap<>();
+        headerMap.put("header", Arrays.asList("test1", "test2"));
+        ShenyuRequest shenyuRequest = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
+                headerMap, null, null, null);
+        ShenyuResponse response = shenyuHttpClient.execute(shenyuRequest);
+        Assertions.assertNotNull(response);
+    }
 
 }

@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.springboot.starter.sdk.ShenyuClientAutoConfiguration
+org.apache.shenyu.springboot.starter.sdk.ShenyuSdkAutoConfiguration

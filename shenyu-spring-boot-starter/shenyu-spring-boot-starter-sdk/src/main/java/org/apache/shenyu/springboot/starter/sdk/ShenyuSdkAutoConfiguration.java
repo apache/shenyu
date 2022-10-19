@@ -21,7 +21,7 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
-import org.apache.shenyu.sdk.core.http.ShenyuHttpClient;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.spring.annotation.CookieValueParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.RequestBodyParameterProcessor;
@@ -44,9 +44,12 @@ import org.springframework.context.annotation.Configuration;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The type Shenyu sdk autoConfiguration.
+ */
 @Configuration(proxyBeanMethods = false)
-public class ShenyuClientAutoConfiguration {
-
+public class ShenyuSdkAutoConfiguration {
+    
     /**
      * springMvcContract.
      *
@@ -57,20 +60,20 @@ public class ShenyuClientAutoConfiguration {
     public Contract springMvcContract() {
         return new SpringMvcContract();
     }
-
+    
     /**
-     * shenyuHttpClient.
+     * shenyu sdk client.
      *
-     * @return {@link ShenyuHttpClient}
+     * @return {@link ShenyuSdkClient}
      */
     @Bean
     @ConditionalOnMissingBean
-    public ShenyuHttpClient shenyuHttpClient() {
+    public ShenyuSdkClient shenyuSdkClient() {
         return request -> {
-            throw new ShenyuException("please implement ShenyuHttpClient");
+            throw new ShenyuException("please implement ShenyuSdkClient");
         };
     }
-
+    
     /**
      * ShenYu Instance Register Repository.
      *
@@ -84,7 +87,10 @@ public class ShenyuClientAutoConfiguration {
         repository.init(config.getSdk());
         return repository;
     }
-
+    
+    /**
+     * The type Parameter processor registry post processor.
+     */
     @Configuration(proxyBeanMethods = false)
     public static class ParameterProcessorRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
         @Override
