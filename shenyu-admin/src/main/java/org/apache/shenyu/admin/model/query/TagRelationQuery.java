@@ -15,69 +15,36 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.dto;
+package org.apache.shenyu.admin.model.query;
 
-import java.io.Serializable;
+import java.util.Objects;
 
 /**
- * this tag relation from web front.
+ * this is tag relation query.
  */
-public class TagRelationDTO implements Serializable {
-
-    private static final long serialVersionUID = -8300093387770924248L;
+public class TagRelationQuery {
 
     /**
-     * primary key.
-     */
-    private String id;
-
-    /**
-     * apiId.
+     * api id.
      */
     private String apiId;
 
     /**
-     * tagId.
+     * tag id.
      */
     private String tagId;
 
-    public TagRelationDTO() {
-
-    }
-
-    public TagRelationDTO(final String id, final String apiId, final String tagId) {
-        this.id = id;
-        this.apiId = apiId;
-        this.tagId = tagId;
-    }
-
-    /**
-     * get primary key.
-     * @return primary key
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * set primary key.
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
-    }
-
     /**
      * get api id.
-     * @return apiId
+     * @return get api id
      */
     public String getApiId() {
         return apiId;
     }
 
     /**
-     * set apiId.
-     * @param apiId apiid
+     * set api id.
+     * @param apiId api id
      */
     public void setApiId(final String apiId) {
         this.apiId = apiId;
@@ -85,18 +52,35 @@ public class TagRelationDTO implements Serializable {
 
     /**
      * get tag id.
-     * @return tagId
+     * @return tagid
      */
     public String getTagId() {
         return tagId;
     }
 
     /**
-     *  set tag id.
-     * @param tagId tagId
+     * set tag id.
+     * @param tagId tagid
      */
     public void setTagId(final String tagId) {
         this.tagId = tagId;
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof TagQuery)) {
+            return false;
+        }
+        TagRelationQuery that = (TagRelationQuery) o;
+        return Objects.equals(apiId, that.apiId)
+                && Objects.equals(tagId, that.tagId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(apiId, tagId);
+    }
 }

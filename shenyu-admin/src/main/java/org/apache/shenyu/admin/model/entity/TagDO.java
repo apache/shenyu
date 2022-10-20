@@ -19,6 +19,10 @@ package org.apache.shenyu.admin.model.entity;
 
 import java.sql.Timestamp;
 import java.util.Objects;
+import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.TagDTO;
+import org.apache.shenyu.common.utils.UUIDUtils;
 
 public final class TagDO extends BaseDO {
 
@@ -118,6 +122,7 @@ public final class TagDO extends BaseDO {
 
     /**
      * builder.
+     *
      * @return TagDO.TagDOBuilder
      */
     public static TagDO.TagDOBuilder builder() {
@@ -140,6 +145,32 @@ public final class TagDO extends BaseDO {
                 && Objects.equals(tagDesc, tagDO.tagDesc)
                 && Objects.equals(ext, tagDO.ext)
                 && Objects.equals(parentTagId, tagDO.parentTagId);
+    }
+
+    /**
+     * build tagDO.
+     *
+     * @param tagDTO {@linkplain TagDTO}
+     * @return {@linkplain TagDO}
+     */
+    public static TagDO buildTagDO(final TagDTO tagDTO) {
+        return Optional.ofNullable(tagDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            TagDO tagDO = TagDO.builder()
+                    .parentTagId(tagDTO.getParentTagId())
+                    .tagDesc(tagDTO.getTagDesc())
+                    .name(tagDTO.getName())
+                    .ext(tagDTO.getExt())
+                    .dateUpdated(currentTime)
+                    .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                tagDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                tagDO.setDateCreated(currentTime);
+            } else {
+                tagDO.setId(item.getId());
+            }
+            return tagDO;
+        }).orElse(null);
     }
 
     @Override
@@ -170,7 +201,7 @@ public final class TagDO extends BaseDO {
          * id.
          *
          * @param id the id.
-         * @return RuleDOBuilder.
+         * @return TagDOBuilder.
          */
         public TagDO.TagDOBuilder id(final String id) {
             this.id = id;
@@ -181,7 +212,7 @@ public final class TagDO extends BaseDO {
          * dateCreated.
          *
          * @param dateCreated the dateCreated.
-         * @return RuleDOBuilder.
+         * @return TagDOBuilder.
          */
         public TagDO.TagDOBuilder dateCreated(final Timestamp dateCreated) {
             this.dateCreated = dateCreated;
@@ -192,7 +223,7 @@ public final class TagDO extends BaseDO {
          * dateUpdated.
          *
          * @param dateUpdated the dateUpdated.
-         * @return RuleDOBuilder.
+         * @return TagDOBuilder.
          */
         public TagDO.TagDOBuilder dateUpdated(final Timestamp dateUpdated) {
             this.dateUpdated = dateUpdated;
@@ -245,6 +276,7 @@ public final class TagDO extends BaseDO {
 
         /**
          * build.
+         *
          * @return TagDO
          */
         public TagDO build() {

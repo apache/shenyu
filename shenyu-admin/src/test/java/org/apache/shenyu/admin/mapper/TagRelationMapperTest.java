@@ -17,10 +17,13 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import com.google.common.collect.Lists;
 import java.sql.Timestamp;
+import java.util.List;
 import javax.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
+import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 
@@ -79,6 +82,26 @@ public class TagRelationMapperTest extends AbstractSpringIntegrationTest {
         tagRelationMapper.updateByPrimaryKey(record);
         TagRelationDO tagRelationDO = tagRelationMapper.selectByPrimaryKey(record.getId());
         assertThat(tagRelationDO.getTagId().equals("2222222"), equalTo(true));
+    }
+
+    @Test
+    public void testSelectByQuery() {
+        TagRelationDO record = buildTagRelationDO();
+        int count = tagRelationMapper.insertSelective(record);
+        assertThat(count, greaterThan(0));
+        TagRelationQuery tagQuery = new TagRelationQuery();
+        tagQuery.setApiId("123");
+        List<TagRelationDO> tagDOList = tagRelationMapper.selectByQuery(tagQuery);
+        assertThat(tagDOList.size() == 1, equalTo(true));
+    }
+
+    @Test
+    public void testDeleteIds() {
+        TagRelationDO record = buildTagRelationDO();
+        int count = tagRelationMapper.insertSelective(record);
+        assertThat(count, greaterThan(0));
+        int deleteCnt = tagRelationMapper.deleteByIds(Lists.newArrayList(record.getId()));
+        assertThat(deleteCnt, greaterThan(0));
     }
 
     private TagRelationDO buildTagRelationDO() {

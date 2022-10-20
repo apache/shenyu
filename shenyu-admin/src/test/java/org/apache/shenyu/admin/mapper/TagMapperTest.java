@@ -17,10 +17,13 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import com.google.common.collect.Lists;
 import java.sql.Timestamp;
+import java.util.List;
 import javax.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.TagDO;
+import org.apache.shenyu.admin.model.query.TagQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 
@@ -82,6 +85,26 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         tagMapper.updateByPrimaryKey(record);
         TagDO tagDO = tagMapper.selectByPrimaryKey(record.getId());
         assertThat(tagDO.getTagDesc().equals("2222222"), equalTo(true));
+    }
+
+    @Test
+    public void testSelectByQuery() {
+        TagDO record = buildTagDO();
+        int count = tagMapper.insertSelective(record);
+        assertThat(count, greaterThan(0));
+        TagQuery tagQuery = new TagQuery();
+        tagQuery.setName("111");
+        List<TagDO> tagDOList = tagMapper.selectByQuery(tagQuery);
+        assertThat(tagDOList.size() == 1, equalTo(true));
+    }
+
+    @Test
+    public void testDeleteIds() {
+        TagDO record = buildTagDO();
+        int count = tagMapper.insertSelective(record);
+        assertThat(count, greaterThan(0));
+        int deleteCnt = tagMapper.deleteByIds(Lists.newArrayList(record.getId()));
+        assertThat(deleteCnt, greaterThan(0));
     }
 
     private TagDO buildTagDO() {
