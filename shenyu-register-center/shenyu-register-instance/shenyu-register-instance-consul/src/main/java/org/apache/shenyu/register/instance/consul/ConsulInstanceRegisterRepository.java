@@ -252,4 +252,9 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 .port(healthService.getService().getPort())
                 .build()).collect(Collectors.toList());
     }
+
+    @Override
+    public List<InstanceRegisterDTO> getInstanceRegisterList() {
+        return instanceRegisterDTOList;
+    }
 }
