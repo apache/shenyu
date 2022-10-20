@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sdk.okhttp;
 
+import okhttp3.ConnectionPool;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +50,16 @@ public class OkHttpShenyuSdkClient extends AbstractShenyuSdkClient {
     @Override
     protected void initClient(final ShenyuConfig.RegisterConfig shenyuConfig,
                               final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
-
+        final String maxIdleConnections = shenyuConfig.getProps().getProperty("http.maxIdleConnections", "200");
+        final String keepAliveDuration = shenyuConfig.getProps().getProperty("http.keepAliveDuration", "2");
+        final String connectTimeout = shenyuConfig.getProps().getProperty("http.connectTimeout", "60");
+        final String readTimeout = shenyuConfig.getProps().getProperty("http.readTimeout", "60");
+        this.okHttpClient = new OkHttpClient.Builder()
+                .retryOnConnectionFailure(true)
+                .connectionPool(pool(Integer.parseInt(maxIdleConnections), Long.parseLong(keepAliveDuration)))
+                .connectTimeout(Long.parseLong(connectTimeout), TimeUnit.SECONDS)
+                .readTimeout(Long.parseLong(readTimeout), TimeUnit.SECONDS)
+                .build();
     }
 
     @Override
@@ -100,5 +111,9 @@ public class OkHttpShenyuSdkClient extends AbstractShenyuSdkClient {
                     okhttpResponse.headers().names().stream().collect(Collectors.toMap(name -> name, name -> okhttpResponse.headers().values(name))),
                     bodyStr, request);
         }
+    }
+
+    private ConnectionPool pool(final int maxIdleConnections, final long keepAliveDuration) {
+        return new ConnectionPool(maxIdleConnections, keepAliveDuration, TimeUnit.MINUTES);
     }
 }

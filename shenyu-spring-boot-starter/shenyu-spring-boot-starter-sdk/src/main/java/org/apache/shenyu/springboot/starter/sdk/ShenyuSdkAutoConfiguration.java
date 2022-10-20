@@ -22,7 +22,7 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
-import org.apache.shenyu.sdk.okhttp.OkHttpShenyuSdkClient;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClientFactory;
 import org.apache.shenyu.sdk.spring.annotation.CookieValueParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.RequestBodyParameterProcessor;
@@ -74,10 +74,12 @@ public class ShenyuSdkAutoConfiguration {
      */
     @Bean
     @ConditionalOnClass(OkHttpClient.class)
-    @ConditionalOnProperty(name = "shenyu.sdk.enable", havingValue = "true")
-    public ShenyuSdkClient okHttpShenyuSdkClient(final ShenyuConfig config,
+    @ConditionalOnProperty(name = "shenyu.sdk.props.clientType")
+    public ShenyuSdkClient shenyuSdkClient(final ShenyuConfig config,
                                                  final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
-        return new OkHttpShenyuSdkClient(config.getSdk(), registerRepositoryObjectFactory);
+        final ShenyuSdkClient shenyuSdkClient = ShenyuSdkClientFactory.newInstance(config.getSdk().getProps().getProperty("clientType"));
+        shenyuSdkClient.init(config.getSdk(), registerRepositoryObjectFactory);
+        return shenyuSdkClient;
     }
     
     /**
