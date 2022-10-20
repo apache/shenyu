@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.core.http;
+package org.apache.shenyu.sdk.core.client;
 
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
@@ -23,9 +23,9 @@ import org.apache.shenyu.sdk.core.ShenyuResponse;
 import java.io.IOException;
 
 /**
- * ShenyuHttpClient.
+ * ShenyuSdkClient.
  */
-public interface ShenyuHttpClient {
+public interface ShenyuSdkClient {
 
     /**
      * execute.
