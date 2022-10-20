@@ -30,6 +30,7 @@ import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.IOException;
 import java.net.URI;
@@ -48,8 +49,6 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractShenyuSdkClient.class);
 
-    private static final String URL_REWRITE_REGEX = ":\\/\\/[a-z\\d\\.|:]+\\/";
-
     private final Retryer retryer;
 
     private final ShenyuInstanceRegisterRepository registerRepository;
@@ -59,9 +58,9 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     private final ShenyuConfig.RegisterConfig sdkConfig;
 
     public AbstractShenyuSdkClient(final ShenyuConfig.RegisterConfig shenyuConfig,
-                                   final ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository) {
+                                   final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
         this.sdkConfig = shenyuConfig;
-        this.registerRepository = shenyuInstanceRegisterRepository;
+        this.registerRepository = registerRepositoryObjectFactory.getIfAvailable();
         Boolean retryEnable = Optional.ofNullable(sdkConfig.getProps().get("retry.enable")).map(e -> (boolean) e).orElse(false);
         Long period = Optional.ofNullable(sdkConfig.getProps().get("retry.period")).map(l -> (Long) l).orElse(100L);
         long maxPeriod = Optional.ofNullable(sdkConfig.getProps().get("retry.maxPeriod")).map(l -> (Long) l).orElse(SECONDS.toMillis(1));
@@ -145,8 +144,16 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
         }
         // loadBalancer
         final Upstream upstream = LoadBalancerFactory.selector(upstreams, "roundRobin", "");
-        final String path = URI.create(request.getUrl()).getPath();
-        return upstream.getUrl() + path;
+        return replaceUrl(upstream.getUrl(), request.getUrl());
+    }
+
+    private String replaceUrl(final String url, final String sourceUrl) {
+        final URI uri = URI.create(sourceUrl);
+        if (StringUtils.isEmpty(uri.getQuery())) {
+            return url + uri.getPath();
+        } else {
+            return String.format("%s%s?%s", url, uri.getPath(), uri.getQuery());
+        }
     }
 
     protected abstract ShenyuResponse doRequest(ShenyuRequest request) throws IOException;

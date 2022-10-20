@@ -31,6 +31,7 @@ import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.apache.shenyu.sdk.core.client.AbstractShenyuSdkClient;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -50,8 +51,8 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
 
     public HttpShenyuSdkClient(final ShenyuConfig.RegisterConfig shenyuConfig,
                                final HttpClientConnectionManager connectionManager,
-                               final ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository) {
-        super(shenyuConfig, shenyuInstanceRegisterRepository);
+                               final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
+        super(shenyuConfig, registerRepositoryObjectFactory);
         this.connectionManager = connectionManager;
     }
 

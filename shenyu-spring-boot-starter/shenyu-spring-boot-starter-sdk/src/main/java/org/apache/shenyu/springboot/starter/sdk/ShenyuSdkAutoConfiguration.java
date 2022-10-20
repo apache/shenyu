@@ -32,6 +32,7 @@ import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.apache.shenyu.sdk.spring.factory.Contract;
 import org.apache.shenyu.sdk.spring.support.SpringMvcContract;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -40,6 +41,7 @@ import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -67,15 +69,15 @@ public class ShenyuSdkAutoConfiguration {
      * okHttpShenyuSdkClient.
      *
      * @param config config
-     * @param shenyuInstanceRegisterRepository shenyuInstanceRegisterRepository
+     * @param registerRepositoryObjectFactory registerRepositoryObjectFactory
      * @return {@link ShenyuSdkClient}
      */
     @Bean
     @ConditionalOnClass(OkHttpClient.class)
     @ConditionalOnProperty(name = "shenyu.sdk.enable", havingValue = "true")
     public ShenyuSdkClient okHttpShenyuSdkClient(final ShenyuConfig config,
-                                                 final ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository) {
-        return new OkHttpShenyuSdkClient(config.getSdk(), new OkHttpClient(), shenyuInstanceRegisterRepository);
+                                                 final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
+        return new OkHttpShenyuSdkClient(config.getSdk(), new OkHttpClient(), registerRepositoryObjectFactory);
     }
     
     /**
@@ -85,11 +87,27 @@ public class ShenyuSdkAutoConfiguration {
      * @return ShenYu Instance Register Repository
      */
     @Bean
-    @ConditionalOnProperty(name = "shenyu.sdk.enable", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.sdk.registerType")
     public ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository(final ShenyuConfig config) {
+        final String registerType = config.getSdk().getRegisterType();
+        if ("local".equals(registerType)) {
+            return null;
+        }
         ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getSdk().getRegisterType());
         repository.init(config.getSdk());
         return repository;
+    }
+
+    /**
+     * shenyu config.
+     *
+     * @return the shenyu config
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConfigurationProperties(prefix = "shenyu")
+    public ShenyuConfig shenyuConfig() {
+        return new ShenyuConfig();
     }
     
     /**
