@@ -79,36 +79,6 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private final Map<String, Long> consulIndexes = new HashMap<>();
 
-    /**
-     * Timeout to deregister services critical for longer than timeout (e.g. 30m). Requires consul versi.
-     */
-    private String healthCheckCriticalTimeout;
-
-    /**
-     * How often to perform the health check (e.g. 10s), defaults to 10s.
-     */
-    private String healthCheckInterval;
-
-    /**
-     * Timeout for health check (e.g. 10s).
-     */
-    private String healthCheckTimeout;
-
-    /**
-     * Custom health check url to override default.
-     */
-    private String healthCheckUrl;
-
-    /**
-     *  Whether to register an http or https service.
-     */
-    private String scheme;
-
-    /**
-     * Alternate server path to invoke for health checking.
-     */
-    private String healthCheckPath;
-
     private String token;
 
     private String waitTime;
@@ -117,21 +87,21 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private String tags;
 
+    private String checkTtl;
+
+    private TtlScheduler ttlScheduler;
+
     @Override
     public void init(final RegisterConfig config) {
-        Properties props = config.getProps();
-        this.healthCheckCriticalTimeout = props.getProperty("healthCheckCriticalTimeout", null);
-        this.healthCheckInterval = props.getProperty("healthCheckInterval", "10s");
-        this.healthCheckTimeout = props.getProperty("healthCheckTimeout", null);
-        this.healthCheckUrl = props.getProperty("healthCheckUrl");
-        this.scheme = props.getProperty("scheme", "http");
-        this.healthCheckPath = props.getProperty("healthCheckPath", "/actuator/health");
+        final Properties props = config.getProps();
+        this.checkTtl = props.getProperty("checkTtl", "5");
         this.token = props.getProperty("token", "");
         this.waitTime = props.getProperty("waitTime", "30");
         this.watchDelay = props.getProperty("watchDelay", "5");
         this.tags = props.getProperty("tags");
         final String port = props.getProperty("port", "8500");
         consulClient = new ConsulClient(config.getServerLists(), Integer.parseInt(port));
+        this.ttlScheduler = new TtlScheduler(Integer.parseInt(checkTtl), consulClient);
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
@@ -143,28 +113,24 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         newService.setId(String.join("-", instance.getAppName(), instanceNodeName));
         newService.setAddress(instance.getHost());
         newService.setPort(instance.getPort());
-        newService.setCheck(createCheck(instance));
+        newService.setCheck(createCheck());
         if (StringUtils.hasText(tags)) {
             newService.setTags(new ArrayList<>(Arrays.asList(tags.split(","))));
         }
         newService.setMeta(Collections.singletonMap("nodeData", GsonUtils.getInstance().toJson(instance)));
         consulClient.agentServiceRegister(newService, token);
+        if (StringUtils.hasText(checkTtl)) {
+            this.ttlScheduler.add(newService.getId());
+        }
         LOGGER.info("consul client register success: {}", newService);
     }
 
-    private NewService.Check createCheck(final InstanceRegisterDTO instance) {
+    private NewService.Check createCheck() {
         NewService.Check check = new NewService.Check();
-        if (StringUtils.hasText(healthCheckCriticalTimeout)) {
-            check.setDeregisterCriticalServiceAfter(healthCheckCriticalTimeout);
+        if (StringUtils.hasText(checkTtl)) {
+            check.setTtl(checkTtl + "s");
+            return check;
         }
-        if (StringUtils.hasText(healthCheckPath)) {
-            check.setHttp(String.format("%s://%s:%s%s", scheme,
-                    instance.getHost(), instance.getPort(), healthCheckPath));
-        } else {
-            check.setHttp(healthCheckUrl);
-        }
-        check.setInterval(healthCheckInterval);
-        check.setTimeout(healthCheckTimeout);
         return check;
     }
 
@@ -175,6 +141,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         }
         if (!ObjectUtils.isEmpty(newService)) {
             consulClient.agentServiceDeregister(newService.getId(), token);
+            ttlScheduler.remove(newService.getId());
         }
 
     }
@@ -239,6 +206,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         final Long newIndex = Optional.ofNullable(consulIndexes.get(selectKey)).orElse(-1L);
         final HealthServicesRequest healthServicesRequest = HealthServicesRequest.newBuilder()
                 .setToken(token)
+                .setPassing(true)
                 .setQueryParams(QueryParams.Builder.builder().setWaitTime(Long.parseLong(waitTime)).setIndex(newIndex).build()).build();
 
         Response<List<HealthService>> healthServices = consulClient.getHealthServices(selectKey, healthServicesRequest);
