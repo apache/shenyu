@@ -109,7 +109,6 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     }
 
     /**
-     * TODO wait append load balance logic.
      * get rewrite url by request.
      *
      * @param request the request.
@@ -133,6 +132,9 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
             if (instanceRegisters == null) {
                 instanceRegisters = registerRepository.selectInstancesAndWatcher(request.getContextId(),
                     instanceRegisterDTOs -> watcherInstanceRegisterMap.put(request.getContextId(), instanceRegisterDTOs));
+            }
+            if (instanceRegisters == null) {
+                throw new ShenyuException("Gateway address not found from registry.");
             }
             upstreams = instanceRegisters.stream()
                     .map(instanceRegister -> {

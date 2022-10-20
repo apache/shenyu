@@ -24,9 +24,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.internal.Util;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
-import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.sdk.core.client.AbstractShenyuSdkClient;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -36,16 +38,19 @@ import java.util.stream.Collectors;
 /**
  * shenyu okhttp.
  */
-public class OkHttpShenyuSdkClient implements ShenyuSdkClient {
+public class OkHttpShenyuSdkClient extends AbstractShenyuSdkClient {
     
     private final OkHttpClient okHttpClient;
 
-    public OkHttpShenyuSdkClient(final OkHttpClient okHttpClient) {
+    public OkHttpShenyuSdkClient(final ShenyuConfig.RegisterConfig shenyuConfig,
+                               final OkHttpClient okHttpClient,
+                               final ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository) {
+        super(shenyuConfig, shenyuInstanceRegisterRepository);
         this.okHttpClient = okHttpClient;
     }
 
     @Override
-    public ShenyuResponse execute(final ShenyuRequest request) throws IOException {
+    protected ShenyuResponse doRequest(final ShenyuRequest request) throws IOException {
         String url = request.getUrl();
         String body = request.getBody();
         Map<String, Collection<String>> headers = request.getHeaders();

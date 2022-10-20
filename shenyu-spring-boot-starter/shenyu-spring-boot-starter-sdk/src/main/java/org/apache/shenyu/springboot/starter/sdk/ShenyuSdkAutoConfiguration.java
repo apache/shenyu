@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.springboot.starter.sdk;
 
+import okhttp3.OkHttpClient;
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
+import org.apache.shenyu.sdk.okhttp.OkHttpShenyuSdkClient;
 import org.apache.shenyu.sdk.spring.annotation.CookieValueParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.RequestBodyParameterProcessor;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -60,18 +62,20 @@ public class ShenyuSdkAutoConfiguration {
     public Contract springMvcContract() {
         return new SpringMvcContract();
     }
-    
+
     /**
-     * shenyu sdk client.
+     * okHttpShenyuSdkClient.
      *
+     * @param config config
+     * @param shenyuInstanceRegisterRepository shenyuInstanceRegisterRepository
      * @return {@link ShenyuSdkClient}
      */
     @Bean
-    @ConditionalOnMissingBean
-    public ShenyuSdkClient shenyuSdkClient() {
-        return request -> {
-            throw new ShenyuException("please implement ShenyuSdkClient");
-        };
+    @ConditionalOnClass(OkHttpClient.class)
+    @ConditionalOnProperty(name = "shenyu.sdk.enable", havingValue = "true")
+    public ShenyuSdkClient okHttpShenyuSdkClient(final ShenyuConfig config,
+                                                 final ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository) {
+        return new OkHttpShenyuSdkClient(config.getSdk(), new OkHttpClient(), shenyuInstanceRegisterRepository);
     }
     
     /**
