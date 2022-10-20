@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.httpclient;
+package org.apache.shenyu.sdk.okhttp;
 
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import okhttp3.OkHttpClient;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,17 +29,24 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpClientShenyuHttpClientTest {
-
+/**
+ * The type Ok http shenyu sdk client test.
+ */
+public class OkHttpShenyuSdkClientTest {
+    
+    /**
+     * Test shenyu http client.
+     *
+     * @throws IOException the io exception
+     */
     @Test
     public void testShenyuHttpClient() throws IOException {
-        HttpClientShenyuHttpClient shenyuHttpClient = new HttpClientShenyuHttpClient(new PoolingHttpClientConnectionManager());
+        OkHttpShenyuSdkClient okHttpShenyuSdkClient = new OkHttpShenyuSdkClient(new OkHttpClient());
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
-        ShenyuRequest shenyuRequest = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
+        ShenyuRequest request = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
                 headerMap, null, null, null);
-        ShenyuResponse response = shenyuHttpClient.execute(shenyuRequest);
+        ShenyuResponse response = okHttpShenyuSdkClient.execute(request);
         Assertions.assertNotNull(response);
     }
-
 }
