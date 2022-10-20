@@ -165,4 +165,9 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         });
         return cacheInstanceRegisters;
     }
+
+    @Override
+    public List<InstanceRegisterDTO> getInstanceRegisterList() {
+        return instanceRegisterDTOList;
+    }
 }

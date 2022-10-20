@@ -81,7 +81,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         initMatchCacheConfig();
         String pluginName = named();
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
-        if (pluginData != null && pluginData.getEnabled()) {
+        if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
             final String path = exchange.getRequest().getURI().getPath();
             SelectorData selectorData = obtainSelectorDataCacheIfEnabled(exchange);
             if (Objects.isNull(selectorData)) {
