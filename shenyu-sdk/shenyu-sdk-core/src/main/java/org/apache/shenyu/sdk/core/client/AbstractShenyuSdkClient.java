@@ -19,6 +19,7 @@ package org.apache.shenyu.sdk.core.client;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -66,27 +68,27 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
         Retryer retryer = this.retryer.instance();
         while (true) {
             try {
-                return doRequest(rewriteShenyuRequest(request));
+                return execute0(request);
             } catch (RetryableException e) {
                 retryer.continueOrPropagate(e);
-                log.warn("request fail, retry. ShenyuRequest: {}", request, retryer.continueOrPropagate(););
             }
         }
     }
 
-    private ShenyuResponse executeAndDecode(final ShenyuRequest request) throws IOException {
+    private ShenyuResponse execute0(final ShenyuRequest request) {
         long start = System.nanoTime();
         ShenyuResponse shenyuResponse;
         try {
             shenyuResponse = doRequest(rewriteShenyuRequest(request));
         } catch (IOException e) {
-            log.warn("ShenyuSdkClient executeAndDecode ex elapsedTime {}", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+            log.warn("request fail, retry. requestUrl {} retryCount {} elapsedTime {} ex", request.getUrl(),
+                    retryer.retryCount(), TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start), e);
             throw errorExecuting(request, e);
         }
         return shenyuResponse;
     }
 
-    static RetryableException errorExecuting(final ShenyuRequest request, final IOException cause) {
+    private static RetryableException errorExecuting(final ShenyuRequest request, final IOException cause) {
         return new RetryableException(
                 format("%s executing %s %s", cause.getMessage(), request.getHttpMethod(), request.getUrl()),
                 cause,
@@ -122,6 +124,8 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
                     instanceRegisterDTO.getPort(),
                     instanceRegisterDTO.getAppName()
             ));
+//            final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
+//            final Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalance, ip);
         } else {
             List<String> serverList = Arrays.asList(sdkConfig.getServerLists().split(","));
             if (serverList.isEmpty()) {

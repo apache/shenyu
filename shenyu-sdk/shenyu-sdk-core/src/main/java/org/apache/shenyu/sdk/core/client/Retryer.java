@@ -45,6 +45,11 @@ public interface Retryer extends Cloneable {
             return this;
         }
 
+        @Override
+        public int retryCount() {
+            return 0;
+        }
+
     };
 
     /**
@@ -60,6 +65,13 @@ public interface Retryer extends Cloneable {
      * @return {@linkplain Retryer}
      */
     Retryer instance();
+
+    /**
+     * retryCount.
+     *
+     * @return int
+     */
+    int retryCount();
 
     class DefaultRetry implements Retryer {
 
@@ -125,6 +137,16 @@ public interface Retryer extends Cloneable {
         @Override
         public Retryer instance() {
             return new DefaultRetry(period, maxPeriod, maxAttempts);
+        }
+
+        /**
+         * retry count.
+         *
+         * @return {@link int}
+         */
+        @Override
+        public int retryCount() {
+            return attempt;
         }
     }
 
