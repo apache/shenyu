@@ -41,10 +41,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -67,6 +70,10 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
             ShenyuThreadFactory.create("consul-config-watch", true));
 
     private final List<ScheduledFuture<?>> watchFutures = new ArrayList<>();
+
+    private final Map<String, Set<WatcherListener>> listenerMap = new ConcurrentHashMap<>();
+
+    private final Object lock = new Object();
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -102,8 +109,6 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
      */
     private String healthCheckPath;
 
-    private String registerServiceName;
-
     private String token;
 
     private String waitTime;
@@ -121,7 +126,6 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         this.healthCheckUrl = props.getProperty("healthCheckUrl");
         this.scheme = props.getProperty("scheme", "http");
         this.healthCheckPath = props.getProperty("healthCheckPath", "/actuator/health");
-        this.registerServiceName = props.getProperty("registerServiceName", "shenyu-bootstrap");
         this.token = props.getProperty("token", "");
         this.waitTime = props.getProperty("waitTime", "30");
         this.watchDelay = props.getProperty("watchDelay", "5");
@@ -135,8 +139,8 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
     public void persistInstance(final InstanceRegisterDTO instance) {
         String instanceNodeName = buildInstanceNodeName(instance);
         this.newService = new NewService();
-        newService.setName(registerServiceName);
-        newService.setId(String.join("-", registerServiceName, instanceNodeName));
+        newService.setName(instance.getAppName());
+        newService.setId(String.join("-", instance.getAppName(), instanceNodeName));
         newService.setAddress(instance.getHost());
         newService.setPort(instance.getPort());
         newService.setCheck(createCheck(instance));
@@ -195,7 +199,17 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
      */
     public void watcherStart(final String selectKey, final WatcherListener watcherListener) {
         this.running.compareAndSet(false, true);
-        watchFutures.add(this.executor.scheduleWithFixedDelay(() -> this.watchConfigKeyValues(selectKey, watcherListener),
+        // avoid duplicate watchers
+        Set<WatcherListener> eventListeners = listenerMap.get(selectKey);
+        if (!ObjectUtils.isEmpty(eventListeners)) {
+            eventListeners.add(watcherListener);
+            return;
+        }
+        synchronized (lock) {
+            eventListeners = listenerMap.computeIfAbsent(selectKey, s -> new HashSet<>());
+        }
+        eventListeners.add(watcherListener);
+        watchFutures.add(this.executor.scheduleWithFixedDelay(() -> this.watchConfigKeyValues(selectKey),
                 5, Integer.parseInt(watchDelay), TimeUnit.SECONDS));
     }
 
@@ -203,14 +217,15 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
      * watch key values.
      *
      * @param selectKey       selectKey
-     * @param watcherListener watcherListener
      */
-    public void watchConfigKeyValues(final String selectKey, final WatcherListener watcherListener) {
+    public void watchConfigKeyValues(final String selectKey) {
         if (!running.get()) {
             return;
         }
+        final List<InstanceRegisterDTO> healthServices = this.getHealthServices(selectKey, waitTime);
+        Set<WatcherListener> eventListeners = Optional.ofNullable(listenerMap.get(selectKey)).orElse(Collections.emptySet());
         // Long polling getHealthServices
-        watcherListener.listener(this.getHealthServices(selectKey, waitTime));
+        eventListeners.forEach(eventListener -> eventListener.listener(healthServices));
     }
 
     /**

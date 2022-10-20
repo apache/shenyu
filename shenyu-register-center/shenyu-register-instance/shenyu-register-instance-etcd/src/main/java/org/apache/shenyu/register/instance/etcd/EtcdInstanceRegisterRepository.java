@@ -47,21 +47,18 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
 
     private EtcdClient client;
 
-    private String registerServiceName;
-
     @Override
     public void init(final RegisterConfig config) {
         Properties props = config.getProps();
         long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
         long ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
-        this.registerServiceName = props.getProperty("registerServiceName", "shenyu-instance");
         client = new EtcdClient(config.getServerLists(), ttl, timeout);
     }
 
     @Override
     public void persistInstance(final InstanceRegisterDTO instance) {
         String instanceNodeName = buildInstanceNodeName(instance);
-        String instancePath = RegisterPathConstants.buildInstanceParentPath(registerServiceName);
+        String instancePath = RegisterPathConstants.buildInstanceParentPath(instance.getAppName());
         String realNode = RegisterPathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);

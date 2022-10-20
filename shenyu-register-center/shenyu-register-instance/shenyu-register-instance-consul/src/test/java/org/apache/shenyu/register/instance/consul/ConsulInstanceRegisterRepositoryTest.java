@@ -89,7 +89,7 @@ class ConsulInstanceRegisterRepositoryTest {
                 .port(9195)
                 .build();
 
-        final String realNode = "/shenyu/register/instance/shenyu-host:9195";
+        final String realNode = "/shenyu/register/shenyu-test/shenyu-host:9195";
         repository.persistInstance(data);
         assertTrue(consulBroker.containsKey(realNode));
         assertEquals(GsonUtils.getInstance().toJson(data), consulBroker.get(realNode));
