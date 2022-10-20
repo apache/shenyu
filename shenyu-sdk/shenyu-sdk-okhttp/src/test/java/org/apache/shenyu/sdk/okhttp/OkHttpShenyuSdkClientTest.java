@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.sdk.okhttp;
 
-import okhttp3.OkHttpClient;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
@@ -45,8 +44,8 @@ public class OkHttpShenyuSdkClientTest {
      */
     @Test
     public void testShenyuHttpClient() throws IOException {
-        OkHttpShenyuSdkClient okHttpShenyuSdkClient = new OkHttpShenyuSdkClient(new ShenyuConfig.RegisterConfig(),
-                new OkHttpClient(), mock(ObjectProvider.class));
+        OkHttpShenyuSdkClient okHttpShenyuSdkClient = new OkHttpShenyuSdkClient();
+        okHttpShenyuSdkClient.initClient(new ShenyuConfig.RegisterConfig(), mock(ObjectProvider.class));
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
         ShenyuRequest request = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
