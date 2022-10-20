@@ -133,10 +133,18 @@ public class TagDTO implements Serializable {
         this.parentTagId = parentTagId;
     }
 
+    /**
+     * get ext.
+     * @return ext info
+     */
     public String getExt() {
         return ext;
     }
 
+    /**
+     * set ext.
+     * @param ext ext
+     */
     public void setExt(final String ext) {
         this.ext = ext;
     }
