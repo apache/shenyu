@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.sdk.httpclient;
 
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,16 +29,20 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class HttpShenyuSdkClientTest {
 
     @Test
     public void testShenyuHttpClient() throws IOException {
-        HttpShenyuSdkClient shenyuHttpClient = new HttpShenyuSdkClient(new PoolingHttpClientConnectionManager());
+        HttpShenyuSdkClient shenyuHttpClient = mock(HttpShenyuSdkClient.class, Mockito.CALLS_REAL_METHODS);
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
         ShenyuRequest shenyuRequest = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
                 headerMap, null, null, null);
-        ShenyuResponse response = shenyuHttpClient.execute(shenyuRequest);
+        when(shenyuHttpClient.doRequest(shenyuRequest)).thenCallRealMethod();
+        ShenyuResponse response = shenyuHttpClient.doRequest(shenyuRequest);
         Assertions.assertNotNull(response);
     }
 
