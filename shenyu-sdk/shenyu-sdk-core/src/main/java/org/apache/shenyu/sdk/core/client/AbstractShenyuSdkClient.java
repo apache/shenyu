@@ -60,6 +60,10 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
 
     private ShenyuConfig.RegisterConfig sdkConfig;
 
+    private String algorithm;
+
+    private String scheme;
+
     @Override
     public void init(final ShenyuConfig.RegisterConfig shenyuConfig,
                      final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
@@ -69,6 +73,8 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
         Long period = Optional.ofNullable(sdkConfig.getProps().get("retry.period")).map(l -> (Long) l).orElse(100L);
         long maxPeriod = Optional.ofNullable(sdkConfig.getProps().get("retry.maxPeriod")).map(l -> (Long) l).orElse(SECONDS.toMillis(1));
         int maxAttempts = Optional.ofNullable(sdkConfig.getProps().get("retry.maxAttempts")).map(l -> (int) l).orElse(5);
+        this.algorithm = sdkConfig.getProps().getProperty("algorithm", "roundRobin");
+        this.scheme = sdkConfig.getProps().getProperty("scheme", "http");
         this.retryer = retryEnable ? new Retryer.DefaultRetry(period, maxPeriod, maxAttempts) : Retryer.NEVER_RETRY;
         this.initClient(shenyuConfig, registerRepositoryObjectFactory);
     }
@@ -128,7 +134,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
                 throw new ShenyuException("illegal param, serverLists configuration required if registerType equals local.");
             }
             upstreams = serverList.stream()
-                    .map(serverAddress -> Upstream.builder().url(UriUtils.appendScheme(serverAddress, "http")).build())
+                    .map(serverAddress -> Upstream.builder().url(UriUtils.appendScheme(serverAddress, scheme)).build())
                     .collect(Collectors.toList());
         } else {
             List<InstanceRegisterDTO> instanceRegisters = watcherInstanceRegisterMap.get(request.getContextId());
@@ -143,12 +149,12 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
             upstreams = instanceRegisters.stream()
                     .map(instanceRegister -> {
                         final String instanceUrl = String.join(Constants.COLONS, instanceRegister.getHost(), Integer.toString(instanceRegister.getPort()));
-                        return Upstream.builder().url(UriUtils.appendScheme(instanceUrl, "http")).build();
+                        return Upstream.builder().url(UriUtils.appendScheme(instanceUrl, scheme)).build();
                     })
                     .collect(Collectors.toList());
         }
         // loadBalancer
-        final Upstream upstream = LoadBalancerFactory.selector(upstreams, "roundRobin", "");
+        final Upstream upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
         return replaceUrl(upstream.getUrl(), request.getUrl());
     }
 
