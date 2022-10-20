@@ -33,14 +33,14 @@ import org.apache.zookeeper.WatchedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.Objects;
-import java.util.Collections;
 
 /**
  * The type Zookeeper instance register repository.
@@ -54,6 +54,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
     private final Map<String, String> nodeDataMap = new HashMap<>();
 
+    private String registerServiceName;
     @Override
     public void init(final RegisterConfig config) {
         Properties props = config.getProps();
@@ -63,6 +64,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
         int baseSleepTime = Integer.parseInt(props.getProperty("baseSleepTime", "1000"));
         int maxRetries = Integer.parseInt(props.getProperty("maxRetries", "3"));
         int maxSleepTime = Integer.parseInt(props.getProperty("maxSleepTime", String.valueOf(Integer.MAX_VALUE)));
+        this.registerServiceName = props.getProperty("registerServiceName", "shenyu-instance");
 
         ZookeeperConfig zkConfig = new ZookeeperConfig(config.getServerLists());
         zkConfig.setBaseSleepTimeMilliseconds(baseSleepTime)
@@ -94,7 +96,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public void persistInstance(final InstanceRegisterDTO instance) {
         String uriNodeName = buildInstanceNodeName(instance);
-        String instancePath = RegisterPathConstants.buildInstanceParentPath();
+        String instancePath = RegisterPathConstants.buildInstanceParentPath(registerServiceName);
         if (!client.isExist(instancePath)) {
             client.createOrUpdate(instancePath, "", CreateMode.PERSISTENT);
         }

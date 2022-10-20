@@ -19,11 +19,6 @@ package org.apache.shenyu.register.instance.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.agent.model.NewCheck;
-import com.google.common.collect.Lists;
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
@@ -32,6 +27,11 @@ import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -114,7 +114,6 @@ class ConsulInstanceRegisterRepositoryTest {
             properties.setProperty("enabledServerRebalance", "true");
             instanceConfig.setProps(properties);
             repository.init(instanceConfig);
-            when(repository.getInstanceRegisterDTOListByKey(anyString())).thenReturn(Lists.newArrayList(data));
             repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
             repository.close();
         }

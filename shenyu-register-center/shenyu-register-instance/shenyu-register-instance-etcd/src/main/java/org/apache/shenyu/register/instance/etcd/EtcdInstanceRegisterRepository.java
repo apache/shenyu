@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
-import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.watch.WatchEvent;
+import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
@@ -29,6 +29,7 @@ import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -46,18 +47,21 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
 
     private EtcdClient client;
 
+    private String registerServiceName;
+
     @Override
     public void init(final RegisterConfig config) {
         Properties props = config.getProps();
         long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
         long ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
+        this.registerServiceName = props.getProperty("registerServiceName", "shenyu-instance");
         client = new EtcdClient(config.getServerLists(), ttl, timeout);
     }
 
     @Override
     public void persistInstance(final InstanceRegisterDTO instance) {
         String instanceNodeName = buildInstanceNodeName(instance);
-        String instancePath = RegisterPathConstants.buildInstanceParentPath();
+        String instancePath = RegisterPathConstants.buildInstanceParentPath(registerServiceName);
         String realNode = RegisterPathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);
