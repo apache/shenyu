@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.core.client;
+package org.apache.shenyu.sdk.core.retry;
 
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.sdk.core.ShenyuRequest;

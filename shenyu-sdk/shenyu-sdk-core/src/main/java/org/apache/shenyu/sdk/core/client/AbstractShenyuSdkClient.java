@@ -28,6 +28,8 @@ import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.sdk.core.retry.RetryableException;
+import org.apache.shenyu.sdk.core.retry.Retryer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -49,16 +51,17 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractShenyuSdkClient.class);
 
-    private final Retryer retryer;
+    private Retryer retryer;
 
-    private final ShenyuInstanceRegisterRepository registerRepository;
+    private ShenyuInstanceRegisterRepository registerRepository;
 
     private final Map<String, List<InstanceRegisterDTO>> watcherInstanceRegisterMap = new HashMap<>();
 
-    private final ShenyuConfig.RegisterConfig sdkConfig;
+    private ShenyuConfig.RegisterConfig sdkConfig;
 
-    public AbstractShenyuSdkClient(final ShenyuConfig.RegisterConfig shenyuConfig,
-                                   final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
+    @Override
+    public void init(final ShenyuConfig.RegisterConfig shenyuConfig,
+                     final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
         this.sdkConfig = shenyuConfig;
         this.registerRepository = registerRepositoryObjectFactory.getIfAvailable();
         Boolean retryEnable = Optional.ofNullable(sdkConfig.getProps().get("retry.enable")).map(e -> (boolean) e).orElse(false);
@@ -66,7 +69,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
         long maxPeriod = Optional.ofNullable(sdkConfig.getProps().get("retry.maxPeriod")).map(l -> (Long) l).orElse(SECONDS.toMillis(1));
         int maxAttempts = Optional.ofNullable(sdkConfig.getProps().get("retry.maxAttempts")).map(l -> (int) l).orElse(5);
         this.retryer = retryEnable ? new Retryer.DefaultRetry(period, maxPeriod, maxAttempts) : Retryer.NEVER_RETRY;
-
+        this.initClient(shenyuConfig, registerRepositoryObjectFactory);
     }
 
     @Override
@@ -157,5 +160,8 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     }
 
     protected abstract ShenyuResponse doRequest(ShenyuRequest request) throws IOException;
+
+    protected abstract void initClient(ShenyuConfig.RegisterConfig shenyuConfig,
+                                       ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory);
 
 }

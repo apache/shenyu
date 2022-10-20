@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.core.client;
+package org.apache.shenyu.sdk.core.retry;
 
 import org.apache.shenyu.sdk.core.ShenyuRequest;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 
 import java.util.Objects;
 

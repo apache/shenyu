@@ -77,7 +77,7 @@ public class ShenyuSdkAutoConfiguration {
     @ConditionalOnProperty(name = "shenyu.sdk.enable", havingValue = "true")
     public ShenyuSdkClient okHttpShenyuSdkClient(final ShenyuConfig config,
                                                  final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
-        return new OkHttpShenyuSdkClient(config.getSdk(), new OkHttpClient(), registerRepositoryObjectFactory);
+        return new OkHttpShenyuSdkClient(config.getSdk(), registerRepositoryObjectFactory);
     }
     
     /**
