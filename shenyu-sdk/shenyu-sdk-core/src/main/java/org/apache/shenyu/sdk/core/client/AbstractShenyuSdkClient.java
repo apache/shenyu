@@ -33,6 +33,7 @@ import org.apache.shenyu.sdk.core.retry.Retryer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -134,8 +135,9 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
             if (instanceRegisters == null) {
                 instanceRegisters = registerRepository.selectInstancesAndWatcher(request.getContextId(),
                     instanceRegisterDTOs -> watcherInstanceRegisterMap.put(request.getContextId(), instanceRegisterDTOs));
+                watcherInstanceRegisterMap.put(request.getContextId(), instanceRegisters);
             }
-            if (instanceRegisters == null) {
+            if (ObjectUtils.isEmpty(instanceRegisters)) {
                 throw new ShenyuException("Gateway address not found from registry.");
             }
             upstreams = instanceRegisters.stream()
