@@ -26,6 +26,8 @@ import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.apache.shenyu.sdk.core.client.AbstractShenyuSdkClient;
@@ -35,8 +37,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -46,8 +48,10 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
 
     private final HttpClientConnectionManager connectionManager;
 
-    public HttpShenyuSdkClient(final HttpClientConnectionManager connectionManager) {
-        super();
+    public HttpShenyuSdkClient(final ShenyuConfig.RegisterConfig shenyuConfig,
+                               final HttpClientConnectionManager connectionManager,
+                               final ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository) {
+        super(shenyuConfig, shenyuInstanceRegisterRepository);
         this.connectionManager = connectionManager;
     }
 

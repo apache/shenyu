@@ -19,10 +19,8 @@ package org.apache.shenyu.sdk.core.client;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
-import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.slf4j.Logger;
@@ -32,7 +30,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
@@ -47,9 +47,10 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
 
     private final ShenyuConfig.RegisterConfig sdkConfig;
 
-    public AbstractShenyuSdkClient() {
-        this.sdkConfig = Singleton.INST.get(ShenyuConfig.class).getSdk();
-        this.registerRepository = ShenyuInstanceRegisterRepositoryFactory.newInstance(sdkConfig.getRegisterType());
+    public AbstractShenyuSdkClient(final ShenyuConfig.RegisterConfig shenyuConfig,
+                                   final ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository) {
+        this.sdkConfig = shenyuConfig;
+        this.registerRepository = shenyuInstanceRegisterRepository;
 
         Boolean retryEnable = Optional.ofNullable(sdkConfig.getProps().get("retry.enable")).map(e -> (boolean) e).orElse(false);
         Long period = Optional.ofNullable(sdkConfig.getProps().get("retry.period")).map(l -> (Long) l).orElse(100L);
@@ -68,9 +69,29 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
                 return doRequest(rewriteShenyuRequest(request));
             } catch (RetryableException e) {
                 retryer.continueOrPropagate(e);
-                log.warn("request fail, retry. contextId: {}", request.getContextId());
+                log.warn("request fail, retry. ShenyuRequest: {}", request, retryer.continueOrPropagate(););
             }
         }
+    }
+
+    private ShenyuResponse executeAndDecode(final ShenyuRequest request) throws IOException {
+        long start = System.nanoTime();
+        ShenyuResponse shenyuResponse;
+        try {
+            shenyuResponse = doRequest(rewriteShenyuRequest(request));
+        } catch (IOException e) {
+            log.warn("ShenyuSdkClient executeAndDecode ex elapsedTime {}", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+            throw errorExecuting(request, e);
+        }
+        return shenyuResponse;
+    }
+
+    static RetryableException errorExecuting(final ShenyuRequest request, final IOException cause) {
+        return new RetryableException(
+                format("%s executing %s %s", cause.getMessage(), request.getHttpMethod(), request.getUrl()),
+                cause,
+                null,
+                request);
     }
 
     private ShenyuRequest rewriteShenyuRequest(final ShenyuRequest request) {

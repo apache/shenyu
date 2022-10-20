@@ -47,7 +47,7 @@ public class RetryableException extends ShenyuException {
      * @param request request
      */
     public RetryableException(final String message, final Throwable cause,
-                     final Date retryAfter, final ShenyuRequest request) {
+                              final Date retryAfter, final ShenyuRequest request) {
         super(message, cause);
         this.httpMethod = request.getHttpMethod();
         this.retryAfter = Optional.ofNullable(retryAfter).map(Date::getTime).orElse(null);
