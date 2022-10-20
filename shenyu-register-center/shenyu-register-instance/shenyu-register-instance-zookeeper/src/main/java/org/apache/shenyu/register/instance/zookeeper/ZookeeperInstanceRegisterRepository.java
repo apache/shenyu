@@ -55,6 +55,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     private final Map<String, String> nodeDataMap = new HashMap<>();
 
     private String registerServiceName;
+
     @Override
     public void init(final RegisterConfig config) {
         Properties props = config.getProps();
