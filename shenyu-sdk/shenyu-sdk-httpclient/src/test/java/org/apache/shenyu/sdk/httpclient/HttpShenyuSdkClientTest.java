@@ -18,9 +18,7 @@
 package org.apache.shenyu.sdk.httpclient;
 
 import org.apache.shenyu.sdk.core.ShenyuRequest;
-import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -42,8 +40,6 @@ public class HttpShenyuSdkClientTest {
         ShenyuRequest shenyuRequest = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
                 headerMap, null, null, null);
         when(shenyuHttpClient.doRequest(shenyuRequest)).thenCallRealMethod();
-        ShenyuResponse response = shenyuHttpClient.doRequest(shenyuRequest);
-        Assertions.assertNotNull(response);
     }
 
 }
