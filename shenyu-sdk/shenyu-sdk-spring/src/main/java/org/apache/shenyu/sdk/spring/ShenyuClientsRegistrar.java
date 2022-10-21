@@ -317,6 +317,9 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
 
     private String getUrl(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
         String url = resolve(beanFactory, (String) attributes.get("url"));
+        if (!StringUtils.hasText(url)) {
+            return getUrl(getName(beanFactory, attributes));
+        }
         return getUrl(url);
     }
 

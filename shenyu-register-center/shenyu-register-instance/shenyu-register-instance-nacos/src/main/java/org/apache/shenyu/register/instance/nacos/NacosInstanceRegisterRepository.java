@@ -22,12 +22,12 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
-import org.apache.shenyu.register.instance.api.config.RegisterConfig;
-import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,14 +50,11 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
 
     private String groupName;
 
-    private String serviceName;
-
     @Override
     public void init(final RegisterConfig config) {
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         this.groupName = properties.getProperty("groupName", "DEFAULT_GROUP");
-        this.serviceName = properties.getProperty("serviceName", "shenyu-instances");
 
         String serverAddr = config.getServerLists();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
@@ -75,7 +72,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     }
 
     @Override
-    public void persistInstance(final InstanceEntity instance) {
+    public void persistInstance(final InstanceRegisterDTO instance) {
         try {
             Instance inst = new Instance();
             inst.setWeight(1.0d);
@@ -84,7 +81,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
             inst.setPort(instance.getPort());
             inst.setInstanceId(buildInstanceNodeName(instance));
             inst.setServiceName(instance.getAppName());
-            namingService.registerInstance(serviceName, groupName, inst);
+            namingService.registerInstance(instance.getAppName(), groupName, inst);
             LOGGER.info("nacos client register success: {}", inst);
         } catch (NacosException e) {
             throw new ShenyuException(e);
@@ -92,35 +89,39 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     }
 
     @Override
-    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+    public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
         try {
-            namingService.subscribe(selectKey, event -> watcherListener.listener(getInstanceRegisterDTOS()));
+            namingService.subscribe(selectKey, event -> {
+                watcherListener.listener(getInstanceRegisterDTOS(selectKey));
+            });
         } catch (Exception e) {
             LOGGER.error("selectInstancesAndWatcher error", e);
         }
 
-        return getInstanceRegisterDTOS();
+        return getInstanceRegisterDTOS(selectKey);
     }
 
-    private String buildInstanceNodeName(final InstanceEntity instance) {
+    private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
         String host = instance.getHost();
         int port = instance.getPort();
         return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
-    private List<InstanceEntity> getInstanceRegisterDTOS() {
-        List<InstanceEntity> result = new ArrayList<>();
+    private List<InstanceRegisterDTO> getInstanceRegisterDTOS(final String selectKey) {
+        List<InstanceRegisterDTO> result = new ArrayList<>();
         try {
-            List<Instance> instances = namingService.selectInstances(serviceName, groupName, true);
-            instances.forEach(instance -> result.add(convertFromInstance(instance)));
+            List<Instance> instances = namingService.selectInstances(selectKey, groupName, true);
+            instances.forEach(instance -> {
+                result.add(convertFromInstance(instance));
+            });
         } catch (Exception e) {
             LOGGER.error("getInstanceRegisterDTOS error", e);
         }
         return result;
     }
 
-    private InstanceEntity convertFromInstance(final Instance instance) {
-        InstanceEntity instanceRegisterDTO = new InstanceEntity();
+    private InstanceRegisterDTO convertFromInstance(final Instance instance) {
+        InstanceRegisterDTO instanceRegisterDTO = new InstanceRegisterDTO();
         instanceRegisterDTO.setPort(instance.getPort());
         instanceRegisterDTO.setHost(instance.getInstanceId());
         instanceRegisterDTO.setAppName(instance.getServiceName());

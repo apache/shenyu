@@ -18,13 +18,11 @@
 package org.apache.shenyu.register.instance.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
-import com.ecwid.consul.v1.agent.model.NewCheck;
-import com.google.common.collect.Lists;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.instance.api.config.RegisterConfig;
-import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
+import com.ecwid.consul.v1.agent.model.NewService;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.apache.shenyu.register.common.path.RegisterPathConstants;
+import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
@@ -34,7 +32,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -43,11 +40,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
-public final class ConsulInstanceRegisterRepositoryTest {
+class ConsulInstanceRegisterRepositoryTest {
 
     private ConsulInstanceRegisterRepository repository;
 
-    private final Map<String, String> consulBroker = new HashMap<>();
+    private final Map<String, NewService> consulBroker = new HashMap<>();
 
     @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
@@ -58,9 +55,13 @@ public final class ConsulInstanceRegisterRepositoryTest {
         consulClientField.setAccessible(true);
         consulClientField.set(repository, mockConsulClient());
 
-        Field checkField = clazz.getDeclaredField("check");
+        Field checkField = clazz.getDeclaredField("newService");
         checkField.setAccessible(true);
-        checkField.set(repository, mockNewCheck());
+        checkField.set(repository, mockNewService());
+
+        Field tokenField = clazz.getDeclaredField("token");
+        tokenField.setAccessible(true);
+        tokenField.set(repository, "");
 
         consulBroker.clear();
     }
@@ -69,51 +70,49 @@ public final class ConsulInstanceRegisterRepositoryTest {
         ConsulClient consulClient = mock(ConsulClient.class);
 
         doAnswer(invocationOnMock -> {
-            String key = invocationOnMock.getArgument(0);
-            String value = invocationOnMock.getArgument(1);
-            consulBroker.put(key, value);
+            NewService newService = invocationOnMock.getArgument(0);
+            consulBroker.put(newService.getName(), newService);
             return null;
-        }).when(consulClient).setKVValue(anyString(), anyString());
+        }).when(consulClient).agentServiceRegister(any(NewService.class), anyString());
 
         return consulClient;
     }
 
-    private NewCheck mockNewCheck() {
-        return mock(NewCheck.class);
+    private NewService mockNewService() {
+        return mock(NewService.class);
     }
 
     @Test
     public void testPersistInstance() {
-        InstanceEntity data = InstanceEntity.builder()
+        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
                 .appName("shenyu-test")
                 .host("shenyu-host")
                 .port(9195)
                 .build();
 
-        final String realNode = "/shenyu/register/instance/shenyu-host:9195";
         repository.persistInstance(data);
-        assertTrue(consulBroker.containsKey(realNode));
-        assertEquals(GsonUtils.getInstance().toJson(data), consulBroker.get(realNode));
-        repository.close();
+        assertTrue(consulBroker.containsKey(data.getAppName()));
     }
 
     @Test
     public void testSelectInstancesAndWatcher() {
-        InstanceEntity data = InstanceEntity.builder()
+
+        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
                 .appName("shenyu-test")
                 .host("shenyu-host")
                 .port(9195)
                 .build();
 
-        try (MockedConstruction<ConsulClient> construction = mockConstruction(ConsulClient.class, (mock, context) -> when(mock.agentCheckRegister(any())).thenReturn(any()))) {
-            RegisterConfig instanceConfig = new RegisterConfig();
+        try (MockedConstruction<ConsulClient> construction = mockConstruction(ConsulClient.class, (mock, context) -> {
+            when(mock.agentCheckRegister(any())).thenReturn(any());
+        })) {
+            ShenyuConfig.RegisterConfig instanceConfig = new ShenyuConfig.RegisterConfig();
             final ConsulInstanceRegisterRepository repository = mock(ConsulInstanceRegisterRepository.class);
             Properties properties = new Properties();
             properties.setProperty("enabledServerRebalance", "true");
             instanceConfig.setProps(properties);
             repository.init(instanceConfig);
-            when(repository.getInstanceRegisterDTOListByKey(anyString())).thenReturn(Lists.newArrayList(data));
-            repository.selectInstancesAndWatcher(InstancePathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+            repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
             repository.close();
         }
     }
