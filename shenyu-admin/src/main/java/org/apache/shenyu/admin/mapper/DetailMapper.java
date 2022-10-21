@@ -26,18 +26,18 @@ public interface DetailMapper {
     /**
      * insert detailDO to table.
      *
-     * @param fieldDO the detailDO
+     * @param detailDO the detailDO
      * @return insert count
      */
-    int insert(DetailDO fieldDO);
+    int insert(DetailDO detailDO);
 
     /**
      * insert detailDO to table selective.
      *
-     * @param fieldDO the detailDO
+     * @param detailDO the detailDO
      * @return insert count
      */
-    int insertSelective(DetailDO fieldDO);
+    int insertSelective(DetailDO detailDO);
 
     /**
      * select by primary key.
@@ -50,18 +50,18 @@ public interface DetailMapper {
     /**
      * update detailDO selective.
      *
-     * @param fieldDO the updated detailDO
+     * @param detailDO the updated detailDO
      * @return update count
      */
-    int updateByPrimaryKeySelective(DetailDO fieldDO);
+    int updateByPrimaryKeySelective(DetailDO detailDO);
 
     /**
      * update detailDO.
      *
-     * @param fieldDO the updated detailDO
+     * @param detailDO the updated detailDO
      * @return update count
      */
-    int updateByPrimaryKey(DetailDO fieldDO);
+    int updateByPrimaryKey(DetailDO detailDO);
 
     /**
      * delete by primary key.
