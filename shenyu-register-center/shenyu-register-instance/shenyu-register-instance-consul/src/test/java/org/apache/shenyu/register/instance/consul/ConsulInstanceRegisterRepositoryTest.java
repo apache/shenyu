@@ -92,7 +92,6 @@ class ConsulInstanceRegisterRepositoryTest {
 
         repository.persistInstance(data);
         assertTrue(consulBroker.containsKey(data.getAppName()));
-        repository.close();
     }
 
     @Test
