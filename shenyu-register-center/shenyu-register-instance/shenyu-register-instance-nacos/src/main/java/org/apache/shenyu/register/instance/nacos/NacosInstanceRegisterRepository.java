@@ -22,9 +22,6 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -34,6 +31,10 @@ import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * The type Nacos instance register repository.
@@ -49,14 +50,11 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
 
     private String groupName;
 
-    private String serviceName;
-
     @Override
     public void init(final RegisterConfig config) {
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         this.groupName = properties.getProperty("groupName", "DEFAULT_GROUP");
-        this.serviceName = properties.getProperty("serviceName", "shenyu-instances");
 
         String serverAddr = config.getServerLists();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
@@ -83,7 +81,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
             inst.setPort(instance.getPort());
             inst.setInstanceId(buildInstanceNodeName(instance));
             inst.setServiceName(instance.getAppName());
-            namingService.registerInstance(serviceName, groupName, inst);
+            namingService.registerInstance(instance.getAppName(), groupName, inst);
             LOGGER.info("nacos client register success: {}", inst);
         } catch (NacosException e) {
             throw new ShenyuException(e);
@@ -94,13 +92,13 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
         try {
             namingService.subscribe(selectKey, event -> {
-                watcherListener.listener(getInstanceRegisterDTOS());
+                watcherListener.listener(getInstanceRegisterDTOS(selectKey));
             });
         } catch (Exception e) {
             LOGGER.error("selectInstancesAndWatcher error", e);
         }
 
-        return getInstanceRegisterDTOS();
+        return getInstanceRegisterDTOS(selectKey);
     }
 
     private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
@@ -109,10 +107,10 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
         return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
-    private List<InstanceRegisterDTO> getInstanceRegisterDTOS() {
+    private List<InstanceRegisterDTO> getInstanceRegisterDTOS(final String selectKey) {
         List<InstanceRegisterDTO> result = new ArrayList<>();
         try {
-            List<Instance> instances = namingService.selectInstances(serviceName, groupName, true);
+            List<Instance> instances = namingService.selectInstances(selectKey, groupName, true);
             instances.forEach(instance -> {
                 result.add(convertFromInstance(instance));
             });

@@ -20,13 +20,14 @@ package org.apache.shenyu.register.instance.nacos;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -53,10 +54,6 @@ public final class NacosInstanceRegisterRepositoryTest {
         field = clazz.getDeclaredField("groupName");
         field.setAccessible(true);
         field.set(repository, "group");
-
-        field = clazz.getDeclaredField("serviceName");
-        field.setAccessible(true);
-        field.set(repository, "shenyu-instances");
 
         storage.clear();
     }
@@ -87,7 +84,7 @@ public final class NacosInstanceRegisterRepositoryTest {
                 .port(9195)
                 .build();
 
-        final String key = "shenyu-instances-group";
+        final String key = "shenyu-test-group";
         repository.persistInstance(data);
         assertTrue(storage.containsKey(key));
 
