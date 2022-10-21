@@ -82,7 +82,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
      *
      * @param props the props
      */
-    protected abstract void initClient(final Properties props);
+    protected abstract void initClient(Properties props);
 
     @Override
     public void init(final RegisterConfig registerConfig, final ShenyuInstanceRegisterRepository instanceRegisterRepository) {

@@ -75,7 +75,7 @@ public class ShenyuSdkAutoConfiguration {
      */
     @Bean
     @ConditionalOnClass(OkHttpClient.class)
-    public ShenyuSdkClient shenyuSdkClient(final RegisterConfig config, final ShenyuInstanceRegisterRepository instanceRegisterRepository ) {
+    public ShenyuSdkClient shenyuSdkClient(final RegisterConfig config, final ShenyuInstanceRegisterRepository instanceRegisterRepository) {
         Properties props = config.getProps();
         String clientType = props.getProperty("clientType", "httpclient");
         ShenyuSdkClient shenyuSdkClient = ShenyuSdkClientFactory.newInstance(clientType);
