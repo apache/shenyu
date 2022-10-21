@@ -46,6 +46,12 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
         return REPOSITORY_MAP.get(registerType);
     }
     
+    /**
+     * New and init instance shenyu instance register repository.
+     *
+     * @param config the config
+     * @return the shenyu instance register repository
+     */
     public static ShenyuInstanceRegisterRepository newAndInitInstance(final RegisterConfig config) {
         String registerType = config.getRegisterType();
         if (!REPOSITORY_MAP.containsKey(registerType)) {

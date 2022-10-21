@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.sdk.core.client;
 
-import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.apache.shenyu.spi.SPI;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.IOException;
 
@@ -31,17 +30,16 @@ import java.io.IOException;
  */
 @SPI
 public interface ShenyuSdkClient {
-
+    
     /**
      * Init.
      *
-     * @param shenyuConfig shenyuConfig
-     * @param registerRepositoryObjectFactory registerRepositoryObjectFactory
+     * @param registerConfig the register config
+     * @param instanceRegisterRepository the instance register repository
      */
-    default void init(final ShenyuConfig.RegisterConfig shenyuConfig,
-                      final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
+    default void init(RegisterConfig registerConfig, ShenyuInstanceRegisterRepository instanceRegisterRepository) {
     }
-
+    
     /**
      * execute.
      *
@@ -50,5 +48,4 @@ public interface ShenyuSdkClient {
      * @throws IOException error
      */
     ShenyuResponse execute(ShenyuRequest request) throws IOException;
-
 }

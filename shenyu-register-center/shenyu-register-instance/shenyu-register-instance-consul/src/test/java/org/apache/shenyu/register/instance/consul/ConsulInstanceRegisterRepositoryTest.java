@@ -19,10 +19,10 @@ package org.apache.shenyu.register.instance.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.agent.model.NewService;
-import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.path.RegisterPathConstants;
-import org.apache.shenyu.register.common.subsriber.WatcherListener;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
@@ -84,7 +84,7 @@ class ConsulInstanceRegisterRepositoryTest {
 
     @Test
     public void testPersistInstance() {
-        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
+        InstanceEntity data = InstanceEntity.builder()
                 .appName("shenyu-test")
                 .host("shenyu-host")
                 .port(9195)
@@ -96,8 +96,7 @@ class ConsulInstanceRegisterRepositoryTest {
 
     @Test
     public void testSelectInstancesAndWatcher() {
-
-        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
+        InstanceEntity data = InstanceEntity.builder()
                 .appName("shenyu-test")
                 .host("shenyu-host")
                 .port(9195)
@@ -106,15 +105,14 @@ class ConsulInstanceRegisterRepositoryTest {
         try (MockedConstruction<ConsulClient> construction = mockConstruction(ConsulClient.class, (mock, context) -> {
             when(mock.agentCheckRegister(any())).thenReturn(any());
         })) {
-            ShenyuConfig.RegisterConfig instanceConfig = new ShenyuConfig.RegisterConfig();
+            RegisterConfig instanceConfig = new RegisterConfig();
             final ConsulInstanceRegisterRepository repository = mock(ConsulInstanceRegisterRepository.class);
             Properties properties = new Properties();
             properties.setProperty("enabledServerRebalance", "true");
             instanceConfig.setProps(properties);
             repository.init(instanceConfig);
-            repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+            repository.selectInstancesAndWatcher(InstancePathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
             repository.close();
         }
     }
-
 }

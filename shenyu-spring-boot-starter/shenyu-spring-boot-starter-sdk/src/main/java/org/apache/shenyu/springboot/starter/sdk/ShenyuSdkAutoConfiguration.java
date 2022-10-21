@@ -18,8 +18,8 @@
 package org.apache.shenyu.springboot.starter.sdk;
 
 import okhttp3.OkHttpClient;
-import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClientFactory;
@@ -32,7 +32,6 @@ import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.apache.shenyu.sdk.spring.factory.Contract;
 import org.apache.shenyu.sdk.spring.support.SpringMvcContract;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -47,11 +46,13 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * The type Shenyu sdk autoConfiguration.
  */
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(value = {"shenyu.sdk.enabled"}, havingValue = "true", matchIfMissing = true)
 public class ShenyuSdkAutoConfiguration {
     
     /**
@@ -64,21 +65,21 @@ public class ShenyuSdkAutoConfiguration {
     public Contract springMvcContract() {
         return new SpringMvcContract();
     }
-
+    
     /**
      * okHttpShenyuSdkClient.
      *
      * @param config config
-     * @param registerRepositoryObjectFactory registerRepositoryObjectFactory
+     * @param instanceRegisterRepository the instance register repository
      * @return {@link ShenyuSdkClient}
      */
     @Bean
     @ConditionalOnClass(OkHttpClient.class)
-    @ConditionalOnProperty(name = "shenyu.sdk.props.clientType")
-    public ShenyuSdkClient shenyuSdkClient(final ShenyuConfig config,
-                                                 final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
-        final ShenyuSdkClient shenyuSdkClient = ShenyuSdkClientFactory.newInstance(config.getSdk().getProps().getProperty("clientType"));
-        shenyuSdkClient.init(config.getSdk(), registerRepositoryObjectFactory);
+    public ShenyuSdkClient shenyuSdkClient(final RegisterConfig config, final ShenyuInstanceRegisterRepository instanceRegisterRepository ) {
+        Properties props = config.getProps();
+        String clientType = props.getProperty("clientType", "httpclient");
+        ShenyuSdkClient shenyuSdkClient = ShenyuSdkClientFactory.newInstance(clientType);
+        shenyuSdkClient.init(config, instanceRegisterRepository);
         return shenyuSdkClient;
     }
     
@@ -89,27 +90,23 @@ public class ShenyuSdkAutoConfiguration {
      * @return ShenYu Instance Register Repository
      */
     @Bean
-    @ConditionalOnProperty(name = "shenyu.sdk.registerType")
-    public ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository(final ShenyuConfig config) {
-        final String registerType = config.getSdk().getRegisterType();
+    public ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository(final RegisterConfig config) {
+        final String registerType = config.getRegisterType();
         if ("local".equals(registerType)) {
             return null;
         }
-        ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getSdk().getRegisterType());
-        repository.init(config.getSdk());
-        return repository;
+        return ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config);
     }
-
+    
     /**
      * shenyu config.
      *
      * @return the shenyu config
      */
     @Bean
-    @ConditionalOnMissingBean
-    @ConfigurationProperties(prefix = "shenyu")
-    public ShenyuConfig shenyuConfig() {
-        return new ShenyuConfig();
+    @ConfigurationProperties(prefix = "shenyu.sdk")
+    public RegisterConfig shenyuConfig() {
+        return new RegisterConfig();
     }
     
     /**

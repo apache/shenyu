@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.common.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -965,7 +965,7 @@ public class ShenyuConfig {
          */
         private String wrapperHeaders(final String headers) {
             final Set<String> headerSet = DEFAULT_ALLOWED_HEADERS;
-            if (StringUtils.hasText(headers)) {
+            if (StringUtils.isNotEmpty(headers)) {
                 headerSet.addAll(Stream.of(headers.split(",")).collect(Collectors.toSet()));
             }
             return String.join(",", headerSet);

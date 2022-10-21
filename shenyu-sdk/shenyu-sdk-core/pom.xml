@@ -46,7 +46,6 @@
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-loadbalancer</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

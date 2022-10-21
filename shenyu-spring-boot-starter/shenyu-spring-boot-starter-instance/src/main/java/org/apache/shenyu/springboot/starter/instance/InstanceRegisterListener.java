@@ -56,8 +56,7 @@ public class InstanceRegisterListener implements ApplicationListener<WebServerIn
         if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists)) {
             throw new ShenyuException("please config the registerType and serverList");
         }
-        repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getRegisterType());
-        repository.init(config);
+        repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config);
         this.props = config.getProps();
         String name = props.getProperty("name");
         this.appName = StringUtils.isBlank(name) ? "shenyu-gateway" : name;

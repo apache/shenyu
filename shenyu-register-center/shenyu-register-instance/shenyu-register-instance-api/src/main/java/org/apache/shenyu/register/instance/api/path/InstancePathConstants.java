@@ -47,7 +47,6 @@ public class InstancePathConstants {
         return String.join(SEPARATOR, ROOT_PATH, "instance");
     }
     
-    
     /**
      * Build real node string.
      *
@@ -57,17 +56,5 @@ public class InstancePathConstants {
      */
     public static String buildRealNode(final String nodePath, final String nodeName) {
         return String.join(SEPARATOR, nodePath, nodeName);
-    }
-    
-    
-    /**
-     * Build node name by DOT_SEPARATOR.
-     *
-     * @param serviceName the service name
-     * @param methodName the method name
-     * @return the string
-     */
-    public static String buildNodeName(final String serviceName, final String methodName) {
-        return String.join(DOT_SEPARATOR, serviceName, methodName);
     }
 }
