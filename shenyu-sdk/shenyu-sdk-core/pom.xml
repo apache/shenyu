@@ -32,5 +32,17 @@
             <artifactId>shenyu-spi</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-register-instance-api</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-register-instance-core</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

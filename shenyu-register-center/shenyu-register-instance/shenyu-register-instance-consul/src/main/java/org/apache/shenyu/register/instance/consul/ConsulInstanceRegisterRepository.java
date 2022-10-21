@@ -18,32 +18,41 @@
 package org.apache.shenyu.register.instance.consul;
 
 import com.ecwid.consul.v1.ConsulClient;
+import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.Response;
-import com.ecwid.consul.v1.agent.model.NewCheck;
-import com.ecwid.consul.v1.kv.model.GetValue;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.ecwid.consul.v1.agent.model.NewService;
+import com.ecwid.consul.v1.health.HealthServicesRequest;
+import com.ecwid.consul.v1.health.model.HealthService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * The type Consul instance register repository.
@@ -55,55 +64,84 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private ConsulClient consulClient;
 
-    private NewCheck check;
+    private NewService newService;
 
-    private ScheduledThreadPoolExecutor executor;
+    private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(Math.max(Runtime.getRuntime().availableProcessors(), 1),
+            ShenyuThreadFactory.create("consul-config-watch", true));
 
-    private ScheduledFuture<?> watchFuture;
+    private final List<ScheduledFuture<?>> watchFutures = new ArrayList<>();
+
+    private final Map<String, Set<WatcherListener>> listenerMap = new ConcurrentHashMap<>();
+
+    private final Object lock = new Object();
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    private List<InstanceRegisterDTO> instanceRegisterDTOList = new ArrayList<>();
+    private final Map<String, Long> consulIndexes = new HashMap<>();
 
-    private Map<String, WatcherListener> watcherListenerMap = new ConcurrentHashMap<>();
+    private String token;
+
+    private String waitTime;
+
+    private String watchDelay;
+
+    private String tags;
+
+    private String checkTtl;
+
+    private TtlScheduler ttlScheduler;
 
     @Override
     public void init(final RegisterConfig config) {
         final Properties props = config.getProps();
-        final String timeout = props.getProperty("consulTimeout", "3000");
-        final String ttl = props.getProperty("consulTTL", "3000");
-        final String name = props.getProperty("consulName", "shenyu-gateway");
-        final String enabledServerRebalance = props.getProperty("enabledServerRebalance", "false");
-        check = new NewCheck();
-        check.setName(name);
-        check.setId(name);
-        check.setTtl(ttl.concat("ms"));
-        check.setTimeout(timeout.concat("ms"));
-        consulClient = new ConsulClient(config.getServerLists());
-        consulClient.agentCheckRegister(check);
-        if ("true".equals(enabledServerRebalance)) {
-            this.executor = new ScheduledThreadPoolExecutor(1,
-                    ShenyuThreadFactory.create("consul-config-watch", true));
-            start();
-        }
+        this.checkTtl = props.getProperty("checkTtl", "5");
+        this.token = props.getProperty("token", "");
+        this.waitTime = props.getProperty("waitTime", "30");
+        this.watchDelay = props.getProperty("watchDelay", "5");
+        this.tags = props.getProperty("tags");
+        final String port = props.getProperty("port", "8500");
+        consulClient = new ConsulClient(config.getServerLists(), Integer.parseInt(port));
+        this.ttlScheduler = new TtlScheduler(Integer.parseInt(checkTtl), consulClient);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
     @Override
     public void persistInstance(final InstanceRegisterDTO instance) {
         String instanceNodeName = buildInstanceNodeName(instance);
-        String instancePath = RegisterPathConstants.buildInstanceParentPath();
-        String realNode = RegisterPathConstants.buildRealNode(instancePath, instanceNodeName);
-        String nodeData = GsonUtils.getInstance().toJson(instance);
-        consulClient.setKVValue(realNode, nodeData);
-        LOGGER.info("consul client register success: {}", nodeData);
+        this.newService = new NewService();
+        newService.setName(instance.getAppName());
+        newService.setId(String.join("-", instance.getAppName(), instanceNodeName));
+        newService.setAddress(instance.getHost());
+        newService.setPort(instance.getPort());
+        newService.setCheck(createCheck());
+        if (StringUtils.hasText(tags)) {
+            newService.setTags(new ArrayList<>(Arrays.asList(tags.split(","))));
+        }
+        newService.setMeta(Collections.singletonMap("nodeData", GsonUtils.getInstance().toJson(instance)));
+        consulClient.agentServiceRegister(newService, token);
+        if (StringUtils.hasText(checkTtl)) {
+            this.ttlScheduler.add(newService.getId());
+        }
+        LOGGER.info("consul client register success: {}", newService);
+    }
 
+    private NewService.Check createCheck() {
+        NewService.Check check = new NewService.Check();
+        if (StringUtils.hasText(checkTtl)) {
+            check.setTtl(checkTtl + "s");
+            return check;
+        }
+        return check;
     }
 
     @Override
     public void close() {
-        consulClient.agentCheckDeregister(check.getId());
-        if (this.running.compareAndSet(true, false) && Objects.nonNull(this.watchFuture)) {
-            this.watchFuture.cancel(true);
+        if (this.running.compareAndSet(true, false) && !ObjectUtils.isEmpty(this.watchFutures)) {
+            this.watchFutures.forEach(watchFuture -> watchFuture.cancel(true));
+        }
+        if (!ObjectUtils.isEmpty(newService)) {
+            consulClient.agentServiceDeregister(newService.getId(), token);
+            ttlScheduler.remove(newService.getId());
         }
 
     }
@@ -116,53 +154,70 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     @Override
     public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
-        List<InstanceRegisterDTO> instanceRegisterDTOS = getInstanceRegisterDTOListByKey(selectKey);
-        watcherListenerMap.put(selectKey, watcherListener);
-        return instanceRegisterDTOS;
+        this.watcherStart(selectKey, watcherListener);
+        return this.getHealthServices(selectKey, "-1");
     }
 
     /**
      * async to watch data change.
+     *
+     * @param selectKey selectKey
+     * @param watcherListener watcherListener
      */
-    public void start() {
-        if (this.running.compareAndSet(false, true)) {
-            this.watchFuture = this.executor.scheduleWithFixedDelay(this::watchConfigKeyValues,
-                    5, 50, TimeUnit.MILLISECONDS);
+    public void watcherStart(final String selectKey, final WatcherListener watcherListener) {
+        this.running.compareAndSet(false, true);
+        // avoid duplicate watchers
+        Set<WatcherListener> eventListeners = listenerMap.get(selectKey);
+        if (!ObjectUtils.isEmpty(eventListeners)) {
+            eventListeners.add(watcherListener);
+            return;
         }
+        synchronized (lock) {
+            eventListeners = listenerMap.computeIfAbsent(selectKey, s -> new HashSet<>());
+        }
+        eventListeners.add(watcherListener);
+        watchFutures.add(this.executor.scheduleWithFixedDelay(() -> this.watchConfigKeyValues(selectKey),
+                5, Integer.parseInt(watchDelay), TimeUnit.SECONDS));
     }
 
     /**
      * watch key values.
+     *
+     * @param selectKey       selectKey
      */
-    public void watchConfigKeyValues() {
+    public void watchConfigKeyValues(final String selectKey) {
         if (!running.get()) {
             return;
         }
-        List<InstanceRegisterDTO> list = getInstanceRegisterDTOListByKey(RegisterPathConstants.buildInstanceParentPath());
-        list.forEach(instanceRegisterDTO -> {
-            if (!instanceRegisterDTOList.contains(instanceRegisterDTO)) {
-                watcherListenerMap.get(RegisterPathConstants.buildInstanceParentPath()).listener(list);
-                instanceRegisterDTOList = list;
-                return;
-            }
-        });
+        final List<InstanceRegisterDTO> healthServices = this.getHealthServices(selectKey, waitTime);
+        Set<WatcherListener> eventListeners = Optional.ofNullable(listenerMap.get(selectKey)).orElse(Collections.emptySet());
+        // Long polling getHealthServices
+        eventListeners.forEach(eventListener -> eventListener.listener(healthServices));
     }
 
     /**
-     * getInstanceRegisterDTOListByKey.
+     * getHealthServices.
      *
      * @param selectKey key
+     * @param waitTime waitTime
      * @return return
      */
-    public List<InstanceRegisterDTO> getInstanceRegisterDTOListByKey(final String selectKey) {
-        Response<List<GetValue>> res = consulClient.getKVValues(selectKey);
-        if (res == null || CollectionUtils.isEmpty(res.getValue())) {
+    public List<InstanceRegisterDTO> getHealthServices(final String selectKey, final String waitTime) {
+        final Long newIndex = Optional.ofNullable(consulIndexes.get(selectKey)).orElse(-1L);
+        final HealthServicesRequest healthServicesRequest = HealthServicesRequest.newBuilder()
+                .setToken(token)
+                .setPassing(true)
+                .setQueryParams(QueryParams.Builder.builder().setWaitTime(Long.parseLong(waitTime)).setIndex(newIndex).build()).build();
+
+        Response<List<HealthService>> healthServices = consulClient.getHealthServices(selectKey, healthServicesRequest);
+        consulIndexes.put(selectKey, healthServices.getConsulIndex());
+        if (CollectionUtils.isEmpty(healthServices.getValue())) {
             return Collections.emptyList();
         }
-        List<InstanceRegisterDTO> cacheInstanceRegisters = new ArrayList<>();
-        res.getValue().forEach(getValue -> {
-            cacheInstanceRegisters.add(GsonUtils.getInstance().fromJson(getValue.getDecodedValue(), InstanceRegisterDTO.class));
-        });
-        return cacheInstanceRegisters;
+        return healthServices.getValue().stream().map(healthService -> InstanceRegisterDTO.builder()
+                .appName(healthService.getService().getService())
+                .host(healthService.getService().getAddress())
+                .port(healthService.getService().getPort())
+                .build()).collect(Collectors.toList());
     }
 }
