@@ -21,6 +21,18 @@ import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.agent.model.NewCheck;
 import com.ecwid.consul.v1.kv.model.GetValue;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
+import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,18 +44,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
-import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.path.RegisterPathConstants;
-import org.apache.shenyu.register.common.subsriber.WatcherListener;
-import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
-import org.apache.shenyu.spi.Join;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The type Consul instance register repository.
@@ -63,9 +63,9 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    private List<InstanceRegisterDTO> instanceRegisterDTOList = new ArrayList<>();
+    private List<InstanceEntity> instanceEntityList = new ArrayList<>();
 
-    private Map<String, WatcherListener> watcherListenerMap = new ConcurrentHashMap<>();
+    private final Map<String, WatcherListener> watcherListenerMap = new ConcurrentHashMap<>();
 
     @Override
     public void init(final RegisterConfig config) {
@@ -82,17 +82,16 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         consulClient = new ConsulClient(config.getServerLists());
         consulClient.agentCheckRegister(check);
         if ("true".equals(enabledServerRebalance)) {
-            this.executor = new ScheduledThreadPoolExecutor(1,
-                    ShenyuThreadFactory.create("consul-config-watch", true));
+            this.executor = new ScheduledThreadPoolExecutor(1);
             start();
         }
     }
 
     @Override
-    public void persistInstance(final InstanceRegisterDTO instance) {
+    public void persistInstance(final InstanceEntity instance) {
         String instanceNodeName = buildInstanceNodeName(instance);
-        String instancePath = RegisterPathConstants.buildInstanceParentPath();
-        String realNode = RegisterPathConstants.buildRealNode(instancePath, instanceNodeName);
+        String instancePath = InstancePathConstants.buildInstanceParentPath();
+        String realNode = InstancePathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         consulClient.setKVValue(realNode, nodeData);
         LOGGER.info("consul client register success: {}", nodeData);
@@ -108,15 +107,15 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     }
 
-    private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
+    private String buildInstanceNodeName(final InstanceEntity instance) {
         String host = instance.getHost();
         int port = instance.getPort();
         return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
     @Override
-    public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
-        List<InstanceRegisterDTO> instanceRegisterDTOS = getInstanceRegisterDTOListByKey(selectKey);
+    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+        List<InstanceEntity> instanceRegisterDTOS = getInstanceRegisterDTOListByKey(selectKey);
         watcherListenerMap.put(selectKey, watcherListener);
         return instanceRegisterDTOS;
     }
@@ -138,11 +137,11 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         if (!running.get()) {
             return;
         }
-        List<InstanceRegisterDTO> list = getInstanceRegisterDTOListByKey(RegisterPathConstants.buildInstanceParentPath());
+        List<InstanceEntity> list = getInstanceRegisterDTOListByKey(InstancePathConstants.buildInstanceParentPath());
         list.forEach(instanceRegisterDTO -> {
-            if (!instanceRegisterDTOList.contains(instanceRegisterDTO)) {
-                watcherListenerMap.get(RegisterPathConstants.buildInstanceParentPath()).listener(list);
-                instanceRegisterDTOList = list;
+            if (!instanceEntityList.contains(instanceRegisterDTO)) {
+                watcherListenerMap.get(InstancePathConstants.buildInstanceParentPath()).listener(list);
+                instanceEntityList = list;
                 return;
             }
         });
@@ -154,20 +153,20 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
      * @param selectKey key
      * @return return
      */
-    public List<InstanceRegisterDTO> getInstanceRegisterDTOListByKey(final String selectKey) {
+    public List<InstanceEntity> getInstanceRegisterDTOListByKey(final String selectKey) {
         Response<List<GetValue>> res = consulClient.getKVValues(selectKey);
         if (res == null || CollectionUtils.isEmpty(res.getValue())) {
             return Collections.emptyList();
         }
-        List<InstanceRegisterDTO> cacheInstanceRegisters = new ArrayList<>();
+        List<InstanceEntity> cacheInstanceRegisters = new ArrayList<>();
         res.getValue().forEach(getValue -> {
-            cacheInstanceRegisters.add(GsonUtils.getInstance().fromJson(getValue.getDecodedValue(), InstanceRegisterDTO.class));
+            cacheInstanceRegisters.add(GsonUtils.getInstance().fromJson(getValue.getDecodedValue(), InstanceEntity.class));
         });
         return cacheInstanceRegisters;
     }
 
     @Override
-    public List<InstanceRegisterDTO> getInstanceRegisterList() {
-        return instanceRegisterDTOList;
+    public List<InstanceEntity> getInstanceRegisterList() {
+        return instanceEntityList;
     }
 }

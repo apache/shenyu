@@ -20,13 +20,14 @@ package org.apache.shenyu.register.instance.nacos;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.subsriber.WatcherListener;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -81,7 +82,7 @@ public final class NacosInstanceRegisterRepositoryTest {
 
     @Test
     public void testPersistInstance() {
-        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
+        InstanceEntity data = InstanceEntity.builder()
                 .appName("shenyu-test")
                 .host("shenyu-host")
                 .port(9195)
@@ -90,7 +91,6 @@ public final class NacosInstanceRegisterRepositoryTest {
         final String key = "shenyu-instances-group";
         repository.persistInstance(data);
         assertTrue(storage.containsKey(key));
-
         final Instance instance = storage.get(key);
         assertEquals(data.getHost(), instance.getIp());
         assertEquals(data.getPort(), instance.getPort());

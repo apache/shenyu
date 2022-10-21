@@ -17,18 +17,19 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
-import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.watch.WatchEvent;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.path.RegisterPathConstants;
-import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -55,19 +56,19 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     }
 
     @Override
-    public void persistInstance(final InstanceRegisterDTO instance) {
+    public void persistInstance(final InstanceEntity instance) {
         String instanceNodeName = buildInstanceNodeName(instance);
-        String instancePath = RegisterPathConstants.buildInstanceParentPath();
-        String realNode = RegisterPathConstants.buildRealNode(instancePath, instanceNodeName);
+        String instancePath = InstancePathConstants.buildInstanceParentPath();
+        String realNode = InstancePathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);
         LOGGER.info("etcd client register success: {}", nodeData);
     }
 
     @Override
-    public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String watchKey, final WatcherListener watcherListener) {
-        final Function<Map<String, String>, List<InstanceRegisterDTO>> getInstanceRegisterFun = childrenList ->
-                childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceRegisterDTO.class)).collect(Collectors.toList());
+    public List<InstanceEntity> selectInstancesAndWatcher(final String watchKey, final WatcherListener watcherListener) {
+        final Function<Map<String, String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList ->
+                childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceEntity.class)).collect(Collectors.toList());
 
         Map<String, String> serverNodes = client.getKeysMapByPrefix(watchKey);
 
@@ -92,7 +93,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
         return getInstanceRegisterFun.apply(serverNodes);
     }
 
-    private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
+    private String buildInstanceNodeName(final InstanceEntity instance) {
         String host = instance.getHost();
         int port = instance.getPort();
         return String.join(Constants.COLONS, host, Integer.toString(port));

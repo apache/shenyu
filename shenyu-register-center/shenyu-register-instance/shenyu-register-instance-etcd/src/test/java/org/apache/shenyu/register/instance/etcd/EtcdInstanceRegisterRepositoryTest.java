@@ -21,12 +21,12 @@ import io.etcd.jetcd.Client;
 import io.etcd.jetcd.ClientBuilder;
 import io.etcd.jetcd.Lease;
 import io.etcd.jetcd.lease.LeaseGrantResponse;
-import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.path.RegisterPathConstants;
-import org.apache.shenyu.register.common.subsriber.WatcherListener;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,16 +44,25 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mockConstruction;
 
+/**
+ * The type Etcd instance register repository test.
+ */
 public final class EtcdInstanceRegisterRepositoryTest {
 
     private EtcdInstanceRegisterRepository repository;
 
     private final Map<String, String> etcdBroker = new HashMap<>();
-
+    
+    /**
+     * Sets up.
+     *
+     * @throws NoSuchFieldException the no such field exception
+     * @throws IllegalAccessException the illegal access exception
+     */
     @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
         this.repository = new EtcdInstanceRegisterRepository();
@@ -83,10 +92,13 @@ public final class EtcdInstanceRegisterRepositoryTest {
         }).when(etcdClient).close();
         return etcdClient;
     }
-
+    
+    /**
+     * Test persist instance.
+     */
     @Test
     public void testPersistInstance() {
-        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
+        InstanceEntity data = InstanceEntity.builder()
                 .appName("shenyu-test")
                 .host("shenyu-host")
                 .port(9195)
@@ -98,7 +110,10 @@ public final class EtcdInstanceRegisterRepositoryTest {
         assertEquals(GsonUtils.getInstance().toJson(data), etcdBroker.get(realNode));
         repository.close();
     }
-
+    
+    /**
+     * Init test.
+     */
     @Test
     public void initTest() {
         try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
@@ -114,42 +129,33 @@ public final class EtcdInstanceRegisterRepositoryTest {
 
             when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
             when(completableFuture.get()).thenReturn(leaseGrantResponse);
-            final ShenyuConfig.RegisterConfig config = new ShenyuConfig.RegisterConfig();
+            RegisterConfig config = new RegisterConfig();
             config.setServerLists("url");
             Assertions.assertDoesNotThrow(() -> repository.init(config));
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
     }
-
+    
+    /**
+     * Test select instances and watcher.
+     */
     @Test
     public void testSelectInstancesAndWatcher() {
-
-        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
-
+        InstanceEntity data = InstanceEntity.builder()
                 .appName("shenyu-test")
-
                 .host("shenyu-host")
-
                 .port(9195)
-
                 .build();
 
         try (MockedConstruction<EtcdClient> construction = mockConstruction(EtcdClient.class, (mock, context) -> {
-
         })) {
             final EtcdInstanceRegisterRepository repository = new EtcdInstanceRegisterRepository();
-
-            ShenyuConfig.RegisterConfig config = new ShenyuConfig.RegisterConfig();
-
+            RegisterConfig config = new RegisterConfig();
             repository.init(config);
-
             repository.persistInstance(data);
-
-            repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
-
+            repository.selectInstancesAndWatcher(InstancePathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
             repository.close();
         }
-
     }
 }
