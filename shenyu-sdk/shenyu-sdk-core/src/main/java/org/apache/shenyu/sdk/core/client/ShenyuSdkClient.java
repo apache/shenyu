@@ -17,15 +17,30 @@
 
 package org.apache.shenyu.sdk.core.client;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.spi.SPI;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.IOException;
 
 /**
  * ShenyuSdkClient.
  */
+@SPI
 public interface ShenyuSdkClient {
+
+    /**
+     * Init.
+     *
+     * @param shenyuConfig shenyuConfig
+     * @param registerRepositoryObjectFactory registerRepositoryObjectFactory
+     */
+    default void init(final ShenyuConfig.RegisterConfig shenyuConfig,
+                      final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
+    }
 
     /**
      * execute.
