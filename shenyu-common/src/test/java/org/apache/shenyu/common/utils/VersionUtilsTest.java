@@ -37,11 +37,4 @@ public final class VersionUtilsTest {
         String version = VersionUtils.getVersion(Class.forName("java.lang.String"), "2.0.2");
         assertNotNull(version);
     }
-    
-    @Test
-    public void testFromCodeSource() throws ClassNotFoundException {
-        String version = VersionUtils.getVersion(Class.forName("ch.qos.logback.classic.db.names.SimpleDBNameResolver"), "2.0.2");
-        assertNotNull(version);
-    }
-
 }

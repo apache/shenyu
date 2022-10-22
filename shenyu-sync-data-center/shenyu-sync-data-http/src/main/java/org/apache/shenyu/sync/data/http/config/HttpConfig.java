@@ -17,14 +17,11 @@
 
 package org.apache.shenyu.sync.data.http.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import java.util.Objects;
 
 /**
  * The type Http config.
  */
-@ConfigurationProperties(prefix = "shenyu.sync.http")
 public class HttpConfig {
 
     private String url;

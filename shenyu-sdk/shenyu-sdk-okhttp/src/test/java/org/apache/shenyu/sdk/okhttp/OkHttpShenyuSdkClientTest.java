@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.sdk.okhttp;
 
-import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.ObjectProvider;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,12 +38,12 @@ public class OkHttpShenyuSdkClientTest {
     /**
      * Test shenyu http client.
      *
-     * @throws IOException the io exception
      */
     @Test
-    public void testShenyuHttpClient() throws IOException {
+    @Ignore
+    public void testShenyuHttpClient() {
         OkHttpShenyuSdkClient okHttpShenyuSdkClient = new OkHttpShenyuSdkClient();
-        okHttpShenyuSdkClient.init(new ShenyuConfig.RegisterConfig(), mock(ObjectProvider.class));
+        okHttpShenyuSdkClient.init(new RegisterConfig(), mock(ShenyuInstanceRegisterRepository.class));
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
         ShenyuRequest request = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",
