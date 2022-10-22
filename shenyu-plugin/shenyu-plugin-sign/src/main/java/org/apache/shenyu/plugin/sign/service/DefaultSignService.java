@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.PathMatchUtils;
+import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.sign.api.ShenyuSignProviderWrap;
@@ -40,8 +41,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * The type Default sign service.
@@ -106,7 +105,7 @@ public class DefaultSignService implements SignService {
                 return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
             }
         }
-        final String sign = ShenyuSignProviderWrap.generateSign(buildExtSignKey(appAuthData.getAppSecret(), shenyuContext), transStringMap(requestBody), queryParams);
+        final String sign = ShenyuSignProviderWrap.generateSign(buildExtSignKey(appAuthData.getAppSecret(), shenyuContext), SignUtils.transStringMap(requestBody), queryParams);
         boolean result = Objects.equals(sign, shenyuContext.getSign());
         if (!result) {
             LOG.error("the SignUtils generated signature value is:{},the accepted value is:{}", sign, shenyuContext.getSign());
@@ -128,11 +127,5 @@ public class DefaultSignService implements SignService {
 
     private String buildExtSignKey(final String signKey, final ShenyuContext shenyuContext) {
         return String.join("", Constants.TIMESTAMP, shenyuContext.getTimestamp(), Constants.PATH, shenyuContext.getPath(), Constants.VERSION, "1.0.0", signKey);
-    }
-
-    private Map<String, String> transStringMap(final Map<String, Object> map) {
-        return Optional.ofNullable(map)
-            .map(m -> m.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Objects.toString(e.getValue(), null))))
-            .orElse(null);
     }
 }

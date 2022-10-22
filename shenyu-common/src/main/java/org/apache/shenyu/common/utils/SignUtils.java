@@ -17,14 +17,14 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.springframework.util.DigestUtils;
+
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import org.springframework.util.DigestUtils;
 
 /**
  * SignUtils.
@@ -89,6 +89,18 @@ public final class SignUtils {
      */
     public String generateKey() {
         return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
+    }
+
+    /**
+     * trans to string map
+     *
+     * @param map source map
+     * @return string map
+     */
+    public static Map<String, String> transStringMap(final Map<String, Object> map) {
+        return Optional.ofNullable(map)
+                .map(m -> m.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Objects.toString(e.getValue(), null))))
+                .orElse(null);
     }
 
 }

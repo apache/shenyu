@@ -49,8 +49,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -242,7 +240,7 @@ public final class DefaultSignServiceTest {
     public void bodySign() {
         Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), transStringMap(requestBody), null));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), SignUtils.transStringMap(requestBody), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody, null);
         assertEquals(ret, Pair.of(true, ""));
@@ -254,7 +252,7 @@ public final class DefaultSignServiceTest {
         requestBody.put("data", "data");
         Map<String, String> queryParams = Maps.newHashMapWithExpectedSize(1);
         queryParams.put("data2", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), transStringMap(requestBody), queryParams));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), SignUtils.transStringMap(requestBody), queryParams));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody, queryParams);
         assertEquals(ret, Pair.of(true, ""));
@@ -266,7 +264,7 @@ public final class DefaultSignServiceTest {
         requestBody.put("data", "data");
         Map<String, String> queryParams = Maps.newHashMapWithExpectedSize(1);
         queryParams.put("data", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), transStringMap(requestBody), null));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), SignUtils.transStringMap(requestBody), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         // Tamper with request body parameters
         requestBody.put("data", "data2");
@@ -277,9 +275,5 @@ public final class DefaultSignServiceTest {
     private String buildSign(final String signKey, final String timeStamp, final String path, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
         final String extSignKey = String.join("", Constants.TIMESTAMP, timeStamp, Constants.PATH, path, Constants.VERSION, "1.0.0", signKey);
         return SignUtils.generateSign(extSignKey, jsonParams, queryParams);
-    }
-
-    private Map<String, String> transStringMap(final Map<String, Object> map) {
-        return map == null ? null : map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Objects.toString(e.getValue(), null)));
     }
 }
