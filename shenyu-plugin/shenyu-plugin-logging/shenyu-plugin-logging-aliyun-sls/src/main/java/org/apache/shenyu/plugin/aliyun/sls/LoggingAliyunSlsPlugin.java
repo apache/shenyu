@@ -21,50 +21,42 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.aliyun.sls.collector.AliyunSlsLogCollector;
-import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.logging.common.AbstractLoggingPlugin;
-import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpRequest;
-import org.apache.shenyu.plugin.logging.common.body.LoggingServerHttpResponse;
+import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
 /**
  * LoggingAliYunSlsPlugin send log to aliyun sls service.
  */
-public class LoggingAliyunSlsPlugin extends AbstractLoggingPlugin {
+public class LoggingAliyunSlsPlugin extends AbstractLoggingPlugin<ShenyuRequestLog> {
 
     @Override
-    public Mono<Void> doLogExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                   final SelectorData selector, final RuleData rule,
-                                   final ServerHttpRequest request, final ShenyuRequestLog requestInfo) {
-        LoggingServerHttpRequest loggingServerHttpRequest = new LoggingServerHttpRequest(request, requestInfo);
-        LoggingServerHttpResponse loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(),
-                requestInfo, AliyunSlsLogCollector.getInstance());
-        ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
-                .response(loggingServerHttpResponse).build();
-        loggingServerHttpResponse.setExchange(webExchange);
-        return chain.execute(webExchange).doOnError(loggingServerHttpResponse::logError);
+    protected LogCollector<ShenyuRequestLog> logCollector() {
+        return AliyunSlsLogCollector.getInstance();
     }
 
     /**
-     * get plugin order.
+     * pluginEnum.
      *
-     * @return order
+     * @return plugin
      */
     @Override
-    public int getOrder() {
-        return PluginEnum.LOGGING_ALIYUN_SLS.getCode();
+    public PluginEnum pluginEnum() {
+        return PluginEnum.LOGGING_ALIYUN_SLS;
     }
 
     /**
-     * get plugin name.
+     * log collect extension.
+     * base on ShenyuRequestLog to extend log
      *
-     * @return plugin name
+     * @param exchange exchange
+     * @param selector selector
+     * @param rule rule
+     * @return base ShenyuRequestLog's class
      */
     @Override
-    public String named() {
-        return PluginEnum.LOGGING_ALIYUN_SLS.getName();
+    protected ShenyuRequestLog doLogExecute(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
+        return new ShenyuRequestLog();
     }
 }

@@ -46,6 +46,19 @@ public class ShenyuClientPathController {
     }
 
     /**
+     * hello. br
+     * no support gateway.
+     *
+     * @param name say hello user name
+     * @return result
+     */
+    @RequestMapping("shenyu/client/hi")
+    @ShenyuSpringMvcClient("shenyu/client/hi")
+    public String hello(final String name) {
+        return "hi! " + name + "! " + HELLO_SUFFIX;
+    }
+
+    /**
      * timeout.
      *
      * @return result
@@ -59,19 +72,6 @@ public class ShenyuClientPathController {
         } catch (InterruptedException ignored) {
         }
         return "hello! " + HELLO_SUFFIX;
-    }
-
-    /**
-     * hello. br
-     * no support gateway.
-     *
-     * @param name say hello user name
-     * @return result
-     */
-    @RequestMapping("shenyu/client/hi")
-    @ShenyuSpringMvcClient("shenyu/client/hi")
-    public String hello(final String name) {
-        return "hi! " + name + "! " + HELLO_SUFFIX;
     }
     
     /**

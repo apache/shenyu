@@ -17,21 +17,24 @@
 
 package org.apache.shenyu.register.client.server.etcd.client;
 
-import com.coreos.jetcd.Client;
-import com.coreos.jetcd.KV;
-import com.coreos.jetcd.Lease;
-import com.coreos.jetcd.Watch;
-import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.data.KeyValue;
-import com.coreos.jetcd.kv.GetResponse;
-import com.coreos.jetcd.lease.LeaseGrantResponse;
-import com.coreos.jetcd.options.GetOption;
-import com.coreos.jetcd.options.WatchOption;
-import com.coreos.jetcd.watch.WatchResponse;
+import io.etcd.jetcd.ByteSequence;
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.KV;
+import io.etcd.jetcd.KeyValue;
+import io.etcd.jetcd.Lease;
+import io.etcd.jetcd.Watch;
+import io.etcd.jetcd.kv.GetResponse;
+import io.etcd.jetcd.lease.LeaseGrantResponse;
+import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
+import io.etcd.jetcd.options.GetOption;
+import io.etcd.jetcd.options.WatchOption;
+import io.etcd.jetcd.watch.WatchEvent;
+import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -80,7 +83,23 @@ public class EtcdClient {
         Lease lease = client.getLeaseClient();
         LeaseGrantResponse response = lease.grant(EPHEMERAL_LEASE).get();
         long leaseId = response.getID();
-        lease.keepAlive(leaseId);
+        lease.keepAlive(leaseId, new StreamObserver<LeaseKeepAliveResponse>() {
+            @Override
+            public void onNext(final LeaseKeepAliveResponse leaseKeepAliveResponse) {
+
+            }
+
+            @Override
+            public void onError(final Throwable throwable) {
+
+                LOGGER.error("keep alive error", throwable);
+            }
+
+            @Override
+            public void onCompleted() {
+
+            }
+        });
     }
 
     /**
@@ -91,7 +110,7 @@ public class EtcdClient {
      */
     public String read(final String key) {
         KV kv = client.getKVClient();
-        ByteSequence storeKey = Optional.ofNullable(key).map(ByteSequence::fromString).orElse(null);
+        ByteSequence storeKey = ByteSequence.from(key, StandardCharsets.UTF_8);
         GetResponse response = null;
 
         try {
@@ -127,11 +146,11 @@ public class EtcdClient {
 
     private List<String> listKeys(final String prefix) throws ExecutionException, InterruptedException {
         KV kv = client.getKVClient();
-        ByteSequence storePrefix = Optional.ofNullable(prefix).map(ByteSequence::fromString).orElse(null);
+        ByteSequence storePrefix = ByteSequence.from(prefix, StandardCharsets.UTF_8);
         GetOption option = GetOption.newBuilder().withKeysOnly(true).withPrefix(storePrefix).build();
         GetResponse response = kv.get(storePrefix, option).get();
         return response.getKvs().stream()
-                .map(o -> o.getKey().toStringUtf8())
+                .map(o -> o.getKey().toString())
                 .filter(k -> !k.equals(prefix))
                 .collect(Collectors.toList());
     }
@@ -156,14 +175,20 @@ public class EtcdClient {
 
     private void watchChildren(final String key, final Supplier<Boolean> exitSignSupplier,
                                final BiConsumer<Event, Node> consumer) throws InterruptedException {
-        ByteSequence storeKey = Optional.ofNullable(key).map(ByteSequence::fromString).orElse(null);
+        ByteSequence storeKey = ByteSequence.from(key, StandardCharsets.UTF_8);
+        Watch.Listener listener = watch(exitSignSupplier, storeKey, consumer);
+        WatchOption option = WatchOption.newBuilder()
+                .withPrefix(ByteSequence.from(key, StandardCharsets.UTF_8))
+                .build();
+        Watch.Watcher watch = client.getWatchClient().watch(ByteSequence.from(key, StandardCharsets.UTF_8), option, listener);
+        watch.close();
+    }
 
-        try (Watch watch = client.getWatchClient();
-             Watch.Watcher watcher = watch.watch(storeKey,
-                     WatchOption.newBuilder().withPrefix(storeKey).build())) {
+    private Watch.Listener watch(final Supplier<Boolean> exitSignSupplier, final ByteSequence storeKey,
+                                 final BiConsumer<Event, Node> consumer) {
+        return Watch.listener(response -> {
             while (!exitSignSupplier.get()) {
-                WatchResponse response = watcher.listen();
-                response.getEvents().forEach(watchEvent -> {
+                for (WatchEvent watchEvent : response.getEvents()) {
                     KeyValue keyValue = watchEvent.getKeyValue();
                     Node info = kv2NodeInfo(keyValue);
                     // skip root node change
@@ -182,14 +207,14 @@ public class EtcdClient {
                             event = Event.UNRECOGNIZED;
                     }
                     consumer.accept(event, info);
-                });
+                }
             }
-        }
+        });
     }
 
     static Node kv2NodeInfo(final KeyValue kv) {
-        String key = kv.getKey().toStringUtf8();
-        String value = Optional.ofNullable(kv.getValue()).map(ByteSequence::toStringUtf8).orElse("");
+        String key = kv.getKey().toString();
+        String value = Optional.ofNullable(kv.getValue()).map(ByteSequence::toString).orElse("");
         return new Node(key, value, kv.getCreateRevision(), kv.getModRevision(), kv.getVersion());
     }
 

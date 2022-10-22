@@ -37,11 +37,11 @@ public class HttpAuthHandler extends TextWebSocketHandler {
     /**
      * socket create a success event.
      *
-     * @param session
-     * @throws Exception
+     * @param session session
+     * @throws Exception exception
      */
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    public void afterConnectionEstablished(final WebSocketSession session) throws Exception {
         Object token = session.getAttributes().get("token");
         if (token != null) {
             // The user is successfully connected and put into the online user cache.
@@ -54,12 +54,12 @@ public class HttpAuthHandler extends TextWebSocketHandler {
     /**
      * Receive message events.
      *
-     * @param session
-     * @param message
-     * @throws Exception
+     * @param session session
+     * @param message message
+     * @throws Exception exception
      */
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    protected void handleTextMessage(final WebSocketSession session, final TextMessage message) throws Exception {
         // Get the message from the client.
         String payload = message.getPayload();
         Object token = session.getAttributes().get("token");
@@ -70,12 +70,12 @@ public class HttpAuthHandler extends TextWebSocketHandler {
     /**
      * when socket disconnected.
      *
-     * @param session
-     * @param status
-     * @throws Exception
+     * @param session  session
+     * @param status  close status
+     * @throws Exception exception
      */
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+    public void afterConnectionClosed(final WebSocketSession session, final CloseStatus status) throws Exception {
         Object token = session.getAttributes().get("token");
         if (token != null) {
             // The user exits and removes the cache.

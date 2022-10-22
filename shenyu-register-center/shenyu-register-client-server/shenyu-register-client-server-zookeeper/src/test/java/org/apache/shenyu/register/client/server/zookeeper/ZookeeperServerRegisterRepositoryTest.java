@@ -17,105 +17,91 @@
 
 package org.apache.shenyu.register.client.server.zookeeper;
 
-import org.apache.curator.test.TestingServer;
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.listen.Listenable;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.common.type.DataTypeParent;
-import org.apache.zookeeper.CreateMode;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 
-import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for Zookeeper register center.
  */
 public class ZookeeperServerRegisterRepositoryTest {
-    
-    private ZookeeperClientServerRegisterRepository repository;
-    
-    private ShenyuClientServerRegisterPublisher publisher;
-    
-    private ZookeeperClient client;
-
-    @BeforeEach
-    public void setUp() throws Exception {
-        this.publisher = mockPublish();
-
-        TestingServer server = new TestingServer();
-        ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
-        config.setServerLists(server.getConnectString());
-        this.repository = new ZookeeperClientServerRegisterRepository();
-        this.repository.init(publisher, config);
-
-        Class<? extends ZookeeperClientServerRegisterRepository> clazz = this.repository.getClass();
-
-        String fieldString = "client";
-        Field field = clazz.getDeclaredField(fieldString);
-        field.setAccessible(true);
-        this.client = (ZookeeperClient) field.get(repository);
-    }
-    
-    private ShenyuClientServerRegisterPublisher mockPublish() {
-        ShenyuClientServerRegisterPublisher publisher = mock(ShenyuClientServerRegisterPublisher.class);
-        doNothing().when(publisher).publish(localAny());
-        return publisher;
-    }
 
     @Test
-    public void testSubscribeMetaData() throws InterruptedException {
-        MetaDataRegisterDTO data = MetaDataRegisterDTO.builder()
-                .rpcType("http")
-                .host("host")
-                .port(80)
-                .contextPath("/context")
-                .ruleName("ruleName")
-                .build();
-        String metadataPath = "/shenyu/register/metadata/http/context/context-ruleName";
-        client.createOrUpdate(metadataPath, GsonUtils.getInstance().toJson(data), CreateMode.PERSISTENT);
+    public void testZookeeperInstanceRegisterRepository() {
+        final Listenable listenable = mock(Listenable.class);
+        final List<TreeCacheListener> treeCacheListeners = new ArrayList<>();
+        final CuratorFramework curatorFramework = mock(CuratorFramework.class);
+        try (MockedConstruction<ZookeeperClient> construction = mockConstruction(ZookeeperClient.class, (mock, context) -> {
+            when(mock.getClient()).thenReturn(curatorFramework);
+            when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
+            doAnswer(invocationOnMock -> {
+                treeCacheListeners.add(invocationOnMock.getArgument(1));
+                return null;
+            }).when(mock).addCache(any(), any());
+            List<String> childrenList = new ArrayList<>(1);
+            childrenList.add("");
+            when(mock.getChildren(anyString())).thenReturn(childrenList);
+            when(mock.get(anyString())).thenReturn("{}");
+        })) {
+            final ZookeeperClientServerRegisterRepository repository = new ZookeeperClientServerRegisterRepository();
+            ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
+            final ShenyuClientServerRegisterPublisher shenyuClientServerRegisterPublisher = mock(ShenyuClientServerRegisterPublisher.class);
+            repository.init(shenyuClientServerRegisterPublisher, config);
 
-        // wait 1ms for listener being invoked.
-        Thread.sleep(1000);
+            List<TreeCacheEvent> treeCacheEvent = new ArrayList<>();
+            // register uri
+            treeCacheEvent.add(treeCacheEvent("/shenyu/register/uri/test/test/test"));
+            // register metadata
+            treeCacheEvent.add(treeCacheEvent("/shenyu/register/metadata/test/test/test"));
 
-        verify(publisher, times(1)).publish(localAny());
-        repository.close();
+            for (TreeCacheListener treeCacheListener : treeCacheListeners) {
+                for (TreeCacheEvent event : treeCacheEvent) {
+                    treeCacheListener.childEvent(curatorFramework, event);
+                }
+            }
+            final TreeCacheListener treeCacheListener = treeCacheListeners.stream().findFirst().orElse(null);
+            if (Objects.nonNull(treeCacheListener)) {
+                TreeCacheEvent event = mock(TreeCacheEvent.class);
+                ChildData childData = mock(ChildData.class);
+                treeCacheListener.childEvent(curatorFramework, event);
+                when(event.getData()).thenReturn(childData);
+                when(childData.getPath()).thenReturn("");
+                treeCacheListener.childEvent(curatorFramework, event);
+            }
+            final Properties configProps = config.getProps();
+            configProps.setProperty("digest", "digest");
+            repository.init(shenyuClientServerRegisterPublisher, config);
+            repository.close();
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
     }
-    
-    @Test
-    public void testSubscribeURI() throws Exception {
-        URIRegisterDTO data = URIRegisterDTO.builder()
-                .rpcType("http")
-                .host("host")
-                .port(80)
-                .appName("/context")
-                .build();
-        String uriPath = "/shenyu/register/uri/http/context/host:80";
-        client.createOrUpdate(uriPath, GsonUtils.getInstance().toJson(data), CreateMode.EPHEMERAL);
 
-        // wait 1ms for listener being invoked.
-        Thread.sleep(1000);
-
-        verify(publisher, times(1)).publish(localAny());
-
-        client.delete(uriPath);
-
-        // wait 1ms for listener being invoked.
-        Thread.sleep(1000);
-
-        verify(publisher, times(2)).publish(localAny());
-    }
-    
-    private List<DataTypeParent> localAny() {
-        return any();
+    private static TreeCacheEvent treeCacheEvent(final String path) {
+        TreeCacheEvent treeCacheEvent = mock(TreeCacheEvent.class);
+        ChildData childData = mock(ChildData.class);
+        when(treeCacheEvent.getData()).thenReturn(childData);
+        when(childData.getPath()).thenReturn(path);
+        when(childData.getData()).thenReturn("{}".getBytes());
+        return treeCacheEvent;
     }
 }

@@ -147,6 +147,19 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
+  shenyu-pulsar:
+    image: apachepulsar/pulsar:2.10.1
+    container_name: shenyu-pulsar
+    restart: always
+    command: bin/pulsar standalone
+    depends_on:
+      shenyu-integrated-test-http:
+        condition: service_healthy
+    networks:
+      - shenyu
+    ports:
+      - "6650:6650"    
+
   shenyu-rocketmq:
     image: apache/rocketmq:4.9.3
     container_name: shenyu-rocketmq

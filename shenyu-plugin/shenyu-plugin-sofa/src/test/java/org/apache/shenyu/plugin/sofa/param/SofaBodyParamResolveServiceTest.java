@@ -27,6 +27,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -59,8 +61,10 @@ public final class SofaBodyParamResolveServiceTest {
         parameterTypes = "org.apache.shenyu.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
         pair = impl.buildParameter(body, parameterTypes);
         assertLeftAndRightSame(pair, 1);
-        assertIsStudent(pair.getRight()[0], true);
-        
+        List<Student> right = new ArrayList<>((Collection) pair.getRight()[0]);
+        assertIsStudent(right.get(0), true);
+        assertIsStudent(right.get(1), true);
+
         //language=JSON
         body = "{\"ids\":[\"123\",\"456\"],\"name\":\"hello world\"}\n";
         parameterTypes = "java.lang.Integer[],java.lang.String";

@@ -32,6 +32,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -64,7 +65,7 @@ public class CryptorRequestPluginTest {
         this.ruleData.setSelectorId("test");
         this.ruleData.setName("test-cryptor-request-plugin");
         this.cryptorRequestPluginDataHandler = new CryptorRequestPluginDataHandler();
-        this.cryptorRequestPlugin = new CryptorRequestPlugin();
+        this.cryptorRequestPlugin = new CryptorRequestPlugin(HandlerStrategies.builder().build().messageReaders());
     }
 
     @Test

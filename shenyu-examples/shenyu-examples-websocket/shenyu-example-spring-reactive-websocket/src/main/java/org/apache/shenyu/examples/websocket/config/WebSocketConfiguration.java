@@ -54,8 +54,13 @@ public class WebSocketConfiguration {
         return mapping;
     }
 
+    /**
+     * define a websocket handler Mapping bean.
+     * @param uploadFileHandler  upload file handler
+     * @return  handlerMapping
+     */
     @Bean
-    public HandlerMapping websocketFileMapping(final UploadFileHandler uploadFileHandler){
+    public HandlerMapping websocketFileMapping(final UploadFileHandler uploadFileHandler) {
         final Map<String, WebSocketHandler> map = new HashMap<>(1);
         map.put("/websocket/upload", uploadFileHandler);
         final SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
@@ -66,7 +71,6 @@ public class WebSocketConfiguration {
 
     /**
      * Handler adapter web socket handler adapter.
-     *
      * @return the web socket handler adapter
      */
     @Bean

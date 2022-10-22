@@ -18,6 +18,7 @@
 package org.apache.shenyu.sync.data.nacos.handler;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.config.ConfigType;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -462,6 +463,6 @@ public final class NacosCacheHandlerTest {
     }
 
     private void publishConfig(final String dataId, final Object data) throws NacosException {
-        configService.publishConfig(dataId, GROUP, GsonUtils.getInstance().toJson(data));
+        configService.publishConfig(dataId, GROUP, GsonUtils.getInstance().toJson(data), ConfigType.JSON.getType());
     }
 }

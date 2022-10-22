@@ -20,10 +20,12 @@ package org.apache.shenyu.plugin.sentinel.fallback;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.sentinel.SentinelPlugin;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -45,6 +47,8 @@ public class SentinelFallbackHandler implements FallbackHandler {
         } else if (throwable instanceof BlockException) {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
             error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SENTINEL_BLOCK_ERROR);
+        } else if (throwable instanceof SentinelPlugin.SentinelFallbackException) {
+            return exchange.getAttribute(Constants.RESPONSE_MONO);
         } else {
             return Mono.error(throwable);
         }

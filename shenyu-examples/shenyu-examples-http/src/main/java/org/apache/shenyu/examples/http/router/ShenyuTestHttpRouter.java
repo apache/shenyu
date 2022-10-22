@@ -30,7 +30,10 @@ import reactor.core.publisher.Mono;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.web.reactive.function.server.RequestPredicates.*;
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
+import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
+import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
+import static org.springframework.web.reactive.function.server.RequestPredicates.path;
 import static org.springframework.web.reactive.function.server.RouterFunctions.nest;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
@@ -52,11 +55,12 @@ public class ShenyuTestHttpRouter {
      */
     public RouterFunction<ServerResponse> routes() {
         return nest(path("/test"),
-                route(POST("/helloWorld2").and(accept(APPLICATION_JSON)), this::postHandler)
-                        .and(route(GET("/rewrite"), this::rewriteHandler))
-                        .and(route(GET("/pdm"), this::pdmHttpGet))
-                        .and(route(GET("/oms"), this::omsHttpGet))
-                        .and(route(GET("/timeout"), this::testRetry)));
+                route(POST("/helloWorld2")
+                    .and(accept(APPLICATION_JSON)), this::postHandler)
+                    .and(route(GET("/rewrite"), this::rewriteHandler))
+                    .and(route(GET("/pdm"), this::pdmHttpGet))
+                    .and(route(GET("/oms"), this::omsHttpGet))
+                    .and(route(GET("/timeout"), this::testRetry)));
     }
 
     @NonNull

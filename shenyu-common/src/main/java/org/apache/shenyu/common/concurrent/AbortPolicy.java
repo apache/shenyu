@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.concurrent;
 
+import java.util.Queue;
+
 /**
  * A handler for rejected element that throws a
  * {@code RejectException}.
@@ -24,7 +26,7 @@ package org.apache.shenyu.common.concurrent;
 public class AbortPolicy<E> implements Rejector<E> {
 
     @Override
-    public void reject(final E e, final MemorySafeLinkedBlockingQueue<E> queue) {
+    public void reject(final E e, final Queue<E> queue) {
         throw new RejectException("no more memory can be used !");
     }
 }

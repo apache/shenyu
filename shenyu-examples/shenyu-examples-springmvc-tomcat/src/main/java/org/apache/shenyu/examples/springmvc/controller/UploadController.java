@@ -36,9 +36,9 @@ import java.util.stream.Collectors;
 public class UploadController {
 
     /**
-     * mvc uploadFile
-     * @param file
-     * @return
+     * mvc uploadFile.
+     * @param file file
+     * @return  response
      */
     @PostMapping(value = "/singleFile")
     public String singleFile(@RequestParam("file") final MultipartFile file) {
@@ -46,9 +46,9 @@ public class UploadController {
     }
 
     /**
-     * mvc uploadFiles
-     * @param files
-     * @return
+     * mvc uploadFiles.
+     * @param files files.
+     * @return  response
      */
     @PostMapping(value = "/files")
     public String files(@RequestParam("files") final MultipartFile[] files) {

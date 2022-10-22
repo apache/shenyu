@@ -76,20 +76,20 @@ public final class SpringCloudClientEventListenerTest {
     public void beforeEach() {
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
     }
-    
+
     private void init() {
         Map<String, Object> results = new LinkedHashMap<>();
         results.put("springCloudClientTestBean", springCloudClientTestBean);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
         contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
     }
-    
+
     @Test
     public void testShenyuBeanProcess() {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         // config with full
-        SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClienttEventListener(true);
-        springCloudClientEventListener.onApplicationEvent(contextRefreshedEvent);
+        SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClientEventListener(true);
+        springCloudClientEventListener.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
         verify(applicationContext, never()).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
@@ -98,7 +98,7 @@ public final class SpringCloudClientEventListenerTest {
     public void testNormalBeanProcess() {
         init();
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
-        SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClienttEventListener(false);
+        SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClientEventListener(false);
         springCloudClientEventListener.onApplicationEvent(contextRefreshedEvent);
         verify(applicationContext, times(1)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
@@ -110,13 +110,13 @@ public final class SpringCloudClientEventListenerTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         registerUtilsMockedStatic.when(() -> RegisterUtils.doRegister(any(), any(), any()))
                 .thenAnswer((Answer<Void>) invocation -> null);
-        SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClienttEventListener(false);
+        SpringCloudClientEventListener springCloudClientEventListener = buildSpringCloudClientEventListener(false);
         springCloudClientEventListener.onApplicationEvent(contextRefreshedEvent);
         verify(applicationContext, times(1)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
-    private SpringCloudClientEventListener buildSpringCloudClienttEventListener(final boolean full) {
+    private SpringCloudClientEventListener buildSpringCloudClientEventListener(final boolean full) {
         Properties properties = new Properties();
         properties.setProperty("contextPath", "/test");
         properties.setProperty("isFull", full + "");
@@ -152,4 +152,5 @@ public final class SpringCloudClientEventListenerTest {
             return "" + body;
         }
     }
+
 }

@@ -148,6 +148,7 @@ public final class WebsocketCollectorTest {
         verify(basic, times(1)).sendText("test_message_2");
         doNothing().when(loggerSpy).warn(anyString(), anyString());
         websocketCollector.onClose(session);
+        ThreadLocalUtils.remove("sessionKey");
     }
 
     private long getSessionSetSize() {

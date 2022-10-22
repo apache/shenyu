@@ -21,5 +21,11 @@ import java.util.Map;
 
 public interface SaveFile {
 
-    boolean saveFileFromBytes(byte[] b, Map<String, Object> map);
+    /**
+     * according to the param to save files from content.
+     * @param content  content
+     * @param param  param
+     * @return success
+     */
+    boolean saveFileFromBytes(byte[] content, Map<String, Object> param);
 }

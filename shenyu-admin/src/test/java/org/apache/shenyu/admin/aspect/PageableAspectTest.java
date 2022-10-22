@@ -31,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -106,5 +107,10 @@ public class PageableAspectTest {
         assertTrue(page.getPages() == pageParameter.getTotalPage());
         assertTrue(page.getTotal() == pageParameter.getTotalCount());
         assertTrue(page.getPageSize() == pageParameter.getOffset());
+    }
+
+    @Test
+    public void pageableCutTest() {
+        assertDoesNotThrow(() -> pageableAspect.pageableCut());
     }
 }

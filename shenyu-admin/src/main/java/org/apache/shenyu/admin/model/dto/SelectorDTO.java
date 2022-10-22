@@ -103,7 +103,7 @@ public final class SelectorDTO implements Serializable {
     /**
      * selector conditions.
      */
-    private List<@Valid SelectorConditionDTO> selectorConditions;
+    private List<SelectorConditionDTO> selectorConditions;
     
     public SelectorDTO() {
     }

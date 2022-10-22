@@ -126,11 +126,10 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
     private List<UpstreamInstance> getLastUpdateInstanceList(final List<SelectorData> changedList) {
         if (CollectionUtils.isEmpty(changedList)) {
             LOG.info("getLastUpdateInstanceList, changedList is empty.");
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList(); 
         }
         return changedList.parallelStream()
             .map(this::getClusterLastUpdateInstance)
@@ -143,13 +142,12 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
      *
      * @return List
      */
-    @SuppressWarnings("unchecked")
     private List<UpstreamInstance> getAllClusterLastUpdateInstanceList() {
         List<String> pluginNames = new ArrayList<>();
         RpcTypeEnum.acquireSupportSwaggers().forEach(rpcTypeEnum -> pluginNames.add(PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName())));
         final List<PluginDO> pluginDOList = pluginMapper.selectByNames(pluginNames);
         if (CollectionUtils.isEmpty(pluginDOList)) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         supportSwaggerPluginMap = pluginDOList.stream().filter(Objects::nonNull)
             .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
@@ -158,7 +156,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
         List<SelectorVO> clusterList = commonPager.getDataList();
         if (CollectionUtils.isEmpty(clusterList)) {
             LOG.info("getAllClusterLastUpdateInstanceList, Not loaded into available backend services.");
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         return clusterList.parallelStream()
             .map(this::getClusterLastUpdateInstance)

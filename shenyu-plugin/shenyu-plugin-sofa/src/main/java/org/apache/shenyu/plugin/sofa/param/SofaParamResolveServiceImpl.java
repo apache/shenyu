@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
@@ -45,6 +46,7 @@ public class SofaParamResolveServiceImpl implements SofaParamResolveService {
         List<Object> values = new ArrayList<>();
         final List<Object> params = new ArrayList<>(GsonUtils.getInstance().toObjectMap(body).values());
         for (int paramIndex = 0; paramIndex < parameterTypeStrings.length; paramIndex++) {
+            ParamCheckUtils.checkParamsLength(params.size(), parameterTypeStrings.length);
             final String[] parameter = StringUtils.split(parameterTypeStrings[paramIndex], "#");
             parameterTypeArr.add(parameter[0]);
             values.add(convertToParameterValue(params.get(paramIndex), parameter));

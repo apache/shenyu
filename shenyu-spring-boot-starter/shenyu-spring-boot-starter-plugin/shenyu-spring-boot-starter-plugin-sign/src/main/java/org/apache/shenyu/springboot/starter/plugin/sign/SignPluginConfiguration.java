@@ -32,6 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.codec.ServerCodecConfigurer;
 
 /**
  * The type Sign plugin configuration.
@@ -65,14 +66,15 @@ public class SignPluginConfiguration {
     /**
      * sign plugin.
      *
+     * @param configurer the spring server codec config
      * @param signService the sign service
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin signPlugin(final SignService signService) {
-        return new SignPlugin(signService);
+    public ShenyuPlugin signPlugin(final SignService signService, final ServerCodecConfigurer configurer) {
+        return new SignPlugin(configurer.getReaders(), signService);
     }
-    
+
     /**
      * Sign auth data subscriber.
      *

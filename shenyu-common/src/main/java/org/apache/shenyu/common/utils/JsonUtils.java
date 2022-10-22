@@ -32,7 +32,6 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import java.util.HashMap;
 import org.apache.shenyu.common.constant.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +42,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -140,6 +140,23 @@ public final class JsonUtils {
         } catch (IOException e) {
             LOG.warn("write to map error: " + json, e);
             return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * String to Object.
+     *
+     * @param json         the object
+     * @param valueTypeRef class
+     * @param <T>          generic
+     * @return the converted map
+     */
+    public static <T> T jsonToObject(final String json, final Class<T> valueTypeRef) {
+        try {
+            return MAPPER.readValue(json, valueTypeRef);
+        } catch (IOException e) {
+            LOG.warn("write to Object error: " + json, e);
+            return null;
         }
     }
 

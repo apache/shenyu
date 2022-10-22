@@ -148,6 +148,16 @@ public interface Constants {
     String MODULE = "module";
 
     /**
+     * RESPONSE_MONO.
+     */
+    String RESPONSE_MONO = "RESPONSE_MONO";
+
+    /**
+     * WATCHER_HTTP_STATUS.
+     */
+    String WATCHER_HTTP_STATUS = "WATCHER_HTTP_STATUS";
+
+    /**
      * The constant METHOD.
      */
     String METHOD = "method";
@@ -631,6 +641,13 @@ public interface Constants {
      * The maximum free memory reserved by the blocking queue for the JVM.
      */
     int THE_256_MB = 256 * 1024 * 1024;
+    
+    /**
+     * The default cluster of dubbo client.
+     */
+    String DEFAULT_CLUSTER = "failover";
+
+    int PREFIX_FORWARD_ENABLE = 1;
 
     /**
      * String q.

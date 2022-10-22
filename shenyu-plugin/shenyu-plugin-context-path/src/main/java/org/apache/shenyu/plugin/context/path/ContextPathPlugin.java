@@ -26,9 +26,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDataHandler;
@@ -46,23 +43,24 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
     
     private static final Logger LOG = LoggerFactory.getLogger(ContextPathPlugin.class);
     
+    private final ContextMappingRuleHandle defaultRuleHandle;
+    
+    {
+        defaultRuleHandle = new ContextMappingRuleHandle();
+        defaultRuleHandle.setAddPrefixed(true);
+        defaultRuleHandle.setContextPath("/default");
+    }
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        ContextMappingRuleHandle contextMappingRuleHandle = ContextPathPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (Objects.isNull(contextMappingRuleHandle)) {
+        ContextMappingRuleHandle ruleHandle = buildRuleHandle(rule);
+        if (Objects.isNull(ruleHandle)) {
             LOG.error("context path rule configuration is null ：{}", rule);
             return chain.execute(exchange);
         }
-        String contextPath = contextMappingRuleHandle.getContextPath();
-        if (StringUtils.isNoneBlank(contextPath) && !shenyuContext.getPath().startsWith(contextPath)) {
-            LOG.error("the context path '{}' is invalid.", contextPath);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CONTEXT_PATH_ERROR.getCode(),
-                    String.format("%s [invalid context path:'%s']", ShenyuResultEnum.CONTEXT_PATH_ERROR.getMsg(), contextPath), null);
-            return WebFluxResultUtils.result(exchange, error);
-        }
-        buildContextPath(shenyuContext, contextMappingRuleHandle);
+        buildRealURI(shenyuContext, ruleHandle);
         return chain.execute(exchange);
     }
     
@@ -86,19 +84,31 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
                 RpcTypeEnum.SOFA);
     }
     
+    private ContextMappingRuleHandle buildRuleHandle(final RuleData rule) {
+        if (StringUtils.isNotEmpty(rule.getId())) {
+            return ContextPathPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        } else {
+            return defaultRuleHandle;
+        }
+    }
+    
     /**
-     * Build the context path and realUrl.
+     * Build the realUrl.
      *
      * @param context context
      * @param handle  handle
      */
-    private void buildContextPath(final ShenyuContext context, final ContextMappingRuleHandle handle) {
+    private void buildRealURI(final ShenyuContext context, final ContextMappingRuleHandle handle) {
         String realURI = "";
         String contextPath = handle.getContextPath();
         if (StringUtils.isNoneBlank(contextPath)) {
             context.setContextPath(contextPath);
             context.setModule(contextPath);
-            realURI = context.getPath().substring(contextPath.length());
+            if (handle.getAddPrefixed()) {
+                realURI = context.getPath();
+            } else {
+                realURI = context.getPath().substring(contextPath.length());
+            }
         }
         String addPrefix = handle.getAddPrefix();
         if (StringUtils.isNoneBlank(addPrefix)) {

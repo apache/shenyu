@@ -66,7 +66,12 @@ public enum PluginEnum {
      * OAuth2 plugin enum.
      */
     OAUTH2(40, 0, "oauth2"),
-    
+
+    /**
+     * Casdoor plugin enum.
+     */
+    CASDOOR(40, 0, "casdoor"),
+
     /**
      * Waf plugin enum.
      */
@@ -143,14 +148,29 @@ public enum PluginEnum {
     LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
 
     /**
+     * Logging Tencent cls enums.
+     */
+    LOGGING_TENCENT_CLS(176, 0, "loggingTencentCls"),
+
+    /**
      * Logging Kafka plugin enum.
      */
     LOGGING_KAFKA(180, 0, "loggingKafka"),
 
     /**
+     * Logging Pulsar plugin enum.
+     */
+    LOGGING_PULSAR(185, 0, "loggingPulsar"),
+
+    /**
      * Logging ElasticSearch plugin enum.
      */
     LOGGING_ELASTIC_SEARCH(190, 0, "loggingElasticSearch"),
+
+    /**
+     * Logging ClickHouse plugin enum.
+     */
+    LOGGING_CLICK_HOUSE(195, 0, "loggingClickHouse"),
     
     /**
      * Divide plugin enum.

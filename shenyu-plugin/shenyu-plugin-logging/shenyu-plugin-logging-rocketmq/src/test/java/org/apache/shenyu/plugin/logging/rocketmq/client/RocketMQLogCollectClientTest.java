@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.logging.rocketmq.client;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.rocketmq.config.RocketMQLogCollectConfig;
 import org.junit.jupiter.api.Assertions;
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * test cases for RocketMQLogCollect.
@@ -36,8 +34,6 @@ import java.util.Properties;
 public class RocketMQLogCollectClientTest {
 
     private final PluginData pluginData = new PluginData();
-
-    private final Properties properties = new Properties();
 
     private final List<ShenyuRequestLog> logs = new ArrayList<>();
 
@@ -51,11 +47,8 @@ public class RocketMQLogCollectClientTest {
     public void setUp() {
         this.rocketMQLogCollectClient = new RocketMQLogCollectClient();
         pluginData.setEnabled(true);
-        pluginData.setConfig("{\"topic\":\"test\", \"namesrvAddr\":\"test\", \"producerGroup\":\"test\"}");
+        pluginData.setConfig("{\"topic\":\"test\", \"namesrvAddr\":\"test\", \"producerGroup\":\"test\", \"accessKey\":\"test\", \"secretKey\":\"test\"}");
         rocketMQLogConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RocketMQLogCollectConfig.RocketMQLogConfig.class);
-        properties.setProperty(GenericLoggingConstant.TOPIC, rocketMQLogConfig.getTopic());
-        properties.setProperty(GenericLoggingConstant.NAMESERVER_ADDRESS, rocketMQLogConfig.getNamesrvAddr());
-        properties.setProperty(GenericLoggingConstant.PRODUCER_GROUP, rocketMQLogConfig.getProducerGroup());
         shenyuRequestLog.setClientIp("0.0.0.0");
         shenyuRequestLog.setPath("org/apache/shenyu/plugin/logging");
         logs.add(shenyuRequestLog);
@@ -65,7 +58,7 @@ public class RocketMQLogCollectClientTest {
     public void testConsume() {
         String msg = "";
         RocketMQLogCollectConfig.INSTANCE.setRocketMQLogConfig(rocketMQLogConfig);
-        rocketMQLogCollectClient.initProducer(properties);
+        rocketMQLogCollectClient.initClient(rocketMQLogConfig);
         try {
             rocketMQLogCollectClient.consume(logs);
         } catch (Exception e) {

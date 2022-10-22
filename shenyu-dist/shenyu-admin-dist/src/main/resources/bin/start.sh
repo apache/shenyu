@@ -31,16 +31,21 @@ LOG_FILES=${LOGS_DIR}/shenyu-admin.log
 EXT_LIB=${DEPLOY_DIR}/ext-lib
 
 CLASS_PATH=.:${DEPLOY_DIR}/conf:${DEPLOY_DIR}/lib/*:${EXT_LIB}/*
-JAVA_OPTS=" -server -Xmx2g -Xms2g -Xmn1g -Xss256k -XX:+DisableExplicitGC   -XX:LargePageSizeInBytes=128m"
-
-version=`java -version 2>&1 | sed '1!d' | sed -e 's/"//g' | awk '{print $3}'`
-echo "current jdk version:${version}"
-if [[ "$version" =~ "1.8" ]];then
-JAVA_OPTS="${JAVA_OPTS} -XX:+UseFastAccessorMethods  -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly  -XX:CMSInitiatingOccupancyFraction=70"
-elif [[ "$version" =~ "11" ]];then
-JAVA_OPTS="${JAVA_OPTS}"
-elif [[ "$version" =~ "17" ]];then
-JAVA_OPTS="${JAVA_OPTS}"
+if [ -z "${ADMIN_JVM}" ]; then
+    JAVA_OPTS=" -server -Xmx2g -Xms2g -Xmn1g -Xss256k -XX:+DisableExplicitGC  -XX:LargePageSizeInBytes=128m"
+    version=`java -version 2>&1 | sed '1!d' | sed -e 's/"//g' | awk '{print $3}'`
+    echo "current jdk version:${version}"
+    if [[ "$version" =~ "1.8" ]];then
+        JAVA_OPTS="${JAVA_OPTS} -XX:+UseFastAccessorMethods  -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly  -XX:CMSInitiatingOccupancyFraction=70"
+    elif [[ "$version" =~ "11" ]];then
+        JAVA_OPTS="${JAVA_OPTS}"
+    elif [[ "$version" =~ "17" ]];then
+        JAVA_OPTS="${JAVA_OPTS}"
+    fi
+    echo "Use default jvm param: $JAVA_OPTS"
+else
+    JAVA_OPTS=${ADMIN_JVM}
+    echo "Start with the environment variable JAVA_OPTS set: $JAVA_OPTS"
 fi
 
 MAIN_CLASS=org.apache.shenyu.admin.ShenyuAdminBootstrap

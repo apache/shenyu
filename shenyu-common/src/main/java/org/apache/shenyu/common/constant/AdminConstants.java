@@ -33,6 +33,11 @@ public final class AdminConstants {
     public static final String PLUGIN_NAME_IS_EXIST = "The plugin name already exists and can't be added repeatedly!";
 
     /**
+     * The constant RESOURCE_NAME_IS_EXIST.
+     */
+    public static final String RESOURCE_NAME_IS_EXIST = "The resource name already exists and can't be added repeatedly!";
+
+    /**
      * The constant ID_NOT_EXIST.
      */
     public static final String ID_NOT_EXIST = "ID NOT EXIST!";
@@ -231,6 +236,11 @@ public final class AdminConstants {
      * The constant URI_SLASH_SUFFIX.
      */
     public static final String URI_SLASH_SUFFIX = "/";
+
+    /**
+     * The constant URI_VARIABLE_SUFFIX.
+     */
+    public static final String URI_VARIABLE_SUFFIX = "{";
 
     /**
      * the constant api document global flag dict code.

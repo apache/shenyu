@@ -28,6 +28,7 @@ env:
 jobs:
   dockerhub:
     runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
     permissions:
       contents: read
       packages: write
@@ -72,20 +73,22 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./shenyu-dist/shenyu-admin-dist
+          file: ./shenyu-dist/shenyu-admin-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-admin-bin
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.REPOSITORY }}/admin:latest
-            ${{ env.REPOSITORY }}/admin:${{ env.TAG }}
+            apache/shenyu-admin:latest
+            apache/shenyu-admin:${{ env.TAG }}
 
       - name: Build and push (bootstrap) (dockerhub)
         uses: docker/build-push-action@v3
         with:
           context: ./shenyu-dist/shenyu-bootstrap-dist
+          file: ./shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.REPOSITORY }}/bootstrap:latest
-            ${{ env.REPOSITORY }}/bootstrap:${{ env.TAG }}
+            apache/shenyu-bootstrap:latest
+            apache/shenyu-bootstrap:${{ env.TAG }}

@@ -23,26 +23,31 @@ import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
-import org.apache.shenyu.plugin.logging.common.client.LogConsumeClient;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.elasticsearch.config.ElasticSearchLogCollectConfig;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * queue-based logging collector.
  */
-public class ElasticSearchLogCollectClient implements LogConsumeClient {
+public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<ElasticSearchLogCollectConfig.ElasticSearchLogConfig, ShenyuRequestLog> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ElasticSearchLogCollectClient.class);
 
@@ -52,17 +57,30 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
 
     private ElasticsearchClient client;
 
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
-
     /**
      * init elasticsearch client.
      *
-     * @param props elasticsearch client properties
+     * @param config elasticsearch client config
      */
-    public void initClient(final Properties props) {
-        restClient = RestClient
-                .builder(new HttpHost(props.getProperty(GenericLoggingConstant.HOST), Integer.parseInt(props.getProperty(GenericLoggingConstant.PORT))))
-                .build();
+    @Override
+    public void initClient0(@NonNull final ElasticSearchLogCollectConfig.ElasticSearchLogConfig config) {
+        RestClientBuilder builder = RestClient
+                .builder(new HttpHost(config.getHost(), Integer.parseInt(config.getPort())));
+        
+        // authentication and config auth cathe.
+        if (StringUtils.isNoneBlank(config.getUsername()) && StringUtils.isNoneBlank(config.getPassword())) {
+            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY,
+                    new UsernamePasswordCredentials(config.getUsername(), config.getPassword()));
+            builder.setHttpClientConfigCallback(asyncClientBuilder -> {
+                if (Boolean.FALSE.equals(config.getAuthCache())) {
+                    asyncClientBuilder.disableAuthCaching();
+                }
+                return asyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            });
+        }
+        
+        restClient = builder.build();
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
         LOG.info("init ElasticSearchLogCollectClient success");
@@ -71,15 +89,10 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
             createIndex(GenericLoggingConstant.INDEX);
             LOG.info("create index success");
         }
-        isStarted.set(true);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) {
-        if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
-            return;
-        }
+    public void consume0(@NonNull final List<ShenyuRequestLog> logs) {
         List<BulkOperation> bulkOperations = new ArrayList<>();
         logs.forEach(log -> {
             try {
@@ -129,8 +142,8 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
      * close client.
      */
     @Override
-    public void close() {
-        if (Objects.nonNull(restClient) && isStarted.get()) {
+    public void close0() {
+        if (Objects.nonNull(restClient)) {
             try {
                 transport.close();
             } catch (IOException e) {
@@ -141,7 +154,6 @@ public class ElasticSearchLogCollectClient implements LogConsumeClient {
             } catch (IOException e) {
                 LOG.error("restClient close has IOException : ", e);
             }
-            isStarted.set(false);
         }
     }
 }

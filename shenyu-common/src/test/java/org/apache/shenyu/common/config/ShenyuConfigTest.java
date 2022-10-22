@@ -31,6 +31,7 @@ import java.util.Properties;
  * Test cases for ShenyuConfig.
  */
 public class ShenyuConfigTest {
+    
     private final ShenyuConfig config = new ShenyuConfig();
 
     /**
@@ -49,7 +50,6 @@ public class ShenyuConfigTest {
         ShenyuConfig.ExcludePath exclude = config.getExclude();
         ShenyuConfig.FallbackPath fallback = config.getFallback();
         ShenyuConfig.FileConfig file = config.getFile();
-        ShenyuConfig.InstanceConfig instance = config.getInstance();
         ShenyuConfig.ExtPlugin extPlugin = config.getExtPlugin();
         ShenyuConfig.Local local = config.getLocal();
         ShenyuConfig.RibbonConfig ribbon = config.getRibbon();
@@ -59,7 +59,7 @@ public class ShenyuConfigTest {
         ShenyuConfig.WebsocketConfig websocket = config.getWebsocket();
         ShenyuConfig.UpstreamCheck upstreamCheck = config.getUpstreamCheck();
 
-        notEmptyElements(cross, switchConfig, exclude, fallback, file, instance,
+        notEmptyElements(cross, switchConfig, exclude, fallback, file,
                 extPlugin, local, ribbon, metrics, scheduler, sharedPool, websocket, upstreamCheck);
     }
 
@@ -183,22 +183,6 @@ public class ShenyuConfigTest {
         Integer scheduleTime = extPlugin.getScheduleTime();
 
         notEmptyElements(enabled, path, scheduleTime, scheduleDelay, threads);
-    }
-
-    @Test
-    public void testInstanceConfig() {
-        ShenyuConfig.InstanceConfig instance = config.getInstance();
-        instance.setEnabled(true);
-        instance.setServerLists("test");
-        instance.setRegisterType("test");
-        instance.setProps(new Properties());
-
-        Boolean enabled = instance.getEnabled();
-        Properties props = instance.getProps();
-        String registerType = instance.getRegisterType();
-        String serverLists = instance.getServerLists();
-
-        notEmptyElements(props, registerType, serverLists, enabled);
     }
 
     @Test

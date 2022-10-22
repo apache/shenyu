@@ -18,11 +18,11 @@
 package org.apache.shenyu.springboot.starter.instance;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
@@ -50,14 +50,13 @@ public class InstanceRegisterListener implements ApplicationListener<WebServerIn
      *
      * @param config the config
      */
-    public InstanceRegisterListener(final InstanceConfig config) {
+    public InstanceRegisterListener(final RegisterConfig config) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists)) {
             throw new ShenyuException("please config the registerType and serverList");
         }
-        repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getRegisterType());
-        repository.init(config);
+        repository = ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config);
         this.props = config.getProps();
         String name = props.getProperty("name");
         this.appName = StringUtils.isBlank(name) ? "shenyu-gateway" : name;
@@ -72,13 +71,13 @@ public class InstanceRegisterListener implements ApplicationListener<WebServerIn
         }
         String configPort = props.getProperty("port");
         int port = StringUtils.isBlank(configPort) ? event.getWebServer().getPort() : Integer.parseInt(configPort);
-        InstanceRegisterDTO registerDTO = buildInstanceRegisterDTO(port);
-        repository.persistInstance(registerDTO);
+        InstanceEntity instanceEntity = buildInstanceRegisterDTO(port);
+        repository.persistInstance(instanceEntity);
     }
     
-    private InstanceRegisterDTO buildInstanceRegisterDTO(final int port) {
+    private InstanceEntity buildInstanceRegisterDTO(final int port) {
         String host = IpUtils.isCompleteHost(this.host) ? this.host : IpUtils.getHost(this.host);
-        return InstanceRegisterDTO.builder()
+        return InstanceEntity.builder()
                 .appName(appName)
                 .host(host)
                 .port(port)

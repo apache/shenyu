@@ -37,6 +37,7 @@ public class CountSampler implements Sampler {
 
     /**
      * Fills a bitset with decisions according to the supplied probability.
+     * @param probability probability
      */
     public CountSampler(final float probability) {
         counter = new AtomicInteger();

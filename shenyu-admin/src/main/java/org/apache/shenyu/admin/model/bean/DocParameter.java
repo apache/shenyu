@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.admin.model.bean;
 
+import com.google.gson.annotations.SerializedName;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * DocParameter.
@@ -43,6 +45,9 @@ public class DocParameter {
     private String description;
 
     private String example = "";
+
+    @SerializedName("x-example")
+    private String xExample;
 
     private List<DocParameter> refs;
 
@@ -172,12 +177,29 @@ public class DocParameter {
     }
 
     /**
+     * get xExample.
+     *
+     * @return String
+     */
+    public String getXExample() {
+        return xExample;
+    }
+
+    /**
+     * set xExample.
+     * @param xExample xExample
+     */
+    public void setXExample(final String xExample) {
+        this.xExample = xExample;
+    }
+
+    /**
      * getExample.
      *
      * @return String
      */
     public String getExample() {
-        return example;
+        return StringUtils.isBlank(example) ? xExample : example;
     }
 
     /**

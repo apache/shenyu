@@ -111,4 +111,9 @@ public interface Command {
      */
     void removeCommandKey(String commandKey);
 
+    /**
+     * clean all command.
+     */
+    void cleanCommand();
+
 }

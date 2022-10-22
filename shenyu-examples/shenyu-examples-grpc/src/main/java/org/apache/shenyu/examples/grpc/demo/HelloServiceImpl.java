@@ -1,4 +1,3 @@
-package org.apache.shenyu.examples.grpc.demo;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,15 +15,17 @@ package org.apache.shenyu.examples.grpc.demo;
  * limitations under the License.
  */
 
+package org.apache.shenyu.examples.grpc.demo;
+
 import hello.HelloRequest;
 import hello.HelloResponse;
 import hello.HelloServiceGrpc;
+
 import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 
 @ShenyuGrpcClient("/helloService/**")
 @Service
@@ -33,17 +34,17 @@ public class HelloServiceImpl extends HelloServiceGrpc.HelloServiceImplBase {
     private static final Logger LOG = LoggerFactory.getLogger(HelloServiceImpl.class);
     
     @Override
-    public void hello(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
+    public void hello(final HelloRequest request, final StreamObserver<HelloResponse> responseObserver) {
         HelloResponse response = HelloResponse.newBuilder().setData("hello: " + request.getData()).build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
 
     @Override
-    public StreamObserver<HelloRequest> helloEveryOne(StreamObserver<HelloResponse> responseObserver) {
+    public StreamObserver<HelloRequest> helloEveryOne(final StreamObserver<HelloResponse> responseObserver) {
         return new StreamObserver<HelloRequest>() {
             @Override
-            public void onNext(HelloRequest request) {
+            public void onNext(final HelloRequest request) {
                 HelloResponse responseData = HelloResponse.newBuilder()
                         .setData("hello: " + request.getData())
                         .build();

@@ -51,6 +51,15 @@ public interface ResourceMapper extends ExistProvider {
     ResourceDO selectById(String id);
     
     /**
+     * select resource by user name.<br>
+     * Get all resources with permissions under the specified user.
+     *
+     * @param userName user name
+     * @return {@link ResourceDO} list
+     */
+    List<ResourceDO> selectByUserName(@Param("userName") String userName);
+    
+    /**
      * select resource by id batch.
      *
      * @param resourceIds resourceId is the primary key
@@ -160,4 +169,12 @@ public interface ResourceMapper extends ExistProvider {
      * @return {@linkplain List}
      */
     List<ResourceDO> selectAll();
+
+    /**
+     * resource existed.
+     *
+     * @param name name
+     * @return existed
+     */
+    Boolean nameExisted(@Param("name") Serializable name);
 }

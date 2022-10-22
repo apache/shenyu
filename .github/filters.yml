@@ -1,0 +1,21 @@
+changed:
+  - "!**/{\
+    *.md,*.txt,\
+    resources/static/**,\
+    .asf.yaml,.gitignore,.licenserc.yaml,\
+    LICENSE,NOTICE,\
+    Makefile,\
+    shenyu-e2e/**, \
+    .github/(ISSUE_TEMPLATE/**|PULL_REQUEST_TEMPLATE)\
+    }"
+pom:
+  - "**/pom.xml"
+e2e:
+  - "!**/{\
+    *.md,*.txt,\
+    resources/static/**,\
+    .asf.yaml,.gitignore,.licenserc.yaml,\
+    LICENSE,NOTICE,\
+    Makefile,\
+    .github/(ISSUE_TEMPLATE/**|PULL_REQUEST_TEMPLATE)\
+    }"

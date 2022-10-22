@@ -44,6 +44,8 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.mockito.Mockito.mock;
 
@@ -53,11 +55,11 @@ import static org.mockito.Mockito.mock;
 public class LoggingServerHttpResponseTest {
 
     private final ShenyuRequestLog requestInfo = new ShenyuRequestLog();
-    
+
     private final LocalDateTime startDateTime = LocalDateTime.now();
-    
+
     private ServerWebExchange exchange;
-    
+
     private LoggingServerHttpResponse loggingServerHttpResponse;
 
     private LogCollector logCollector;
@@ -94,7 +96,9 @@ public class LoggingServerHttpResponseTest {
         requestInfo.setUserAgent(serverHttpRequest.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
         requestInfo.setHost(serverHttpRequest.getHeaders().getFirst(GenericLoggingConstant.HOST));
         requestInfo.setPath(serverHttpRequest.getURI().getPath());
-        this.loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(), requestInfo, logCollector);
+        Set<String> keyWordSet = new HashSet<>();
+        this.loggingServerHttpResponse = new LoggingServerHttpResponse(exchange.getResponse(), requestInfo,
+                logCollector, false, keyWordSet, "dataMaskByCharReplace");
     }
 
     @Test
