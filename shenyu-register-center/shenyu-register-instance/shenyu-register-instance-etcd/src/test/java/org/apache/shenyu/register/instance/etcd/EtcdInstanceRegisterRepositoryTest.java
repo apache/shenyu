@@ -44,9 +44,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mockConstruction;
 
 public final class EtcdInstanceRegisterRepositoryTest {
 
@@ -92,7 +92,7 @@ public final class EtcdInstanceRegisterRepositoryTest {
                 .port(9195)
                 .build();
 
-        final String realNode = "/shenyu/register/instance/shenyu-host:9195";
+        final String realNode = "/shenyu/register/shenyu-test/shenyu-host:9195";
         repository.persistInstance(data);
         assertTrue(etcdBroker.containsKey(realNode));
         assertEquals(GsonUtils.getInstance().toJson(data), etcdBroker.get(realNode));

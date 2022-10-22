@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.springboot.starter.sdk;
 
+import okhttp3.OkHttpClient;
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
+import org.apache.shenyu.sdk.core.client.ShenyuSdkClientFactory;
 import org.apache.shenyu.sdk.spring.annotation.CookieValueParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.RequestBodyParameterProcessor;
@@ -31,13 +32,16 @@ import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.apache.shenyu.sdk.spring.factory.Contract;
 import org.apache.shenyu.sdk.spring.support.SpringMvcContract;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -60,18 +64,22 @@ public class ShenyuSdkAutoConfiguration {
     public Contract springMvcContract() {
         return new SpringMvcContract();
     }
-    
+
     /**
-     * shenyu sdk client.
+     * okHttpShenyuSdkClient.
      *
+     * @param config config
+     * @param registerRepositoryObjectFactory registerRepositoryObjectFactory
      * @return {@link ShenyuSdkClient}
      */
     @Bean
-    @ConditionalOnMissingBean
-    public ShenyuSdkClient shenyuSdkClient() {
-        return request -> {
-            throw new ShenyuException("please implement ShenyuSdkClient");
-        };
+    @ConditionalOnClass(OkHttpClient.class)
+    @ConditionalOnProperty(name = "shenyu.sdk.props.clientType")
+    public ShenyuSdkClient shenyuSdkClient(final ShenyuConfig config,
+                                                 final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
+        final ShenyuSdkClient shenyuSdkClient = ShenyuSdkClientFactory.newInstance(config.getSdk().getProps().getProperty("clientType"));
+        shenyuSdkClient.init(config.getSdk(), registerRepositoryObjectFactory);
+        return shenyuSdkClient;
     }
     
     /**
@@ -81,11 +89,27 @@ public class ShenyuSdkAutoConfiguration {
      * @return ShenYu Instance Register Repository
      */
     @Bean
-    @ConditionalOnProperty(name = "shenyu.sdk.enable", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.sdk.registerType")
     public ShenyuInstanceRegisterRepository shenyuInstanceRegisterRepository(final ShenyuConfig config) {
+        final String registerType = config.getSdk().getRegisterType();
+        if ("local".equals(registerType)) {
+            return null;
+        }
         ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance(config.getSdk().getRegisterType());
         repository.init(config.getSdk());
         return repository;
+    }
+
+    /**
+     * shenyu config.
+     *
+     * @return the shenyu config
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConfigurationProperties(prefix = "shenyu")
+    public ShenyuConfig shenyuConfig() {
+        return new ShenyuConfig();
     }
     
     /**
