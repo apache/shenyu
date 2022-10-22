@@ -92,7 +92,7 @@ public final class SignUtils {
     }
 
     /**
-     * trans to string map
+     * Transform to string map.
      *
      * @param map source map
      * @return string map
