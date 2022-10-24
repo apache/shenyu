@@ -133,8 +133,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         boolean cacheable = matchCacheConfig.getEnabled() && matchSelectorDataPair.getLeft();
 
         if (cacheable) {
-            cacheSelectorData(path, Objects.nonNull(matchedSelectorData) ?
-                    matchedSelectorData : SelectorData.builder().name(named()).build());
+            cacheSelectorData(path, Objects.nonNull(matchedSelectorData) ? matchedSelectorData : SelectorData.builder().name(named()).build());
         }
 
         return matchedSelectorData;
@@ -152,7 +151,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return matchSelector(exchange, selectors);
     }
 
-    private RuleData obtainMatchedRuleData(ServerWebExchange exchange, SelectorData selectorData) {
+    private RuleData obtainMatchedRuleData(final ServerWebExchange exchange, final SelectorData selectorData) {
 
         List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
 
@@ -166,7 +165,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
         return matchRule(exchange, rules);
     }
-
 
     private void cacheSelectorData(final String path, final SelectorData selectorData) {
         if (StringUtils.isBlank(selectorData.getId())) {
