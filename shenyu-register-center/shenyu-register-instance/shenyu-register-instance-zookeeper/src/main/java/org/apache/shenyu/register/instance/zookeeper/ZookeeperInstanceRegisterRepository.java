@@ -94,7 +94,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     @Override
     public void persistInstance(final InstanceEntity instance) {
         String uriNodeName = buildInstanceNodeName(instance);
-        String instancePath = InstancePathConstants.buildInstanceParentPath();
+        String instancePath = InstancePathConstants.buildInstanceParentPath(instance.getAppName());
         if (!client.isExist(instancePath)) {
             client.createOrUpdate(instancePath, "", CreateMode.PERSISTENT);
         }
@@ -106,12 +106,13 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
     @Override
     public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+        final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
         final Function<List<String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath -> {
-            String instanceRegisterJsonStr = client.get(InstancePathConstants.buildRealNode(selectKey, childPath));
+            String instanceRegisterJsonStr = client.get(InstancePathConstants.buildRealNode(watchKey, childPath));
             return GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceEntity.class);
         }).collect(Collectors.toList());
 
-        List<String> childrenPathList = client.subscribeChildrenChanges(selectKey, new CuratorWatcher() {
+        List<String> childrenPathList = client.subscribeChildrenChanges(watchKey, new CuratorWatcher() {
             @Override
             public void process(final WatchedEvent event) {
                 if (watcherListener != null) {
