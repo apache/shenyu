@@ -46,7 +46,18 @@ public class InstancePathConstants {
     public static String buildInstanceParentPath() {
         return String.join(SEPARATOR, ROOT_PATH, "instance");
     }
-    
+
+    /**
+     * Build instance parent path string.
+     * build child path of "/shenyu/register/instance/serviceName
+     *
+     * @param serviceName serviceName
+     * @return the string
+     */
+    public static String buildInstanceParentPath(final String serviceName) {
+        return String.join(SEPARATOR, ROOT_PATH, "instance", serviceName);
+    }
+
     /**
      * Build real node string.
      *
