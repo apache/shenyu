@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sdk.okhttp;
 
+import okhttp3.ConnectionPool;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -25,27 +26,41 @@ import okhttp3.Response;
 import okhttp3.internal.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
-import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.sdk.core.client.AbstractShenyuSdkClient;
+import org.apache.shenyu.spi.Join;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
  * shenyu okhttp.
  */
-public class OkHttpShenyuSdkClient implements ShenyuSdkClient {
+@Join
+public class OkHttpShenyuSdkClient extends AbstractShenyuSdkClient {
     
-    private final OkHttpClient okHttpClient;
+    private OkHttpClient okHttpClient;
 
-    public OkHttpShenyuSdkClient(final OkHttpClient okHttpClient) {
-        this.okHttpClient = okHttpClient;
+    @Override
+    protected void initClient(final Properties props) {
+        final String maxIdleConnections = props.getProperty("http.maxIdleConnections", "200");
+        final String keepAliveDuration = props.getProperty("http.keepAliveDuration", "2");
+        final String connectTimeout = props.getProperty("http.connectTimeout", "60");
+        final String readTimeout = props.getProperty("http.readTimeout", "60");
+        this.okHttpClient = new OkHttpClient.Builder()
+                .retryOnConnectionFailure(true)
+                .connectionPool(pool(Integer.parseInt(maxIdleConnections), Long.parseLong(keepAliveDuration)))
+                .connectTimeout(Long.parseLong(connectTimeout), TimeUnit.SECONDS)
+                .readTimeout(Long.parseLong(readTimeout), TimeUnit.SECONDS)
+                .build();
     }
 
     @Override
-    public ShenyuResponse execute(final ShenyuRequest request) throws IOException {
+    protected ShenyuResponse doRequest(final ShenyuRequest request) throws IOException {
         String url = request.getUrl();
         String body = request.getBody();
         Map<String, Collection<String>> headers = request.getHeaders();
@@ -93,5 +108,9 @@ public class OkHttpShenyuSdkClient implements ShenyuSdkClient {
                     okhttpResponse.headers().names().stream().collect(Collectors.toMap(name -> name, name -> okhttpResponse.headers().values(name))),
                     bodyStr, request);
         }
+    }
+
+    private ConnectionPool pool(final int maxIdleConnections, final long keepAliveDuration) {
+        return new ConnectionPool(maxIdleConnections, keepAliveDuration, TimeUnit.MINUTES);
     }
 }

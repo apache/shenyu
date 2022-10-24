@@ -17,35 +17,30 @@
 
 package org.apache.shenyu.sdk.core.client;
 
-import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
-import org.apache.shenyu.register.instance.api.config.RegisterConfig;
-import org.apache.shenyu.sdk.core.ShenyuRequest;
-import org.apache.shenyu.sdk.core.ShenyuResponse;
-import org.apache.shenyu.spi.SPI;
+import org.apache.shenyu.spi.ExtensionLoader;
 
-import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * ShenyuSdkClient.
+ * The type Shenyu sdk client factory.
  */
-@SPI
-public interface ShenyuSdkClient {
+public class ShenyuSdkClientFactory {
+
+    private static final Map<String, ShenyuSdkClient> SDK_CLIENT_MAP = new ConcurrentHashMap<>();
     
     /**
-     * Init.
+     * New shenyu sku client.
      *
-     * @param registerConfig the register config
-     * @param instanceRegisterRepository the instance register repository
+     * @param clientType the client type
+     * @return the shenyu instance register repository
      */
-    default void init(RegisterConfig registerConfig, ShenyuInstanceRegisterRepository instanceRegisterRepository) {
+    public static ShenyuSdkClient newInstance(final String clientType) {
+        if (!SDK_CLIENT_MAP.containsKey(clientType)) {
+            ShenyuSdkClient result = ExtensionLoader.getExtensionLoader(ShenyuSdkClient.class).getJoin(clientType);
+            SDK_CLIENT_MAP.put(clientType, result);
+            return result;
+        }
+        return SDK_CLIENT_MAP.get(clientType);
     }
-    
-    /**
-     * execute.
-     *
-     * @param request request
-     * @return {@link ShenyuResponse}
-     * @throws IOException error
-     */
-    ShenyuResponse execute(ShenyuRequest request) throws IOException;
 }

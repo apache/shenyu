@@ -17,46 +17,86 @@
 
 package org.apache.shenyu.sdk.core.client;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.UriUtils;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
-import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.sdk.core.retry.RetryableException;
+import org.apache.shenyu.sdk.core.retry.Retryer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+/**
+ * The type Abstract shenyu sdk client.
+ */
 public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractShenyuSdkClient.class);
 
-    private static final String URL_REWRITE_REGEX = ":\\/\\/[a-z\\d\\.|:]+\\/";
+    private Retryer retryer;
 
-    private final Retryer retryer;
+    private ShenyuInstanceRegisterRepository registerRepository;
 
-    private final ShenyuInstanceRegisterRepository registerRepository;
+    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
 
-    private final ShenyuConfig.RegisterConfig sdkConfig;
+    private RegisterConfig registerConfig;
 
-    public AbstractShenyuSdkClient() {
-        this.sdkConfig = Singleton.INST.get(ShenyuConfig.class).getSdk();
-        this.registerRepository = ShenyuInstanceRegisterRepositoryFactory.newInstance(sdkConfig.getRegisterType());
+    private String algorithm;
 
-        Boolean retryEnable = Optional.ofNullable(sdkConfig.getProps().get("retry.enable")).map(e -> (boolean) e).orElse(false);
-        Long period = Optional.ofNullable(sdkConfig.getProps().get("retry.period")).map(l -> (Long) l).orElse(100L);
-        long maxPeriod = Optional.ofNullable(sdkConfig.getProps().get("retry.maxPeriod")).map(l -> (Long) l).orElse(SECONDS.toMillis(1));
-        int maxAttempts = Optional.ofNullable(sdkConfig.getProps().get("retry.maxAttempts")).map(l -> (int) l).orElse(5);
+    private String scheme;
+    
+    /**
+     * Do request shenyu response.
+     *
+     * @param request the request
+     * @return the shenyu response
+     * @throws IOException the io exception
+     */
+    protected abstract ShenyuResponse doRequest(ShenyuRequest request) throws IOException;
+    
+    /**
+     * Init client.
+     *
+     * @param props the props
+     */
+    protected abstract void initClient(Properties props);
+
+    @Override
+    public void init(final RegisterConfig registerConfig, final ShenyuInstanceRegisterRepository instanceRegisterRepository) {
+        this.registerConfig = registerConfig;
+        this.registerRepository = instanceRegisterRepository;
+        Properties props = registerConfig.getProps();
+        Boolean retryEnable = Optional.ofNullable(props.get("retry.enable")).map(e -> (boolean) e).orElse(false);
+        Long period = Optional.ofNullable(props.get("retry.period")).map(l -> (Long) l).orElse(100L);
+        long maxPeriod = Optional.ofNullable(props.get("retry.maxPeriod")).map(l -> (Long) l).orElse(SECONDS.toMillis(1));
+        int maxAttempts = Optional.ofNullable(props.get("retry.maxAttempts")).map(l -> (int) l).orElse(5);
+        this.algorithm = props.getProperty("algorithm", "roundRobin");
+        this.scheme = props.getProperty("scheme", "http");
         this.retryer = retryEnable ? new Retryer.DefaultRetry(period, maxPeriod, maxAttempts) : Retryer.NEVER_RETRY;
-
+        this.initClient(props);
     }
 
     @Override
@@ -65,57 +105,83 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
         Retryer retryer = this.retryer.instance();
         while (true) {
             try {
-                return doRequest(rewriteShenyuRequest(request));
+                return execute0(request);
             } catch (RetryableException e) {
                 retryer.continueOrPropagate(e);
-                log.warn("request fail, retry. contextId: {}", request.getContextId());
             }
         }
     }
 
-    private ShenyuRequest rewriteShenyuRequest(final ShenyuRequest request) {
-        return ShenyuRequest.create(getRewriteUrl(request), request);
+    private ShenyuResponse execute0(final ShenyuRequest request) {
+        long start = System.nanoTime();
+        ShenyuResponse shenyuResponse;
+        try {
+            shenyuResponse = doRequest(rewriteShenYuRequest(request));
+        } catch (IOException e) {
+            log.warn("request fail, retry. requestUrl {} retryCount {} elapsedTime {} ex", request.getUrl(),
+                    retryer.retryCount(), TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start), e);
+            throw errorExecuting(request, e);
+        }
+        return shenyuResponse;
+    }
+
+    private static RetryableException errorExecuting(final ShenyuRequest request, final IOException cause) {
+        return new RetryableException(
+                format("%s executing %s %s", cause.getMessage(), request.getHttpMethod(), request.getUrl()),
+                cause,
+                null,
+                request);
+    }
+
+    private ShenyuRequest rewriteShenYuRequest(final ShenyuRequest request) {
+        return ShenyuRequest.create(loadBalancerInstances(request), request);
     }
 
     /**
-     * TODO wait append load balance logic.
      * get rewrite url by request.
      *
      * @param request the request.
      * @return {@linkplain String}
      */
-    private String getRewriteUrl(final ShenyuRequest request) {
-        String url;
-
-        if (StringUtils.isEmpty(sdkConfig.getRegisterType())) {
-            throw new IllegalArgumentException("configure registerType is required.");
-        }
-
-        if ("local".equals(sdkConfig.getRegisterType())) {
-            List<InstanceRegisterDTO> instanceRegister = registerRepository.getInstanceRegisterList();
-            InstanceRegisterDTO instanceRegisterDTO = instanceRegister.stream().findFirst().orElse(new InstanceRegisterDTO());
-            url = request.getUrl().replaceAll(
-                    URL_REWRITE_REGEX,
-                    String.format("://%s:%s/%s",
-                    instanceRegisterDTO.getHost(),
-                    instanceRegisterDTO.getPort(),
-                    instanceRegisterDTO.getAppName()
-            ));
-        } else {
-            List<String> serverList = Arrays.asList(sdkConfig.getServerLists().split(","));
+    private String loadBalancerInstances(final ShenyuRequest request) {
+        final List<Upstream> upstreams;
+        if (Objects.isNull(registerRepository)) {
+            List<String> serverList = Arrays.asList(registerConfig.getServerLists().split(","));
             if (serverList.isEmpty()) {
-                throw new IllegalArgumentException("illegal param, serverLists configuration required if registerType equals local.");
+                throw new ShenyuException("illegal param, serverLists configuration required if registerType equals local.");
             }
-            String serverAddress = serverList.stream().findFirst().orElse("");
-            if (!serverAddress.startsWith("http://") && !serverAddress.startsWith("https://")) {
-                serverAddress = "http://" + serverAddress;
+            upstreams = serverList.stream()
+                    .map(serverAddress -> Upstream.builder().url(UriUtils.appendScheme(serverAddress, scheme)).build())
+                    .collect(Collectors.toList());
+        } else {
+            List<InstanceEntity> instanceRegisters = watcherInstanceRegisterMap.get(request.getContextId());
+            if (instanceRegisters == null) {
+                instanceRegisters = registerRepository.selectInstancesAndWatcher(request.getContextId(),
+                    instanceRegisterDTOs -> watcherInstanceRegisterMap.put(request.getContextId(), instanceRegisterDTOs));
+                watcherInstanceRegisterMap.put(request.getContextId(), instanceRegisters);
             }
-            url = request.getUrl().replaceAll(URL_REWRITE_REGEX, serverAddress);
+            if (ObjectUtils.isEmpty(instanceRegisters)) {
+                throw new ShenyuException("Gateway address not found from registry.");
+            }
+            upstreams = instanceRegisters.stream()
+                    .map(instanceRegister -> {
+                        final String instanceUrl = String.join(Constants.COLONS, instanceRegister.getHost(), Integer.toString(instanceRegister.getPort()));
+                        return Upstream.builder().url(UriUtils.appendScheme(instanceUrl, scheme)).build();
+                    })
+                    .collect(Collectors.toList());
         }
-
-        return url;
+        // loadBalancer
+        final Upstream upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
+        return replaceUrl(upstream.getUrl(), request.getUrl());
     }
 
-    protected abstract ShenyuResponse doRequest(ShenyuRequest request) throws IOException;
+    private String replaceUrl(final String url, final String sourceUrl) {
+        final URI uri = URI.create(sourceUrl);
+        if (StringUtils.isEmpty(uri.getQuery())) {
+            return url + uri.getPath();
+        } else {
+            return String.format("%s%s?%s", url, uri.getPath(), uri.getQuery());
+        }
+    }
 
 }

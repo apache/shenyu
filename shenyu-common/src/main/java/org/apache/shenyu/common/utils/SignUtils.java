@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shenyu.common.constant.Constants;
-import org.springframework.util.DigestUtils;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -60,7 +60,7 @@ public final class SignUtils {
                 .collect(Collectors.joining()).trim()
                 .concat(signKey);
         // TODO this is a risk for error charset coding with getBytes
-        return DigestUtils.md5DigestAsHex(sign.getBytes()).toUpperCase();
+        return DigestUtils.md5Hex(sign.getBytes()).toUpperCase();
     }
 
     /**

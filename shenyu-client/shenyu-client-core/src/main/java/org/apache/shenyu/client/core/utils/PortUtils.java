@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
+package org.apache.shenyu.client.core.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.exception.ShenyuException;

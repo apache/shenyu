@@ -24,18 +24,18 @@ import com.ecwid.consul.v1.agent.model.NewService;
 import com.ecwid.consul.v1.health.HealthServicesRequest;
 import com.ecwid.consul.v1.health.model.HealthService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.config.ShenyuConfig.RegisterConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.subsriber.WatcherListener;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,7 +106,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     @Override
-    public void persistInstance(final InstanceRegisterDTO instance) {
+    public void persistInstance(final InstanceEntity instance) {
         String instanceNodeName = buildInstanceNodeName(instance);
         this.newService = new NewService();
         newService.setName(instance.getAppName());
@@ -114,23 +114,18 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         newService.setAddress(instance.getHost());
         newService.setPort(instance.getPort());
         newService.setCheck(createCheck());
-        if (StringUtils.hasText(tags)) {
+        if (StringUtils.isNotEmpty(tags)) {
             newService.setTags(new ArrayList<>(Arrays.asList(tags.split(","))));
         }
         newService.setMeta(Collections.singletonMap("nodeData", GsonUtils.getInstance().toJson(instance)));
         consulClient.agentServiceRegister(newService, token);
-        if (StringUtils.hasText(checkTtl)) {
-            this.ttlScheduler.add(newService.getId());
-        }
+        this.ttlScheduler.add(newService.getId());
         LOGGER.info("consul client register success: {}", newService);
     }
 
     private NewService.Check createCheck() {
         NewService.Check check = new NewService.Check();
-        if (StringUtils.hasText(checkTtl)) {
-            check.setTtl(checkTtl + "s");
-            return check;
-        }
+        check.setTtl(checkTtl + "s");
         return check;
     }
 
@@ -146,14 +141,14 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     }
 
-    private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
+    private String buildInstanceNodeName(final InstanceEntity instance) {
         String host = instance.getHost();
         int port = instance.getPort();
         return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
     @Override
-    public List<InstanceRegisterDTO> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
         this.watcherStart(selectKey, watcherListener);
         return this.getHealthServices(selectKey, "-1");
     }
@@ -189,7 +184,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         if (!running.get()) {
             return;
         }
-        final List<InstanceRegisterDTO> healthServices = this.getHealthServices(selectKey, waitTime);
+        final List<InstanceEntity> healthServices = this.getHealthServices(selectKey, waitTime);
         Set<WatcherListener> eventListeners = Optional.ofNullable(listenerMap.get(selectKey)).orElse(Collections.emptySet());
         // Long polling getHealthServices
         eventListeners.forEach(eventListener -> eventListener.listener(healthServices));
@@ -202,7 +197,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
      * @param waitTime waitTime
      * @return return
      */
-    public List<InstanceRegisterDTO> getHealthServices(final String selectKey, final String waitTime) {
+    public List<InstanceEntity> getHealthServices(final String selectKey, final String waitTime) {
         final Long newIndex = Optional.ofNullable(consulIndexes.get(selectKey)).orElse(-1L);
         final HealthServicesRequest healthServicesRequest = HealthServicesRequest.newBuilder()
                 .setToken(token)
@@ -214,7 +209,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
         if (CollectionUtils.isEmpty(healthServices.getValue())) {
             return Collections.emptyList();
         }
-        return healthServices.getValue().stream().map(healthService -> InstanceRegisterDTO.builder()
+        return healthServices.getValue().stream().map(healthService -> InstanceEntity.builder()
                 .appName(healthService.getService().getService())
                 .host(healthService.getService().getAddress())
                 .port(healthService.getService().getPort())

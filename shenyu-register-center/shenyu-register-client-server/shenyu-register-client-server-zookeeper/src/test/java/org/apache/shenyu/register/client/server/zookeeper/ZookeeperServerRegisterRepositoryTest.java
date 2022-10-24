@@ -27,10 +27,10 @@ import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPu
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
-import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -79,7 +79,7 @@ public class ZookeeperServerRegisterRepositoryTest {
                 }
             }
             final TreeCacheListener treeCacheListener = treeCacheListeners.stream().findFirst().orElse(null);
-            if (!ObjectUtils.isEmpty(treeCacheListener)) {
+            if (Objects.nonNull(treeCacheListener)) {
                 TreeCacheEvent event = mock(TreeCacheEvent.class);
                 ChildData childData = mock(ChildData.class);
                 treeCacheListener.childEvent(curatorFramework, event);

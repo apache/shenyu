@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.core.client;
+package org.apache.shenyu.sdk.core.retry;
 
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
@@ -47,7 +47,7 @@ public class RetryableException extends ShenyuException {
      * @param request request
      */
     public RetryableException(final String message, final Throwable cause,
-                     final Date retryAfter, final ShenyuRequest request) {
+                              final Date retryAfter, final ShenyuRequest request) {
         super(message, cause);
         this.httpMethod = request.getHttpMethod();
         this.retryAfter = Optional.ofNullable(retryAfter).map(Date::getTime).orElse(null);
