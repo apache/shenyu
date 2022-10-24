@@ -129,6 +129,14 @@ public final class JwtPluginTest {
     }
 
     @Test
+    public void testNullConverter() {
+        ruleData.setHandle(GsonUtils.getGson().toJson(jwtRuleHandle));
+        when(this.chain.execute(any())).thenReturn(Mono.empty());
+        Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(mono).expectSubscription().verifyComplete();
+    }
+
+    @Test
     public void testMulti() {
         final List<JwtRuleHandle.Convert> converts = new ArrayList<>();
         JwtRuleHandle.Convert webConvert = new JwtRuleHandle.Convert();
