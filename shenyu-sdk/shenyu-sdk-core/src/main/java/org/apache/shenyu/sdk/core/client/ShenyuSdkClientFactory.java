@@ -28,11 +28,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ShenyuSdkClientFactory {
 
     private static final Map<String, ShenyuSdkClient> SDK_CLIENT_MAP = new ConcurrentHashMap<>();
-
+    
     /**
      * New shenyu sku client.
      *
-     * @param clientType the config
+     * @param clientType the client type
      * @return the shenyu instance register repository
      */
     public static ShenyuSdkClient newInstance(final String clientType) {

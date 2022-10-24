@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.instance.zookeeper;
 
 public class ZookeeperConfig {
+    
     /**
      * zookeeper server list.
      * e.g. host1:2181,host2:2181
