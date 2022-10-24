@@ -19,8 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import java.util.List;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
-import org.apache.shenyu.admin.model.vo.TagRelationVO;
-import org.apache.shenyu.admin.model.vo.TagVO;
+import org.apache.shenyu.admin.model.entity.TagRelationDO;
 
 /**
  * The interface tag relation service.
@@ -55,22 +54,22 @@ public interface TagRelationService {
      * find tag by id.
      *
      * @param id primary key
-     * @return {@linkplain TagVO}
+     * @return {@linkplain TagRelationDO}
      */
-    TagRelationVO findById(String id);
+    TagRelationDO findById(String id);
 
     /**
      * find tag by tagId.
      *
      * @param tagId tag Id
-     * @return {@linkplain TagRelationVO}
+     * @return {@linkplain TagRelationDO}
      */
-    List<TagRelationVO> findByTagId(String tagId);
+    List<TagRelationDO> findByTagId(String tagId);
 
     /**
      * find tag relation by apiId.
      * @param apiId apiId
-     * @return {@linkplain TagRelationVO}
+     * @return {@linkplain TagRelationDO}
      */
-    List<TagRelationVO> findApiId(String apiId);
+    List<TagRelationDO> findApiId(String apiId);
 }

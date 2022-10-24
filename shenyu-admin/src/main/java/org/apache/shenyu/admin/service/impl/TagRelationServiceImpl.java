@@ -20,12 +20,10 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.query.TagRelationQuery;
-import org.apache.shenyu.admin.model.vo.TagRelationVO;
 import org.apache.shenyu.admin.service.TagRelationService;
 import org.apache.shenyu.admin.utils.Assert;
 import org.springframework.stereotype.Service;
@@ -62,24 +60,21 @@ public class TagRelationServiceImpl implements TagRelationService {
     }
 
     @Override
-    public TagRelationVO findById(final String id) {
-        TagRelationDO tagRelationDO = tagRelationMapper.selectByPrimaryKey(id);
-        return TagRelationVO.buildTagRelationVO(tagRelationDO);
+    public TagRelationDO findById(final String id) {
+        return tagRelationMapper.selectByPrimaryKey(id);
     }
 
     @Override
-    public List<TagRelationVO> findByTagId(final String tagId) {
+    public List<TagRelationDO> findByTagId(final String tagId) {
         TagRelationQuery tagRelationQuery = new TagRelationQuery();
         tagRelationQuery.setTagId(tagId);
-        List<TagRelationDO> tagRelationDOS = Optional.ofNullable(tagRelationMapper.selectByQuery(tagRelationQuery)).orElse(Lists.newArrayList());
-        return tagRelationDOS.stream().map(TagRelationVO::buildTagRelationVO).collect(Collectors.toList());
+        return Optional.ofNullable(tagRelationMapper.selectByQuery(tagRelationQuery)).orElse(Lists.newArrayList());
     }
 
     @Override
-    public List<TagRelationVO> findApiId(final String apiId) {
+    public List<TagRelationDO> findApiId(final String apiId) {
         TagRelationQuery tagRelationQuery = new TagRelationQuery();
         tagRelationQuery.setApiId(apiId);
-        List<TagRelationDO> tagRelationDOS = Optional.ofNullable(tagRelationMapper.selectByQuery(tagRelationQuery)).orElse(Lists.newArrayList());
-        return tagRelationDOS.stream().map(TagRelationVO::buildTagRelationVO).collect(Collectors.toList());
+        return Optional.ofNullable(tagRelationMapper.selectByQuery(tagRelationQuery)).orElse(Lists.newArrayList());
     }
 }

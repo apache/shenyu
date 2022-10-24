@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TagRelationMapperTest extends AbstractSpringIntegrationTest {
 
@@ -92,7 +93,7 @@ public class TagRelationMapperTest extends AbstractSpringIntegrationTest {
         TagRelationQuery tagQuery = new TagRelationQuery();
         tagQuery.setApiId("123");
         List<TagRelationDO> tagDOList = tagRelationMapper.selectByQuery(tagQuery);
-        assertThat(tagDOList.size() == 1, equalTo(true));
+        assertEquals(tagDOList.size(), 1);
     }
 
     @Test

@@ -35,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -79,14 +79,14 @@ public class TagServiceTest {
     public void testFindById() {
         given(this.tagMapper.selectByPrimaryKey(any())).willReturn(buildTagDO());
         TagVO tagVO = tagService.findById("123");
-        assertTrue(tagVO != null);
+        assertNotNull(tagVO);
     }
 
     @Test
     public void testFindByQuery() {
         given(this.tagMapper.selectByQuery(any())).willReturn(Lists.newArrayList(buildTagDO()));
-        TagVO tagVO = tagService.findByQuery("film");
-        assertTrue(tagVO != null);
+        List<TagVO> tagVOS = tagService.findByQuery("film");
+        assertEquals(tagVOS.size(), 1);
     }
 
     @Test
@@ -101,7 +101,6 @@ public class TagServiceTest {
         tagDTO.setId("123");
         tagDTO.setTagDesc("this is a pic tag");
         tagDTO.setParentTagId("111111");
-        tagDTO.setExt("test");
         tagDTO.setName("film");
         return tagDTO;
     }

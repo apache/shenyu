@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import com.google.common.collect.Lists;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test cases for ShenyuDictMapper.
@@ -95,7 +97,7 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         TagQuery tagQuery = new TagQuery();
         tagQuery.setName("111");
         List<TagDO> tagDOList = tagMapper.selectByQuery(tagQuery);
-        assertThat(tagDOList.size() == 1, equalTo(true));
+        assertEquals(tagDOList.size(), 1);
     }
 
     @Test
@@ -107,6 +109,18 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         assertThat(deleteCnt, greaterThan(0));
     }
 
+    @Test
+    public void testSelectByParentTagIds() {
+        TagDO record = buildTagDO();
+        int count = tagMapper.insertSelective(record);
+        assertEquals(count, 1);
+        List<String> list = new ArrayList<>();
+        list.add("0");
+        List<TagDO> tagDOS = tagMapper.selectByParentTagIds(list);
+        assertEquals(tagDOS.size(), 1);
+
+    }
+
     private TagDO buildTagDO() {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
@@ -114,7 +128,7 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
                 .id(id)
                 .name("111")
                 .tagDesc("test")
-                .parentTagId("123")
+                .parentTagId("0")
                 .ext("22222")
                 .dateCreated(now)
                 .dateUpdated(now)

@@ -21,12 +21,13 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.query.TagRelationQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
 
 /**
  * this is User Tag Mapper.
  */
 @Mapper
-public interface TagRelationMapper {
+public interface TagRelationMapper extends ExistProvider {
 
     /**
      * delete by primary key.

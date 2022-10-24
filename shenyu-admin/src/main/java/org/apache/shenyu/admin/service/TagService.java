@@ -65,7 +65,7 @@ public interface TagService {
      * @param tagName tag name
      * @return {@linkplain RoleVO}
      */
-    TagVO findByQuery(String tagName);
+    List<TagVO> findByQuery(String tagName);
 
     /**
      * find tag by parentTagId.

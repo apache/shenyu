@@ -63,6 +63,8 @@ public class TagVO implements Serializable {
      */
     private String dateUpdated;
 
+    private Boolean hasChildren = false;
+
     public TagVO() {
 
     }
@@ -193,6 +195,22 @@ public class TagVO implements Serializable {
      */
     public void setDateUpdated(final String dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * judge tag whether in the bottom.
+     * @return status
+     */
+    public Boolean getHasChildren() {
+        return hasChildren;
+    }
+
+    /**
+     * set status.
+     * @param hasChildren status
+     */
+    public void setHasChildren(final Boolean hasChildren) {
+        this.hasChildren = hasChildren;
     }
 
     /**

@@ -23,13 +23,11 @@ import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
+import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.model.vo.TagRelationVO;
 import org.apache.shenyu.admin.service.TagRelationService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,40 +49,14 @@ public class TagRelationController {
     }
 
     /**
-     * detail tag relation.
-     *
-     * @param id tag relation id.
-     * @return {@linkplain ShenyuAdminResult}
-     */
-    @GetMapping("/{id}")
-    public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
-                                        @Existed(provider = RuleMapper.class,
-                                                message = "tag relation is not existed") final String id) {
-        TagRelationVO tagRelationVO = tagRelationService.findById(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagRelationVO);
-    }
-
-    /**
      * list tag relation.
      *
      * @param tagId tag tagId.
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{tagId}")
-    public ShenyuAdminResult queryListByTagId(@PathVariable("tagId") @Valid final String tagId) {
-        List<TagRelationVO> tagRelationVOs = Optional.ofNullable(tagRelationService.findByTagId(tagId)).orElse(Lists.newArrayList());
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagRelationVOs);
-    }
-
-    /**
-     * list tag relation.
-     *
-     * @param apiId apiId.
-     * @return {@linkplain ShenyuAdminResult}
-     */
-    @GetMapping("/{apiId}")
-    public ShenyuAdminResult queryListByApiId(@PathVariable("apiId") @Valid final String apiId) {
-        List<TagRelationVO> tagRelationVOs = Optional.ofNullable(tagRelationService.findApiId(apiId)).orElse(Lists.newArrayList());
+    public ShenyuAdminResult queryApiByTagId(@PathVariable("tagId") @Valid final String tagId) {
+        List<TagRelationDO> tagRelationVOs = Optional.ofNullable(tagRelationService.findByTagId(tagId)).orElse(Lists.newArrayList());
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagRelationVOs);
     }
 

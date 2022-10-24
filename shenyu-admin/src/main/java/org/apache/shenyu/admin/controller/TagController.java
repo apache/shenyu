@@ -63,6 +63,11 @@ public class TagController {
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
 
+    @GetMapping("/queryRootTag")
+    public ShenyuAdminResult queryRootTag() {
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, tagService.findByParentTagId("0"));
+    }
+
     /**
      * detail tag.
      *
@@ -97,7 +102,7 @@ public class TagController {
      */
     @GetMapping("/{id}")
     public ShenyuAdminResult queryByName(@PathVariable("name") @Valid final String name) {
-        TagVO tagVO = tagService.findByQuery(name);
+        List<TagVO> tagVO = tagService.findByQuery(name);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagVO);
     }
 

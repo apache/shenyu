@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.model.dto;
 
 import java.io.Serializable;
+import org.apache.shenyu.admin.mapper.TagMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 
 /**
  * this tag from web front.
@@ -29,6 +31,10 @@ public class TagDTO implements Serializable {
     /**
      * primary key.
      */
+    /**
+     * primary key.
+     */
+    @Existed(provider = TagMapper.class, nullOfIgnore = true, message = "tag is not existed")
     private String id;
 
     /**
@@ -46,11 +52,6 @@ public class TagDTO implements Serializable {
      */
     private String parentTagId;
 
-    /**
-     * ext.
-     */
-    private String ext;
-
     public TagDTO() {
 
     }
@@ -60,7 +61,6 @@ public class TagDTO implements Serializable {
         this.name = name;
         this.tagDesc = tagDesc;
         this.parentTagId = parentTagId;
-        this.ext = ext;
     }
 
     /**
@@ -133,19 +133,4 @@ public class TagDTO implements Serializable {
         this.parentTagId = parentTagId;
     }
 
-    /**
-     * get ext.
-     * @return ext info
-     */
-    public String getExt() {
-        return ext;
-    }
-
-    /**
-     * set ext.
-     * @param ext ext
-     */
-    public void setExt(final String ext) {
-        this.ext = ext;
-    }
 }

@@ -60,6 +60,16 @@
         </where>
     </select>
 
+    <select id="selectByParentTagIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM tag
+        WHERE parent_tag_id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.TagDO">
         INSERT INTO tag
         (id,

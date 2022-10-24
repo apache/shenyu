@@ -160,7 +160,6 @@ public final class TagDO extends BaseDO {
                     .parentTagId(tagDTO.getParentTagId())
                     .tagDesc(tagDTO.getTagDesc())
                     .name(tagDTO.getName())
-                    .ext(tagDTO.getExt())
                     .dateUpdated(currentTime)
                     .build();
             if (StringUtils.isEmpty(item.getId())) {

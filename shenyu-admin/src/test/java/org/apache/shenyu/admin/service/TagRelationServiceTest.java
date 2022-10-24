@@ -25,7 +25,6 @@ import java.util.List;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.TagRelationDTO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
-import org.apache.shenyu.admin.model.vo.TagRelationVO;
 import org.apache.shenyu.admin.service.impl.TagRelationServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -80,8 +79,8 @@ public class TagRelationServiceTest {
     @Test
     public void testFindId() {
         given(this.tagRelationMapper.selectByPrimaryKey(any())).willReturn(buildTagRelationDO());
-        TagRelationVO tagRelationVO = tagRelationService.findById("11111");
-        assertTrue(tagRelationVO != null);
+        TagRelationDO tagRelationDO = tagRelationService.findById("11111");
+        assertNotNull(tagRelationDO);
     }
 
     @Test
@@ -89,8 +88,8 @@ public class TagRelationServiceTest {
         List<TagRelationDO> tagRelationDOList = new ArrayList<>();
         tagRelationDOList.add(buildTagRelationDO());
         given(this.tagRelationMapper.selectByQuery(any())).willReturn(tagRelationDOList);
-        List<TagRelationVO> tagRelationVOList = tagRelationService.findByTagId("123");
-        assertEquals(tagRelationVOList.size(), 1);
+        List<TagRelationDO> tagRelationDOS = tagRelationService.findByTagId("123");
+        assertEquals(tagRelationDOS.size(), 1);
     }
 
     @Test
@@ -98,8 +97,8 @@ public class TagRelationServiceTest {
         List<TagRelationDO> tagRelationDOList = new ArrayList<>();
         tagRelationDOList.add(buildTagRelationDO());
         given(this.tagRelationMapper.selectByQuery(any())).willReturn(tagRelationDOList);
-        List<TagRelationVO> tagRelationVOList = tagRelationService.findApiId("123456");
-        assertEquals(tagRelationVOList.size(), 1);
+        List<TagRelationDO> tagRelationDOS = tagRelationService.findApiId("123456");
+        assertEquals(tagRelationDOS.size(), 1);
     }
 
     private TagRelationDO buildTagRelationDO() {

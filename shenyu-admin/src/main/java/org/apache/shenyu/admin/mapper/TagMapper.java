@@ -21,12 +21,13 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.query.TagQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
 
 /**
  * this is User Tag Mapper.
  */
 @Mapper
-public interface TagMapper {
+public interface TagMapper extends ExistProvider {
 
     /**
      * delete by primary key.
@@ -62,10 +63,18 @@ public interface TagMapper {
 
     /**
      * select by key.
+     *
      * @param id primaryKey
      * @return tagDO
      */
     TagDO selectByPrimaryKey(String id);
+
+    /**
+     * query by parenttagIds.
+     * @param list parenttagIds
+     * @return tagDos
+     */
+    List<TagDO> selectByParentTagIds(List<String> list);
 
     /**
      * select tag by query.
@@ -77,6 +86,7 @@ public interface TagMapper {
 
     /**
      * update record.
+     *
      * @param record record
      * @return update count
      */
@@ -84,6 +94,7 @@ public interface TagMapper {
 
     /**
      * update .
+     *
      * @param record update record
      * @return update count
      */
