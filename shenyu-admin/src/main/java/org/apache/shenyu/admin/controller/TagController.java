@@ -63,6 +63,10 @@ public class TagController {
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
 
+    /**
+     * query root tag.
+     * @return {@linkplain ShenyuAdminResult}
+     */
     @GetMapping("/queryRootTag")
     public ShenyuAdminResult queryRootTag() {
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, tagService.findByParentTagId("0"));
