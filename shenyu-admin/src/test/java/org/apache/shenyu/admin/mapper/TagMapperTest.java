@@ -76,6 +76,8 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count, greaterThan(0));
         TagDO tagDO = tagMapper.selectByPrimaryKey(record.getId());
         assertThat(tagDO != null, equalTo(true));
+        int delete = tagMapper.deleteByPrimaryKey(record.getId());
+        assertThat(delete, equalTo(1));
     }
 
     @Test
@@ -87,6 +89,8 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         tagMapper.updateByPrimaryKey(record);
         TagDO tagDO = tagMapper.selectByPrimaryKey(record.getId());
         assertThat(tagDO.getTagDesc().equals("2222222"), equalTo(true));
+        int delete = tagMapper.deleteByPrimaryKey(record.getId());
+        assertThat(delete, equalTo(1));
     }
 
     @Test
@@ -98,6 +102,8 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         tagQuery.setName("111");
         List<TagDO> tagDOList = tagMapper.selectByQuery(tagQuery);
         assertEquals(tagDOList.size(), 1);
+        int delete = tagMapper.deleteByPrimaryKey(record.getId());
+        assertThat(delete, equalTo(1));
     }
 
     @Test
@@ -118,6 +124,8 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         list.add("0");
         List<TagDO> tagDOS = tagMapper.selectByParentTagIds(list);
         assertEquals(tagDOS.size(), 1);
+        int delete = tagMapper.deleteByPrimaryKey(record.getId());
+        assertThat(delete, equalTo(1));
 
     }
 
