@@ -58,15 +58,6 @@ public interface ShenyuInstanceRegisterRepository {
     }
 
     /**
-     * getInstanceRegisterList.
-     *
-     * @return {@linkplain List}
-     */
-    default List<InstanceEntity> getInstanceRegisterList() {
-        return Collections.emptyList();
-    }
-
-    /**
      * Close.
      */
     default void close() {
