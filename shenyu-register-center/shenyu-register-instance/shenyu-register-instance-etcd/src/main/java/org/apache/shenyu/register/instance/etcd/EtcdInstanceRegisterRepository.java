@@ -58,7 +58,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     @Override
     public void persistInstance(final InstanceEntity instance) {
         String instanceNodeName = buildInstanceNodeName(instance);
-        String instancePath = InstancePathConstants.buildInstanceParentPath();
+        String instancePath = InstancePathConstants.buildInstanceParentPath(instance.getAppName());
         String realNode = InstancePathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);
@@ -66,7 +66,8 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     }
 
     @Override
-    public List<InstanceEntity> selectInstancesAndWatcher(final String watchKey, final WatcherListener watcherListener) {
+    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+        final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
         final Function<Map<String, String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList ->
                 childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceEntity.class)).collect(Collectors.toList());
         Map<String, String> serverNodes = client.getKeysMapByPrefix(watchKey);
