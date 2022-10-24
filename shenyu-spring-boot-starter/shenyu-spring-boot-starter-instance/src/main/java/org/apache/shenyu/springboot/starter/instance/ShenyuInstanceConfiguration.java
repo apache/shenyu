@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.springboot.starter.instance;
 
-import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,6 +30,17 @@ import org.springframework.context.annotation.Configuration;
 public class ShenyuInstanceConfiguration {
     
     /**
+     * Register config register config.
+     *
+     * @return the register config
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu.register")
+    public RegisterConfig registerConfig() {
+        return new RegisterConfig();
+    }
+    
+    /**
      * Instance register listener.
      *
      * @param config the config
@@ -36,7 +48,7 @@ public class ShenyuInstanceConfiguration {
      */
     @Bean
     @ConditionalOnProperty(name = "shenyu.register.enabled", havingValue = "true")
-    public InstanceRegisterListener instanceRegisterListener(final ShenyuConfig config) {
-        return new InstanceRegisterListener(config.getRegister());
+    public InstanceRegisterListener instanceRegisterListener(final RegisterConfig config) {
+        return new InstanceRegisterListener(config);
     }
 }

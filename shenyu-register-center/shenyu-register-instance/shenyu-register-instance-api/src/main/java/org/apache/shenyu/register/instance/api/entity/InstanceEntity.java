@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.dto;
+package org.apache.shenyu.register.instance.api.entity;
 
 import java.util.Objects;
 
 /**
  * The type Instance register dto.
  */
-public class InstanceRegisterDTO {
+public class InstanceEntity {
 
     private String appName;
 
@@ -37,7 +37,7 @@ public class InstanceRegisterDTO {
      * @param host the host
      * @param port the port
      */
-    public InstanceRegisterDTO(final String appName, final String host, final Integer port) {
+    public InstanceEntity(final String appName, final String host, final Integer port) {
         this.appName = appName;
         this.host = host;
         this.port = port;
@@ -46,27 +46,15 @@ public class InstanceRegisterDTO {
     /**
      * Instantiates a new Instance register dto.
      */
-    public InstanceRegisterDTO() {
+    public InstanceEntity() {
     }
 
-    private InstanceRegisterDTO(final Builder builder) {
+    private InstanceEntity(final Builder builder) {
         appName = builder.appName;
         host = builder.host;
         port = builder.port;
     }
     
-    /**
-     * Trans form uri register dto.
-     *
-     * @param metaDataRegisterDTO the meta data register dto
-     * @return the uri register dto
-     */
-    public static InstanceRegisterDTO transForm(final MetaDataRegisterDTO metaDataRegisterDTO) {
-        return InstanceRegisterDTO.builder()
-                .appName(metaDataRegisterDTO.getAppName())
-                .host(metaDataRegisterDTO.getHost())
-                .port(metaDataRegisterDTO.getPort()).build();
-    }
     
     /**
      * return builder.
@@ -141,7 +129,7 @@ public class InstanceRegisterDTO {
             return Boolean.FALSE;
         }
 
-        InstanceRegisterDTO that = (InstanceRegisterDTO) o;
+        InstanceEntity that = (InstanceEntity) o;
         return Objects.equals(getAppName(), that.getAppName())
                 && Objects.equals(getHost(), that.getHost())
                 && Objects.equals(getPort(), that.getPort());
@@ -216,8 +204,8 @@ public class InstanceRegisterDTO {
          *
          * @return Builder instance register dto
          */
-        public InstanceRegisterDTO build() {
-            return new InstanceRegisterDTO(this);
+        public InstanceEntity build() {
+            return new InstanceEntity(this);
         }
     }
 }

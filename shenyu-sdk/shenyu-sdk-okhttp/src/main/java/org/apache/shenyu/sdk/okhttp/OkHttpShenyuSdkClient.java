@@ -25,17 +25,15 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.internal.Util;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.apache.shenyu.sdk.core.client.AbstractShenyuSdkClient;
 import org.apache.shenyu.spi.Join;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -48,12 +46,11 @@ public class OkHttpShenyuSdkClient extends AbstractShenyuSdkClient {
     private OkHttpClient okHttpClient;
 
     @Override
-    protected void initClient(final ShenyuConfig.RegisterConfig shenyuConfig,
-                              final ObjectProvider<ShenyuInstanceRegisterRepository> registerRepositoryObjectFactory) {
-        final String maxIdleConnections = shenyuConfig.getProps().getProperty("http.maxIdleConnections", "200");
-        final String keepAliveDuration = shenyuConfig.getProps().getProperty("http.keepAliveDuration", "2");
-        final String connectTimeout = shenyuConfig.getProps().getProperty("http.connectTimeout", "60");
-        final String readTimeout = shenyuConfig.getProps().getProperty("http.readTimeout", "60");
+    protected void initClient(final Properties props) {
+        final String maxIdleConnections = props.getProperty("http.maxIdleConnections", "200");
+        final String keepAliveDuration = props.getProperty("http.keepAliveDuration", "2");
+        final String connectTimeout = props.getProperty("http.connectTimeout", "60");
+        final String readTimeout = props.getProperty("http.readTimeout", "60");
         this.okHttpClient = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(true)
                 .connectionPool(pool(Integer.parseInt(maxIdleConnections), Long.parseLong(keepAliveDuration)))

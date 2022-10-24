@@ -20,14 +20,13 @@ package org.apache.shenyu.register.instance.consul;
 import com.ecwid.consul.v1.ConsulClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * TtlScheduler.
@@ -38,8 +37,7 @@ public class TtlScheduler {
 
     private final Map<String, ScheduledFuture<?>> serviceHeartbeats = new ConcurrentHashMap<>();
 
-    private final TaskScheduler scheduler = new ConcurrentTaskScheduler(
-            Executors.newSingleThreadScheduledExecutor());
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private final int ttl;
 
@@ -56,7 +54,7 @@ public class TtlScheduler {
      */
     public void add(final String instanceId) {
         final ScheduledFuture<?> task = this.scheduler.scheduleAtFixedRate(
-                new ConsulHeartbeatTask(instanceId), Duration.ofSeconds(ttl - 1));
+                new ConsulHeartbeatTask(instanceId), ttl, ttl, TimeUnit.SECONDS);
         final ScheduledFuture<?> previousTask = this.serviceHeartbeats.put(instanceId, task);
         if (previousTask != null) {
             previousTask.cancel(true);
@@ -94,7 +92,5 @@ public class TtlScheduler {
                 log.debug("Sending consul heartbeat for: " + this.checkId);
             }
         }
-
     }
-
 }
