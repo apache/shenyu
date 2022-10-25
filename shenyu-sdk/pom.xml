@@ -26,10 +26,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-sdk</artifactId>
     <packaging>pom</packaging>
-
-    <properties>
-        <httpasyncclient.version>4.1.5</httpasyncclient.version>
-    </properties>
     
     <modules>
         <module>shenyu-sdk-core</module>

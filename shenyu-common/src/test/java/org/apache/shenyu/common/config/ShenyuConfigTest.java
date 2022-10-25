@@ -20,12 +20,15 @@ package org.apache.shenyu.common.config;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
-import org.springframework.util.Assert;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for ShenyuConfig.
@@ -64,12 +67,11 @@ public class ShenyuConfigTest {
     }
 
     private void notEmptyElements(final Object... objects) {
-        Assert.isTrue(ArrayUtils.isNotEmpty(objects), "array must not be empty");
-
+        assertTrue(ArrayUtils.isNotEmpty(objects));
         Arrays.stream(objects).forEach(val -> {
-            Assert.notNull(val, "val must not be null");
+            assertNotNull(val, "val must not be null");
             if (val instanceof String) {
-                Assert.isTrue(StringUtils.isNotEmpty((String) val), "val must not be empty");
+                assertTrue(StringUtils.isNotEmpty((String) val), "val must not be empty");
             }
         });
     }
@@ -93,7 +95,7 @@ public class ShenyuConfigTest {
     public void testWebsocketConfig() {
         ShenyuConfig.WebsocketConfig websocket = config.getWebsocket();
         websocket.setMaxFramePayloadSize(5);
-        Assert.isTrue(websocket.getMaxFramePayloadSize() == 5, "result not excepted");
+        assertEquals(5, (int) websocket.getMaxFramePayloadSize());
     }
 
     @Test
@@ -135,8 +137,8 @@ public class ShenyuConfigTest {
         metrics.setProps(new Properties());
 
         boolean enabled = metrics.getEnabled();
-        Assert.isTrue(enabled, "result not excepted");
-
+    
+        assertTrue(enabled, "result not excepted");
         String jmxConfig = metrics.getJmxConfig();
         Properties props = metrics.getProps();
         String host = metrics.getHost();

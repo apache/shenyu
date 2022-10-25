@@ -32,7 +32,6 @@ import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.PathMatchUtils;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperConfig;
 import org.apache.zookeeper.CreateMode;
@@ -168,7 +167,7 @@ public class HttpServiceDiscovery implements InitializingBean {
         public void childEvent(final CuratorFramework client, final TreeCacheEvent event) throws Exception {
             String path = event.getData().getPath();
             // if not uri register path, return.
-            if (!PathMatchUtils.match(URI_PATH, path)) {
+            if (!path.contains(ROOT)) {
                 return;
             }
 
