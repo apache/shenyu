@@ -35,6 +35,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpasyncclient</artifactId>
+            <version>${httpasyncclient.version}</version>
         </dependency>
     </dependencies>
 </project>
