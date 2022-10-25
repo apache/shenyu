@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
+package org.apache.shenyu.plugin.base.utils;
 
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
