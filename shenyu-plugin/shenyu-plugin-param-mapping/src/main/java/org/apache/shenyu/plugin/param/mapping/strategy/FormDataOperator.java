@@ -124,7 +124,6 @@ public class FormDataOperator implements Operator {
         }.getType());
     }
     
-    
     static class ModifyServerHttpRequestDecorator extends ServerHttpRequestDecorator {
 
         private final HttpHeaders headers;
