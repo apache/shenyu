@@ -15,21 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.entity;
+package org.apache.shenyu.admin.model.vo;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.dto.ApiDTO;
-import org.apache.shenyu.common.utils.UUIDUtils;
+import org.apache.shenyu.admin.model.entity.ApiDO;
 
-import java.sql.Timestamp;
+import java.io.Serializable;
 import java.util.Date;
-import java.util.Optional;
 
 /**
- * api.
+ * this is api view to web front.
  */
-public class ApiDO {
+public class ApiVO implements Serializable {
+
+    private static final long serialVersionUID = 7944745026885343719L;
+
     /**
      * primary key id.
      */
@@ -389,48 +388,40 @@ public class ApiDO {
 
     /**
      * builder.
-     * @return ApiDOBuilder
+     * @return ApiVOBuilder.
      */
-    public static ApiDOBuilder builder() {
-        return new ApiDOBuilder();
+    public static ApiVOBuilder builder() {
+        return new ApiVOBuilder();
     }
 
     /**
-     * buildApiDO.
-     * @param apiDTO apiDTO
-     * @return ApiDO
+     * buildApiVO.
+     * @param apiDO apiDO.
+     * @return ApiVO.
      */
-    public static ApiDO buildApiDO(final ApiDTO apiDTO) {
-
-        return Optional.ofNullable(apiDTO).map(item -> {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            ApiDO apiDO = ApiDO.builder()
-                    .contextPath(item.getContextPath())
-                    .apiPath(item.getApiPath())
-                    .httpMethod(item.getHttpMethod())
-                    .consume(item.getConsume())
-                    .produce(item.getProduce())
-                    .version(item.getVersion())
-                    .rpcType(item.getRpcType())
-                    .state(item.getState())
-                    .ext(item.getExt())
-                    .apiOwner(item.getApiOwner())
-                    .apiDesc(item.getApiDesc())
-                    .apiSource(item.getApiSource())
-                    .document(item.getDocument())
-                    .documentMd5(DigestUtils.md5Hex(item.getDocument()))
-                    .build();
-            if (StringUtils.isEmpty(item.getId())) {
-                apiDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                apiDO.setDateCreated(currentTime);
-            } else {
-                apiDO.setId(item.getId());
-            }
-            return apiDO;
-        }).orElse(null);
+    public static ApiVO buildApiVO(final ApiDO apiDO) {
+        return ApiVO.builder()
+                .id(apiDO.getId())
+                .contextPath(apiDO.getContextPath())
+                .apiPath(apiDO.getApiPath())
+                .httpMethod(apiDO.getHttpMethod())
+                .consume(apiDO.getConsume())
+                .produce(apiDO.getProduce())
+                .version(apiDO.getVersion())
+                .rpcType(apiDO.getRpcType())
+                .state(apiDO.getState())
+                .ext(apiDO.getExt())
+                .apiOwner(apiDO.getApiOwner())
+                .apiDesc(apiDO.getApiDesc())
+                .apiSource(apiDO.getApiSource())
+                .document(apiDO.getDocument())
+                .documentMd5(apiDO.getDocumentMd5())
+                .dateCreated(apiDO.getDateCreated())
+                .dateUpdated(apiDO.getDateUpdated())
+                .build();
     }
 
-    public static final class ApiDOBuilder {
+    public static final class ApiVOBuilder {
 
         private String id;
 
@@ -466,18 +457,15 @@ public class ApiDO {
 
         private Date dateUpdated;
 
-        /**
-         * Construct.
-         */
-        private ApiDOBuilder() {
+        private ApiVOBuilder() {
         }
 
         /**
          * builder id.
          * @param id id
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder id(final String id) {
+        public ApiVOBuilder id(final String id) {
             this.id = id;
             return this;
         }
@@ -485,9 +473,9 @@ public class ApiDO {
         /**
          * builder contextPath.
          * @param contextPath contextPath
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder contextPath(final String contextPath) {
+        public ApiVOBuilder contextPath(final String contextPath) {
             this.contextPath = contextPath;
             return this;
         }
@@ -495,9 +483,9 @@ public class ApiDO {
         /**
          * builder apiPath.
          * @param apiPath apiPath
-         * @return ApiDOBuilder
+         * @return  ApiVOBuilder
          */
-        public ApiDOBuilder apiPath(final String apiPath) {
+        public ApiVOBuilder apiPath(final String apiPath) {
             this.apiPath = apiPath;
             return this;
         }
@@ -505,19 +493,19 @@ public class ApiDO {
         /**
          * builder httpMethod.
          * @param httpMethod httpMethod
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder httpMethod(final Integer httpMethod) {
+        public ApiVOBuilder httpMethod(final Integer httpMethod) {
             this.httpMethod = httpMethod;
             return this;
         }
 
         /**
-         * builder httpMethod.
+         * builder  consume.
          * @param consume consume
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder consume(final String consume) {
+        public ApiVOBuilder consume(final String consume) {
             this.consume = consume;
             return this;
         }
@@ -525,9 +513,9 @@ public class ApiDO {
         /**
          * builder produce.
          * @param produce produce
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder produce(final String produce) {
+        public ApiVOBuilder produce(final String produce) {
             this.produce = produce;
             return this;
         }
@@ -535,9 +523,9 @@ public class ApiDO {
         /**
          * builder version.
          * @param version version
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder version(final String version) {
+        public ApiVOBuilder version(final String version) {
             this.version = version;
             return this;
         }
@@ -545,9 +533,9 @@ public class ApiDO {
         /**
          * builder rpcType.
          * @param rpcType rpcType
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder rpcType(final String rpcType) {
+        public ApiVOBuilder rpcType(final String rpcType) {
             this.rpcType = rpcType;
             return this;
         }
@@ -555,9 +543,9 @@ public class ApiDO {
         /**
          * builder state.
          * @param state state
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder state(final Byte state) {
+        public ApiVOBuilder state(final Byte state) {
             this.state = state;
             return this;
         }
@@ -565,9 +553,9 @@ public class ApiDO {
         /**
          * builder ext.
          * @param ext ext
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder ext(final String ext) {
+        public ApiVOBuilder ext(final String ext) {
             this.ext = ext;
             return this;
         }
@@ -575,9 +563,9 @@ public class ApiDO {
         /**
          * builder apiOwner.
          * @param apiOwner apiOwner
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder apiOwner(final String apiOwner) {
+        public ApiVOBuilder apiOwner(final String apiOwner) {
             this.apiOwner = apiOwner;
             return this;
         }
@@ -585,9 +573,9 @@ public class ApiDO {
         /**
          * builder apiDesc.
          * @param apiDesc apiDesc
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder apiDesc(final String apiDesc) {
+        public ApiVOBuilder apiDesc(final String apiDesc) {
             this.apiDesc = apiDesc;
             return this;
         }
@@ -595,9 +583,9 @@ public class ApiDO {
         /**
          * builder apiSource.
          * @param apiSource apiSource
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder apiSource(final Integer apiSource) {
+        public ApiVOBuilder apiSource(final Integer apiSource) {
             this.apiSource = apiSource;
             return this;
         }
@@ -605,9 +593,9 @@ public class ApiDO {
         /**
          * builder document.
          * @param document document
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder document(final String document) {
+        public ApiVOBuilder document(final String document) {
             this.document = document;
             return this;
         }
@@ -615,9 +603,9 @@ public class ApiDO {
         /**
          * builder documentMd5.
          * @param documentMd5 documentMd5
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder documentMd5(final String documentMd5) {
+        public ApiVOBuilder documentMd5(final String documentMd5) {
             this.documentMd5 = documentMd5;
             return this;
         }
@@ -625,9 +613,9 @@ public class ApiDO {
         /**
          * builder dateCreated.
          * @param dateCreated dateCreated
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder dateCreated(final Date dateCreated) {
+        public ApiVOBuilder dateCreated(final Date dateCreated) {
             this.dateCreated = dateCreated;
             return this;
         }
@@ -635,37 +623,37 @@ public class ApiDO {
         /**
          * builder dateUpdated.
          * @param dateUpdated dateUpdated
-         * @return ApiDOBuilder
+         * @return ApiVOBuilder
          */
-        public ApiDOBuilder dateUpdated(final Date dateUpdated) {
+        public ApiVOBuilder dateUpdated(final Date dateUpdated) {
             this.dateUpdated = dateUpdated;
             return this;
         }
 
         /**
-         * builder.
-         * @return ApiDO
+         * build.
+         * @return ApiVO
          */
-        public ApiDO build() {
-            ApiDO apiDO = new ApiDO();
-            apiDO.setId(id);
-            apiDO.setContextPath(contextPath);
-            apiDO.setApiPath(apiPath);
-            apiDO.setHttpMethod(httpMethod);
-            apiDO.setConsume(consume);
-            apiDO.setProduce(produce);
-            apiDO.setVersion(version);
-            apiDO.setRpcType(rpcType);
-            apiDO.setState(state);
-            apiDO.setExt(ext);
-            apiDO.setApiOwner(apiOwner);
-            apiDO.setApiDesc(apiDesc);
-            apiDO.setApiSource(apiSource);
-            apiDO.setDocument(document);
-            apiDO.setDocumentMd5(documentMd5);
-            apiDO.setDateCreated(dateCreated);
-            apiDO.setDateUpdated(dateUpdated);
-            return apiDO;
+        public ApiVO build() {
+            ApiVO apiVO = new ApiVO();
+            apiVO.setId(id);
+            apiVO.setContextPath(contextPath);
+            apiVO.setApiPath(apiPath);
+            apiVO.setHttpMethod(httpMethod);
+            apiVO.setConsume(consume);
+            apiVO.setProduce(produce);
+            apiVO.setVersion(version);
+            apiVO.setRpcType(rpcType);
+            apiVO.setState(state);
+            apiVO.setExt(ext);
+            apiVO.setApiOwner(apiOwner);
+            apiVO.setApiDesc(apiDesc);
+            apiVO.setApiSource(apiSource);
+            apiVO.setDocument(document);
+            apiVO.setDocumentMd5(documentMd5);
+            apiVO.setDateCreated(dateCreated);
+            apiVO.setDateUpdated(dateUpdated);
+            return apiVO;
         }
     }
 }

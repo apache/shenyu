@@ -257,4 +257,46 @@
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=VARCHAR}
   </update>
+
+  <select id="existed" resultType="java.lang.Boolean">
+    select true
+    from api
+    where id = #{id} limit 1
+  </select>
+
+  <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ApiQuery"
+          resultMap="BaseResultMap">
+      select
+        <include refid="Base_Column_List"/>
+      from api
+      <where>
+          <if test="apiPath != null and apiPath != ''">
+              <bind name="nameLike" value="('%' + apiPath + '%')"/>
+              AND api_path LIKE #{nameLike, jdbcType=VARCHAR}
+          </if>
+          <if test="state != null">
+              AND state = #{state, jdbcType=TINYINT}
+          </if>
+      </where>
+      order by date_created desc
+  </select>
+
+  <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM api
+    WHERE id IN
+    <foreach item="id" collection="list" open="(" separator="," close=")">
+      #{id, jdbcType=VARCHAR}
+    </foreach>
+  </select>
+
+  <delete id="deleteByIds" parameterType="java.util.List">
+    DELETE FROM api
+    WHERE id IN
+    <foreach item="id" collection="list" open="(" separator="," close=")">
+      #{id, jdbcType=VARCHAR}
+    </foreach>
+  </delete>
+
 </mapper>
