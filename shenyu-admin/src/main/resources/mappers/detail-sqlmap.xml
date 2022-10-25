@@ -42,23 +42,23 @@
 
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DetailDO">
         insert into detail (
-        id,
-        field_id,
-        is_example,
-        field_value,
-        field_desc,
-        value_desc,
-        date_created,
-        date_updated
+            id,
+            field_id,
+            is_example,
+            field_value,
+            field_desc,
+            value_desc,
+            date_created,
+            date_updated
         )values (
-        #{id, jdbcType=VARCHAR},
-        #{fieldId, jdbcType=VARCHAR},
-        #{example, jdbcType=TINYINT},
-        #{fieldValue, jdbcType=VARCHAR},
-        #{fieldDesc, jdbcType=VARCHAR},
-        #{valueDesc, jdbcType=VARCHAR},
-        #{dateCreated,jdbcType=TIMESTAMP},
-        #{dateUpdated,jdbcType=TIMESTAMP}
+            #{id, jdbcType=VARCHAR},
+            #{fieldId, jdbcType=VARCHAR},
+            #{example, jdbcType=TINYINT},
+            #{fieldValue, jdbcType=VARCHAR},
+            #{fieldDesc, jdbcType=VARCHAR},
+            #{valueDesc, jdbcType=VARCHAR},
+            #{dateCreated,jdbcType=TIMESTAMP},
+            #{dateUpdated,jdbcType=TIMESTAMP}
         )
     </insert>
 
