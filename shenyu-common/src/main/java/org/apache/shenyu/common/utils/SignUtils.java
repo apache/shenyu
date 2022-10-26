@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.springframework.util.DigestUtils;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -66,7 +67,7 @@ public final class SignUtils {
             .orElse(null);
         final String sign = String.join("", jsonSign, querySign, signKey);
         // TODO this is a risk for error charset coding with getBytes
-        return DigestUtils.md5DigestAsHex(sign.getBytes()).toUpperCase();
+        return DigestUtils.md5Hex(sign.getBytes()).toUpperCase();
     }
 
     /**

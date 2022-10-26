@@ -25,7 +25,7 @@ import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.utils.DateUtils;
-import org.apache.shenyu.common.utils.PathMatchUtils;
+import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;

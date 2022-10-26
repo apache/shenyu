@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
+package org.apache.shenyu.plugin.base.utils;
 
 import org.hamcrest.collection.IsMapContaining;
 import org.junit.jupiter.api.Test;

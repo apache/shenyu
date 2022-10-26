@@ -15,22 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.subsriber;
+package org.apache.shenyu.register.instance.api.watcher;
 
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 
 import java.util.List;
 
 /**
- * WatcherListener InstanceRegisterDTO.
+ * WatcherListener InstanceEntity.
  */
 @FunctionalInterface
 public interface WatcherListener {
 
     /**
-     * listener InstanceRegisterDTO.
+     * listener InstanceEntity.
      *
      * @param instanceRegisterDTOs instanceRegisterDTOs
      */
-    void listener(List<InstanceRegisterDTO> instanceRegisterDTOs);
+    void listener(List<InstanceEntity> instanceRegisterDTOs);
 }

@@ -22,11 +22,11 @@ import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.framework.listen.Listenable;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
-import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.path.RegisterPathConstants;
-import org.apache.shenyu.register.common.subsriber.WatcherListener;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.zookeeper.WatchedEvent;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
@@ -39,11 +39,11 @@ import java.util.Properties;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
-public class ZookeeperInstanceRegisterRepositoryTest {
+public final class ZookeeperInstanceRegisterRepositoryTest {
 
     @Test
     public void testZookeeperInstanceRegisterRepository() {
@@ -54,7 +54,7 @@ public class ZookeeperInstanceRegisterRepositoryTest {
             when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
         })) {
             final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
-            ShenyuConfig.RegisterConfig config = new ShenyuConfig.RegisterConfig();
+            RegisterConfig config = new RegisterConfig();
             repository.init(config);
             final Properties configProps = config.getProps();
             configProps.setProperty("digest", "digest");
@@ -64,7 +64,7 @@ public class ZookeeperInstanceRegisterRepositoryTest {
                 return null;
             }).when(listenable).addListener(any());
             repository.init(config);
-            repository.persistInstance(mock(InstanceRegisterDTO.class));
+            repository.persistInstance(mock(InstanceEntity.class));
             connectionStateListeners.forEach(connectionStateListener -> {
                 connectionStateListener.stateChanged(null, ConnectionState.RECONNECTED);
             });
@@ -74,7 +74,7 @@ public class ZookeeperInstanceRegisterRepositoryTest {
 
     @Test
     public void testSelectInstancesAndWatcher() throws Exception {
-        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
+        InstanceEntity data = InstanceEntity.builder()
                 .appName("shenyu-test")
                 .host("shenyu-host")
                 .port(9195)
@@ -94,14 +94,14 @@ public class ZookeeperInstanceRegisterRepositoryTest {
             when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
         })) {
             final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
-            ShenyuConfig.RegisterConfig config = new ShenyuConfig.RegisterConfig();
+            RegisterConfig config = new RegisterConfig();
             repository.init(config);
             final Properties configProps = config.getProps();
             configProps.setProperty("digest", "digest");
             repository.init(config);
-            repository.selectInstancesAndWatcher(RegisterPathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+            repository.selectInstancesAndWatcher(InstancePathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
             WatchedEvent mockEvent = mock(WatchedEvent.class);
-            when(mockEvent.getPath()).thenReturn(RegisterPathConstants.buildInstanceParentPath());
+            when(mockEvent.getPath()).thenReturn(InstancePathConstants.buildInstanceParentPath());
             watcherArr[0].process(mockEvent);
             repository.close();
         }

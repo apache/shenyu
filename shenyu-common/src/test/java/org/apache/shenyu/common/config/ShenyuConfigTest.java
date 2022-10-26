@@ -20,17 +20,21 @@ package org.apache.shenyu.common.config;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
-import org.springframework.util.Assert;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
  * Test cases for ShenyuConfig.
  */
 public class ShenyuConfigTest {
+    
     private final ShenyuConfig config = new ShenyuConfig();
 
     /**
@@ -49,7 +53,6 @@ public class ShenyuConfigTest {
         ShenyuConfig.ExcludePath exclude = config.getExclude();
         ShenyuConfig.FallbackPath fallback = config.getFallback();
         ShenyuConfig.FileConfig file = config.getFile();
-        ShenyuConfig.RegisterConfig instance = config.getRegister();
         ShenyuConfig.ExtPlugin extPlugin = config.getExtPlugin();
         ShenyuConfig.Local local = config.getLocal();
         ShenyuConfig.RibbonConfig ribbon = config.getRibbon();
@@ -59,17 +62,16 @@ public class ShenyuConfigTest {
         ShenyuConfig.WebsocketConfig websocket = config.getWebsocket();
         ShenyuConfig.UpstreamCheck upstreamCheck = config.getUpstreamCheck();
 
-        notEmptyElements(cross, switchConfig, exclude, fallback, file, instance,
+        notEmptyElements(cross, switchConfig, exclude, fallback, file,
                 extPlugin, local, ribbon, metrics, scheduler, sharedPool, websocket, upstreamCheck);
     }
 
     private void notEmptyElements(final Object... objects) {
-        Assert.isTrue(ArrayUtils.isNotEmpty(objects), "array must not be empty");
-
+        assertTrue(ArrayUtils.isNotEmpty(objects));
         Arrays.stream(objects).forEach(val -> {
-            Assert.notNull(val, "val must not be null");
+            assertNotNull(val, "val must not be null");
             if (val instanceof String) {
-                Assert.isTrue(StringUtils.isNotEmpty((String) val), "val must not be empty");
+                assertTrue(StringUtils.isNotEmpty((String) val), "val must not be empty");
             }
         });
     }
@@ -93,7 +95,7 @@ public class ShenyuConfigTest {
     public void testWebsocketConfig() {
         ShenyuConfig.WebsocketConfig websocket = config.getWebsocket();
         websocket.setMaxFramePayloadSize(5);
-        Assert.isTrue(websocket.getMaxFramePayloadSize() == 5, "result not excepted");
+        assertEquals(5, (int) websocket.getMaxFramePayloadSize());
     }
 
     @Test
@@ -135,8 +137,8 @@ public class ShenyuConfigTest {
         metrics.setProps(new Properties());
 
         boolean enabled = metrics.getEnabled();
-        Assert.isTrue(enabled, "result not excepted");
-
+    
+        assertTrue(enabled, "result not excepted");
         String jmxConfig = metrics.getJmxConfig();
         Properties props = metrics.getProps();
         String host = metrics.getHost();
@@ -183,22 +185,6 @@ public class ShenyuConfigTest {
         Integer scheduleTime = extPlugin.getScheduleTime();
 
         notEmptyElements(enabled, path, scheduleTime, scheduleDelay, threads);
-    }
-
-    @Test
-    public void testInstanceConfig() {
-        ShenyuConfig.RegisterConfig instance = config.getRegister();
-        instance.setEnabled(true);
-        instance.setServerLists("test");
-        instance.setRegisterType("test");
-        instance.setProps(new Properties());
-
-        Boolean enabled = instance.getEnabled();
-        Properties props = instance.getProps();
-        String registerType = instance.getRegisterType();
-        String serverLists = instance.getServerLists();
-
-        notEmptyElements(props, registerType, serverLists, enabled);
     }
 
     @Test

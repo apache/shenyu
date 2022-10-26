@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.common.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -52,10 +52,6 @@ public class ShenyuConfig {
     private UpstreamCheck upstreamCheck = new UpstreamCheck();
 
     private CrossFilterConfig cross = new CrossFilterConfig();
-    
-    private RegisterConfig register = new RegisterConfig();
-
-    private RegisterConfig sdk = new RegisterConfig();
 
     private RibbonConfig ribbon = new RibbonConfig();
     
@@ -155,42 +151,6 @@ public class ShenyuConfig {
      */
     public void setRibbon(final RibbonConfig ribbon) {
         this.ribbon = ribbon;
-    }
-
-    /**
-     * register.
-     *
-     * @return Register
-     */
-    public RegisterConfig getRegister() {
-        return register;
-    }
-
-    /**
-     * set register.
-     *
-     * @param register register
-     */
-    public void setRegister(final RegisterConfig register) {
-        this.register = register;
-    }
-
-    /**
-     * sdk.
-     *
-     * @return Sdk
-     */
-    public RegisterConfig getSdk() {
-        return sdk;
-    }
-
-    /**
-     * set sdk.
-     *
-     * @param sdk sdk
-     */
-    public void setSdk(final RegisterConfig sdk) {
-        this.sdk = sdk;
     }
 
     /**
@@ -1005,7 +965,7 @@ public class ShenyuConfig {
          */
         private String wrapperHeaders(final String headers) {
             final Set<String> headerSet = DEFAULT_ALLOWED_HEADERS;
-            if (StringUtils.hasText(headers)) {
+            if (StringUtils.isNotEmpty(headers)) {
                 headerSet.addAll(Stream.of(headers.split(",")).collect(Collectors.toSet()));
             }
             return String.join(",", headerSet);
@@ -1259,109 +1219,6 @@ public class ShenyuConfig {
             public void setOriginRegex(final String originRegex) {
                 this.originRegex = originRegex;
             }
-        }
-    }
-
-    public static class RegisterConfig {
-
-        private boolean enabled;
-
-        private String registerType;
-
-        private String serverLists;
-
-        private Properties props = new Properties();
-
-        /**
-         * RegisterConfig.
-         */
-        public RegisterConfig() {
-
-        }
-
-        /**
-         * registerType.
-         *
-         * @param registerType the register type
-         * @param serverLists the server lists
-         * @param props the props
-         */
-        public RegisterConfig(final String registerType, final String serverLists, final Properties props) {
-            this.registerType = registerType;
-            this.serverLists = serverLists;
-            this.props = props;
-        }
-
-        /**
-         * getRegisterType.
-         *
-         * @return String register type
-         */
-        public String getRegisterType() {
-            return registerType;
-        }
-
-        /**
-         * setRegisterType.
-         *
-         * @param registerType registerType
-         */
-        public void setRegisterType(final String registerType) {
-            this.registerType = registerType;
-        }
-
-        /**
-         * getServerLists.
-         *
-         * @return String server lists
-         */
-        public String getServerLists() {
-            return serverLists;
-        }
-
-        /**
-         * setServerLists.
-         *
-         * @param serverLists serverLists
-         */
-        public void setServerLists(final String serverLists) {
-            this.serverLists = serverLists;
-        }
-
-        /**
-         * getProps.
-         *
-         * @return String props
-         */
-        public Properties getProps() {
-            return props;
-        }
-
-        /**
-         * setProps.
-         *
-         * @param props props
-         */
-        public void setProps(final Properties props) {
-            this.props = props;
-        }
-
-        /**
-         * Gets enabled.
-         *
-         * @return the enabled
-         */
-        public boolean getEnabled() {
-            return enabled;
-        }
-
-        /**
-         * Sets enabled.
-         *
-         * @param enabled the enabled
-         */
-        public void setEnabled(final boolean enabled) {
-            this.enabled = enabled;
         }
     }
     
