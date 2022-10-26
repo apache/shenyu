@@ -21,7 +21,7 @@ import com.google.common.collect.Maps;
 import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.utils.PathMatchUtils;
+import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
 
 import java.util.Objects;
 import java.util.Optional;

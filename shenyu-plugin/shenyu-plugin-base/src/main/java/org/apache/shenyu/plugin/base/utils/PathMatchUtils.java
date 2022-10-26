@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
+package org.apache.shenyu.plugin.base.utils;
 
 import org.springframework.http.server.PathContainer;
 import org.springframework.util.AntPathMatcher;

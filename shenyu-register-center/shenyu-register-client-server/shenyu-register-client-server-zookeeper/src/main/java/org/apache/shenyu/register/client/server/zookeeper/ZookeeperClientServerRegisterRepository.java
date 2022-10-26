@@ -28,7 +28,6 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.PathMatchUtils;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
@@ -116,8 +115,8 @@ public class ZookeeperClientServerRegisterRepository implements ShenyuClientServ
     private void publishRegisterURI(final List<URIRegisterDTO> registerDTOList) {
         publisher.publish(registerDTOList);
     }
-
-    abstract class AbstractRegisterListener implements TreeCacheListener {
+    
+    abstract static class AbstractRegisterListener implements TreeCacheListener {
         @Override
         public final void childEvent(final CuratorFramework client, final TreeCacheEvent event) {
             ChildData childData = event.getData();
@@ -145,7 +144,7 @@ public class ZookeeperClientServerRegisterRepository implements ShenyuClientServ
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(RegisterPathConstants.REGISTER_METADATA_INSTANCE_PATH, path)) {
+            if (!path.contains(RegisterPathConstants.ROOT_PATH)) {
                 return;
             }
             Optional.ofNullable(data)
@@ -161,7 +160,7 @@ public class ZookeeperClientServerRegisterRepository implements ShenyuClientServ
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(RegisterPathConstants.REGISTER_URI_INSTANCE_PATH, path)) {
+            if (!path.contains(RegisterPathConstants.ROOT_PATH)) {
                 return;
             }
             // get children under context path
