@@ -257,4 +257,6 @@ public final class AdminConstants {
      */
     public static final String DICT_TYPE_API_DOC_ENV = "apidocEnv";
 
+    public static final String TAG_ROOT_PARENT_ID = "0";
+
 }
