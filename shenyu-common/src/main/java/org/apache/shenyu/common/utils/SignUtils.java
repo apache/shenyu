@@ -17,15 +17,14 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.shenyu.common.constant.Constants;
-
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * SignUtils.
