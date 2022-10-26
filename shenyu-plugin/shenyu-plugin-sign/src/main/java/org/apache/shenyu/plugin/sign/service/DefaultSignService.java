@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.sign.service;
 
-import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -26,7 +25,8 @@ import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.utils.DateUtils;
-import org.apache.shenyu.common.utils.PathMatchUtils;
+import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
+import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.sign.api.ShenyuSignProviderWrap;
@@ -35,7 +35,6 @@ import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.time.LocalDateTime;
@@ -54,13 +53,13 @@ public class DefaultSignService implements SignService {
     private int delay;
 
     @Override
-    public Pair<Boolean, String> signVerify(final ServerWebExchange exchange, final Map<String, Object> requestBody) {
+    public Pair<Boolean, String> signVerify(final ServerWebExchange exchange, final Map<String, Object> requestBody, final Map<String, String> queryParams) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        return verify(shenyuContext, exchange, requestBody);
+        return verify(shenyuContext, exchange, requestBody, queryParams);
     }
 
-    private Pair<Boolean, String> verify(final ShenyuContext shenyuContext, final ServerWebExchange exchange, final Map<String, Object> requestBody) {
+    private Pair<Boolean, String> verify(final ShenyuContext shenyuContext, final ServerWebExchange exchange, final Map<String, Object> requestBody, final Map<String, String> queryParams) {
         if (StringUtils.isBlank(shenyuContext.getAppKey())
                 || StringUtils.isBlank(shenyuContext.getSign())
                 || StringUtils.isBlank(shenyuContext.getTimestamp())) {
@@ -70,20 +69,23 @@ public class DefaultSignService implements SignService {
         final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Long.parseLong(shenyuContext.getTimestamp()));
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
-        if (between > delay) {
+        if (between > delay || -between > delay) {
             return Pair.of(Boolean.FALSE, String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay));
         }
 
-        return sign(shenyuContext, exchange, requestBody);
+        return sign(shenyuContext, exchange, requestBody, queryParams);
     }
 
     /**
-     * verify sign .
+     verify sign .
      *
      * @param shenyuContext {@linkplain ShenyuContext}
+     * @param exchange exchange
+     * @param requestBody  the request body
+     * @param queryParams  url query params
      * @return result : True is pass, False is not pass.
      */
-    private Pair<Boolean, String> sign(final ShenyuContext shenyuContext, final ServerWebExchange exchange, final Map<String, Object> requestBody) {
+    private Pair<Boolean, String> sign(final ShenyuContext shenyuContext, final ServerWebExchange exchange, final Map<String, Object> requestBody, final Map<String, String> queryParams) {
         final AppAuthData appAuthData = SignAuthDataCache.getInstance().obtainAuthData(shenyuContext.getAppKey());
         if (Objects.isNull(appAuthData) || Boolean.FALSE.equals(appAuthData.getEnabled())) {
             LOG.error("sign APP_kEY does not exist or has been disabled,{}", shenyuContext.getAppKey());
@@ -103,10 +105,10 @@ public class DefaultSignService implements SignService {
                 return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
             }
         }
-        String sigKey = ShenyuSignProviderWrap.generateSign(appAuthData.getAppSecret(), buildParamsMap(shenyuContext, requestBody));
-        boolean result = Objects.equals(sigKey, shenyuContext.getSign());
+        final String sign = ShenyuSignProviderWrap.generateSign(buildExtSignKey(appAuthData.getAppSecret(), shenyuContext), SignUtils.transStringMap(requestBody), queryParams);
+        boolean result = Objects.equals(sign, shenyuContext.getSign());
         if (!result) {
-            LOG.error("the SignUtils generated signature value is:{},the accepted value is:{}", sigKey, shenyuContext.getSign());
+            LOG.error("the SignUtils generated signature value is:{},the accepted value is:{}", sign, shenyuContext.getSign());
             return Pair.of(Boolean.FALSE, Constants.SIGN_VALUE_IS_ERROR);
         } else {
             List<AuthParamData> paramDataList = appAuthData.getParamDataList();
@@ -123,16 +125,7 @@ public class DefaultSignService implements SignService {
         return Pair.of(Boolean.TRUE, "");
     }
 
-    private Map<String, String> buildParamsMap(final ShenyuContext shenyuContext, final Map<String, Object> requestBody) {
-        Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
-        map.put(Constants.TIMESTAMP, shenyuContext.getTimestamp());
-        map.put(Constants.PATH, shenyuContext.getPath());
-        map.put(Constants.VERSION, "1.0.0");
-        if (!ObjectUtils.isEmpty(requestBody)) {
-            requestBody.forEach((key, value) -> {
-                map.putIfAbsent(key, Objects.toString(value, null));
-            });
-        }
-        return map;
+    private String buildExtSignKey(final String signKey, final ShenyuContext shenyuContext) {
+        return String.join("", Constants.TIMESTAMP, shenyuContext.getTimestamp(), Constants.PATH, shenyuContext.getPath(), Constants.VERSION, "1.0.0", signKey);
     }
 }

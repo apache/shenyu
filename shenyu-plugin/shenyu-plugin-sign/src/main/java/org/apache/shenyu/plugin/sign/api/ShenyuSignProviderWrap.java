@@ -42,10 +42,11 @@ public final class ShenyuSignProviderWrap {
      * acquired sign.
      *
      * @param signKey sign key
-     * @param params  params
+     * @param jsonParams json params
+     * @param queryParams  url query params
      * @return sign
      */
-    public static String generateSign(final String signKey, final Map<String, String> params) {
-        return signProvider().generateSign(signKey, params);
+    public static String generateSign(final String signKey, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
+        return signProvider().generateSign(signKey, jsonParams, queryParams);
     }
 }

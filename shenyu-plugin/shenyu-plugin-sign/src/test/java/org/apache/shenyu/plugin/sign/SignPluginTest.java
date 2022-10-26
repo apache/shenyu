@@ -132,7 +132,8 @@ public final class SignPluginTest {
                         + "}"));
         Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "3");
-        when(signService.signVerify(exchange, requestBody)).thenReturn(Pair.of(true, ""));
+        Map<String, String> queryParams = exchange.getRequest().getQueryParams().toSingleValueMap();
+        when(signService.signVerify(exchange, requestBody, queryParams)).thenReturn(Pair.of(true, ""));
         when(this.chain.execute(any())).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         signPluginDataHandler.handlerRule(ruleData);
@@ -145,14 +146,15 @@ public final class SignPluginTest {
         this.ruleData.setHandle("{\"signRequestBody\": true}");
 
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
-                .method(HttpMethod.POST, "/test")
+                .method(HttpMethod.POST, "/test?data2=3")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body("{\"data\": "
                         + "\"4\""
                         + "}"));
         Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "4");
-        when(signService.signVerify(exchange, requestBody)).thenReturn(Pair.of(false, ""));
+        Map<String, String> queryParams = exchange.getRequest().getQueryParams().toSingleValueMap();
+        when(signService.signVerify(exchange, requestBody, queryParams)).thenReturn(Pair.of(false, ""));
         when(this.chain.execute(any())).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         signPluginDataHandler.handlerRule(ruleData);

@@ -75,4 +75,19 @@ public class UriUtils {
         String params = StringUtils.isEmpty(uri.getQuery()) ? "" : "?" + uri.getQuery();
         return uri.getPath() + params;
     }
+
+    /**
+     * appendScheme.
+     *
+     * @param scheme scheme
+     * @param url url
+     * @return {@link String}
+     */
+    public static String appendScheme(final String url, final String scheme) {
+        String schemeUrl = url;
+        if (!schemeUrl.startsWith("http://") && !schemeUrl.startsWith("https://")) {
+            schemeUrl = scheme + "://" + schemeUrl;
+        }
+        return schemeUrl;
+    }
 }

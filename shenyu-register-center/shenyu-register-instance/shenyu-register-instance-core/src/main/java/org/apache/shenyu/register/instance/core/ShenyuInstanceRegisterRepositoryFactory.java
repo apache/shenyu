@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.instance.core;
 
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.spi.ExtensionLoader;
 
 import java.util.Map;
@@ -39,6 +40,23 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
     public static ShenyuInstanceRegisterRepository newInstance(final String registerType) {
         if (!REPOSITORY_MAP.containsKey(registerType)) {
             ShenyuInstanceRegisterRepository result = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(registerType);
+            REPOSITORY_MAP.put(registerType, result);
+            return result;
+        }
+        return REPOSITORY_MAP.get(registerType);
+    }
+    
+    /**
+     * New and init instance shenyu instance register repository.
+     *
+     * @param config the config
+     * @return the shenyu instance register repository
+     */
+    public static ShenyuInstanceRegisterRepository newAndInitInstance(final RegisterConfig config) {
+        String registerType = config.getRegisterType();
+        if (!REPOSITORY_MAP.containsKey(registerType)) {
+            ShenyuInstanceRegisterRepository result = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class).getJoin(registerType);
+            result.init(config);
             REPOSITORY_MAP.put(registerType, result);
             return result;
         }
