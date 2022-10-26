@@ -56,7 +56,8 @@ public interface JwtRuleHandle extends RuleHandle {
      */
     static JwtRuleHandle newInstance(String handleJson) {
         Map<String, Object> handleMap = GsonUtils.getInstance().convertToMap(handleJson);
-        Object handleType = handleMap.get("handleType");
+
+        Object handleType = Objects.isNull(handleMap) ? null : handleMap.get("handleType");
         JwtRuleHandle jwtRuleHandle;
         if (Objects.nonNull(handleType)) {
             jwtRuleHandle = ExtensionLoader.getExtensionLoader(JwtRuleHandle.class).getJoin(handleType.toString());

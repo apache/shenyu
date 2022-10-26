@@ -32,6 +32,7 @@ public class JwtRuleHandleTest {
 
         assertThat(JwtRuleHandle.newInstance("{\"handleType\":\"custom\"}"), isA(CustomJwtRuleHandle.class));
         assertThat(JwtRuleHandle.newInstance("{\"converter\":[{\"jwtVal\":\"sub\",\"headerVal\":\"id\"}]}"), isA(DefaultJwtRuleHandle.class));
+        assertThat(JwtRuleHandle.newInstance(null), isA(DefaultJwtRuleHandle.class));
 
     }
 
