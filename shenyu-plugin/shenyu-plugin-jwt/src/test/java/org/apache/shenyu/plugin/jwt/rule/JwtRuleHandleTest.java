@@ -15,39 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert.rule.impl;
+package org.apache.shenyu.plugin.jwt.rule;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
+import static org.hamcrest.Matchers.isA;
 
 /**
- * Test case for JwtRuleHandle.
+ * Test case for {@link JwtRuleHandle}.
  */
 public class JwtRuleHandleTest {
-    
+
     @Test
-    public void testGetterSetter() {
-        JwtRuleHandle handle = new JwtRuleHandle();
-        
-        handle.setConverter(Arrays.asList(new JwtRuleHandle.Convert()));
-        
-        assertThat(handle.getConverter(), hasSize(1));
+    public void testGetInstance() {
+
+        assertThat(JwtRuleHandle.newInstance("{\"handleType\":\"custom\"}"), isA(CustomJwtRuleHandle.class));
+        assertThat(JwtRuleHandle.newInstance("{\"converter\":[{\"jwtVal\":\"sub\",\"headerVal\":\"id\"}]}"), isA(DefaultJwtRuleHandle.class));
+
     }
-    
-    @Test
-    public void testGetterSetterOfConvert() {
-        JwtRuleHandle.Convert convert = new JwtRuleHandle.Convert();
-        
-        convert.setHeaderVal("headerVal");
-        convert.setJwtVal("jwtVal");
-        
-        assertThat(convert.getHeaderVal(), is("headerVal"));
-        assertThat(convert.getJwtVal(), is("jwtVal"));
-    }
-    
+
 }

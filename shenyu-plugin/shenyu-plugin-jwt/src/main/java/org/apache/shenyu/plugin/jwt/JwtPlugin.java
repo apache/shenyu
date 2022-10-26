@@ -24,27 +24,23 @@ import io.jsonwebtoken.Jwts;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.impl.JwtRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
-import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.plugin.jwt.config.JwtConfig;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.jwt.config.JwtConfig;
 import org.apache.shenyu.plugin.jwt.exception.ThrowingFunction;
+import org.apache.shenyu.plugin.jwt.rule.JwtRuleHandle;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Jwt Plugin.
@@ -71,11 +67,8 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         String finalAuthorization = compatible(token, authorization);
         Map<String, Object> jwtBody = checkAuthorization(finalAuthorization, jwtConfig.getSecretKey());
         if (Objects.nonNull(jwtBody)) {
-            JwtRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), JwtRuleHandle.class);
-            if (Objects.isNull(ruleHandle) || Objects.isNull(ruleHandle.getConverter())) {
-                return chain.execute(exchange);
-            }
-            return chain.execute(converter(exchange, jwtBody, ruleHandle.getConverter()));
+            JwtRuleHandle ruleHandle = JwtRuleHandle.newInstance(rule.getHandle());
+            return chain.execute(ruleHandle.execute(exchange, jwtBody));
         }
         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN);
         return WebFluxResultUtils.result(exchange, error);
@@ -93,7 +86,8 @@ public class JwtPlugin extends AbstractShenyuPlugin {
 
     /**
      * Both are compatible.
-     * @param token header of token
+     *
+     * @param token         header of token
      * @param authorization header of authorization
      * @return the authorization after processing
      */
@@ -115,8 +109,9 @@ public class JwtPlugin extends AbstractShenyuPlugin {
 
     /**
      * check Authorization.
+     *
      * @param authorization the authorization after processing
-     * @param secretKey secretKey of authorization
+     * @param secretKey     secretKey of authorization
      * @return Map
      */
     private Map<String, Object> checkAuthorization(final String authorization,
@@ -138,65 +133,4 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         }
         return null;
     }
-
-    /**
-     * The parameters in token are converted to request header.
-     *
-     * @param exchange exchange
-     * @return ServerWebExchange exchange.
-     */
-    private ServerWebExchange converter(final ServerWebExchange exchange,
-                                        final Map<String, Object> jwtBody,
-                                        final List<JwtRuleHandle.Convert> converters) {
-        ServerHttpRequest modifiedRequest = exchange.getRequest().mutate().headers(httpHeaders -> this.addHeader(httpHeaders, jwtBody, converters)).build();
-
-        return exchange.mutate().request(modifiedRequest).build();
-    }
-
-    /**
-     * add header.
-     *
-     * @param headers headers
-     * @param body body
-     * @param converters converters
-     */
-    private void addHeader(final HttpHeaders headers,
-                           final Map<String, Object> body,
-                           final List<JwtRuleHandle.Convert> converters) {
-        for (JwtRuleHandle.Convert converter : converters) {
-            if (converter.getJwtVal().contains(".")) {
-                headers.add(converter.getHeaderVal(), parse(body, converter.getJwtVal().split("\\."), new AtomicInteger(0)));
-            } else {
-                headers.add(converter.getHeaderVal(), String.valueOf(body.get(converter.getJwtVal())));
-            }
-        }
-    }
-
-    /**
-     * Parsing multi-level tokens.
-     *
-     * @param body  token
-     * @param split jwt of key
-     * @param deep  level default 0
-     * @return token of val
-     */
-    private String parse(final Map<String, Object> body,
-                        final String[] split,
-                        final AtomicInteger deep) {
-        for (Map.Entry<String, Object> entry : body.entrySet()) {
-
-            if (deep.get() == split.length - 1) {
-                return String.valueOf(body.get(split[deep.get()]));
-            }
-
-            if (entry.getKey().equals(split[deep.get()])) {
-                if (entry.getValue() instanceof Map) {
-                    deep.incrementAndGet();
-                    return parse((Map<String, Object>) entry.getValue(), split, deep);
-                }
-            }
-        }
-        return String.valueOf(body.get(split[deep.get()]));
-    }
-
 }
