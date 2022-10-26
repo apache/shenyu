@@ -100,6 +100,16 @@ public final class JwtPluginTest {
         StepVerifier.create(mono).expectSubscription().verifyComplete();
     }
 
+    @Test
+    public void testDoExecuteWithoutHandle() {
+
+        when(this.chain.execute(any())).thenReturn(Mono.empty());
+
+        Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
+
+        StepVerifier.create(mono).expectSubscription().verifyComplete();
+    }
+
     private static boolean hasHeader(final ServerWebExchange exchange, final String name, final String val) {
         return exchange.getRequest().getHeaders().get(name).contains(val);
     }

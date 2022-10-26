@@ -66,8 +66,13 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         // compatible processing
         String finalAuthorization = compatible(token, authorization);
         Map<String, Object> jwtBody = checkAuthorization(finalAuthorization, jwtConfig.getSecretKey());
+
         if (Objects.nonNull(jwtBody)) {
+
             JwtRuleHandle ruleHandle = JwtRuleHandle.newInstance(rule.getHandle());
+            if (Objects.isNull(ruleHandle)) {
+                return chain.execute(exchange);
+            }
             return chain.execute(ruleHandle.execute(exchange, jwtBody));
         }
         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN);

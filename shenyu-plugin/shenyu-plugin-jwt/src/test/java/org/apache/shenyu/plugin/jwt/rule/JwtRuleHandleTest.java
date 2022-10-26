@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * Test case for {@link JwtRuleHandle}.
@@ -32,8 +33,7 @@ public class JwtRuleHandleTest {
 
         assertThat(JwtRuleHandle.newInstance("{\"handleType\":\"custom\"}"), isA(CustomJwtRuleHandle.class));
         assertThat(JwtRuleHandle.newInstance("{\"converter\":[{\"jwtVal\":\"sub\",\"headerVal\":\"id\"}]}"), isA(DefaultJwtRuleHandle.class));
-        assertThat(JwtRuleHandle.newInstance(null), isA(DefaultJwtRuleHandle.class));
-
+        assertThat(JwtRuleHandle.newInstance(null), nullValue());
     }
 
 }

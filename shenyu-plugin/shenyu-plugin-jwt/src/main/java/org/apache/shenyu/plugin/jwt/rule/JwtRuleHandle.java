@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.jwt.rule;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
@@ -55,6 +56,10 @@ public interface JwtRuleHandle extends RuleHandle {
      * @return JwtRuleHandle
      */
     static JwtRuleHandle newInstance(String handleJson) {
+        if (StringUtils.isEmpty(handleJson)) {
+            return null;
+        }
+
         Map<String, Object> handleMap = GsonUtils.getInstance().convertToMap(handleJson);
 
         Object handleType = Objects.isNull(handleMap) ? null : handleMap.get("handleType");
