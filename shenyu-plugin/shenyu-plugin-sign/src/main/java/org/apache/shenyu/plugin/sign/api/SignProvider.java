@@ -28,8 +28,9 @@ public interface SignProvider {
      * acquired sign.
      *
      * @param signKey sign key
-     * @param params  params
+     * @param jsonParams json params
+     * @param queryParams  url query params
      * @return sign
      */
-    String generateSign(String signKey, Map<String, String> params);
+    String generateSign(String signKey, Map<String, String> jsonParams, Map<String, String> queryParams);
 }

@@ -31,5 +31,10 @@
             <artifactId>shenyu-client-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>
