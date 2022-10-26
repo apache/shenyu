@@ -68,11 +68,8 @@ public class TagServiceTest {
         given(this.tagMapper.selectByQuery(any())).willReturn(list);
         tagService.create(buildParentTagDTO());
         tagService.create(buildParentTagDTO1());
-        int cnt = tagService.create(buildTagDTO());
-        tagService.create(buildTagDTO1());
-        TagDTO tagDTO = buildTagDTO();
-        tagDTO.setTagDesc("dddddddd");
-        tagService.update(tagDTO);
+        tagService.create(buildTagDTO());
+        int cnt = tagService.create(buildTagDTO1());
         assertEquals(cnt, 1);
     }
 
