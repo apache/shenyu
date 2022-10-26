@@ -49,6 +49,7 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final ApiDTO apiDTO) {
         return StringUtils.isBlank(apiDTO.getId()) ? this.create(apiDTO) : this.update(apiDTO);
     }
@@ -58,8 +59,7 @@ public class ApiServiceImpl implements ApiService {
      * @param apiDTO apiDTO
      * @return update message
      */
-    @Transactional(rollbackFor = Exception.class)
-    public String update(final ApiDTO apiDTO) {
+    private String update(final ApiDTO apiDTO) {
         ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
         apiMapper.updateByPrimaryKeySelective(apiDO);
         return ShenyuResultMessage.UPDATE_SUCCESS;
@@ -70,8 +70,7 @@ public class ApiServiceImpl implements ApiService {
      * @param apiDTO apiDTO
      * @return create message
      */
-    @Transactional(rollbackFor = Exception.class)
-    public String create(final ApiDTO apiDTO) {
+    private String create(final ApiDTO apiDTO) {
         ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
         apiMapper.insertSelective(apiDO);
         return ShenyuResultMessage.CREATE_SUCCESS;
