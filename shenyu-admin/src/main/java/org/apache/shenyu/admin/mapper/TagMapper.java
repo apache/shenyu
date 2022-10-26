@@ -100,4 +100,9 @@ public interface TagMapper extends ExistProvider {
      */
     int updateByPrimaryKey(TagDO record);
 
+    /**
+     * delete all data.
+     * @return delete count
+     */
+    int deleteAllData();
 }

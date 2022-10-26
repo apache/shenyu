@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service;
 import com.google.common.collect.Lists;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
@@ -54,8 +55,24 @@ public class TagServiceTest {
 
     @Test
     public void testCreate() {
+        List<TagDO> list = new ArrayList<>();
+        list.add(buildTagDO());
+        list.add(buildParentTagDO());
+        list.add(buildParentTagDO1());
+        list.add(buildParentTagDO2());
         given(this.tagMapper.insert(any())).willReturn(1);
+        given(this.tagMapper.selectByPrimaryKey("123")).willReturn(buildTagDO());
+        given(this.tagMapper.selectByPrimaryKey("456")).willReturn(buildParentTagDO());
+        given(this.tagMapper.selectByPrimaryKey("789")).willReturn(buildParentTagDO1());
+        given(this.tagMapper.selectByPrimaryKey("101112")).willReturn(buildParentTagDO2());
+        given(this.tagMapper.selectByQuery(any())).willReturn(list);
+        tagService.create(buildParentTagDTO());
+        tagService.create(buildParentTagDTO1());
         int cnt = tagService.create(buildTagDTO());
+        tagService.create(buildTagDTO1());
+        TagDTO tagDTO = buildTagDTO();
+        tagDTO.setTagDesc("dddddddd");
+        tagService.update(tagDTO);
         assertEquals(cnt, 1);
     }
 
@@ -98,9 +115,36 @@ public class TagServiceTest {
 
     private TagDTO buildTagDTO() {
         TagDTO tagDTO = new TagDTO();
+        tagDTO.setId("789");
+        tagDTO.setTagDesc("this is a pic ta1g");
+        tagDTO.setParentTagId("456");
+        tagDTO.setName("film1");
+        return tagDTO;
+    }
+
+    private TagDTO buildTagDTO1() {
+        TagDTO tagDTO = new TagDTO();
+        tagDTO.setId("101112");
+        tagDTO.setTagDesc("this is a pic ta1g");
+        tagDTO.setParentTagId("789");
+        tagDTO.setName("film1");
+        return tagDTO;
+    }
+
+    private TagDTO buildParentTagDTO1() {
+        TagDTO tagDTO = new TagDTO();
+        tagDTO.setId("456");
+        tagDTO.setTagDesc("this is a pic tag");
+        tagDTO.setParentTagId("123");
+        tagDTO.setName("film");
+        return tagDTO;
+    }
+
+    private TagDTO buildParentTagDTO() {
+        TagDTO tagDTO = new TagDTO();
         tagDTO.setId("123");
         tagDTO.setTagDesc("this is a pic tag");
-        tagDTO.setParentTagId("111111");
+        tagDTO.setParentTagId("0");
         tagDTO.setName("film");
         return tagDTO;
     }
@@ -110,9 +154,47 @@ public class TagServiceTest {
         TagDO tagDO = TagDO.builder()
                 .name("film")
                 .tagDesc("this is a pic tag")
-                .ext("test")
-                .parentTagId("111111")
+                .parentTagId("0")
                 .id("123")
+                .dateUpdated(now)
+                .dateCreated(now)
+                .build();
+        return tagDO;
+    }
+
+    private TagDO buildParentTagDO() {
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        TagDO tagDO = TagDO.builder()
+                .name("film")
+                .tagDesc("this is a pic tag")
+                .parentTagId("123")
+                .id("456")
+                .dateUpdated(now)
+                .dateCreated(now)
+                .build();
+        return tagDO;
+    }
+
+    private TagDO buildParentTagDO1() {
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        TagDO tagDO = TagDO.builder()
+                .name("film")
+                .tagDesc("this is a pic tag789")
+                .parentTagId("456")
+                .id("789")
+                .dateUpdated(now)
+                .dateCreated(now)
+                .build();
+        return tagDO;
+    }
+
+    private TagDO buildParentTagDO2() {
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        TagDO tagDO = TagDO.builder()
+                .name("film")
+                .tagDesc("this is a pic tag789")
+                .parentTagId("789")
+                .id("101112")
                 .dateUpdated(now)
                 .dateCreated(now)
                 .build();

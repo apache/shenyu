@@ -185,4 +185,8 @@
             #{id, jdbcType=VARCHAR}
         </foreach>
     </delete>
+
+    <delete id="deleteAllData" >
+        delete from tag
+    </delete>
 </mapper>

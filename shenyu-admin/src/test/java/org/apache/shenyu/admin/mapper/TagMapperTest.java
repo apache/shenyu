@@ -46,9 +46,8 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         TagDO record = buildTagDO();
         int count = tagMapper.insert(record);
         assertThat(count, greaterThan(0));
-
         int delete = tagMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
     @Test
@@ -57,16 +56,16 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         int count = tagMapper.insertSelective(record);
         assertThat(count, greaterThan(0));
         int delete = tagMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
     @Test
     public void testDeleteByPrimaryKey() {
         TagDO record = buildTagDO();
         int count = tagMapper.insertSelective(record);
-        assertThat(count, greaterThan(0));
+        assertEquals(count, 1);
         int delete = tagMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
     @Test
@@ -77,42 +76,44 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         TagDO tagDO = tagMapper.selectByPrimaryKey(record.getId());
         assertThat(tagDO != null, equalTo(true));
         int delete = tagMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
     @Test
     public void testUpdateByPrimaryKey() {
+        tagMapper.deleteAllData();
         TagDO record = buildTagDO();
         int count = tagMapper.insertSelective(record);
-        assertThat(count, greaterThan(0));
+        assertEquals(count, 1);
         record.setTagDesc("2222222");
         tagMapper.updateByPrimaryKey(record);
         TagDO tagDO = tagMapper.selectByPrimaryKey(record.getId());
         assertThat(tagDO.getTagDesc().equals("2222222"), equalTo(true));
         int delete = tagMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
     @Test
     public void testSelectByQuery() {
+        tagMapper.deleteAllData();
         TagDO record = buildTagDO();
         int count = tagMapper.insertSelective(record);
-        assertThat(count, greaterThan(0));
+        assertEquals(count, 1);
         TagQuery tagQuery = new TagQuery();
         tagQuery.setName("111");
         List<TagDO> tagDOList = tagMapper.selectByQuery(tagQuery);
         assertEquals(tagDOList.size(), 1);
         int delete = tagMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
     }
 
     @Test
     public void testDeleteIds() {
         TagDO record = buildTagDO();
         int count = tagMapper.insertSelective(record);
-        assertThat(count, greaterThan(0));
+        assertEquals(count, 1);
         int deleteCnt = tagMapper.deleteByIds(Lists.newArrayList(record.getId()));
-        assertThat(deleteCnt, greaterThan(0));
+        assertEquals(deleteCnt, 1);
     }
 
     @Test
@@ -125,8 +126,17 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         List<TagDO> tagDOS = tagMapper.selectByParentTagIds(list);
         assertEquals(tagDOS.size(), 1);
         int delete = tagMapper.deleteByPrimaryKey(record.getId());
-        assertThat(delete, equalTo(1));
+        assertEquals(delete, 1);
 
+    }
+
+    @Test
+    public void testDeleteAllData() {
+        tagMapper.deleteAllData();
+        TagDO record = buildTagDO();
+        tagMapper.insertSelective(record);
+        int deleteCnt = tagMapper.deleteAllData();
+        assertEquals(deleteCnt, 1);
     }
 
     private TagDO buildTagDO() {
@@ -136,8 +146,8 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
                 .id(id)
                 .name("111")
                 .tagDesc("test")
+                .ext("11")
                 .parentTagId("0")
-                .ext("22222")
                 .dateCreated(now)
                 .dateUpdated(now)
                 .build();

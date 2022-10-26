@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
@@ -280,14 +281,101 @@ public final class TagDO extends BaseDO {
          */
         public TagDO build() {
             TagDO tagDO = new TagDO();
-            tagDO.setExt(ext);
             tagDO.setTagDesc(tagDesc);
             tagDO.setParentTagId(parentTagId);
             tagDO.setName(name);
             tagDO.setId(id);
+            tagDO.setExt(ext);
             tagDO.setDateCreated(dateCreated);
             tagDO.setDateUpdated(dateUpdated);
             return tagDO;
+        }
+    }
+
+    public static class TagExt implements Serializable {
+
+        /**
+         * id.
+         */
+        private String id;
+
+        /**
+         * desc.
+         */
+        private String desc;
+
+        /**
+         * name.
+         */
+        private String name;
+
+        /**
+         * parent.
+         */
+        private TagExt parent;
+
+        /**
+         * get id.
+         * @return id
+         */
+        public String getId() {
+            return id;
+        }
+
+        /**
+         * set id.
+         * @param id id
+         */
+        public void setId(final String id) {
+            this.id = id;
+        }
+
+        /**
+         * get desc.
+         * @return get desc
+         */
+        public String getDesc() {
+            return desc;
+        }
+
+        /**
+         * set desc.
+         * @param desc desc
+         */
+        public void setDesc(final String desc) {
+            this.desc = desc;
+        }
+
+        /**
+         * get name.
+         * @return name
+         */
+        public String getName() {
+            return name;
+        }
+
+        /**
+         *  set name.
+         * @param name name
+         */
+        public void setName(final String name) {
+            this.name = name;
+        }
+
+        /**
+         * get parent.
+         * @return TagExt
+         */
+        public TagExt getParent() {
+            return parent;
+        }
+
+        /**
+         * set parent.
+         * @param parent parent
+         */
+        public void setParent(final TagExt parent) {
+            this.parent = parent;
         }
     }
 

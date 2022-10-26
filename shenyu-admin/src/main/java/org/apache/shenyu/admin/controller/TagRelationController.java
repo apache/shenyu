@@ -82,7 +82,7 @@ public class TagRelationController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteRules(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
+    public ShenyuAdminResult deleteTagRelation(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = tagRelationService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }

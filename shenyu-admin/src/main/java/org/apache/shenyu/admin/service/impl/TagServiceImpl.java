@@ -54,7 +54,7 @@ public class TagServiceImpl implements TagService {
         String ext = "";
         if (!tagDTO.getParentTagId().equals(AdminConstants.TAG_ROOT_PARENT_ID)) {
             TagDO tagDO = tagMapper.selectByPrimaryKey(tagDTO.getParentTagId());
-            ext = GsonUtils.getInstance().toJson(tagDO);
+            ext = buildExtParamByParentTag(tagDO);
         }
         TagDO tagDO = TagDO.buildTagDO(tagDTO);
         tagDO.setExt(ext);
@@ -66,14 +66,7 @@ public class TagServiceImpl implements TagService {
         TagDO before = tagMapper.selectByPrimaryKey(tagDTO.getId());
         Assert.notNull(before, "the updated tag is not found");
         TagDO tagDO = TagDO.buildTagDO(tagDTO);
-        TagQuery tagQuery = new TagQuery();
-        tagQuery.setParentTagId(tagDTO.getId());
-        List<TagDO> tagDOS = tagMapper.selectByQuery(tagQuery);
-        String ext = GsonUtils.getInstance().toJson(tagDO);
-        tagDOS.forEach(tag -> {
-            tag.setExt(ext);
-            tagMapper.updateByPrimaryKey(tag);
-        });
+        updateSubTags(tagDTO);
         return tagMapper.updateByPrimaryKeySelective(tagDO);
     }
 
@@ -117,5 +110,75 @@ public class TagServiceImpl implements TagService {
             }
             return tagVO;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * update sub tags.
+     * @param tagDTO tagDTO
+     */
+    private void updateSubTags(final TagDTO tagDTO) {
+        List<TagDO> allData = tagMapper.selectByQuery(new TagQuery());
+        Map<String, TagDO> allDataMap = new ConcurrentHashMap<>();
+        allData.stream().forEach(tagDO -> allDataMap.put(tagDO.getId(), tagDO));
+        TagDO update = TagDO.buildTagDO(tagDTO);
+        allDataMap.put(update.getId(), update);
+        Map<String, List<String>> relationMap = new ConcurrentHashMap<>();
+        allDataMap.keySet().forEach(tagId -> {
+            TagDO tagDO = allDataMap.get(tagId);
+            if (CollectionUtils.isEmpty(relationMap.get(tagDO.getParentTagId()))) {
+                relationMap.put(tagDO.getParentTagId(), Lists.newArrayList(tagDO.getId()));
+            } else {
+                List<String> list = relationMap.get(tagDO.getParentTagId());
+                list.add(tagDO.getId());
+                relationMap.put(tagDO.getParentTagId(), list);
+            }
+        });
+        recurseUpdateTag(allDataMap, relationMap, tagDTO.getId());
+    }
+
+    /**
+     * recurseUpdateTag.
+     * @param allData allData
+     * @param relationMap relationMap
+     * @param id id
+     */
+    private void recurseUpdateTag(final Map<String, TagDO> allData, final Map<String, List<String>> relationMap, final String id) {
+        if (CollectionUtils.isEmpty(relationMap.get(id))) {
+            return;
+        }
+        List<String> subTagIds = relationMap.get(id);
+        subTagIds.stream().forEach(tagId -> {
+            TagDO tagDO = allData.get(tagId);
+            tagDO.setExt(buildExtParamByParentTag(allData.get(id)));
+            tagMapper.updateByPrimaryKey(tagDO);
+            recurseUpdateTag(allData, relationMap, tagId);
+        });
+    }
+
+    /**
+     * buildExtParam.
+     * @param parentTagDO parentTagDO
+     * @return ext
+     */
+    private String buildExtParamByParentTag(final TagDO parentTagDO) {
+        String ext = "";
+        if (parentTagDO.getId().equals(AdminConstants.TAG_ROOT_PARENT_ID)) {
+            final TagDO.TagExt parent = new TagDO.TagExt();
+            TagDO.TagExt tagExt = new TagDO.TagExt();
+            tagExt.setDesc(parentTagDO.getTagDesc());
+            tagExt.setName(parentTagDO.getName());
+            tagExt.setId(parentTagDO.getId());
+            parent.setParent(tagExt);
+            ext = GsonUtils.getInstance().toJson(parent);
+        } else {
+            TagDO.TagExt parentTagExt = Optional.ofNullable(GsonUtils.getInstance().fromJson(parentTagDO.getExt(), TagDO.TagExt.class)).orElse(new TagDO.TagExt());
+            final TagDO.TagExt tagExt = new TagDO.TagExt();
+            parentTagExt.setDesc(parentTagDO.getTagDesc());
+            parentTagExt.setName(parentTagDO.getName());
+            parentTagExt.setId(parentTagDO.getId());
+            tagExt.setParent(parentTagExt);
+            ext = GsonUtils.getInstance().toJson(tagExt);
+        }
+        return ext;
     }
 }
