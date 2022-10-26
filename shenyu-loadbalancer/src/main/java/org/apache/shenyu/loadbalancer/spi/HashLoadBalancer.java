@@ -17,15 +17,16 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.spi.Join;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.TreeMap;
 import java.util.stream.IntStream;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.spi.Join;
 
 /**
  * hash algorithm impl.
@@ -47,7 +48,7 @@ public class HashLoadBalancer extends AbstractLoadBalancer {
      */
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
-        final ConcurrentSkipListMap<Long, Upstream> treeMap = new ConcurrentSkipListMap<>();
+        final TreeMap<Long, Upstream> treeMap = new TreeMap<>();
         upstreamList.forEach(upstream -> IntStream.range(0, VIRTUAL_NODE_NUM).forEach(i -> {
             long addressHash = hash("SHENYU-" + upstream.getUrl() + "-HASH-" + i);
             treeMap.put(addressHash, upstream);
