@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.sign;
 
-import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
@@ -114,9 +113,9 @@ public class SignPlugin extends AbstractShenyuPlugin {
         // get url params
         MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
         // get post body
-        Map<String, Object> requestBody = StringUtils.isBlank(originalBody) ? Maps.newHashMapWithExpectedSize(4) : JsonUtils.jsonToMap(originalBody);
-        requestBody.putAll(queryParams.toSingleValueMap());
-        Pair<Boolean, String> result = signService.signVerify(exchange, requestBody);
+        Map<String, Object> requestBody = StringUtils.isBlank(originalBody) ? null : JsonUtils.jsonToMap(originalBody);
+        Map<String, String> queryParamsSingleValueMap = queryParams.toSingleValueMap();
+        Pair<Boolean, String> result = signService.signVerify(exchange, requestBody, queryParamsSingleValueMap);
         if (Boolean.FALSE.equals(result.getLeft())) {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
             return WebFluxResultUtils.result(exchange, error);

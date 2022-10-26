@@ -32,19 +32,25 @@ public final class SignUtilsTest {
 
     @Test
     public void testGenerateSign() {
-        Map<String, String> params = new HashMap<>();
-        params.put("a", "1");
-        params.put("b", "2");
-        assertNotNull(SignUtils.generateSign("test", params));
+        Map<String, String> jsonParams = new HashMap<>();
+        jsonParams.put("a", "1");
+        jsonParams.put("b", "2");
+        Map<String, String> queryParams = new HashMap<>();
+        jsonParams.put("a", "1");
+        jsonParams.put("b", "2");
+        assertNotNull(SignUtils.generateSign("test", jsonParams, queryParams));
     }
 
     @Test
     public void testValid() {
         final String sign = "7AA98F7D67F8E4730E2D1D3902295CE6";
-        Map<String, String> params = new HashMap<>();
-        params.put("a", "1");
-        params.put("b", "2");
-        assertTrue(SignUtils.getInstance().isValid(sign, params, "test"));
+        Map<String, String> jsonParams = new HashMap<>();
+        jsonParams.put("a", "1");
+        jsonParams.put("b", "2");
+        Map<String, String> queryParams = new HashMap<>();
+        jsonParams.put("a", "1");
+        jsonParams.put("b", "2");
+        assertTrue(SignUtils.getInstance().isValid(sign, jsonParams, queryParams, "test"));
     }
 
     @Test
