@@ -25,6 +25,10 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-spring-boot-starter-client-apache-dubbo</artifactId>
 
+    <properties>
+        <apache.dubbo.version>2.7.15</apache.dubbo.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>

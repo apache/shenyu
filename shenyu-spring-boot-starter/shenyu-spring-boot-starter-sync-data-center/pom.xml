@@ -34,6 +34,12 @@
         <module>shenyu-spring-boot-starter-sync-data-etcd</module>
         <module>shenyu-spring-boot-starter-sync-data-consul</module>
     </modules>
-
-
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

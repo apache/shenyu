@@ -515,6 +515,8 @@ The text of each license is the standard Apache 2.0 license.
     casdoor-java-sdk 1.9.0: https://github.com/casdoor/casdoor-java-sdk, Apache 2.0
     nimbus-jose-jwt 9.10: https://connect2id.com/products/nimbus-jose-jwt, Apache 2.0
     oltu 1.0.2: https://oltu.apache.org/, Apache 2.0
+    httpclient 4.5.13: https://github.com/apache/httpcomponents-client, Apache 2.0
+    okhttp 3.14.9: https://square.github.io/okhttp, Apache 2.0
 
 ========================================================================
 BSD licenses

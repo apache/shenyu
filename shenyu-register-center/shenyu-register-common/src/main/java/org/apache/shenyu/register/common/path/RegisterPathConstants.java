@@ -100,7 +100,18 @@ public class RegisterPathConstants {
      * @return the string
      */
     public static String buildInstanceParentPath() {
-        return String.join(SEPARATOR, ROOT_PATH, "instance");
+        return buildInstanceParentPath("instance");
+    }
+
+    /**
+     * Build instance parent path string.
+     * build child path of "/shenyu/register/instance/
+     *
+     * @param registerServiceName registerServiceName
+     * @return the string
+     */
+    public static String buildInstanceParentPath(final String registerServiceName) {
+        return String.join(SEPARATOR, ROOT_PATH, registerServiceName);
     }
     
     /**
