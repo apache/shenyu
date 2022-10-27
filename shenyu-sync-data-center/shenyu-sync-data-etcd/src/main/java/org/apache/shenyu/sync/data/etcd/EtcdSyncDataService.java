@@ -38,10 +38,13 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -62,6 +65,8 @@ public class EtcdSyncDataService implements SyncDataService {
 
     private final List<AuthDataSubscriber> authDataSubscribers;
 
+    private Map<String, String> map = new ConcurrentHashMap<>();
+
     /**
      * Instantiates a new Zookeeper cache manager.
      *
@@ -78,18 +83,28 @@ public class EtcdSyncDataService implements SyncDataService {
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
+        watchAllKeys();
         watcherData();
         watchAppAuth();
         watchMetaData();
     }
 
+    private void watchAllKeys() {
+        map = etcdClient.getKeysMapByPrefix(DefaultPathConstants.PRE_FIX);
+        etcdClient.watchDataChange(DefaultPathConstants.PRE_FIX, (updateKey, updateValue) -> {
+            map.put(updateKey, updateValue);
+        }, deleteKey -> {
+                map.remove(deleteKey);
+            });
+
+    }
+
     private void watcherData() {
         final String pluginParent = DefaultPathConstants.PLUGIN_PARENT;
-        List<String> pluginChildren = etcdClientGetChildren(pluginParent);
+        List<String> pluginChildren = etcdClientGetChildrenByMap(pluginParent, map);
         for (String pluginName : pluginChildren) {
             watcherAll(pluginName);
         }
-
         etcdClient.watchChildChange(pluginParent, (updateNode, updateValue) -> {
             if (!updateNode.isEmpty()) {
                 watcherAll(updateNode);
@@ -105,17 +120,17 @@ public class EtcdSyncDataService implements SyncDataService {
 
     private void watcherPlugin(final String pluginName) {
         String pluginPath = DefaultPathConstants.buildPluginPath(pluginName);
-        cachePluginData(etcdClient.get(pluginPath));
+        cachePluginData(map.get(pluginPath));
         subscribePluginDataChanges(pluginPath, pluginName);
     }
 
     private void watcherSelector(final String pluginName) {
         String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(pluginName);
-        List<String> childrenList = etcdClientGetChildren(selectorParentPath);
+        List<String> childrenList = etcdClientGetChildrenByMap(selectorParentPath, map);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(selectorParentPath, children);
-                cacheSelectorData(etcdClient.get(realPath));
+                cacheSelectorData(map.get(realPath));
                 subscribeSelectorDataChanges(realPath);
             });
         }
@@ -124,11 +139,11 @@ public class EtcdSyncDataService implements SyncDataService {
 
     private void watcherRule(final String pluginName) {
         String ruleParent = DefaultPathConstants.buildRuleParentPath(pluginName);
-        List<String> childrenList = etcdClientGetChildren(ruleParent);
+        List<String> childrenList = etcdClientGetChildrenByMap(ruleParent, map);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(ruleParent, children);
-                cacheRuleData(etcdClient.get(realPath));
+                cacheRuleData(map.get(realPath));
                 subscribeRuleDataChanges(realPath);
             });
         }
@@ -137,11 +152,11 @@ public class EtcdSyncDataService implements SyncDataService {
 
     private void watchAppAuth() {
         final String appAuthParent = DefaultPathConstants.APP_AUTH_PARENT;
-        List<String> childrenList = etcdClientGetChildren(appAuthParent);
+        List<String> childrenList = etcdClientGetChildrenByMap(appAuthParent, map);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(appAuthParent, children);
-                cacheAuthData(etcdClient.get(realPath));
+                cacheAuthData(map.get(realPath));
                 subscribeAppAuthDataChanges(realPath);
             });
         }
@@ -150,11 +165,11 @@ public class EtcdSyncDataService implements SyncDataService {
 
     private void watchMetaData() {
         final String metaDataPath = DefaultPathConstants.META_DATA;
-        List<String> childrenList = etcdClientGetChildren(metaDataPath);
+        List<String> childrenList = etcdClientGetChildrenByMap(metaDataPath, map);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(metaDataPath, children);
-                cacheMetaData(etcdClient.get(realPath));
+                cacheMetaData(map.get(realPath));
                 subscribeMetaDataChanges(realPath);
             });
         }
@@ -165,25 +180,25 @@ public class EtcdSyncDataService implements SyncDataService {
         switch (groupKey) {
             case SELECTOR:
                 etcdClient.watchChildChange(groupParentPath, (updatePath, updateValue) -> {
-                    cacheSelectorData(etcdClient.get(updatePath));
+                    cacheSelectorData(map.get(updatePath));
                     subscribeSelectorDataChanges(updatePath);
                 }, null);
                 break;
             case RULE:
                 etcdClient.watchChildChange(groupParentPath, (updatePath, updateValue) -> {
-                    cacheRuleData(etcdClient.get(updatePath));
+                    cacheRuleData(map.get(updatePath));
                     subscribeRuleDataChanges(updatePath);
                 }, null);
                 break;
             case APP_AUTH:
                 etcdClient.watchChildChange(groupParentPath, (updatePath, updateValue) -> {
-                    cacheAuthData(etcdClient.get(updatePath));
+                    cacheAuthData(map.get(updatePath));
                     subscribeAppAuthDataChanges(updatePath);
                 }, null);
                 break;
             case META_DATA:
                 etcdClient.watchChildChange(groupParentPath, (updatePath, updateValue) -> {
-                    cacheMetaData(etcdClient.get(updatePath));
+                    cacheMetaData(map.get(updatePath));
                     subscribeMetaDataChanges(updatePath);
                 }, null);
                 break;
@@ -195,7 +210,7 @@ public class EtcdSyncDataService implements SyncDataService {
     private void subscribePluginDataChanges(final String pluginPath, final String pluginName) {
         etcdClient.watchDataChange(pluginPath, (updatePath, updateValue) -> {
             final String dataPath = buildRealPath(pluginPath, updatePath);
-            final String dataStr = etcdClient.get(dataPath);
+            final String dataStr = map.get(dataPath);
             final PluginData data = GsonUtils.getInstance().fromJson(dataStr, PluginData.class);
             Optional.ofNullable(data)
                     .ifPresent(d -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe(d)));
@@ -321,6 +336,10 @@ public class EtcdSyncDataService implements SyncDataService {
             LOG.error(e.getMessage(), e);
         }
         return Collections.emptyList();
+    }
+
+    private List<String> etcdClientGetChildrenByMap(final String parent, final Map<String, String> map) {
+        return etcdClient.getChildrenKeysByMap(parent, "/", map);
     }
 
     @Override
