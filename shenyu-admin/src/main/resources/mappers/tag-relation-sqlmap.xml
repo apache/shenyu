@@ -41,6 +41,21 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.TagRelationQuery"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM tag_relation
+        <where>
+            <if test="apiId != null">
+                api_id = #{apiId, jdbcType=VARCHAR}
+            </if>
+            <if test="tagId != null">
+                tag_id = #{tagId, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.TagRelationDO">
         INSERT INTO tag_relation
         (id,
@@ -123,5 +138,13 @@
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
         DELETE FROM tag_relation
         WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM tag_relation
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
     </delete>
 </mapper>
