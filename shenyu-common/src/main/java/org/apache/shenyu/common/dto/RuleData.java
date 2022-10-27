@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * RuleDTO.
+ * RuleData.
  *
  * @since 2.0.0
  */
