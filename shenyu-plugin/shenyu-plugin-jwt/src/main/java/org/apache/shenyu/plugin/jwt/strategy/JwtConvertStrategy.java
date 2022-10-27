@@ -15,28 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.jwt.rule;
+package org.apache.shenyu.plugin.jwt.strategy;
 
-public class CustomJwtRuleHandle extends JwtRuleHandle {
+import org.apache.shenyu.plugin.jwt.rule.JwtRuleHandle;
+import org.apache.shenyu.spi.SPI;
+import org.springframework.web.server.ServerWebExchange;
 
-    private String customConvert;
+import java.util.Map;
 
-    /**
-     * get customConvert.
-     *
-     * @return customConvert
-     */
-    public String getCustomConvert() {
-        return customConvert;
-    }
+@SPI
+public interface JwtConvertStrategy<T extends JwtRuleHandle> {
 
     /**
-     * set customConvert.
+     * parse handleJson into jwtRuleHandle.
      *
-     * @param customConvert customConvert
+     * @param handleJson handleJson from rule
+     * @return jwtRuleHandle
      */
-    public void setCustomConvert(final String customConvert) {
-        this.customConvert = customConvert;
-    }
+    T parseHandleJson(String handleJson);
+
+    /**
+     * handle exchange by jwtRuleHandle and jwtBody.
+     *
+     * @param jwtRuleHandle jwtRuleHandle
+     * @param exchange      exchange
+     * @param jwtBody       jwtBody
+     * @return serverWebExchange
+     */
+    ServerWebExchange convert(T jwtRuleHandle, ServerWebExchange exchange, Map<String, Object> jwtBody);
 
 }

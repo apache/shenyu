@@ -15,28 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.jwt.rule;
+package org.apache.shenyu.plugin.jwt.strategy;
 
-public class CustomJwtRuleHandle extends JwtRuleHandle {
+import org.apache.shenyu.spi.ExtensionLoader;
 
-    private String customConvert;
+import java.util.Objects;
 
-    /**
-     * get customConvert.
-     *
-     * @return customConvert
-     */
-    public String getCustomConvert() {
-        return customConvert;
-    }
+public class JwtConvertStrategyFactory {
 
     /**
-     * set customConvert.
+     * new instance jwtConvertStrategy.
      *
-     * @param customConvert customConvert
+     * @param handleType handleType
+     * @return jwtConvertStrategy
      */
-    public void setCustomConvert(final String customConvert) {
-        this.customConvert = customConvert;
-    }
+    @SuppressWarnings("rawtypes")
+    public static JwtConvertStrategy newInstance(final String handleType) {
 
+        if (Objects.isNull(handleType)) {
+            return new DefaultJwtConvertStrategy();
+        }
+        return ExtensionLoader.getExtensionLoader(JwtConvertStrategy.class)
+                .getJoin(handleType);
+    }
 }

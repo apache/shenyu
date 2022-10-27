@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.plugin.jwt.rule;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.spi.ExtensionLoader;
-import org.apache.shenyu.spi.SPI;
-import org.springframework.web.server.ServerWebExchange;
+import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategy;
+import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategyFactory;
 
 import java.util.Map;
 import java.util.Objects;
@@ -30,46 +28,50 @@ import java.util.Objects;
 /**
  * Jwt rule handle.
  */
-@SPI
-public interface JwtRuleHandle extends RuleHandle {
+
+public abstract class JwtRuleHandle implements RuleHandle {
+
+    private String handleType;
 
     /**
-     * init JwtRuleHandle.
+     * get handleType.
      *
-     * @param handleJson json string of the jwt handle.
+     * @return handleType
      */
-    void init(String handleJson);
+    public String getHandleType() {
+        return handleType;
+    }
 
     /**
-     * handle exchange by config(handleJson).
+     * set handleType.
      *
-     * @param exchange exchange
-     * @param jwtBody  jwtBody
-     * @return ServerWebExchange exchange
+     * @param handleType handleType
      */
-    ServerWebExchange execute(ServerWebExchange exchange, Map<String, Object> jwtBody);
+    public void setHandleType(final String handleType) {
+        this.handleType = handleType;
+    }
 
     /**
-     * create Jwt-Rule Handle.
+     * new instance jwtRuleHandle.
      *
-     * @param handleJson handleJson
-     * @return JwtRuleHandle
+     * @param handleJson handleJson from rule
+     * @return jwtRuleHandle
      */
-    static JwtRuleHandle newInstance(String handleJson) {
-        if (StringUtils.isEmpty(handleJson)) {
+    @SuppressWarnings("rawtypes")
+    public static JwtRuleHandle newInstance(final String handleJson) {
+
+        if (Objects.isNull(handleJson)) {
             return null;
         }
 
         Map<String, Object> handleMap = GsonUtils.getInstance().convertToMap(handleJson);
-
-        Object handleType = Objects.isNull(handleMap) ? null : handleMap.get("handleType");
-        JwtRuleHandle jwtRuleHandle;
-        if (Objects.nonNull(handleType)) {
-            jwtRuleHandle = ExtensionLoader.getExtensionLoader(JwtRuleHandle.class).getJoin(handleType.toString());
-        } else {
-            jwtRuleHandle = new DefaultJwtRuleHandle();
+        String handleType = null;
+        if (Objects.nonNull(handleMap) && Objects.nonNull(handleMap.get("handleType"))) {
+            handleType = handleMap.get("handleType").toString();
         }
-        jwtRuleHandle.init(handleJson);
-        return jwtRuleHandle;
+
+        JwtConvertStrategy convertStrategy = JwtConvertStrategyFactory.newInstance(handleType);
+        return convertStrategy.parseHandleJson(handleJson);
     }
+
 }

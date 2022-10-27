@@ -33,7 +33,6 @@ import org.apache.shenyu.plugin.jwt.handle.JwtPluginDataHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -48,6 +47,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -84,7 +84,7 @@ public final class JwtPluginTest {
         Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
 
         StepVerifier.create(mono).expectSubscription().verifyComplete();
-        Mockito.verify(chain)
+        verify(chain)
                 .execute(argThat(exchange -> hasHeader(exchange, "id", "1")));
 
     }
@@ -92,12 +92,15 @@ public final class JwtPluginTest {
     @Test
     public void testDoExecuteWithCustomHandleType() {
 
-        ruleData.setHandle("{\"handleType\":\"custom\"}");
+        ruleData.setHandle("{\"handleType\":\"custom\",\"customConvert\":\"customConvert\"}");
         when(this.chain.execute(any())).thenReturn(Mono.empty());
 
         Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
 
         StepVerifier.create(mono).expectSubscription().verifyComplete();
+
+        verify(chain)
+                .execute(argThat(exchange -> hasHeader(exchange, "custom", "customConvert")));
     }
 
     @Test

@@ -34,6 +34,8 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.jwt.config.JwtConfig;
 import org.apache.shenyu.plugin.jwt.exception.ThrowingFunction;
 import org.apache.shenyu.plugin.jwt.rule.JwtRuleHandle;
+import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategy;
+import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategyFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -67,16 +69,16 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         String finalAuthorization = compatible(token, authorization);
         Map<String, Object> jwtBody = checkAuthorization(finalAuthorization, jwtConfig.getSecretKey());
 
-        if (Objects.nonNull(jwtBody)) {
-
-            JwtRuleHandle ruleHandle = JwtRuleHandle.newInstance(rule.getHandle());
-            if (Objects.isNull(ruleHandle)) {
-                return chain.execute(exchange);
-            }
-            return chain.execute(ruleHandle.execute(exchange, jwtBody));
+        if (Objects.isNull(jwtBody)) {
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN);
+            return WebFluxResultUtils.result(exchange, error);
         }
-        Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN);
-        return WebFluxResultUtils.result(exchange, error);
+
+        if (Objects.isNull(rule) || Objects.isNull(rule.getHandle())) {
+            return chain.execute(exchange);
+        }
+
+        return chain.execute(executeRuleHandle(rule.getHandle(), exchange, jwtBody));
     }
 
     @Override
@@ -87,6 +89,19 @@ public class JwtPlugin extends AbstractShenyuPlugin {
     @Override
     public int getOrder() {
         return PluginEnum.JWT.getCode();
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private ServerWebExchange executeRuleHandle(final String handleJson, final ServerWebExchange exchange, final Map<String, Object> jwtBody) {
+
+        JwtRuleHandle jwtRuleHandle = JwtRuleHandle.newInstance(handleJson);
+        if (Objects.isNull(jwtRuleHandle)) {
+            return exchange;
+        }
+        JwtConvertStrategy convertStrategy =
+                JwtConvertStrategyFactory.newInstance(jwtRuleHandle.getHandleType());
+
+        return convertStrategy.convert(jwtRuleHandle, exchange, jwtBody);
     }
 
     /**
