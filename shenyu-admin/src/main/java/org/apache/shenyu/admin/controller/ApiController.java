@@ -23,11 +23,9 @@ import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ApiQuery;
-import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.service.ApiService;
-import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -53,7 +51,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/api")
-public class ApiController implements PagedController<PluginQueryCondition, ApiVO> {
+public class ApiController {
 
     private final ApiService apiService;
 
@@ -63,16 +61,17 @@ public class ApiController implements PagedController<PluginQueryCondition, ApiV
 
     /**
      * query apis.
-     * @param apiPath api path.
-     * @param state state.
+     *
+     * @param apiPath     api path.
+     * @param state       state.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return  {@linkplain ShenyuAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
     public ShenyuAdminResult queryApis(final String apiPath, final Integer state,
-                                          @NotNull final Integer currentPage,
-                                          @NotNull final Integer pageSize) {
+                                       @NotNull final Integer currentPage,
+                                       @NotNull final Integer pageSize) {
         CommonPager<ApiVO> commonPager = apiService.listByPage(new ApiQuery(apiPath, state, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
@@ -86,8 +85,8 @@ public class ApiController implements PagedController<PluginQueryCondition, ApiV
     @GetMapping("/{id}")
     @RequiresPermissions("system:api:edit")
     public ShenyuAdminResult detailApi(@PathVariable("id")
-                                          @Existed(message = "api is not existed",
-                                                  provider = ApiMapper.class) final String id) {
+                                       @Existed(message = "api is not existed",
+                                               provider = ApiMapper.class) final String id) {
         ApiVO apiVO = apiService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, apiVO);
     }
@@ -106,16 +105,17 @@ public class ApiController implements PagedController<PluginQueryCondition, ApiV
 
     /**
      * update api.
-     * @param id primary key.
+     *
+     * @param id     primary key.
      * @param apiDTO api.
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
     @RequiresPermissions("system:api:edit")
     public ShenyuAdminResult updateApi(@PathVariable("id")
-                                          @Existed(message = "api is not existed",
-                                                  provider = ApiMapper.class) final String id,
-                                          @Valid @RequestBody final ApiDTO apiDTO) {
+                                       @Existed(message = "api is not existed",
+                                               provider = ApiMapper.class) final String id,
+                                       @Valid @RequestBody final ApiDTO apiDTO) {
         apiDTO.setId(id);
         return createApi(apiDTO);
     }
@@ -128,7 +128,7 @@ public class ApiController implements PagedController<PluginQueryCondition, ApiV
      */
     @DeleteMapping("/batch")
     @RequiresPermissions("system:api:delete")
-    public ShenyuAdminResult deletePlugins(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
+    public ShenyuAdminResult deleteApis(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         final String result = apiService.delete(ids);
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
@@ -136,8 +136,4 @@ public class ApiController implements PagedController<PluginQueryCondition, ApiV
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS);
     }
 
-    @Override
-    public PageService<PluginQueryCondition, ApiVO> pageService() {
-        return apiService;
-    }
 }

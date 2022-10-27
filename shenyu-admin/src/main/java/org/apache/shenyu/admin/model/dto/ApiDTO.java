@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * this is api from by web front.
@@ -118,6 +119,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getId.
+     *
      * @return id
      */
     public String getId() {
@@ -126,6 +128,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * set id.
+     *
      * @param id id
      */
     public void setId(final String id) {
@@ -134,6 +137,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getContextPath.
+     *
      * @return context path
      */
     public String getContextPath() {
@@ -142,6 +146,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * set context path.
+     *
      * @param contextPath context path
      */
     public void setContextPath(final String contextPath) {
@@ -150,6 +155,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getApiPath.
+     *
      * @return apiPath
      */
     public String getApiPath() {
@@ -158,6 +164,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setApiPath.
+     *
      * @param apiPath apiPath
      */
     public void setApiPath(final String apiPath) {
@@ -166,6 +173,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getHttpMethod.
+     *
      * @return http method
      */
     public Integer getHttpMethod() {
@@ -174,6 +182,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setHttpMethod.
+     *
      * @param httpMethod http method
      */
     public void setHttpMethod(final Integer httpMethod) {
@@ -182,6 +191,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getConsume.
+     *
      * @return consume
      */
     public String getConsume() {
@@ -190,6 +200,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setConsume.
+     *
      * @param consume consume
      */
     public void setConsume(final String consume) {
@@ -198,6 +209,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getProduce.
+     *
      * @return produce
      */
     public String getProduce() {
@@ -206,6 +218,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setProduce.
+     *
      * @param produce the produce
      */
     public void setProduce(final String produce) {
@@ -214,6 +227,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getVersion.
+     *
      * @return version
      */
     public String getVersion() {
@@ -222,6 +236,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setVersion.
+     *
      * @param version the version
      */
     public void setVersion(final String version) {
@@ -230,6 +245,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getRpcType.
+     *
      * @return rpc type
      */
     public String getRpcType() {
@@ -238,6 +254,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setRpcType.
+     *
      * @param rpcType the rpc type
      */
     public void setRpcType(final String rpcType) {
@@ -246,6 +263,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getState.
+     *
      * @return state
      */
     public Byte getState() {
@@ -254,6 +272,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setState.
+     *
      * @param state state
      */
     public void setState(final Byte state) {
@@ -262,7 +281,8 @@ public class ApiDTO implements Serializable {
 
     /**
      * getExt.
-     * @return  extension.
+     *
+     * @return extension.
      */
     public String getExt() {
         return ext;
@@ -270,6 +290,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setExt.
+     *
      * @param ext extension
      */
     public void setExt(final String ext) {
@@ -278,6 +299,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getApiOwner.
+     *
      * @return apiOwner
      */
     public String getApiOwner() {
@@ -286,6 +308,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setApiOwner.
+     *
      * @param apiOwner apiOwner
      */
     public void setApiOwner(final String apiOwner) {
@@ -294,6 +317,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getApiDesc.
+     *
      * @return apiDesc
      */
     public String getApiDesc() {
@@ -302,6 +326,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setApiDesc.
+     *
      * @param apiDesc apiDesc
      */
     public void setApiDesc(final String apiDesc) {
@@ -310,6 +335,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getApiSource.
+     *
      * @return apiSource
      */
     public Integer getApiSource() {
@@ -318,6 +344,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setSource.
+     *
      * @param apiSource apiSource
      */
     public void setApiSource(final Integer apiSource) {
@@ -326,6 +353,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getDocument.
+     *
      * @return document
      */
     public String getDocument() {
@@ -334,6 +362,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setDocument.
+     *
      * @param document document
      */
     public void setDocument(final String document) {
@@ -342,6 +371,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getDocumentMd5.
+     *
      * @return document md5
      */
     public String getDocumentMd5() {
@@ -350,6 +380,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setDocumentMd5.
+     *
      * @param documentMd5 documentMd5
      */
     public void setDocumentMd5(final String documentMd5) {
@@ -358,6 +389,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getDateCreated.
+     *
      * @return dateCreated
      */
     public Date getDateCreated() {
@@ -366,6 +398,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * setDateCreated.
+     *
      * @param dateCreated dateCreated
      */
     public void setDateCreated(final Date dateCreated) {
@@ -374,6 +407,7 @@ public class ApiDTO implements Serializable {
 
     /**
      * getDateUpdated.
+     *
      * @return dateUpdated
      */
     public Date getDateUpdated() {
@@ -382,9 +416,32 @@ public class ApiDTO implements Serializable {
 
     /**
      * setDateUpdated.
+     *
      * @param dateUpdated dateUpdated
      */
     public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
     }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ApiDTO)) {
+            return false;
+        }
+        ApiDTO apiDTO = (ApiDTO) o;
+        return Objects.equals(id, apiDTO.id) && Objects.equals(contextPath, apiDTO.contextPath) && Objects.equals(apiPath, apiDTO.apiPath) && Objects.equals(httpMethod, apiDTO.httpMethod)
+                && Objects.equals(consume, apiDTO.consume) && Objects.equals(produce, apiDTO.produce) && Objects.equals(version, apiDTO.version) && Objects.equals(rpcType, apiDTO.rpcType)
+                && Objects.equals(state, apiDTO.state) && Objects.equals(ext, apiDTO.ext) && Objects.equals(apiOwner, apiDTO.apiOwner) && Objects.equals(apiDesc, apiDTO.apiDesc)
+                && Objects.equals(apiSource, apiDTO.apiSource) && Objects.equals(document, apiDTO.document) && Objects.equals(documentMd5, apiDTO.documentMd5)
+                && Objects.equals(dateCreated, apiDTO.dateCreated) && Objects.equals(dateUpdated, apiDTO.dateUpdated);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, contextPath, apiPath, httpMethod, consume, produce, version, rpcType, state, ext, apiOwner, apiDesc, apiSource, document, documentMd5, dateCreated, dateUpdated);
+    }
+
 }

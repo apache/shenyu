@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
@@ -43,6 +44,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
@@ -53,7 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test cases for ShenyuDictController.
+ * Test cases for ApiController.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -91,7 +93,6 @@ public final class ApiControllerTest {
                 .document("document")
                 .build();
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-
     }
 
     @Test
@@ -141,14 +142,54 @@ public final class ApiControllerTest {
         apiDTO.setApiSource(0);
         apiDTO.setDocument("document");
         apiDTO.setExt("ext");
-        when(SpringBeanUtils.getInstance().getBean(ApiMapper.class)).thenReturn(apiMapper);
-        given(apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
+        given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/api")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(apiDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
+    }
+
+    @Test
+    public void testUpdateApi() throws Exception {
+        ApiDTO apiDTO = new ApiDTO();
+        apiDTO.setContextPath("string");
+        apiDTO.setApiPath("string");
+        apiDTO.setHttpMethod(0);
+        apiDTO.setConsume("string");
+        apiDTO.setProduce("string");
+        apiDTO.setVersion("string");
+        apiDTO.setRpcType("/dubbo");
+        apiDTO.setState((byte) 0);
+        apiDTO.setApiOwner("string");
+        apiDTO.setApiDesc("string");
+        apiDTO.setApiSource(0);
+        apiDTO.setDocument("document");
+        apiDTO.setExt("ext");
+        apiDTO.setId("123");
+        when(SpringBeanUtils.getInstance().getBean(ApiMapper.class)).thenReturn(apiMapper);
+        when(apiMapper.existed(apiDTO.getId())).thenReturn(true);
+        given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/api/{id}", apiDTO.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(apiDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andReturn();
+
+    }
+
+    @Test
+    public void testDeleteApis() throws Exception {
+        given(this.apiService.delete(Collections.singletonList("123"))).willReturn(StringUtils.EMPTY);
+        this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[\"123\"]"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andReturn();
+
     }
 
 }

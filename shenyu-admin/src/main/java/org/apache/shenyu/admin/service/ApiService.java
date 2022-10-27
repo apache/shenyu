@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.ApiQuery;
-import org.apache.shenyu.admin.model.query.PluginQueryCondition;
 import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 
@@ -29,7 +28,7 @@ import java.util.List;
 /**
  * this is api service.
  */
-public interface ApiService extends PageService<PluginQueryCondition, ApiVO> {
+public interface ApiService {
 
     /**
      * Create or update string.
@@ -38,7 +37,6 @@ public interface ApiService extends PageService<PluginQueryCondition, ApiVO> {
      * @return the string
      */
     String createOrUpdate(ApiDTO apiDTO);
-
 
     /**
      * Delete string.
