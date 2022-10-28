@@ -1,0 +1,5 @@
+shenyu:
+  sdk:
+    enabled: true
+    register-type: local
+    server-lists: '127.0.0.1:9195'
