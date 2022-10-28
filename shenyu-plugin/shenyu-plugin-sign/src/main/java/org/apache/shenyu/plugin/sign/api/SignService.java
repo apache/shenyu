@@ -31,9 +31,10 @@ public interface SignService {
      * Sign verify pair.
      * @param exchange   the exchange
      * @param requestBody the requestBody
+     * @param queryParams  url query params
      * @return the pair
      */
-    Pair<Boolean, String> signVerify(ServerWebExchange exchange, Map<String, Object> requestBody);
+    Pair<Boolean, String> signVerify(ServerWebExchange exchange, Map<String, Object> requestBody, Map<String, String> queryParams);
 
     /**
      * Sign verify pair.
@@ -41,6 +42,6 @@ public interface SignService {
      * @return the pair
      */
     default Pair<Boolean, String> signVerify(ServerWebExchange exchange) {
-        return signVerify(exchange, null);
+        return signVerify(exchange, null, null);
     }
 }

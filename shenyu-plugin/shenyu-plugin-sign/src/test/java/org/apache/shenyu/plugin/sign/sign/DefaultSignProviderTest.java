@@ -49,9 +49,12 @@ public class DefaultSignProviderTest {
 
     @Test
     public void testGenerateSign() {
-        Map<String, String> params = new HashMap<>();
-        params.put("a", "1");
-        params.put("b", "2");
-        assertNotNull(ShenyuSignProviderWrap.generateSign("test", params));
+        Map<String, String> jsonParams = new HashMap<>();
+        jsonParams.put("a", "1");
+        jsonParams.put("b", "2");
+        Map<String, String> queryParams = new HashMap<>();
+        jsonParams.put("a", "1");
+        jsonParams.put("b", "2");
+        assertNotNull(ShenyuSignProviderWrap.generateSign("test", jsonParams, queryParams));
     }
 }

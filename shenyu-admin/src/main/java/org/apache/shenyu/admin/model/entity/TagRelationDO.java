@@ -19,6 +19,10 @@ package org.apache.shenyu.admin.model.entity;
 
 import java.sql.Timestamp;
 import java.util.Objects;
+import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.TagRelationDTO;
+import org.apache.shenyu.common.utils.UUIDUtils;
 
 public final class TagRelationDO extends BaseDO {
 
@@ -92,7 +96,32 @@ public final class TagRelationDO extends BaseDO {
     }
 
     /**
+     * build tagRelationDO.
+     *
+     * @param tagRelationDTO {@linkplain TagRelationDTO}
+     * @return {@linkplain TagRelationDO}
+     */
+    public static TagRelationDO buildTagRelationDO(final TagRelationDTO tagRelationDTO) {
+        return Optional.ofNullable(tagRelationDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            TagRelationDO tagRelationDO = TagRelationDO.builder()
+                    .apiId(tagRelationDTO.getApiId())
+                    .tagId(tagRelationDTO.getTagId())
+                    .dateUpdated(currentTime)
+                    .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                tagRelationDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                tagRelationDO.setDateCreated(currentTime);
+            } else {
+                tagRelationDO.setId(item.getId());
+            }
+            return tagRelationDO;
+        }).orElse(null);
+    }
+
+    /**
      * builder .
+     *
      * @return tagRelationDO
      */
     public static TagRelationDO.TagRelationDOBuilder builder() {
@@ -171,6 +200,7 @@ public final class TagRelationDO extends BaseDO {
 
         /**
          * build.
+         *
          * @return TagRelationDO
          */
         public TagRelationDO build() {
