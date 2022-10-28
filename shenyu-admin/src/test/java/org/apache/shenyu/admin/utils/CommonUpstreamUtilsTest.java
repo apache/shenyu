@@ -29,12 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Common upstream utils test.
- * @ClassName: CommonUpstreamUtilsTest
- * @Author: ChenHao26
- * @Date: 2022/10/27 16:13
+ * Test case for {@link CommonUpstreamUtils}.
  */
-public class CommonUpstreamUtilsTest {
+public final class CommonUpstreamUtilsTest {
 
     private static final String HOST = "127.0.0.1";
 
