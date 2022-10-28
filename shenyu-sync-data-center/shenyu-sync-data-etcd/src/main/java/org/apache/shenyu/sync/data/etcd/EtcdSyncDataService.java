@@ -57,6 +57,8 @@ public class EtcdSyncDataService implements SyncDataService {
      */
     private static final Logger LOG = LoggerFactory.getLogger(EtcdSyncDataService.class);
 
+    private static final String PRE_FIX = "/shenyu";
+
     private final EtcdClient etcdClient;
 
     private final PluginDataSubscriber pluginDataSubscriber;
@@ -90,8 +92,8 @@ public class EtcdSyncDataService implements SyncDataService {
     }
 
     private void watchAllKeys() {
-        keysMap = etcdClient.getKeysMapByPrefix(DefaultPathConstants.PRE_FIX);
-        etcdClient.watchDataChange(DefaultPathConstants.PRE_FIX, (updateKey, updateValue) -> {
+        keysMap = etcdClient.getKeysMapByPrefix(PRE_FIX);
+        etcdClient.watchDataChange(PRE_FIX, (updateKey, updateValue) -> {
             keysMap.put(updateKey, updateValue);
         }, deleteKey -> {
                 keysMap.remove(deleteKey);

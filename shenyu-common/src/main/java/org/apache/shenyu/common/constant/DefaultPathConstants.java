@@ -27,7 +27,7 @@ public final class DefaultPathConstants implements Constants {
      */
     public static final String SELECTOR_JOIN_RULE = "-";
 
-    public static final String PRE_FIX = "/shenyu";
+    private static final String PRE_FIX = "/shenyu";
 
     /**
      * The constant PLUGIN_PARENT.
