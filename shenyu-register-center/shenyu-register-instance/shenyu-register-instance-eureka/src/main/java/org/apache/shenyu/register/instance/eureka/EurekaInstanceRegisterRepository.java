@@ -50,11 +50,11 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EurekaInstanceRegisterRepository.class);
 
-    private static EurekaClient eurekaClient;
-
-    private final List<String> watcher = new ArrayList<>();
+    private EurekaClient eurekaClient;
 
     private EurekaHttpClient eurekaHttpClient;
+
+    private final List<String> watcher = new ArrayList<>();
 
     @Override
     public void init(final RegisterConfig config) {
