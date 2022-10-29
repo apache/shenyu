@@ -119,7 +119,7 @@ public class PluginDTO implements Serializable {
      * @param config config
      */
     public void setConfig(final String config) {
-        if(StringUtils.isBlank(config)) {
+        if (StringUtils.isBlank(config)) {
             return;
         }
         this.config = config;
