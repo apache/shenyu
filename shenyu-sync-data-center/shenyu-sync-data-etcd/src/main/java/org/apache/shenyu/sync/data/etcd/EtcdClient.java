@@ -74,7 +74,7 @@ public class EtcdClient {
     public String get(final String key) {
         List<KeyValue> keyValues = null;
         try {
-            keyValues = client.getKVClient().get(ByteSequence.from(key, UTF_8)).get().getKvs();
+            keyValues = client.getKVClient().get(bytesOf(key)).get().getKvs();
         } catch (InterruptedException | ExecutionException e) {
             LOG.error(e.getMessage(), e);
         }
