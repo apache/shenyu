@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;
@@ -93,5 +94,18 @@ public interface TagRelationMapper extends ExistProvider {
      */
     int updateByPrimaryKey(TagRelationDO record);
 
+    /**
+     * batchInsert.
+     * @param list list
+     * @return insert rows
+     */
+    int batchInsert(@Param(value = "list") List<TagRelationDO> list);
+
+    /**
+     * deleteByApiId.
+     * @param apiId apiId
+     * @return delete rows
+     */
+    int deleteByApiId(@Param(value = "apiId") String apiId);
 }
 

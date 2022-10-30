@@ -147,4 +147,27 @@
             #{id, jdbcType=VARCHAR}
         </foreach>
     </delete>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO tag_relation
+        (id,
+         date_created,
+         date_updated,
+         api_id,
+         tag_id)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id, jdbcType=VARCHAR},
+             #{item.dateCreated, jdbcType=TIMESTAMP},
+             #{item.dateUpdated, jdbcType=TIMESTAMP},
+             #{item.apiId, jdbcType=VARCHAR},
+             #{item.tagId, jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByApiId">
+        delete
+        from tag_relation
+        where api_id = #{apiId,jdbcType=VARCHAR}
+    </delete>
 </mapper>

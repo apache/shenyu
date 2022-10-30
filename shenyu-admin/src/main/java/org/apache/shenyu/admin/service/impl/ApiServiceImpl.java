@@ -17,11 +17,14 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.ApiMapper;
+import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ApiQuery;
@@ -30,11 +33,12 @@ import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.ApiService}.
@@ -44,8 +48,12 @@ public class ApiServiceImpl implements ApiService {
 
     private final ApiMapper apiMapper;
 
-    public ApiServiceImpl(final ApiMapper apiMapper) {
+    private final TagRelationMapper tagRelationMapper;
+
+    public ApiServiceImpl(final ApiMapper apiMapper, final TagRelationMapper tagRelationMapper) {
         this.apiMapper = apiMapper;
+        this.tagRelationMapper = tagRelationMapper;
+
     }
 
     @Override
@@ -56,23 +64,56 @@ public class ApiServiceImpl implements ApiService {
 
     /**
      * update.
+     *
      * @param apiDTO apiDTO
      * @return update message
      */
     private String update(final ApiDTO apiDTO) {
         ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
-        apiMapper.updateByPrimaryKeySelective(apiDO);
+        final int updateRows = apiMapper.updateByPrimaryKeySelective(apiDO);
+        if (CollectionUtils.isNotEmpty(apiDTO.getTagIds()) && updateRows > 0) {
+            List<String> tagIds = apiDTO.getTagIds();
+            List<TagRelationDO> tags = Lists.newArrayList();
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            for (String tagId : tagIds) {
+                tags.add(TagRelationDO.builder()
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .apiId(apiDO.getId())
+                        .tagId(tagId)
+                        .dateCreated(currentTime)
+                        .dateUpdated(currentTime)
+                        .build());
+            }
+            tagRelationMapper.deleteByApiId(apiDO.getId());
+            tagRelationMapper.batchInsert(tags);
+        }
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 
     /**
      * create.
+     *
      * @param apiDTO apiDTO
      * @return create message
      */
     private String create(final ApiDTO apiDTO) {
         ApiDO apiDO = ApiDO.buildApiDO(apiDTO);
-        apiMapper.insertSelective(apiDO);
+        final int insertRows = apiMapper.insertSelective(apiDO);
+        if (CollectionUtils.isNotEmpty(apiDTO.getTagIds()) && insertRows > 0) {
+            List<String> tagIds = apiDTO.getTagIds();
+            List<TagRelationDO> tags = Lists.newArrayList();
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            for (String tagId : tagIds) {
+                tags.add(TagRelationDO.builder()
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .apiId(apiDO.getId())
+                        .tagId(tagId)
+                        .dateCreated(currentTime)
+                        .dateUpdated(currentTime)
+                        .build());
+            }
+            tagRelationMapper.batchInsert(tags);
+        }
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
 

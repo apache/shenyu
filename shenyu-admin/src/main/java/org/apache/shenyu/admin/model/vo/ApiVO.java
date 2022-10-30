@@ -393,11 +393,19 @@ public class ApiVO implements Serializable {
     }
 
 
+    /**
+     * getTags.
+     * @return tags
+     */
     public List<TagVO> getTags() {
         return tags;
     }
 
-    public void setTags(List<TagVO> tags) {
+    /**
+     * setTags.
+     * @param tags tags
+     */
+    public void setTags(final List<TagVO> tags) {
         this.tags = tags;
     }
 

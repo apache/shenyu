@@ -103,11 +103,12 @@ public final class ApiControllerTest {
         final CommonPager<ApiVO> commonPager = new CommonPager<>();
         commonPager.setPage(pageParameter);
         commonPager.setDataList(apiVOS);
-        final ApiQuery apiQuery = new ApiQuery("string", 0,"", pageParameter);
+        final ApiQuery apiQuery = new ApiQuery("string", 0, "", pageParameter);
         given(this.apiService.listByPage(apiQuery)).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/api")
                 .param("apiPath", "string")
                 .param("state", "0")
+                .param("tagId", "")
                 .param("currentPage", pageParameter.getCurrentPage() + "")
                 .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())

@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.mapper.ApiMapper;
+import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -61,9 +62,12 @@ public final class ApiServiceTest {
     @Mock
     private ApiMapper apiMapper;
 
+    @Mock
+    private TagRelationMapper tagRelationMapper;
+
     @BeforeEach
     public void setUp() {
-        apiService = new ApiServiceImpl(apiMapper);
+        apiService = new ApiServiceImpl(apiMapper, tagRelationMapper);
     }
 
     @Test
@@ -83,27 +87,27 @@ public final class ApiServiceTest {
     @Test
     public void testFindById() {
         String id = "123";
-        ApiDO apiDO = buildApiDO(id);
-        given(this.apiMapper.selectByPrimaryKey(eq(id))).willReturn(apiDO);
+        ApiVO apiVO = buildApiVO(id);
+        given(this.apiMapper.selectByPrimaryKeyGetVO(eq(id))).willReturn(apiVO);
         ApiVO byId = this.apiService.findById(id);
         assertNotNull(byId);
     }
 
     @Test
     public void testListByPage() {
-//        PageParameter pageParameter = new PageParameter();
-//        pageParameter.setPageSize(5);
-//        pageParameter.setTotalCount(10);
-//        pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
-//        ApiQuery apiQuery = new ApiQuery(null, 0,"", pageParameter);
-//        List<ApiDO> apiDOList = new ArrayList<>();
-//        for (int i = 0; i < 10; i++) {
-//            ApiDO apiDO = buildApiDO(String.valueOf(i));
-//            apiDOList.add(apiDO);
-//        }
-//        given(this.apiMapper.selectByQuery(apiQuery)).willReturn(apiDOList);
-//        final CommonPager<ApiVO> apiDOCommonPager = this.apiService.listByPage(apiQuery);
-//        assertEquals(apiDOCommonPager.getDataList().size(), apiDOList.size());
+        PageParameter pageParameter = new PageParameter();
+        pageParameter.setPageSize(5);
+        pageParameter.setTotalCount(10);
+        pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
+        ApiQuery apiQuery = new ApiQuery(null, 0, "", pageParameter);
+        List<ApiVO> apiVOList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            ApiVO build = buildApiVO("" + i);
+            apiVOList.add(build);
+        }
+        given(this.apiMapper.selectByQuery(apiQuery)).willReturn(apiVOList);
+        final CommonPager<ApiVO> apiDOCommonPager = this.apiService.listByPage(apiQuery);
+        assertEquals(apiDOCommonPager.getDataList().size(), apiVOList.size());
     }
 
     private ApiDO buildApiDO(final String id) {
@@ -112,6 +116,24 @@ public final class ApiServiceTest {
         apiDO.setDateCreated(now);
         apiDO.setDateUpdated(now);
         return apiDO;
+    }
+
+    private ApiVO buildApiVO(final String id) {
+        return ApiVO.builder()
+                .id(id)
+                .contextPath("string")
+                .apiPath("string")
+                .httpMethod(0)
+                .consume("string")
+                .produce("string")
+                .version("string")
+                .rpcType("string")
+                .state((byte) 0)
+                .apiOwner("string")
+                .apiDesc("string")
+                .apiSource(0)
+                .document("document")
+                .build();
     }
 
     private void testCreate() {

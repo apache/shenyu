@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -116,6 +117,11 @@ public class ApiDTO implements Serializable {
      * update time.
      */
     private Date dateUpdated;
+
+    /**
+     * tagIds.
+     */
+    private List<String> tagIds;
 
     /**
      * getId.
@@ -423,6 +429,24 @@ public class ApiDTO implements Serializable {
         this.dateUpdated = dateUpdated;
     }
 
+    /**
+     * getTagIds.
+     *
+     * @return tagIds
+     */
+    public List<String> getTagIds() {
+        return tagIds;
+    }
+
+    /**
+     * setTagIds.
+     *
+     * @param tagIds tagIds
+     */
+    public void setTagIds(final List<String> tagIds) {
+        this.tagIds = tagIds;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -436,12 +460,13 @@ public class ApiDTO implements Serializable {
                 && Objects.equals(consume, apiDTO.consume) && Objects.equals(produce, apiDTO.produce) && Objects.equals(version, apiDTO.version) && Objects.equals(rpcType, apiDTO.rpcType)
                 && Objects.equals(state, apiDTO.state) && Objects.equals(ext, apiDTO.ext) && Objects.equals(apiOwner, apiDTO.apiOwner) && Objects.equals(apiDesc, apiDTO.apiDesc)
                 && Objects.equals(apiSource, apiDTO.apiSource) && Objects.equals(document, apiDTO.document) && Objects.equals(documentMd5, apiDTO.documentMd5)
-                && Objects.equals(dateCreated, apiDTO.dateCreated) && Objects.equals(dateUpdated, apiDTO.dateUpdated);
+                && Objects.equals(dateCreated, apiDTO.dateCreated) && Objects.equals(dateUpdated, apiDTO.dateUpdated) && Objects.equals(tagIds, apiDTO.tagIds);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, contextPath, apiPath, httpMethod, consume, produce, version, rpcType, state, ext, apiOwner, apiDesc, apiSource, document, documentMd5, dateCreated, dateUpdated);
+        return Objects.hash(id, contextPath, apiPath, httpMethod, consume, produce, version,
+                rpcType, state, ext, apiOwner, apiDesc, apiSource, document, documentMd5, dateCreated, dateUpdated, tagIds);
     }
 
 }
