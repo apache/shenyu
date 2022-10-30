@@ -64,15 +64,17 @@ public class ApiController {
      *
      * @param apiPath     api path.
      * @param state       state.
+     * @param tagId       tagId.
      * @param currentPage current page.
      * @param pageSize    page size.
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
     public ShenyuAdminResult queryApis(final String apiPath, final Integer state,
+                                       final String tagId,
                                        @NotNull final Integer currentPage,
                                        @NotNull final Integer pageSize) {
-        CommonPager<ApiVO> commonPager = apiService.listByPage(new ApiQuery(apiPath, state, new PageParameter(currentPage, pageSize)));
+        CommonPager<ApiVO> commonPager = apiService.listByPage(new ApiQuery(apiPath, state, tagId, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 

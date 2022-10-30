@@ -39,6 +39,36 @@
     <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated" />
     <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated" />
   </resultMap>
+
+  <resultMap id="BaseVOResultMap" type="org.apache.shenyu.admin.model.vo.ApiVO">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="context_path" jdbcType="VARCHAR" property="contextPath" />
+    <result column="api_path" jdbcType="VARCHAR" property="apiPath" />
+    <result column="http_method" jdbcType="INTEGER" property="httpMethod" />
+    <result column="consume" jdbcType="VARCHAR" property="consume" />
+    <result column="produce" jdbcType="VARCHAR" property="produce" />
+    <result column="version" jdbcType="VARCHAR" property="version" />
+    <result column="rpc_type" jdbcType="VARCHAR" property="rpcType" />
+    <result column="state" jdbcType="TINYINT" property="state" />
+    <result column="ext" jdbcType="VARCHAR" property="ext" />
+    <result column="api_owner" jdbcType="VARCHAR" property="apiOwner" />
+    <result column="api_desc" jdbcType="VARCHAR" property="apiDesc" />
+    <result column="api_source" jdbcType="INTEGER" property="apiSource" />
+    <result column="document" jdbcType="LONGVARCHAR" property="document" />
+    <result column="document_md5" jdbcType="CHAR" property="documentMd5" />
+    <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated" />
+    <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated" />
+    <collection property="tags" javaType="java.util.ArrayList" ofType="org.apache.shenyu.admin.model.vo.TagVO">
+      <id column="tag_id" property="id" jdbcType="VARCHAR" />
+      <result column="tag_date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+      <result column="tag_date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+      <result column="tag_name" jdbcType="VARCHAR" property="name"/>
+      <result column="tag_desc" jdbcType="VARCHAR" property="tagDesc"/>
+      <result column="tag_parent_tag_id" jdbcType="VARCHAR" property="parentTagId"/>
+      <result column="tag_ext" jdbcType="VARCHAR" property="ext"/>
+    </collection>
+  </resultMap>
+
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
     id, context_path, api_path, http_method, consume, produce, version, rpc_type, `state`, 
@@ -265,10 +295,35 @@
   </select>
 
   <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ApiQuery"
-          resultMap="BaseResultMap">
+          resultMap="BaseVOResultMap">
       select
-        <include refid="Base_Column_List"/>
+        api.id,
+        api.context_path,
+        api.api_path,
+        api.http_method,
+        api.consume,
+        api.produce,
+        api.version,
+        api.rpc_type,
+        api.`state`,
+        api.ext,
+        api.api_owner,
+        api.api_desc,
+        api.api_source,
+        api.document,
+        api.document_md5,
+        api.date_created,
+        api.date_updated,
+        tag.id as tag_id,
+        tag.date_created as tag_date_created,
+        tag.date_updated as tag_date_updated,
+        tag.name as tag_name,
+        tag.tag_desc as tag_desc,
+        tag.parent_tag_id as tag_parent_tag_id,
+        tag.ext as tag_ext
       from api
+      left join tag_relation on api.id = tag_relation.api_id
+      left join tag on tag_relation.tag_id = tag.id
       <where>
           <if test="apiPath != null and apiPath != ''">
               <bind name="nameLike" value="('%' + apiPath + '%')"/>
@@ -277,8 +332,11 @@
           <if test="state != null">
               AND state = #{state, jdbcType=TINYINT}
           </if>
+          <if test="tagId != null and tagId != ''">
+            and tag.id = #{tagId,jdbcType=VARCHAR}
+          </if>
       </where>
-      order by date_created desc
+      order by api.date_created desc
   </select>
 
   <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
@@ -298,5 +356,37 @@
       #{id, jdbcType=VARCHAR}
     </foreach>
   </delete>
+
+  <select id="selectByPrimaryKeyGetVO" resultMap="BaseVOResultMap">
+    select
+      api.id,
+      api.context_path,
+      api.api_path,
+      api.http_method,
+      api.consume,
+      api.produce,
+      api.version,
+      api.rpc_type,
+      api.`state`,
+      api.ext,
+      api.api_owner,
+      api.api_desc,
+      api.api_source,
+      api.document,
+      api.document_md5,
+      api.date_created,
+      api.date_updated,
+      tag.id as tag_id,
+      tag.date_created as tag_date_created,
+      tag.date_updated as tag_date_updated,
+      tag.name as tag_name,
+      tag.tag_desc as tag_desc,
+      tag.parent_tag_id as tag_parent_tag_id,
+      tag.ext as tag_ext
+    from api
+           left join tag_relation on api.id = tag_relation.api_id
+           left join tag on tag_relation.tag_id = tag.id
+    where api.id = #{id,jdbcType=VARCHAR}
+  </select>
 
 </mapper>

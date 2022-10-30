@@ -21,6 +21,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.ApiDO;
 import org.apache.shenyu.admin.model.query.ApiQuery;
+import org.apache.shenyu.admin.model.vo.ApiVO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
@@ -94,7 +95,7 @@ public interface ApiMapper extends ExistProvider {
      * @param query {@linkplain ApiQuery}
      * @return {@linkplain List}
      */
-    List<ApiDO> selectByQuery(ApiQuery query);
+    List<ApiVO> selectByQuery(ApiQuery query);
 
     /**
      * select api by ids.
@@ -110,4 +111,12 @@ public interface ApiMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(List<String> ids);
+
+    /**
+     * select by primary key get VO.
+     *
+     * @param id primary key
+     * @return object by primary key VO
+     */
+    ApiVO selectByPrimaryKeyGetVO(@Param(value = "id") String id);
 }

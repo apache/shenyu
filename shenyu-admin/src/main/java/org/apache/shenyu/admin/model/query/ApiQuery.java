@@ -40,6 +40,12 @@ public class ApiQuery implements Serializable {
      */
     private Integer state;
 
+
+    /**
+     * tagId.
+     */
+    private String tagId;
+
     /**
      * page parameter.
      */
@@ -48,9 +54,10 @@ public class ApiQuery implements Serializable {
     public ApiQuery() {
     }
 
-    public ApiQuery(final String apiPath, final Integer state, final PageParameter pageParameter) {
+    public ApiQuery(final String apiPath, final Integer state, final String tagId, final PageParameter pageParameter) {
         this.apiPath = apiPath;
         this.state = state;
+        this.tagId = tagId;
         this.pageParameter = pageParameter;
     }
 
@@ -91,6 +98,24 @@ public class ApiQuery implements Serializable {
     }
 
     /**
+     * get tagId.
+     *
+     * @return tagId
+     */
+    public String getTagId() {
+        return tagId;
+    }
+
+    /**
+     * set tagId.
+     *
+     * @param tagId tagId
+     */
+    public void setTagId(final String tagId) {
+        this.tagId = tagId;
+    }
+
+    /**
      * get pageParameter.
      *
      * @return pageParameter
@@ -117,11 +142,11 @@ public class ApiQuery implements Serializable {
             return false;
         }
         ApiQuery apiQuery = (ApiQuery) o;
-        return apiPath.equals(apiQuery.apiPath) && state.equals(apiQuery.state) && pageParameter.equals(apiQuery.pageParameter);
+        return apiPath.equals(apiQuery.apiPath) && state.equals(apiQuery.state) && tagId.equals(apiQuery.tagId) && pageParameter.equals(apiQuery.pageParameter);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(apiPath, state, pageParameter);
+        return Objects.hash(apiPath, state, tagId, pageParameter);
     }
 }

@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.entity.ApiDO;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * this is api view to web front.
@@ -113,6 +114,11 @@ public class ApiVO implements Serializable {
      * update time.
      */
     private Date dateUpdated;
+
+    /**
+     * tags.
+     */
+    private List<TagVO> tags;
 
     /**
      * getId.
@@ -384,6 +390,15 @@ public class ApiVO implements Serializable {
      */
     public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+
+    public List<TagVO> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<TagVO> tags) {
+        this.tags = tags;
     }
 
     /**

@@ -91,14 +91,11 @@ public class ApiServiceImpl implements ApiService {
 
     @Override
     public ApiVO findById(final String id) {
-        return ApiVO.buildApiVO(apiMapper.selectByPrimaryKey(id));
+        return apiMapper.selectByPrimaryKeyGetVO(id);
     }
 
     @Override
     public CommonPager<ApiVO> listByPage(final ApiQuery apiQuery) {
-        return PageResultUtils.result(apiQuery.getPageParameter(), () -> apiMapper.selectByQuery(apiQuery)
-                .stream()
-                .map(ApiVO::buildApiVO)
-                .collect(Collectors.toList()));
+        return PageResultUtils.result(apiQuery.getPageParameter(), () -> apiMapper.selectByQuery(apiQuery));
     }
 }
