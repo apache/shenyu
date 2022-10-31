@@ -101,7 +101,6 @@ public class EtcdSyncDataServiceTest {
          *  mock get method.
          */
         when(client.getKVClient()).thenReturn(kv);
-        when(kv.get(any())).thenReturn(future);
         try {
             when(future.get()).thenReturn(getResponse);
         } catch (Exception e) {
