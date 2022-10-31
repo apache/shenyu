@@ -128,7 +128,7 @@ public final class ApiServiceTest {
                 .produce("string")
                 .version("string")
                 .rpcType("string")
-                .state((byte) 0)
+                .state(0)
                 .apiOwner("string")
                 .apiDesc("string")
                 .apiSource(0)
@@ -153,7 +153,7 @@ public final class ApiServiceTest {
         apiDTO.setProduce("string");
         apiDTO.setVersion("string");
         apiDTO.setRpcType("string");
-        apiDTO.setState((byte) 0);
+        apiDTO.setState(0);
         apiDTO.setApiOwner("string");
         apiDTO.setApiDesc("string");
         apiDTO.setApiSource(0);

@@ -74,7 +74,7 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         this.apiDO.setHttpMethod(1);
         this.apiDO.setVersion("V0.02");
         this.apiDO.setRpcType("dubbo1");
-        this.apiDO.setState((byte) 1);
+        this.apiDO.setState(1);
         final int count = apiMapper.updateByPrimaryKeySelective(this.apiDO);
         assertEquals(1, count);
     }
@@ -88,7 +88,7 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         this.apiDO.setHttpMethod(2);
         this.apiDO.setVersion("V0.03");
         this.apiDO.setRpcType("dubbo2");
-        this.apiDO.setState((byte) 2);
+        this.apiDO.setState(2);
         this.apiDO.setApiSource(3);
         final int count = apiMapper.updateByPrimaryKeySelective(this.apiDO);
         assertEquals(1, count);
@@ -111,7 +111,7 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         apiDO.setProduce("accept");
         apiDO.setVersion("V0.01");
         apiDO.setRpcType("dubbo");
-        apiDO.setState((byte) 0);
+        apiDO.setState(0);
         apiDO.setExt("ext");
         apiDO.setApiOwner("admin");
         apiDO.setApiDesc("hello world api");

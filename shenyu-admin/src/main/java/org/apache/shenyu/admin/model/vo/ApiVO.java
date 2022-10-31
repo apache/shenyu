@@ -73,7 +73,7 @@ public class ApiVO implements Serializable {
     /**
      * 0-unpublished1-published2-offline.
      */
-    private Byte state;
+    private Integer state;
 
     /**
      * extended fields.
@@ -252,7 +252,7 @@ public class ApiVO implements Serializable {
      * getState.
      * @return state
      */
-    public Byte getState() {
+    public Integer getState() {
         return state;
     }
 
@@ -260,7 +260,7 @@ public class ApiVO implements Serializable {
      * setState.
      * @param state state
      */
-    public void setState(final Byte state) {
+    public void setState(final Integer state) {
         this.state = state;
     }
 
@@ -462,7 +462,7 @@ public class ApiVO implements Serializable {
 
         private String rpcType;
 
-        private Byte state;
+        private Integer state;
 
         private String ext;
 
@@ -568,7 +568,7 @@ public class ApiVO implements Serializable {
          * @param state state
          * @return ApiVOBuilder
          */
-        public ApiVOBuilder state(final Byte state) {
+        public ApiVOBuilder state(final Integer state) {
             this.state = state;
             return this;
         }

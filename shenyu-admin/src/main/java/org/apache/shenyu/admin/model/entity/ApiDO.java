@@ -73,7 +73,7 @@ public class ApiDO {
     /**
      * 0-unpublished1-published2-offline.
      */
-    private Byte state;
+    private Integer state;
 
     /**
      * extended fields.
@@ -247,7 +247,7 @@ public class ApiDO {
      * getState.
      * @return state
      */
-    public Byte getState() {
+    public Integer getState() {
         return state;
     }
 
@@ -255,7 +255,7 @@ public class ApiDO {
      * setState.
      * @param state state
      */
-    public void setState(final Byte state) {
+    public void setState(final Integer state) {
         this.state = state;
     }
 
@@ -448,7 +448,7 @@ public class ApiDO {
 
         private String rpcType;
 
-        private Byte state;
+        private Integer state;
 
         private String ext;
 
@@ -557,7 +557,7 @@ public class ApiDO {
          * @param state state
          * @return ApiDOBuilder
          */
-        public ApiDOBuilder state(final Byte state) {
+        public ApiDOBuilder state(final Integer state) {
             this.state = state;
             return this;
         }

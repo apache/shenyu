@@ -76,7 +76,7 @@ public class ApiDTO implements Serializable {
     /**
      * 0-unpublished1-published2-offline.
      */
-    private Byte state;
+    private Integer state;
 
     /**
      * extended fields.
@@ -272,7 +272,7 @@ public class ApiDTO implements Serializable {
      *
      * @return state
      */
-    public Byte getState() {
+    public Integer getState() {
         return state;
     }
 
@@ -281,7 +281,7 @@ public class ApiDTO implements Serializable {
      *
      * @param state state
      */
-    public void setState(final Byte state) {
+    public void setState(final Integer state) {
         this.state = state;
     }
 

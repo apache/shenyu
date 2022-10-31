@@ -88,7 +88,7 @@ public final class ApiControllerTest {
                 .produce("string")
                 .version("string")
                 .rpcType("/dubbo")
-                .state((byte) 0)
+                .state(0)
                 .apiSource(0)
                 .document("document")
                 .build();
@@ -137,7 +137,7 @@ public final class ApiControllerTest {
         apiDTO.setProduce("string");
         apiDTO.setVersion("string");
         apiDTO.setRpcType("/dubbo");
-        apiDTO.setState((byte) 0);
+        apiDTO.setState(0);
         apiDTO.setApiOwner("string");
         apiDTO.setApiDesc("string");
         apiDTO.setApiSource(0);
@@ -162,7 +162,7 @@ public final class ApiControllerTest {
         apiDTO.setProduce("string");
         apiDTO.setVersion("string");
         apiDTO.setRpcType("/dubbo");
-        apiDTO.setState((byte) 0);
+        apiDTO.setState(0);
         apiDTO.setApiOwner("string");
         apiDTO.setApiDesc("string");
         apiDTO.setApiSource(0);
