@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.SelectorMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.SelectorDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="plugin_id" jdbcType="VARCHAR" property="pluginId"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="match_mode" jdbcType="INTEGER" property="matchMode"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+        <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="enabled" jdbcType="TINYINT" property="enabled"/>
+        <result column="loged" jdbcType="TINYINT" property="loged"/>
+        <result column="continued" jdbcType="TINYINT" property="continued"/>
+        <result column="handle" jdbcType="VARCHAR" property="handle"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        date_created,
+        date_updated,
+        plugin_id,
+        name,
+        match_mode,
+        type,
+        sort,
+        enabled,
+        loged,
+        continued,
+        handle
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByIdSet" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE id IN
+                 <foreach collection="idSet" item="id" index="index" open="(" separator="," close=")">
+                    #{id, jdbcType=VARCHAR}
+                 </foreach>
+    </select>
+
+    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE name = #{name, jdbcType=VARCHAR}
+    </select>
+
+    <select id="findByNameAndPluginId" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE name = #{name, jdbcType=VARCHAR}
+           AND plugin_id = #{pluginId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
+            resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+        <where>
+            <if test="pluginId != null">
+                plugin_id = #{pluginId, jdbcType=VARCHAR}
+            </if>
+            <if test="pluginIds != null and pluginIds.size > 0">
+                AND plugin_id IN
+                <foreach item="pluginId" collection="pluginIds" open="(" separator="," close=")">
+                    #{pluginId, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="name != null and name != ''">
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                 AND name LIKE #{nameLike, jdbcType=VARCHAR}
+            </if>
+            <if test="filterIds != null">
+                 AND id IN
+                <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
+                    #{filterId, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM selector
+         WHERE plugin_id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SelectorQuery"
+            resultType="java.lang.Integer">
+        SELECT COUNT(1)
+          FROM selector
+        <where>
+            <if test="pluginId != null">
+                plugin_id = #{pluginId, jdbcType=VARCHAR}
+            </if>
+            <if test="name != null and name != ''">
+                AND name = #{name, jdbcType=VARCHAR}
+            </if>
+            <if test="filterIds != null">
+                AND id IN
+                <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
+                    #{filterId, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+
+    </select>
+
+    <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.SelectorDO" resultMap="BaseResultMap">
+        SELECT
+              <include refid="Base_Column_List"/>
+         FROM selector
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+          FROM selector
+         WHERE id = #{id}
+         LIMIT 1
+    </select>
+
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.vo.SelectorVO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM selector
+        <where>
+            <if test="condition.keyword != null and condition.keyword != ''">
+                <bind name="keyword" value="('%' + condition.keyword + '%')"/>
+                AND name LIKE #{keyword, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.excluded != null and condition.excluded != ''">
+                <bind name="excluded" value="('%' + condition.excluded + '%')"/>
+                AND name NOT LIKE #{excluded, jdbcType=VARCHAR}
+            </if>
+            <if test="condition.switchStatus != null">
+                AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
+            </if>
+            <if test="condition.plugin != null and condition.plugin.size > 0">
+                AND plugin_id IN
+                <foreach item="id" collection="condition.plugin" open="(" separator="," close=")">
+                    #{id, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="condition.userId != null and condition.userId != ''">
+                AND exists(select true
+                    from data_permission
+                    where data_id = selector.id
+                        and user_id = #{condition.userId})
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
+        INSERT INTO selector
+                    (id,
+                    date_created,
+                    date_updated,
+                    plugin_id,
+                    name,
+                    match_mode,
+                    type,
+                    sort,
+                    enabled,
+                    loged,
+                    continued,
+                    handle)
+            VALUES
+                    (#{id, jdbcType=VARCHAR},
+                    #{dateCreated, jdbcType=TIMESTAMP},
+                    #{dateUpdated, jdbcType=TIMESTAMP},
+                    #{pluginId, jdbcType=VARCHAR},
+                    #{name, jdbcType=VARCHAR},
+                    #{matchMode, jdbcType=INTEGER},
+                    #{type, jdbcType=INTEGER},
+                    #{sort, jdbcType=INTEGER},
+                    #{enabled, jdbcType=TINYINT},
+                    #{loged, jdbcType=TINYINT},
+                    #{continued, jdbcType=TINYINT},
+                    #{handle, jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
+        INSERT INTO selector
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                id,
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+            <if test="pluginId != null">
+                plugin_id,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="matchMode != null">
+                match_mode,
+            </if>
+            <if test="type != null">
+                type,
+            </if>
+            <if test="sort != null">
+                sort,
+            </if>
+            <if test="enabled != null">
+                enabled,
+            </if>
+            <if test="loged != null">
+                loged,
+            </if>
+            <if test="continued != null">
+                continued,
+            </if>
+            <if test="handle != null">
+                handle,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                #{id, jdbcType=VARCHAR},
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="pluginId != null">
+                #{pluginId, jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="matchMode != null">
+                #{matchMode, jdbcType=INTEGER},
+            </if>
+            <if test="type != null">
+                #{type, jdbcType=INTEGER},
+            </if>
+            <if test="sort != null">
+                #{sort, jdbcType=INTEGER},
+            </if>
+            <if test="enabled != null">
+                #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="loged != null">
+                #{loged, jdbcType=TINYINT},
+            </if>
+            <if test="continued != null">
+                #{continued, jdbcType=TINYINT},
+            </if>
+            <if test="handle != null">
+                #{handle, jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
+        UPDATE selector
+           SET
+               date_created = #{dateCreated, jdbcType=TIMESTAMP},
+               date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+               plugin_id = #{pluginId, jdbcType=VARCHAR},
+               name = #{name, jdbcType=VARCHAR},
+               match_mode = #{matchMode, jdbcType=INTEGER},
+               type = #{type, jdbcType=INTEGER},
+               sort = #{sort, jdbcType=INTEGER},
+               enabled = #{enabled, jdbcType=TINYINT},
+               loged = #{loged, jdbcType=TINYINT},
+               continued = #{continued, jdbcType=TINYINT},
+               handle = #{handle, jdbcType=VARCHAR}
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.SelectorDO">
+        UPDATE selector
+        <set>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="pluginId != null">
+                plugin_id = #{pluginId, jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                name = #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="matchMode != null">
+                match_mode = #{matchMode, jdbcType=INTEGER},
+            </if>
+            <if test="type != null">
+                type = #{type, jdbcType=INTEGER},
+            </if>
+            <if test="sort != null">
+                sort = #{sort, jdbcType=INTEGER},
+            </if>
+            <if test="enabled != null">
+                enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="loged != null">
+                loged = #{loged, jdbcType=TINYINT},
+            </if>
+            <if test="continued != null">
+                continued = #{continued, jdbcType=TINYINT},
+            </if>
+            <if test="handle != null">
+                handle = #{handle, jdbcType=VARCHAR},
+            </if>
+        </set>
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        DELETE FROM selector
+              WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM selector
+              WHERE id IN
+                    <foreach item="id" collection="list" open="(" separator="," close=")">
+                        #{id, jdbcType=VARCHAR}
+                    </foreach>
+    </delete>
+
+    <delete id="deleteByPluginId" parameterType="java.lang.String">
+        DELETE FROM selector
+              WHERE plugin_id = #{pluginId, jdbcType=VARCHAR}
+    </delete>
+</mapper>

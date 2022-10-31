@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.PluginMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.PluginDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="config" jdbcType="VARCHAR" property="config"/>
+        <result column="role" jdbcType="VARCHAR" property="role"/>
+        <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="enabled" jdbcType="TINYINT" property="enabled"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        date_created,
+        date_updated,
+        name,
+        config,
+        role,
+        sort,
+        enabled
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE name = #{name, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByNames" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE name IN
+        <foreach item="name" collection="list" open="(" separator="," close=")">
+            #{name, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
+            resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+        <where>
+            <if test="name != null and name != ''">
+                <bind name="nameLike" value="('%' + name + '%')"/>
+                AND name LIKE #{nameLike, jdbcType=VARCHAR}
+            </if>
+            <if test="enabled != null">
+                AND enabled = #{enabled, jdbcType=TINYINT}
+            </if>
+        </where>
+      ORDER BY sort ASC
+    </select>
+
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.PluginQuery"
+            resultType="java.lang.Integer">
+        SELECT count(1)
+          FROM plugin
+        <where>
+            <if test="name != null and name != ''">
+                AND name = #{name, jdbcType=VARCHAR}
+            </if>
+            <if test="enabled != null">
+                AND enabled = #{enabled, jdbcType=TINYINT}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.PluginDO" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+    </select>
+
+    <select id="listAllNotInResource" resultType="org.apache.shenyu.admin.model.entity.PluginDO" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE name NOT IN
+               (SELECT title
+                  FROM resource)
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+          FROM plugin
+         WHERE id = #{id} LIMIT 1
+    </select>
+
+    <select id="nameExisted" resultType="java.lang.Boolean">
+        SELECT true
+          FROM plugin
+         WHERE name = #{name} LIMIT 1
+    </select>
+
+    <select id="nameExistedExclude" resultType="java.lang.Boolean">
+        SELECT true
+          FROM plugin
+         WHERE name = #{name}
+           AND id NOT IN
+        <foreach collection="exclude" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+         LIMIT 1
+    </select>
+
+    <select id="activePluginSnapshot" resultType="org.apache.shenyu.admin.model.vo.PluginSnapshotVO">
+        select p.id,
+               p.name,
+               config,
+               role,
+               count(ph.id) handleCount,
+               count(s.id)  selectorCount
+        from plugin p
+                 left join plugin_handle ph on p.id = ph.plugin_id
+                 left join selector s on p.id = s.plugin_id
+        where p.enabled = 1
+        <if test="userId != null">
+            and p.name in (
+                select r.name
+                from resource r
+                         inner join permission
+                                    on permission.resource_id = r.id
+                where parent_id = '1346775491550474240'
+                  and object_id = (select role_id
+                                   from user_role
+                                   where user_id = #{userId})
+            )
+        </if>
+        group by p.id, p.name, config, p.role, p.sort
+        order by p.sort, p.id
+    </select>
+
+    <select id="activePluginSnapshot" resultType="org.apache.shenyu.admin.model.vo.PluginSnapshotVO" databaseId="oracle">
+        select p.id,
+               p.name,
+               to_char(config),
+               role,
+               count(ph.id) handlecount,
+               count(s.id) selectorcount
+        from plugin p
+                 left join plugin_handle ph on p.id = ph.plugin_id
+                 left join selector s on p.id = s.plugin_id
+        where p.enabled = 1
+        <if test="userId != null">
+            and p.name in (
+                select r.name
+                from resource r
+                         inner join permission
+                                    on permission.resource_id = r.id
+                where parent_id = '1346775491550474240'
+                  and object_id = (select role_id
+                                   from user_role
+                                   where user_id = #{userId})
+            )
+        </if>
+        group by p.id, p.name, to_char(config), p.role, p.sort
+        order by p.sort, p.id
+    </select>
+
+    <select id="searchByCondition" resultType="org.apache.shenyu.admin.model.vo.PluginVO">
+
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM plugin
+        <where>
+            <if test="condition.keyword != null and condition.keyword != ''">
+                <bind name="keyword" value="('%' + condition.keyword + '%')"/>
+                AND (
+                    name LIKE #{keyword, jdbcType=VARCHAR}
+                    OR role LIKE #{keyword, jdbcType=VARCHAR}
+                )
+            </if>
+            <if test="condition.excluded != null and condition.excluded != ''">
+                <bind name="excluded" value="('%' + condition.excluded + '%')"/>
+                AND (
+                    name NOT LIKE #{excluded, jdbcType=VARCHAR}
+                    OR role NOT LIKE #{excluded, jdbcType=VARCHAR}
+                )
+            </if>
+            <if test="condition.switchStatus != null">
+                AND enabled = #{condition.switchStatus, jdbcType=BOOLEAN}
+            </if>
+        </where>
+        ORDER BY sort, date_created
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
+        INSERT INTO plugin
+                    (id,
+                    date_created,
+                    date_updated,
+                    name,
+                    config,
+                    role,
+                    sort,
+                    enabled)
+             VALUES (#{id, jdbcType=VARCHAR},
+                    #{dateCreated, jdbcType=TIMESTAMP},
+                    #{dateUpdated, jdbcType=TIMESTAMP},
+                    #{name, jdbcType=VARCHAR},
+                    #{config, jdbcType=VARCHAR},
+                    #{role, jdbcType=VARCHAR},
+                    #{sort, jdbcType=INTEGER},
+                    #{enabled, jdbcType=TINYINT})
+    </insert>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
+        INSERT INTO plugin
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="config != null">
+                config,
+            </if>
+            <if test="role != null">
+                role,
+            </if>
+            <if test="sort != null">
+                sort,
+            </if>
+            <if test="enabled != null">
+                enabled,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id, jdbcType=VARCHAR},
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="name != null">
+                #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="config != null">
+                #{config, jdbcType=VARCHAR},
+            </if>
+            <if test="role != null">
+                #{role, jdbcType=VARCHAR},
+            </if>
+            <if test="sort != null">
+                #{sort, jdbcType=INTEGER},
+            </if>
+            <if test="enabled != null">
+                #{enabled, jdbcType=TINYINT},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
+        UPDATE plugin
+           SET date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+               name = #{name, jdbcType=VARCHAR},
+               config = #{config, jdbcType=VARCHAR},
+               role = #{role, jdbcType=VARCHAR},
+               sort = #{sort, jdbcType=INTEGER},
+               enabled = #{enabled, jdbcType=TINYINT}
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
+        UPDATE plugin
+           SET date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+               enabled = #{enabled, jdbcType=TINYINT}
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateEnableByIdList">
+        UPDATE plugin
+           SET enabled = #{enabled, jdbcType=TINYINT}
+         WHERE id IN
+        <foreach collection="idList" item="id" index="index"
+                 open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </update>
+
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
+        UPDATE plugin
+        <set>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="name != null">
+                name = #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="config != null">
+                config = #{config, jdbcType=VARCHAR},
+            </if>
+            <if test="role != null">
+                role = #{role, jdbcType=VARCHAR},
+            </if>
+            <if test="sort != null">
+                sort = #{sort, jdbcType=INTEGER},
+            </if>
+            <if test="enabled != null">
+                enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+        </set>
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        DELETE FROM plugin
+              WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM plugin
+              WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+</mapper>

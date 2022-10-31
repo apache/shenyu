@@ -1,0 +1,213 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Use gateway proxy
+# if you used IDEA, start example project. click green button.Quick access！
+
+### shengyu getway test timeout
+POST http://localhost:9195/http/shenyu/client/timeout
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hello
+POST http://localhost:9195/http/shenyu/client/hello
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/shenyu/client/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/shenyu/client/post/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hello
+POST http://localhost:9195/http/hello
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy hi
+POST http://localhost:9195/http/post/hi?name=Tom
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy orderSave
+POST http://localhost:9195/http/order/save
+Accept: application/json
+Content-Type: application/json
+
+{
+  "id": 123,
+  "name": "order"
+}
+### shengyu getway proxy orderSave
+GET http://localhost:9195/http/order/findById?id=123
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy path
+GET http://localhost:9195/http/order/path/123/hahah
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy path
+GET http://localhost:9195/http/order/path/123/name
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy oauth2
+GET http://localhost:9195/http/order/oauth2/test
+Accept: application/json
+Content-Type: application/json
+Authorization:AuthorizationContext
+
+### shengyu getway proxy payment
+POST http://localhost:9195/http/test/payment
+Accept: application/json
+Content-Type: application/json
+
+{
+  "userId": 123,
+  "userName": "name"
+}
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=123
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=123%5D%2D
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=1#
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=1#1
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=1%25
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=123%20zcq
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=#123
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=%25
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserIdName?userId=#&name=shenyu
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=123%5D%2D%2Casd
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=%5B%27z%27%2C%27zc%27%2C%27zz%27%5D
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy findByUserId
+GET http://localhost:9195/http/test/findByUserId?userId=['z','zc','zz']
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy path
+GET http://localhost:9195/http/test/path/123?name=haha
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy path
+GET http://localhost:9195/http/test/path/123/name
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy waf pass
+POST http://localhost:9195/http/test/waf/pass
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy waf deny
+POST http://localhost:9195/http/test/waf/deny
+Accept: application/json
+Content-Type: application/json
+
+### shengyu getway proxy request parameter pass
+GET http://localhost:9195/http/test/request/parameter/pass?requestParameter=test
+Accept: application/json
+Content-Type: application/json
+
+
+### shengyu getway proxy example webFluxSingle
+POST http://localhost:9195/http/upload/webFluxSingle
+Cache-Control: no-cache
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="1.txt"
+Content-Type: multipart/form-data
+# you need to change your local path
+< /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/1.txt
+
+--WebAppBoundary--
+
+### shengyu getway proxy example webFluxFiles
+POST http://localhost:9195/http/upload/webFluxFiles
+Cache-Control: no-cache
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="1.txt";
+Content-Type: multipart/form-data
+# you need to change your local path
+< /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/1.txt
+
+--WebAppBoundary--
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="2.txt";
+Content-Type: multipart/form-data
+# you need to change your local path
+< /Users/Code/shenyu/shenyu-examples/shenyu-examples-common/src/main/resources/2.txt
+
+--WebAppBoundary--

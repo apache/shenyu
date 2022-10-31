@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <properties>
+        <property name="dialect" value="${shenyu.database.dialect:mysql}"/>
+    </properties>
+
+    <settings>
+        <!--    used print sql debug log    -->
+        <!-- <setting name="logImpl" value="STDOUT_LOGGING" />-->
+        <!-- Enables automatic mapping from classic database column names A_COLUMN to camel case classic Java property names aColumn. -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- Globally enables or disables any caches configured in any mapper under this configuration. default:true -->
+        <setting name="cacheEnabled" value="true"/>
+        <!-- Globally enables or disables lazy loading. When enabled, all relations will be lazily loaded. This value can be superseded for a specific relation by using the fetchType attribute on it. -->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <!-- Allows or disallows multiple ResultSets to be returned from a single statement (compatible driver required). -->
+        <setting name="multipleResultSetsEnabled" value="true"/>
+        <!-- Uses the column label instead of the column name. Different drivers behave differently in this respect. Refer to the driver documentation, or test out both modes to determine how your driver behaves. -->
+        <setting name="useColumnLabel" value="true"/>
+        <!-- Allows JDBC support for generated keys. A compatible driver is required. This setting forces generated keys to be used if set to true, as some drivers deny compatibility but still work (e.g. Derby). default:false -->
+        <setting name="useGeneratedKeys" value="false"/>
+        <!-- Configures the default executor. SIMPLE executor does nothing special. REUSE executor reuses prepared statements. BATCH executor reuses statements and batches updates. default:SIMPLE -->
+        <setting name="defaultExecutorType" value="SIMPLE"/>
+        <!-- Sets the number of seconds the driver will wait for a response from the database. -->
+        <setting name="defaultStatementTimeout" value="25000"/>
+    </settings>
+
+    <typeAliases>
+        <typeAlias alias="Integer" type="java.lang.Integer"/>
+        <typeAlias alias="Long" type="java.lang.Long"/>
+        <typeAlias alias="HashMap" type="java.util.HashMap"/>
+        <typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap"/>
+        <typeAlias alias="ArrayList" type="java.util.ArrayList"/>
+        <typeAlias alias="LinkedList" type="java.util.LinkedList"/>
+    </typeAliases>
+
+    <!-- page plugin -->
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageInterceptor">
+            <!-- Support dialect Oracle,Mysql,MariaDB,SQLite,Hsqldb,PostgreSQL -->
+            <property name="dialect" value="com.github.pagehelper.PageHelper"/>
+            <!-- This parameter defaults to false -->
+            <!-- Set to true When the RowBounds First parameter offset regard as pageNum Page number usage -->
+            <!-- and startPage Medium pageNum The effect is the same -->
+            <property name="offsetAsPageNum" value="true"/>
+            <!-- This parameter defaults to false -->
+            <!-- Set to true Use the RowBounds Paging will occur count query -->
+            <property name="rowBoundsWithCount" value="true"/>
+            <!-- Set to true If pageSize=0 perhaps RowBounds.limit = 0 All the results will be found -->
+            <!-- (This is equivalent to that no paging query is executed, but the return result is still Page Type) -->
+            <property name="pageSizeZero" value="true"/>
+            <!-- 3.3.0 Version available - Paging parameter rationalization, default false Disable -->
+            <!-- When rationalization is enabled, if pageNum<1 The first page will be queried if pageNum>pages The last page will be queried -->
+            <!-- When rationalization is disabled, if pageNum<1 or pageNum>pages Null data will be returned -->
+            <property name="reasonable" value="false"/>
+            <!-- 3.5.0 Version available - To support startPage(Object params)method -->
+            <!-- Added one`params`Parameter to configure the parameter mapping from the Map or ServletRequest Medium value -->
+            <!-- Can be configured pageNum,pageSize,count,pageSizeZero,reasonable,The default value is used if the mapping is not configured -->
+            <!-- Do not copy the configuration without understanding the meaning -->
+            <property name="params" value="pageNum=start;pageSize=limit;"/>
+            <!-- Whether interface parameters are supported to pass paging parameters. The default is false -->
+            <property name="supportMethodsArguments" value="true"/>
+            <!-- Always always return PageInfo type, check check the return type is a PageInfo, none returned Page -->
+            <property name="returnPageInfo" value="check"/>
+        </plugin>
+    </plugins>
+</configuration>

@@ -1,0 +1,92 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+version: "3.9"
+services:
+  shenyu-zk:
+    container_name: shenyu-zk
+    image: zookeeper:3.5
+    restart: always
+    networks:
+      - shenyu
+
+  shenyu-admin:
+    image: apache/shenyu-admin:latest
+    container_name: shenyu-admin
+    restart: always
+    networks:
+      - shenyu
+    ports:
+      - "9095:9095"
+    environment:
+      - SPRING_PROFILES_ACTIVE=h2
+      - shenyu.database.init_script=sql-script/h2/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+
+  shenyu-examples-alibaba-dubbo-service:
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    container_name: shenyu-examples-alibaba-dubbo-service
+    image: shenyu-examples-alibaba-dubbo-service:latest
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8011/actuator/health | grep UP || exit 1"]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    ports:
+      - "8011:8011"
+      - "20888:20888"
+    networks:
+      - shenyu
+    depends_on:
+      shenyu-integrated-test-alibaba-dubbo:
+        condition: service_healthy
+    environment:
+      - dubbo.zk=zookeeper://shenyu-zk:2181
+      - shenyu.register.serverLists=http://shenyu-admin:9095
+
+  shenyu-integrated-test-alibaba-dubbo:
+    container_name: shenyu-integrated-test-alibaba-dubbo
+    image: apache/shenyu-integrated-test-alibaba-dubbo:latest
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    environment:
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+    depends_on:
+      shenyu-admin:
+        condition: service_healthy
+    ports:
+      - "9195:9195"
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integrated-test-alibaba-dubbo:9195/actuator/health" ]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    networks:
+      - shenyu
+
+networks:
+  shenyu:
+    name: shenyu

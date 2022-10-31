@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.DashboardUserMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.DashboardUserDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="role" jdbcType="INTEGER" property="role"/>
+        <result column="enabled" jdbcType="TINYINT" property="enabled"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        date_created,
+        date_updated,
+        user_name,
+        password,
+        role,
+        enabled
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM dashboard_user
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByUserName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM dashboard_user
+         WHERE user_name = #{userName, jdbcType=VARCHAR}
+        limit 1
+    </select>
+
+    <select id="findByQuery" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+          FROM dashboard_user
+         WHERE user_name = #{userName, jdbcType=VARCHAR}
+           AND password = #{password, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.DashboardUserQuery"
+            resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM dashboard_user
+        <where>
+            <include refid="likeUser"/>
+        </where>
+    </select>
+
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.DashboardUserQuery"
+            resultType="java.lang.Integer">
+        SELECT count(1)
+          FROM dashboard_user
+        <where>
+            <include refid="likeUser"/>
+        </where>
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+          FROM dashboard_user
+         WHERE id = #{id}
+         LIMIT 1
+    </select>
+
+    <select id="selectByIds" resultType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
+        select
+            <include refid="Base_Column_List"/>
+            FROM dashboard_user
+        WHERE id IN
+        <foreach collection="ids" index="index" item="id" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <sql id="likeUser">
+        <if test="userName != null and userName != ''">
+            <bind name="nameLike" value="('%' + userName + '%')"/>
+            user_name LIKE #{nameLike, jdbcType=VARCHAR}
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
+        INSERT INTO dashboard_user
+                    (id,
+                    date_created,
+                    date_updated,
+                    user_name,
+                    password,
+                    role,
+                    enabled)
+             VALUES
+                    (#{id, jdbcType=VARCHAR},
+                    #{dateCreated, jdbcType=TIMESTAMP},
+                    #{dateUpdated, jdbcType=TIMESTAMP},
+                    #{userName, jdbcType=VARCHAR},
+                    #{password, jdbcType=VARCHAR},
+                    #{role, jdbcType=INTEGER},
+                    #{enabled, jdbcType=TINYINT})
+    </insert>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
+        INSERT INTO dashboard_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                id,
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+            <if test="userName != null">
+                user_name,
+            </if>
+            <if test="password != null">
+                password,
+            </if>
+            <if test="role != null">
+                role,
+            </if>
+            <if test="enabled != null">
+                enabled,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                #{id, jdbcType=VARCHAR},
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="userName != null">
+                #{userName, jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                #{password, jdbcType=VARCHAR},
+            </if>
+            <if test="role != null">
+                #{role, jdbcType=INTEGER},
+            </if>
+            <if test="enabled != null">
+                #{enabled, jdbcType=TINYINT},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
+         UPDATE dashboard_user
+            SET
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+                user_name = #{userName, jdbcType=VARCHAR},
+                password = #{password, jdbcType=VARCHAR},
+                role = #{role, jdbcType=INTEGER},
+                enabled = #{enabled, jdbcType=TINYINT}
+          WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
+        UPDATE dashboard_user
+        <set>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="userName != null">
+                user_name = #{userName, jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                password = #{password, jdbcType=VARCHAR},
+            </if>
+            <if test="role != null">
+                role = #{role, jdbcType=INTEGER},
+            </if>
+            <if test="enabled != null">
+                enabled = #{enabled, jdbcType=TINYINT},
+            </if>
+        </set>
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        DELETE FROM dashboard_user
+              WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIdList">
+        DELETE FROM dashboard_user
+              WHERE id IN
+        <foreach collection="idList" index="index" item="id" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.OperationRecordLogMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.OperationRecordLog">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="id" jdbcType="BIGINT" property="id"/>
+        <result column="color" jdbcType="VARCHAR" property="color"/>
+        <result column="context" jdbcType="VARCHAR" property="context"/>
+        <result column="operator" jdbcType="VARCHAR" property="operator"/>
+        <result column="operation_time" jdbcType="VARCHAR" property="operationTime"/>
+        <result column="operation_type" jdbcType="VARCHAR" property="operationType"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        color,
+        context,
+        operator,
+        operation_time,
+        operation_type
+    </sql>
+
+    <delete id="deleteByBefore">
+        delete
+        from operation_record_log
+        where operation_time <![CDATA[<]]> #{time}
+    </delete>
+
+    <select id="selectLimit" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM operation_record_log
+          <where>
+              <if test="username != null">
+                  operator = #{username}
+              </if>
+          </where>
+         order by operation_time desc
+         limit #{limit}
+    </select>
+
+    <select id="selectLimit" parameterType="java.lang.Integer" resultMap="BaseResultMap" databaseId="oracle">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM operation_record_log
+        where rownum <![CDATA[<=]]> #{limit}
+        <if test="username != null">
+            and operator = #{username}
+        </if>
+        order by operation_time desc
+    </select>
+
+    <select id="selectByCondition" resultType="org.apache.shenyu.admin.model.entity.OperationRecordLog">
+        select
+        <include refid="Base_Column_List"/>
+        from operation_record_log
+        where operation_time between #{condition.startTime} and #{condition.endTime}
+        <if test="condition.keyword != null and condition.keyword != ''">
+            and context like concat('%',#{condition.keyword},'%')
+        </if>
+        <if test="condition.excluded != null and condition.excluded != ''">
+            and context not like concat('%',#{condition.excluded},'%')
+        </if>
+        <if test="condition.type != null">
+            and operation_type = #{condition.type}
+        </if>
+        <if test="condition.username != null">
+            and operator = #{condition.username}
+        </if>
+        order by operation_time desc
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.OperationRecordLog">
+
+        <!-- Generate before inserting non auto increment PK -->
+        <selectKey keyProperty="id" resultType="java.lang.Long" order="BEFORE" databaseId="oracle">
+            select operation_record_log_seq.nextval from dual
+        </selectKey>
+
+        insert into operation_record_log(
+        <if test="id != null">
+            id,
+        </if>
+        color, context, operator, operation_time, operation_type)
+        values (
+        <if test="id != null">
+            #{id},
+        </if>
+        #{color},
+        #{context},
+        #{operator},
+        #{operationTime},
+        #{operationType}
+        )
+    </insert>
+</mapper>

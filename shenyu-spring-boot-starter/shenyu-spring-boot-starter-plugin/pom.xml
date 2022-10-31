@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.apache.shenyu</groupId>
+        <artifactId>shenyu-spring-boot-starter</artifactId>
+        <version>2.5.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>shenyu-spring-boot-starter-plugin</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>shenyu-spring-boot-starter-plugin-global</module>
+        <module>shenyu-spring-boot-starter-plugin-divide</module>
+        <module>shenyu-spring-boot-starter-plugin-httpclient</module>
+        <module>shenyu-spring-boot-starter-plugin-springcloud</module>
+        <module>shenyu-spring-boot-starter-plugin-hystrix</module>
+        <module>shenyu-spring-boot-starter-plugin-ratelimiter</module>
+        <module>shenyu-spring-boot-starter-plugin-sign</module>
+        <module>shenyu-spring-boot-starter-plugin-waf</module>
+        <module>shenyu-spring-boot-starter-plugin-rewrite</module>
+        <module>shenyu-spring-boot-starter-plugin-sentinel</module>
+        <module>shenyu-spring-boot-starter-plugin-sofa</module>
+        <module>shenyu-spring-boot-starter-plugin-motan</module>
+        <module>shenyu-spring-boot-starter-plugin-resilience4j</module>
+        <module>shenyu-spring-boot-starter-plugin-tars</module>
+        <module>shenyu-spring-boot-starter-plugin-context-path</module>
+        <module>shenyu-spring-boot-starter-plugin-grpc</module>
+        <module>shenyu-spring-boot-starter-plugin-redirect</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-console</module>
+        <module>shenyu-spring-boot-starter-plugin-modify-response</module>
+        <module>shenyu-spring-boot-starter-plugin-request</module>
+        <module>shenyu-spring-boot-starter-plugin-oauth2</module>
+        <module>shenyu-spring-boot-starter-plugin-jwt</module>
+        <module>shenyu-spring-boot-starter-plugin-response</module>
+        <module>shenyu-spring-boot-starter-plugin-param-mapping</module>
+        <module>shenyu-spring-boot-starter-plugin-cryptor</module>
+        <module>shenyu-spring-boot-starter-plugin-websocket</module>
+        <module>shenyu-spring-boot-starter-plugin-dubbo</module>
+        <module>shenyu-spring-boot-starter-plugin-uri</module>
+        <module>shenyu-spring-boot-starter-plugin-general-context</module>
+        <module>shenyu-spring-boot-starter-plugin-mqtt</module>
+        <module>shenyu-spring-boot-starter-plugin-metrics</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-rocketmq</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-kafka</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-elasticsearch</module>
+        <module>shenyu-spring-boot-starter-plugin-cache</module>
+        <module>shenyu-spring-boot-starter-plugin-mock</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-aliyun-sls</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-pulsar</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-tencent-cls</module>
+        <module>shenyu-spring-boot-starter-plugin-logging-clickhouse</module>
+        <module>shenyu-spring-boot-starter-plugin-casdoor</module>
+    </modules>
+</project>

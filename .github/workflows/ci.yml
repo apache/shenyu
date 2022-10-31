@@ -17,37 +17,80 @@ name: ci
 
 on:
   pull_request:
-    paths-ignore:
-      - "**.md"
   push:
     branches:
       - master
-    paths-ignore:
-      - '**.md'
 
 jobs:
   build:
     strategy:
       matrix:
+        java: [ 8, 11 ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
+        include:
+          - java: 12
+            os: ubuntu-latest
+          - java: 13
+            os: ubuntu-latest
+          - java: 14
+            os: ubuntu-latest
+          - java: 15
+            os: ubuntu-latest
+          - java: 16
+            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
+    if: (github.repository == 'apache/shenyu')
     steps:
-      - name: Cache Maven Repos
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
       - name: Support longpaths
         if: ${{ matrix.os == 'windows-latest'}}
         run: git config --system core.longpaths true
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - uses: actions/setup-java@v1
+      - uses: dorny/paths-filter@v2
+        id: filter
         with:
-          java-version: 8
+          filters: '.github/filters.yml'
+          list-files: json
+      - name: Cache Maven Repos
+        if: steps.filter.outputs.changed == 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - uses: actions/setup-java@v1
+        if: steps.filter.outputs.changed == 'true'
+        with:
+          java-version: ${{ matrix.java }}
       - name: Build with Maven
-        run: ./mvnw -B clean install
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Prelease
       - uses: codecov/codecov-action@v1
+        if: steps.filter.outputs.changed == 'true'
+
+  check-license-header:
+    name: check-license-header
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Check License Header
+        uses: apache/skywalking-eyes@9bd5feb86b5817aa6072b008f9866a2c3bbc8587
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  requirement:
+    name: build
+    if: always()
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: checking job status
+        run: |
+          [[ "${{ needs.build.result }}" == "success" ]] || exit -1
+

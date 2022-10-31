@@ -1,0 +1,92 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: it
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        case:
+          - shenyu-integrated-test-alibaba-dubbo
+          - shenyu-integrated-test-apache-dubbo
+          - shenyu-integrated-test-grpc
+          - shenyu-integrated-test-http
+          - shenyu-integrated-test-https
+          - shenyu-integrated-test-motan
+          - shenyu-integrated-test-spring-cloud
+          - shenyu-integrated-test-sofa
+          - shenyu-integrated-test-websocket
+          - shenyu-integrated-test-combination
+    runs-on: ubuntu-latest
+    if: (github.repository == 'apache/shenyu')
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: '.github/filters.yml'
+          list-files: json
+      - name: Cache Maven Repos
+        if: steps.filter.outputs.changed == 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - uses: actions/setup-java@v1
+        if: steps.filter.outputs.changed == 'true'
+        with:
+          java-version: 8
+      - name: Build with Maven
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+      - name: Build examples
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -f ./shenyu-examples/pom.xml
+      - name: Build integrated tests
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+      - name: Start docker compose
+        if: steps.filter.outputs.changed == 'true'
+        run: docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
+      - name: Wait for docker compose start up completely
+        if: steps.filter.outputs.changed == 'true'
+        run: bash ./shenyu-integrated-test/${{ matrix.case }}/script/healthcheck.sh
+      - name: Run test
+        id: test
+        if: steps.filter.outputs.changed == 'true'
+        run: ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+        continue-on-error: true
+      - name: Check test result
+        if: steps.filter.outputs.changed == 'true'
+        run: |
+          docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --tail="all"
+          if [[ ${{steps.test.outcome}} == "failure" ]]; then
+            echo "Test Failed"
+            exit 1
+          else
+            echo "Test Successful"
+            exit 0
+          fi

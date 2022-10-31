@@ -1,0 +1,89 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# if you debug api, replace your own token
+
+### shenyu-dict list by page
+GET http://localhost:9095/shenyu-dict?currentPage=1&pageSize=140
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3Njk1OTYyfQ.R3djjP3R7OcqskjU5xfua6a7hnce5lJ18QO6jLjyMAM
+
+### shenyu-dict list by page
+GET http://localhost:9095/shenyu-dict/all/test
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3Njk1OTYyfQ.R3djjP3R7OcqskjU5xfua6a7hnce5lJ18QO6jLjyMAM
+
+### shenyu-dict detail get
+GET http://localhost:9095/shenyu-dict/1504085720132444160
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3Njk1OTYyfQ.R3djjP3R7OcqskjU5xfua6a7hnce5lJ18QO6jLjyMAM
+
+### create
+POST http://localhost:9095/shenyu-dict
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3Njk1OTYyfQ.R3djjP3R7OcqskjU5xfua6a7hnce5lJ18QO6jLjyMAM
+
+{
+  "dictValue": "value",
+  "dictName": "test-create-shenyu-dict",
+  "dictCode": "test-create-shenyu-code",
+  "type": "test",
+  "sort": 1,
+  "enabled": true
+}
+
+### update
+PUT http://localhost:9095/shenyu-dict/1504821679665410048
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3Njk1OTYyfQ.R3djjP3R7OcqskjU5xfua6a7hnce5lJ18QO6jLjyMAM
+
+{
+  "dictValue": "vale",
+  "dictName": "test-create-shenyu-dict",
+  "dictCode": "test-create-shenyu-code",
+  "type": "test",
+  "sort": 1,
+  "enabled": true
+}
+
+### delete
+DELETE http://localhost:9095/shenyu-dict/batch
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3Njk1OTYyfQ.R3djjP3R7OcqskjU5xfua6a7hnce5lJ18QO6jLjyMAM
+
+[
+  "1503021118890123264"
+]
+
+### batch enabled
+POST http://localhost:9095/shenyu-dict/batchEnabled
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3Njk1OTYyfQ.R3djjP3R7OcqskjU5xfua6a7hnce5lJ18QO6jLjyMAM
+
+{
+  "ids": [
+    "1503021118890123264"
+  ],
+  "enabled": true
+}

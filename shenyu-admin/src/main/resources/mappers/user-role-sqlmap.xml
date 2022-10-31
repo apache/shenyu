@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.UserRoleMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.UserRoleDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="user_id" jdbcType="VARCHAR" property="userId"/>
+        <result column="role_id" jdbcType="VARCHAR" property="roleId"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        date_created,
+        date_updated,
+        user_id,
+        role_id
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+              <include refid="Base_Column_List"/>
+          FROM user_role
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="findByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM user_role
+         WHERE user_id = #{userId, jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.UserRoleDO">
+        INSERT INTO user_role
+                    (id,
+                     date_created,
+                     date_updated,
+                     user_id,
+                     role_id)
+               VALUES
+                    (#{id, jdbcType=VARCHAR},
+                     #{dateCreated, jdbcType=TIMESTAMP},
+                     #{dateUpdated, jdbcType=TIMESTAMP},
+                     #{userId, jdbcType=VARCHAR},
+                     #{roleId, jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertBatch">
+        INSERT INTO user_role
+                    (id,
+                     user_id,
+                     role_id)
+               VALUES
+                    <foreach collection="userRoleList" index="index" item="userRole" separator=",">
+                        (
+                        #{userRole.id, jdbcType=VARCHAR},
+                        #{userRole.userId, jdbcType=VARCHAR},
+                        #{userRole.roleId, jdbcType=VARCHAR}
+                        )
+                    </foreach>
+    </insert>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.UserRoleDO">
+        INSERT INTO user_role
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                id,
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="roleId != null">
+                role_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                #{id, jdbcType=VARCHAR},
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="userId != null">
+                #{userId, jdbcType=VARCHAR},
+            </if>
+            <if test="roleId != null">
+                #{roleId, jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="delete" parameterType="java.lang.String">
+        DELETE
+          FROM user_role
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByUserId" parameterType="java.lang.String">
+        DELETE
+          FROM user_role
+         WHERE user_id = #{userId, jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByUserIdList">
+        DELETE
+          FROM user_role
+         WHERE user_id in
+         <foreach collection="userIdList" index="index" item="userId" open="(" separator="," close=")">
+             #{userId, jdbcType=VARCHAR}
+         </foreach>
+    </delete>
+</mapper>

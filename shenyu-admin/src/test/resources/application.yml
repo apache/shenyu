@@ -1,0 +1,111 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+server:
+  port: 9095
+  address: 0.0.0.0
+
+spring:
+  profiles:
+    active: h2
+  thymeleaf:
+    cache: true
+    encoding: utf-8
+    enabled: true
+    prefix: classpath:/static/
+    suffix: .html
+
+mybatis:
+  config-location: classpath:/mybatis/mybatis-config.xml
+  mapper-locations: classpath:/mappers/*.xml
+
+shenyu:
+  register:
+    registerType: http #http #zookeeper #etcd #nacos #consul
+    serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
+    props:
+      sessionTimeout: 5000
+      connectionTimeout: 2000
+      checked: true
+      zombieCheckTimes: 5
+      scheduledTime: 10
+      nacosNameSpace: ShenyuRegisterCenter
+  sync:
+    websocket:
+      enabled: true
+#      zookeeper:
+#        url: localhost:2181
+#        sessionTimeout: 5000
+#        connectionTimeout: 2000
+#      http:
+#        enabled: true
+#      nacos:
+#        url: localhost:8848
+#        namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#        username:
+#        password:
+#        acm:
+#          enabled: false
+#          endpoint: acm.aliyun.com
+#          namespace:
+#          accessKey:
+#          secretKey:
+#    etcd:
+#      url: http://localhost:2379
+#    consul:
+#      url: http://localhost:8500
+  aes:
+    secret:
+      key: 2095132720951327
+      iv: 6075877187097700
+  ldap:
+    enabled: false
+    url: ldap://xxxx:xxx
+    bind-dn: cn=xxx,dc=xxx,dc=xxx
+    password: xxxx
+    base-dn: ou=xxx,dc=xxx,dc=xxx
+    object-class: person
+    login-field: cn
+  jwt:
+    expired-seconds: 86400000
+  shiro:
+    white-list:
+      - /
+      - /favicon.*
+      - /static/**
+      - /index**
+      - /plugin
+      - /platform/**
+      - /websocket
+      - /configs/**
+      - /shenyu-client/**
+      - /error
+      - /actuator/health
+      - /swagger-ui.html
+      - /webjars/**
+      - /swagger-resources/**
+      - /v2/api-docs
+      - /csrf
+  swagger:
+    enable: true
+
+logging:
+  level:
+    root: info
+    org.springframework.boot: info
+    org.apache.ibatis: info
+    org.apache.shenyu.bonuspoint: info
+    org.apache.shenyu.lottery: info
+    org.apache.shenyu: info

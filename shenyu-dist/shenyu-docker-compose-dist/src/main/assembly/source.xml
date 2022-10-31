@@ -1,0 +1,109 @@
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<assembly
+    xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>docker-compose-bin</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <baseDirectory>${project.build.finalName}-docker-compose-bin</baseDirectory>
+
+    <fileSets>
+        <!-- mysql -->
+        <fileSet>
+            <directory>src/main/resources/stand-alone-mysql</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <outputDirectory>stand-alone-mysql</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-admin/src/main/resources</directory>
+            <includes>
+                <include>application.yml</include>
+                <include>application-mysql.yml</include>
+                <include>logback.xml</include>
+            </includes>
+            <outputDirectory>stand-alone-mysql/shenyu-admin/conf</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-bootstrap/src/main/resources</directory>
+            <includes>
+                <include>application.yml</include>
+                <include>application-local.yml</include>
+                <include>logback.xml</include>
+            </includes>
+            <outputDirectory>stand-alone-mysql/shenyu-bootstrap/conf</outputDirectory>
+        </fileSet>
+        <!-- h2 -->
+        <fileSet>
+            <directory>src/main/resources/stand-alone-h2</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <outputDirectory>stand-alone-h2</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-admin/src/main/resources</directory>
+            <includes>
+                <include>application.yml</include>
+                <include>application-h2.yml</include>
+                <include>logback.xml</include>
+            </includes>
+            <outputDirectory>stand-alone-h2/shenyu-admin/conf</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-bootstrap/src/main/resources</directory>
+            <includes>
+                <include>application.yml</include>
+                <include>application-local.yml</include>
+                <include>logback.xml</include>
+            </includes>
+            <outputDirectory>stand-alone-h2/shenyu-bootstrap/conf</outputDirectory>
+        </fileSet>
+        <!-- pg -->
+        <fileSet>
+            <directory>src/main/resources/stand-alone-pg</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <outputDirectory>stand-alone-pg</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-admin/src/main/resources</directory>
+            <includes>
+                <include>application.yml</include>
+                <include>application-pg.yml</include>
+                <include>logback.xml</include>
+            </includes>
+            <outputDirectory>stand-alone-pg/shenyu-admin/conf</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../../shenyu-bootstrap/src/main/resources</directory>
+            <includes>
+                <include>application.yml</include>
+                <include>application-local.yml</include>
+                <include>logback.xml</include>
+            </includes>
+            <outputDirectory>stand-alone-pg/shenyu-bootstrap/conf</outputDirectory>
+        </fileSet>
+    </fileSets>
+</assembly>

@@ -1,5 +1,0 @@
-# Auto Configure
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.dromara.soul.web.configuration.SoulConfiguration
-org.springframework.context.ApplicationListener=\
-org.dromara.soul.web.logo.SoulLogo

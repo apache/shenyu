@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.ResourceMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.ResourceDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="parent_id" jdbcType="VARCHAR" property="parentId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="component" jdbcType="VARCHAR" property="component"/>
+        <result column="resource_type" jdbcType="INTEGER" property="resourceType"/>
+        <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="icon" jdbcType="VARCHAR" property="icon"/>
+        <result column="is_leaf" jdbcType="BOOLEAN" property="isLeaf"/>
+        <result column="is_route" jdbcType="INTEGER" property="isRoute"/>
+        <result column="perms" jdbcType="VARCHAR" property="perms"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        date_created,
+        date_updated,
+        parent_id,
+        title,
+        name,
+        url,
+        component,
+        resource_type,
+        sort,
+        icon,
+        is_leaf,
+        is_route,
+        perms,
+        status
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM resource
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByIdsBatch" resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM resource
+         WHERE id IN
+                <foreach item="id" collection="resourceIds" open="(" separator="," close=")">
+                    #{id, jdbcType=VARCHAR}
+                </foreach>
+    </select>
+
+    <select id="selectByParentId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM resource
+         WHERE parent_id = #{parentId, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery"
+            resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM resource
+         WHERE status = 1
+                <if test="title != null">
+                    AND title = #{title,jdbcType=VARCHAR}
+                </if>
+    </select>
+
+    <select id="selectByTitle" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM resource
+         WHERE status = 1
+               <if test="title != null">
+                 AND title = #{title, jdbcType=VARCHAR}
+               </if>
+    </select>
+
+    <select id="selectByTitles" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM resource
+         WHERE status = 1
+                <if test="list != null">
+                    AND title IN
+                    <foreach item="title" collection="list" open="(" separator="," close=")">
+                        #{title, jdbcType=VARCHAR}
+                    </foreach>
+                </if>
+    </select>
+
+    <select id="selectByResourceType" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM resource
+         WHERE resource_type = #{resourceType, jdbcType=INTEGER}
+    </select>
+
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ResourceQuery"
+            resultType="java.lang.Integer">
+        SELECT COUNT(1)
+          FROM resource
+         WHERE status = 1
+                <if test="title != null">
+                    AND title = #{title, jdbcType=VARCHAR}
+                </if>
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM resource
+    </select>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        select true from resource where id = #{id} limit 1
+    </select>
+
+    <select id="nameExisted" resultType="java.lang.Boolean">
+        SELECT true
+        FROM resource
+        WHERE name = #{name} LIMIT 1
+    </select>
+
+    <select id="selectByUserName" resultType="org.apache.shenyu.admin.model.entity.ResourceDO">
+        select
+            <include refid="Base_Column_List"/>
+        from resource r
+        where exists(select 1
+                     from permission p
+                     where r.id = p.resource_id
+                       and object_id in (select role_id
+                                         from user_role r
+                                         where exists(select 1
+                                                      from dashboard_user u
+                                                      where u.id = r.user_id
+                                                        and u.user_name = #{userName}))
+                  )
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ResourceDO">
+        INSERT INTO resource
+                    (id,
+                     date_created,
+                     date_updated,
+                     parent_id,
+                     title,
+                     name,
+                     url,
+                     component,
+                     resource_type,
+                     sort,
+                     icon,
+                     is_leaf,
+                     is_route,
+                     perms,
+                     status)
+          VALUES
+              (#{id, jdbcType=VARCHAR},
+               #{dateCreated, jdbcType=TIMESTAMP},
+               #{dateUpdated, jdbcType=TIMESTAMP},
+               #{parentId,jdbcType=VARCHAR},
+               #{title, jdbcType=VARCHAR},
+               #{name, jdbcType=VARCHAR},
+               #{url, jdbcType=VARCHAR},
+               #{component, jdbcType=VARCHAR},
+               #{resourceType, jdbcType=INTEGER},
+               #{sort, jdbcType=INTEGER},
+               #{icon, jdbcType=VARCHAR},
+               #{isLeaf, jdbcType=BOOLEAN},
+               #{isRoute,jdbcType=INTEGER},
+               #{perms, jdbcType=VARCHAR},
+               #{status, jdbcType=INTEGER})
+    </insert>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ResourceDO">
+        INSERT INTO resource
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                id,
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+            <if test="parentId != null">
+                parent_id,
+            </if>
+            <if test="title != null">
+                title,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="url != null">
+                url,
+            </if>
+            <if test="component != null">
+                component,
+            </if>
+            <if test="resourceType != null">
+                resource_type,
+            </if>
+            <if test="sort != null">
+                sort,
+            </if>
+            <if test="icon != null">
+                icon,
+            </if>
+            <if test="isLeaf != null">
+                is_leaf,
+            </if>
+            <if test="isRoute != null">
+                is_route,
+            </if>
+            <if test="perms != null">
+                perms,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                #{id, jdbcType=VARCHAR},
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="parentId != null">
+                #{parentId, jdbcType=VARCHAR},
+            </if>
+            <if test="title != null">
+                #{title, jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="url != null">
+                #{url, jdbcType=VARCHAR},
+            </if>
+            <if test="component != null">
+                #{component, jdbcType=VARCHAR},
+            </if>
+            <if test="resourceType != null">
+                #{resourceType, jdbcType=INTEGER},
+            </if>
+            <if test="sort != null">
+                #{sort, jdbcType=INTEGER},
+            </if>
+            <if test="icon != null">
+                #{icon, jdbcType=VARCHAR},
+            </if>
+            <if test="isLeaf != null">
+                #{isLeaf, jdbcType=BOOLEAN},
+            </if>
+            <if test="isRoute != null">
+                #{isRoute, jdbcType=INTEGER},
+            </if>
+            <if test="perms != null">
+                #{perms, jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status, jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <insert id = "insertBatch">
+        INSERT INTO resource
+                    (
+                    id,
+                    parent_id,
+                    title,
+                    name,
+                    url,
+                    component,
+                    resource_type,
+                    sort,
+                    icon,
+                    is_leaf,
+                    is_route,
+                    perms,
+                    status
+                    )
+             VALUES
+        <foreach collection="resourceDOList" item="resourceDO" separator=",">
+            (
+            #{resourceDO.id, jdbcType=VARCHAR},
+            #{resourceDO.parentId, jdbcType=VARCHAR},
+            #{resourceDO.title, jdbcType=VARCHAR},
+            #{resourceDO.name, jdbcType=VARCHAR},
+            #{resourceDO.url, jdbcType=VARCHAR},
+            #{resourceDO.component, jdbcType=VARCHAR},
+            #{resourceDO.resourceType, jdbcType=INTEGER},
+            #{resourceDO.sort, jdbcType=INTEGER},
+            #{resourceDO.icon, jdbcType=VARCHAR},
+            #{resourceDO.isLeaf, jdbcType=BOOLEAN},
+            #{resourceDO.isRoute, jdbcType=INTEGER},
+            #{resourceDO.perms, jdbcType=VARCHAR},
+            #{resourceDO.status, jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.ResourceDO">
+        UPDATE resource
+            SET
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+                parent_id = #{parentId, jdbcType=VARCHAR},
+                title = #{title, jdbcType=VARCHAR},
+                name = #{name, jdbcType=VARCHAR},
+                url = #{url, jdbcType=VARCHAR},
+                component = #{component, jdbcType=VARCHAR},
+                resource_type = #{resourceType, jdbcType=INTEGER},
+                sort = #{sort, jdbcType=INTEGER},
+                icon = #{icon, jdbcType=VARCHAR},
+                is_leaf = #{isLeaf, jdbcType=BOOLEAN},
+                is_route = #{isRoute, jdbcType=INTEGER},
+                perms = #{perms, jdbcType=VARCHAR},
+                status = #{status, jdbcType=INTEGER}
+         WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.ResourceDO">
+        UPDATE resource
+        <set>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="parentId != null">
+                parent_id = #{parentId, jdbcType=VARCHAR},
+            </if>
+            <if test="title != null">
+                title = #{title, jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                name = #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="url != null">
+                url = #{url, jdbcType=VARCHAR},
+            </if>
+            <if test="component != null">
+                component = #{component, jdbcType=VARCHAR},
+            </if>
+            <if test="resourceType != null">
+                resource_type = #{resourceType, jdbcType=INTEGER},
+            </if>
+            <if test="sort != null">
+                sort = #{sort, jdbcType=INTEGER},
+            </if>
+            <if test="icon != null">
+                icon = #{icon, jdbcType=VARCHAR},
+            </if>
+            <if test="isLeaf != null">
+                is_leaf = #{isLeaf, jdbcType=BOOLEAN},
+            </if>
+            <if test="isRoute != null">
+                is_route = #{isRoute, jdbcType=INTEGER},
+            </if>
+            <if test="perms != null">
+                perms = #{perms, jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                status = #{status, jdbcType=INTEGER},
+            </if>
+        </set>
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <delete id="delete" parameterType="java.util.List">
+        DELETE FROM resource
+              WHERE id IN
+                    <foreach item="id" collection="list" open="(" separator="," close=")">
+                      #{id,jdbcType=VARCHAR}
+                    </foreach>
+    </delete>
+</mapper>

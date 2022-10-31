@@ -1,0 +1,47 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+version: "3"
+services:
+  shenyu-bootstrap:
+    image: apache/shenyu-bootstrap:latest
+    container_name: shenyu-bootstrap
+    ports:
+      - "9195:9195"
+    volumes:
+      - ./shenyu-bootstrap/logs/:/opt/shenyu-bootstrap/logs
+      - ./shenyu-bootstrap/conf/:/opt/shenyu-bootstrap/conf
+    depends_on:
+      - shenyu-admin
+    environment:
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+    healthcheck:
+      test: [ "CMD", "wget", "http://shenyu-bootstrap:9195/actuator/health" ]
+      timeout: 2s
+      retries: 30
+  shenyu-admin:
+    image: apache/shenyu-admin:latest
+    container_name: shenyu-admin
+    volumes:
+      - ./shenyu-admin/logs/:/opt/shenyu-admin/logs
+      - ./shenyu-admin/conf/:/opt/shenyu-admin/conf
+    ports:
+      - "9095:9095"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
+      timeout: 2s
+      retries: 30

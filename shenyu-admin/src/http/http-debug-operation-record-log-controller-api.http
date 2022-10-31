@@ -1,0 +1,48 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# if you debug api, replace your own token
+
+### list
+GET http://localhost:9095/operation-record/log/list
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjUwNzg3NTY4fQ.YdxPSutcRClyuj76nYhwHJWkkkMzFVZeBfv5V04ybYA
+
+### list by page
+POST http://localhost:9095/operation-record/log/list/search/adaptor
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjU2NTk1Nzk1fQ.uBx8icElehCfjhXzOJYZUNLSI19RDS0ejrnKaoC510Y
+
+{
+  "pageSize": 10,
+  "pageNum": 1,
+  "condition": {
+    "startTime": "2022-04-19 17:07:21",
+    "endTime": "2022-06-19 17:07:21",
+    "type": "CREATE:DICT",
+    "keyword": "dict!name"
+  }
+}
+
+### clean
+DELETE http://localhost:9095/operation-record/log/clean/2022-04-25 23:31:31
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjU2NTk1Nzk1fQ.uBx8icElehCfjhXzOJYZUNLSI19RDS0ejrnKaoC510Y
+

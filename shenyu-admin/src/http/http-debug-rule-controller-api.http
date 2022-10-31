@@ -1,0 +1,116 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# if you debug api, replace your own token
+
+### rule list search
+POST http://localhost:9095/rule/list/search
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjUwNDY1NzgxfQ.bYVMtTGCgcq9l7g6ntlVU_vpBOBJCRDQKaIXBXcDHRQ
+
+{
+  "pageNum": 1,
+  "pageSize": 12,
+  "condition": {
+    "keyword": "",
+    "switchStatus": true
+  }
+}
+
+### rule list search adaptor
+POST http://localhost:9095/rule/list/search/adaptor
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjUwMjc3MTA4fQ.CbE5VuGp7cTQWt0tL87RcsLAJs5swk8YId35b8gYtHQ
+
+{
+  "pageNum": 1,
+  "pageSize": 12,
+  "condition": {
+    "keyword": "a!b",
+    "switchStatus": true
+  }
+}
+
+### rule list by page
+GET http://localhost:9095/rule?currentPage=1&pageSize=140
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3NTIzMjc5fQ.ERK-e6EwmKBpRPOr3xgUW8MtgpPuWJVhH7ImhA633X4
+
+### rule detail get
+GET http://localhost:9095/rule/1504083778843717632
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3NTIzMjc5fQ.ERK-e6EwmKBpRPOr3xgUW8MtgpPuWJVhH7ImhA633X4
+
+### create
+POST http://localhost:9095/rule
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3NTIzMjc5fQ.ERK-e6EwmKBpRPOr3xgUW8MtgpPuWJVhH7ImhA633X4
+
+{
+  "selectorId": "1504085720132444160",
+  "name": "test-create-rule",
+  "matchMode": 1,
+  "sort": 1,
+  "loged": true,
+  "enabled": true,
+  "ruleConditions": [
+    {
+      "paramType": "uri",
+      "operator": "=",
+      "paramName": "/",
+      "paramValue": "sd"
+    }
+  ]
+}
+
+### update
+PUT http://localhost:9095/rule/1504086035690905600
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3NTIzMjc5fQ.ERK-e6EwmKBpRPOr3xgUW8MtgpPuWJVhH7ImhA633X4
+
+{
+  "selectorId": "1504085720132444160",
+  "name": "test-create-rule",
+  "matchMode": 1,
+  "sort": 1,
+  "loged": true,
+  "enabled": true,
+  "ruleConditions": [
+    {
+      "paramType": "uri",
+      "operator": "=",
+      "paramName": "/",
+      "paramValue": "sd"
+    }
+  ]
+}
+
+### delete
+DELETE http://localhost:9095/rule/batch
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MzUwMjk0fQ.xbWIp3vkSUmOSZD9qIYT_YSunQSJSCKGqYUq4gVmnVw
+
+[
+  "1503021118890123264"
+]
