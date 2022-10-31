@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.sdk.http.controller;
+package org.apache.shenyu.examples.sdk.http.service;
 
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.examples.sdk.http.api.ShenyuSdkApi;
