@@ -39,6 +39,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -75,9 +77,10 @@ public final class AbstractShenyuPluginTest {
         this.pluginData = PluginData.builder().name("SHENYU").enabled(true).build();
         this.selectorData = SelectorData.builder().id("1").pluginName("SHENYU")
                 .enabled(true).type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
-        this.testShenyuPlugin = new TestShenyuPlugin();
+        this.testShenyuPlugin = spy(new TestShenyuPlugin());
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SHENYU/SHENYU")
                 .build());
+        clearCache();
         when(shenyuPluginChain.execute(exchange)).thenReturn(Mono.empty());
     }
 
@@ -87,6 +90,7 @@ public final class AbstractShenyuPluginTest {
     @Test
     public void executePluginIsNullTest() {
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
     }
 
     /**
@@ -96,6 +100,7 @@ public final class AbstractShenyuPluginTest {
     public void executeSelectorIsNullTest() {
         BaseDataCache.getInstance().cachePluginData(pluginData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
     }
 
     /**
@@ -106,6 +111,7 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
     }
 
     /**
@@ -120,6 +126,7 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(shenyuPluginChain).execute(exchange);
     }
 
     /**
@@ -137,6 +144,7 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         BaseDataCache.getInstance().cacheRuleData(ruleData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
 
     /**
@@ -155,12 +163,19 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         BaseDataCache.getInstance().cacheRuleData(ruleData);
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
 
     private void mockShenyuConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig());
         SpringBeanUtils.getInstance().setApplicationContext(context);
+    }
+
+    private void clearCache() {
+        BaseDataCache.getInstance().cleanPluginData();
+        BaseDataCache.getInstance().cleanSelectorData();
+        BaseDataCache.getInstance().cleanRuleData();
     }
 
     static class TestShenyuPlugin extends AbstractShenyuPlugin {
