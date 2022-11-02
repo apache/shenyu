@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.Map;
@@ -37,6 +38,11 @@ public final class MatchDataCache {
      * pluginName -> LRUMap.
      */
     private static final ConcurrentMap<String, Map<String, SelectorData>> SELECTOR_DATA_MAP = Maps.newConcurrentMap();
+
+    /**
+     * plugin name -> LRU Map
+     */
+    private static final ConcurrentMap<String, Map<String, RuleData>> RULE_DATA_MAP = Maps.newConcurrentMap();
 
     private MatchDataCache() {
     }
@@ -86,6 +92,23 @@ public final class MatchDataCache {
      */
     public SelectorData obtainSelectorData(final String pluginName, final String path) {
         final Map<String, SelectorData> lruMap = SELECTOR_DATA_MAP.get(pluginName);
+        return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
+    }
+
+    public void removeRuleData(final String pluginName) {
+        RULE_DATA_MAP.remove(pluginName);
+    }
+
+    public void cleanRuleData() {
+        RULE_DATA_MAP.clear();
+    }
+
+    public void cacheRuleData(final String path, final RuleData ruleData, final Integer maxMemory) {
+        RULE_DATA_MAP.computeIfAbsent(ruleData.getPluginName(), map -> new MemorySafeWindowTinyLFUMap<>(maxMemory, 1 << 16)).put(path, ruleData);
+    }
+
+    public RuleData obtainRuleData(final String pluginName, final String path) {
+        final Map<String, RuleData> lruMap = RULE_DATA_MAP.get(pluginName);
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
 }
