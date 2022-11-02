@@ -34,7 +34,6 @@
         field_id,
         is_example,
         field_value,
-        field_desc,
         value_desc,
         date_created,
         date_updated
@@ -46,7 +45,6 @@
             field_id,
             is_example,
             field_value,
-            field_desc,
             value_desc,
             date_created,
             date_updated
@@ -55,7 +53,6 @@
             #{fieldId, jdbcType=VARCHAR},
             #{example, jdbcType=TINYINT},
             #{fieldValue, jdbcType=VARCHAR},
-            #{fieldDesc, jdbcType=VARCHAR},
             #{valueDesc, jdbcType=VARCHAR},
             #{dateCreated,jdbcType=TIMESTAMP},
             #{dateUpdated,jdbcType=TIMESTAMP}
@@ -74,9 +71,6 @@
             </if>
             <if test="fieldValue != null">
                 field_value,
-            </if>
-            <if test="fieldDesc != null">
-                field_desc,
             </if>
             <if test="valueDesc != null">
                 value_desc,
@@ -98,9 +92,6 @@
             </if>
             <if test="fieldValue != null">
                 #{fieldValue, jdbcType=VARCHAR},
-            </if>
-            <if test="fieldDesc != null">
-                #{fieldDesc, jdbcType=VARCHAR},
             </if>
             <if test="valueDesc != null">
                 #{valueDesc, jdbcType=VARCHAR},
@@ -126,9 +117,6 @@
             <if test="fieldValue != null">
                 field_value = #{fieldValue, jdbcType=VARCHAR},
             </if>
-            <if test="fieldDesc != null">
-                field_desc = #{fieldDesc, jdbcType=VARCHAR},
-            </if>
             <if test="valueDesc != null">
                 value_desc = #{valueDesc, jdbcType=VARCHAR},
             </if>
@@ -148,7 +136,6 @@
         field_id = #{fieldId,jdbcType=VARCHAR},
         is_example = #{example,jdbcType=TINYINT},
         field_value = #{fieldValue,jdbcType=VARCHAR},
-        field_desc = #{fieldDesc,jdbcType=VARCHAR},
         value_desc = #{valueDesc,jdbcType=VARCHAR},
         date_created = #{dateCreated,jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
