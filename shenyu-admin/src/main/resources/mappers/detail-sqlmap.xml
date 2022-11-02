@@ -54,8 +54,8 @@
             #{example, jdbcType=TINYINT},
             #{fieldValue, jdbcType=VARCHAR},
             #{valueDesc, jdbcType=VARCHAR},
-            #{dateCreated,jdbcType=TIMESTAMP},
-            #{dateUpdated,jdbcType=TIMESTAMP}
+            #{dateCreated, jdbcType=TIMESTAMP},
+            #{dateUpdated, jdbcType=TIMESTAMP}
         )
     </insert>
 
