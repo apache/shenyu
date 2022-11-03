@@ -21,14 +21,18 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.ApiMapper;
+import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ApiQuery;
+import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.admin.model.vo.ApiVO;
+import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -39,6 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.ApiService}.
@@ -50,9 +56,13 @@ public class ApiServiceImpl implements ApiService {
 
     private final TagRelationMapper tagRelationMapper;
 
-    public ApiServiceImpl(final ApiMapper apiMapper, final TagRelationMapper tagRelationMapper) {
+    private final TagMapper tagMapper;
+
+    public ApiServiceImpl(final ApiMapper apiMapper, final TagRelationMapper tagRelationMapper,
+                          final TagMapper tagMapper) {
         this.apiMapper = apiMapper;
         this.tagRelationMapper = tagRelationMapper;
+        this.tagMapper = tagMapper;
 
     }
 
@@ -132,11 +142,34 @@ public class ApiServiceImpl implements ApiService {
 
     @Override
     public ApiVO findById(final String id) {
-        return apiMapper.selectByPrimaryKeyGetVO(id);
+        return Optional.ofNullable(apiMapper.selectByPrimaryKey(id)).map(item -> {
+            List<TagRelationDO> tagRelations = tagRelationMapper.selectByQuery(TagRelationQuery.builder().apiId(item.getId()).build());
+            List<String> tagIds = tagRelations.stream().map(TagRelationDO::getTagId).collect(Collectors.toList());
+            List<TagVO> tagVOS = Lists.newArrayList();
+            if (CollectionUtils.isNotEmpty(tagIds)) {
+                List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
+                for (TagDO tagDO : tagDOS) {
+                    tagVOS.add(TagVO.buildTagVO(tagDO));
+                }
+            }
+            return ApiVO.buildApiVO(item, tagVOS);
+        }).orElse(null);
     }
 
     @Override
     public CommonPager<ApiVO> listByPage(final ApiQuery apiQuery) {
-        return PageResultUtils.result(apiQuery.getPageParameter(), () -> apiMapper.selectByQuery(apiQuery));
+        return PageResultUtils.result(apiQuery.getPageParameter(), () -> apiMapper.selectByQuery(apiQuery)
+                .stream().map(item -> {
+                    List<TagRelationDO> tagRelations = tagRelationMapper.selectByQuery(TagRelationQuery.builder().apiId(item.getId()).build());
+                    List<String> tagIds = tagRelations.stream().map(TagRelationDO::getTagId).collect(Collectors.toList());
+                    List<TagVO> tagVOS = Lists.newArrayList();
+                    if (CollectionUtils.isNotEmpty(tagIds)) {
+                        List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
+                        for (TagDO tagDO : tagDOS) {
+                            tagVOS.add(TagVO.buildTagVO(tagDO));
+                        }
+                    }
+                    return ApiVO.buildApiVO(item, tagVOS);
+                }).collect(Collectors.toList()));
     }
 }

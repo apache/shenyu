@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.mapper.ApiMapper;
+import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
@@ -65,9 +66,12 @@ public final class ApiServiceTest {
     @Mock
     private TagRelationMapper tagRelationMapper;
 
+    @Mock
+    private TagMapper tagMapper;
+
     @BeforeEach
     public void setUp() {
-        apiService = new ApiServiceImpl(apiMapper, tagRelationMapper);
+        apiService = new ApiServiceImpl(apiMapper, tagRelationMapper, tagMapper);
     }
 
     @Test
@@ -87,8 +91,8 @@ public final class ApiServiceTest {
     @Test
     public void testFindById() {
         String id = "123";
-        ApiVO apiVO = buildApiVO(id);
-        given(this.apiMapper.selectByPrimaryKeyGetVO(eq(id))).willReturn(apiVO);
+        final ApiDO apiDO = buildApiDO(id);
+        given(this.apiMapper.selectByPrimaryKey(eq(id))).willReturn(apiDO);
         ApiVO byId = this.apiService.findById(id);
         assertNotNull(byId);
     }
@@ -100,14 +104,14 @@ public final class ApiServiceTest {
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         ApiQuery apiQuery = new ApiQuery(null, 0, "", pageParameter);
-        List<ApiVO> apiVOList = new ArrayList<>();
+        List<ApiDO> apiDOList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            ApiVO build = buildApiVO("" + i);
-            apiVOList.add(build);
+            final ApiDO apiDO = buildApiDO("" + i);
+            apiDOList.add(apiDO);
         }
-        given(this.apiMapper.selectByQuery(apiQuery)).willReturn(apiVOList);
+        given(this.apiMapper.selectByQuery(apiQuery)).willReturn(apiDOList);
         final CommonPager<ApiVO> apiDOCommonPager = this.apiService.listByPage(apiQuery);
-        assertEquals(apiDOCommonPager.getDataList().size(), apiVOList.size());
+        assertEquals(apiDOCommonPager.getDataList().size(), apiDOList.size());
     }
 
     private ApiDO buildApiDO(final String id) {

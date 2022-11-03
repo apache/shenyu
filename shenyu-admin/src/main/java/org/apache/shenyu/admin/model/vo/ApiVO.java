@@ -122,6 +122,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getId.
+     *
      * @return id
      */
     public String getId() {
@@ -130,6 +131,7 @@ public class ApiVO implements Serializable {
 
     /**
      * set id.
+     *
      * @param id id
      */
     public void setId(final String id) {
@@ -138,6 +140,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getContextPath.
+     *
      * @return context path
      */
     public String getContextPath() {
@@ -146,6 +149,7 @@ public class ApiVO implements Serializable {
 
     /**
      * set context path.
+     *
      * @param contextPath context path
      */
     public void setContextPath(final String contextPath) {
@@ -154,6 +158,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getApiPath.
+     *
      * @return apiPath
      */
     public String getApiPath() {
@@ -162,6 +167,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setApiPath.
+     *
      * @param apiPath apiPath
      */
     public void setApiPath(final String apiPath) {
@@ -170,6 +176,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getHttpMethod.
+     *
      * @return http method
      */
     public Integer getHttpMethod() {
@@ -178,6 +185,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setHttpMethod.
+     *
      * @param httpMethod http method
      */
     public void setHttpMethod(final Integer httpMethod) {
@@ -186,6 +194,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getConsume.
+     *
      * @return consume
      */
     public String getConsume() {
@@ -194,6 +203,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setConsume.
+     *
      * @param consume consume
      */
     public void setConsume(final String consume) {
@@ -202,6 +212,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getProduce.
+     *
      * @return produce
      */
     public String getProduce() {
@@ -210,6 +221,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setProduce.
+     *
      * @param produce the produce
      */
     public void setProduce(final String produce) {
@@ -218,6 +230,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getVersion.
+     *
      * @return version
      */
     public String getVersion() {
@@ -226,6 +239,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setVersion.
+     *
      * @param version the version
      */
     public void setVersion(final String version) {
@@ -234,6 +248,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getRpcType.
+     *
      * @return rpc type
      */
     public String getRpcType() {
@@ -242,6 +257,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setRpcType.
+     *
      * @param rpcType the rpc type
      */
     public void setRpcType(final String rpcType) {
@@ -250,6 +266,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getState.
+     *
      * @return state
      */
     public Integer getState() {
@@ -258,6 +275,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setState.
+     *
      * @param state state
      */
     public void setState(final Integer state) {
@@ -266,7 +284,8 @@ public class ApiVO implements Serializable {
 
     /**
      * getExt.
-     * @return  extension.
+     *
+     * @return extension.
      */
     public String getExt() {
         return ext;
@@ -274,6 +293,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setExt.
+     *
      * @param ext extension
      */
     public void setExt(final String ext) {
@@ -282,6 +302,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getApiOwner.
+     *
      * @return apiOwner
      */
     public String getApiOwner() {
@@ -290,6 +311,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setApiOwner.
+     *
      * @param apiOwner apiOwner
      */
     public void setApiOwner(final String apiOwner) {
@@ -298,6 +320,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getApiDesc.
+     *
      * @return apiDesc
      */
     public String getApiDesc() {
@@ -306,6 +329,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setApiDesc.
+     *
      * @param apiDesc apiDesc
      */
     public void setApiDesc(final String apiDesc) {
@@ -314,6 +338,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getApiSource.
+     *
      * @return apiSource
      */
     public Integer getApiSource() {
@@ -322,6 +347,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setSource.
+     *
      * @param apiSource apiSource
      */
     public void setApiSource(final Integer apiSource) {
@@ -330,6 +356,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getDocument.
+     *
      * @return document
      */
     public String getDocument() {
@@ -338,6 +365,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setDocument.
+     *
      * @param document document
      */
     public void setDocument(final String document) {
@@ -346,6 +374,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getDocumentMd5.
+     *
      * @return document md5
      */
     public String getDocumentMd5() {
@@ -354,6 +383,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setDocumentMd5.
+     *
      * @param documentMd5 documentMd5
      */
     public void setDocumentMd5(final String documentMd5) {
@@ -362,6 +392,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getDateCreated.
+     *
      * @return dateCreated
      */
     public Date getDateCreated() {
@@ -370,6 +401,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setDateCreated.
+     *
      * @param dateCreated dateCreated
      */
     public void setDateCreated(final Date dateCreated) {
@@ -378,6 +410,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getDateUpdated.
+     *
      * @return dateUpdated
      */
     public Date getDateUpdated() {
@@ -386,6 +419,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setDateUpdated.
+     *
      * @param dateUpdated dateUpdated
      */
     public void setDateUpdated(final Date dateUpdated) {
@@ -395,6 +429,7 @@ public class ApiVO implements Serializable {
 
     /**
      * getTags.
+     *
      * @return tags
      */
     public List<TagVO> getTags() {
@@ -403,6 +438,7 @@ public class ApiVO implements Serializable {
 
     /**
      * setTags.
+     *
      * @param tags tags
      */
     public void setTags(final List<TagVO> tags) {
@@ -411,7 +447,8 @@ public class ApiVO implements Serializable {
 
     /**
      * builder.
-     * @return ApiVOBuilder.
+     *
+     * @return ApiVOBuilder
      */
     public static ApiVOBuilder builder() {
         return new ApiVOBuilder();
@@ -419,10 +456,12 @@ public class ApiVO implements Serializable {
 
     /**
      * buildApiVO.
+     *
      * @param apiDO apiDO.
+     * @param tags  tags.
      * @return ApiVO.
      */
-    public static ApiVO buildApiVO(final ApiDO apiDO) {
+    public static ApiVO buildApiVO(final ApiDO apiDO, final List<TagVO> tags) {
         return ApiVO.builder()
                 .id(apiDO.getId())
                 .contextPath(apiDO.getContextPath())
@@ -441,46 +480,104 @@ public class ApiVO implements Serializable {
                 .documentMd5(apiDO.getDocumentMd5())
                 .dateCreated(apiDO.getDateCreated())
                 .dateUpdated(apiDO.getDateUpdated())
+                .tags(tags)
                 .build();
     }
 
     public static final class ApiVOBuilder {
 
+        /**
+         * id.
+         */
         private String id;
 
+        /**
+         * contextPath.
+         */
         private String contextPath;
 
+        /**
+         * apiPath.
+         */
         private String apiPath;
 
+        /**
+         * httpMethod.
+         */
         private Integer httpMethod;
 
+        /**
+         * consume.
+         */
         private String consume;
 
+        /**
+         * produce.
+         */
         private String produce;
 
+        /**
+         * version.
+         */
         private String version;
 
+        /**
+         * rpcType.
+         */
         private String rpcType;
 
+        /**
+         * status.
+         */
         private Integer state;
 
+        /**
+         * ext.
+         */
         private String ext;
 
+        /**
+         * apiOwner.
+         */
         private String apiOwner;
 
+        /**
+         * apiDesc.
+         */
         private String apiDesc;
 
+        /**
+         * apiSource.
+         */
         private Integer apiSource;
 
+        /**
+         * document.
+         */
         private String document;
 
+        /**
+         * documentMd5.
+         */
         private String documentMd5;
 
+        /**
+         * dateCreated.
+         */
         private Date dateCreated;
 
+        /**
+         * dateUpdated.
+         */
         private Date dateUpdated;
 
+        /**
+         * tags.
+         */
+        private List<TagVO> tags;
+
         private ApiVOBuilder() {
+
         }
 
         /**
@@ -504,9 +601,9 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder apiPath.
+         * build apiPath.
          * @param apiPath apiPath
-         * @return  ApiVOBuilder
+         * @return ApiVOBuilder
          */
         public ApiVOBuilder apiPath(final String apiPath) {
             this.apiPath = apiPath;
@@ -514,7 +611,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder httpMethod.
+         * build httpMethod.
          * @param httpMethod httpMethod
          * @return ApiVOBuilder
          */
@@ -524,7 +621,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder  consume.
+         * build consume.
          * @param consume consume
          * @return ApiVOBuilder
          */
@@ -534,7 +631,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder produce.
+         * build produce.
          * @param produce produce
          * @return ApiVOBuilder
          */
@@ -544,7 +641,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder version.
+         * build version.
          * @param version version
          * @return ApiVOBuilder
          */
@@ -554,7 +651,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder rpcType.
+         * build rpcType.
          * @param rpcType rpcType
          * @return ApiVOBuilder
          */
@@ -564,7 +661,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder state.
+         * build state.
          * @param state state
          * @return ApiVOBuilder
          */
@@ -574,7 +671,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder ext.
+         * build ext.
          * @param ext ext
          * @return ApiVOBuilder
          */
@@ -584,7 +681,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder apiOwner.
+         * build apiOwner.
          * @param apiOwner apiOwner
          * @return ApiVOBuilder
          */
@@ -594,7 +691,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder apiDesc.
+         * build apiDesc.
          * @param apiDesc apiDesc
          * @return ApiVOBuilder
          */
@@ -604,7 +701,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder apiSource.
+         * build apiSource.
          * @param apiSource apiSource
          * @return ApiVOBuilder
          */
@@ -614,7 +711,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder document.
+         * build document.
          * @param document document
          * @return ApiVOBuilder
          */
@@ -624,7 +721,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder documentMd5.
+         * build documentMd5.
          * @param documentMd5 documentMd5
          * @return ApiVOBuilder
          */
@@ -634,7 +731,7 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder dateCreated.
+         * build dateCreated.
          * @param dateCreated dateCreated
          * @return ApiVOBuilder
          */
@@ -644,12 +741,22 @@ public class ApiVO implements Serializable {
         }
 
         /**
-         * builder dateUpdated.
+         * build dateUpdated.
          * @param dateUpdated dateUpdated
          * @return ApiVOBuilder
          */
         public ApiVOBuilder dateUpdated(final Date dateUpdated) {
             this.dateUpdated = dateUpdated;
+            return this;
+        }
+
+        /**
+         * build tags.
+         * @param tags tags
+         * @return ApiVOBuilder
+         */
+        public ApiVOBuilder tags(final List<TagVO> tags) {
+            this.tags = tags;
             return this;
         }
 
@@ -676,6 +783,7 @@ public class ApiVO implements Serializable {
             apiVO.setDocumentMd5(documentMd5);
             apiVO.setDateCreated(dateCreated);
             apiVO.setDateUpdated(dateUpdated);
+            apiVO.setTags(tags);
             return apiVO;
         }
     }
