@@ -2122,7 +2122,7 @@ comment on column TAG_RELATION.id
   is 'primary key id';
 comment on column TAG_RELATION.api_id
   is 'api_id';
-comment on column TAG_RELATION.parent_tag_id
+comment on column TAG_RELATION.tag_id
   is 'parent tag id';
 comment on column TAG_RELATION.date_created
   is 'create time';
