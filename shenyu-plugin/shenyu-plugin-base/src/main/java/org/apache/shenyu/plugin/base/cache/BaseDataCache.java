@@ -133,7 +133,9 @@ public final class BaseDataCache {
     public void removeSelectData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData).ifPresent(data -> {
             final List<SelectorData> selectorDataList = SELECTOR_MAP.get(data.getPluginName());
-            Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
+            synchronized (SELECTOR_MAP) {
+                Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
+            }
         });
     }
     
@@ -189,7 +191,9 @@ public final class BaseDataCache {
     public void removeRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData).ifPresent(data -> {
             final List<RuleData> ruleDataList = RULE_MAP.get(data.getSelectorId());
-            Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(data.getId())));
+            synchronized (RULE_MAP) {
+                Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(data.getId())));
+            }
         });
     }
     
