@@ -153,12 +153,20 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
 
+    private void cacheRuleData(final String path, final RuleData ruleData) {
+
+    }
+
     private Integer getMaxFreeMemory() {
         return matchCacheConfig.getMaxFreeMemory() * 1024 * 1024;
     }
 
     private SelectorData obtainSelectorDataCacheIfEnabled(final ServerWebExchange exchange) {
         return matchCacheConfig.getEnabled() ? MatchDataCache.getInstance().obtainSelectorData(named(), exchange.getRequest().getURI().getPath()) : null;
+    }
+
+    private RuleData obtainRuleDataCacheIfEnabled(final ServerWebExchange exchange) {
+        return matchCacheConfig.getEnabled() ? MatchDataCache.getInstance().obtainRuleData(named(), exchange.getRequest().getURI().getPath()) : null;
     }
     
     protected RuleData defaultRuleData(final SelectorData selectorData) {
