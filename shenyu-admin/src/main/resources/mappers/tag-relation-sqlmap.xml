@@ -170,4 +170,12 @@
         from tag_relation
         where api_id = #{apiId,jdbcType=VARCHAR}
     </delete>
+
+    <delete id="deleteByApiIds" parameterType="java.util.List">
+        DELETE FROM tag_relation
+        WHERE api_id IN
+        <foreach item="id" collection="apiIds" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
 </mapper>

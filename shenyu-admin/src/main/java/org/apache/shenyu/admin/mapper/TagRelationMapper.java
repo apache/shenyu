@@ -107,5 +107,12 @@ public interface TagRelationMapper extends ExistProvider {
      * @return delete rows
      */
     int deleteByApiId(@Param(value = "apiId") String apiId);
+
+    /**
+     * deleteByApiIds.
+     * @param apiIds apiIds
+     * @return delete rows
+     */
+    int deleteByApiIds(@Param(value = "apiIds") List<String> apiIds);
 }
 
