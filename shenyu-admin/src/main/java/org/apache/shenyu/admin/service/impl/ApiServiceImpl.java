@@ -136,9 +136,9 @@ public class ApiServiceImpl implements ApiService {
             return AdminConstants.SYS_API_ID_NOT_EXIST;
         }
         // delete apis.
-        final int deleteRows = this.apiMapper.deleteByIds(ListUtil.map(apis, ApiDO::getId));
+        final List<String> apiIds = ListUtil.map(apis, ApiDO::getId);
+        final int deleteRows = this.apiMapper.deleteByIds(apiIds);
         if (deleteRows > 0) {
-            List<String> apiIds = apis.stream().map(ApiDO::getId).collect(Collectors.toList());
             tagRelationMapper.deleteByApiIds(apiIds);
         }
         return StringUtils.EMPTY;
