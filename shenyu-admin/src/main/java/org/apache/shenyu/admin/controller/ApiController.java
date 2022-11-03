@@ -85,7 +85,6 @@ public class ApiController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    @RequiresPermissions("system:api:edit")
     public ShenyuAdminResult detailApi(@PathVariable("id")
                                        @Existed(message = "api is not existed",
                                                provider = ApiMapper.class) final String id) {
