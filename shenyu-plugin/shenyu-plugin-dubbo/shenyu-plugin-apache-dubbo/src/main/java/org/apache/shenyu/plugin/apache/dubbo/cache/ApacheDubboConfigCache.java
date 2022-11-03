@@ -118,8 +118,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             return true;
         }
         return !Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol())
-                || !Objects.equals(dubboRegisterConfig.getRegister(), registryConfig.getAddress())
-                || !Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol());
+                || !Objects.equals(dubboRegisterConfig.getRegister(), registryConfig.getAddress());
     }
     
     /**
