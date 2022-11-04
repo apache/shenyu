@@ -128,6 +128,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-examples-dubbo-api</artifactId>
+            <version>2.5.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
