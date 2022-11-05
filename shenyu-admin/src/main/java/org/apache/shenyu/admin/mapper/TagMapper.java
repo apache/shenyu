@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.admin.mapper;
 
-import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.query.TagQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;
+
+import java.util.List;
 
 /**
  * this is User Tag Mapper.
@@ -105,4 +106,11 @@ public interface TagMapper extends ExistProvider {
      * @return delete count
      */
     int deleteAllData();
+
+    /**
+     * selectByIds.
+     * @param list ids
+     * @return List
+     */
+    List<TagDO> selectByIds(List<String> list);
 }

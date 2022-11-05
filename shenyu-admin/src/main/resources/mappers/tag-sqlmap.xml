@@ -62,7 +62,7 @@
 
     <select id="selectByParentTagIds" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
-        <include refid="Base_Column_List"/>
+            <include refid="Base_Column_List"/>
         FROM tag
         WHERE parent_tag_id IN
         <foreach item="id" collection="list" open="(" separator="," close=")">
@@ -189,4 +189,14 @@
     <delete id="deleteAllData" >
         delete from tag
     </delete>
+
+    <select id="selectByIds" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM tag
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
 </mapper>
