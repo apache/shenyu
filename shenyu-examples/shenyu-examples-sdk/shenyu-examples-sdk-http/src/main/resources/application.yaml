@@ -30,11 +30,11 @@ shenyu:
       props:
         contextPath: /http
         appName: http
-#          port: 8189
+  #          port: 8189
   sdk:
     enabled: true
-    register-type: zookeeper
-    server-lists: localhost:2181
+    register-type: zookeeper #local #etcd #nacos #consul
+    server-lists: localhost:2181 #http://localhost:9095 #http://localhost:2379 #localhost:8848
 
 spring:
   servlet:
