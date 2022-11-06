@@ -245,7 +245,12 @@ public enum PluginEnum {
     /**
      * Response plugin enum.
      */
-    RESPONSE(420, 0, "response");
+    RESPONSE(420, 0, "response"),
+
+    /**
+     * Key-auth plugin enum.
+     */
+    KEY_AUTH(430, 0, "keyAuth");
     
     /**
      * When the application starts, the plugin is cached and we can obtained by name.
