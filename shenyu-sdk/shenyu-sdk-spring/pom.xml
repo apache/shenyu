@@ -25,8 +25,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-sdk-spring</artifactId>
-
-
+    
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -41,6 +40,17 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

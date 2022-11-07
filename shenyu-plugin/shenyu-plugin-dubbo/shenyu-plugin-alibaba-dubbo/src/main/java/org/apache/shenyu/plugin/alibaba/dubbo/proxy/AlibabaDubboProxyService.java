@@ -71,7 +71,7 @@ public class AlibabaDubboProxyService {
         try {
             GenericService genericService = reference.get();
             Pair<String[], Object[]> pair;
-            if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.dubboBodyIsEmpty(body)) {
+            if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.bodyIsEmpty(body)) {
                 pair = new ImmutablePair<>(new String[]{}, new Object[]{});
             } else {
                 pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());

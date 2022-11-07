@@ -19,24 +19,30 @@ package org.apache.shenyu.plugin.logging.pulsar.collector;
 
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
 import org.apache.shenyu.plugin.logging.pulsar.client.PulsarLogCollectClient;
 import org.apache.shenyu.plugin.logging.pulsar.handler.LoggingPulsarPluginDataHandler;
 
-public class PulsarLogCollector extends AbstractLogCollector<PulsarLogCollectClient> {
+public class PulsarLogCollector extends AbstractLogCollector<PulsarLogCollectClient, ShenyuRequestLog> {
 
-    private static final LogCollector INSTANCE = new PulsarLogCollector();
+    private static final LogCollector<ShenyuRequestLog> INSTANCE = new PulsarLogCollector();
 
     /**
      * get LogCollector Instance.
      *
      * @return LogCollector instance
      */
-    public static LogCollector getInstance() {
+    public static LogCollector<ShenyuRequestLog> getInstance() {
         return INSTANCE;
     }
     
     @Override
     protected PulsarLogCollectClient getLogConsumeClient() {
         return LoggingPulsarPluginDataHandler.getPulsarLogCollectClient();
+    }
+
+    @Override
+    protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
     }
 }

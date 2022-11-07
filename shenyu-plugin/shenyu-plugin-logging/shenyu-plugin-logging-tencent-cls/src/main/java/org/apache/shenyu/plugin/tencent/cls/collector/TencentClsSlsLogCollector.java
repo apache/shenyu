@@ -19,27 +19,33 @@ package org.apache.shenyu.plugin.tencent.cls.collector;
 
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
+import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
 import org.apache.shenyu.plugin.tencent.cls.client.TencentClsLogCollectClient;
 import org.apache.shenyu.plugin.tencent.cls.handler.LoggingTencentClsPluginDataHandler;
 
 /**
  * Tencent cls log collector，depend a LogConsumeClient for consume logs.
  */
-public class TencentClsSlsLogCollector extends AbstractLogCollector<TencentClsLogCollectClient> {
+public class TencentClsSlsLogCollector extends AbstractLogCollector<TencentClsLogCollectClient, ShenyuRequestLog> {
 
-    private static final LogCollector INSTANCE = new TencentClsSlsLogCollector();
+    private static final LogCollector<ShenyuRequestLog> INSTANCE = new TencentClsSlsLogCollector();
 
     /**
      * get LogCollector instance.
      *
      * @return LogCollector instance
      */
-    public static LogCollector getInstance() {
+    public static LogCollector<ShenyuRequestLog> getInstance() {
         return INSTANCE;
     }
 
     @Override
     protected TencentClsLogCollectClient getLogConsumeClient() {
         return LoggingTencentClsPluginDataHandler.getTencentClsLogCollectClient();
+    }
+
+    @Override
+    protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
     }
 }

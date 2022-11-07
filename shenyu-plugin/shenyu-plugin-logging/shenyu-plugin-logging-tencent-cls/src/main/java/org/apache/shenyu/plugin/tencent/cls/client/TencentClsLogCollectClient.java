@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tencent cls log Collect client.
  */
-public class TencentClsLogCollectClient extends AbstractLogConsumeClient<TencentLogCollectConfig.TencentClsLogConfig> {
+public class TencentClsLogCollectClient extends AbstractLogConsumeClient<TencentLogCollectConfig.TencentClsLogConfig, ShenyuRequestLog> {
 
     private AsyncProducerClient client;
 

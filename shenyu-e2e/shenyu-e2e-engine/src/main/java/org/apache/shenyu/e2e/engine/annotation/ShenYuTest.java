@@ -18,6 +18,7 @@
 package org.apache.shenyu.e2e.engine.annotation;
 
 import org.apache.shenyu.e2e.engine.ShenYuExtension;
+import org.apache.shenyu.e2e.engine.ShenYuLogExtension;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.Mode;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.ServiceType;
 import org.junit.jupiter.api.TestInstance;
@@ -31,7 +32,7 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(ShenYuExtension.class)
+@ExtendWith({ShenYuExtension.class, ShenYuLogExtension.class})
 @TestInstance(Lifecycle.PER_CLASS)
 public @interface ShenYuTest {
     

@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.register.instance.api;
 
-import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.subsriber.WatcherListener;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.SPI;
 
 import java.util.Collections;
@@ -36,7 +36,7 @@ public interface ShenyuInstanceRegisterRepository {
      *
      * @param config the config
      */
-    default void init(InstanceConfig config) {
+    default void init(RegisterConfig config) {
     }
     
     /**
@@ -44,7 +44,7 @@ public interface ShenyuInstanceRegisterRepository {
      *
      * @param instance instance
      */
-    void persistInstance(InstanceRegisterDTO instance);
+    void persistInstance(InstanceEntity instance);
 
     /**
      * selectInstancesAndWatcher.
@@ -53,10 +53,10 @@ public interface ShenyuInstanceRegisterRepository {
      * @param watcherListener watcherListener
      * @return {@link List}
      */
-    default List<InstanceRegisterDTO> selectInstancesAndWatcher(String selectKey, WatcherListener watcherListener) {
+    default List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
         return Collections.emptyList();
     }
-    
+
     /**
      * Close.
      */

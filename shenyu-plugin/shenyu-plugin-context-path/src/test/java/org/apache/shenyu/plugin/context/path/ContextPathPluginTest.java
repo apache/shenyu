@@ -86,6 +86,7 @@ public final class ContextPathPluginTest {
         shenyuContext.setPath("/http/context/order/findById");
         ContextMappingRuleHandle contextMappingRuleHandle = new ContextMappingRuleHandle();
         contextMappingRuleHandle.setContextPath("/http/context");
+        when(ruleData.getId()).thenReturn("1");
         CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingRuleHandle);
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingRuleHandle));
         contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);

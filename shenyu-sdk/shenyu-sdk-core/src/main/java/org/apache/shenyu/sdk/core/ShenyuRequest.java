@@ -34,6 +34,8 @@ public final class ShenyuRequest implements Serializable {
 
     private final String url;
 
+    private final String contextId;
+
     private final Map<String, Collection<String>> headers;
 
     private final String body;
@@ -53,12 +55,14 @@ public final class ShenyuRequest implements Serializable {
                   final String url,
                   final Map<String, Collection<String>> headers,
                   final String body,
+                  final String contextId,
                   final RequestTemplate requestTemplate) {
         this.httpMethod = checkNotNull(method, "httpMethod of %s", method.name());
         this.url = checkNotNull(url, "url");
         this.headers = checkNotNull(headers, "headers of %s %s", method, url);
         this.body = body;
         this.requestTemplate = requestTemplate;
+        this.contextId = contextId;
     }
 
     public enum HttpMethod {
@@ -77,14 +81,27 @@ public final class ShenyuRequest implements Serializable {
      * @param headers to include.
      * @param body of the request, can be {@literal null}
      * @param requestTemplate requestTemplate
+     * @param contextId contextId
      * @return a Request
      */
     public static ShenyuRequest create(final HttpMethod httpMethod,
                                        final String url,
                                        final Map<String, Collection<String>> headers,
                                        final String body,
+                                       final String contextId,
                                        final RequestTemplate requestTemplate) {
-        return new ShenyuRequest(httpMethod, url, headers, body, requestTemplate);
+        return new ShenyuRequest(httpMethod, url, headers, body, contextId, requestTemplate);
+    }
+
+    /**
+     * Builds a Request. All parameters must be effectively immutable, via safe copies.
+     *
+     * @param url for the request.
+     * @param request to include.
+     * @return a Request
+     */
+    public static ShenyuRequest create(final String url, final ShenyuRequest request) {
+        return new ShenyuRequest(request.getHttpMethod(), url, request.getHeaders(), request.getBody(), request.getContextId(), request.getRequestTemplate());
     }
 
     /**
@@ -130,5 +147,14 @@ public final class ShenyuRequest implements Serializable {
      */
     public RequestTemplate getRequestTemplate() {
         return requestTemplate;
+    }
+
+    /**
+     * getContextId.
+     *
+     * @return {@link String}
+     */
+    public String getContextId() {
+        return contextId;
     }
 }

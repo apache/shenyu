@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.common.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -52,8 +52,6 @@ public class ShenyuConfig {
     private UpstreamCheck upstreamCheck = new UpstreamCheck();
 
     private CrossFilterConfig cross = new CrossFilterConfig();
-    
-    private InstanceConfig instance = new InstanceConfig();
 
     private RibbonConfig ribbon = new RibbonConfig();
     
@@ -154,25 +152,7 @@ public class ShenyuConfig {
     public void setRibbon(final RibbonConfig ribbon) {
         this.ribbon = ribbon;
     }
-    
-    /**
-     * Gets instance.
-     *
-     * @return the instance
-     */
-    public InstanceConfig getInstance() {
-        return instance;
-    }
-    
-    /**
-     * Sets instance.
-     *
-     * @param instance the instance
-     */
-    public void setInstance(final InstanceConfig instance) {
-        this.instance = instance;
-    }
-    
+
     /**
      * Gets switch config.
      *
@@ -985,7 +965,7 @@ public class ShenyuConfig {
          */
         private String wrapperHeaders(final String headers) {
             final Set<String> headerSet = DEFAULT_ALLOWED_HEADERS;
-            if (StringUtils.hasText(headers)) {
+            if (StringUtils.isNotEmpty(headers)) {
                 headerSet.addAll(Stream.of(headers.split(",")).collect(Collectors.toSet()));
             }
             return String.join(",", headerSet);
@@ -1239,112 +1219,6 @@ public class ShenyuConfig {
             public void setOriginRegex(final String originRegex) {
                 this.originRegex = originRegex;
             }
-        }
-    }
-    
-    /**
-     * The type Instance config.
-     */
-    public static class InstanceConfig {
-    
-        private boolean enabled;
-    
-        private String registerType;
-    
-        private String serverLists;
-    
-        private Properties props = new Properties();
-    
-        /**
-         * Instantiates a new Instance config.
-         */
-        public InstanceConfig() {
-        
-        }
-    
-        /**
-         * Instantiates a new Instance config.
-         *
-         * @param registerType the register type
-         * @param serverLists the server lists
-         * @param props the props
-         */
-        public InstanceConfig(final String registerType, final String serverLists, final Properties props) {
-            this.registerType = registerType;
-            this.serverLists = serverLists;
-            this.props = props;
-        }
-    
-        /**
-         * Gets enabled.
-         *
-         * @return the enabled
-         */
-        public boolean getEnabled() {
-            return enabled;
-        }
-    
-        /**
-         * Sets enabled.
-         *
-         * @param enabled the enabled
-         */
-        public void setEnabled(final boolean enabled) {
-            this.enabled = enabled;
-        }
-    
-        /**
-         * getRegisterType.
-         *
-         * @return String register type
-         */
-        public String getRegisterType() {
-            return registerType;
-        }
-    
-        /**
-         * setRegisterType.
-         *
-         * @param registerType registerType
-         */
-        public void setRegisterType(final String registerType) {
-            this.registerType = registerType;
-        }
-    
-        /**
-         * getServerLists.
-         *
-         * @return String server lists
-         */
-        public String getServerLists() {
-            return serverLists;
-        }
-    
-        /**
-         * setServerLists.
-         *
-         * @param serverLists serverLists
-         */
-        public void setServerLists(final String serverLists) {
-            this.serverLists = serverLists;
-        }
-    
-        /**
-         * getProps.
-         *
-         * @return String props
-         */
-        public Properties getProps() {
-            return props;
-        }
-    
-        /**
-         * setProps.
-         *
-         * @param props props
-         */
-        public void setProps(final Properties props) {
-            this.props = props;
         }
     }
     

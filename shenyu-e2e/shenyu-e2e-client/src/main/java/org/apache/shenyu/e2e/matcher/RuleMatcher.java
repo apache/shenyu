@@ -21,9 +21,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
 import org.apache.shenyu.e2e.client.admin.model.response.RuleDTO;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
+import java.util.Objects;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 
 public class RuleMatcher {
@@ -36,7 +43,29 @@ public class RuleMatcher {
     
     @SneakyThrows
     public void matches(RuleDTO actual) {
+        String handle = actual.getHandle();
+        if (Objects.nonNull(expected.getHandle())) {
+            String expected = mapper.writer().writeValueAsString(this.expected.getHandle());
+            JSONAssert.assertEquals(expected, handle, JSONCompareMode.LENIENT);
+        } else {
+            assertThat(actual, hasProperty("handle", isEmptyOrNullString()));
+        }
+        
+        assertThat(actual, hasProperty("name", startsWith(expected.getName())));
+        assertThat(actual, hasProperty("selectorId", equalTo(expected.getSelectorId())));
+        assertThat(actual, hasProperty("matchMode", equalTo(Integer.parseInt(expected.getMatchMode().getId()))));
+        assertThat(actual, hasProperty("sort", equalTo(expected.getSort())));
+        assertThat(actual, hasProperty("logged", equalTo(expected.isLogged())));
+        assertThat(actual, hasProperty("enabled", equalTo(expected.isEnabled())));
+        
+        assertThat(actual, hasProperty("matchModeName", equalTo(expected.getMatchMode().alias())));
+        
+        assertThat(actual, hasProperty("dateCreated", notNullValue()));
+        assertThat(actual, hasProperty("dateUpdated", notNullValue()));
+    }
     
+    public static RuleMatcher verify(RuleData expected) {
+        return new RuleMatcher(expected);
     }
     
 }

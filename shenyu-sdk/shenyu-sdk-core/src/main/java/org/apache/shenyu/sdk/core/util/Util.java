@@ -20,6 +20,7 @@ package org.apache.shenyu.sdk.core.util;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import static java.lang.String.format;
 
@@ -31,7 +32,7 @@ public final class Util {
     /**
      * UTF-8: eight-bit UCS Transformation Format.
      */
-    public static final Charset UTF_8 = Charset.forName("UTF-8");
+    public static final Charset UTF_8 = StandardCharsets.UTF_8;
 
     /**
      * checkArgument.

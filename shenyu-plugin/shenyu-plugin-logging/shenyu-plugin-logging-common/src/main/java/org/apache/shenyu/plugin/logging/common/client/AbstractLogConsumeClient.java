@@ -32,7 +32,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * AbstractLogConsumeClient.
  */
-public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig> implements LogConsumeClient<T> {
+public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig, L extends ShenyuRequestLog>
+        implements LogConsumeClient<T, L> {
 
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractLogConsumeClient.class);
 
@@ -53,7 +54,7 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig> im
      * @param logs logs
      * @throws Exception error
      */
-    public abstract void consume0(@NonNull List<ShenyuRequestLog> logs) throws Exception;
+    public abstract void consume0(@NonNull List<L> logs) throws Exception;
 
     /**
      * close0.
@@ -93,7 +94,7 @@ public abstract class AbstractLogConsumeClient<T extends GenericGlobalConfig> im
     }
 
     @Override
-    public void consume(final List<ShenyuRequestLog> logs) throws Exception {
+    public void consume(final List<L> logs) throws Exception {
         if (CollectionUtils.isEmpty(logs) || !isStarted.get()) {
             return;
         }

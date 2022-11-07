@@ -58,19 +58,32 @@ import java.util.Set;
 /**
  * ShenyuClientsRegistrar.
  */
-class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
+public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
 
     private ResourceLoader resourceLoader;
 
     private Environment environment;
-
+    
+    /**
+     * Instantiates a new Shenyu clients registrar.
+     */
     ShenyuClientsRegistrar() {
     }
-
+    
+    /**
+     * Validate fallback.
+     *
+     * @param clazz the clazz
+     */
     static void validateFallback(final Class clazz) {
         Assert.isTrue(!clazz.isInterface(), "Fallback class must implement the interface annotated by @ShenyuClient");
     }
-
+    
+    /**
+     * Validate fallback factory.
+     *
+     * @param clazz the clazz
+     */
     static void validateFallbackFactory(final Class clazz) {
         Assert.isTrue(!clazz.isInterface(), "Fallback factory must produce instances "
                 + "of fallback classes that implement the interface annotated by @ShenyuClient");
@@ -85,7 +98,13 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
     public void registerBeanDefinitions(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
         registerShenyuClients(metadata, registry);
     }
-
+    
+    /**
+     * Register shenyu clients.
+     *
+     * @param metadata the metadata
+     * @param registry the registry
+     */
     public void registerShenyuClients(final AnnotationMetadata metadata, final BeanDefinitionRegistry registry) {
         Set<BeanDefinition> candidateComponents = new LinkedHashSet<>();
         ClassPathScanningCandidateComponentProvider scanner = getScanner();
@@ -195,7 +214,12 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
         }
         return value;
     }
-
+    
+    /**
+     * Gets scanner.
+     *
+     * @return the scanner
+     */
     protected ClassPathScanningCandidateComponentProvider getScanner() {
         return new ClassPathScanningCandidateComponentProvider(false, this.environment) {
             @Override
@@ -210,7 +234,13 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
             }
         };
     }
-
+    
+    /**
+     * Gets base packages.
+     *
+     * @param importingClassMetadata the importing class metadata
+     * @return the base packages
+     */
     protected Set<String> getBasePackages(final AnnotationMetadata importingClassMetadata) {
         Map<String, Object> attributes = importingClassMetadata.getAnnotationAttributes(EnableShenyuClients.class.getCanonicalName());
 
@@ -262,7 +292,13 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
     public void setEnvironment(final Environment environment) {
         this.environment = environment;
     }
-
+    
+    /**
+     * Gets name.
+     *
+     * @param name the name
+     * @return the name
+     */
     static String getName(final String name) {
         if (!StringUtils.hasText(name)) {
             return "";
@@ -283,11 +319,24 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
         Assert.state(host != null, "Service id not legal hostname (" + name + ")");
         return name;
     }
-
+    
+    /**
+     * Gets name.
+     *
+     * @param attributes the attributes
+     * @return the name
+     */
     String getName(final Map<String, Object> attributes) {
         return getName(null, attributes);
     }
-
+    
+    /**
+     * Gets name.
+     *
+     * @param beanFactory the bean factory
+     * @param attributes the attributes
+     * @return the name
+     */
     String getName(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
         String name = (String) attributes.get("name");
         if (!StringUtils.hasText(name)) {
@@ -296,7 +345,13 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
         name = resolve(beanFactory, name);
         return getName(name);
     }
-
+    
+    /**
+     * Gets url.
+     *
+     * @param url the url
+     * @return the url
+     */
     static String getUrl(final String url) {
         String resultUrl = url;
         if (StringUtils.hasText(resultUrl) && !(resultUrl.startsWith("#{") && resultUrl.contains("}"))) {
@@ -317,6 +372,9 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
 
     private String getUrl(final ConfigurableBeanFactory beanFactory, final Map<String, Object> attributes) {
         String url = resolve(beanFactory, (String) attributes.get("url"));
+        if (!StringUtils.hasText(url)) {
+            return getUrl(getName(beanFactory, attributes));
+        }
         return getUrl(url);
     }
 
@@ -324,7 +382,13 @@ class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, ResourceL
         String path = resolve(beanFactory, (String) attributes.get("path"));
         return getPath(path);
     }
-
+    
+    /**
+     * Gets path.
+     *
+     * @param path the path
+     * @return the path
+     */
     static String getPath(final String path) {
         String resultPath = path;
         if (StringUtils.hasText(resultPath)) {

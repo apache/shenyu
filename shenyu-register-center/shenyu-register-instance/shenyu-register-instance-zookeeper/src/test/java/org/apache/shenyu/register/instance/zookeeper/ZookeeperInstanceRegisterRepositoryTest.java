@@ -18,25 +18,32 @@
 package org.apache.shenyu.register.instance.zookeeper;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.framework.listen.Listenable;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
-import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
+import org.apache.zookeeper.WatchedEvent;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
-public class ZookeeperInstanceRegisterRepositoryTest {
+public final class ZookeeperInstanceRegisterRepositoryTest {
 
     @Test
     public void testZookeeperInstanceRegisterRepository() {
@@ -47,7 +54,7 @@ public class ZookeeperInstanceRegisterRepositoryTest {
             when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
         })) {
             final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
-            ShenyuConfig.InstanceConfig config = new ShenyuConfig.InstanceConfig();
+            RegisterConfig config = new RegisterConfig();
             repository.init(config);
             final Properties configProps = config.getProps();
             configProps.setProperty("digest", "digest");
@@ -57,11 +64,47 @@ public class ZookeeperInstanceRegisterRepositoryTest {
                 return null;
             }).when(listenable).addListener(any());
             repository.init(config);
-            repository.persistInstance(mock(InstanceRegisterDTO.class));
+            repository.persistInstance(mock(InstanceEntity.class));
             connectionStateListeners.forEach(connectionStateListener -> {
                 connectionStateListener.stateChanged(null, ConnectionState.RECONNECTED);
             });
             repository.close();
         }
     }
+
+    @Test
+    public void testSelectInstancesAndWatcher() throws Exception {
+        InstanceEntity data = InstanceEntity.builder()
+                .appName("shenyu-test")
+                .host("shenyu-host")
+                .port(9195)
+                .build();
+        final Listenable listenable = mock(Listenable.class);
+        final CuratorWatcher[] watcherArr = new CuratorWatcher[1];
+
+        try (MockedConstruction<ZookeeperClient> construction = mockConstruction(ZookeeperClient.class, (mock, context) -> {
+            final CuratorFramework curatorFramework = mock(CuratorFramework.class);
+            when(mock.getClient()).thenReturn(curatorFramework);
+            when(mock.subscribeChildrenChanges(anyString(), any(CuratorWatcher.class))).thenAnswer(invocation -> {
+                Object[] args = invocation.getArguments();
+                watcherArr[0] = (CuratorWatcher) args[1];
+                return Collections.singletonList("shenyu-test");
+            });
+            when(mock.get(anyString())).thenReturn(GsonUtils.getInstance().toJson(data));
+            when(curatorFramework.getConnectionStateListenable()).thenReturn(listenable);
+        })) {
+            final ZookeeperInstanceRegisterRepository repository = new ZookeeperInstanceRegisterRepository();
+            RegisterConfig config = new RegisterConfig();
+            repository.init(config);
+            final Properties configProps = config.getProps();
+            configProps.setProperty("digest", "digest");
+            repository.init(config);
+            repository.selectInstancesAndWatcher(InstancePathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+            WatchedEvent mockEvent = mock(WatchedEvent.class);
+            when(mockEvent.getPath()).thenReturn(InstancePathConstants.buildInstanceParentPath());
+            watcherArr[0].process(mockEvent);
+            repository.close();
+        }
+    }
+
 }

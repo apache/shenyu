@@ -43,7 +43,7 @@ import java.util.TimeZone;
 /**
  * queue-based logging collector.
  */
-public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHouseLogCollectConfig.ClickHouseLogConfig> {
+public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHouseLogCollectConfig.ClickHouseLogConfig, ShenyuRequestLog> {
 
     private ClickHouseClient client;
 

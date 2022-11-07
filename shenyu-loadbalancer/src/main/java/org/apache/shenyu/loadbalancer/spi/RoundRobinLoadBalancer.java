@@ -50,13 +50,12 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
         WeightedRoundRobin selectedWeightedRoundRobin = null;
         for (Upstream upstream : upstreamList) {
             String rKey = upstream.getUrl();
-            WeightedRoundRobin weightedRoundRobin = map.get(rKey);
             int weight = getWeight(upstream);
-            if (Objects.isNull(weightedRoundRobin)) {
-                weightedRoundRobin = new WeightedRoundRobin();
-                weightedRoundRobin.setWeight(weight);
-                map.putIfAbsent(rKey, weightedRoundRobin);
-            }
+            WeightedRoundRobin weightedRoundRobin = map.computeIfAbsent(rKey, k -> {
+                WeightedRoundRobin roundRobin = new WeightedRoundRobin();
+                roundRobin.setWeight(weight);
+                return roundRobin;
+            });
             if (weight != weightedRoundRobin.getWeight()) {
                 // weight changed.
                 weightedRoundRobin.setWeight(weight);

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
@@ -118,6 +119,9 @@ public class PluginDTO implements Serializable {
      * @param config config
      */
     public void setConfig(final String config) {
+        if (StringUtils.isBlank(config)) {
+            return;
+        }
         this.config = config;
     }
     

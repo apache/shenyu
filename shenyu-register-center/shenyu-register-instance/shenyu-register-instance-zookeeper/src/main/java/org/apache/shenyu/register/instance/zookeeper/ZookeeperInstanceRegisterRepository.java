@@ -18,21 +18,29 @@
 package org.apache.shenyu.register.instance.zookeeper;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.framework.state.ConnectionState;
-import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.WatchedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * The type Zookeeper instance register repository.
@@ -47,7 +55,7 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
     private final Map<String, String> nodeDataMap = new HashMap<>();
 
     @Override
-    public void init(final InstanceConfig config) {
+    public void init(final RegisterConfig config) {
         Properties props = config.getProps();
         int sessionTimeout = Integer.parseInt(props.getProperty("sessionTimeout", "3000"));
         int connectionTimeout = Integer.parseInt(props.getProperty("connectionTimeout", "3000"));
@@ -82,29 +90,52 @@ public class ZookeeperInstanceRegisterRepository implements ShenyuInstanceRegist
 
         client.start();
     }
-    
+
     @Override
-    public void persistInstance(final InstanceRegisterDTO instance) {
+    public void persistInstance(final InstanceEntity instance) {
         String uriNodeName = buildInstanceNodeName(instance);
-        String instancePath = RegisterPathConstants.buildInstanceParentPath();
+        String instancePath = InstancePathConstants.buildInstanceParentPath(instance.getAppName());
         if (!client.isExist(instancePath)) {
             client.createOrUpdate(instancePath, "", CreateMode.PERSISTENT);
         }
-        String realNode = RegisterPathConstants.buildRealNode(instancePath, uriNodeName);
+        String realNode = InstancePathConstants.buildRealNode(instancePath, uriNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         nodeDataMap.put(realNode, nodeData);
         client.createOrUpdate(realNode, nodeData, CreateMode.EPHEMERAL);
     }
-    
+
+    @Override
+    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+        final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
+        final Function<List<String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList -> childrenList.stream().map(childPath -> {
+            String instanceRegisterJsonStr = client.get(InstancePathConstants.buildRealNode(watchKey, childPath));
+            return GsonUtils.getInstance().fromJson(instanceRegisterJsonStr, InstanceEntity.class);
+        }).collect(Collectors.toList());
+
+        List<String> childrenPathList = client.subscribeChildrenChanges(watchKey, new CuratorWatcher() {
+            @Override
+            public void process(final WatchedEvent event) {
+                if (watcherListener != null) {
+                    String path = Objects.isNull(event.getPath()) ? "" : event.getPath();
+                    List<String> childrenList = StringUtils.isNotBlank(path) ? client.subscribeChildrenChanges(path, this)
+                            : Collections.emptyList();
+                    if (!childrenList.isEmpty()) {
+                        watcherListener.listener(getInstanceRegisterFun.apply(childrenList));
+                    }
+                }
+            }
+        });
+        return getInstanceRegisterFun.apply(childrenPathList);
+    }
+
     @Override
     public void close() {
         client.close();
     }
 
-    private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
+    private String buildInstanceNodeName(final InstanceEntity instance) {
         String host = instance.getHost();
         int port = instance.getPort();
         return String.join(Constants.COLONS, host, Integer.toString(port));
     }
-
 }

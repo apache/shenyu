@@ -42,6 +42,8 @@ public class RuleDTO implements ResourceDTO {
     @JsonAlias("loged")
     private boolean logged;
     
+    private boolean enabled;
+    
     private String handle;
     
     private JsonNode ruleConditions;

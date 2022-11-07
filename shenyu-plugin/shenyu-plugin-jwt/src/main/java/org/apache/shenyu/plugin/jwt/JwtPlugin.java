@@ -43,6 +43,7 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -69,9 +70,9 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         // compatible processing
         String finalAuthorization = compatible(token, authorization);
         Map<String, Object> jwtBody = checkAuthorization(finalAuthorization, jwtConfig.getSecretKey());
-        if (jwtBody != null) {
+        if (Objects.nonNull(jwtBody)) {
             JwtRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), JwtRuleHandle.class);
-            if (ruleHandle == null) {
+            if (Objects.isNull(ruleHandle) || Objects.isNull(ruleHandle.getConverter())) {
                 return chain.execute(exchange);
             }
             return chain.execute(converter(exchange, jwtBody, ruleHandle.getConverter()));
@@ -174,9 +175,9 @@ public class JwtPlugin extends AbstractShenyuPlugin {
     /**
      * Parsing multi-level tokens.
      *
-     * @param body token
+     * @param body  token
      * @param split jwt of key
-     * @param deep level default 0
+     * @param deep  level default 0
      * @return token of val
      */
     private String parse(final Map<String, Object> body,

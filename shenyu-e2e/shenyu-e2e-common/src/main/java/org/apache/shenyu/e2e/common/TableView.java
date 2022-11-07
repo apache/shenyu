@@ -56,7 +56,10 @@ public class TableView {
         StringBuilder separator = new StringBuilder("+");
         for (int i = 0; i < maxContentLengthOfColumns.length; i++) {
             int length = maxContentLengthOfColumns[i];
-            separator.append("-".repeat(length + 2)).append("+");
+            for (int j = -2; j < length; j++) {
+                separator.append('-');
+            }
+            separator.append("+");
             template[i] = String.format(" %%-%ds ", length);
         }
         separator.append(System.lineSeparator());

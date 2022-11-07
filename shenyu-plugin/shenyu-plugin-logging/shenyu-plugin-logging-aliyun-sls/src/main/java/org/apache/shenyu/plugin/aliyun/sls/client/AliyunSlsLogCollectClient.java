@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Aliyun sls log Collect client.
  */
-public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLogCollectConfig.AliyunSlsLogConfig> {
+public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLogCollectConfig.AliyunSlsLogConfig, ShenyuRequestLog> {
 
     private Client client;
 

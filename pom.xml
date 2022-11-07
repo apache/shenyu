@@ -97,7 +97,7 @@
         <kryo.version>4.0.0</kryo.version>
         <pagehelper.version>5.3.0</pagehelper.version>
         <alibaba.dubbo.version>2.6.12</alibaba.dubbo.version>
-        <apache.dubbo.version>2.7.15</apache.dubbo.version>
+        <apache.dubbo.version>3.1.1</apache.dubbo.version>
         <gson.version>2.9.0</gson.version>
         <okhttp.version>3.12.1</okhttp.version>
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
@@ -113,7 +113,7 @@
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.8.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
-        <motan.version>1.1.10</motan.version>
+        <motan.version>1.2.0</motan.version>
         <spring-boot.version>2.6.8</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
@@ -134,6 +134,7 @@
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
         <kafka-clients.version>3.2.0</kafka-clients.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
+        <eureka.version>1.10.17</eureka.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -162,6 +163,7 @@
         <spring-cloud.version>3.1.2</spring-cloud.version>
         <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
         <caffeine.version>2.9.3</caffeine.version>
+        <httpasyncclient.version>4.1.5</httpasyncclient.version>
     </properties>
 
     <dependencyManagement>
@@ -489,6 +491,12 @@
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
                 <version>${caffeine.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.netflix.eureka</groupId>
+                <artifactId>eureka-client</artifactId>
+                <version>${eureka.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -19,6 +19,8 @@ package org.apache.shenyu.e2e.engine.scenario;
 
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
+import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpecLogProxy;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
@@ -69,7 +71,7 @@ public class ShenYuScenarioInvocationContextProvider implements TestTemplateInvo
         private final ScenarioSpec scenarioSpec;
         
         public ShenYuTestTemplateInvocationContext(ScenarioSpec scenarioSpec) {
-            this.scenarioSpec = scenarioSpec;
+            this.scenarioSpec = new ScenarioSpecLogProxy(scenarioSpec);
         }
         
         @Override
@@ -79,7 +81,7 @@ public class ShenYuScenarioInvocationContextProvider implements TestTemplateInvo
         
         @Override
         public List<Extension> getAdditionalExtensions() {
-            return List.of(new ShenYuScenarioParameterResolver(scenarioSpec));
+            return Lists.newArrayList(new ShenYuScenarioParameterResolver(scenarioSpec));
         }
     }
     

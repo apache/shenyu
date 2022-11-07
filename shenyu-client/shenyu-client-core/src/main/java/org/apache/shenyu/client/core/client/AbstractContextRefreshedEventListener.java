@@ -98,12 +98,12 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     
     @Override
     public void onApplicationEvent(@NonNull final ContextRefreshedEvent event) {
-        if (!registered.compareAndSet(false, true)) {
-            return;
-        }
         final ApplicationContext context = event.getApplicationContext();
         Map<String, T> beans = getBeans(context);
         if (MapUtils.isEmpty(beans)) {
+            return;
+        }
+        if (!registered.compareAndSet(false, true)) {
             return;
         }
         publisher.publishEvent(buildURIRegisterDTO(context, beans));

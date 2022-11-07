@@ -71,7 +71,7 @@ jobs:
         if: steps.filter.outputs.changed == 'true'
 
   check-license-header:
-    name: Check License Header
+    name: check-license-header
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -82,3 +82,15 @@ jobs:
         uses: apache/skywalking-eyes@9bd5feb86b5817aa6072b008f9866a2c3bbc8587
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  requirement:
+    name: build
+    if: always()
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: checking job status
+        run: |
+          [[ "${{ needs.build.result }}" == "success" ]] || exit -1
+
