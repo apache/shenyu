@@ -16,24 +16,27 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-register-center</artifactId>
+        <artifactId>shenyu-register-instance</artifactId>
         <version>2.5.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-register-instance</artifactId>
-    <packaging>pom</packaging>
-    
-    <modules>
-        <module>shenyu-register-instance-api</module>
-        <module>shenyu-register-instance-core</module>
-        <module>shenyu-register-instance-zookeeper</module>
-        <module>shenyu-register-instance-etcd</module>
-        <module>shenyu-register-instance-consul</module>
-        <module>shenyu-register-instance-nacos</module>
-        <module>shenyu-register-instance-eureka</module>
-    </modules>
-    
+    <artifactId>shenyu-register-instance-eureka</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-register-instance-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.netflix.eureka</groupId>
+            <artifactId>eureka-client</artifactId>
+        </dependency>
+    </dependencies>
 </project>
