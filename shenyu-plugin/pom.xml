@@ -63,5 +63,6 @@
         <module>shenyu-plugin-logging</module>
         <module>shenyu-plugin-mock</module>
         <module>shenyu-plugin-casdoor</module>
+        <module>shenyu-plugin-key-auth</module>
     </modules>
 </project>

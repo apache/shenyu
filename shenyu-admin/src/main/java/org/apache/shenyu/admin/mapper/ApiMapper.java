@@ -18,13 +18,19 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.query.ApiQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * ApiMapper.
  **/
 @Mapper
-public interface ApiMapper {
+public interface ApiMapper extends ExistProvider {
     /**
      * delete by primary key.
      *
@@ -72,4 +78,36 @@ public interface ApiMapper {
      * @return update count
      */
     int updateByPrimaryKey(ApiDO record);
+
+    /**
+     * existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
+
+    /**
+     * select api by query.
+     *
+     * @param query {@linkplain ApiQuery}
+     * @return {@linkplain List}
+     */
+    List<ApiDO> selectByQuery(ApiQuery query);
+
+    /**
+     * select api by ids.
+     * @param ids primary keys.
+     * @return {@linkplain ApiDO}
+     */
+    List<ApiDO> selectByIds(List<String> ids);
+
+    /**
+     * delete api.
+     *
+     * @param ids primary keys.
+     * @return rows int
+     */
+    int deleteByIds(List<String> ids);
 }
