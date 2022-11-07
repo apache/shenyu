@@ -511,7 +511,9 @@ public class ShenyuConfig {
      */
     public static class MatchCache {
 
-        private boolean enabled;
+        private boolean selectorEnabled;
+
+        private boolean ruleEnabled;
 
         /**
          * Max free memory, unit mb.
@@ -519,21 +521,39 @@ public class ShenyuConfig {
         private Integer maxFreeMemory = 256;
 
         /**
-         * Gets enabled.
+         * Get selector cache enabled.
          *
          * @return the enabled
          */
-        public boolean getEnabled() {
-            return enabled;
+        public boolean getSelectorEnabled() {
+            return selectorEnabled;
         }
 
         /**
-         * Sets enabled.
+         * Set selector enabled.
          *
-         * @param enabled the enabled
+         * @param selectorEnabled the enabled
          */
-        public void setEnabled(final boolean enabled) {
-            this.enabled = enabled;
+        public void setSelectorEnabled(final boolean selectorEnabled) {
+            this.selectorEnabled = selectorEnabled;
+        }
+
+        /**
+         * get rule cache enabled.
+         *
+         * @return rule enabled
+         */
+        public boolean getRuleEnabled() {
+            return ruleEnabled;
+        }
+
+        /**
+         * set rule cache enabled.
+         *
+         * @param ruleEnabled rule cache enabled
+         */
+        public void setRuleEnabled(final boolean ruleEnabled) {
+            this.ruleEnabled = ruleEnabled;
         }
 
         /**

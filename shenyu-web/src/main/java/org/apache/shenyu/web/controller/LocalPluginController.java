@@ -95,6 +95,7 @@ public class LocalPluginController {
         List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
         MatchDataCache.getInstance().removeSelectorData(name);
+        MatchDataCache.getInstance().removeRuleData(name);
         for (String selectorId : selectorIds) {
             BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
         }
