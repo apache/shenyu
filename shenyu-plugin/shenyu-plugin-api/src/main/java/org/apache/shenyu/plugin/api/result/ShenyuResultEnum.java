@@ -221,7 +221,17 @@ public enum ShenyuResultEnum {
     /**
      * Request Entity Too Large.
      */
-    REQUEST_ENTITY_TOO_LARGE(413, "Request Entity Too Large");
+    REQUEST_ENTITY_TOO_LARGE(413, "Request Entity Too Large"),
+
+    /**
+     * Key attribute name and key not be configured.
+     */
+    KEY_NAME_AND_KEY_MUST_BE_CONFIGURED(-122, "The key attribute name and the key must be configured"),
+
+    /**
+     * Key is incorrect.
+     */
+    ERROR_KEY(401, "Key is incorrect");
 
     /**
      * the code.
