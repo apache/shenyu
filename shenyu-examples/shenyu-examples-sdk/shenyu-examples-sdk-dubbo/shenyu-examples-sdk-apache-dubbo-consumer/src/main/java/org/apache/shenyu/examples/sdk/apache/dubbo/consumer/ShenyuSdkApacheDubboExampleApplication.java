@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.sdk.apache.dubbo;
+package org.apache.shenyu.examples.sdk.apache.dubbo.consumer;
 
 import org.apache.shenyu.sdk.spring.EnableShenyuClients;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * ShenyuSdkHttpExampleApplication.
+ * ShenyuSdkApacheDubboExampleApplication.
  */
 @SpringBootApplication
-@EnableShenyuClients(basePackages = {"org.apache.shenyu.examples.sdk.apache.dubbo.api"})
-public class ShenyuSdkHttpExampleApplication {
+@EnableShenyuClients(basePackages = "org.apache.shenyu.examples.sdk.apache.dubbo.api")
+public class ShenyuSdkApacheDubboExampleApplication {
 
     /**
      * main.
@@ -34,6 +34,6 @@ public class ShenyuSdkHttpExampleApplication {
      * @param args args
      */
     public static void main(final String[] args) {
-        SpringApplication.run(ShenyuSdkHttpExampleApplication.class, args);
+        SpringApplication.run(ShenyuSdkApacheDubboExampleApplication.class, args);
     }
 }

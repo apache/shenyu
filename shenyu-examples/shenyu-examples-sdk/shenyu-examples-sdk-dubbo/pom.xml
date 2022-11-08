@@ -29,7 +29,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>shenyu-examples-sdk-apache-dubbo</module>
+        <module>shenyu-examples-sdk-apache-dubbo-consumer</module>
+        <module>shenyu-examples-sdk-apache-dubbo-provider</module>
     </modules>
 
     <dependencyManagement>
@@ -39,11 +40,11 @@
                 <artifactId>shenyu-examples-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.shenyu</groupId>
-                <artifactId>shenyu-examples-dubbo-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>org.apache.shenyu</groupId>-->
+<!--                <artifactId>shenyu-examples-dubbo-api</artifactId>-->
+<!--                <version>${project.version}</version>-->
+<!--            </dependency>-->
         </dependencies>
     </dependencyManagement>
 </project>
