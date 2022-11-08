@@ -21,19 +21,21 @@ import org.apache.shenyu.sdk.core.ShenyuRequest;
 
 /**
  * ShenyuSdkRequestInterceptor.
- * For example: <br/>
+ * For example:
  *
  * <pre>
+ *   <code>
  *   public void apply(ShenyuRequest shenyuRequest){
  *       shenyuRequest.getHeaders().put("X-Auth", Collections.singleton("currentToken"));
  *  }
+ *  </code>
  * </pre>
- *
  * <b>Configuration</b>
  *
- * <br>
- * {@code ShenyuSdkRequestInterceptor} are configured via {@link org.apache.shenyu.register.instance.api.config.RegisterConfig}. <br>
+ * {@code ShenyuSdkRequestInterceptor} are configured via {@link org.apache.shenyu.register.instance.api.config.RegisterConfig}.
  * <pre>
+ * <code>
+ *
  * shenyu:
  *   sdk:
  *     props:
@@ -41,9 +43,8 @@ import org.apache.shenyu.sdk.core.ShenyuRequest;
  *         enable: true
  *         classes:
  *           - full-class-name
- *
+ * </code>
  * </pre>
- * <br>
  * This class is similar to feign.RequestInterceptor
  */
 public interface ShenyuSdkRequestInterceptor {
