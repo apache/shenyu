@@ -159,14 +159,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private void cacheSelectorData(final String path, final SelectorData selectorData) {
         if (StringUtils.isBlank(selectorData.getId())) {
-            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getMaxFreeMemory());
+            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getSelectorMaxFreeMemory());
             return;
         }
         List<ConditionData> conditionList = selectorData.getConditionList();
         if (CollectionUtils.isNotEmpty(conditionList)) {
             boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
             if (isUriCondition) {
-                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getMaxFreeMemory());
+                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getSelectorMaxFreeMemory());
             }
         }
     }
@@ -182,20 +182,24 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private void cacheRuleData(final String path, final RuleData ruleData) {
         if (StringUtils.isBlank(ruleData.getId())) {
-            MatchDataCache.getInstance().cacheRuleData(path, ruleData, getMaxFreeMemory());
+            MatchDataCache.getInstance().cacheRuleData(path, ruleData, getRuleMaxFreeMemory());
             return;
         }
         List<ConditionData> conditionList = ruleData.getConditionDataList();
         if (CollectionUtils.isNotEmpty(conditionList)) {
             boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
             if (isUriCondition) {
-                MatchDataCache.getInstance().cacheRuleData(path, ruleData, getMaxFreeMemory());
+                MatchDataCache.getInstance().cacheRuleData(path, ruleData, getRuleMaxFreeMemory());
             }
         }
     }
 
-    private Integer getMaxFreeMemory() {
-        return matchCacheConfig.getMaxFreeMemory() * 1024 * 1024;
+    private Integer getSelectorMaxFreeMemory() {
+        return matchCacheConfig.getMaxSelectorFreeMemory() * 1024 * 1024;
+    }
+
+    private Integer getRuleMaxFreeMemory() {
+        return matchCacheConfig.getMaxRuleFreeMemory() * 1024 * 1024;
     }
 
     private SelectorData obtainSelectorDataCacheIfEnabled(final ServerWebExchange exchange) {
