@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.sdk.http;
+package org.apache.shenyu.examples.sdk.apache.dubbo;
 
 import org.apache.shenyu.sdk.spring.EnableShenyuClients;
 import org.springframework.boot.SpringApplication;
@@ -25,7 +25,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * ShenyuSdkHttpExampleApplication.
  */
 @SpringBootApplication
-@EnableShenyuClients(basePackages = {"org.apache.shenyu.examples.sdk.http.api"})
+@EnableShenyuClients(basePackages = {"org.apache.shenyu.examples.sdk.apache.dubbo.api"})
 public class ShenyuSdkHttpExampleApplication {
 
     /**
