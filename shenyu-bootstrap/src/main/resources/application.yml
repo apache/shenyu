@@ -70,7 +70,8 @@ shenyu:
   matchCache:
     selectorEnabled: false
     ruleEnabled: true
-    maxFreeMemory: 256 # 256MB
+    maxSelectorFreeMemory: 256 # 256MB
+    maxRuleFreeMemory: 256 # 256MB
   netty:
     http:
       # set to false, user can custom the netty tcp server config.
