@@ -130,12 +130,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                     Pair<Boolean, RuleData> matchRuleData = matchRule(exchange, rules);
                     ruleData = matchRuleData.getRight();
                     if (Objects.isNull(ruleData)) {
-                        if (matchCacheConfig.getRuleEnabled() && matchRuleData.getLeft()) {
-                            // cache rule
-                            RuleData cacheRuleData = new RuleData();
-                            cacheRuleData.setPluginName(pluginName);
-                            cacheRuleData(path, cacheRuleData);
-                        }
+                        this.cacheRuleData(pluginName, path, matchRuleData);
                         return handleRuleIfNull(pluginName, exchange, chain);
                     } else {
                         // if match success, cache rule.
@@ -173,6 +168,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (isUriCondition) {
                 MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getMaxFreeMemory());
             }
+        }
+    }
+
+    private void cacheRuleData(final String pluginName, final String path, final Pair<Boolean, RuleData> matchRuleData) {
+        if (matchCacheConfig.getRuleEnabled() && matchRuleData.getLeft()) {
+            // cache rule
+            RuleData cacheRuleData = new RuleData();
+            cacheRuleData.setPluginName(pluginName);
+            cacheRuleData(path, cacheRuleData);
         }
     }
 
