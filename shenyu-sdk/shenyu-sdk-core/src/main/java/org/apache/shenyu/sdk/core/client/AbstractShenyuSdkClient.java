@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sdk.core.client;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
@@ -29,12 +30,14 @@ import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.sdk.core.interceptor.ShenyuSdkRequestInterceptor;
 import org.apache.shenyu.sdk.core.retry.RetryableException;
 import org.apache.shenyu.sdk.core.retry.Retryer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,6 +48,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -62,12 +66,14 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
 
     private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
 
+    private final List<ShenyuSdkRequestInterceptor> requestInterceptors = new ArrayList<>();
+
     private RegisterConfig registerConfig;
 
     private String algorithm;
 
     private String scheme;
-    
+
     /**
      * Do request shenyu response.
      *
@@ -76,7 +82,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
      * @throws IOException the io exception
      */
     protected abstract ShenyuResponse doRequest(ShenyuRequest request) throws IOException;
-    
+
     /**
      * Init client.
      *
@@ -89,14 +95,37 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
         this.registerConfig = registerConfig;
         this.registerRepository = instanceRegisterRepository;
         Properties props = registerConfig.getProps();
-        Boolean retryEnable = Optional.ofNullable(props.get("retry.enable")).map(e -> (boolean) e).orElse(false);
-        Long period = Optional.ofNullable(props.get("retry.period")).map(l -> (Long) l).orElse(100L);
-        long maxPeriod = Optional.ofNullable(props.get("retry.maxPeriod")).map(l -> (Long) l).orElse(SECONDS.toMillis(1));
-        int maxAttempts = Optional.ofNullable(props.get("retry.maxAttempts")).map(l -> (int) l).orElse(5);
+        Boolean retryEnable = Optional.ofNullable(props.get("retry.enable")).map(e -> Boolean.parseBoolean(e.toString())).orElse(false);
+        Long period = Optional.ofNullable(props.get("retry.period")).map(l -> Long.parseLong(l.toString())).orElse(100L);
+        long maxPeriod = Optional.ofNullable(props.get("retry.maxPeriod")).map(l -> Long.parseLong(l.toString())).orElse(SECONDS.toMillis(1));
+        int maxAttempts = Optional.ofNullable(props.get("retry.maxAttempts")).map(l -> Integer.parseInt(l.toString())).orElse(5);
         this.algorithm = props.getProperty("algorithm", "roundRobin");
         this.scheme = props.getProperty("scheme", "http");
         this.retryer = retryEnable ? new Retryer.DefaultRetry(period, maxPeriod, maxAttempts) : Retryer.NEVER_RETRY;
+        this.initRequestInterceptors(registerConfig);
         this.initClient(props);
+    }
+
+    private void initRequestInterceptors(final RegisterConfig registerConfig) {
+        boolean requestInterceptorEnable = Optional.ofNullable(registerConfig.getProps().get("requestInterceptor.enable")).map(e -> Boolean.parseBoolean(e.toString())).orElse(false);
+        Object requestInterceptorClass;
+        int listIdx = 0;
+        try {
+            if (requestInterceptorEnable) {
+                while ((requestInterceptorClass = registerConfig.getProps().get("requestInterceptor.classes." + listIdx)) != null) {
+                    Class<?> aClass = ClassUtils.getClass(requestInterceptorClass.toString());
+                    Type[] genericInterfaces = aClass.getGenericInterfaces();
+                    for (Type type : genericInterfaces) {
+                        if (type.getTypeName().equals(ShenyuSdkRequestInterceptor.class.getTypeName())) {
+                            requestInterceptors.add((ShenyuSdkRequestInterceptor) aClass.newInstance());
+                        }
+                    }
+                    listIdx++;
+                }
+            }
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            throw new ShenyuException(e);
+        }
     }
 
     @Override
@@ -134,7 +163,9 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     }
 
     private ShenyuRequest rewriteShenYuRequest(final ShenyuRequest request) {
-        return ShenyuRequest.create(loadBalancerInstances(request), request);
+        ShenyuRequest shenyuRequest = ShenyuRequest.create(loadBalancerInstances(request), request);
+        requestInterceptors.forEach(interceptor -> interceptor.apply(shenyuRequest));
+        return shenyuRequest;
     }
 
     /**
