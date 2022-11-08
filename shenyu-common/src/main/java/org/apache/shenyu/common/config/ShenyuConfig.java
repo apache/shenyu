@@ -511,29 +511,51 @@ public class ShenyuConfig {
      */
     public static class MatchCache {
 
-        private boolean enabled;
+        private boolean selectorEnabled;
+
+        private boolean ruleEnabled;
 
         /**
          * Max free memory, unit mb.
          */
-        private Integer maxFreeMemory = 256;
+        private Integer maxSelectorFreeMemory = 256;
+
+        private Integer maxRuleFreeMemory = 256;
 
         /**
-         * Gets enabled.
+         * Get selector cache enabled.
          *
          * @return the enabled
          */
-        public boolean getEnabled() {
-            return enabled;
+        public boolean getSelectorEnabled() {
+            return selectorEnabled;
         }
 
         /**
-         * Sets enabled.
+         * Set selector enabled.
          *
-         * @param enabled the enabled
+         * @param selectorEnabled the enabled
          */
-        public void setEnabled(final boolean enabled) {
-            this.enabled = enabled;
+        public void setSelectorEnabled(final boolean selectorEnabled) {
+            this.selectorEnabled = selectorEnabled;
+        }
+
+        /**
+         * get rule cache enabled.
+         *
+         * @return rule enabled
+         */
+        public boolean getRuleEnabled() {
+            return ruleEnabled;
+        }
+
+        /**
+         * set rule cache enabled.
+         *
+         * @param ruleEnabled rule cache enabled
+         */
+        public void setRuleEnabled(final boolean ruleEnabled) {
+            this.ruleEnabled = ruleEnabled;
         }
 
         /**
@@ -541,17 +563,35 @@ public class ShenyuConfig {
          *
          * @return the maxFreeMemory
          */
-        public Integer getMaxFreeMemory() {
-            return maxFreeMemory;
+        public Integer getMaxSelectorFreeMemory() {
+            return maxSelectorFreeMemory;
         }
 
         /**
          * Sets maxFreeMemory.
          *
-         * @param maxFreeMemory the maxFreeMemory
+         * @param maxSelectorFreeMemory the maxFreeMemory
          */
-        public void setMaxFreeMemory(final Integer maxFreeMemory) {
-            this.maxFreeMemory = maxFreeMemory;
+        public void setMaxSelectorFreeMemory(final Integer maxSelectorFreeMemory) {
+            this.maxSelectorFreeMemory = maxSelectorFreeMemory;
+        }
+
+        /**
+         * Gets maxFreeMemory.
+         *
+         * @return the maxFreeMemory
+         */
+        public Integer getMaxRuleFreeMemory() {
+            return maxRuleFreeMemory;
+        }
+
+        /**
+         * Sets maxFreeMemory.
+         *
+         * @param maxRuleFreeMemory the maxFreeMemory
+         */
+        public void setMaxRuleFreeMemory(final Integer maxRuleFreeMemory) {
+            this.maxRuleFreeMemory = maxRuleFreeMemory;
         }
     }
     
