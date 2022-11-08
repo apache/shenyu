@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.Map;
@@ -37,6 +38,12 @@ public final class MatchDataCache {
      * pluginName -> LRUMap.
      */
     private static final ConcurrentMap<String, Map<String, SelectorData>> SELECTOR_DATA_MAP = Maps.newConcurrentMap();
+
+    /**
+     * plugin name -> LRU Map.
+     * LRU Map: path -> rule data.
+     */
+    private static final ConcurrentMap<String, Map<String, RuleData>> RULE_DATA_MAP = Maps.newConcurrentMap();
 
     private MatchDataCache() {
     }
@@ -86,6 +93,46 @@ public final class MatchDataCache {
      */
     public SelectorData obtainSelectorData(final String pluginName, final String path) {
         final Map<String, SelectorData> lruMap = SELECTOR_DATA_MAP.get(pluginName);
+        return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
+    }
+
+    /**
+     * remove rule data from RULE_DATA_MAP.
+     *
+     * @param pluginName plugin name
+     */
+    public void removeRuleData(final String pluginName) {
+        RULE_DATA_MAP.remove(pluginName);
+    }
+
+    /**
+     * clean rule data.
+     */
+    public void cleanRuleData() {
+        RULE_DATA_MAP.clear();
+    }
+
+    /**
+     * cache rule data to RULE_DATA_MAP, and put (key=pluginName, value=ruleData) to {@linkplain MemorySafeWindowTinyLFUMap}.
+     * {@linkplain MemorySafeWindowTinyLFUMap} memory decide by yourself, you can config in shenyu-bootstrap application.yml.
+     *
+     * @param path uri path
+     * @param ruleData rule data
+     * @param maxMemory maxMemory
+     */
+    public void cacheRuleData(final String path, final RuleData ruleData, final Integer maxMemory) {
+        RULE_DATA_MAP.computeIfAbsent(ruleData.getPluginName(), map -> new MemorySafeWindowTinyLFUMap<>(maxMemory, 1 << 16)).put(path, ruleData);
+    }
+
+    /**
+     * get rule data from RULE_DATA_MAP.
+     *
+     * @param pluginName plugin name
+     * @param path path
+     * @return {@linkplain RuleData}
+     */
+    public RuleData obtainRuleData(final String pluginName, final String path) {
+        final Map<String, RuleData> lruMap = RULE_DATA_MAP.get(pluginName);
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
 }
