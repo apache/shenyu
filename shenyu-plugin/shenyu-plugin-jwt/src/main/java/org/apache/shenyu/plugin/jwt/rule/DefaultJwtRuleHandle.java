@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.plugin.jwt.rule;
 
+import java.io.Serial;
 import java.util.List;
 
 public class DefaultJwtRuleHandle extends JwtRuleHandle {
 
+    private static final long serialVersionUID = 7090772288389508730L;
     private List<Convert> converter;
 
     /**

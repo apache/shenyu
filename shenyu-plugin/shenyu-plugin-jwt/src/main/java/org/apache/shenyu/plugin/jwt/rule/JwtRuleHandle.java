@@ -22,6 +22,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategy;
 import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategyFactory;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
@@ -31,6 +32,8 @@ import java.util.Objects;
  */
 
 public class JwtRuleHandle implements RuleHandle, Serializable {
+
+    private static final long serialVersionUID = -3023493891692468701L;
 
     private final static String DEFAULT_JWT_CONVERTER = "custom";
 
