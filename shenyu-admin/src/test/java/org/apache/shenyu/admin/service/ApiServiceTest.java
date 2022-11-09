@@ -122,24 +122,6 @@ public final class ApiServiceTest {
         return apiDO;
     }
 
-    private ApiVO buildApiVO(final String id) {
-        return ApiVO.builder()
-                .id(id)
-                .contextPath("string")
-                .apiPath("string")
-                .httpMethod(0)
-                .consume("string")
-                .produce("string")
-                .version("string")
-                .rpcType("string")
-                .state(0)
-                .apiOwner("string")
-                .apiDesc("string")
-                .apiSource(0)
-                .document("document")
-                .build();
-    }
-
     private void testCreate() {
         ApiDTO apiDTO = buildApiDTO("");
         assertEquals(ShenyuResultMessage.CREATE_SUCCESS, this.apiService.createOrUpdate(apiDTO));
