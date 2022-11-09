@@ -40,14 +40,16 @@ public class HttpServiceController {
      * findById.
      *
      * @param id id
-     * @return SdkTestDto.
+     * @param auth auth token
+     * @return SdkTestDto
      */
     @GetMapping("shenyu/client/findById")
     @ShenyuSpringMvcClient("shenyu/client/findById")
-    public SdkTestDto findById(final @RequestParam("id") String id) {
+    public SdkTestDto findById(final @RequestParam("id") String id,
+                               final @RequestHeader("X-Auth") String auth) {
         SdkTestDto sdkTestDto = new SdkTestDto();
         sdkTestDto.setId(id);
-        sdkTestDto.setName("sdk");
+        sdkTestDto.setName("sdk-" + auth);
         return sdkTestDto;
     }
 

@@ -15,29 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.sdk.core.interceptor;
+package org.apache.shenyu.examples.sdk.http.config;
 
 import org.apache.shenyu.sdk.core.ShenyuRequest;
+import org.apache.shenyu.sdk.core.interceptor.ShenyuSdkRequestInterceptor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.Collections;
 
 /**
- * ShenyuSdkRequestInterceptor.
- * For example:
- *
- * <pre>
- *   <code>
- *   public void apply(ShenyuRequest shenyuRequest){
- *       shenyuRequest.getHeaders().put("X-Auth", Collections.singleton("currentToken"));
- *  }
- *  </code>
- * </pre>
- * This class is similar to feign.RequestInterceptor
+ * SdkConfig.
  */
-public interface ShenyuSdkRequestInterceptor {
+@Configuration
+public class SdkConfig {
 
     /**
-     * apply.
-     * @param shenyuRequest shenRequest
+     * getShenyuSdkRequestInterceptor.
+     *
+     * @return ShenyuSdkRequestInterceptor
      */
-    void apply(ShenyuRequest shenyuRequest);
-
+    @Bean
+    public ShenyuSdkRequestInterceptor getShenyuSdkRequestInterceptor() {
+        return new ShenyuSdkRequestInterceptor() {
+            @Override
+            public void apply(final ShenyuRequest shenyuRequest) {
+                shenyuRequest.getHeaders().put("X-Auth", Collections.singleton("currentToken"));
+            }
+        };
+    }
 }

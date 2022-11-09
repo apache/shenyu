@@ -22,6 +22,7 @@ import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClientFactory;
+import org.apache.shenyu.sdk.core.interceptor.ShenyuSdkRequestInterceptor;
 import org.apache.shenyu.sdk.spring.annotation.CookieValueParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.RequestBodyParameterProcessor;
@@ -69,16 +70,18 @@ public class ShenyuSdkAutoConfiguration {
      * okHttpShenyuSdkClient.
      *
      * @param config config
+     * @param requestInterceptors the request interceptors
      * @param instanceRegisterRepository the instance register repository
      * @return {@link ShenyuSdkClient}
      */
     @Bean
     public ShenyuSdkClient shenyuSdkClient(final RegisterConfig config,
+                                           @Autowired(required = false) final List<ShenyuSdkRequestInterceptor> requestInterceptors,
                                            @Autowired(required = false) final ShenyuInstanceRegisterRepository instanceRegisterRepository) {
         Properties props = config.getProps();
         String clientType = props.getProperty("clientType", "httpclient");
         ShenyuSdkClient shenyuSdkClient = ShenyuSdkClientFactory.newInstance(clientType);
-        shenyuSdkClient.init(config, instanceRegisterRepository);
+        shenyuSdkClient.init(config, requestInterceptors, instanceRegisterRepository);
         return shenyuSdkClient;
     }
     

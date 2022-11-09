@@ -21,25 +21,28 @@ import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.sdk.core.interceptor.ShenyuSdkRequestInterceptor;
 import org.apache.shenyu.spi.SPI;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * ShenyuSdkClient.
  */
 @SPI
 public interface ShenyuSdkClient {
-    
+
     /**
      * Init.
      *
      * @param registerConfig the register config
+     * @param requestInterceptors the request interceptors
      * @param instanceRegisterRepository the instance register repository
      */
-    default void init(RegisterConfig registerConfig, ShenyuInstanceRegisterRepository instanceRegisterRepository) {
+    default void init(RegisterConfig registerConfig, List<ShenyuSdkRequestInterceptor> requestInterceptors, ShenyuInstanceRegisterRepository instanceRegisterRepository) {
     }
-    
+
     /**
      * execute.
      *
