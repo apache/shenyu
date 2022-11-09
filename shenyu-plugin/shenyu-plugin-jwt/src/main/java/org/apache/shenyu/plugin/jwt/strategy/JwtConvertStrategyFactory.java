@@ -20,8 +20,6 @@ package org.apache.shenyu.plugin.jwt.strategy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
 
-import java.util.Objects;
-
 public class JwtConvertStrategyFactory {
 
     private static final String DEFAULT_JWT_CONVERTER = "custom";
