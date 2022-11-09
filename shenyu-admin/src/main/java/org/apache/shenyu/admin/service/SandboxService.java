@@ -15,35 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.controller;
+package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
-import org.apache.shenyu.admin.service.SandboxService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.io.IOException;
 
 /**
- * Sandbox environment.
+ * sandbox service.
  */
-@RestController
-@RequestMapping("/sandbox")
-public class SandboxController {
-    private static final Logger LOG = LoggerFactory.getLogger(SandboxController.class);
-
-    private final SandboxService sandboxService;
-
-    public SandboxController(final SandboxService sandboxService) {
-        this.sandboxService = sandboxService;
-    }
+public interface SandboxService {
 
     /**
      * proxy Gateway.
@@ -53,11 +36,5 @@ public class SandboxController {
      * @param response        response
      * @throws IOException IOException
      */
-    @PostMapping(path = "/proxyGateway")
-    public void proxyGateway(@RequestBody @Valid final ProxyGatewayDTO proxyGatewayDTO,
-                            final HttpServletRequest request,
-                            final HttpServletResponse response) throws IOException {
-
-        sandboxService.requestProxyGateway(proxyGatewayDTO, request, response);
-    }
+    void requestProxyGateway(ProxyGatewayDTO proxyGatewayDTO, HttpServletRequest request, HttpServletResponse response);
 }
