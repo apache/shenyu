@@ -15,25 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.sdk.http;
+package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.api;
 
-import org.apache.shenyu.sdk.spring.EnableShenyuClients;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
+import org.apache.shenyu.sdk.spring.ShenyuClient;
+import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * ShenyuSdkHttpExampleApplication.
+ * ShenyuHttpClientApi.
  */
-@SpringBootApplication
-@EnableShenyuClients(basePackages = "org.apache.shenyu.examples.sdk.http.api")
-public class ShenyuSdkHttpExampleApplication {
+@ShenyuClient(contextId = "shenyu-gateway", name = "ShenyuSdkApiName")
+public interface ShenyuApacheDubboClientApi {
 
     /**
-     * main.
-     *
-     * @param args args
+     * findAll.
+     * test Get.
+     * @return SdkTestDto
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(ShenyuSdkHttpExampleApplication.class, args);
-    }
+    @GetMapping("/dubbo/findAll")
+    DubboTest findAll();
+
 }

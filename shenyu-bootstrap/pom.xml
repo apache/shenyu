@@ -493,7 +493,7 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu logging-kafka plugin end-->
-      
+
         <!--shenyu logging-elasticsearch plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
