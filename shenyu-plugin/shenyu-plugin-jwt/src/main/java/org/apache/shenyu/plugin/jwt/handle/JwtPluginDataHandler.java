@@ -53,8 +53,8 @@ public class JwtPluginDataHandler implements PluginDataHandler {
     @SuppressWarnings("rawtypes")
     @Override
     public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            JwtRuleHandle jwtRuleHandle = JwtRuleHandle.newInstance(ruleData.getHandle());
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(ruleHandle -> {
+            JwtRuleHandle jwtRuleHandle = JwtRuleHandle.newInstance(ruleHandle);
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), jwtRuleHandle);
         });
     }

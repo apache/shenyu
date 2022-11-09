@@ -17,11 +17,14 @@
 
 package org.apache.shenyu.plugin.jwt.strategy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
 
 import java.util.Objects;
 
 public class JwtConvertStrategyFactory {
+
+    private final static String DEFAULT_JWT_CONVERTER = "custom";
 
     /**
      * new instance jwtConvertStrategy.
@@ -31,11 +34,10 @@ public class JwtConvertStrategyFactory {
      */
     @SuppressWarnings("rawtypes")
     public static JwtConvertStrategy newInstance(final String handleType) {
-
-        if (Objects.isNull(handleType)) {
-            return new DefaultJwtConvertStrategy();
+        String type = handleType;
+        if (StringUtils.isBlank(type)) {
+            type = DEFAULT_JWT_CONVERTER;
         }
-        return ExtensionLoader.getExtensionLoader(JwtConvertStrategy.class)
-                .getJoin(handleType);
+        return ExtensionLoader.getExtensionLoader(JwtConvertStrategy.class).getJoin(type);
     }
 }

@@ -31,8 +31,10 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.jwt.config.JwtConfig;
 import org.apache.shenyu.plugin.jwt.exception.ThrowingFunction;
+import org.apache.shenyu.plugin.jwt.handle.JwtPluginDataHandler;
 import org.apache.shenyu.plugin.jwt.rule.JwtRuleHandle;
 import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategy;
 import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategyFactory;
@@ -78,7 +80,7 @@ public class JwtPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
 
-        return chain.execute(executeRuleHandle(rule.getHandle(), exchange, jwtBody));
+        return chain.execute(executeRuleHandle(rule, exchange, jwtBody));
     }
 
     @Override
@@ -92,14 +94,12 @@ public class JwtPlugin extends AbstractShenyuPlugin {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private ServerWebExchange executeRuleHandle(final String handleJson, final ServerWebExchange exchange, final Map<String, Object> jwtBody) {
-
-        JwtRuleHandle jwtRuleHandle = JwtRuleHandle.newInstance(handleJson);
+    private ServerWebExchange executeRuleHandle(final RuleData ruleData, final ServerWebExchange exchange, final Map<String, Object> jwtBody) {
+        JwtRuleHandle jwtRuleHandle = JwtPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
         if (Objects.isNull(jwtRuleHandle)) {
             return exchange;
         }
-        JwtConvertStrategy convertStrategy =
-                JwtConvertStrategyFactory.newInstance(jwtRuleHandle.getHandleType());
+        JwtConvertStrategy convertStrategy = JwtConvertStrategyFactory.newInstance(jwtRuleHandle.getHandleType());
 
         return convertStrategy.convert(jwtRuleHandle, exchange, jwtBody);
     }

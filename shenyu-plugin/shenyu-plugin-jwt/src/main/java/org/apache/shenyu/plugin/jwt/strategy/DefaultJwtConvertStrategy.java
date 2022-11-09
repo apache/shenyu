@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.jwt.strategy;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.jwt.rule.DefaultJwtRuleHandle;
+import org.apache.shenyu.spi.Join;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -28,11 +29,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Join
 public class DefaultJwtConvertStrategy implements JwtConvertStrategy<DefaultJwtRuleHandle> {
 
     @Override
     public DefaultJwtRuleHandle parseHandleJson(final String handleJson) {
-
         try {
             return GsonUtils.getInstance().fromJson(handleJson, DefaultJwtRuleHandle.class);
         } catch (Exception ignore) {
