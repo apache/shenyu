@@ -17,19 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
@@ -54,6 +41,16 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Sandbox environment.
@@ -126,10 +123,10 @@ public class SandboxController {
             String reqJson = JsonUtils.toJson(proxyGatewayDTO.getHeaders());
             reqJson = StringEscapeUtils.escapeHtml4(reqJson);
             Map<String, String> reqMap = JsonUtils.jsonToMap(reqJson, String.class);
-            LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
+            LOG.info("Sandbox Request Headers. toMap={}", JsonUtils.toJson(reqMap));
             reqHeaders.putAll(reqMap);
         } catch (Exception e) {
-            LOG.error("proxyGateway JsonUtils.toMap error={}", e);
+            LOG.error("proxyGateway JsonUtils.toMap error={}", e.getMessage());
         }
         return reqHeaders;
     }
@@ -137,13 +134,11 @@ public class SandboxController {
     private Map<String, Object> buildReqBizParams(final ProxyGatewayDTO proxyGatewayDTO) {
         Map<String, Object> reqParams = new HashMap<>();
         try {
-            String reqJson = JsonUtils.toJson(proxyGatewayDTO.getBizParam());
-            reqJson = StringEscapeUtils.escapeHtml4(reqJson);
-            Map<String, Object> reqMap = JsonUtils.toMap(reqJson);
-            LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
+            Map<String, Object> reqMap = JsonUtils.toMap(proxyGatewayDTO.getBizParam());
+            LOG.info("sandbox Request Params. toMap={}", JsonUtils.toJson(reqMap));
             reqParams.putAll(reqMap);
         } catch (Exception e) {
-            LOG.error("proxyGateway JsonUtils.toMap error={}", e);
+            LOG.error("proxyGateway JsonUtils.toMap error={}", e.getMessage());
         }
         return reqParams;
     }
