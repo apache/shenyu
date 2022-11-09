@@ -35,7 +35,7 @@ public class JwtRuleHandle implements RuleHandle, Serializable {
 
     private static final long serialVersionUID = -3023493891692468701L;
 
-    private final static String DEFAULT_JWT_CONVERTER = "custom";
+    private static final String DEFAULT_JWT_CONVERTER = "custom";
 
     private String handleType;
 
