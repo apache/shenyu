@@ -257,6 +257,14 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!--shenyu key-auth plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-key-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu key-auth plugin end -->
+
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
@@ -380,41 +388,6 @@
         <!-- shenyu spring cloud alibaba dubbo end-->
 
         <!--shenyu motan plugin start-->
-        <!-- apache shenyu  apache dubbo plugin start-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.shenyu</groupId>-->
-<!--            <artifactId>shenyu-spring-boot-starter-plugin-apache-dubbo</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.dubbo</groupId>-->
-<!--            <artifactId>dubbo</artifactId>-->
-<!--            <version>2.7.5</version>-->
-<!--        </dependency>-->
-<!--        &lt;!&ndash; Dubbo zookeeper registry dependency start &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.curator</groupId>-->
-<!--            <artifactId>curator-client</artifactId>-->
-<!--            <version>4.0.1</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <artifactId>log4j</artifactId>-->
-<!--                    <groupId>log4j</groupId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.curator</groupId>-->
-<!--            <artifactId>curator-framework</artifactId>-->
-<!--            <version>4.0.1</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.curator</groupId>-->
-<!--            <artifactId>curator-recipes</artifactId>-->
-<!--            <version>4.0.1</version>-->
-<!--        </dependency>-->
-        <!-- Dubbo zookeeper registry dependency end -->
-        <!-- apache shenyu  apache dubbo plugin end-->
         <dependency>
             <groupId>com.weibo</groupId>
             <artifactId>motan-core</artifactId>
