@@ -22,7 +22,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategy;
 import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategyFactory;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;

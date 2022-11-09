@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.jwt.rule;
 
-import java.io.Serial;
 import java.util.List;
 
 public class DefaultJwtRuleHandle extends JwtRuleHandle {

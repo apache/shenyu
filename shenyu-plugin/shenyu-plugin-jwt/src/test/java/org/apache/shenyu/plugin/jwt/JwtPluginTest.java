@@ -65,6 +65,8 @@ public final class JwtPluginTest {
 
     private RuleData ruleData;
 
+    private JwtPluginDataHandler jwtPluginDataHandlerUnderTest;
+
     @BeforeEach
     public void setUp() {
         initContext();
@@ -73,12 +75,14 @@ public final class JwtPluginTest {
         jwtPluginUnderTest = new JwtPlugin();
         exchange = createServerWebExchange();
         chain = mock(ShenyuPluginChain.class);
+        jwtPluginDataHandlerUnderTest = new JwtPluginDataHandler();
     }
 
     @Test
     public void testDoExecute() {
 
         ruleData.setHandle("{\"converter\":[{\"jwtVal\":\"userId\",\"headerVal\":\"id\"}]}");
+        jwtPluginDataHandlerUnderTest.handlerRule(ruleData);
         when(this.chain.execute(any())).thenReturn(Mono.empty());
 
         Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
@@ -93,6 +97,7 @@ public final class JwtPluginTest {
     public void testDoExecuteWithCustomHandleType() {
 
         ruleData.setHandle("{\"handleType\":\"custom\",\"customConvert\":\"customConvert\"}");
+        jwtPluginDataHandlerUnderTest.handlerRule(ruleData);
         when(this.chain.execute(any())).thenReturn(Mono.empty());
 
         Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
