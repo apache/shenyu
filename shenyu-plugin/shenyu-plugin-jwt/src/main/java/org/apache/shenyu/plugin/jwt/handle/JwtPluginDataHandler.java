@@ -54,8 +54,8 @@ public class JwtPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            JwtRuleHandle jwtRuleHandle2 = JwtRuleHandle.newInstance(ruleData.getHandle());
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), jwtRuleHandle2);
+            JwtRuleHandle jwtRuleHandle = JwtRuleHandle.newInstance(ruleData.getHandle());
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), jwtRuleHandle);
         });
     }
 
