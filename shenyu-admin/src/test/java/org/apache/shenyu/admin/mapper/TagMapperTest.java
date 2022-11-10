@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.mapper;
 import com.google.common.collect.Lists;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
@@ -137,6 +138,16 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         tagMapper.insertSelective(record);
         int deleteCnt = tagMapper.deleteAllData();
         assertEquals(deleteCnt, 1);
+    }
+
+    @Test
+    public void testSelectByIds() {
+        TagDO record = buildTagDO();
+        int count = tagMapper.insertSelective(record);
+        assertEquals(count, 1);
+        List<String> ids = Collections.singletonList(record.getId());
+        List<TagDO> tagDOS = tagMapper.selectByIds(ids);
+        assertThat(tagDOS.size(), greaterThan(0));
     }
 
     private TagDO buildTagDO() {
