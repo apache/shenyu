@@ -19,13 +19,19 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.model.query.ApiQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -75,7 +81,7 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         this.apiDO.setVersion("V0.02");
         this.apiDO.setRpcType("dubbo1");
         this.apiDO.setState(1);
-        final int count = apiMapper.updateByPrimaryKeySelective(this.apiDO);
+        int count = apiMapper.updateByPrimaryKeySelective(this.apiDO);
         assertEquals(1, count);
     }
 
@@ -90,14 +96,40 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         this.apiDO.setRpcType("dubbo2");
         this.apiDO.setState(2);
         this.apiDO.setApiSource(3);
-        final int count = apiMapper.updateByPrimaryKeySelective(this.apiDO);
+        int count = apiMapper.updateByPrimaryKeySelective(this.apiDO);
         assertEquals(1, count);
     }
 
     @Test
+    public void testSelectByQuery() {
+        ApiQuery query = new ApiQuery();
+        query.setState(0);
+        query.setApiPath("/demo/findById");
+        query.setPageParameter(new PageParameter(1, 10));
+        List<ApiDO> apiDOS = apiMapper.selectByQuery(query);
+        assertThat(apiDOS.size(), greaterThan(0));
+    }
+
+    @Test
+    public void testSelectByIds() {
+        List<String> strings = Collections.singletonList(apiDO.getId());
+        List<ApiDO> apiDOS = apiMapper.selectByIds(strings);
+        assertThat(apiDOS.size(), greaterThan(0));
+    }
+
+    @Test
     public void testDeleteByPrimaryKey() {
-        final int count = apiMapper.deleteByPrimaryKey(this.apiDO.getId());
+        int count = apiMapper.deleteByPrimaryKey(this.apiDO.getId());
         assertEquals(1, count);
+    }
+
+    @Test
+    public void testDeleteByIds() {
+        ApiDO newApiDO = buildApiDO();
+        apiMapper.insertSelective(newApiDO);
+        List<String> ids = Collections.singletonList(newApiDO.getId());
+        int deleteRows = apiMapper.deleteByIds(ids);
+        assertEquals(1, deleteRows);
     }
 
     private ApiDO buildApiDO() {
