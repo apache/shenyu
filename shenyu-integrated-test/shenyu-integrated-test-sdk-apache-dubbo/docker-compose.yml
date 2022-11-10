@@ -87,7 +87,6 @@ services:
       shenyu-integrated-test-sdk-apache-dubbo:
         condition: service_healthy
     environment:
-      - dubbo.registry.address=zookeeper://shenyu-zk:2181
       - shenyu.register.serverLists=http://shenyu-admin:9095
 
   shenyu-integrated-test-sdk-apache-dubbo:
@@ -99,6 +98,7 @@ services:
         limits:
           memory: 2048M
     environment:
+      - dubbo.registry.address=zookeeper://shenyu-zk:2181
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
     depends_on:
       shenyu-admin:
