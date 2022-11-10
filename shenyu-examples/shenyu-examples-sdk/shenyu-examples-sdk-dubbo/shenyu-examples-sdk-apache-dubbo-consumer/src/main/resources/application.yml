@@ -30,7 +30,7 @@ shenyu:
       props:
         contextPath: /http
         appName: http
-  #          port: 8189
+
   sdk:
     enabled: true
     register-type: zookeeper #local #etcd #nacos #consul

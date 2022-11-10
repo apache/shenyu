@@ -46,7 +46,7 @@ public class HttpHelper {
     /**
      * The constant GATEWAY_END_POINT.
      */
-    public static final String GATEWAY_END_POINT = "http://localhost:9195";
+    public static String GATEWAY_END_POINT = "http://localhost:9195";
 
     /**
      * The constant JSON.
@@ -58,8 +58,15 @@ public class HttpHelper {
     private static final Gson GSON = new Gson();
 
     private final OkHttpClient client = new OkHttpClient.Builder().build();
-    
+
     private final String localKey = "123456";
+
+    /**
+     * set gatewayEndPoint.
+     */
+    public static void setGatewayEndPoint(String endPoint) {
+        GATEWAY_END_POINT = endPoint;
+    }
 
     /**
      * Send a post http request to shenyu gateway.
