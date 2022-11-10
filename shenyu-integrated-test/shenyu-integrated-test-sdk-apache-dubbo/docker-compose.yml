@@ -49,7 +49,7 @@ services:
     image: shenyu-examples-sdk-apache-dubbo-provider:latest
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:8899/actuator/health | grep UP || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8011/actuator/health | grep UP || exit 1"]
       timeout: 2s
       retries: 3
       start_period: 5s
