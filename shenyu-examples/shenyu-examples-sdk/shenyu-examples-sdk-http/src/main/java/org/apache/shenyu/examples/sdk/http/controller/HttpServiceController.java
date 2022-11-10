@@ -34,8 +34,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RestController
 public class HttpServiceController {
 
-    private static final String HELLO_SUFFIX = "I'm Shenyu-Gateway System. Welcome!";
-
     /**
      * findById.
      *
@@ -46,7 +44,7 @@ public class HttpServiceController {
     @GetMapping("shenyu/client/findById")
     @ShenyuSpringMvcClient("shenyu/client/findById")
     public SdkTestDto findById(final @RequestParam("id") String id,
-                               final @RequestHeader("X-Auth") String auth) {
+                               final @RequestHeader(value = "X-Auth", required = false) String auth) {
         SdkTestDto sdkTestDto = new SdkTestDto();
         sdkTestDto.setId(id);
         sdkTestDto.setName("sdk-" + auth);

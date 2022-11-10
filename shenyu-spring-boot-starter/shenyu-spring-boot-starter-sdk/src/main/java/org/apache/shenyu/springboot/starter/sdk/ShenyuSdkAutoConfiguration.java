@@ -32,7 +32,7 @@ import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.apache.shenyu.sdk.spring.factory.Contract;
 import org.apache.shenyu.sdk.spring.support.SpringMvcContract;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -70,18 +70,18 @@ public class ShenyuSdkAutoConfiguration {
      * okHttpShenyuSdkClient.
      *
      * @param config config
-     * @param requestInterceptors the request interceptors
-     * @param instanceRegisterRepository the instance register repository
+     * @param requestInterceptorsProvider the request interceptors
+     * @param instanceRegisterRepositoryProvider the instance register repository
      * @return {@link ShenyuSdkClient}
      */
     @Bean
     public ShenyuSdkClient shenyuSdkClient(final RegisterConfig config,
-                                           @Autowired(required = false) final List<ShenyuSdkRequestInterceptor> requestInterceptors,
-                                           @Autowired(required = false) final ShenyuInstanceRegisterRepository instanceRegisterRepository) {
+                                           final ObjectProvider<List<ShenyuSdkRequestInterceptor>> requestInterceptorsProvider,
+                                           final ObjectProvider<ShenyuInstanceRegisterRepository> instanceRegisterRepositoryProvider) {
         Properties props = config.getProps();
         String clientType = props.getProperty("clientType", "httpclient");
         ShenyuSdkClient shenyuSdkClient = ShenyuSdkClientFactory.newInstance(clientType);
-        shenyuSdkClient.init(config, requestInterceptors, instanceRegisterRepository);
+        shenyuSdkClient.init(config, requestInterceptorsProvider.getIfAvailable(), instanceRegisterRepositoryProvider.getIfAvailable());
         return shenyuSdkClient;
     }
     
