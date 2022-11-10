@@ -75,7 +75,6 @@ public class SandboxServiceImpl implements SandboxService {
      * @param proxyGatewayDTO proxyGatewayDTO
      * @param request         request
      * @param response        response
-     * @throws IOException IOException
      */
     @Override
     public void requestProxyGateway(final ProxyGatewayDTO proxyGatewayDTO, final HttpServletRequest request, final HttpServletResponse response) {
