@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.jwt.strategy;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.jwt.rule.DefaultJwtRuleHandle;
 import org.apache.shenyu.spi.Join;
@@ -75,6 +76,11 @@ public class DefaultJwtConvertStrategy implements JwtConvertStrategy<DefaultJwtR
                            final Map<String, Object> body,
                            final List<DefaultJwtRuleHandle.Convert> converters) {
         for (DefaultJwtRuleHandle.Convert converter : converters) {
+
+            if (StringUtils.isEmpty(converter.getHeaderVal()) || StringUtils.isEmpty(converter.getJwtVal())) {
+                continue;
+            }
+
             if (converter.getJwtVal().contains(".")) {
                 headers.add(converter.getHeaderVal(), parse(body, converter.getJwtVal().split("\\."), new AtomicInteger(0)));
             }

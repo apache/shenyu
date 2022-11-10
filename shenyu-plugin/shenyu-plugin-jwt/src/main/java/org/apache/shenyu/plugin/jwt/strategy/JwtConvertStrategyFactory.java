@@ -22,7 +22,7 @@ import org.apache.shenyu.spi.ExtensionLoader;
 
 public class JwtConvertStrategyFactory {
 
-    private static final String DEFAULT_JWT_CONVERTER = "custom";
+    private static final String DEFAULT_JWT_CONVERTER = "default";
 
     /**
      * new instance jwtConvertStrategy.

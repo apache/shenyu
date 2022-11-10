@@ -86,6 +86,19 @@ public class DefaultJwtConvertStrategyTest {
     }
 
     @Test
+    public void testExecuteWithWrongConverter() {
+
+        String wrongHandleJson = "{\"converter\":[{\"jwtVal \":\"sub\",\"headerVal \":\"id\"}]}";
+        DefaultJwtRuleHandle defaultJwtRuleHandle = defaultJwtConvertStrategy.parseHandleJson(wrongHandleJson);
+
+        ServerWebExchange newExchange = defaultJwtConvertStrategy
+                .convert(defaultJwtRuleHandle, exchange, jwtBody);
+
+        assertEquals(newExchange.getRequest().getHeaders(), exchange.getRequest().getHeaders());
+
+    }
+
+    @Test
     public void testMulti() {
         String handleJson = "{\"converter\":[{\"jwtVal\":\"multi.web\",\"headerVal\":\"web\"}]}";
 

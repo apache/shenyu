@@ -22,6 +22,7 @@ import java.util.List;
 public class DefaultJwtRuleHandle extends JwtRuleHandle {
 
     private static final long serialVersionUID = 7090772288389508730L;
+
     private List<Convert> converter;
 
     /**
