@@ -92,7 +92,7 @@ services:
 
   shenyu-integrated-test-sdk-apache-dubbo:
     container_name: shenyu-integrated-test-sdk-apache-dubbo
-    image: shenyu-integrated-test-sdk-apache-dubbo:latest
+    image: apache/shenyu-integrated-test-sdk-apache-dubbo:latest
     restart: always
     deploy:
       resources:

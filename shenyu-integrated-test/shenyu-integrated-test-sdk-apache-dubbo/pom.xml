@@ -92,7 +92,7 @@
             <id>it</id>
             <properties>
                 <docker.buildArg.APP_NAME>shenyu-integrated-test-sdk-apache-dubbo</docker.buildArg.APP_NAME>
-                <docker.image.tag.repo>apache/shenyu-integrated-sdk-test-apache-dubbo</docker.image.tag.repo>
+                <docker.image.tag.repo>apache/shenyu-integrated-test-sdk-apache-dubbo</docker.image.tag.repo>
                 <docker.image.tag.tagName>latest</docker.image.tag.tagName>
             </properties>
             <build>
@@ -123,7 +123,7 @@
                         <configuration>
                             <images>
                                 <image>
-                                    <name>apache/shenyu-integrated-test-apache-dubbo</name>
+                                    <name>apache/shenyu-integrated-test-sdk-apache-dubbo</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                     </build>
