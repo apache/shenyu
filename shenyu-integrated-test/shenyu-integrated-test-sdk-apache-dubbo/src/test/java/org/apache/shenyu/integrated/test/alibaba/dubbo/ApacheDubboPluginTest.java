@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ApacheDubboPluginTest extends AbstractPluginDataInit {
-    
+
     @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.DUBBO.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\"}");
@@ -39,8 +39,7 @@ public class ApacheDubboPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testFindAll() throws IOException {
-        HttpHelper.setGatewayEndPoint("http://localhost:8899");
-        DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("/sdk/dubbo/findAll", DubboTest.class);
+        DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("http://localhost:8899", "/sdk/dubbo/findAll", null, DubboTest.class);
         assertEquals("hello world shenyu Apache, findAll", dubboTest.getName());
     }
 
