@@ -23,6 +23,8 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.jwt.rule.DefaultJwtRuleHandle;
 import org.apache.shenyu.plugin.jwt.rule.JwtRuleHandle;
 import org.apache.shenyu.spi.Join;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -34,12 +36,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Join
 public class DefaultJwtConvertStrategy implements JwtConvertStrategy {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultJwtConvertStrategy.class);
+
     @Override
     public DefaultJwtRuleHandle parseHandleJson(final String handleJson) {
         try {
             return GsonUtils.getInstance().fromJson(handleJson, DefaultJwtRuleHandle.class);
-        } catch (Exception ignore) {
-            //ignore wrong json format or alert client
+        } catch (Exception exception) {
+            LOG.error("Failed to parse json , please check json format", exception);
             return null;
         }
     }

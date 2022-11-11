@@ -30,7 +30,7 @@ import java.util.Objects;
  * Jwt rule handle.
  */
 
-public abstract class JwtRuleHandle implements RuleHandle, Serializable {
+public class JwtRuleHandle implements RuleHandle, Serializable {
 
     private static final long serialVersionUID = -3023493891692468701L;
 
