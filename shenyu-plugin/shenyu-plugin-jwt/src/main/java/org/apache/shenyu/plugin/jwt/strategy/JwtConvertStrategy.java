@@ -24,7 +24,7 @@ import org.springframework.web.server.ServerWebExchange;
 import java.util.Map;
 
 @SPI
-public interface JwtConvertStrategy<T extends JwtRuleHandle> {
+public interface JwtConvertStrategy {
 
     /**
      * parse handleJson into jwtRuleHandle.
@@ -32,7 +32,7 @@ public interface JwtConvertStrategy<T extends JwtRuleHandle> {
      * @param handleJson handleJson from rule
      * @return jwtRuleHandle
      */
-    T parseHandleJson(String handleJson);
+    JwtRuleHandle parseHandleJson(String handleJson);
 
     /**
      * handle exchange by jwtRuleHandle and jwtBody.
@@ -42,6 +42,6 @@ public interface JwtConvertStrategy<T extends JwtRuleHandle> {
      * @param jwtBody       jwtBody
      * @return serverWebExchange
      */
-    ServerWebExchange convert(T jwtRuleHandle, ServerWebExchange exchange, Map<String, Object> jwtBody);
+    ServerWebExchange convert(JwtRuleHandle jwtRuleHandle, ServerWebExchange exchange, Map<String, Object> jwtBody);
 
 }

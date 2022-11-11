@@ -93,7 +93,6 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         return PluginEnum.JWT.getCode();
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private ServerWebExchange executeRuleHandle(final RuleData ruleData, final ServerWebExchange exchange, final Map<String, Object> jwtBody) {
         JwtRuleHandle jwtRuleHandle = JwtPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
         if (Objects.isNull(jwtRuleHandle)) {

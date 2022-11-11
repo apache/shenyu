@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.jwt.rule.DefaultJwtRuleHandle;
+import org.apache.shenyu.plugin.jwt.rule.JwtRuleHandle;
 import org.apache.shenyu.spi.Join;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -31,7 +32,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Join
-public class DefaultJwtConvertStrategy implements JwtConvertStrategy<DefaultJwtRuleHandle> {
+public class DefaultJwtConvertStrategy implements JwtConvertStrategy {
 
     @Override
     public DefaultJwtRuleHandle parseHandleJson(final String handleJson) {
@@ -44,12 +45,13 @@ public class DefaultJwtConvertStrategy implements JwtConvertStrategy<DefaultJwtR
     }
 
     @Override
-    public ServerWebExchange convert(final DefaultJwtRuleHandle jwtRuleHandle, final ServerWebExchange exchange, final Map<String, Object> jwtBody) {
-        if (CollectionUtils.isEmpty(jwtRuleHandle.getConverter())) {
+    public ServerWebExchange convert(final JwtRuleHandle jwtRuleHandle, final ServerWebExchange exchange, final Map<String, Object> jwtBody) {
+        final DefaultJwtRuleHandle defaultJwtRuleHandle = (DefaultJwtRuleHandle) jwtRuleHandle;
+        if (CollectionUtils.isEmpty(defaultJwtRuleHandle.getConverter())) {
             return exchange;
         }
 
-        return convert(exchange, jwtBody, jwtRuleHandle.getConverter());
+        return convert(exchange, jwtBody, defaultJwtRuleHandle.getConverter());
     }
 
     /**
