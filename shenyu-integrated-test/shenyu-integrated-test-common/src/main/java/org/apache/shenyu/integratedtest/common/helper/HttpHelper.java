@@ -60,6 +60,7 @@ public class HttpHelper {
     private final OkHttpClient client = new OkHttpClient.Builder().build();
 
     private final String localKey = "123456";
+
     /**
      * Send a post http request to shenyu gateway.
      *
@@ -71,7 +72,6 @@ public class HttpHelper {
      * @return response s
      * @throws IOException IO exception
      */
-
     public <S, Q> S postGateway(final String path, final Q req, final Type respType) throws IOException {
         return postGateway(path, null, req, respType);
     }
@@ -224,7 +224,6 @@ public class HttpHelper {
      * @return response from gateway
      * @throws IOException IO exception
      */
-
     public <S> S getFromGateway(final String path, final Map<String, Object> headers, final Type type) throws IOException {
         Response response = getHttpService(GATEWAY_END_POINT + path, headers);
         String respBody = Objects.requireNonNull(response.body()).string();
