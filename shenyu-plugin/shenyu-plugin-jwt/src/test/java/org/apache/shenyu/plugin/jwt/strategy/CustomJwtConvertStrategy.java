@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.jwt.strategy;
 
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.jwt.rule.CustomJwtRuleHandle;
+import org.apache.shenyu.plugin.jwt.rule.JwtRuleHandle;
 import org.apache.shenyu.spi.Join;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -26,7 +27,7 @@ import org.springframework.web.server.ServerWebExchange;
 import java.util.Map;
 
 @Join
-public class CustomJwtConvertStrategy implements JwtConvertStrategy<CustomJwtRuleHandle> {
+public class CustomJwtConvertStrategy implements JwtConvertStrategy {
 
     @Override
     public CustomJwtRuleHandle parseHandleJson(final String handleJson) {
@@ -35,9 +36,9 @@ public class CustomJwtConvertStrategy implements JwtConvertStrategy<CustomJwtRul
     }
 
     @Override
-    public ServerWebExchange convert(final CustomJwtRuleHandle jwtRuleHandle, final ServerWebExchange exchange, final Map<String, Object> jwtBody) {
-
-        String customConvert = jwtRuleHandle.getCustomConvert();
+    public ServerWebExchange convert(final JwtRuleHandle jwtRuleHandle, final ServerWebExchange exchange, final Map<String, Object> jwtBody) {
+        final CustomJwtRuleHandle customJwtRuleHandle = (CustomJwtRuleHandle) jwtRuleHandle;
+        String customConvert = customJwtRuleHandle.getCustomConvert();
         ServerHttpRequest modifiedRequest =
                 exchange.getRequest().mutate().header("custom", customConvert).build();
 
