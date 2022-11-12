@@ -101,7 +101,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (Objects.isNull(selectorData)) {
                 if (matchCacheConfig.getSelectorEnabled() && matchSelectorData.getLeft()) {
                     selectorData = new SelectorData();
-                    selectorData.setPluginName(named());
+                    selectorData.setPluginName(pluginName);
                     cacheSelectorData(path, selectorData);
                 }
                 return handleSelectorIfNull(pluginName, exchange, chain);
