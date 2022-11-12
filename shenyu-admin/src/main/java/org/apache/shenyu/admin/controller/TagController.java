@@ -78,7 +78,7 @@ public class TagController {
      * @param id tag name.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{name}")
+    @GetMapping("/name/{name}")
     public ShenyuAdminResult detailTag(@PathVariable("id") @Valid
                                         @Existed(provider = RuleMapper.class,
                                                 message = "tag is not existed") final String id) {
@@ -92,7 +92,7 @@ public class TagController {
      * @param parentTagId  parentTagId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{parentTagId}")
+    @GetMapping("/parentTagId/{parentTagId}")
     public ShenyuAdminResult queryListByParentTagId(@PathVariable("parentTagId") @Valid final String parentTagId) {
         List<TagVO> tagVOList = Optional.ofNullable(tagService.findByParentTagId(parentTagId)).orElse(Lists.newArrayList());
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagVOList);
@@ -104,7 +104,7 @@ public class TagController {
      * @param name tag name.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ShenyuAdminResult queryByName(@PathVariable("name") @Valid final String name) {
         List<TagVO> tagVO = tagService.findByQuery(name);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagVO);
@@ -117,7 +117,7 @@ public class TagController {
      * @param tagDTO rule.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PutMapping("/{id}")
+    @PutMapping("/id/{id}")
     public ShenyuAdminResult updateTag(@PathVariable("id") @Valid final String id,
                                         @Valid @RequestBody final TagDTO tagDTO) {
         tagDTO.setId(id);

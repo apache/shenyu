@@ -39,6 +39,7 @@
     <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated" />
     <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated" />
   </resultMap>
+
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
     id, context_path, api_path, http_method, consume, produce, version, rpc_type, `state`, 
@@ -257,4 +258,64 @@
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=VARCHAR}
   </update>
+
+  <select id="existed" resultType="java.lang.Boolean">
+    select true
+    from api
+    where id = #{id} limit 1
+  </select>
+
+  <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ApiQuery"
+          resultMap="BaseResultMap">
+    select api.id,
+           api.context_path,
+           api.api_path,
+           api.http_method,
+           api.consume,
+           api.produce,
+           api.version,
+           api.rpc_type,
+           api.`state`,
+           api.ext,
+           api.api_owner,
+           api.api_desc,
+           api.api_source,
+           api.document,
+           api.document_md5,
+           api.date_created,
+           api.date_updated
+    from api
+    <if test="tagId != null and tagId != ''">
+        inner join tag_relation on api.id = tag_relation.api_id and tag_relation.tag_id = #{tagId,jdbcType=VARCHAR}
+    </if>
+    <where>
+      <if test="apiPath != null and apiPath != ''">
+        <bind name="nameLike" value="('%' + apiPath + '%')"/>
+        and api_path LIKE #{nameLike, jdbcType=VARCHAR}
+      </if>
+      <if test="state != null">
+        and state = #{state, jdbcType=TINYINT}
+      </if>
+    </where>
+    order by api.date_created desc
+  </select>
+
+  <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM api
+    WHERE id IN
+    <foreach item="id" collection="list" open="(" separator="," close=")">
+      #{id, jdbcType=VARCHAR}
+    </foreach>
+  </select>
+
+  <delete id="deleteByIds" parameterType="java.util.List">
+    DELETE FROM api
+    WHERE id IN
+    <foreach item="id" collection="list" open="(" separator="," close=")">
+      #{id, jdbcType=VARCHAR}
+    </foreach>
+  </delete>
+
 </mapper>

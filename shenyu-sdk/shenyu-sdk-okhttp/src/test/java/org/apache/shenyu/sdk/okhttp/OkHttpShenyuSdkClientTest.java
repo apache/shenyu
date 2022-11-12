@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collections;
 
 import static org.mockito.Mockito.mock;
 
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.mock;
  * The type Ok http shenyu sdk client test.
  */
 public class OkHttpShenyuSdkClientTest {
-    
+
     /**
      * Test shenyu http client.
      *
@@ -43,7 +44,7 @@ public class OkHttpShenyuSdkClientTest {
     @Ignore
     public void testShenyuHttpClient() {
         OkHttpShenyuSdkClient okHttpShenyuSdkClient = new OkHttpShenyuSdkClient();
-        okHttpShenyuSdkClient.init(new RegisterConfig(), mock(ShenyuInstanceRegisterRepository.class));
+        okHttpShenyuSdkClient.init(new RegisterConfig(), Collections.emptyList(), mock(ShenyuInstanceRegisterRepository.class));
         Map<String, Collection<String>> headerMap = new HashMap<>();
         headerMap.put("header", Arrays.asList("test1", "test2"));
         ShenyuRequest request = ShenyuRequest.create(ShenyuRequest.HttpMethod.GET, "https://shenyu.apache.org",

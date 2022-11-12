@@ -68,5 +68,6 @@
         <module>shenyu-spring-boot-starter-plugin-logging-tencent-cls</module>
         <module>shenyu-spring-boot-starter-plugin-logging-clickhouse</module>
         <module>shenyu-spring-boot-starter-plugin-casdoor</module>
+        <module>shenyu-spring-boot-starter-plugin-key-auth</module>
     </modules>
 </project>
