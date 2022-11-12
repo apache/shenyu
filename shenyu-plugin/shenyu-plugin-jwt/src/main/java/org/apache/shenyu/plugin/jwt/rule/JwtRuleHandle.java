@@ -21,6 +21,7 @@ import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategy;
 import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategyFactory;
+
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
@@ -61,7 +62,6 @@ public class JwtRuleHandle implements RuleHandle, Serializable {
      * @param handleJson handleJson from rule
      * @return jwtRuleHandle
      */
-    @SuppressWarnings("rawtypes")
     public static JwtRuleHandle newInstance(final String handleJson) {
         if (Objects.isNull(handleJson)) {
             return null;

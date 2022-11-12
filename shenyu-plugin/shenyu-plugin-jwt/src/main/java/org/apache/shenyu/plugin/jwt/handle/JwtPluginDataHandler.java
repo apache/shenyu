@@ -50,7 +50,6 @@ public class JwtPluginDataHandler implements PluginDataHandler {
         Singleton.INST.single(JwtConfig.class, jwtConfig);
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(ruleHandle -> {
