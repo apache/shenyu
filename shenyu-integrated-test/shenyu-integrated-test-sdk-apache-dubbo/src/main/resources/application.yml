@@ -83,6 +83,7 @@ shenyu:
     allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
+
   switchConfig:
     local: true
   file:
