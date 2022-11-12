@@ -121,19 +121,6 @@ shenyu:
     allowedHeaders:
     allowedMethods: "*"
     allowedAnyOrigin: true # the same of Access-Control-Allow-Origin: "*"
-      #    allowedOrigin:
-    # format : schema://prefix spacer domain
-    # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
-    #      spacer: "."
-    #      domain: apache.org
-    #      prefixes:
-    #        - a # a.apache.org
-    #        - b # b.apache.org
-    #      origins:
-    #        - c.apache.org
-    #        - d.apache.org
-    #        - http://e.apache.org
-    #      originRegex: ^http(|s)://(.*\.|)abc.com$
     allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
