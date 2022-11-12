@@ -30,7 +30,6 @@ public class JwtConvertStrategyFactory {
      * @param handleType handleType
      * @return jwtConvertStrategy
      */
-    @SuppressWarnings("rawtypes")
     public static JwtConvertStrategy newInstance(final String handleType) {
         String type = handleType;
         if (StringUtils.isBlank(type)) {

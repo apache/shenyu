@@ -23,25 +23,30 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Map;
 
+/**
+ * Represents a conversion strategy that convert jwt to some attributes of
+ * serverWebExchange, especially attributes of the request header.
+ */
 @SPI
-public interface JwtConvertStrategy<T extends JwtRuleHandle> {
+public interface JwtConvertStrategy {
 
     /**
-     * parse handleJson into jwtRuleHandle.
+     * HandleJson needs to be parsed into jwtRuleHandle in order to
+     * specify how to convert jwt.
      *
      * @param handleJson handleJson from rule
      * @return jwtRuleHandle
      */
-    T parseHandleJson(String handleJson);
+    JwtRuleHandle parseHandleJson(String handleJson);
 
     /**
-     * handle exchange by jwtRuleHandle and jwtBody.
+     * Converts jwt to some attributes of serverWebExchange based on jwtRuleHandle.
      *
      * @param jwtRuleHandle jwtRuleHandle
      * @param exchange      exchange
      * @param jwtBody       jwtBody
      * @return serverWebExchange
      */
-    ServerWebExchange convert(T jwtRuleHandle, ServerWebExchange exchange, Map<String, Object> jwtBody);
+    ServerWebExchange convert(JwtRuleHandle jwtRuleHandle, ServerWebExchange exchange, Map<String, Object> jwtBody);
 
 }
