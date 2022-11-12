@@ -39,7 +39,7 @@ public class ApacheDubboPluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testFindAll() throws IOException {
-        DubboTest dubboTest = HttpHelper.INSTANCE.getFromGateway("http://localhost:8899", "/sdk/dubbo/findAll", null, DubboTest.class);
+        DubboTest dubboTest = HttpHelper.INSTANCE.getHttpService("http://localhost:8899/sdk/dubbo/findAll", null, DubboTest.class);
         assertEquals("hello world shenyu Apache, findAll", dubboTest.getName());
     }
 

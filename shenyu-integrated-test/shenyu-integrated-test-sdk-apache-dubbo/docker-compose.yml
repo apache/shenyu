@@ -58,9 +58,6 @@ services:
       - "20888:20888"
     networks:
       - shenyu
-    depends_on:
-      shenyu-integrated-test-sdk-apache-dubbo:
-        condition: service_healthy
     environment:
       - dubbo.registry.address=zookeeper://shenyu-zk:2181
       - shenyu.register.serverLists=http://shenyu-admin:9095
@@ -80,12 +77,8 @@ services:
       start_period: 5s
     ports:
       - "8899:8899"
-      - "20888:20888"
     networks:
       - shenyu
-    depends_on:
-      shenyu-integrated-test-sdk-apache-dubbo:
-        condition: service_healthy
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095
 

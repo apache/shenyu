@@ -238,27 +238,6 @@ public class HttpHelper {
 
     /**
      * Send a get http request to shenyu gateway with headers.
-     * @param endPoint endPoint
-     * @param <S>     response type
-     * @param path    path
-     * @param headers headers
-     * @param type    type of response passed to {@link Gson#fromJson(String, Type)}
-     * @return response from gateway
-     * @throws IOException IO exception
-     */
-    public <S> S getFromGateway(final String endPoint, final String path, final Map<String, Object> headers, final Type type) throws IOException {
-        Response response = getHttpService(endPoint + path, headers);
-        String respBody = Objects.requireNonNull(response.body()).string();
-        LOG.info("getFromGateway({}) resp({})", path, respBody);
-        try {
-            return GSON.fromJson(respBody, type);
-        } catch (Exception e) {
-            return (S) respBody;
-        }
-    }
-
-    /**
-     * Send a get http request to shenyu gateway with headers.
      *
      * @param path    path
      * @param headers headers
