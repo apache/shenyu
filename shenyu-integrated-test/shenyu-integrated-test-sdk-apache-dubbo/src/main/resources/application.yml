@@ -70,47 +70,6 @@ shenyu:
         allocType: "pooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
-  #  httpclient:
-  #    strategy: webClient
-  #    connectTimeout: 45000
-  #    responseTimeout: 3000
-  #    readerIdleTime: 3000
-  #    writerIdleTime: 3000
-  #    allIdleTime: 3000
-  #    readTimeout: 3000
-  #    writeTimeout: 3000
-  #    wiretap: false
-  #    keepAlive: false
-  #    maxInMemorySize: 1 #1mb
-  #    pool:
-  #      type: ELASTIC
-  #      name: proxy
-  #      maxConnections: 16
-  #      acquireTimeout: 45000
-  #      maxIdleTime: 3000
-  #    proxy:
-  #      host:
-  #      port:
-  #      username:
-  #      password:
-  #      nonProxyHostsPattern:
-  #    ssl:
-  #      useInsecureTrustManager: true
-  #      keyStoreType: PKCS12
-  #      keyStorePath: classpath:keystore.p12
-  #      keyStorePassword: 123456
-  #      keyStoreProvider:
-  #      keyPassword: 123456
-  #      trustedX509Certificates:
-  #      handshakeTimeout:
-  #      closeNotifyFlushTimeout:
-  #      closeNotifyReadTimeout:
-  #      defaultConfigurationType:
-  #    threadPool:
-  #      prefix: shenyu
-  #      selectCount: 1
-  #      workerCount: 8
-  #      daemon: true
   register:
     enabled: true
     registerType: zookeeper #etcd #consul
