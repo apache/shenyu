@@ -214,6 +214,7 @@ public class HttpHelper {
     public <S> S getFromGateway(final String path, final Type type) throws IOException {
         return this.getFromGateway(path, null, type);
     }
+
     /**
      * Send a get http request to shenyu gateway with headers.
      *
