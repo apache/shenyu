@@ -305,6 +305,5 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 LOG.info("{} rule success match , rule name :{}", pluginName, rule.getName());
             }
         }
-
     }
 }
