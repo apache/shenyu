@@ -22,7 +22,7 @@ import org.apache.shenyu.sdk.spring.ShenyuClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * ShenyuHttpClientApi.
+ * ShenyuApacheDubboClientApi.
  */
 @ShenyuClient(contextId = "shenyu-gateway", name = "ShenyuSdkApiName")
 public interface ShenyuApacheDubboClientApi {

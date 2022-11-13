@@ -26,6 +26,7 @@ import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import com.alibaba.nacos.common.utils.StringUtils;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.NacosPathConstants;
@@ -147,7 +148,11 @@ public class NacosClientServerRegisterRepository implements ShenyuClientServerRe
     }
 
     private void subscribeMetadata(final String serviceConfigName) {
-        registerMetadata(readData(serviceConfigName));
+        String content = readData(serviceConfigName);
+        if (StringUtils.isEmpty(content)) {
+            return;
+        }
+        registerMetadata(content);
         LOGGER.info("subscribe metadata: {}", serviceConfigName);
         try {
             configService.addListener(serviceConfigName, defaultGroup, new Listener() {

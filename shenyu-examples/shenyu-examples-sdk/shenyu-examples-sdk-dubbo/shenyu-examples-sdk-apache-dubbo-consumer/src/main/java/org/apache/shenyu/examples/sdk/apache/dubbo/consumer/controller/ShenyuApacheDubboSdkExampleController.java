@@ -37,7 +37,7 @@ public class ShenyuApacheDubboSdkExampleController {
      * findAll.
      * @return SdkTestDto
      */
-    @GetMapping("sdk/dubbo/findAll")
+    @GetMapping("/sdk/dubbo/findAll")
     public DubboTest findAll() {
         return shenyuApacheDubboClientApi.findAll();
     }

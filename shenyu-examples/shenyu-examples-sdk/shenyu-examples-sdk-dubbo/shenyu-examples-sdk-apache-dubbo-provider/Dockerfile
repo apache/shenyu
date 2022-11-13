@@ -25,5 +25,6 @@ ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
 EXPOSE 8011
+EXPOSE 20888
 
 CMD java -jar ${APP_NAME}.jar

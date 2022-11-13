@@ -58,7 +58,7 @@ public class HttpHelper {
     private static final Gson GSON = new Gson();
 
     private final OkHttpClient client = new OkHttpClient.Builder().build();
-    
+
     private final String localKey = "123456";
 
     /**
