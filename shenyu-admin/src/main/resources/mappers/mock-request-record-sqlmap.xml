@@ -31,16 +31,20 @@
         <result property="dateUpdated" column="date_updated" jdbcType="TIMESTAMP"/>
     </resultMap>
 
+    <sql id="Base_Column_List">
+        id, api_id, host, port, path_variable, query, header, body, date_created, date_updated
+    </sql>
+
     <select id="queryById" resultMap="MockRequestRecordMap">
         select
-          id, api_id, host, port, path_variable, query, header, body, date_created, date_updated
+        <include refid="Base_Column_List"/>
         from mock_request_record
         where id = #{id}
     </select>
 
     <select id="queryAll" resultMap="MockRequestRecordMap">
         select
-        id, api_id, host, port, path_variable, query, header, body, date_created, date_updated
+        <include refid="Base_Column_List"/>
         from mock_request_record
         <where>
             <if test="item.id != null and item.id != ''">
@@ -121,15 +125,59 @@
     </select>
 
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
-        insert into mock_request_record(id, api_id, host, port, path_variable, query, header, body, date_created, date_updated)
-        values (#{id}, #{apiId}, #{host}, #{port}, #{pathVariable}, #{query}, #{header}, #{body}, #{dateCreated}, #{dateUpdated})
+        insert into mock_request_record(
+            id,
+            api_id,
+            host,
+            port,
+            path_variable,
+            query,
+            header,
+            body,
+            date_created,
+            date_updated
+        )
+        values (
+            #{id},
+            #{apiId},
+            #{host},
+            #{port},
+            #{pathVariable},
+            #{query},
+            #{header},
+            #{body},
+            #{dateCreated},
+            #{dateUpdated}
+        )
     </insert>
 
     <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into mock_request_record(id, api_id, host, port, path_variable, query, header, body, date_created, date_updated)
+        insert into mock_request_record(
+            id,
+            api_id,
+            host,
+            port,
+            path_variable,
+            query,
+            header,
+            body,
+            date_created,
+            date_updated
+        )
         values
         <foreach collection="list" item="item" separator=",">
-        (#{item.id}, #{item.apiId}, #{item.host}, #{item.port}, #{item.pathVariable}, #{item.query}, #{item.header}, #{item.body}, #{item.dateCreated}, #{item.dateUpdated})
+        (
+            #{item.id},
+            #{item.apiId},
+            #{item.host},
+            #{item.port},
+            #{item.pathVariable},
+            #{item.query},
+            #{item.header},
+            #{item.body},
+            #{item.dateCreated},
+            #{item.dateUpdated}
+        )
         </foreach>
     </insert>
 
