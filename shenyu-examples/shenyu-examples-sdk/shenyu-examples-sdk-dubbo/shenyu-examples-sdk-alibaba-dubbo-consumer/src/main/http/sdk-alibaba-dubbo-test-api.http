@@ -16,7 +16,7 @@
 #
 
 
-### shengyu apache dubbo /sdk/dubbo/findAll
+### shengyu alibaba dubbo /sdk/dubbo/findAll
 GET http://localhost:8899/sdk/dubbo/findAll
 Accept: application/json
 Content-Type: application/json

@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -15,10 +16,21 @@
 # limitations under the License.
 #
 
+PRGDIR=`dirname "$0"`
+for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
+do
+    for loop in `seq 1 30`
+    do
+        status=`curl -o /dev/null -s -w %{http_code} $service`
+        echo -e "curl $service response $status"
 
-### shengyu apache dubbo /sdk/dubbo/findAll
-GET http://localhost:8899/sdk/dubbo/findAll
-Accept: application/json
-Content-Type: application/json
+        if [ $status -eq 200  ]; then
+            break
+        fi
 
+        sleep 2
+    done
+done
 
+sleep 3
+echo -e "\n-------------------"

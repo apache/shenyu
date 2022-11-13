@@ -15,24 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.api;
+package org.apache.shenyu.examples.sdk.alibaba.dubbo.consumer.controller;
 
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
-import org.apache.shenyu.sdk.spring.ShenyuClient;
+import org.apache.shenyu.examples.sdk.alibaba.dubbo.consumer.api.ShenyuAlibabaDubboClientApi;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * ShenyuApacheDubboClientApi.
+ * ShenyuHttpSdkExampleController.
+ * invoke shenyuSdkAPi
  */
-@ShenyuClient(contextId = "shenyu-gateway", name = "ShenyuSdkApiName")
-public interface ShenyuApacheDubboClientApi {
+@RestController
+public class ShenyuAlibabaDubboSdkExampleController {
+
+    @Autowired
+    private ShenyuAlibabaDubboClientApi shenyuApacheDubboClientApi;
 
     /**
      * findAll.
-     * test Get.
      * @return SdkTestDto
      */
-    @GetMapping("/dubbo/findAll")
-    DubboTest findAll();
+    @GetMapping("/sdk/dubbo/findAll")
+    public DubboTest findAll() {
+        return shenyuApacheDubboClientApi.findAll();
+    }
 
 }

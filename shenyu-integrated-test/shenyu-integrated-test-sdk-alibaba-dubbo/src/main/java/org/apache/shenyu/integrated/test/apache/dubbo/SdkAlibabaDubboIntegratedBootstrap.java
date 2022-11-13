@@ -15,31 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.controller;
+package org.apache.shenyu.integrated.test.apache.dubbo;
 
-import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
-import org.apache.shenyu.examples.sdk.apache.dubbo.consumer.api.ShenyuApacheDubboClientApi;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * ShenyuHttpSdkExampleController.
- * invoke shenyuSdkAPi
+ * The type sdk Alibaba dubbo integrated bootstrap.
  */
-@RestController
-public class ShenyuApacheDubboSdkExampleController {
-
-    @Autowired
-    private ShenyuApacheDubboClientApi shenyuApacheDubboClientApi;
+@SpringBootApplication
+public class SdkAlibabaDubboIntegratedBootstrap {
 
     /**
-     * findAll.
-     * @return SdkTestDto
+     * The entry point of application.
+     *
+     * @param args the input arguments
      */
-    @GetMapping("/sdk/dubbo/findAll")
-    public DubboTest findAll() {
-        return shenyuApacheDubboClientApi.findAll();
+    public static void main(final String[] args) {
+        SpringApplication.run(SdkAlibabaDubboIntegratedBootstrap.class);
     }
-
 }
