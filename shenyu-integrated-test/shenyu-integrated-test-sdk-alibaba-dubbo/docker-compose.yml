@@ -40,7 +40,7 @@ services:
       timeout: 2s
       retries: 3
       start_period: 5s
-  shenyu-examples-sdk-apache-dubbo-provider:
+  shenyu-examples-sdk-alibaba-dubbo-provider:
     deploy:
       resources:
         limits:
@@ -62,7 +62,7 @@ services:
       - dubbo.registry.address=zookeeper://shenyu-zk:2181
       - shenyu.register.serverLists=http://shenyu-admin:9095
 
-  shenyu-examples-sdk-apache-dubbo-consumer:
+  shenyu-examples-sdk-alibaba-dubbo-consumer:
     deploy:
       resources:
         limits:

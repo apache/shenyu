@@ -16,7 +16,7 @@
 
 FROM openjdk:8-jre-alpine
 
-ENV APP_NAME shenyu-integrated-test-sdk-apache-dubbo
+ENV APP_NAME shenyu-integrated-test-sdk-alibaba-dubbo
 ENV LOCAL_PATH /opt/${APP_NAME}
 
 RUN mkdir -p ${LOCAL_PATH}
