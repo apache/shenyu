@@ -73,6 +73,13 @@ public interface MockRequestRecordMapper extends ExistProvider {
     int insert(MockRequestRecordDO mockRequestRecordDO);
 
     /**
+     * Insert selective.
+     * @param mockRequestRecordDO record
+     * @return Number of rows affected
+     */
+    int insertSelective(MockRequestRecordDO mockRequestRecordDO);
+
+    /**
      * Insert batch.
      *
      * @param list data list

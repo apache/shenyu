@@ -42,6 +42,11 @@ public class MockRequestRecordDO extends BaseDO {
     private Integer port;
 
     /**
+     * the request url.
+     */
+    private String url;
+
+    /**
      * the request param in url.
      */
     private String pathVariable;
@@ -113,6 +118,24 @@ public class MockRequestRecordDO extends BaseDO {
      */
     public void setPort(final Integer port) {
         this.port = port;
+    }
+
+    /**
+     * Gets the value of url.
+     *
+     * @return the value of url
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * Sets the url.
+     *
+     * @param url url
+     */
+    public void setUrl(final String url) {
+        this.url = url;
     }
 
     /**
@@ -205,6 +228,8 @@ public class MockRequestRecordDO extends BaseDO {
         private String host;
         
         private Integer port;
+
+        private String url;
         
         private String pathVariable;
         
@@ -288,6 +313,17 @@ public class MockRequestRecordDO extends BaseDO {
         }
 
         /**
+         * Sets the url.
+         *
+         * @param url url
+         * @return MockRequestRecordDOBuilder.
+         */
+        public MockRequestRecordDOBuilder url(final String url) {
+            this.url = url;
+            return this;
+        }
+
+        /**
          * Sets the pathVariable.
          *
          * @param pathVariable pathVariable
@@ -344,6 +380,7 @@ public class MockRequestRecordDO extends BaseDO {
             mockRequestRecordDO.setHeader(header);
             mockRequestRecordDO.setHost(host);
             mockRequestRecordDO.setPort(port);
+            mockRequestRecordDO.setUrl(url);
             mockRequestRecordDO.setPathVariable(pathVariable);
             mockRequestRecordDO.setQuery(query);
             mockRequestRecordDO.setDateCreated(dateCreated);

@@ -48,6 +48,22 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
 
     @Test
     @Transactional
+    public void insertSelective() {
+        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        mockRequestRecordDO.setPathVariable(null);
+        mockRequestRecordDO.setQuery(null);
+        mockRequestRecordDO.setHeader(null);
+        mockRequestRecordDO.setBody(null);
+        assertEquals(mockRequestRecordMapper.insertSelective(mockRequestRecordDO), 1);
+        MockRequestRecordDO queryResult = mockRequestRecordMapper.queryById(mockRequestRecordDO.getId());
+        assertEquals(queryResult.getPathVariable(), "");
+        assertEquals(queryResult.getQuery(), "");
+        assertEquals(queryResult.getHeader(), "");
+        assertEquals(queryResult.getBody(), null);
+    }
+
+    @Test
+    @Transactional
     public void insertBatch() {
         List<MockRequestRecordDO> mockRequestRecordDOS = Arrays.asList(buildTagDO(), buildTagDO(), buildTagDO());
         assertEquals(mockRequestRecordMapper.insertBatch(mockRequestRecordDOS), 3);
@@ -154,7 +170,8 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
                 .body("{\"name\": \"julia\"}")
                 .header("userId: 1;")
                 .host("192.168.1.1")
-                .pathVariable("/mock/test")
+                .url("http://192.168.1.1:8080/test")
+                .pathVariable("")
                 .port(8080)
                 .query("")
                 .build();

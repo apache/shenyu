@@ -32,7 +32,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, api_id, host, port, path_variable, query, header, body, date_created, date_updated
+        id, api_id, host, port, url, path_variable, query, header, body, date_created, date_updated
     </sql>
 
     <select id="queryById" resultMap="MockRequestRecordMap">
@@ -58,6 +58,9 @@
             </if>
             <if test="item.port != null">
                 and port = #{item.port}
+            </if>
+            <if test="item.url != null and item.url != ''">
+                and url = #{item.url}
             </if>
             <if test="item.pathVariable != null and item.pathVariable != ''">
                 and path_variable = #{item.pathVariable}
@@ -96,6 +99,9 @@
             <if test="port != null">
                 and port = #{port}
             </if>
+            <if test="url != null and url != ''">
+                and url = #{url}
+            </if>
             <if test="pathVariable != null and pathVariable != ''">
                 and path_variable = #{pathVariable}
             </if>
@@ -130,6 +136,7 @@
             api_id,
             host,
             port,
+            url,
             path_variable,
             query,
             header,
@@ -142,6 +149,7 @@
             #{apiId},
             #{host},
             #{port},
+            #{url},
             #{pathVariable},
             #{query},
             #{header},
@@ -151,12 +159,43 @@
         )
     </insert>
 
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" useGeneratedKeys="true">
+        insert into mock_request_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            api_id,
+            host,
+            port,
+            url,
+            <if test="pathVariable != null">path_variable,</if>
+            <if test="query != null">query,</if>
+            <if test="header != null">header,</if>
+            <if test="body != null">body,</if>
+            <if test="dateCreated != null">date_created,</if>
+            <if test="dateUpdated != null">date_updated,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=VARCHAR},
+            #{apiId,jdbcType=VARCHAR},
+            #{host,jdbcType=VARCHAR},
+            #{port,jdbcType=INTEGER},
+            #{url,jdbcType=VARCHAR},
+            <if test="pathVariable != null">#{pathVariable,jdbcType=VARCHAR},</if>
+            <if test="query != null">#{query,jdbcType=VARCHAR},</if>
+            <if test="header != null">#{header,jdbcType=VARCHAR},</if>
+            <if test="body != null">#{body,jdbcType=VARCHAR},</if>
+            <if test="dateCreated != null">#{dateCreated,jdbcType=TIMESTAMP},</if>
+            <if test="dateUpdated != null">#{dateUpdated,jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+
     <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
         insert into mock_request_record(
             id,
             api_id,
             host,
             port,
+            url,
             path_variable,
             query,
             header,
@@ -171,6 +210,7 @@
             #{item.apiId},
             #{item.host},
             #{item.port},
+            #{item.url},
             #{item.pathVariable},
             #{item.query},
             #{item.header},
@@ -192,6 +232,9 @@
             </if>
             <if test="port != null">
                 port = #{port},
+            </if>
+            <if test="url != null and url != ''">
+                url = #{url},
             </if>
             <if test="pathVariable != null and pathVariable != ''">
                 path_variable = #{pathVariable},
