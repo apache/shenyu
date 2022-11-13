@@ -26,7 +26,7 @@ import org.springframework.context.annotation.ImportResource;
  * ShenyuAlibabaDubboProviderApplication.
  */
 @SpringBootApplication
-@ImportResource({"classpath:spring-dubbo.xml"})
+@ImportResource("classpath:spring-dubbo.xml")
 @ComponentScan(basePackages = "org.apache.shenyu.examples.alibaba.dubbo.service.impl")
 public class ShenyuSdkAlibabaDubboProviderApplication {
 
