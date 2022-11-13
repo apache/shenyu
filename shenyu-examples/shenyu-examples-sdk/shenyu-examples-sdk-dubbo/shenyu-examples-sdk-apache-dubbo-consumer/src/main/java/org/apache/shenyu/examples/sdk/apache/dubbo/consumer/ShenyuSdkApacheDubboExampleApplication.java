@@ -25,7 +25,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * ShenyuSdkApacheDubboExampleApplication.
  */
 @SpringBootApplication
-@EnableShenyuClients(basePackages = "org.apache.shenyu.examples.sdk.apache.dubbo.api")
+@EnableShenyuClients(basePackages = "org.apache.shenyu.examples.sdk.apache.dubbo.consumer.api")
 public class ShenyuSdkApacheDubboExampleApplication {
 
     /**
