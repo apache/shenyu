@@ -80,14 +80,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         initMatchCacheConfig();
         final String pluginName = named();
-        final String path = exchange.getRequest().getURI().getPath();
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
-        List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
-        SelectorData selectorData = obtainSelectorDataCacheIfEnabled(path);
         // early exit
         if (Objects.isNull(pluginData) || !pluginData.getEnabled()) {
             return chain.execute(exchange);
         }
+        final String path = exchange.getRequest().getURI().getPath();
+        List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
+        SelectorData selectorData = obtainSelectorDataCacheIfEnabled(path);
         // handle Selector
         if (Objects.nonNull(selectorData) && StringUtils.isBlank(selectorData.getId())) {
             return handleSelectorIfNull(pluginName, exchange, chain);
