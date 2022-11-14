@@ -290,13 +290,14 @@ create table mock_request_record
     api_id VARCHAR2(128) not null,
     host VARCHAR2(32) not null,
     port NUMBER(5) not null,
-    path_variable VARCHAR2(255) not null,
-    query VARCHAR2(1024) not null,
-    header VARCHAR2(1024) not null,
-    body CLOB not null,
+    url VARCHAR2(1024) not null,
+    path_variable VARCHAR2(255) default '' not null,
+    query VARCHAR2(1024) default '' not null,
+    header VARCHAR2(1024) default '' not null,
+    body CLOB,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
-)
+);
 -- Add comments to the table
 comment on table MOCK_REQUEST_RECORD
   is 'mock request records';
@@ -309,6 +310,8 @@ comment on column MOCK_REQUEST_RECORD.host
   is 'the request host';
 comment on column MOCK_REQUEST_RECORD.port
   is 'the request port';
+comment on column MOCK_REQUEST_RECORD.url
+    is 'the request url';
 comment on column MOCK_REQUEST_RECORD.path_variable
   is 'the request param in url';
 comment on column MOCK_REQUEST_RECORD.query
