@@ -148,6 +148,10 @@ public final class TagControllerTest {
                 .andReturn();
     }
 
+    /**
+     *  buildTagDTO.
+     * @return tagDTO
+     */
     public TagDTO buildTagDTO() {
         TagDTO tagDTO = new TagDTO();
         tagDTO.setTagDesc("this is a tag");
@@ -157,6 +161,10 @@ public final class TagControllerTest {
         return tagDTO;
     }
 
+    /**
+     * buildTagVO.
+     * @return TagVO
+     */
     public TagVO buildTagVO() {
         TagVO tagVO = new TagVO();
         tagVO.setTagDesc("123");

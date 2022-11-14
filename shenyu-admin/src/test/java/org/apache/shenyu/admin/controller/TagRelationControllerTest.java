@@ -106,6 +106,10 @@ public final class TagRelationControllerTest {
                 .andReturn();
     }
 
+    /**
+     * buildTagRelationDO.
+     * @return TagRelationDO
+     */
     private TagRelationDO buildTagRelationDO() {
         TagRelationDO tagRelationDO = new TagRelationDO();
         tagRelationDO.setTagId("123");
@@ -113,6 +117,10 @@ public final class TagRelationControllerTest {
         return tagRelationDO;
     }
 
+    /**
+     * buildTagRelationDTO.
+     * @return TagRelationDTO
+     */
     private TagRelationDTO buildTagRelationDTO() {
         TagRelationDTO tagRelationDTO = new TagRelationDTO();
         tagRelationDTO.setTagId("123");
