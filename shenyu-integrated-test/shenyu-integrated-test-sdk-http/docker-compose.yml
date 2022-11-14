@@ -1,0 +1,100 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+version: "3.9"
+services:
+  shenyu-zk:
+    container_name: shenyu-zk
+    image: zookeeper:3.5
+    restart: always
+    ports:
+      - "2181:2181"
+    networks:
+      - shenyu
+
+  shenyu-admin:
+    image: apache/shenyu-admin:latest
+    container_name: shenyu-admin
+    restart: always
+    networks:
+      - shenyu
+    depends_on:
+      shenyu-zk:
+        condition: service_started
+    ports:
+      - "9095:9095"
+    environment:
+      - SPRING_PROFILES_ACTIVE=h2
+      - shenyu.database.init_script=sql-script/h2/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
+      timeout: 2s
+      retries: 30
+      start_period: 5s
+
+  shenyu-examples-sdk-http:
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    container_name: shenyu-examples-sdk-http
+    image: shenyu-examples-sdk-http:latest
+    restart: always
+    environment:
+      - shenyu.register.serverLists=http://shenyu-admin:9095
+      - shenyu.sdk.register-type=zookeeper
+      - shenyu.sdk.server-lists=shenyu-zk:2181
+    healthcheck:
+      test: [ "CMD", "wget", "http://shenyu-examples-sdk-http:8899/actuator/health | grep UP || exit 1"]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    ports:
+      - "8899:8899"
+    networks:
+      - shenyu
+    depends_on:
+      shenyu-integrated-test-sdk-http:
+        condition: service_healthy
+
+  shenyu-integrated-test-sdk-http:
+    container_name: shenyu-integrated-test-sdk-http
+    image: apache/shenyu-integrated-test-sdk-http:latest
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    environment:
+      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+      - shenyu.register.registerType=zookeeper
+      - shenyu.register.serverLists=shenyu-zk:2181
+    depends_on:
+      shenyu-admin:
+        condition: service_healthy
+    ports:
+      - "9195:9195"
+      - "8090:8090"
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integrated-test-sdk-http:9195/actuator/health" ]
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    networks:
+      - shenyu
+
+networks:
+  shenyu:
+    name: shenyu
