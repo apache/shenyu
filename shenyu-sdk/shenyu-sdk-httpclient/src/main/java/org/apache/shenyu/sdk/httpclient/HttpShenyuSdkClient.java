@@ -67,6 +67,8 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
 
     private RequestConfig requestConfig;
 
+    private HttpAsyncClient httpAsyncClient;
+
     @Override
     protected void initClient(final Properties props) {
         try {
@@ -83,11 +85,13 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
             this.connectionManager = new PoolingNHttpClientConnectionManager(ioReactor, sessionStrategyRegistry);
             connectionManager.setMaxTotal(Integer.parseInt(maxTotal));
             connectionManager.setDefaultMaxPerRoute(Integer.parseInt(maxPerRoute));
+            connectionManager.closeExpiredConnections();
             this.requestConfig = RequestConfig.custom()
                     .setSocketTimeout(Integer.parseInt(serverRequestTimeOut))
                     .setConnectTimeout(Integer.parseInt(serverResponseTimeOut))
                     .setConnectionRequestTimeout(Integer.parseInt(connectionRequestTimeOut))
                     .build();
+            this.httpAsyncClient = getHttpClient();
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -143,8 +147,7 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
                 requestBuilder.addHeader(name, value);
             }
         }
-
-        Future<HttpResponse> execute = getHttpClient().execute(requestBuilder.build(), new FutureCallback<HttpResponse>() {
+        Future<HttpResponse> execute = httpAsyncClient.execute(requestBuilder.build(), new FutureCallback<HttpResponse>() {
             @Override
             public void completed(final HttpResponse response) {
                 LOG.debug("HttpResponse completed statusLine={}", response.getStatusLine());
