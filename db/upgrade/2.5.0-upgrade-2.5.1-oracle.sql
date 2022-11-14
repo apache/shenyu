@@ -282,3 +282,46 @@ values ('1518229897214468254', '38', 'maskStatus', 'maskStatus', 3, 2, 2, '{"req
 -- insert keyAuth plugin start
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, enabled) VALUES ('40', 'keyAuth', 'Authentication', 150, '0');
 -- insert keyAuth plugin end
+
+-- create mock_request_record table start
+create table mock_request_record
+(
+    id VARCHAR2(128) not null PRIMARY KEY,
+    api_id VARCHAR2(128) not null,
+    host VARCHAR2(32) not null,
+    port NUMBER(5) not null,
+    url VARCHAR2(1024) not null,
+    path_variable VARCHAR2(255) default '' not null,
+    query VARCHAR2(1024) default '' not null,
+    header VARCHAR2(1024) default '' not null,
+    body CLOB,
+    date_created timestamp(3) default SYSDATE not null,
+    date_updated timestamp(3) default SYSDATE not null
+);
+-- Add comments to the table
+comment on table MOCK_REQUEST_RECORD
+  is 'mock request records';
+-- Add comments to the columns
+comment on column MOCK_REQUEST_RECORD.id
+  is 'id';
+comment on column MOCK_REQUEST_RECORD.api_id
+  is 'the api id';
+comment on column MOCK_REQUEST_RECORD.host
+  is 'the request host';
+comment on column MOCK_REQUEST_RECORD.port
+  is 'the request port';
+comment on column MOCK_REQUEST_RECORD.url
+    is 'the request url';
+comment on column MOCK_REQUEST_RECORD.path_variable
+  is 'the request param in url';
+comment on column MOCK_REQUEST_RECORD.query
+  is 'the request param after url';
+comment on column MOCK_REQUEST_RECORD.header
+  is 'the request param in header';
+comment on column MOCK_REQUEST_RECORD.body
+  is 'the request body';
+comment on column MOCK_REQUEST_RECORD.date_created
+  is 'create time';
+comment on column MOCK_REQUEST_RECORD.date_updated
+  is 'update time';
+-- create mock_request_record table end
