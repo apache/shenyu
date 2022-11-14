@@ -54,10 +54,10 @@ public class TagRelationController {
      * @param tagId tag tagId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{tagId}")
+    @GetMapping("/tagId/{tagId}")
     public ShenyuAdminResult queryApiByTagId(@PathVariable("tagId") @Valid final String tagId) {
-        List<TagRelationDO> tagRelationVOs = Optional.ofNullable(tagRelationService.findByTagId(tagId)).orElse(Lists.newArrayList());
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagRelationVOs);
+        List<TagRelationDO> tagRelationDOS = Optional.ofNullable(tagRelationService.findByTagId(tagId)).orElse(Lists.newArrayList());
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagRelationDOS);
     }
 
     /**
@@ -67,7 +67,7 @@ public class TagRelationController {
      * @param tagRelationDTO tagRelationDTO.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PutMapping("/{id}")
+    @PutMapping("/id/{id}")
     public ShenyuAdminResult updateTagRelation(@PathVariable("id") @Valid final String id,
                                        @Valid @RequestBody final TagRelationDTO tagRelationDTO) {
         tagRelationDTO.setId(id);
@@ -81,7 +81,7 @@ public class TagRelationController {
      * @param ids primary key.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @DeleteMapping("/batch")
+    @DeleteMapping("/batchDelete")
     public ShenyuAdminResult deleteTagRelation(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = tagRelationService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
