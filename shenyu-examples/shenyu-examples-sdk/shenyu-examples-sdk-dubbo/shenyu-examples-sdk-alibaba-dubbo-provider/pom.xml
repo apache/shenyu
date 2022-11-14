@@ -24,22 +24,26 @@
         <version>2.5.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-examples-sdk-apache-dubbo-provider</artifactId>
+    <artifactId>shenyu-examples-sdk-alibaba-dubbo-provider</artifactId>
 
     <properties>
         <curator.version>5.2.1</curator.version>
         <nacos-client.version>2.0.4</nacos-client.version>
-        <apache.dubbo.version>2.7.15</apache.dubbo.version>
+        <alibaba.dubbo.version>2.6.5</alibaba.dubbo.version>
         <zookeeper.version>3.6.3</zookeeper.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-client-apache-dubbo</artifactId>
+            <artifactId>shenyu-client-alibaba-dubbo</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>${alibaba.dubbo.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -59,79 +63,21 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-
-        <!-- Dubbo dependency -->
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo</artifactId>
-            <version>${apache.dubbo.version}</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.dubbo/dubbo-registry-nacos -->
-        <!-- Dubbo Nacos registry dependency -->
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-registry-nacos</artifactId>
-            <version>${apache.dubbo.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-examples-apache-dubbo-service-xml</artifactId>
+            <artifactId>shenyu-examples-alibaba-dubbo-service</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Keep latest Nacos client version -->
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
-            <version>${nacos-client.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-client</artifactId>
-            <version>${curator.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>${curator.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>${curator.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>${zookeeper.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
 
     <build>
-        <finalName>shenyu-examples-sdk-apache-dubbo-provider</finalName>
+        <finalName>shenyu-examples-sdk-alibaba-dubbo-provider</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.apache.shenyu.examples.sdk.apache.provider.ShenyuApacheDubboXmlProviderApplication</mainClass>
+                    <mainClass>org.apache.shenyu.examples.sdk.alibaba.provider.ShenyuSdkAlibabaDubboProviderApplication</mainClass>
                     <executable>true</executable>
                 </configuration>
             </plugin>
@@ -142,8 +88,8 @@
         <profile>
             <id>example</id>
             <properties>
-                <docker.buildArg.APP_NAME>shenyu-examples-sdk-apache-dubbo-provider</docker.buildArg.APP_NAME>
-                <docker.image.tag.repo>shenyu-examples-sdk-apache-dubbo-provider</docker.image.tag.repo>
+                <docker.buildArg.APP_NAME>shenyu-examples-sdk-alibaba-dubbo-provider</docker.buildArg.APP_NAME>
+                <docker.image.tag.repo>shenyu-examples-sdk-alibaba-dubbo-provider</docker.image.tag.repo>
                 <docker.image.tag.tagName>latest</docker.image.tag.tagName>
             </properties>
             <activation>
@@ -158,7 +104,7 @@
                         <configuration>
                             <images>
                                 <image>
-                                    <name>shenyu-examples-sdk-apache-dubbo-provider</name>
+                                    <name>shenyu-examples-sdk-alibaba-dubbo-provider</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                     </build>
