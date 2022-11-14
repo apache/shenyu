@@ -16,7 +16,7 @@
 
 FROM openjdk:8-jre-alpine
 
-ENV APP_NAME shenyu-examples-sdk-apache-dubbo-provider
+ENV APP_NAME shenyu-integrated-test-sdk-apache-dubbo
 ENV LOCAL_PATH /opt/${APP_NAME}
 
 RUN mkdir -p ${LOCAL_PATH}
@@ -24,7 +24,6 @@ RUN mkdir -p ${LOCAL_PATH}
 ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
-EXPOSE 8011
-EXPOSE 20888
+EXPOSE 9195
 
 CMD java -jar ${APP_NAME}.jar
