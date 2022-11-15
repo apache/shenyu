@@ -68,7 +68,7 @@ management:
 shenyu:
   matchCache:
     selectorEnabled: false
-    ruleEnabled: false
+    ruleEnabled: true
     maxSelectorFreeMemory: 256 # 256MB
     maxRuleFreeMemory: 256 # 256MB
   netty:
