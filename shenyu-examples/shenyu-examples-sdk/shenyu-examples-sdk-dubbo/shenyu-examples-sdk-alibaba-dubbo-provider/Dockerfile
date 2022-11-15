@@ -22,7 +22,7 @@ ENV LOCAL_PATH /opt/${APP_NAME}
 RUN mkdir -p ${LOCAL_PATH}
 
 ADD target/${APP_NAME}.jar ${LOCAL_PATH}
-COPY ../../../shenyu-examples-dubbo/shenyu-examples-alibaba-dubbo-service/src/main/resources/** ${LOCAL_PATH}
+ADD ../../../shenyu-examples-dubbo/shenyu-examples-alibaba-dubbo-service/src/main/resources/** ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
 EXPOSE 8011
