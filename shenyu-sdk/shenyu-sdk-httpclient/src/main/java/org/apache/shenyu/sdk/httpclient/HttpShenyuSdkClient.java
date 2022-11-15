@@ -85,7 +85,6 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
             this.connectionManager = new PoolingNHttpClientConnectionManager(ioReactor, sessionStrategyRegistry);
             connectionManager.setMaxTotal(Integer.parseInt(maxTotal));
             connectionManager.setDefaultMaxPerRoute(Integer.parseInt(maxPerRoute));
-            connectionManager.closeExpiredConnections();
             this.requestConfig = RequestConfig.custom()
                     .setSocketTimeout(Integer.parseInt(serverRequestTimeOut))
                     .setConnectTimeout(Integer.parseInt(serverResponseTimeOut))
