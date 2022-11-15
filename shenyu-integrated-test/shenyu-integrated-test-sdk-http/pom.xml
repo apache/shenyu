@@ -39,6 +39,7 @@
             <artifactId>shenyu-spring-boot-starter-instance</artifactId>
             <version>${project.version}</version>
         </dependency>
+
     </dependencies>
 
     <profiles>
