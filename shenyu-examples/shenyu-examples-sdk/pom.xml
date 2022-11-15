@@ -29,6 +29,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>shenyu-examples-sdk-http</module>
+        <module>shenyu-examples-sdk-dubbo</module>
     </modules>
 
     <properties>

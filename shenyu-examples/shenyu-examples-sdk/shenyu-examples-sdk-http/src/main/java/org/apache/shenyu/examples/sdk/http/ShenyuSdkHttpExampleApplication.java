@@ -25,7 +25,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * ShenyuSdkHttpExampleApplication.
  */
 @SpringBootApplication
-@EnableShenyuClients(basePackages = {"org.apache.shenyu.examples.sdk.http.api"})
+@EnableShenyuClients(basePackages = "org.apache.shenyu.examples.sdk.http.api")
 public class ShenyuSdkHttpExampleApplication {
 
     /**
