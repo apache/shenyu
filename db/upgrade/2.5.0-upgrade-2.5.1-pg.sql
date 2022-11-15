@@ -273,3 +273,33 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172830', '38', 'maskS
 
 /* insert plugin for keyAuth */
 INSERT INTO "public"."plugin" VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00');
+
+-- ----------------------------
+-- Table structure for mock_request_record
+-- ----------------------------
+DROP TABLE IF EXISTS "public"."mock_request_record";
+CREATE TABLE "public"."mock_request_record"  (
+     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+     "api_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+     "host" varchar(32) COLLATE "pg_catalog"."default" NOT NULL,
+     "port" int4 NOT NULL,
+     "url" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+     "path_variable" varchar(255) COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
+     "query" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
+     "header" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL DEFAULT '',
+     "body" text COLLATE "pg_catalog"."default",
+     "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+     "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."mock_request_record"."id" IS 'id';
+COMMENT ON COLUMN "public"."mock_request_record"."api_id" IS 'the api id';
+COMMENT ON COLUMN "public"."mock_request_record"."host" IS 'the request host';
+COMMENT ON COLUMN "public"."mock_request_record"."port" IS 'the request port';
+COMMENT ON COLUMN "public"."mock_request_record"."url" IS 'the request url';
+COMMENT ON COLUMN "public"."mock_request_record"."path_variable" IS 'the request param in url';
+COMMENT ON COLUMN "public"."mock_request_record"."query" IS 'the request param after url';
+COMMENT ON COLUMN "public"."mock_request_record"."header" IS 'the request param in header';
+COMMENT ON COLUMN "public"."mock_request_record"."body" IS 'the request body';
+COMMENT ON COLUMN "public"."mock_request_record"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."mock_request_record"."date_updated" IS 'update time';
