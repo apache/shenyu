@@ -22,6 +22,8 @@ ENV LOCAL_PATH /opt/${APP_NAME}
 RUN mkdir -p ${LOCAL_PATH}
 
 ADD target/${APP_NAME}.jar ${LOCAL_PATH}
+ADD ../../../shenyu-examples-dubbo/shenyu-examples-alibaba-dubbo-service/src/main/resources/application.yml ${LOCAL_PATH}
+ADD ../../../shenyu-examples-dubbo/shenyu-examples-alibaba-dubbo-service/src/main/resources/spring-dubbo.xml ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
 EXPOSE 8011
