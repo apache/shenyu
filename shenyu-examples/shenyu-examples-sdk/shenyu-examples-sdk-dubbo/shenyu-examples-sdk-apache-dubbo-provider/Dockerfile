@@ -22,10 +22,7 @@ ENV LOCAL_PATH /opt/${APP_NAME}
 RUN mkdir -p ${LOCAL_PATH}
 
 ADD target/${APP_NAME}.jar ${LOCAL_PATH}
-CHMOD 777 ./../../shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service-xml/
-ADD ../../../shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service-xml/src/main/resources/application.yml ${LOCAL_PATH}
-ADD ../../../shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service-xml/src/main/resources/spring-dubbo.xml ${LOCAL_PATH}
-ADD ../../../shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service-xml/src/main/resources/shenyu.xml ${LOCAL_PATH}
+ADD ../../../shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service-xml/src/main/resources/*.** ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
 EXPOSE 8011
