@@ -45,7 +45,7 @@ public final class MetaDataCache {
      */
     private static final ConcurrentMap<String, MetaData> META_DATA_MAP = Maps.newConcurrentMap();
 
-    private static final MemorySafeWindowTinyLFUMap<String, MetaData> CACHE = new MemorySafeWindowTinyLFUMap<>(Constants.THE_256_MB, 1 << 16, Long.MAX_VALUE, Constants.LRU_MAP_MAXSIZE);
+    private static final MemorySafeWindowTinyLFUMap<String, MetaData> CACHE = new MemorySafeWindowTinyLFUMap<>(Constants.THE_256_MB, 1 << 16);
 
     /**
      * pathPattern -> path.
