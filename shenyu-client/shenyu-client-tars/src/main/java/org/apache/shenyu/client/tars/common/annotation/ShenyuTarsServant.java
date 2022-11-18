@@ -28,6 +28,8 @@ import com.qq.tars.spring.annotation.TarsServant;
 
 /**
  * Convenience annotation for {@code @ShenyuTarsService} and {@code @TarsServant}.
+ *
+ * @since TarsJava 1.7.3
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -36,19 +38,18 @@ import com.qq.tars.spring.annotation.TarsServant;
 public @interface ShenyuTarsServant {
 
     /**
+     * ShenyuTarsService service name.
+     *
+     * @return name of TarsServant
+     */
+    @AliasFor(annotation = ShenyuTarsService.class, attribute = "serviceName")
+    String serviceName();
+
+    /**
      * TarsServant name.
      *
      * @return name of TarsServant
      */
     @AliasFor(annotation = TarsServant.class, attribute = "name")
     String servantName() default "";
-
-    /**
-     * ShenyuTarsService service name.
-     *
-     * @return name of TarsServant
-     */
-    @AliasFor(annotation = ShenyuTarsService.class)
-    String serviceName();
-
 }

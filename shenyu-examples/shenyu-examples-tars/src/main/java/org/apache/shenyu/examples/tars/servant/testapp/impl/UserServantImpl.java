@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.examples.tars.servant.testapp.impl;
 
-import com.qq.tars.spring.annotation.TarsServant;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsServant;
 import org.apache.shenyu.examples.tars.servant.testapp.UserServant;
@@ -25,12 +24,12 @@ import org.apache.shenyu.examples.tars.servant.testapp.UserServant;
 @ShenyuTarsClient("/user/**")
 @ShenyuTarsServant(servantName = "UserObj", serviceName = "ShenyuExampleServer.ShenyuExampleApp.UserObj")
 public class UserServantImpl implements UserServant {
-    
+
     @Override
     public String hello(final int no, final String name) {
         return String.format("hello no=%s, name=%s, time=%s", no, name, System.currentTimeMillis());
     }
-    
+
     @Override
     public int helloInt(final int no, final String name) {
         return 1;

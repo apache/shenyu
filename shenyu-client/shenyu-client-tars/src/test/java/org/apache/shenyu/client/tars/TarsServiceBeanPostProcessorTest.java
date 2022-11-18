@@ -20,6 +20,7 @@ package org.apache.shenyu.client.tars;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
+import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsServant;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
@@ -63,6 +64,8 @@ public final class TarsServiceBeanPostProcessorTest {
 
     private final TarsDemoService3 tarsDemoService3 = new TarsDemoService3();
 
+    private final TarsDemoService4 tarsDemoService4 = new TarsDemoService4();
+
     @Mock
     private ApplicationContext applicationContext;
 
@@ -74,6 +77,7 @@ public final class TarsServiceBeanPostProcessorTest {
         results.put("tarsDemoService", tarsDemoService);
         results.put("tarsDemoService2", tarsDemoService2);
         results.put("tarsDemoService3", tarsDemoService3);
+        results.put("tarsDemoService4", tarsDemoService4);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
         contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
 
@@ -143,6 +147,13 @@ public final class TarsServiceBeanPostProcessorTest {
     @ShenyuTarsService(serviceName = "testObj3")
     @ShenyuTarsClient
     static class TarsDemoService3 {
+        public String test(final String hello) {
+            return hello + "";
+        }
+    }
+
+    @ShenyuTarsServant(serviceName = "testObj4", servantName = "ShenyuSaServer.ShenyuSaApp.TarsDemoService4")
+    static class TarsDemoService4 {
         public String test(final String hello) {
             return hello + "";
         }

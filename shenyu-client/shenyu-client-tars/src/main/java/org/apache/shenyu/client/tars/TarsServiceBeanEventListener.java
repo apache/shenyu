@@ -135,8 +135,9 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
                                                 @NonNull final ShenyuTarsClient shenyuTarsClient,
                                                 final String path, final Class<?> clazz,
                                                 final Method method) {
-        String serviceName = clazz.getAnnotation(ShenyuTarsService.class).serviceName();
-        String ipAndPort = this.ipAndPort;
+        String serviceName = Objects.requireNonNull(
+            AnnotatedElementUtils.findMergedAnnotation(bean.getClass(), ShenyuTarsService.class)
+        ).serviceName();
         String desc = shenyuTarsClient.desc();
         String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
         String configRuleName = shenyuTarsClient.ruleName();
