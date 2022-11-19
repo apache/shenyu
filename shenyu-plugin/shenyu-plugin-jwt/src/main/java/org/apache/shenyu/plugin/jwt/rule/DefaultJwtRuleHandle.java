@@ -15,39 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert.rule.impl;
-
-import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
+package org.apache.shenyu.plugin.jwt.rule;
 
 import java.util.List;
 
-/**
- * Jwt rule handle.
- */
-public class JwtRuleHandle implements RuleHandle {
+public class DefaultJwtRuleHandle extends JwtRuleHandle {
 
-    /**
-     * converter, Jwt's body content is assigned to the header.
-     */
+    private static final long serialVersionUID = 7090772288389508730L;
+
     private List<Convert> converter;
 
     /**
      * get converter.
-     * @return List
+     *
+     * @return converter
      */
     public List<Convert> getConverter() {
         return converter;
     }
 
-    @Override
-    public String toString() {
-        return "JwtRuleHandle{"
-                + "converter=" + converter.toString()
-                + '}';
-    }
-
     /**
      * set converter.
+     *
      * @param converter converter
      */
     public void setConverter(final List<Convert> converter) {
@@ -68,6 +57,7 @@ public class JwtRuleHandle implements RuleHandle {
 
         /**
          * get jwtVal.
+         *
          * @return jwtVal
          */
         public String getJwtVal() {
@@ -76,6 +66,7 @@ public class JwtRuleHandle implements RuleHandle {
 
         /**
          * set jwtVal.
+         *
          * @param jwtVal jwtVal
          */
         public void setJwtVal(final String jwtVal) {
@@ -84,6 +75,7 @@ public class JwtRuleHandle implements RuleHandle {
 
         /**
          * get headerVal.
+         *
          * @return headerVal
          */
         public String getHeaderVal() {
@@ -92,6 +84,7 @@ public class JwtRuleHandle implements RuleHandle {
 
         /**
          * set headerVal.
+         *
          * @param headerVal headerVal
          */
         public void setHeaderVal(final String headerVal) {
@@ -106,4 +99,5 @@ public class JwtRuleHandle implements RuleHandle {
                     + '}';
         }
     }
+
 }

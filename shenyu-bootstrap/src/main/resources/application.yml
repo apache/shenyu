@@ -20,7 +20,6 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
-    allow-circular-references: true
   application:
     name: shenyu-bootstrap
   codec:
@@ -68,8 +67,10 @@ management:
 
 shenyu:
   matchCache:
-    enabled: false
-    maxFreeMemory: 256 # 256MB
+    selectorEnabled: false
+    ruleEnabled: true
+    maxSelectorFreeMemory: 256 # 256MB
+    maxRuleFreeMemory: 256 # 256MB
   netty:
     http:
       # set to false, user can custom the netty tcp server config.

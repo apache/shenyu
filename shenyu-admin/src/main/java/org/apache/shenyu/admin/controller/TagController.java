@@ -23,7 +23,7 @@ import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.TagVO;
@@ -69,7 +69,7 @@ public class TagController {
      */
     @GetMapping("/queryRootTag")
     public ShenyuAdminResult queryRootTag() {
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, tagService.findByParentTagId("0"));
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, tagService.findByParentTagId("0"));
     }
 
     /**
@@ -78,9 +78,9 @@ public class TagController {
      * @param id tag name.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{name}")
-    public ShenyuAdminResult detailTag(@PathVariable("id") @Valid
-                                        @Existed(provider = RuleMapper.class,
+    @GetMapping("/id/{id}")
+    public ShenyuAdminResult queryById(@PathVariable("id") @Valid
+                                        @Existed(provider = TagMapper.class,
                                                 message = "tag is not existed") final String id) {
         TagVO tagVO = tagService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagVO);
@@ -92,7 +92,7 @@ public class TagController {
      * @param parentTagId  parentTagId.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{parentTagId}")
+    @GetMapping("/parentTagId/{parentTagId}")
     public ShenyuAdminResult queryListByParentTagId(@PathVariable("parentTagId") @Valid final String parentTagId) {
         List<TagVO> tagVOList = Optional.ofNullable(tagService.findByParentTagId(parentTagId)).orElse(Lists.newArrayList());
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagVOList);
@@ -104,7 +104,7 @@ public class TagController {
      * @param name tag name.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @GetMapping("/{id}")
+    @GetMapping("/name/{name}")
     public ShenyuAdminResult queryByName(@PathVariable("name") @Valid final String name) {
         List<TagVO> tagVO = tagService.findByQuery(name);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagVO);
@@ -117,7 +117,7 @@ public class TagController {
      * @param tagDTO rule.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @PutMapping("/{id}")
+    @PutMapping("/id/{id}")
     public ShenyuAdminResult updateTag(@PathVariable("id") @Valid final String id,
                                         @Valid @RequestBody final TagDTO tagDTO) {
         tagDTO.setId(id);
@@ -131,7 +131,7 @@ public class TagController {
      * @param ids primary key.
      * @return {@linkplain ShenyuAdminResult}
      */
-    @DeleteMapping("/batch")
+    @DeleteMapping("/batchDelete")
     public ShenyuAdminResult deleteTags(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = tagService.delete(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);

@@ -29,6 +29,7 @@ import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
+import org.apache.shenyu.sdk.core.interceptor.ShenyuSdkRequestInterceptor;
 import org.apache.shenyu.sdk.core.retry.RetryableException;
 import org.apache.shenyu.sdk.core.retry.Retryer;
 import org.slf4j.Logger;
@@ -60,6 +61,8 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
 
     private ShenyuInstanceRegisterRepository registerRepository;
 
+    private List<ShenyuSdkRequestInterceptor> requestInterceptors;
+
     private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
 
     private RegisterConfig registerConfig;
@@ -67,7 +70,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     private String algorithm;
 
     private String scheme;
-    
+
     /**
      * Do request shenyu response.
      *
@@ -76,7 +79,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
      * @throws IOException the io exception
      */
     protected abstract ShenyuResponse doRequest(ShenyuRequest request) throws IOException;
-    
+
     /**
      * Init client.
      *
@@ -85,14 +88,15 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     protected abstract void initClient(Properties props);
 
     @Override
-    public void init(final RegisterConfig registerConfig, final ShenyuInstanceRegisterRepository instanceRegisterRepository) {
+    public void init(final RegisterConfig registerConfig, final List<ShenyuSdkRequestInterceptor> requestInterceptors, final ShenyuInstanceRegisterRepository instanceRegisterRepository) {
         this.registerConfig = registerConfig;
         this.registerRepository = instanceRegisterRepository;
+        this.requestInterceptors = requestInterceptors;
         Properties props = registerConfig.getProps();
-        Boolean retryEnable = Optional.ofNullable(props.get("retry.enable")).map(e -> (boolean) e).orElse(false);
-        Long period = Optional.ofNullable(props.get("retry.period")).map(l -> (Long) l).orElse(100L);
-        long maxPeriod = Optional.ofNullable(props.get("retry.maxPeriod")).map(l -> (Long) l).orElse(SECONDS.toMillis(1));
-        int maxAttempts = Optional.ofNullable(props.get("retry.maxAttempts")).map(l -> (int) l).orElse(5);
+        Boolean retryEnable = Optional.ofNullable(props.get("retry.enable")).map(e -> Boolean.parseBoolean(e.toString())).orElse(false);
+        Long period = Optional.ofNullable(props.get("retry.period")).map(l -> Long.parseLong(l.toString())).orElse(100L);
+        long maxPeriod = Optional.ofNullable(props.get("retry.maxPeriod")).map(l -> Long.parseLong(l.toString())).orElse(SECONDS.toMillis(1));
+        int maxAttempts = Optional.ofNullable(props.get("retry.maxAttempts")).map(l -> Integer.parseInt(l.toString())).orElse(5);
         this.algorithm = props.getProperty("algorithm", "roundRobin");
         this.scheme = props.getProperty("scheme", "http");
         this.retryer = retryEnable ? new Retryer.DefaultRetry(period, maxPeriod, maxAttempts) : Retryer.NEVER_RETRY;
@@ -134,7 +138,11 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     }
 
     private ShenyuRequest rewriteShenYuRequest(final ShenyuRequest request) {
-        return ShenyuRequest.create(loadBalancerInstances(request), request);
+        ShenyuRequest shenyuRequest = ShenyuRequest.create(loadBalancerInstances(request), request);
+        if (Objects.nonNull(requestInterceptors)) {
+            requestInterceptors.forEach(interceptor -> interceptor.apply(shenyuRequest));
+        }
+        return shenyuRequest;
     }
 
     /**

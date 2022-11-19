@@ -290,13 +290,14 @@ create table mock_request_record
     api_id VARCHAR2(128) not null,
     host VARCHAR2(32) not null,
     port NUMBER(5) not null,
-    path_variable VARCHAR2(255) not null,
-    query VARCHAR2(1024) not null,
-    header VARCHAR2(1024) not null,
-    body CLOB not null,
+    url VARCHAR2(1024) not null,
+    path_variable VARCHAR2(255) default '' not null,
+    query VARCHAR2(1024) default '' not null,
+    header VARCHAR2(1024) default '' not null,
+    body CLOB,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
-)
+);
 -- Add comments to the table
 comment on table MOCK_REQUEST_RECORD
   is 'mock request records';
@@ -309,6 +310,8 @@ comment on column MOCK_REQUEST_RECORD.host
   is 'the request host';
 comment on column MOCK_REQUEST_RECORD.port
   is 'the request port';
+comment on column MOCK_REQUEST_RECORD.url
+    is 'the request url';
 comment on column MOCK_REQUEST_RECORD.path_variable
   is 'the request param in url';
 comment on column MOCK_REQUEST_RECORD.query
@@ -1108,6 +1111,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, conf
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('36', 'loggingTencentCls', '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', 'Logging', 176, '0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('38', 'loggingClickHouse', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 'Logging', 195, '0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('39', 'casdoor', '{"endpoint":"http://localhost:8000"}' ,'Authentication', 40, '0');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, enabled) VALUES ('40', 'keyAuth', 'Authentication', 150, '0');
 
 
 
@@ -2121,7 +2125,7 @@ comment on column TAG_RELATION.id
   is 'primary key id';
 comment on column TAG_RELATION.api_id
   is 'api_id';
-comment on column TAG_RELATION.parent_tag_id
+comment on column TAG_RELATION.tag_id
   is 'parent tag id';
 comment on column TAG_RELATION.date_created
   is 'create time';

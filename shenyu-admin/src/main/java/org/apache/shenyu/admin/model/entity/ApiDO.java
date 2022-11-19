@@ -17,7 +17,14 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.dto.ApiDTO;
+import org.apache.shenyu.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * api.
@@ -66,7 +73,7 @@ public class ApiDO {
     /**
      * 0-unpublished1-published2-offline.
      */
-    private Byte state;
+    private Integer state;
 
     /**
      * extended fields.
@@ -240,7 +247,7 @@ public class ApiDO {
      * getState.
      * @return state
      */
-    public Byte getState() {
+    public Integer getState() {
         return state;
     }
 
@@ -248,7 +255,7 @@ public class ApiDO {
      * setState.
      * @param state state
      */
-    public void setState(final Byte state) {
+    public void setState(final Integer state) {
         this.state = state;
     }
 
@@ -378,5 +385,287 @@ public class ApiDO {
      */
     public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+
+    /**
+     * builder.
+     * @return ApiDOBuilder
+     */
+    public static ApiDOBuilder builder() {
+        return new ApiDOBuilder();
+    }
+
+    /**
+     * buildApiDO.
+     * @param apiDTO apiDTO
+     * @return ApiDO
+     */
+    public static ApiDO buildApiDO(final ApiDTO apiDTO) {
+
+        return Optional.ofNullable(apiDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            ApiDO apiDO = ApiDO.builder()
+                    .contextPath(item.getContextPath())
+                    .apiPath(item.getApiPath())
+                    .httpMethod(item.getHttpMethod())
+                    .consume(item.getConsume())
+                    .produce(item.getProduce())
+                    .version(item.getVersion())
+                    .rpcType(item.getRpcType())
+                    .state(item.getState())
+                    .ext(item.getExt())
+                    .apiOwner(item.getApiOwner())
+                    .apiDesc(item.getApiDesc())
+                    .apiSource(item.getApiSource())
+                    .document(item.getDocument())
+                    .documentMd5(DigestUtils.md5Hex(item.getDocument()))
+                    .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                apiDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                apiDO.setDateCreated(currentTime);
+            } else {
+                apiDO.setId(item.getId());
+            }
+            return apiDO;
+        }).orElse(null);
+    }
+
+    public static final class ApiDOBuilder {
+
+        private String id;
+
+        private String contextPath;
+
+        private String apiPath;
+
+        private Integer httpMethod;
+
+        private String consume;
+
+        private String produce;
+
+        private String version;
+
+        private String rpcType;
+
+        private Integer state;
+
+        private String ext;
+
+        private String apiOwner;
+
+        private String apiDesc;
+
+        private Integer apiSource;
+
+        private String document;
+
+        private String documentMd5;
+
+        private Date dateCreated;
+
+        private Date dateUpdated;
+
+        /**
+         * Construct.
+         */
+        private ApiDOBuilder() {
+        }
+
+        /**
+         * builder id.
+         * @param id id
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * builder contextPath.
+         * @param contextPath contextPath
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder contextPath(final String contextPath) {
+            this.contextPath = contextPath;
+            return this;
+        }
+
+        /**
+         * builder apiPath.
+         * @param apiPath apiPath
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder apiPath(final String apiPath) {
+            this.apiPath = apiPath;
+            return this;
+        }
+
+        /**
+         * builder httpMethod.
+         * @param httpMethod httpMethod
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder httpMethod(final Integer httpMethod) {
+            this.httpMethod = httpMethod;
+            return this;
+        }
+
+        /**
+         * builder httpMethod.
+         * @param consume consume
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder consume(final String consume) {
+            this.consume = consume;
+            return this;
+        }
+
+        /**
+         * builder produce.
+         * @param produce produce
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder produce(final String produce) {
+            this.produce = produce;
+            return this;
+        }
+
+        /**
+         * builder version.
+         * @param version version
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder version(final String version) {
+            this.version = version;
+            return this;
+        }
+
+        /**
+         * builder rpcType.
+         * @param rpcType rpcType
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder rpcType(final String rpcType) {
+            this.rpcType = rpcType;
+            return this;
+        }
+
+        /**
+         * builder state.
+         * @param state state
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder state(final Integer state) {
+            this.state = state;
+            return this;
+        }
+
+        /**
+         * builder ext.
+         * @param ext ext
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder ext(final String ext) {
+            this.ext = ext;
+            return this;
+        }
+
+        /**
+         * builder apiOwner.
+         * @param apiOwner apiOwner
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder apiOwner(final String apiOwner) {
+            this.apiOwner = apiOwner;
+            return this;
+        }
+
+        /**
+         * builder apiDesc.
+         * @param apiDesc apiDesc
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder apiDesc(final String apiDesc) {
+            this.apiDesc = apiDesc;
+            return this;
+        }
+
+        /**
+         * builder apiSource.
+         * @param apiSource apiSource
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder apiSource(final Integer apiSource) {
+            this.apiSource = apiSource;
+            return this;
+        }
+
+        /**
+         * builder document.
+         * @param document document
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder document(final String document) {
+            this.document = document;
+            return this;
+        }
+
+        /**
+         * builder documentMd5.
+         * @param documentMd5 documentMd5
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder documentMd5(final String documentMd5) {
+            this.documentMd5 = documentMd5;
+            return this;
+        }
+
+        /**
+         * builder dateCreated.
+         * @param dateCreated dateCreated
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder dateCreated(final Date dateCreated) {
+            this.dateCreated = dateCreated;
+            return this;
+        }
+
+        /**
+         * builder dateUpdated.
+         * @param dateUpdated dateUpdated
+         * @return ApiDOBuilder
+         */
+        public ApiDOBuilder dateUpdated(final Date dateUpdated) {
+            this.dateUpdated = dateUpdated;
+            return this;
+        }
+
+        /**
+         * builder.
+         * @return ApiDO
+         */
+        public ApiDO build() {
+            ApiDO apiDO = new ApiDO();
+            apiDO.setId(id);
+            apiDO.setContextPath(contextPath);
+            apiDO.setApiPath(apiPath);
+            apiDO.setHttpMethod(httpMethod);
+            apiDO.setConsume(consume);
+            apiDO.setProduce(produce);
+            apiDO.setVersion(version);
+            apiDO.setRpcType(rpcType);
+            apiDO.setState(state);
+            apiDO.setExt(ext);
+            apiDO.setApiOwner(apiOwner);
+            apiDO.setApiDesc(apiDesc);
+            apiDO.setApiSource(apiSource);
+            apiDO.setDocument(document);
+            apiDO.setDocumentMd5(documentMd5);
+            apiDO.setDateCreated(dateCreated);
+            apiDO.setDateUpdated(dateUpdated);
+            return apiDO;
+        }
     }
 }
