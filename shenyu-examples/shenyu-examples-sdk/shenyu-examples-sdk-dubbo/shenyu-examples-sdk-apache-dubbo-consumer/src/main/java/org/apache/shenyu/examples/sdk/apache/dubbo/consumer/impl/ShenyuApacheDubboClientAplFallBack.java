@@ -17,9 +17,15 @@
 
 package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.impl;
 
+import org.apache.shenyu.examples.dubbo.api.entity.ComplexBeanTest;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
+import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 import org.apache.shenyu.examples.sdk.apache.dubbo.consumer.api.ShenyuApacheDubboClientApi;
+import org.apache.shenyu.examples.sdk.apache.dubbo.consumer.dto.DubboRequestBody;
+import org.apache.shenyu.examples.sdk.apache.dubbo.consumer.dto.DubboTestSaveRequest;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class ShenyuApacheDubboClientAplFallBack implements ShenyuApacheDubboClientApi {
@@ -31,5 +37,50 @@ public class ShenyuApacheDubboClientAplFallBack implements ShenyuApacheDubboClie
         dubboTest.setId("a");
         dubboTest.setName("fallback");
         return dubboTest;
+    }
+
+    @Override
+    public ListResp findList() {
+        return null;
+    }
+
+    @Override
+    public DubboTest findById(String id) {
+        return null;
+    }
+
+    @Override
+    public DubboTest insert(DubboTest dubboTest) {
+        return null;
+    }
+
+    @Override
+    public DubboTest findByListId(List<String> ids) {
+        return null;
+    }
+
+    @Override
+    public DubboTest findByIdsAndName(DubboRequestBody dubboRequestBody) {
+        return null;
+    }
+
+    @Override
+    public DubboTest findByArrayIdsAndName(DubboRequestBody dubboRequestBody) {
+        return null;
+    }
+
+    @Override
+    public DubboTest saveComplexBeanTest(ComplexBeanTest complexBeanTest) {
+        return null;
+    }
+
+    @Override
+    public DubboTest batchSave(DubboTestSaveRequest dubboTestSaveRequest) {
+        return null;
+    }
+
+    @Override
+    public DubboTest batchSaveAndNameAndId(DubboTestSaveRequest dubboTestSaveRequest) {
+        return null;
     }
 }
