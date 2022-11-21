@@ -15,26 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.api;
+package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.impl;
 
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
-import org.apache.shenyu.examples.sdk.apache.dubbo.consumer.impl.ShenyuApacheDubboClientAplFallBack;
-import org.apache.shenyu.examples.sdk.apache.dubbo.consumer.impl.ShenyuApacheDubboClientAplFallBackFactory;
-import org.apache.shenyu.sdk.spring.ShenyuClient;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.apache.shenyu.examples.sdk.apache.dubbo.consumer.api.ShenyuApacheDubboClientApi;
+import org.springframework.stereotype.Component;
 
-/**
- * ShenyuApacheDubboClientApi.
- */
-@ShenyuClient(contextId = "shenyu-gateway", name = "ShenyuSdkApiName",fallbackFactory = ShenyuApacheDubboClientAplFallBackFactory.class)
-public interface ShenyuApacheDubboClientApi {
+@Component
+public class ShenyuApacheDubboClientAplFallBack implements ShenyuApacheDubboClientApi {
 
-    /**
-     * findAll.
-     * test Get.
-     * @return SdkTestDto
-     */
-    @GetMapping("/dubbo/findAll")
-    DubboTest findAll();
+    @Override
+    public DubboTest findAll() {
 
+        DubboTest dubboTest=new DubboTest();
+        dubboTest.setId("a");
+        dubboTest.setName("fallback");
+        return dubboTest;
+    }
 }

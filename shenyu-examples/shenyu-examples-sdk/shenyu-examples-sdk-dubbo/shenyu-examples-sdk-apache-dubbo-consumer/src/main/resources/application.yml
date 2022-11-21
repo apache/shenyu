@@ -34,7 +34,7 @@ shenyu:
   sdk:
     enabled: true
     register-type: zookeeper #local #etcd #nacos #consul
-    server-lists: localhost:2181 #http://localhost:9095 #http://localhost:2379 #localhost:8848
+    server-lists: 101.43.241.6:2181 #http://localhost:9095 #http://localhost:2379 #localhost:8848
 
 spring:
   servlet:

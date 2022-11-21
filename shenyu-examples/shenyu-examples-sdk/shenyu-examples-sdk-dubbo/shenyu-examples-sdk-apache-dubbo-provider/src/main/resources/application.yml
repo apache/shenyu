@@ -23,5 +23,5 @@ spring:
     allow-bean-definition-overriding: true
 dubbo:
   registry:
-    address: zookeeper://localhost:2181
+    address: zookeeper://101.43.241.6:2181
     port: 20888

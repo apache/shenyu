@@ -15,26 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.api;
+package org.apache.shenyu.sdk.spring;
 
-import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
-import org.apache.shenyu.examples.sdk.apache.dubbo.consumer.impl.ShenyuApacheDubboClientAplFallBack;
-import org.apache.shenyu.examples.sdk.apache.dubbo.consumer.impl.ShenyuApacheDubboClientAplFallBackFactory;
-import org.apache.shenyu.sdk.spring.ShenyuClient;
-import org.springframework.web.bind.annotation.GetMapping;
+public class NoFallbackAvailableException extends RuntimeException {
 
-/**
- * ShenyuApacheDubboClientApi.
- */
-@ShenyuClient(contextId = "shenyu-gateway", name = "ShenyuSdkApiName",fallbackFactory = ShenyuApacheDubboClientAplFallBackFactory.class)
-public interface ShenyuApacheDubboClientApi {
-
-    /**
-     * findAll.
-     * test Get.
-     * @return SdkTestDto
-     */
-    @GetMapping("/dubbo/findAll")
-    DubboTest findAll();
-
+    public NoFallbackAvailableException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 }
