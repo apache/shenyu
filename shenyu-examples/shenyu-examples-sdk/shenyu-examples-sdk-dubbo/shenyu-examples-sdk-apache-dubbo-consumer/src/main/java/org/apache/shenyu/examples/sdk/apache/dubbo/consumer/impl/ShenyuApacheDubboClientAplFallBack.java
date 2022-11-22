@@ -45,42 +45,42 @@ public class ShenyuApacheDubboClientAplFallBack implements ShenyuApacheDubboClie
     }
 
     @Override
-    public DubboTest findById(String id) {
+    public DubboTest findById(final String id) {
         return null;
     }
 
     @Override
-    public DubboTest insert(DubboTest dubboTest) {
+    public DubboTest insert(final DubboTest dubboTest) {
         return null;
     }
 
     @Override
-    public DubboTest findByListId(List<String> ids) {
+    public DubboTest findByListId(final List<String> ids) {
         return null;
     }
 
     @Override
-    public DubboTest findByIdsAndName(DubboRequestBody dubboRequestBody) {
+    public DubboTest findByIdsAndName(final DubboRequestBody dubboRequestBody) {
         return null;
     }
 
     @Override
-    public DubboTest findByArrayIdsAndName(DubboRequestBody dubboRequestBody) {
+    public DubboTest findByArrayIdsAndName(final DubboRequestBody dubboRequestBody) {
         return null;
     }
 
     @Override
-    public DubboTest saveComplexBeanTest(ComplexBeanTest complexBeanTest) {
+    public DubboTest saveComplexBeanTest(final ComplexBeanTest complexBeanTest) {
         return null;
     }
 
     @Override
-    public DubboTest batchSave(DubboTestSaveRequest dubboTestSaveRequest) {
+    public DubboTest batchSave(final DubboTestSaveRequest dubboTestSaveRequest) {
         return null;
     }
 
     @Override
-    public DubboTest batchSaveAndNameAndId(DubboTestSaveRequest dubboTestSaveRequest) {
+    public DubboTest batchSaveAndNameAndId(final DubboTestSaveRequest dubboTestSaveRequest) {
         return null;
     }
 }
