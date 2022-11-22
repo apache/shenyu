@@ -42,7 +42,7 @@ public class ShenyuHttpSdkExampleController {
      * @param id id
      * @return SdkTestDto
      */
-    @GetMapping("sdk/findById")
+    @GetMapping("sdk/http/findById")
     public SdkTestDto findById(final @RequestParam("id") String id) {
         return shenyuHttpClientApi.findById(id);
     }
@@ -54,9 +54,9 @@ public class ShenyuHttpSdkExampleController {
      * @param sdkTestDto sdkTestDto
      * @return sdkTestDto
      */
-    @PostMapping("sdk/annoTest")
+    @PostMapping("sdk/http/annoTest")
     public SdkTestDto annoTest(final @RequestBody SdkTestDto sdkTestDto) {
-        return shenyuHttpClientApi.annoTest("cookie", "header", "9", sdkTestDto);
+        return shenyuHttpClientApi.annoTest("cookie", "header", sdkTestDto.getId(), sdkTestDto);
     }
 
 }

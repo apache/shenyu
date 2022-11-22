@@ -21,6 +21,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.constant.Constants;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -56,7 +57,7 @@ public class MemorySafeWindowTinyLFUMap<K, V> extends AbstractMap<K, V> implemen
     
     public MemorySafeWindowTinyLFUMap(final int maxFreeMemory,
                                       final int initialSize) {
-        this(maxFreeMemory, initialSize, Long.MAX_VALUE, 1 << 30);
+        this(maxFreeMemory, initialSize, Long.MAX_VALUE, Constants.LRU_MAP_MAXSIZE);
     }
     
     public MemorySafeWindowTinyLFUMap(final int maxFreeMemory,
