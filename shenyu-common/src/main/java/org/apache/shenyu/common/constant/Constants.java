@@ -647,7 +647,10 @@ public interface Constants {
      */
     String DEFAULT_CLUSTER = "failover";
 
-    int PREFIX_FORWARD_ENABLE = 1;
+    /**
+     * cache data max size, means map size.
+     */
+    Long LRU_MAP_MAXSIZE = 65536L;
 
     /**
      * String q.
