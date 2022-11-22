@@ -45,7 +45,7 @@ INSERT INTO shenyu_dict ("id", "type", "dict_code", "dict_name", "dict_value", "
 INSERT INTO shenyu_dict ("id", "type", "dict_code", "dict_name", "dict_value", "desc", "sort", "enabled") VALUES ('1529402613195784248', 'signRequestBody', 'SIGN_REQUEST_BODY', 'open', 'true', 'open', 0, 1);
 
 -- refactor logging name
-UPDATE plugin SET name = "LoggingConsole" WHERE name = "logging";
+UPDATE plugin SET name = "loggingConsole" WHERE name = "logging";
 
 -- new table operation_record_log
 -- ----------------------------
