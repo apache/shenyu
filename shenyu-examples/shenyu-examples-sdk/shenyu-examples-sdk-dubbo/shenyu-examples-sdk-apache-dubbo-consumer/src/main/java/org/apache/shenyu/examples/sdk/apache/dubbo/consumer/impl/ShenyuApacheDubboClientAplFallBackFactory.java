@@ -35,21 +35,21 @@ public class ShenyuApacheDubboClientAplFallBackFactory implements FallbackFactor
     @Override
     public ShenyuApacheDubboClientApi create(Throwable cause) {
 
-        System.out.println("exception message:"+cause.getMessage());
+        System.out.println("exception message:" + cause.getMessage());
         return new ShenyuApacheDubboClientApi() {
             @Override
             public DubboTest findAll() {
 
-                return new DubboTest("1","fallBackFactory");
+                return new DubboTest("1", "fallBackFactory");
             }
 
             @Override
             public ListResp findList() {
 
-                List<DubboTest> list=new ArrayList<>();
-                list.add(new DubboTest("1","fallBackFactory"));
-                list.add(new DubboTest("2","fallBackFactory"));
-                ListResp listResp=new ListResp(2,list);
+                List<DubboTest> list = new ArrayList<>();
+                list.add(new DubboTest("1", "fallBackFactory"));
+                list.add(new DubboTest("2", "fallBackFactory"));
+                ListResp listResp = new ListResp(2, list);
                 return listResp;
             }
 
