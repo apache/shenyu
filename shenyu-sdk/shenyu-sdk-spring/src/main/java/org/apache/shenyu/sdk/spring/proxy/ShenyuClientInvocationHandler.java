@@ -65,6 +65,7 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+
         ShenyuClientMethodHandler handler = methodHandlerMap.get(method);
         if (ObjectUtils.isEmpty(handler)) {
             throw new ShenyuException(String.format("the method cannot be called, please check the annotation and configuration, method %s", method.getName()));
