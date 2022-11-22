@@ -17,14 +17,18 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
+import org.apache.shenyu.admin.model.query.TagRelationQuery;
+import org.apache.shenyu.admin.validation.ExistProvider;
 
 /**
  * this is User Tag Mapper.
  */
 @Mapper
-public interface TagRelationMapper {
+public interface TagRelationMapper extends ExistProvider {
 
     /**
      * delete by primary key.
@@ -33,6 +37,14 @@ public interface TagRelationMapper {
      * @return deleteCount
      */
     int deleteByPrimaryKey(String id);
+
+    /**
+     * delete tag relation.
+     *
+     * @param ids primary keys.
+     * @return rows int
+     */
+    int deleteByIds(List<String> ids);
 
     /**
      * update record selective.
@@ -52,13 +64,23 @@ public interface TagRelationMapper {
 
     /**
      * select by key.
+     *
      * @param id primarykey
      * @return tagRelationDO
      */
     TagRelationDO selectByPrimaryKey(String id);
 
     /**
+     * select tag relation by query.
+     *
+     * @param tagRelationQuery {@linkplain org.apache.shenyu.admin.model.query.TagRelationQuery}
+     * @return {@linkplain List}
+     */
+    List<TagRelationDO> selectByQuery(TagRelationQuery tagRelationQuery);
+
+    /**
      * update record.
+     *
      * @param record record
      * @return update count
      */
@@ -66,10 +88,31 @@ public interface TagRelationMapper {
 
     /**
      * update .
+     *
      * @param record update record
      * @return update count
      */
     int updateByPrimaryKey(TagRelationDO record);
 
+    /**
+     * batchInsert.
+     * @param list list
+     * @return insert rows
+     */
+    int batchInsert(@Param(value = "list") List<TagRelationDO> list);
+
+    /**
+     * deleteByApiId.
+     * @param apiId apiId
+     * @return delete rows
+     */
+    int deleteByApiId(@Param(value = "apiId") String apiId);
+
+    /**
+     * deleteByApiIds.
+     * @param apiIds apiIds
+     * @return delete rows
+     */
+    int deleteByApiIds(@Param(value = "apiIds") List<String> apiIds);
 }
 

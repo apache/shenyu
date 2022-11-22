@@ -17,12 +17,12 @@
 
 package org.apache.shenyu.springboot.starter.sdk;
 
-import okhttp3.OkHttpClient;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClientFactory;
+import org.apache.shenyu.sdk.core.interceptor.ShenyuSdkRequestInterceptor;
 import org.apache.shenyu.sdk.spring.annotation.CookieValueParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.PathVariableParameterProcessor;
 import org.apache.shenyu.sdk.spring.annotation.RequestBodyParameterProcessor;
@@ -32,12 +32,12 @@ import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.apache.shenyu.sdk.spring.factory.Contract;
 import org.apache.shenyu.sdk.spring.support.SpringMvcContract;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -70,16 +70,18 @@ public class ShenyuSdkAutoConfiguration {
      * okHttpShenyuSdkClient.
      *
      * @param config config
-     * @param instanceRegisterRepository the instance register repository
+     * @param requestInterceptorsProvider the request interceptors
+     * @param instanceRegisterRepositoryProvider the instance register repository
      * @return {@link ShenyuSdkClient}
      */
     @Bean
-    @ConditionalOnClass(OkHttpClient.class)
-    public ShenyuSdkClient shenyuSdkClient(final RegisterConfig config, final ShenyuInstanceRegisterRepository instanceRegisterRepository) {
+    public ShenyuSdkClient shenyuSdkClient(final RegisterConfig config,
+                                           final ObjectProvider<List<ShenyuSdkRequestInterceptor>> requestInterceptorsProvider,
+                                           final ObjectProvider<ShenyuInstanceRegisterRepository> instanceRegisterRepositoryProvider) {
         Properties props = config.getProps();
         String clientType = props.getProperty("clientType", "httpclient");
         ShenyuSdkClient shenyuSdkClient = ShenyuSdkClientFactory.newInstance(clientType);
-        shenyuSdkClient.init(config, instanceRegisterRepository);
+        shenyuSdkClient.init(config, requestInterceptorsProvider.getIfAvailable(), instanceRegisterRepositoryProvider.getIfAvailable());
         return shenyuSdkClient;
     }
     

@@ -32,7 +32,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.PathMatchUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -192,13 +191,11 @@ public class ZookeeperSyncDataService implements SyncDataService {
     }
 
     class PluginCacheListener extends AbstractDataSyncListener {
-
-        private static final String PLUGIN_PATH = DefaultPathConstants.PLUGIN_PARENT + "/*";
-
+        
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(PLUGIN_PATH, path)) {
+            if (!path.contains(DefaultPathConstants.PLUGIN_PARENT)) {
                 return;
             }
 
@@ -218,15 +215,12 @@ public class ZookeeperSyncDataService implements SyncDataService {
     }
 
     class SelectorCacheListener extends AbstractDataSyncListener {
-
-        // /shenyu/selector/{plugin}/{selector}
-        private static final String SELECTOR_PATH = DefaultPathConstants.SELECTOR_PARENT + "/*/*";
-
+        
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
 
             // if not uri register path, return.
-            if (!PathMatchUtils.match(SELECTOR_PATH, path)) {
+            if (!path.contains(DefaultPathConstants.SELECTOR_PARENT)) {
                 return;
             }
 
@@ -242,12 +236,10 @@ public class ZookeeperSyncDataService implements SyncDataService {
 
     class MetadataCacheListener extends AbstractDataSyncListener {
 
-        private static final String META_DATA_PATH = DefaultPathConstants.META_DATA + "/*";
-
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(META_DATA_PATH, path)) {
+            if (!path.contains(DefaultPathConstants.META_DATA)) {
                 return;
             }
 
@@ -269,13 +261,11 @@ public class ZookeeperSyncDataService implements SyncDataService {
     }
 
     class AuthCacheListener extends AbstractDataSyncListener {
-
-        private static final String APP_AUTH_PATH = DefaultPathConstants.APP_AUTH_PARENT + "/*";
-
+        
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(APP_AUTH_PATH, path)) {
+            if (!path.contains(DefaultPathConstants.APP_AUTH_PARENT)) {
                 return;
             }
 
@@ -290,14 +280,11 @@ public class ZookeeperSyncDataService implements SyncDataService {
     }
 
     class RuleCacheListener extends AbstractDataSyncListener {
-
-        // /shenyu/rule/{plugin}/{rule}
-        private static final String RULE_PATH = DefaultPathConstants.RULE_PARENT + "/*/*";
-
+        
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(RULE_PATH, path)) {
+            if (!path.contains(DefaultPathConstants.RULE_PARENT)) {
                 return;
             }
 
@@ -310,5 +297,4 @@ public class ZookeeperSyncDataService implements SyncDataService {
                     .ifPresent(e -> cacheRuleData(GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), RuleData.class)));
         }
     }
-
 }

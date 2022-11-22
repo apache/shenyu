@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * SelectorDTO.
+ * SelectorData.
  *
  * @since 2.0.0
  */
