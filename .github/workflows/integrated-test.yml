@@ -37,6 +37,7 @@ jobs:
           - shenyu-integrated-test-websocket
           - shenyu-integrated-test-combination
           - shenyu-integrated-test-sdk-apache-dubbo
+          - shenyu-integrated-test-sdk-http
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
