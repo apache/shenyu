@@ -29,24 +29,24 @@ import java.util.regex.Pattern;
  * GeneratorFactory.
  */
 public final class GeneratorFactory {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(GeneratorFactory.class);
-    
+
     /**
      * If expression parsing fails, the ${} placeholder
      * will be replaced with the following.
      */
     private static final String ERROR_PARSE = "\"[#ERROR EXPRESSION#]\"";
-    
+
     /**
      * Regular expression to extract rule content.
      */
     private static final Pattern RULE_CONTENT_PATTERN = Pattern
             .compile("^\\$\\{(.+?)}$", Pattern.MULTILINE);
-    
+
     private GeneratorFactory() {
     }
-    
+
     /**
      * New instance mock data generator.
      *
@@ -62,7 +62,7 @@ public final class GeneratorFactory {
         }
         return null;
     }
-    
+
     private static String generate(final String rule) {
         final Matcher matcher = RULE_CONTENT_PATTERN.matcher(rule);
         if (matcher.find()) {
@@ -80,7 +80,7 @@ public final class GeneratorFactory {
             return rule;
         }
     }
-    
+
     /**
      * replace placeholder in content.
      *
@@ -96,13 +96,13 @@ public final class GeneratorFactory {
                 generateData = ERROR_PARSE;
             }
             String toString = String.valueOf(generateData);
-            placeHolder = placeHolder.replaceAll("([$|{}\\]\\[])", "\\\\$1");
+            placeHolder = placeHolder.replaceAll("([$|{}()\\]\\[])", "\\\\$1");
             afterDeal = afterDeal.replaceFirst(placeHolder, toString);
             placeHolder = getPlaceholder(afterDeal);
         }
         return afterDeal;
     }
-    
+
     private static String getPlaceholder(final String rule) {
         int start = rule.indexOf("${");
         if (start < 0) {

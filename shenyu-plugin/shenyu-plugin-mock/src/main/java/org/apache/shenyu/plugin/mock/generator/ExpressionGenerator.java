@@ -17,20 +17,28 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.plugin.mock.util.MockUtil;
+import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.util.List;
 
+@Join
 public class ExpressionGenerator implements Generator<String> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExpressionGenerator.class);
 
-    private String expression;
+    private static final ExpressionParser PARSER = new SpelExpressionParser();
 
-    private final ExpressionParser parser = new SpelExpressionParser();
+    private static final EvaluationContext CONTEXT = initContext();
+
+    private String expression;
 
     @Override
     public String getName() {
@@ -39,14 +47,16 @@ public class ExpressionGenerator implements Generator<String> {
 
     @Override
     public String generate() {
-        String val;
         try {
-            val = "" + parser.parseExpression(expression).getValue();
+            Object val = PARSER.parseExpression(expression).getValue(CONTEXT);
+            if (val instanceof MockUtil.FormatDouble) {
+                return val.toString();
+            }
+            return JsonUtils.toJson(val);
         } catch (Exception e) {
-            val = "Wrong expression!!!,please check!!!";
             LOG.error(e.getMessage(), e);
+            return "Wrong expression!!!";
         }
-        return val;
     }
 
     @Override
@@ -62,5 +72,43 @@ public class ExpressionGenerator implements Generator<String> {
     @Override
     public boolean match(final String rule) {
         return rule.matches("^expression\\|.+");
+    }
+
+    private static EvaluationContext initContext() {
+
+        StandardEvaluationContext context = new StandardEvaluationContext();
+
+        try {
+            registerMockFunction(context, "double", "randomDouble", double.class, double.class, String[].class);
+
+            registerMockFunction(context, "bool", "bool");
+
+            registerMockFunction(context, "int", "randomInt", int.class, int.class);
+
+            registerMockFunction(context, "email", "email");
+
+            registerMockFunction(context, "phone", "phone");
+
+            registerMockFunction(context, "zh", "zh", int.class, int.class);
+
+            registerMockFunction(context, "en", "en", int.class, int.class);
+
+            registerMockFunction(context, "oneOf", "oneOf", Object[].class);
+
+            registerMockFunction(context, "current", "current", String[].class);
+
+        } catch (NoSuchMethodException e) {
+            // It will never happen
+            LOG.error(e.getMessage(), e);
+        }
+        return context;
+    }
+
+    private static void registerMockFunction(final StandardEvaluationContext context,
+                                             final String name,
+                                             final String methodName,
+                                             final Class<?>... parameterTypes) throws NoSuchMethodException {
+        context.registerFunction(name,
+                MockUtil.class.getDeclaredMethod(methodName, parameterTypes));
     }
 }
