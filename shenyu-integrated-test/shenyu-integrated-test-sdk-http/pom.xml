@@ -19,83 +19,57 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>shenyu-examples-sdk</artifactId>
+        <artifactId>shenyu-integrated-test</artifactId>
         <groupId>org.apache.shenyu</groupId>
         <version>2.5.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>shenyu-examples-sdk-http</artifactId>
+    <artifactId>shenyu-integrated-test-sdk-http</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-sdk-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-sdk-httpclient</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-        </dependency>
-        <!--spring bootstrap-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-sdk</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-client-springmvc</artifactId>
+            <artifactId>shenyu-integrated-test-common</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-instance</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>
 
-    <build>
-        <finalName>shenyu-examples-sdk-http</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>org.apache.shenyu.examples.sdk.http.ShenyuSdkHttpExampleApplication</mainClass>
-                    <executable>true</executable>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <profiles>
         <profile>
-            <id>example</id>
+            <id>it</id>
             <properties>
-                <docker.buildArg.APP_NAME>shenyu-examples-sdk-http</docker.buildArg.APP_NAME>
-                <docker.image.tag.repo>shenyu-examples-sdk-http</docker.image.tag.repo>
+                <docker.buildArg.APP_NAME>shenyu-integrated-test-sdk-http</docker.buildArg.APP_NAME>
+                <docker.image.tag.repo>apache/shenyu-integrated-test-sdk-http</docker.image.tag.repo>
                 <docker.image.tag.tagName>latest</docker.image.tag.tagName>
             </properties>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
             <build>
+                <finalName>shenyu-integrated-test-sdk-http</finalName>
                 <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${spring-boot.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>repackage</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <mainClass>org.apache.shenyu.integrated.test.sdk.http.SdkHttpIntegratedBootstrap</mainClass>
+                            <executable>true</executable>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
@@ -103,7 +77,7 @@
                         <configuration>
                             <images>
                                 <image>
-                                    <name>shenyu-examples-sdk-http</name>
+                                    <name>apache/shenyu-integrated-test-sdk-http</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                     </build>
@@ -119,8 +93,16 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>false</skipTests>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
     </profiles>
+
 </project>
