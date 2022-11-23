@@ -15,30 +15,51 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+package org.apache.shenyu.integrated.test.sdk.http.dto;
 
 /**
- * Test cases for ShaUtils.
+ * SdkTestDto.
  */
-public final class ShaUtilsTest {
+public class SdkTestDto {
 
-    @Test
-    public void testShaEncryption() {
-        assertThat(ShaUtils.shaEncryption("123456"), is("ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413"));
+    private String id;
+
+    private String name;
+
+    /**
+     * getId.
+     *
+     * @return id
+     */
+    public String getId() {
+        return id;
     }
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    public void testShaEncryptionForNullOrEmpty(final String src) {
-        assertThat(ShaUtils.shaEncryption(src), nullValue());
+    /**
+     * setId.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
     }
+
+    /**
+     * getName.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * setName.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
 }
-
