@@ -62,6 +62,8 @@ public class ShenyuConfig {
     private SharedPool sharedPool = new SharedPool();
     
     private MetricsConfig metrics = new MetricsConfig();
+
+    private ShenyuTrieConfig trie = new ShenyuTrieConfig();
     
     /**
      * Gets health.
@@ -332,7 +334,15 @@ public class ShenyuConfig {
     public void setCross(final CrossFilterConfig cross) {
         this.cross = cross;
     }
-    
+
+    public ShenyuTrieConfig getTrie() {
+        return trie;
+    }
+
+    public void setTrie(ShenyuTrieConfig trie) {
+        this.trie = trie;
+    }
+
     /**
      * The type Scheduler.
      */
@@ -1704,6 +1714,28 @@ public class ShenyuConfig {
          */
         public void setProps(final Properties props) {
             this.props = props;
+        }
+    }
+
+    public static class ShenyuTrieConfig {
+        private Long trieChildrenSize = 10000L;
+
+        private Long ruleMapSize = 1000L;
+
+        public Long getTrieChildrenSize() {
+            return trieChildrenSize;
+        }
+
+        public void setTrieChildrenSize(Long trieChildrenSize) {
+            this.trieChildrenSize = trieChildrenSize;
+        }
+
+        public Long getRuleMapSize() {
+            return ruleMapSize;
+        }
+
+        public void setRuleMapSize(Long ruleMapSize) {
+            this.ruleMapSize = ruleMapSize;
         }
     }
 }

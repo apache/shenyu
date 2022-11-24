@@ -66,9 +66,12 @@ management:
       enabled: false
 
 shenyu:
+  trie:
+    trieChildrenSize: 10000
+    ruleMapSize: 1000
   matchCache:
     selectorEnabled: false
-    ruleEnabled: true
+    ruleEnabled: false
     maxSelectorFreeMemory: 256 # 256MB
     maxRuleFreeMemory: 256 # 256MB
   netty:

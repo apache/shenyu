@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.plugin.base.trie;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.apache.shenyu.common.dto.RuleData;
+
 import java.util.Map;
 import java.util.Objects;
 
@@ -38,7 +42,7 @@ public class ShenyuTrieNode {
     /**
      * in path /a/b/c, b is child of a, c is child of b
      */
-    private Map<String, ShenyuTrieNode> children;
+    private Cache<String, ShenyuTrieNode> children;
 
     /**
      * path variables.
@@ -61,6 +65,11 @@ public class ShenyuTrieNode {
     private boolean endOfPath;
 
     /**
+     * selectorId -> RuleData
+     */
+    private Cache<String, RuleData> pluginRuleMap;
+
+    /**
      * biz info, route info and any other info store here, e.g. ruleId, selectorId and so on.
      */
     private Object bizInfo;
@@ -68,10 +77,11 @@ public class ShenyuTrieNode {
     public ShenyuTrieNode() {
     }
 
-    public ShenyuTrieNode(final String matchStr, final String fullPath, final boolean endOfPath) {
+    public ShenyuTrieNode(final String matchStr, final String fullPath, final boolean endOfPath, final Long size) {
         this.matchStr = matchStr;
         this.fullPath = fullPath;
         this.endOfPath = endOfPath;
+        this.pluginRuleMap = Caffeine.newBuilder().maximumSize(size).build();
     }
 
     public String getMatchStr() {
@@ -90,11 +100,11 @@ public class ShenyuTrieNode {
         this.fullPath = fullPath;
     }
 
-    public Map<String, ShenyuTrieNode> getChildren() {
+    public Cache<String, ShenyuTrieNode> getChildren() {
         return children;
     }
 
-    public void setChildren(Map<String, ShenyuTrieNode> children) {
+    public void setChildren(Cache<String, ShenyuTrieNode> children) {
         this.children = children;
     }
 
@@ -147,6 +157,14 @@ public class ShenyuTrieNode {
         return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr) && fullPath.equals(that.fullPath) && children.equals(that.children) && pathVariablesSet.equals(that.pathVariablesSet) && pathVariableNode.equals(that.pathVariableNode) && bizInfo.equals(that.bizInfo);
     }
 
+    public Cache<String, RuleData> getPluginRuleMap() {
+        return pluginRuleMap;
+    }
+
+    public void setPluginRuleMap(Cache<String, RuleData> pluginRuleMap) {
+        this.pluginRuleMap = pluginRuleMap;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(matchStr, fullPath, children, pathVariablesSet, pathVariableNode, isWildcard, endOfPath, bizInfo);
@@ -162,6 +180,7 @@ public class ShenyuTrieNode {
                 ", pathVariableNode=" + pathVariableNode +
                 ", isWildcard=" + isWildcard +
                 ", endOfPath=" + endOfPath +
+                ", pluginRuleMap=" + pluginRuleMap +
                 ", bizInfo=" + bizInfo +
                 '}';
     }

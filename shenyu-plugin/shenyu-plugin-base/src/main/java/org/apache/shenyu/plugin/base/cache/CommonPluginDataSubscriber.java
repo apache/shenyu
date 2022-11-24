@@ -23,6 +23,8 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.common.enums.RuleTrieEventEnum;
+import org.apache.shenyu.plugin.base.event.RuleTrieEvent;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
@@ -201,7 +203,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName());
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.handlerRule(ruleData));
-            
+            eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.INSERT, ruleData));
         }
     }
 
@@ -243,10 +245,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
+            eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.REMOVE, ruleData));
             BaseDataCache.getInstance().removeRuleData(ruleData);
             MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName());
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.removeRule(ruleData));
+
             
         }
     }

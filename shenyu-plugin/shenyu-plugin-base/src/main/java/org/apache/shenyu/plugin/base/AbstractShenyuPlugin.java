@@ -33,6 +33,8 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
+import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
+import org.apache.shenyu.plugin.base.trie.ShenyuTrieNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
@@ -116,31 +118,28 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             // if continued， not match rules
             return doExecute(exchange, chain, selectorData, defaultRuleData(selectorData));
         }
-        // handle Rule
-        RuleData ruleData = obtainRuleDataCacheIfEnabled(path);
         List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
-        if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
-            return handleRuleIfNull(pluginName, exchange, chain);
-        }
         if (CollectionUtils.isEmpty(rules)) {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
+        RuleData ruleData;
         if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
             //get last
             RuleData rule = rules.get(rules.size() - 1);
             printLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         } else {
-            Pair<Boolean, RuleData> matchRuleData = matchRule(exchange, rules);
-            ruleData = matchRuleData.getRight();
-            if (Objects.isNull(ruleData)) {
-                this.cacheRuleData(pluginName, path, matchRuleData);
-                return handleRuleIfNull(pluginName, exchange, chain);
-            } else {
-                // if match success, cache rule.
-                if (matchCacheConfig.getRuleEnabled() && matchRuleData.getLeft()) {
-                    cacheRuleData(path, ruleData);
+            ShenyuTrieNode matchTrieNode = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match(path, selectorData.getId(), pluginName);
+            if (Objects.nonNull(matchTrieNode)) {
+                ruleData = matchTrieNode.getPluginRuleMap().getIfPresent(selectorData.getId());
+                if (Objects.isNull(ruleData)) {
+                    return handleRuleIfNull(pluginName, exchange, chain);
                 }
+            } else {
+                return handleRuleIfNull(pluginName, exchange, chain);
+            }
+            if (!filterRule(ruleData, exchange)) {
+                return chain.execute(exchange);
             }
         }
         printLog(ruleData, pluginName);

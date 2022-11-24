@@ -17,18 +17,24 @@
 
 package org.apache.shenyu.plugin.base.trie;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.enums.OperatorEnum;
+import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.springframework.util.StopWatch;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ShenyuTrie {
 
-    private static final ShenyuTrie INSTANCE = new ShenyuTrie();
+    // public static final ShenyuTrie INSTANCE = new ShenyuTrie();
 
     private ReentrantLock lock = new ReentrantLock(false);
 
@@ -38,15 +44,16 @@ public class ShenyuTrie {
 
     private ShenyuTrieNode root;
 
-    private ConcurrentHashMap<String, String> cache = new ConcurrentHashMap<>();
+    private final Long childrenSize;
 
-    public ShenyuTrie() {
-        this.root = new ShenyuTrieNode("/", "/", false);
+    public ShenyuTrie(final Long size, final Long childrenSize) {
+        this.root = new ShenyuTrieNode("/", "/", false, size);
+        this.childrenSize = childrenSize;
     }
 
-    public static ShenyuTrie getInstance() {
-        return INSTANCE;
-    }
+    // public static ShenyuTrie getInstance() {
+    //     return INSTANCE;
+    // }
 
     /**
      * clear the trie.
@@ -62,7 +69,7 @@ public class ShenyuTrie {
      * @return status
      */
     public boolean isEmpty(ShenyuTrie shenyuTrie) {
-        if (shenyuTrie.root.getChildren().isEmpty() && "/".equals(shenyuTrie.root.getMatchStr())) {
+        if (shenyuTrie.root.getChildren().estimatedSize() == 0 && "/".equals(shenyuTrie.root.getMatchStr())) {
             return true;
         } else {
             return false;
@@ -74,7 +81,7 @@ public class ShenyuTrie {
      *
      * @param uriPath uri path
      */
-    public void putNode(final String uriPath) {
+    public void putNode(final String uriPath, final RuleData ruleData, final Object bizInfo) {
         if (StringUtils.isNotBlank(uriPath)) {
             String strippedPath = StringUtils.strip(uriPath, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
@@ -89,6 +96,11 @@ public class ShenyuTrie {
                 // after insert node, set full path and end of path
                 node.setFullPath(uriPath);
                 node.setEndOfPath(true);
+                node.setBizInfo(bizInfo);
+                if (Objects.isNull(node.getPluginRuleMap())) {
+                    node.setPluginRuleMap(Caffeine.newBuilder().maximumSize(1000).build());
+                }
+                node.getPluginRuleMap().put(ruleData.getSelectorId(), ruleData);
             }
         }
     }
@@ -96,7 +108,7 @@ public class ShenyuTrie {
     /**
      * put node to trie
      *
-     * @param segment current string
+     * @param segment        current string
      * @param shenyuTrieNode current trie node
      * @return {@linkplain ShenyuTrieNode}
      */
@@ -106,11 +118,11 @@ public class ShenyuTrie {
             return shenyuTrieNode;
         }
         if (Objects.isNull(shenyuTrieNode.getChildren())) {
-            shenyuTrieNode.setChildren(new TreeMap<>());
+            shenyuTrieNode.setChildren(Caffeine.newBuilder().maximumSize(childrenSize).build());
         }
         ShenyuTrieNode childrenNode;
-        if (shenyuTrieNode.getChildren().containsKey(segment)) {
-            childrenNode = shenyuTrieNode.getChildren().get(segment);
+        if (Objects.nonNull(shenyuTrieNode.getChildren().getIfPresent(segment))) {
+            childrenNode = shenyuTrieNode.getChildren().getIfPresent(segment);
         } else {
             childrenNode = new ShenyuTrieNode();
             childrenNode.setMatchStr(segment);
@@ -126,7 +138,7 @@ public class ShenyuTrie {
      * @param uriPath uri path
      * @return match result
      */
-    public boolean match(final String uriPath) {
+    public ShenyuTrieNode match(final String uriPath, final String selectorId, final String pluginName) {
         if (!StringUtils.isEmpty(uriPath)) {
             String strippedPath = StringUtils.strip(uriPath, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
@@ -135,24 +147,32 @@ public class ShenyuTrie {
                 for (String path : pathParts) {
                     currentNode = matchNode(path, currentNode);
                     // if not match route, exist the loop
-                    if (Objects.isNull(currentNode) || currentNode.getWildcard()) {
+                    if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPluginRuleMap().getIfPresent(selectorId))
+                            && pluginName.equals(currentNode.getPluginRuleMap().getIfPresent(selectorId).getPluginName())) {
                         break;
                     }
+                    if (Objects.nonNull(currentNode) && currentNode.getWildcard() && Objects.nonNull(currentNode.getPluginRuleMap().getIfPresent(selectorId))
+                            && pluginName.equals(currentNode.getPluginRuleMap().getIfPresent(selectorId).getPluginName())) {
+                        break;
+                    }
+                    if (Objects.isNull(currentNode)) {
+                        return null;
+                    }
                 }
-                if (Objects.nonNull(currentNode) && currentNode.getEndOfPath()) {
-                    return true;
+                if (currentNode.getEndOfPath()) {
+                    return currentNode;
                 }
             }
         }
-        return false;
+        return null;
     }
 
     private ShenyuTrieNode matchNode(final String segment, final ShenyuTrieNode node) {
-        if (Objects.nonNull(node) && Objects.nonNull(node.getChildren()) && node.getChildren().containsKey(segment)) {
-            return node.getChildren().get(segment);
+        if (Objects.nonNull(node) && Objects.nonNull(node.getChildren()) && Objects.nonNull(node.getChildren().getIfPresent(segment))) {
+            return node.getChildren().getIfPresent(segment);
         }
         // if the node is a wildcard, then return current node
-        if (node.getWildcard()) {
+        if (Objects.nonNull(node) && node.getWildcard()) {
             return node;
         }
         return null;
@@ -162,13 +182,14 @@ public class ShenyuTrie {
         if (StringUtils.isNotBlank(path)) {
             String strippedPath = StringUtils.strip(path, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
-            String key = pathParts[pathParts.length-1];
-            String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length-1);
+            String key = pathParts[pathParts.length - 1];
+            String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
             String parentPath = String.join("/", parentPathArray);
             ShenyuTrieNode shenyuTrieNode = this.getNode(parentPath);
             // node is not null, remove this current
             if (Objects.nonNull(shenyuTrieNode)) {
-                shenyuTrieNode.getChildren().remove(key);
+                shenyuTrieNode.getChildren().invalidate(key);
+                shenyuTrieNode.getChildren().cleanUp();
             }
         }
     }
@@ -197,7 +218,7 @@ public class ShenyuTrie {
     /**
      * get node.
      *
-     * @param node node
+     * @param node      node
      * @param pathParts path parts
      * @return {@linkplain ShenyuTrieNode}
      */
@@ -213,17 +234,17 @@ public class ShenyuTrie {
                 if (Objects.isNull(node)) {
                     return null;
                 } else {
-                    return node.getChildren().get(key);
+                    return node.getChildren().getIfPresent(key);
                 }
             }
         } else {
             if (isMatchAll(key)) {
                 return null;
             } else {
-                if (Objects.isNull(node) || Objects.isNull(node.getChildren()) || Objects.isNull(node.getChildren().get(key))) {
+                if (Objects.isNull(node) || Objects.isNull(node.getChildren()) || Objects.isNull(node.getChildren().getIfPresent(key))) {
                     return null;
                 } else {
-                    return this.getNode0(node.getChildren().get(key), slice);
+                    return this.getNode0(node.getChildren().getIfPresent(key), slice);
                 }
             }
         }
@@ -257,30 +278,40 @@ public class ShenyuTrie {
         // System.gc();
 // startMemory=totalMemory(总内存)-freeMemory(剩余内存)
 //         long startMemory = Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory();
-        StopWatch watch = new StopWatch("trie");
-        watch.start();
-        ShenyuTrie trie = new ShenyuTrie();
-        // for(int i = 0; i < 1000000; i++) {
-        //     trie.putNode("/" + i+1 + "/" + i+2 + "/" + i+3);
-        // }
-        trie.putNode("/02/03/04");
-        trie.putNode("/**");
-        trie.putNode("/a/b/**");
-        watch.stop();
-        System.out.println(watch.prettyPrint());
-
-        StopWatch watch2 = new StopWatch("2");
-        watch2.start();
-        System.out.println(trie.match("/02/03/04"));;
-        System.out.println(trie.match("/**"));
-        System.out.println(trie.getNode("/02/03/04"));
-        System.out.println(trie.getNode("/**"));
-        System.out.println(trie.match("/0999/1000/1001"));;
-        trie.remove("/02/03/04");
-        System.out.println(trie.match("/02/03/04"));;
-        System.out.println();
-        watch2.stop();
-        System.out.println(watch2.prettyPrint());
+//         StopWatch watch = new StopWatch("trie");
+//         watch.start();
+//         ShenyuTrie trie = new ShenyuTrie();
+//         RuleData ruleData = new RuleData();
+//         ruleData.setSelectorId("1");
+//         ruleData.setPluginName("divide");
+//         ConditionData conditionData = new ConditionData();
+//         conditionData.setParamType(ParamTypeEnum.URI.getName());
+//         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+//         conditionData.setParamValue("/http/test/sentinel/**");
+//         ruleData.setConditionDataList(Collections.singletonList(conditionData));
+//         for (int i = 0; i < 1000000; i++) {
+//             trie.putNode("/" + i + 1 + "/" + i + 2 + "/" + i + 3, ruleData, null);
+//         }
+//         // trie.putNode("/02/03/04", "1");
+//         // trie.putNode("/**", "2");
+// //         trie.putNode("/a/b/**", "3");
+//         watch.stop();
+//         System.out.println(watch.prettyPrint());
+//
+//         StopWatch watch2 = new StopWatch("2");
+//         watch2.start();
+//         System.out.println(trie.match("/14841/14842/14843", "1", "divide"));
+//         ;
+//         // System.out.println(trie.match("/**"));
+//         // System.out.println(trie.getNode("/02/03/04"));
+//         // System.out.println(trie.getNode("/**"));
+//         System.out.println(trie.match("/0999/1000/1001", "1", "divide"));
+        ;
+        // trie.remove("/02/03/04");
+        // System.out.println(trie.match("/02/03/04"));;
+        // System.out.println();
+        // watch2.stop();
+        // System.out.println(watch2.prettyPrint());
     }
 
 }
