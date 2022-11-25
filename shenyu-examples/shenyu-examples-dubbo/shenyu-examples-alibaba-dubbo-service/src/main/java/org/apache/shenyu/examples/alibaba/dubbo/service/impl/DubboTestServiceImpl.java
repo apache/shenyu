@@ -25,7 +25,6 @@ import org.apache.shenyu.examples.dubbo.api.service.DubboTestService;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.Random;
 
 /**
  * DubboTestServiceImpl.
@@ -43,7 +42,8 @@ public class DubboTestServiceImpl implements DubboTestService {
     @Override
     @ShenyuDubboClient("/findAll")
     public DubboTest findAll() {
-        return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Alibaba Dubbo , findAll");
+        throw new RuntimeException();
+//        return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Alibaba Dubbo , findAll");
     }
 
     @Override
