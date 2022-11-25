@@ -58,12 +58,12 @@ public final class SignUtils {
                 .sorted(Comparator.naturalOrder())
                 .map(key -> String.join("", key, jsonParams.get(key)))
                 .collect(Collectors.joining()).trim())
-            .orElse(null);
+                .orElse("");
         final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
                 .sorted(Comparator.naturalOrder())
                 .map(key -> String.join("", key, queryParams.get(key)))
                 .collect(Collectors.joining()).trim())
-            .orElse(null);
+                .orElse("");
         final String sign = String.join("", jsonSign, querySign, signKey);
         // TODO this is a risk for error charset coding with getBytes
         return DigestUtils.md5Hex(sign.getBytes()).toUpperCase();
