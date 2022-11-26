@@ -17,42 +17,35 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
-
-import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomInt;
-import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomLowerLetterString;
 
 /**
  * Random email address generator.
  */
 @Join
 public class EmailGenerator implements Generator<String> {
-    
-    private static final String[] DOMAIN_SUFFIX = {"com", "org", "cn", "com.cn", "top", "edu", "io"};
-    
+
     @Override
     public String getName() {
         return "email";
     }
-    
+
     @Override
     public String generate() {
-        return String.format("%s@%s.%s",
-            randomLowerLetterString(randomInt(5, 10)),
-            randomLowerLetterString(randomInt(3, 8)),
-            DOMAIN_SUFFIX[randomInt(0, DOMAIN_SUFFIX.length - 1)]);
+        return MockUtil.email();
     }
-    
+
     @Override
     public int getParamSize() {
         return 0;
     }
-    
+
     @Override
     public boolean match(final String rule) {
         return rule.matches("^email$");
     }
-    
+
     @Override
     public String[] getPrefixAndSuffix() {
         return new String[]{"\"", "\""};

@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.mock.generator;
 
 import org.apache.shenyu.plugin.mock.util.MockUtil;
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
 import org.apache.shenyu.spi.Join;
 
 /**
@@ -26,33 +25,27 @@ import org.apache.shenyu.spi.Join;
  */
 @Join
 public class PhoneGenerator implements Generator<String> {
-    
+
     @Override
     public String getName() {
         return "phone";
     }
-    
+
     @Override
     public String generate() {
-        MockUtil.phone();
-        StringBuilder builder = new StringBuilder("1");
-        builder.append(RandomUtil.randomInt(3, 9));
-        for (int i = 0; i < 9; i++) {
-            builder.append(RandomUtil.randomInt(0, 9));
-        }
-        return builder.toString();
+        return MockUtil.phone();
     }
-    
+
     @Override
     public int getParamSize() {
         return 0;
     }
-    
+
     @Override
     public boolean match(final String rule) {
         return rule.matches("^phone$");
     }
-    
+
     @Override
     public String[] getPrefixAndSuffix() {
         return new String[]{"\"", "\""};

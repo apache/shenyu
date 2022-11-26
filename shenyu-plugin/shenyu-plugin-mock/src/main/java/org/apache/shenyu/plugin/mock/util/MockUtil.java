@@ -18,7 +18,11 @@
 package org.apache.shenyu.plugin.mock.util;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.shenyu.plugin.mock.generator.CurrentTimeGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -27,6 +31,10 @@ import java.util.Random;
 import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomLowerLetterString;
 
 public class MockUtil {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CurrentTimeGenerator.class);
+
+    private static final String DEFAULT_FORMAT = "YYYY-MM-dd HH:mm:ss";
 
     private static final String[] DOMAIN_SUFFIX = {"com", "org", "cn", "com.cn", "top", "edu", "io"};
 
@@ -116,12 +124,18 @@ public class MockUtil {
      * @return time
      */
     public static String current(final String... formats) {
-        String format = "YYYY-MM-dd HH:mm:ss";
-        if (Objects.nonNull(formats) && formats.length != 0) {
+        String format = DEFAULT_FORMAT;
+        if (Objects.nonNull(formats) && formats.length != 0 && Objects.nonNull(formats[0])) {
             format = formats[0];
         }
         LocalDateTime now = LocalDateTime.now();
-        return DateTimeFormatter.ofPattern(format).format(now);
+        try {
+            return DateTimeFormatter.ofPattern(format).format(now);
+        } catch (DateTimeException e) {
+            LOG.warn("format fail,use default format :{}", DEFAULT_FORMAT);
+            return DateTimeFormatter.ofPattern(DEFAULT_FORMAT).format(now);
+        }
+
     }
 
     public static class FormatDouble {
