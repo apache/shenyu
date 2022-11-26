@@ -19,8 +19,7 @@ package org.apache.shenyu.common.utils;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test cases for ReflectUtils.
@@ -44,8 +43,38 @@ public final class ReflectUtilsTest {
         assertEquals("2", ReflectUtils.getFieldValue(reflect, "a"));
     }
 
+    @Test
+    public void testInvokeStaticMethod() {
+        final Reflect reflect = new Reflect();
+        assertEquals("1", ReflectUtils.invokeStaticMethod(reflect.getClass(), "methodStaticA"));
+        assertNull(ReflectUtils.invokeStaticMethod(reflect.getClass(), "methodB"));
+    }
+
+    @Test
+    public void testInvokeMethod() {
+        final Reflect reflect = new Reflect();
+        assertEquals("1", ReflectUtils.invokeMethod(reflect, "methodA"));
+    }
+
+    @Test
+    public void testIsPrimitives() {
+        final Reflect reflect = new Reflect();
+        Integer test[] = new Integer[]{};
+        assertFalse(ReflectUtils.isPrimitives(reflect.getClass()));
+        assertFalse(ReflectUtils.isPrimitives(reflect.getClass()));
+        assertTrue(ReflectUtils.isPrimitives(test.getClass()));
+    }
+
     static class Reflect {
         private final String a = "1";
+
+        public static String methodStaticA() {
+            return "1";
+        }
+
+        public String methodA() {
+            return "1";
+        }
     }
 
     static class ReflectNonField {
