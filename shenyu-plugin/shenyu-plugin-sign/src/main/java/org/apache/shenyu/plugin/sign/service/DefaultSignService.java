@@ -126,6 +126,6 @@ public class DefaultSignService implements SignService {
     }
 
     private String buildExtSignKey(final String signKey, final ShenyuContext shenyuContext) {
-        return String.join("", Constants.TIMESTAMP, shenyuContext.getTimestamp(), Constants.PATH, shenyuContext.getPath(), Constants.VERSION, "1.0.0", signKey);
+        return String.join("", Constants.PATH, shenyuContext.getPath(), Constants.TIMESTAMP, shenyuContext.getTimestamp(), Constants.VERSION, "1.0.0", signKey);
     }
 }
