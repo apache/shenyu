@@ -19,7 +19,10 @@ package org.apache.shenyu.common.utils;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for ReflectUtils.
@@ -59,7 +62,7 @@ public final class ReflectUtilsTest {
     @Test
     public void testIsPrimitives() {
         final Reflect reflect = new Reflect();
-        Integer test[] = new Integer[]{};
+        Integer[] test = new Integer[]{};
         assertFalse(ReflectUtils.isPrimitives(reflect.getClass()));
         assertFalse(ReflectUtils.isPrimitives(reflect.getClass()));
         assertTrue(ReflectUtils.isPrimitives(test.getClass()));
