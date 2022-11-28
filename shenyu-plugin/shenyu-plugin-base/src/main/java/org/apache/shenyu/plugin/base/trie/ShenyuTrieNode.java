@@ -42,7 +42,7 @@ public class ShenyuTrieNode implements Serializable {
     private String fullPath;
 
     /**
-     * in path /a/b/c, b is child of a, c is child of b
+     * in path /a/b/c, b is child of a, c is child of b.
      */
     private Cache<String, ShenyuTrieNode> children;
 
@@ -57,7 +57,7 @@ public class ShenyuTrieNode implements Serializable {
     private boolean endOfPath;
 
     /**
-     * selectorId -> RuleData
+     * selectorId -> RuleData.
      */
     private Cache<String, RuleData> pathRuleCache;
 
@@ -90,7 +90,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param matchStr match string
      */
-    public void setMatchStr(String matchStr) {
+    public void setMatchStr(final String matchStr) {
         this.matchStr = matchStr;
     }
 
@@ -108,7 +108,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param fullPath full path
      */
-    public void setFullPath(String fullPath) {
+    public void setFullPath(final String fullPath) {
         this.fullPath = fullPath;
     }
 
@@ -126,7 +126,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param children children
      */
-    public void setChildren(Cache<String, ShenyuTrieNode> children) {
+    public void setChildren(final Cache<String, ShenyuTrieNode> children) {
         this.children = children;
     }
 
@@ -144,7 +144,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param wildcard wildcard
      */
-    public void setWildcard(boolean wildcard) {
+    public void setWildcard(final boolean wildcard) {
         isWildcard = wildcard;
     }
 
@@ -162,7 +162,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param endOfPath end of path
      */
-    public void setEndOfPath(boolean endOfPath) {
+    public void setEndOfPath(final boolean endOfPath) {
         this.endOfPath = endOfPath;
     }
 
@@ -180,7 +180,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param bizInfo bizInfo
      */
-    public void setBizInfo(Object bizInfo) {
+    public void setBizInfo(final Object bizInfo) {
         this.bizInfo = bizInfo;
     }
 
@@ -198,16 +198,22 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param pathRuleCache path rule cache
      */
-    public void setPathRuleCache(Cache<String, RuleData> pathRuleCache) {
+    public void setPathRuleCache(final Cache<String, RuleData> pathRuleCache) {
         this.pathRuleCache = pathRuleCache;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ShenyuTrieNode that = (ShenyuTrieNode) o;
-        return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr) && fullPath.equals(that.fullPath) && children.equals(that.children) && pathRuleCache.equals(that.pathRuleCache) && bizInfo.equals(that.bizInfo);
+        return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr)
+                && fullPath.equals(that.fullPath) && children.equals(that.children)
+                && pathRuleCache.equals(that.pathRuleCache) && bizInfo.equals(that.bizInfo);
     }
 
     @Override
@@ -215,16 +221,4 @@ public class ShenyuTrieNode implements Serializable {
         return Objects.hash(matchStr, fullPath, children, isWildcard, endOfPath, pathRuleCache, bizInfo);
     }
 
-    @Override
-    public String toString() {
-        return "ShenyuTrieNode{" +
-                "matchStr='" + matchStr + '\'' +
-                ", fullPath='" + fullPath + '\'' +
-                ", children=" + children +
-                ", isWildcard=" + isWildcard +
-                ", endOfPath=" + endOfPath +
-                ", pathRuleCache=" + pathRuleCache +
-                ", bizInfo=" + bizInfo +
-                '}';
-    }
 }

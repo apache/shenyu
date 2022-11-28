@@ -55,18 +55,16 @@ public class ShenyuTrie {
      * @param shenyuTrie trie
      * @return status
      */
-    public boolean isEmpty(ShenyuTrie shenyuTrie) {
-        if (shenyuTrie.root.getChildren().estimatedSize() == 0 && "/".equals(shenyuTrie.root.getMatchStr())) {
-            return true;
-        } else {
-            return false;
-        }
+    public boolean isEmpty(final ShenyuTrie shenyuTrie) {
+        return shenyuTrie.root.getChildren().estimatedSize() == 0 && "/".equals(shenyuTrie.root.getMatchStr());
     }
 
     /**
      * put node to trie.
      *
      * @param uriPath uri path
+     * @param ruleData rule data
+     * @param bizInfo biz info
      */
     public void putNode(final String uriPath, final RuleData ruleData, final Object bizInfo) {
         if (StringUtils.isNotBlank(uriPath)) {
@@ -93,7 +91,7 @@ public class ShenyuTrie {
     }
 
     /**
-     * put node to trie
+     * put node to trie.
      *
      * @param segment current string
      * @param shenyuTrieNode current trie node

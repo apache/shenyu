@@ -1,5 +1,9 @@
-package org.apache.shenyu.plugin.base.trie;
+//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by FernFlower decompiler)
+//
 
+package org.apache.shenyu.plugin.base.trie;
 
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -12,10 +16,13 @@ import org.springframework.context.ApplicationListener;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * shenyu trie rule change listener.
+ */
 public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent> {
 
     @Override
-    public void onApplicationEvent(RuleTrieEvent event) {
+    public void onApplicationEvent(final RuleTrieEvent event) {
         RuleTrieEventEnum eventEnum = event.getRuleTrieEvent();
         RuleData ruleData = (RuleData) event.getSource();
         List<ConditionData> conditionDataList = ruleData.getConditionDataList();
