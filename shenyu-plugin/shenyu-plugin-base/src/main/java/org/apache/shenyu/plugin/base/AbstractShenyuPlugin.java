@@ -131,7 +131,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         } else {
             ShenyuTrieNode matchTrieNode = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match(path, selectorData.getId(), pluginName);
             if (Objects.nonNull(matchTrieNode)) {
-                ruleData = matchTrieNode.getPluginRuleMap().getIfPresent(selectorData.getId());
+                ruleData = matchTrieNode.getPathRuleCache().getIfPresent(selectorData.getId());
                 if (Objects.isNull(ruleData)) {
                     return handleRuleIfNull(pluginName, exchange, chain);
                 }

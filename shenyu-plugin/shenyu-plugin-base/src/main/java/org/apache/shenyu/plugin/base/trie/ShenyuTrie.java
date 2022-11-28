@@ -18,25 +18,13 @@
 package org.apache.shenyu.plugin.base.trie;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.enums.OperatorEnum;
-import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.springframework.util.StopWatch;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Objects;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class ShenyuTrie {
-
-    // public static final ShenyuTrie INSTANCE = new ShenyuTrie();
-
-    private ReentrantLock lock = new ReentrantLock(false);
 
     private static final String WILDCARD = "*";
 
@@ -50,10 +38,6 @@ public class ShenyuTrie {
         this.root = new ShenyuTrieNode("/", "/", false, size);
         this.childrenSize = childrenSize;
     }
-
-    // public static ShenyuTrie getInstance() {
-    //     return INSTANCE;
-    // }
 
     /**
      * clear the trie.
@@ -89,7 +73,7 @@ public class ShenyuTrie {
                 ShenyuTrieNode node = root;
                 for (String segment : pathParts) {
                     node = putNode0(segment, node);
-                    if (MATCH_ALL.equals(segment)) {
+                    if (isMatchAll(segment)) {
                         break;
                     }
                 }
@@ -97,10 +81,7 @@ public class ShenyuTrie {
                 node.setFullPath(uriPath);
                 node.setEndOfPath(true);
                 node.setBizInfo(bizInfo);
-                if (Objects.isNull(node.getPluginRuleMap())) {
-                    node.setPluginRuleMap(Caffeine.newBuilder().maximumSize(1000).build());
-                }
-                node.getPluginRuleMap().put(ruleData.getSelectorId(), ruleData);
+                node.getPathRuleCache().put(ruleData.getSelectorId(), ruleData);
             }
         }
     }
@@ -108,12 +89,12 @@ public class ShenyuTrie {
     /**
      * put node to trie
      *
-     * @param segment        current string
+     * @param segment current string
      * @param shenyuTrieNode current trie node
      * @return {@linkplain ShenyuTrieNode}
      */
     private ShenyuTrieNode putNode0(final String segment, final ShenyuTrieNode shenyuTrieNode) {
-        if (MATCH_ALL.equals(segment)) {
+        if (isMatchAll(segment)) {
             shenyuTrieNode.setWildcard(true);
             return shenyuTrieNode;
         }
@@ -133,12 +114,15 @@ public class ShenyuTrie {
     }
 
     /**
-     * match trie, trie exist and match the path will return true.
+     * match trie, trie exist and match the path will return current node.
      *
      * @param uriPath uri path
-     * @return match result
+     * @param selectorId selectorId
+     * @param pluginName pluginName
+     * @return {@linkplain ShenyuTrieNode}
      */
     public ShenyuTrieNode match(final String uriPath, final String selectorId, final String pluginName) {
+        Objects.requireNonNull(pluginName);
         if (!StringUtils.isEmpty(uriPath)) {
             String strippedPath = StringUtils.strip(uriPath, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
@@ -147,12 +131,14 @@ public class ShenyuTrie {
                 for (String path : pathParts) {
                     currentNode = matchNode(path, currentNode);
                     // if not match route, exist the loop
-                    if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPluginRuleMap().getIfPresent(selectorId))
-                            && pluginName.equals(currentNode.getPluginRuleMap().getIfPresent(selectorId).getPluginName())) {
+                    if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPathRuleCache())
+                            && Objects.nonNull(currentNode.getPathRuleCache().getIfPresent(selectorId))
+                            && pluginName.equals(currentNode.getPathRuleCache().getIfPresent(selectorId).getPluginName())) {
                         break;
                     }
-                    if (Objects.nonNull(currentNode) && currentNode.getWildcard() && Objects.nonNull(currentNode.getPluginRuleMap().getIfPresent(selectorId))
-                            && pluginName.equals(currentNode.getPluginRuleMap().getIfPresent(selectorId).getPluginName())) {
+                    if (Objects.nonNull(currentNode) && currentNode.getWildcard()
+                            && Objects.nonNull(currentNode.getPathRuleCache().getIfPresent(selectorId))
+                            && pluginName.equals(currentNode.getPathRuleCache().getIfPresent(selectorId).getPluginName())) {
                         break;
                     }
                     if (Objects.isNull(currentNode)) {
@@ -178,18 +164,38 @@ public class ShenyuTrie {
         return null;
     }
 
-    public void remove(final String path) {
+    /**
+     * remove trie node.
+     * remove rules: query node of the current path, if the node exists,
+     * checks whether the current node is mapped to multiple plug-in rules.
+     * if the plug-in rules have only on mapping, remove the node from parent.
+     * if current node exists multi mappings, remove the mapping.
+     *
+     * @param path path
+     * @param selectorId selectorId
+     */
+    public void remove(final String path, final String selectorId) {
         if (StringUtils.isNotBlank(path)) {
             String strippedPath = StringUtils.strip(path, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
             String key = pathParts[pathParts.length - 1];
-            String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
-            String parentPath = String.join("/", parentPathArray);
-            ShenyuTrieNode shenyuTrieNode = this.getNode(parentPath);
-            // node is not null, remove this current
-            if (Objects.nonNull(shenyuTrieNode)) {
-                shenyuTrieNode.getChildren().invalidate(key);
-                shenyuTrieNode.getChildren().cleanUp();
+            ShenyuTrieNode currentNode = this.getNode(path);
+            // node is not null, judge exist many plugin mapping
+            if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPathRuleCache())) {
+                // check current mapping
+                currentNode.getPathRuleCache().cleanUp();
+                if (currentNode.getPathRuleCache().estimatedSize() == 1 && Objects.isNull(currentNode.getChildren())) {
+                    // remove current node from parent node
+                    String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
+                    String parentPath = String.join("/", parentPathArray);
+                    ShenyuTrieNode parentNode = this.getNode(parentPath);
+                    parentNode.getChildren().invalidate(key);
+                    parentNode.getChildren().cleanUp();;
+                } else {
+                    // remove plugin mapping
+                    currentNode.getPathRuleCache().invalidate(selectorId);
+                    currentNode.getPathRuleCache().cleanUp();
+                }
             }
         }
     }
@@ -260,58 +266,7 @@ public class ShenyuTrie {
         return trieNode.getBizInfo();
     }
 
-    private boolean isPathVariableOrWildcard(final String key) {
-        if (StringUtils.isBlank(key)) {
-            return false;
-        }
-        if (WILDCARD.equals(key)) {
-            return true;
-        }
-        return false;
-    }
-
     private boolean isMatchAll(final String key) {
-        return MATCH_ALL.equals(key);
+        return MATCH_ALL.equals(key) || WILDCARD.equals(key);
     }
-
-    public static void main(String[] args) {
-        // System.gc();
-// startMemory=totalMemory(总内存)-freeMemory(剩余内存)
-//         long startMemory = Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory();
-//         StopWatch watch = new StopWatch("trie");
-//         watch.start();
-//         ShenyuTrie trie = new ShenyuTrie();
-//         RuleData ruleData = new RuleData();
-//         ruleData.setSelectorId("1");
-//         ruleData.setPluginName("divide");
-//         ConditionData conditionData = new ConditionData();
-//         conditionData.setParamType(ParamTypeEnum.URI.getName());
-//         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-//         conditionData.setParamValue("/http/test/sentinel/**");
-//         ruleData.setConditionDataList(Collections.singletonList(conditionData));
-//         for (int i = 0; i < 1000000; i++) {
-//             trie.putNode("/" + i + 1 + "/" + i + 2 + "/" + i + 3, ruleData, null);
-//         }
-//         // trie.putNode("/02/03/04", "1");
-//         // trie.putNode("/**", "2");
-// //         trie.putNode("/a/b/**", "3");
-//         watch.stop();
-//         System.out.println(watch.prettyPrint());
-//
-//         StopWatch watch2 = new StopWatch("2");
-//         watch2.start();
-//         System.out.println(trie.match("/14841/14842/14843", "1", "divide"));
-//         ;
-//         // System.out.println(trie.match("/**"));
-//         // System.out.println(trie.getNode("/02/03/04"));
-//         // System.out.println(trie.getNode("/**"));
-//         System.out.println(trie.match("/0999/1000/1001", "1", "divide"));
-        ;
-        // trie.remove("/02/03/04");
-        // System.out.println(trie.match("/02/03/04"));;
-        // System.out.println();
-        // watch2.stop();
-        // System.out.println(watch2.prettyPrint());
-    }
-
 }

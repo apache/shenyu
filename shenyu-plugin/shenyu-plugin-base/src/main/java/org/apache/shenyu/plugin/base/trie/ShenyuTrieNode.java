@@ -67,7 +67,7 @@ public class ShenyuTrieNode {
     /**
      * selectorId -> RuleData
      */
-    private Cache<String, RuleData> pluginRuleMap;
+    private Cache<String, RuleData> pathRuleCache;
 
     /**
      * biz info, route info and any other info store here, e.g. ruleId, selectorId and so on.
@@ -81,7 +81,7 @@ public class ShenyuTrieNode {
         this.matchStr = matchStr;
         this.fullPath = fullPath;
         this.endOfPath = endOfPath;
-        this.pluginRuleMap = Caffeine.newBuilder().maximumSize(size).build();
+        this.pathRuleCache = Caffeine.newBuilder().maximumSize(size).build();
     }
 
     public String getMatchStr() {
@@ -148,26 +148,25 @@ public class ShenyuTrieNode {
         this.bizInfo = bizInfo;
     }
 
+    public Cache<String, RuleData> getPathRuleCache() {
+        return pathRuleCache;
+    }
+
+    public void setPathRuleCache(Cache<String, RuleData> pathRuleCache) {
+        this.pathRuleCache = pathRuleCache;
+    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ShenyuTrieNode that = (ShenyuTrieNode) o;
-        return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr) && fullPath.equals(that.fullPath) && children.equals(that.children) && pathVariablesSet.equals(that.pathVariablesSet) && pathVariableNode.equals(that.pathVariableNode) && bizInfo.equals(that.bizInfo);
-    }
-
-    public Cache<String, RuleData> getPluginRuleMap() {
-        return pluginRuleMap;
-    }
-
-    public void setPluginRuleMap(Cache<String, RuleData> pluginRuleMap) {
-        this.pluginRuleMap = pluginRuleMap;
+        return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr) && fullPath.equals(that.fullPath) && children.equals(that.children) && pathVariablesSet.equals(that.pathVariablesSet) && pathVariableNode.equals(that.pathVariableNode) && pathRuleCache.equals(that.pathRuleCache) && bizInfo.equals(that.bizInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(matchStr, fullPath, children, pathVariablesSet, pathVariableNode, isWildcard, endOfPath, bizInfo);
+        return Objects.hash(matchStr, fullPath, children, pathVariablesSet, pathVariableNode, isWildcard, endOfPath, pathRuleCache, bizInfo);
     }
 
     @Override
@@ -180,7 +179,7 @@ public class ShenyuTrieNode {
                 ", pathVariableNode=" + pathVariableNode +
                 ", isWildcard=" + isWildcard +
                 ", endOfPath=" + endOfPath +
-                ", pluginRuleMap=" + pluginRuleMap +
+                ", pathRuleCache=" + pathRuleCache +
                 ", bizInfo=" + bizInfo +
                 '}';
     }

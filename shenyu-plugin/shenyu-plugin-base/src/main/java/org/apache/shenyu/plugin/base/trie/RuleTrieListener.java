@@ -24,16 +24,13 @@ public class RuleTrieListener implements ApplicationListener<RuleTrieEvent> {
         List<ConditionData> filterConditions = conditionDataList.stream()
                 .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
                 .collect(Collectors.toList());
+        List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
         switch (eventEnum) {
             case INSERT:
-                filterConditions.forEach(conditionData -> {
-                    SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode(conditionData.getParamValue(), ruleData, ruleData);
-                });
+                uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode(path, ruleData, null));
                 break;
             case REMOVE:
-                filterConditions.forEach(conditionData -> {
-                    SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(conditionData.getParamValue());
-                });
+                uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, ruleData.getSelectorId()));
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
