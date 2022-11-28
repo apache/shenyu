@@ -194,7 +194,7 @@ public class ShenyuTrie {
                     String parentPath = String.join("/", parentPathArray);
                     ShenyuTrieNode parentNode = this.getNode(parentPath);
                     parentNode.getChildren().invalidate(key);
-                    parentNode.getChildren().cleanUp();;
+                    parentNode.getChildren().cleanUp();
                 } else {
                     // remove plugin mapping
                     currentNode.getPathRuleCache().invalidate(selectorId);
