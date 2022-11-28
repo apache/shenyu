@@ -127,8 +127,8 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
         queryRecord.setId(null);
         queryRecord.setDateCreated(null);
         queryRecord.setDateUpdated(null);
-        long cnt = mockRequestRecordMapper.count(queryRecord);
-        assertEquals(cnt, 3);
+        long queryCnt = mockRequestRecordMapper.count(queryRecord);
+        assertEquals(queryCnt, 3);
     }
 
     @Test
