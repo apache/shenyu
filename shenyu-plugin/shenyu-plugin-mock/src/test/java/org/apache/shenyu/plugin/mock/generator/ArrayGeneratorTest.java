@@ -19,9 +19,9 @@ package org.apache.shenyu.plugin.mock.generator;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The test case for {@link ArrayGenerator}.
@@ -42,6 +42,10 @@ public final class ArrayGeneratorTest {
         arrayGenerator.parseRule("array|{\"ints\":${array|10|3}}|3");
         String generate = arrayGenerator.generate();
         assertEquals("{\"ints\":[10,10,10]},{\"ints\":[10,10,10]},{\"ints\":[10,10,10]}", generate);
+
+        arrayGenerator.parseRule("array|{\"int\":${expression|#oneOf(10)}}|3");
+        generate = arrayGenerator.generate();
+        assertEquals("{\"int\":10},{\"int\":10},{\"int\":10}", generate);
     }
 
     @Test

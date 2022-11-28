@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
 
 /**
@@ -25,22 +25,22 @@ import org.apache.shenyu.spi.Join;
  */
 @Join
 public class BoolGenerator implements Generator<Boolean> {
-    
+
     @Override
     public String getName() {
         return "bool";
     }
-    
+
     @Override
     public Boolean generate() {
-        return RandomUtil.randomInt(0, 1) == 1;
+        return MockUtil.bool();
     }
-    
+
     @Override
     public int getParamSize() {
         return 0;
     }
-    
+
     @Override
     public boolean match(final String rule) {
         return rule.matches("^bool$");

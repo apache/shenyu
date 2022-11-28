@@ -21,6 +21,7 @@ import java.security.MessageDigest;
 
 import java.util.Optional;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 
@@ -44,15 +45,7 @@ public class ShaUtils {
                 MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
                 messageDigest.update(item.getBytes());
                 byte[] byteBuffer = messageDigest.digest();
-                StringBuffer strHexString = new StringBuffer();
-                for (byte b:byteBuffer) {
-                    String hex = Integer.toHexString(0xff & b);
-                    if (hex.length() == 1) {
-                        strHexString.append('0');
-                    }
-                    strHexString.append(hex);
-                }
-                return strHexString.toString();
+                return Hex.encodeHexString(byteBuffer);
             } catch (Exception e) {
                 throw new ShenyuException(e);
             }
