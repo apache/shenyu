@@ -349,7 +349,7 @@ public class ShenyuConfig {
      *
      * @param trie trie config
      */
-    public void setTrie(ShenyuTrieConfig trie) {
+    public void setTrie(final ShenyuTrieConfig trie) {
         this.trie = trie;
     }
 
@@ -1710,7 +1710,7 @@ public class ShenyuConfig {
          *
          * @param trieChildrenSize trie children size
          */
-        public void setTrieChildrenSize(Long trieChildrenSize) {
+        public void setTrieChildrenSize(final Long trieChildrenSize) {
             this.trieChildrenSize = trieChildrenSize;
         }
 
@@ -1728,7 +1728,7 @@ public class ShenyuConfig {
          *
          * @param pathRuleCacheSize path rule cache size
          */
-        public void setPathRuleCacheSize(Long pathRuleCacheSize) {
+        public void setPathRuleCacheSize(final Long pathRuleCacheSize) {
             this.pathRuleCacheSize = pathRuleCacheSize;
         }
     }
