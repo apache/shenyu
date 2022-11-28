@@ -335,10 +335,20 @@ public class ShenyuConfig {
         this.cross = cross;
     }
 
+    /**
+     * get shenyu trie config.
+     *
+     * @return shenyu trie config
+     */
     public ShenyuTrieConfig getTrie() {
         return trie;
     }
 
+    /**
+     * set shenyu trie config.
+     *
+     * @param trie trie config
+     */
     public void setTrie(ShenyuTrieConfig trie) {
         this.trie = trie;
     }
