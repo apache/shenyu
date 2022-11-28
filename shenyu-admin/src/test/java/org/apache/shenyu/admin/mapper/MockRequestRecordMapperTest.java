@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
+import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -157,6 +159,27 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
         assertEquals(updateAfter.getPort(), updateRecord.getPort());
         assertEquals(updateAfter.getQuery(), updateRecord.getQuery());
         assertEquals(updateAfter.getDateUpdated(), updateRecord.getDateUpdated());
+    }
+
+    @Test
+    public void testSelectByQuery() {
+        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        mockRequestRecordMapper.insert(mockRequestRecordDO);
+        MockRequestRecordQuery mockRequestRecordQuery = new MockRequestRecordQuery();
+        mockRequestRecordQuery.setApiId("1");
+        mockRequestRecordQuery.setHost("192.168.1.1");
+        mockRequestRecordQuery.setQuery("");
+        mockRequestRecordQuery.setUrl("http://192.168.1.1:8080/test");
+        List<MockRequestRecordDO> mockRequestRecordDOS = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
+        assertEquals(mockRequestRecordDOS.size(), 1);
+    }
+
+    @Test
+    public void testBatchDelete() {
+        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        mockRequestRecordMapper.insert(mockRequestRecordDO);
+        int cnt = mockRequestRecordMapper.batchDelete(Lists.newArrayList(mockRequestRecordDO.getId()));
+        assertEquals(1, cnt);
     }
 
     private MockRequestRecordDO buildTagDO() {
