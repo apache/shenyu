@@ -15,39 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator;
+package org.apache.shenyu.examples.sdk.springcloud.provider;
 
-import org.apache.shenyu.plugin.mock.util.MockUtil;
-import org.apache.shenyu.spi.Join;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
- * Random email address generator.
+ * Please see the shenyu-examples-springcloud for the detailed information.
  */
-@Join
-public class EmailGenerator implements Generator<String> {
+@SpringBootApplication(scanBasePackages = {"org.apache.shenyu.examples.*"})
+@EnableDiscoveryClient
+public class ShenyuSdkSpringCloudProviderApplication {
 
-    @Override
-    public String getName() {
-        return "email";
-    }
-
-    @Override
-    public String generate() {
-        return MockUtil.email();
-    }
-
-    @Override
-    public int getParamSize() {
-        return 0;
-    }
-
-    @Override
-    public boolean match(final String rule) {
-        return rule.matches("^email$");
-    }
-
-    @Override
-    public String[] getPrefixAndSuffix() {
-        return new String[]{"\"", "\""};
+    /**
+     * main.
+     *
+     * @param args args
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(ShenyuSdkSpringCloudProviderApplication.class, args);
     }
 }

@@ -14,15 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-bool=org.apache.shenyu.plugin.mock.generator.BoolGenerator
-current=org.apache.shenyu.plugin.mock.generator.CurrentTimeGenerator
-email=org.apache.shenyu.plugin.mock.generator.EmailGenerator
-en=org.apache.shenyu.plugin.mock.generator.EnStringGenerator
-phone=org.apache.shenyu.plugin.mock.generator.PhoneGenerator
-double=org.apache.shenyu.plugin.mock.generator.RandomDoubleGenerator
-int=org.apache.shenyu.plugin.mock.generator.RandomIntGenerator
-list=org.apache.shenyu.plugin.mock.generator.RangeDataGenerator
-zh=org.apache.shenyu.plugin.mock.generator.ZhStringGenerator
-array=org.apache.shenyu.plugin.mock.generator.ArrayGenerator
-expression=org.apache.shenyu.plugin.mock.generator.ExpressionGenerator
+FROM openjdk:8-jre-alpine
 
+ENV APP_NAME shenyu-examples-sdk-springcloud-consumer
+ENV LOCAL_PATH /opt/${APP_NAME}
+
+RUN mkdir -p ${LOCAL_PATH}
+
+ADD target/${APP_NAME}.jar ${LOCAL_PATH}
+
+WORKDIR ${LOCAL_PATH}
+EXPOSE 8899
+
+CMD java -jar ${APP_NAME}.jar

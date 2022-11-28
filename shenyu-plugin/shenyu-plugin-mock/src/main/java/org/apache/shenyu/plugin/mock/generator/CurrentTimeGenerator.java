@@ -17,13 +17,9 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.time.DateTimeException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -31,11 +27,7 @@ import java.util.List;
  */
 @Join
 public class CurrentTimeGenerator implements Generator<String> {
-    
-    private static final String DEFAULT_FORMAT = "YYYY-MM-dd HH:mm:ss";
-    
-    private static final Logger LOG = LoggerFactory.getLogger(CurrentTimeGenerator.class);
-    
+
     private String format;
     
     @Override
@@ -45,14 +37,7 @@ public class CurrentTimeGenerator implements Generator<String> {
     
     @Override
     public String generate() {
-        LocalDateTime now = LocalDateTime.now();
-        try {
-            return DateTimeFormatter.ofPattern(format).format(now);
-        } catch (DateTimeException e) {
-            LOG.warn("format fail,use default format :{}", DEFAULT_FORMAT);
-            return DateTimeFormatter.ofPattern(DEFAULT_FORMAT).format(now);
-        }
-        
+        return MockUtil.current(format);
     }
     
     @Override
@@ -64,8 +49,6 @@ public class CurrentTimeGenerator implements Generator<String> {
     public void initParam(final List<String> params, final String rule) {
         if (params.size() >= 1) {
             format = params.get(0);
-        } else {
-            format = DEFAULT_FORMAT;
         }
     }
     
