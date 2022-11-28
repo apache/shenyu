@@ -45,13 +45,13 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     @Test
     @Transactional
     public void insert() {
-        assertEquals(mockRequestRecordMapper.insert(buildTagDO()), 1);
+        assertEquals(mockRequestRecordMapper.insert(buildMockRequestRecordDO()), 1);
     }
 
     @Test
     @Transactional
     public void insertSelective() {
-        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
         mockRequestRecordDO.setPathVariable(null);
         mockRequestRecordDO.setQuery(null);
         mockRequestRecordDO.setHeader(null);
@@ -67,14 +67,14 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     @Test
     @Transactional
     public void insertBatch() {
-        List<MockRequestRecordDO> mockRequestRecordDOS = Arrays.asList(buildTagDO(), buildTagDO(), buildTagDO());
+        List<MockRequestRecordDO> mockRequestRecordDOS = Arrays.asList(buildMockRequestRecordDO(), buildMockRequestRecordDO(), buildMockRequestRecordDO());
         assertEquals(mockRequestRecordMapper.insertBatch(mockRequestRecordDOS), 3);
     }
 
     @Test
     @Transactional
     public void deleteById() {
-        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
         assertEquals(mockRequestRecordMapper.insert(mockRequestRecordDO), 1);
         assertEquals(mockRequestRecordMapper.deleteById(mockRequestRecordDO.getId()), 1);
         assertEquals(mockRequestRecordMapper.count(mockRequestRecordDO), 0);
@@ -83,7 +83,7 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     @Test
     @Transactional
     public void queryById() {
-        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
         assertEquals(mockRequestRecordMapper.insert(mockRequestRecordDO), 1);
         MockRequestRecordDO queryResult = mockRequestRecordMapper.queryById(mockRequestRecordDO.getId());
         assertEquals(queryResult.getDateCreated(), mockRequestRecordDO.getDateCreated());
@@ -100,7 +100,7 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     @Test
     @Transactional
     public void queryAll() {
-        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
         assertEquals(mockRequestRecordMapper.insert(mockRequestRecordDO), 1);
         List<MockRequestRecordDO> mockRequestRecordDOS = mockRequestRecordMapper.queryAll(mockRequestRecordDO);
         assertEquals(mockRequestRecordDOS.size(), 1);
@@ -110,7 +110,7 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     @Test
     @Transactional
     public void existed() {
-        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
         assertNull(mockRequestRecordMapper.existed(mockRequestRecordDO.getId()));
         int insertRows = mockRequestRecordMapper.insert(mockRequestRecordDO);
         assertEquals(insertRows, 1);
@@ -120,10 +120,10 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     @Test
     @Transactional
     public void count() {
-        List<MockRequestRecordDO> mockRequestRecordDOS = Arrays.asList(buildTagDO(), buildTagDO(), buildTagDO());
+        List<MockRequestRecordDO> mockRequestRecordDOS = Arrays.asList(buildMockRequestRecordDO(), buildMockRequestRecordDO(), buildMockRequestRecordDO());
         int insertRows = mockRequestRecordMapper.insertBatch(mockRequestRecordDOS);
         assertEquals(insertRows, 3);
-        MockRequestRecordDO queryRecord = buildTagDO();
+        MockRequestRecordDO queryRecord = buildMockRequestRecordDO();
         queryRecord.setId(null);
         queryRecord.setDateCreated(null);
         queryRecord.setDateUpdated(null);
@@ -134,7 +134,7 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     @Test
     @Transactional
     public void update() {
-        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
         int insertRows = mockRequestRecordMapper.insert(mockRequestRecordDO);
         assertEquals(insertRows, 1);
         MockRequestRecordDO updateRecord = MockRequestRecordDO.builder()
@@ -163,7 +163,7 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
 
     @Test
     public void testSelectByQuery() {
-        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
         mockRequestRecordMapper.insert(mockRequestRecordDO);
         MockRequestRecordQuery mockRequestRecordQuery = new MockRequestRecordQuery();
         mockRequestRecordQuery.setApiId("1");
@@ -176,13 +176,13 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
 
     @Test
     public void testBatchDelete() {
-        MockRequestRecordDO mockRequestRecordDO = buildTagDO();
+        MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
         mockRequestRecordMapper.insert(mockRequestRecordDO);
         int cnt = mockRequestRecordMapper.batchDelete(Lists.newArrayList(mockRequestRecordDO.getId()));
         assertEquals(1, cnt);
     }
 
-    private MockRequestRecordDO buildTagDO() {
+    private MockRequestRecordDO buildMockRequestRecordDO() {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String id = UUIDUtils.getInstance().generateShortUuid();
         return MockRequestRecordDO.builder()
