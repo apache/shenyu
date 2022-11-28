@@ -99,7 +99,7 @@ public class MockRequestRecordController {
      * @param query query
      * @param currentPage currentPage
      * @param pageSize pageSize
-     * @return
+     * @return ShenyuAdminResult
      */
     @GetMapping("/findPageByQuery")
     public ShenyuAdminResult listByPage(final String apiId, final String host, final String url,
