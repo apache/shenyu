@@ -523,14 +523,10 @@ public class ShenyuConfig {
 
         private boolean selectorEnabled;
 
-        private boolean ruleEnabled;
-
         /**
          * Max free memory, unit mb.
          */
         private Integer maxSelectorFreeMemory = 256;
-
-        private Integer maxRuleFreeMemory = 256;
 
         /**
          * Get selector cache enabled.
@@ -550,23 +546,6 @@ public class ShenyuConfig {
             this.selectorEnabled = selectorEnabled;
         }
 
-        /**
-         * get rule cache enabled.
-         *
-         * @return rule enabled
-         */
-        public boolean getRuleEnabled() {
-            return ruleEnabled;
-        }
-
-        /**
-         * set rule cache enabled.
-         *
-         * @param ruleEnabled rule cache enabled
-         */
-        public void setRuleEnabled(final boolean ruleEnabled) {
-            this.ruleEnabled = ruleEnabled;
-        }
 
         /**
          * Gets maxFreeMemory.
@@ -584,24 +563,6 @@ public class ShenyuConfig {
          */
         public void setMaxSelectorFreeMemory(final Integer maxSelectorFreeMemory) {
             this.maxSelectorFreeMemory = maxSelectorFreeMemory;
-        }
-
-        /**
-         * Gets maxFreeMemory.
-         *
-         * @return the maxFreeMemory
-         */
-        public Integer getMaxRuleFreeMemory() {
-            return maxRuleFreeMemory;
-        }
-
-        /**
-         * Sets maxFreeMemory.
-         *
-         * @param maxRuleFreeMemory the maxFreeMemory
-         */
-        public void setMaxRuleFreeMemory(final Integer maxRuleFreeMemory) {
-            this.maxRuleFreeMemory = maxRuleFreeMemory;
         }
     }
     
@@ -1717,25 +1678,48 @@ public class ShenyuConfig {
         }
     }
 
+    /**
+     * shenyu trie config.
+     */
     public static class ShenyuTrieConfig {
         private Long trieChildrenSize = 10000L;
 
-        private Long ruleMapSize = 1000L;
+        private Long pathRuleCacheSize = 1000L;
 
+        /**
+         * get trie children size.
+         *
+         * @return trie children size
+         */
         public Long getTrieChildrenSize() {
             return trieChildrenSize;
         }
 
+        /**
+         * set trie children size.
+         *
+         * @param trieChildrenSize trie children size
+         */
         public void setTrieChildrenSize(Long trieChildrenSize) {
             this.trieChildrenSize = trieChildrenSize;
         }
 
-        public Long getRuleMapSize() {
-            return ruleMapSize;
+        /**
+         * get path rule cache size.
+         *
+         * @return path rule cache size
+         */
+        public Long getPathRuleCacheSize() {
+            return pathRuleCacheSize;
         }
 
-        public void setRuleMapSize(Long ruleMapSize) {
-            this.ruleMapSize = ruleMapSize;
+        /**
+         * set path rule cache size.
+         *
+         * @param pathRuleCacheSize path rule cache size
+         */
+        public void setPathRuleCacheSize(Long pathRuleCacheSize) {
+            this.pathRuleCacheSize = pathRuleCacheSize;
         }
     }
 }

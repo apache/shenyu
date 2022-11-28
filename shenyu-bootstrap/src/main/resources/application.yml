@@ -68,12 +68,10 @@ management:
 shenyu:
   trie:
     trieChildrenSize: 10000
-    ruleMapSize: 1000
+    pathRuleCacheSize: 1000
   matchCache:
     selectorEnabled: false
-    ruleEnabled: false
     maxSelectorFreeMemory: 256 # 256MB
-    maxRuleFreeMemory: 256 # 256MB
   netty:
     http:
       # set to false, user can custom the netty tcp server config.

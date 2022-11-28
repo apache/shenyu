@@ -8,13 +8,11 @@ import org.apache.shenyu.common.enums.RuleTrieEventEnum;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.event.RuleTrieEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
-public class RuleTrieListener implements ApplicationListener<RuleTrieEvent> {
+public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent> {
 
     @Override
     public void onApplicationEvent(RuleTrieEvent event) {
@@ -35,7 +33,5 @@ public class RuleTrieListener implements ApplicationListener<RuleTrieEvent> {
             default:
                 throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
         }
-
-
     }
 }

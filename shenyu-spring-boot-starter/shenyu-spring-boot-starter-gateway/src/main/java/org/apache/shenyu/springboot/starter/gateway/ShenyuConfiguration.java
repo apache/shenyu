@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
+import org.apache.shenyu.plugin.base.trie.ShenyuTrieRuleListener;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.configuration.ErrorHandlerConfiguration;
@@ -260,6 +261,11 @@ public class ShenyuConfiguration {
 
     @Bean
     public ShenyuTrie shenyuTrie(final ShenyuConfig shenyuConfig) {
-        return new ShenyuTrie(shenyuConfig.getTrie().getRuleMapSize(), shenyuConfig.getTrie().getTrieChildrenSize());
+        return new ShenyuTrie(shenyuConfig.getTrie().getPathRuleCacheSize(), shenyuConfig.getTrie().getTrieChildrenSize());
+    }
+
+    @Bean
+    public ShenyuTrieRuleListener shenyuTrieRuleListener() {
+        return new ShenyuTrieRuleListener();
     }
 }

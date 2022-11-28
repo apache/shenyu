@@ -133,9 +133,12 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (Objects.nonNull(matchTrieNode)) {
                 ruleData = matchTrieNode.getPathRuleCache().getIfPresent(selectorData.getId());
                 if (Objects.isNull(ruleData)) {
-                    return handleRuleIfNull(pluginName, exchange, chain);
+                    ruleData = genericMatchRule(exchange, rules);
                 }
             } else {
+                ruleData = genericMatchRule(exchange, rules);
+            }
+            if (Objects.isNull(ruleData)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
             }
             if (!filterRule(ruleData, exchange)) {
@@ -166,43 +169,12 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
 
-    private void cacheRuleData(final String pluginName, final String path, final Pair<Boolean, RuleData> matchRuleData) {
-        if (matchCacheConfig.getRuleEnabled() && matchRuleData.getLeft()) {
-            // cache rule
-            RuleData cacheRuleData = new RuleData();
-            cacheRuleData.setPluginName(pluginName);
-            cacheRuleData(path, cacheRuleData);
-        }
-    }
-
-    private void cacheRuleData(final String path, final RuleData ruleData) {
-        if (StringUtils.isBlank(ruleData.getId())) {
-            MatchDataCache.getInstance().cacheRuleData(path, ruleData, getRuleMaxFreeMemory());
-            return;
-        }
-        List<ConditionData> conditionList = ruleData.getConditionDataList();
-        if (CollectionUtils.isNotEmpty(conditionList)) {
-            boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
-            if (isUriCondition) {
-                MatchDataCache.getInstance().cacheRuleData(path, ruleData, getRuleMaxFreeMemory());
-            }
-        }
-    }
-
     private Integer getSelectorMaxFreeMemory() {
         return matchCacheConfig.getMaxSelectorFreeMemory() * 1024 * 1024;
     }
 
-    private Integer getRuleMaxFreeMemory() {
-        return matchCacheConfig.getMaxRuleFreeMemory() * 1024 * 1024;
-    }
-
     private SelectorData obtainSelectorDataCacheIfEnabled(final String path) {
         return matchCacheConfig.getSelectorEnabled() ? MatchDataCache.getInstance().obtainSelectorData(named(), path) : null;
-    }
-
-    private RuleData obtainRuleDataCacheIfEnabled(final String path) {
-        return matchCacheConfig.getRuleEnabled() ? MatchDataCache.getInstance().obtainRuleData(named(), path) : null;
     }
 
     protected RuleData defaultRuleData(final SelectorData selectorData) {
@@ -257,6 +229,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return MatchStrategyFactory.match(selector.getMatchMode(), selector.getConditionList(), exchange);
         }
         return true;
+    }
+
+    private RuleData genericMatchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
+        Pair<Boolean, RuleData> genericMatchRule = this.matchRule(exchange, rules);
+        if (genericMatchRule.getLeft()) {
+            return genericMatchRule.getRight();
+        } else {
+            return null;
+        }
     }
 
     private Pair<Boolean, RuleData> matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {

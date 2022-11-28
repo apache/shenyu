@@ -21,14 +21,16 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.shenyu.common.dto.RuleData;
 
-import java.util.Map;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * ShenyuTrieNode.
  */
-public class ShenyuTrieNode {
+public class ShenyuTrieNode implements Serializable {
 
+    private static final long serialVersionUID = -2347426887850566364L;
+    
     /**
      * abc match abc, :a match all words as a variable names a, * match all words  ,** match all words and children.
      */
@@ -43,16 +45,6 @@ public class ShenyuTrieNode {
      * in path /a/b/c, b is child of a, c is child of b
      */
     private Cache<String, ShenyuTrieNode> children;
-
-    /**
-     * path variables.
-     */
-    private Map<String, ShenyuTrieNode> pathVariablesSet;
-
-    /**
-     * path variable node.
-     */
-    private ShenyuTrieNode pathVariableNode;
 
     /**
      * isWildcard, match all nodes, /a/b/**  /** is a match all Node.
@@ -84,74 +76,128 @@ public class ShenyuTrieNode {
         this.pathRuleCache = Caffeine.newBuilder().maximumSize(size).build();
     }
 
+    /**
+     * get match str.
+     *
+     * @return matched string
+     */
     public String getMatchStr() {
         return matchStr;
     }
 
+    /**
+     * set match str.
+     *
+     * @param matchStr match string
+     */
     public void setMatchStr(String matchStr) {
         this.matchStr = matchStr;
     }
 
+    /**
+     * get full path.
+     *
+     * @return full path
+     */
     public String getFullPath() {
         return fullPath;
     }
 
+    /**
+     * set full path.
+     *
+     * @param fullPath full path
+     */
     public void setFullPath(String fullPath) {
         this.fullPath = fullPath;
     }
 
+    /**
+     * get trie children.
+     *
+     * @return trie children cache
+     */
     public Cache<String, ShenyuTrieNode> getChildren() {
         return children;
     }
 
+    /**
+     * set children cache.
+     *
+     * @param children children
+     */
     public void setChildren(Cache<String, ShenyuTrieNode> children) {
         this.children = children;
     }
 
-    public Map<String, ShenyuTrieNode> getPathVariablesSet() {
-        return pathVariablesSet;
-    }
-
-    public void setPathVariablesSet(Map<String, ShenyuTrieNode> pathVariablesSet) {
-        this.pathVariablesSet = pathVariablesSet;
-    }
-
-    public ShenyuTrieNode getPathVariableNode() {
-        return pathVariableNode;
-    }
-
-    public void setPathVariableNode(ShenyuTrieNode pathVariableNode) {
-        this.pathVariableNode = pathVariableNode;
-    }
-
+    /**
+     * match all.
+     *
+     * @return match all will return true
+     */
     public boolean getWildcard() {
         return isWildcard;
     }
 
+    /**
+     * set wildcard.
+     *
+     * @param wildcard wildcard
+     */
     public void setWildcard(boolean wildcard) {
         isWildcard = wildcard;
     }
 
+    /**
+     * this path is end of path.
+     *
+     * @return true means match success
+     */
     public boolean getEndOfPath() {
         return endOfPath;
     }
 
+    /**
+     * set end of path.
+     *
+     * @param endOfPath end of path
+     */
     public void setEndOfPath(boolean endOfPath) {
         this.endOfPath = endOfPath;
     }
 
+    /**
+     * get current path biz info.
+     *
+     * @return biz info
+     */
     public Object getBizInfo() {
         return bizInfo;
     }
 
+    /**
+     * set biz info.
+     *
+     * @param bizInfo bizInfo
+     */
     public void setBizInfo(Object bizInfo) {
         this.bizInfo = bizInfo;
     }
 
+    /**
+     * get path rule cache.
+     *
+     * @return rule cache
+     */
     public Cache<String, RuleData> getPathRuleCache() {
         return pathRuleCache;
     }
 
+    /**
+     * set path rule cache.
+     *
+     * @param pathRuleCache path rule cache
+     */
     public void setPathRuleCache(Cache<String, RuleData> pathRuleCache) {
         this.pathRuleCache = pathRuleCache;
     }
@@ -161,12 +207,12 @@ public class ShenyuTrieNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ShenyuTrieNode that = (ShenyuTrieNode) o;
-        return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr) && fullPath.equals(that.fullPath) && children.equals(that.children) && pathVariablesSet.equals(that.pathVariablesSet) && pathVariableNode.equals(that.pathVariableNode) && pathRuleCache.equals(that.pathRuleCache) && bizInfo.equals(that.bizInfo);
+        return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr) && fullPath.equals(that.fullPath) && children.equals(that.children) && pathRuleCache.equals(that.pathRuleCache) && bizInfo.equals(that.bizInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(matchStr, fullPath, children, pathVariablesSet, pathVariableNode, isWildcard, endOfPath, pathRuleCache, bizInfo);
+        return Objects.hash(matchStr, fullPath, children, isWildcard, endOfPath, pathRuleCache, bizInfo);
     }
 
     @Override
@@ -175,8 +221,6 @@ public class ShenyuTrieNode {
                 "matchStr='" + matchStr + '\'' +
                 ", fullPath='" + fullPath + '\'' +
                 ", children=" + children +
-                ", pathVariablesSet=" + pathVariablesSet +
-                ", pathVariableNode=" + pathVariableNode +
                 ", isWildcard=" + isWildcard +
                 ", endOfPath=" + endOfPath +
                 ", pathRuleCache=" + pathRuleCache +

@@ -34,9 +34,12 @@ public class ShenyuTrie {
 
     private final Long childrenSize;
 
-    public ShenyuTrie(final Long size, final Long childrenSize) {
-        this.root = new ShenyuTrieNode("/", "/", false, size);
+    private final Long pathRuleCacheSize;
+
+    public ShenyuTrie(final Long pathRuleCacheSize, final Long childrenSize) {
+        this.root = new ShenyuTrieNode("/", "/", false, pathRuleCacheSize);
         this.childrenSize = childrenSize;
+        this.pathRuleCacheSize = pathRuleCacheSize;
     }
 
     /**
@@ -81,6 +84,9 @@ public class ShenyuTrie {
                 node.setFullPath(uriPath);
                 node.setEndOfPath(true);
                 node.setBizInfo(bizInfo);
+                if (Objects.isNull(node.getPathRuleCache())) {
+                    node.setPathRuleCache(Caffeine.newBuilder().maximumSize(pathRuleCacheSize).build());
+                }
                 node.getPathRuleCache().put(ruleData.getSelectorId(), ruleData);
             }
         }
