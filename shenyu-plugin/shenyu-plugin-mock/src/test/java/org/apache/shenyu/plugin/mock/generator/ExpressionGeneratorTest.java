@@ -129,12 +129,6 @@ public class ExpressionGeneratorTest {
     }
 
     @Test
-    public void testGenerateWithWrongExpression() {
-        generator.parseRule("expression|(sdxc");
-        assertThat(generator.generate(), is("Wrong expression!!!"));
-    }
-
-    @Test
     public void testMatch() {
         assertTrue(generator.match("expression|23"));
         assertFalse(generator.match("expression"));

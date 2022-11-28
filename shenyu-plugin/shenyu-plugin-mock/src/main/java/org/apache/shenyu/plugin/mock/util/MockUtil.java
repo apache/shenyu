@@ -38,14 +38,18 @@ public class MockUtil {
 
     private static final String[] DOMAIN_SUFFIX = {"com", "org", "cn", "com.cn", "top", "edu", "io"};
 
-    /** Randomly generate Boolean.
+    /**
+     * Randomly generate Boolean.
+     *
      * @return Boolean
      */
     public static Boolean bool() {
         return RandomUtil.randomInt(0, 1) == 1;
     }
 
-    /** Randomly generate int in the specified range.
+    /**
+     * Randomly generate int in the specified range.
+     *
      * @param min min
      * @param max max
      * @return int
@@ -54,9 +58,11 @@ public class MockUtil {
         return RandomUtil.randomInt(min, max);
     }
 
-    /** Randomly generate Double in the specified range.
-     * @param min min
-     * @param max max
+    /**
+     * Randomly generate Double in the specified range.
+     *
+     * @param min    min
+     * @param max    max
      * @param format format
      * @return formatDouble
      */
@@ -69,7 +75,9 @@ public class MockUtil {
         return new FormatDouble(result);
     }
 
-    /**  Randomly generate email.
+    /**
+     * Randomly generate email.
+     *
      * @return email
      */
     public static String email() {
@@ -79,7 +87,9 @@ public class MockUtil {
                 DOMAIN_SUFFIX[randomInt(0, DOMAIN_SUFFIX.length - 1)]);
     }
 
-    /** Randomly generate phone.
+    /**
+     * Randomly generate phone.
+     *
      * @return phone
      */
     public static String phone() {
@@ -91,7 +101,9 @@ public class MockUtil {
         return builder.toString();
     }
 
-    /** Randomly generate Chinese string.
+    /**
+     * Randomly generate Chinese string.
+     *
      * @param min min
      * @param max max
      * @return chinese string
@@ -102,7 +114,9 @@ public class MockUtil {
         return RandomStringUtils.random(len, 0x4e00, 0x9fa5, false, false);
     }
 
-    /** Randomly generate English string.
+    /**
+     * Randomly generate English string.
+     *
      * @param min min
      * @param max max
      * @return english string
@@ -111,7 +125,9 @@ public class MockUtil {
         return RandomStringUtils.random(RandomUtil.randomInt(min, max), 5, 129, true, false);
     }
 
-    /** Randomly generate item of data.
+    /**
+     * Randomly generate item of data.
+     *
      * @param data data
      * @return item
      */
@@ -119,7 +135,9 @@ public class MockUtil {
         return data[RandomUtil.randomInt(0, data.length - 1)];
     }
 
-    /** Generate current time.
+    /**
+     * Generate current time.
+     *
      * @param formats formats
      * @return time
      */

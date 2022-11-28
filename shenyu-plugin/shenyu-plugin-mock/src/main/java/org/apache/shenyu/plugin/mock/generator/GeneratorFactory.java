@@ -65,18 +65,24 @@ public final class GeneratorFactory {
 
     private static String generate(final String rule) {
         final Matcher matcher = RULE_CONTENT_PATTERN.matcher(rule);
-        if (matcher.find()) {
-            String ruleContent = matcher.group(1);
-            String ruleName = ruleContent.split("\\|")[0];
-            Generator<?> generator = newInstance(ruleName, rule);
-            if (generator == null || !generator.match(ruleContent)) {
-                return rule;
-            }
-            String[] prefixAndSuffix = generator.getPrefixAndSuffix();
+        if (!matcher.find()) {
+            return rule;
+        }
+
+        String ruleContent = matcher.group(1);
+        String ruleName = ruleContent.split("\\|")[0];
+        Generator<?> generator = newInstance(ruleName, rule);
+        if (generator == null || !generator.match(ruleContent)) {
+            return rule;
+        }
+
+        String[] prefixAndSuffix = generator.getPrefixAndSuffix();
+        try {
             generator.parseRule(ruleContent);
             Object generateData = generator.generate();
             return String.join("", prefixAndSuffix[0], generateData.toString(), prefixAndSuffix[1]);
-        } else {
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
             return rule;
         }
     }

@@ -47,16 +47,11 @@ public class ExpressionGenerator implements Generator<String> {
 
     @Override
     public String generate() {
-        try {
-            Object val = PARSER.parseExpression(expression).getValue(CONTEXT);
-            if (val instanceof MockUtil.FormatDouble) {
-                return val.toString();
-            }
-            return JsonUtils.toJson(val);
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-            return "Wrong expression!!!";
+        Object val = PARSER.parseExpression(expression).getValue(CONTEXT);
+        if (val instanceof MockUtil.FormatDouble) {
+            return val.toString();
         }
+        return JsonUtils.toJson(val);
     }
 
     @Override
