@@ -259,11 +259,22 @@ public class ShenyuConfiguration {
         return new ShenyuConfig();
     }
 
+    /**
+     * shenyu trie config.
+     *
+     * @param shenyuConfig shenyu trie config
+     * @return ShenyuTrie
+     */
     @Bean
     public ShenyuTrie shenyuTrie(final ShenyuConfig shenyuConfig) {
         return new ShenyuTrie(shenyuConfig.getTrie().getPathRuleCacheSize(), shenyuConfig.getTrie().getTrieChildrenSize());
     }
 
+    /**
+     * shenyu trie listener.
+     *
+     * @return ShenyuTrieRuleListener
+     */
     @Bean
     public ShenyuTrieRuleListener shenyuTrieRuleListener() {
         return new ShenyuTrieRuleListener();
