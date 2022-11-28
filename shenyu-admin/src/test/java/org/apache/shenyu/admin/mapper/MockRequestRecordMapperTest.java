@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.mapper;
 
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
 import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
@@ -120,15 +121,19 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
     @Test
     @Transactional
     public void count() {
-        List<MockRequestRecordDO> mockRequestRecordDOS = Arrays.asList(buildMockRequestRecordDO(), buildMockRequestRecordDO(), buildMockRequestRecordDO());
+        List<MockRequestRecordDO> mockRequestRecordDOS = new ArrayList<>();
+        MockRequestRecordDO mockRequestRecordDO = buildMockRequestRecordDO();
+        mockRequestRecordDO.setApiId("456");
+        mockRequestRecordDOS.add(mockRequestRecordDO);
         int insertRows = mockRequestRecordMapper.insertBatch(mockRequestRecordDOS);
-        assertEquals(insertRows, 3);
+        assertEquals(insertRows, 1);
         MockRequestRecordDO queryRecord = buildMockRequestRecordDO();
         queryRecord.setId(null);
+        queryRecord.setApiId("456");
         queryRecord.setDateCreated(null);
         queryRecord.setDateUpdated(null);
         long queryCnt = mockRequestRecordMapper.count(queryRecord);
-        assertEquals(queryCnt, 3);
+        assertEquals(queryCnt, 1);
     }
 
     @Test
