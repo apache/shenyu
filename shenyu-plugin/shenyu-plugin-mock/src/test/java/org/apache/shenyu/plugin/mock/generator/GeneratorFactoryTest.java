@@ -35,7 +35,7 @@ public class GeneratorFactoryTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"${expression|(sdxc}", "${wrong_rule|123}"})
-    public void testDealRuleWithWrongContent(String content) {
+    public void testDealRuleWithWrongContent(final String content) {
         String dealedContent = GeneratorFactory.dealRule(content);
         assertThat(dealedContent, is("\"[#ERROR EXPRESSION#]\""));
     }
