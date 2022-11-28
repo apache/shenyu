@@ -21,4 +21,92 @@ GET http://localhost:8899/sdk/dubbo/findAll
 Accept: application/json
 Content-Type: application/json
 
+### shengyu apache dubbo /sdk/dubbo/findList
+GET http://localhost:8899/sdk/dubbo/findList
+Accept: application/json
+Content-Type: application/json
 
+### shengyu apache dubbo /sdk/dubbo/findById
+GET http://localhost:8899/sdk/dubbo/findById?id=1
+Accept: application/json
+Content-Type: application/json
+
+### shengyu apache dubbo /sdk/dubbo/findByListId
+POST http://localhost:8899/sdk/dubbo/findByListId
+Accept: application/json
+Content-Type: application/json
+{
+    "ids":["1","2"]
+}
+
+### shengyu apache dubbo /sdk/dubbo/insert
+POST http://localhost:8899/sdk/dubbo/insert
+Accept: application/json
+Content-Type: application/json
+{
+    "id":1L,
+    "name":"helloworld"
+}
+
+### shengyu apache dubbo /sdk/dubbo/findByIdsAndName
+POST http://localhost:8899/sdk/dubbo/findByIdsAndName
+Accept: application/json
+Content-Type: application/json
+{
+    "ids":["1","2"],
+    "name":"333"
+}
+
+### shengyu apache dubbo /sdk/dubbo/findByArrayIdsAndName
+POST http://localhost:8899/sdk/dubbo/findByArrayIdsAndName
+Accept: application/json
+Content-Type: application/json
+{
+    "ids":[1,12],
+    "name":"999"
+}
+
+### shengyu apache dubbo /sdk/dubbo/saveComplexBeanTest
+POST http://localhost:8899/sdk/dubbo/saveComplexBeanTest
+Accept: application/json
+Content-Type: application/json
+{
+    "dubboTest":{
+        "id": "123",
+        "name": "test1"
+    },
+    "idLists": [
+        "1",
+        "2"
+    ],
+    "idMaps": {
+  }
+}
+
+### shengyu apache dubbo /sdk/dubbo/batchSave
+POST http://localhost:8899/sdk/dubbo/batchSave
+Accept: application/json
+Content-Type: application/json
+{
+    "dubboTestList": [
+        {
+            "name": "22222",
+            "id": "122"
+        }
+    ]
+}
+
+### shengyu apache dubbo /sdk/dubbo/batchSaveAndNameAndId
+POST http://localhost:8899/sdk/dubbo/batchSaveAndNameAndId
+Accept: application/json
+Content-Type: application/json
+{
+    "dubboTestList": [
+        {
+            "name": "22222",
+            "id": "122"
+        }
+    ],
+    "id":"123344",
+    "name":"testete"
+}
