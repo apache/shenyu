@@ -307,6 +307,11 @@ public class MockRequestRecordVO implements Serializable {
         return new MockRequestRecordVO.MockRequestRecordVOBuilder();
     }
 
+    /**
+     * buildMockRequestRecordVO.
+     * @param mockRequestRecordDO mockRequestRecordDO
+     * @return MockRequestRecordVO
+     */
     public static MockRequestRecordVO buildMockRequestRecordVO(final MockRequestRecordDO mockRequestRecordDO) {
         return MockRequestRecordVO.builder()
                 .id(mockRequestRecordDO.getId())

@@ -29,6 +29,11 @@ import org.apache.shenyu.admin.model.vo.PluginVO;
  */
 public interface MockRequestRecordService {
 
+    /**
+     *  createOrUpdate.
+     * @param mockRequestRecordDTO mockRequestRecordDTO
+     * @return rows
+     */
     int createOrUpdate(MockRequestRecordDTO mockRequestRecordDTO);
 
     /**

@@ -90,6 +90,17 @@ public class MockRequestRecordController {
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
+    /**
+     * findPageByQuery.
+     * @param apiId apiId
+     * @param host host
+     * @param url url
+     * @param pathVariable pathVariable
+     * @param query query
+     * @param currentPage currentPage
+     * @param pageSize pageSize
+     * @return
+     */
     @GetMapping("/findPageByQuery")
     public ShenyuAdminResult listByPage(final String apiId, final String host, final String url,
                                         final String pathVariable, final String query,

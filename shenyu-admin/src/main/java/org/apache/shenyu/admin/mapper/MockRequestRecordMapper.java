@@ -104,6 +104,11 @@ public interface MockRequestRecordMapper extends ExistProvider {
      */
     int deleteById(String id);
 
+    /**
+     * batchDelete.
+     * @param ids ids
+     * @return Number of rows deleted
+     */
     int batchDelete(List<String> ids);
 
     /**
