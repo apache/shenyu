@@ -17,37 +17,26 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import org.apache.shenyu.plugin.mock.util.MockUtil;
-import org.apache.shenyu.spi.Join;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-/**
- * Random email address generator.
- */
-@Join
-public class EmailGenerator implements Generator<String> {
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesRegex;
 
-    @Override
-    public String getName() {
-        return "email";
+public class GeneratorFactoryTest {
+
+    @Test
+    public void testDealRule() {
+        String dealedContent = GeneratorFactory.dealRule("${phone}");
+        assertThat(dealedContent, matchesRegex("^\"1[3-9]\\d{9}\"$"));
     }
 
-    @Override
-    public String generate() {
-        return MockUtil.email();
-    }
-
-    @Override
-    public int getParamSize() {
-        return 0;
-    }
-
-    @Override
-    public boolean match(final String rule) {
-        return rule.matches("^email$");
-    }
-
-    @Override
-    public String[] getPrefixAndSuffix() {
-        return new String[]{"\"", "\""};
+    @ParameterizedTest
+    @ValueSource(strings = {"${expression|(sdxc}", "${wrong_rule|123}"})
+    public void testDealRuleWithWrongContent(final String content) {
+        String dealedContent = GeneratorFactory.dealRule(content);
+        assertThat(dealedContent, is("\"[#ERROR EXPRESSION#]\""));
     }
 }
