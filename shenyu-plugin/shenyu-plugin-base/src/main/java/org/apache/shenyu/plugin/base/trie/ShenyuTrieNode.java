@@ -30,7 +30,7 @@ import java.util.Objects;
 public class ShenyuTrieNode implements Serializable {
 
     private static final long serialVersionUID = -2347426887850566364L;
-    
+
     /**
      * abc match abc, :a match all words as a variable names a, * match all words  ,** match all words and children.
      */
