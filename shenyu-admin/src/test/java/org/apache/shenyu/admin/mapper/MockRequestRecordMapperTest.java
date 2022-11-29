@@ -172,7 +172,6 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
         mockRequestRecordMapper.insert(mockRequestRecordDO);
         MockRequestRecordQuery mockRequestRecordQuery = new MockRequestRecordQuery();
         mockRequestRecordQuery.setApiId("1");
-        mockRequestRecordQuery.setHost("192.168.1.1");
         mockRequestRecordQuery.setUrl("http://baidu.com/test");
         List<MockRequestRecordDO> mockRequestRecordDOS = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
         assertEquals(mockRequestRecordDOS.size(), 1);
@@ -197,7 +196,7 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
                 .body("{\"name\": \"julia\"}")
                 .header("userId: 1;")
                 .host("192.168.1.1")
-                .url("http://192.168.1.1:8080/test")
+                .url("http://baidu.com/test")
                 .pathVariable("")
                 .port(8080)
                 .query("")
