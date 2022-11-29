@@ -18,7 +18,7 @@
 package org.apache.shenyu.sdk.spring.annotation;
 
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.sdk.core.common.RequestTemplate;
+import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -37,11 +37,11 @@ public class RequestBodyParameterProcessor implements AnnotatedParameterProcesso
     }
 
     @Override
-    public boolean processArgument(final RequestTemplate requestTemplate, final Annotation annotation, final Object arg) {
+    public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
         if (arg instanceof String) {
-            requestTemplate.setBody((String) arg);
+            shenyuRequest.setBody((String) arg);
         } else {
-            requestTemplate.setBody(JsonUtils.toJson(arg));
+            shenyuRequest.setBody(JsonUtils.toJson(arg));
         }
         return true;
     }

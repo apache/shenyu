@@ -17,12 +17,12 @@
 
 
 ### shengyu sdk http findById
-GET http://localhost:8899/sdk/findById?id=1
+GET http://localhost:8899/sdk/client/findById?id=1
 Accept: application/json
 Content-Type: application/json
 
 ### shengyu sdk annoTest
-POST http://localhost:8899/sdk/annoTest
+POST http://localhost:8899/sdk/client/annoTest
 Accept: application/json
 Content-Type: application/json
 
