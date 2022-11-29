@@ -57,7 +57,7 @@ public class ShenyuTrieNode implements Serializable {
     private boolean endOfPath;
 
     /**
-     * selectorId -> RuleData.
+     * selectorId mapping to RuleData.
      */
     private Cache<String, RuleData> pathRuleCache;
 
