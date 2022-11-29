@@ -90,7 +90,7 @@ public class MockRequestRecordController {
                                         @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
                                         @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         PageParameter pageParameter = new PageParameter(currentPage, pageSize);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, this.mockRequestRecordService.listByPage(new MockRequestRecordQuery(apiId, host, url, pathVariable, header
-                , pageParameter)));
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, this.mockRequestRecordService.listByPage(new MockRequestRecordQuery(apiId, host, url,
+                pathVariable, header, pageParameter)));
     }
 }
