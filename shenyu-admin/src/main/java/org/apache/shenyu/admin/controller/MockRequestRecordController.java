@@ -79,17 +79,18 @@ public class MockRequestRecordController {
      * @param host host
      * @param url url
      * @param pathVariable pathVariable
-     * @param query query
+     * @param header header
      * @param currentPage currentPage
      * @param pageSize pageSize
      * @return ShenyuAdminResult
      */
     @GetMapping("/findPageByQuery")
     public ShenyuAdminResult listByPage(final String apiId, final String host, final String url,
-                                        final String pathVariable, final String query,
+                                        final String pathVariable, final String header,
                                         @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
                                         @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         PageParameter pageParameter = new PageParameter(currentPage, pageSize);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, this.mockRequestRecordService.listByPage(new MockRequestRecordQuery(apiId, host, url, pathVariable, query, pageParameter)));
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, this.mockRequestRecordService.listByPage(new MockRequestRecordQuery(apiId, host, url, pathVariable, header
+                , pageParameter)));
     }
 }
