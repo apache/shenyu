@@ -30,9 +30,14 @@ public class MockRequestRecordDTO implements Serializable {
 
     private static final long serialVersionUID = -6779456713216687114L;
 
-    @Existed(provider = ApiMapper.class, nullOfIgnore = true, message = "the mock reuqest record is not exited")
+    /**
+     * primary key.
+     */
     private String id;
 
+    /**
+     * apiId.
+     */
     private String apiId;
 
     /**

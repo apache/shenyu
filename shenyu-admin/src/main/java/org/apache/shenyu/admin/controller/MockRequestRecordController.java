@@ -54,20 +54,6 @@ public class MockRequestRecordController {
     public MockRequestRecordController(final MockRequestRecordService mockRequestRecordService) {
         this.mockRequestRecordService = mockRequestRecordService;
     }
-
-    /**
-     * findById.
-     * @param id id
-     * @return {@linkplain ShenyuAdminResult}
-     */
-    @GetMapping("/id/{id}")
-    public ShenyuAdminResult findById(@PathVariable("id")
-                                       @Existed(message = "mockrequestrecord is not existed",
-                                               provider = ApiMapper.class) final String id) {
-        MockRequestRecordVO mockRequestRecordVO = mockRequestRecordService.findById(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, mockRequestRecordVO);
-    }
-
     /**
      * create or update mockRequestRecord.
      *

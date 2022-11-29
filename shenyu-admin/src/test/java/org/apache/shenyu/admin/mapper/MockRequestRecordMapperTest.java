@@ -173,8 +173,7 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
         MockRequestRecordQuery mockRequestRecordQuery = new MockRequestRecordQuery();
         mockRequestRecordQuery.setApiId("1");
         mockRequestRecordQuery.setHost("192.168.1.1");
-        mockRequestRecordQuery.setQuery("");
-        mockRequestRecordQuery.setUrl("http://192.168.1.1:8080/test");
+        mockRequestRecordQuery.setUrl("http://baidu.com/test");
         List<MockRequestRecordDO> mockRequestRecordDOS = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
         assertEquals(mockRequestRecordDOS.size(), 1);
     }

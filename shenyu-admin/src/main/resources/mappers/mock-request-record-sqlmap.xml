@@ -60,8 +60,8 @@
             <if test="pathVariable != null">
               and  path_variable = #{pathVariable, jdbcType=VARCHAR}
             </if>
-            <if test="query != null">
-              and  `query` = #{query, jdbcType=VARCHAR}
+            <if test="header != null">
+              and  `header` = #{header, jdbcType=VARCHAR}
             </if>
         </where>
     </select>

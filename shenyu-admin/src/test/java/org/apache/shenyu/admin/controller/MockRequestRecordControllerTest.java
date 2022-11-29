@@ -67,15 +67,6 @@ public class MockRequestRecordControllerTest {
     }
 
     @Test
-    public void testFindById() throws Exception {
-        given(mockRequestRecordService.findById("1")).willReturn(buildMockRequestRecordVO());
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/mock/id/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
-                .andReturn();
-    }
-
-    @Test
     public void testCreateOrUpdate() throws Exception {
         given(mockRequestRecordService.createOrUpdate(any())).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/mock/insertOrUpdate")

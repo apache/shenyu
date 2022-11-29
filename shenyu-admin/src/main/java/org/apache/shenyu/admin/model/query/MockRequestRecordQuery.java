@@ -51,7 +51,7 @@ public class MockRequestRecordQuery implements Serializable {
     /**
      * the request param after url.
      */
-    private String query;
+    private String header;
 
     /**
      * page parameter.
@@ -63,13 +63,13 @@ public class MockRequestRecordQuery implements Serializable {
     }
 
     public MockRequestRecordQuery(final String apiId, final String host, final String url,
-                                  final String pathVariable, final String query, final PageParameter pageParameter) {
+                                  final String pathVariable, final String header, final PageParameter pageParameter) {
         this.apiId = apiId;
         this.host = host;
         this.url = url;
         this.pageParameter = pageParameter;
         this.pathVariable = pathVariable;
-        this.query = query;
+        this.header = header;
     }
 
     /**
@@ -145,21 +145,21 @@ public class MockRequestRecordQuery implements Serializable {
     }
 
     /**
-     * Gets the value of query.
+     * Gets the value of header.
      *
-     * @return the value of query
+     * @return the value of header
      */
-    public String getQuery() {
-        return query;
+    public String getHeader() {
+        return header;
     }
 
     /**
-     * Sets the query.
+     * Sets the header.
      *
-     * @param query query
+     * @param header header
      */
-    public void setQuery(final String query) {
-        this.query = query;
+    public void setHeader(final String header) {
+        this.header = header;
     }
 
     /**
@@ -185,17 +185,17 @@ public class MockRequestRecordQuery implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ApiQuery)) {
+        if (!(o instanceof MockRequestRecordQuery)) {
             return false;
         }
         MockRequestRecordQuery mockRequestRecordQuery = (MockRequestRecordQuery) o;
-        return apiId.equals(mockRequestRecordQuery.apiId) && query.equals(mockRequestRecordQuery.getQuery())
+        return apiId.equals(mockRequestRecordQuery.apiId) && header.equals(mockRequestRecordQuery.getHeader())
                 && host.equals(mockRequestRecordQuery.getHost()) && url.equals(mockRequestRecordQuery.getUrl())
                 && pathVariable.equals(mockRequestRecordQuery.getPathVariable());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(apiId, query, host, url, pathVariable);
+        return Objects.hash(apiId, header, host, url, pathVariable);
     }
 }
