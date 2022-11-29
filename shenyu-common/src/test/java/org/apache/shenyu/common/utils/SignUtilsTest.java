@@ -22,8 +22,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test cases for SignUtils.
@@ -56,5 +55,15 @@ public final class SignUtilsTest {
     @Test
     public void testGenerateKey() {
         assertNotNull(SignUtils.getInstance().generateKey());
+    }
+
+    @Test
+    public void testTransStringMap() {
+        Map<String, Object> jsonParams = new HashMap<>();
+        jsonParams.put("a", "1");
+        jsonParams.put("b", "2");
+        Map<String, String> stringStringMap = SignUtils.transStringMap(jsonParams);
+        assertEquals(stringStringMap.get("a").getClass(), String.class);
+        assertEquals(stringStringMap.get("a"), "1");
     }
 }
