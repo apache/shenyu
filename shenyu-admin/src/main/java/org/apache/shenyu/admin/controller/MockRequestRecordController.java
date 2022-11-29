@@ -22,19 +22,15 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.model.dto.MockRequestRecordDTO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.model.vo.MockRequestRecordVO;
 import org.apache.shenyu.admin.service.MockRequestRecordService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +50,7 @@ public class MockRequestRecordController {
     public MockRequestRecordController(final MockRequestRecordService mockRequestRecordService) {
         this.mockRequestRecordService = mockRequestRecordService;
     }
+
     /**
      * create or update mockRequestRecord.
      *

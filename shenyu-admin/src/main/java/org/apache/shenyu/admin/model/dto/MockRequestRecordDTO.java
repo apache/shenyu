@@ -20,8 +20,6 @@ package org.apache.shenyu.admin.model.dto;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
-import org.apache.shenyu.admin.mapper.ApiMapper;
-import org.apache.shenyu.admin.validation.annotation.Existed;
 
 /**
  * this is mockrequestrecord from by web front.
