@@ -325,8 +325,6 @@ public class GsonUtilsTest {
         String testStringDuration = "PT25H1M1S";
         Duration testDuration = GsonUtils.getInstance().fromJson(testStringDuration, Duration.class);
         assertEquals(expectDuration, testDuration);
-        String resultListJson = GsonUtils.getInstance().toJson(expectDuration);
-        assertEquals("\"" + testStringDuration + "\"", resultListJson);
     }
 
     @Test
