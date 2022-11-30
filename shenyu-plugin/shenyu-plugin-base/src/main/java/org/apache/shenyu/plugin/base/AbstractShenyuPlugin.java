@@ -46,6 +46,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -129,20 +130,23 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             printLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         } else {
+            // match path with rule uri condition
             ShenyuTrieNode matchTrieNode = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match(path, selectorData.getId(), pluginName);
             if (Objects.nonNull(matchTrieNode)) {
                 ruleData = matchTrieNode.getPathRuleCache().getIfPresent(selectorData.getId());
                 if (Objects.isNull(ruleData)) {
                     ruleData = genericMatchRule(exchange, rules);
+                } else {
+                    // match other conditions
+                    if (!filterRule(ruleData, exchange)) {
+                        return chain.execute(exchange);
+                    }
                 }
             } else {
                 ruleData = genericMatchRule(exchange, rules);
             }
             if (Objects.isNull(ruleData)) {
                 return handleRuleIfNull(pluginName, exchange, chain);
-            }
-            if (!filterRule(ruleData, exchange)) {
-                return chain.execute(exchange);
             }
         }
         printLog(ruleData, pluginName);
