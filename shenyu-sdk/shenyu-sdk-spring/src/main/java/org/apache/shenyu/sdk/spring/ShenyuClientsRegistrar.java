@@ -182,7 +182,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
     private void validate(final Map<String, Object> attributes) {
         AnnotationAttributes annotation = AnnotationAttributes.fromMap(attributes);
-        // This blows up if an aliased property is overspecified
+        // This blows up if an aliased property is over specified
         validateFallback(annotation.getClass("fallback"));
         validateFallbackFactory(annotation.getClass("fallbackFactory"));
     }
