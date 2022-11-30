@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.mock.generator;
 import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
 
+import java.util.List;
+
 /**
  * 11-digit mobile number generator.
  */
@@ -32,7 +34,7 @@ public class PhoneGenerator implements Generator<String> {
     }
 
     @Override
-    public String generate() {
+    public String doGenerate(final List<String> params, final String rule) {
         return MockUtil.phone();
     }
 
