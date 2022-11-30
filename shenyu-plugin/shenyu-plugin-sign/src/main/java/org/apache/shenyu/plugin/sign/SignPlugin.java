@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.sign;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -36,6 +35,7 @@ import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.sign.decorator.SignRequestDecorator;
 import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
 import org.apache.shenyu.plugin.sign.handler.SignRuleHandler;
+import org.apache.shenyu.plugin.sign.api.VerifyResult;
 import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
@@ -98,9 +98,9 @@ public class SignPlugin extends AbstractShenyuPlugin {
                         return chain.execute(exchange.mutate().request(decorator).build());
                     })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
         }
-        Pair<Boolean, String> result = signService.signVerify(exchange);
-        if (Boolean.FALSE.equals(result.getLeft())) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
+        VerifyResult result = signService.signVerify(exchange);
+        if (result.isFailed()) {
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getReason(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
 
@@ -115,9 +115,9 @@ public class SignPlugin extends AbstractShenyuPlugin {
         // get post body
         Map<String, Object> requestBody = StringUtils.isBlank(originalBody) ? null : JsonUtils.jsonToMap(originalBody);
         Map<String, String> queryParamsSingleValueMap = queryParams.toSingleValueMap();
-        Pair<Boolean, String> result = signService.signVerify(exchange, requestBody, queryParamsSingleValueMap);
-        if (Boolean.FALSE.equals(result.getLeft())) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
+        VerifyResult result = signService.signVerify(exchange, requestBody, queryParamsSingleValueMap);
+        if (result.isFailed()) {
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getReason(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         // return original data
