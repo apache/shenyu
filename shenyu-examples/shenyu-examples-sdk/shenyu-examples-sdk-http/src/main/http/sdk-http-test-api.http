@@ -21,7 +21,7 @@ GET http://localhost:8899/sdk/http/findById?id=1
 Accept: application/json
 Content-Type: application/json
 
-### shengyu sdk annoTest
+### shengyu sdk http annoTest
 POST http://localhost:8899/sdk/http/annoTest
 Accept: application/json
 Content-Type: application/json
