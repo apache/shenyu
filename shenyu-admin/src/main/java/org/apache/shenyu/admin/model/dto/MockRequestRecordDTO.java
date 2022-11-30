@@ -20,6 +20,8 @@ package org.apache.shenyu.admin.model.dto;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
+import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
 
 /**
  * this is mockrequestrecord from by web front.
@@ -36,6 +38,7 @@ public class MockRequestRecordDTO implements Serializable {
     /**
      * apiId.
      */
+    @Existed(provider = MockRequestRecordMapper.class, nullOfIgnore = true, message = "the apiId is not exited")
     private String apiId;
 
     /**
@@ -49,7 +52,7 @@ public class MockRequestRecordDTO implements Serializable {
     private Integer port;
 
     /**
-     * the request url.
+     * whole url,such as curl http://domain//test1/**?param=test .
      */
     private String url;
 
