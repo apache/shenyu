@@ -48,7 +48,7 @@ public class ShenyuHttpSdkExampleController {
     }
 
     /**
-     * annoTest.
+     * annoTest .
      * test anno support shenyu SDK.
      *
      * @param sdkTestDto sdkTestDto
