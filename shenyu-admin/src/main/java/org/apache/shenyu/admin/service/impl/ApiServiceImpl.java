@@ -90,7 +90,6 @@ public class ApiServiceImpl implements ApiService {
                         .id(UUIDUtils.getInstance().generateShortUuid())
                         .apiId(apiDO.getId())
                         .tagId(tagId)
-                        .dateCreated(currentTime)
                         .dateUpdated(currentTime)
                         .build());
             }
