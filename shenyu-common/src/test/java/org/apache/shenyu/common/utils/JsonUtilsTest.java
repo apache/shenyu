@@ -109,6 +109,27 @@ public final class JsonUtilsTest {
         assertEquals(testMap.get("result").get("not_class"), "ClassNotFoundException.class");
     }
 
+    @Test
+    public void testJsonToObject() {
+        TestObject testObject = JsonUtils.jsonToObject(EXPECTED_JSON, TestObject.class);
+        assertNotNull(testObject);
+        assertEquals(testObject.getName(), "test object");
+    }
+
+    @Test
+    public void testJsonToMapByValueTypeRef() {
+        Map<String, Object> stringObjectMap = JsonUtils.jsonToMap(EXPECTED_JSON, Object.class);
+        assertEquals(stringObjectMap.get("name"), "test object");
+    }
+
+    @Test
+    public void testToMap() {
+        TestObject testObject = JsonUtils.jsonToObject(EXPECTED_JSON, TestObject.class);
+        Map<String, Object> testObjectMap = JsonUtils.toMap(testObject);
+        assertNotNull(testObjectMap);
+        assertEquals(testObjectMap.get("name"), "test object");
+    }
+
     static class TestObject {
 
         private int id;
