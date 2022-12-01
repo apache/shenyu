@@ -34,20 +34,15 @@ public class FieldQuery {
     private String fieldDesc;
 
 
-    /**
-     * the ext.
-     */
-    private String ext;
 
     /**
      * page parameter.
      */
     private PageParameter pageParameter;
 
-    public FieldQuery(final String name, final String fieldDesc, final String ext, final PageParameter pageParameter) {
+    public FieldQuery(final String name, final String fieldDesc, final PageParameter pageParameter) {
         this.name = name;
         this.fieldDesc = fieldDesc;
-        this.ext = ext;
         this.pageParameter = pageParameter;
     }
 
@@ -88,24 +83,6 @@ public class FieldQuery {
     }
 
 
-    /**
-     * getExt.
-     *
-     * @return ext
-     */
-    public String getExt() {
-        return ext;
-    }
-
-    /**
-     * set ext.
-     *
-     * @param ext ext
-     */
-    public void setExt(final String ext) {
-        this.ext = ext;
-    }
-
 
     /**
      * getPageParameter.
@@ -138,13 +115,12 @@ public class FieldQuery {
         }
         FieldQuery fieldDO = (FieldQuery) o;
         return Objects.equals(name, fieldDO.name)
-                && Objects.equals(fieldDesc, fieldDO.fieldDesc)
-                && Objects.equals(ext, fieldDO.ext);
+                && Objects.equals(fieldDesc, fieldDO.fieldDesc);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name, fieldDesc, ext);
+        return Objects.hash(super.hashCode(), name, fieldDesc);
     }
 
 }

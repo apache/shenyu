@@ -208,9 +208,6 @@
             <if test="fieldDesc != null">
                 and field_desc = #{fieldDesc, jdbcType=VARCHAR}
             </if>
-            <if test="ext != null">
-                and  ext = #{ext, jdbcType=VARCHAR}
-            </if>
         </where>
     </select>
 
