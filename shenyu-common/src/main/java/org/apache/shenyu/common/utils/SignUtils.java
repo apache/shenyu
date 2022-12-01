@@ -31,20 +31,6 @@ import org.apache.commons.codec.digest.DigestUtils;
  */
 public final class SignUtils {
 
-    private static final SignUtils SIGN_UTILS = new SignUtils();
-
-    private SignUtils() {
-    }
-
-    /**
-     * getInstance.
-     *
-     * @return {@linkplain SignUtils}
-     */
-    public static SignUtils getInstance() {
-        return SIGN_UTILS;
-    }
-
     /**
      * acquired sign.
      *
@@ -78,7 +64,7 @@ public final class SignUtils {
      * @param signKey sign key
      * @return boolean
      */
-    public boolean isValid(final String sign, final Map<String, String> jsonParams, final Map<String, String> queryParams, final String signKey) {
+    public static boolean isValid(final String sign, final Map<String, String> jsonParams, final Map<String, String> queryParams, final String signKey) {
         return Objects.equals(sign, generateSign(signKey, jsonParams, queryParams));
     }
 
@@ -87,7 +73,7 @@ public final class SignUtils {
      *
      * @return the string
      */
-    public String generateKey() {
+    public static String generateKey() {
         return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
     }
 

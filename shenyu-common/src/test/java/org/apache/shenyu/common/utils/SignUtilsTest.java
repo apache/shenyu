@@ -51,12 +51,12 @@ public final class SignUtilsTest {
         Map<String, String> queryParams = new HashMap<>();
         jsonParams.put("a", "1");
         jsonParams.put("b", "2");
-        assertTrue(SignUtils.getInstance().isValid(sign, jsonParams, queryParams, "test"));
+        assertTrue(SignUtils.isValid(sign, jsonParams, queryParams, "test"));
     }
 
     @Test
     public void testGenerateKey() {
-        assertNotNull(SignUtils.getInstance().generateKey());
+        assertNotNull(SignUtils.generateKey());
     }
 
     @Test
