@@ -39,23 +39,30 @@
         date_updated
     </sql>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+        FROM detail
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DetailDO">
         insert into detail (
-            id,
-            field_id,
-            is_example,
-            field_value,
-            value_desc,
-            date_created,
-            date_updated
+        id,
+        field_id,
+        is_example,
+        field_value,
+        value_desc,
+        date_created,
+        date_updated
         )values (
-            #{id, jdbcType=VARCHAR},
-            #{fieldId, jdbcType=VARCHAR},
-            #{example, jdbcType=TINYINT},
-            #{fieldValue, jdbcType=VARCHAR},
-            #{valueDesc, jdbcType=VARCHAR},
-            #{dateCreated, jdbcType=TIMESTAMP},
-            #{dateUpdated, jdbcType=TIMESTAMP}
+        #{id, jdbcType=VARCHAR},
+        #{fieldId, jdbcType=VARCHAR},
+        #{example, jdbcType=TINYINT},
+        #{fieldValue, jdbcType=VARCHAR},
+        #{valueDesc, jdbcType=VARCHAR},
+        #{dateCreated, jdbcType=TIMESTAMP},
+        #{dateUpdated, jdbcType=TIMESTAMP}
         )
     </insert>
 
@@ -142,6 +149,14 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
+    <delete id="batchDelete">
+        DELETE FROM detail
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
         DELETE FROM detail
         WHERE id = #{id, jdbcType=VARCHAR}
@@ -152,6 +167,20 @@
         <include refid="Base_Column_List"/>
         FROM detail
         WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByQuery" resultMap="BaseResultMap">
+        SElECT
+        <include refid="Base_Column_List"/>
+        FROM detail
+        <where>
+            <if test="fieldValue != null">
+                and field_value = #{fieldValue, jdbcType=VARCHAR}
+            </if>
+            <if test="valueDesc != null">
+                and value_desc = #{valueDesc, jdbcType=VARCHAR}
+            </if>
+        </where>
     </select>
 
 </mapper>
