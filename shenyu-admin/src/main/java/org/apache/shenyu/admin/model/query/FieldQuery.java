@@ -24,7 +24,7 @@ import java.util.Objects;
 public class FieldQuery {
 
     /**
-     * the field name.
+     * the fieldName.
      */
     private String name;
 
