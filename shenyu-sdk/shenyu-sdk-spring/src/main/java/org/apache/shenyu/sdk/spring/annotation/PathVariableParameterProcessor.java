@@ -18,6 +18,7 @@
 package org.apache.shenyu.sdk.spring.annotation;
 
 import org.apache.commons.lang3.RegExUtils;
+import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,14 +41,15 @@ public class PathVariableParameterProcessor implements AnnotatedParameterProcess
     }
 
     @Override
-    public boolean processArgument(final RequestTemplate requestTemplate, final Annotation annotation, final Object arg) {
+    public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
         String name = ANNOTATION.cast(annotation).value();
+        RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         checkState(emptyToNull(name) != null, "PathVariable annotation was empty on param %s.", requestTemplate.getMethod());
         checkState(arg instanceof String, "PathVariable Object class pls is String %s.", requestTemplate.getMethod());
         String varName = "{" + name + "}";
         String varNameRegex = "\\{" + name + "\\}";
         if (requestTemplate.getPath().contains(varName)) {
-            requestTemplate.setPath(RegExUtils.replaceAll(requestTemplate.getPath(), varNameRegex, String.valueOf(arg)));
+            shenyuRequest.setUrl(requestTemplate.getUrl() + RegExUtils.replaceAll(requestTemplate.getPath(), varNameRegex, String.valueOf(arg)));
         }
         return true;
     }
