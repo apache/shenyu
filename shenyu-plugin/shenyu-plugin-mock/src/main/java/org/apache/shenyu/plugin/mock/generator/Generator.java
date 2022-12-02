@@ -29,55 +29,41 @@ import java.util.stream.Collectors;
  */
 @SPI
 public interface Generator<T> {
-    
+
     /**
      * rule name.
      *
      * @return name
      */
     String getName();
-    
+
+    /**
+     * generate mock data.
+     * @param rule rule
+     * @return mock data
+     */
+    default T generate(String rule) {
+        List<String> params = extractParams(rule);
+        return doGenerate(params, rule);
+    }
+
     /**
      * generate mock data.
      *
-     * @return random data
+     * @param params params
+     * @param rule   rule
+     * @return mock data
      */
-    T generate();
-    
+    T doGenerate(List<String> params, String rule);
+
     /**
      * get size of rule params.
      *
      * @return params size
      */
     int getParamSize();
-    
-    /**
-     * init generator.
-     *
-     * @param rule rule
-     */
-    default void parseRule(final String rule) {
-        List<String> params = new ArrayList<>();
-        String[] split = rule.split("(?<!\\\\)\\|");
-        if (split.length >= getParamSize() + 1) {
-            params.addAll(Arrays.stream(split)
-                    .map(p -> p.replaceAll("\\\\\\|", "|"))
-                    .skip(1)
-                    .collect(Collectors.toList()));
-        }
-        initParam(params, rule);
-    }
-    
-    /**
-     * param from rule.
-     *
-     * @param params rule params.
-     * @param rule   source rule content
-     */
-    default void initParam(List<String> params, String rule) {
-    
-    }
-    
+
+
     /**
      * Determine whether the rule meets the format requirements.
      *
@@ -85,8 +71,8 @@ public interface Generator<T> {
      * @return if match return true.
      */
     boolean match(String rule);
-    
-    
+
+
     /**
      * return prefix and suffix for generate data.
      *
@@ -95,5 +81,23 @@ public interface Generator<T> {
     default String[] getPrefixAndSuffix() {
         return new String[]{"", ""};
     }
-    
+
+    /**
+     * extract params from rule.
+     *
+     * @param rule rule
+     * @return params
+     */
+    default List<String> extractParams(final String rule) {
+        List<String> params = new ArrayList<>();
+        String[] split = rule.split("(?<!\\\\)\\|");
+        if (split.length >= getParamSize() + 1) {
+            params.addAll(Arrays.stream(split)
+                    .map(p -> p.replaceAll("\\\\\\|", "|"))
+                    .skip(1)
+                    .collect(Collectors.toList()));
+        }
+        return params;
+    }
+
 }

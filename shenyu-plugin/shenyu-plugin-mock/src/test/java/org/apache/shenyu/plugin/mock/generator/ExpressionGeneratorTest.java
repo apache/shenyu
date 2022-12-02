@@ -42,48 +42,46 @@ public class ExpressionGeneratorTest {
     @Test
     public void testGenerate() {
 
-        generator.parseRule("expression|T(java.time.LocalDate).now()");
-        assertThat(generator.generate(), is(JsonUtils.toJson(LocalDate.now().toString())));
+        assertThat(generator.generate("expression|T(java.time.LocalDate).now()"),
+                is(JsonUtils.toJson(LocalDate.now().toString())));
 
-        generator.parseRule("expression|1==1");
-        assertThat(generator.generate(), is("true"));
+        assertThat(generator.generate("expression|1==1"),
+                is("true"));
     }
 
     @Test
     public void testBoolGenerate() {
-        generator.parseRule("expression|#bool()");
-        String generate = generator.generate();
+        String generate = generator.generate("expression|#bool()");
         assertThat(generate, in(Arrays.asList("true", "false")));
 
     }
 
     @Test
     public void testCurrentTimeGenerate() {
-        generator.parseRule("expression|#current()");
-        assertTrue(generator.generate().matches("^\"\\d{4}(-\\d{2}){2} \\d{2}(:\\d{2}){2}\"$"));
-        generator.parseRule("expression|#current('YYYY-MM-dd')");
-        assertTrue(generator.generate().matches("^\"\\d{4}(-\\d{2}){2}\"$"));
+        assertThat(generator.generate("expression|#current()"),
+                matchesRegex("^\"\\d{4}(-\\d{2}){2} \\d{2}(:\\d{2}){2}\"$"));
+
+        generator.generate("expression|#current('YYYY-MM-dd')");
+        assertThat(generator.generate("expression|#current('YYYY-MM-dd')"),
+                matchesRegex("^\"\\d{4}(-\\d{2}){2}\"$"));
     }
 
     @Test
     public void testEmailTimeGenerate() {
-        generator.parseRule("expression|#email()");
-        assertNotNull(generator.generate());
+        assertNotNull(generator.generate("expression|#email()"));
     }
 
     @Test
     public void testEnStringGenerate() {
         int max = 10;
         int min = 5;
-        generator.parseRule(String.format("expression|#en(%d,%d)", min, max));
-        String enString = generator.generate();
+        String enString = generator.generate(String.format("expression|#en(%d,%d)", min, max));
         assertThat(enString, matchesRegex("\"[a-zA-Z]{" + min + "," + max + "}\""));
     }
 
     @Test
     public void testPhoneGenerate() {
-        generator.parseRule("expression|#phone()");
-        String phone = generator.generate();
+        String phone = generator.generate("expression|#phone()");
         assertTrue(phone.matches("^\"1[3-9]\\d{9}\"$"));
     }
 
@@ -91,12 +89,10 @@ public class ExpressionGeneratorTest {
     public void testRandomDoubleGenerate() {
         double min = 10.5;
         double max = 12.0;
-        generator.parseRule(String.format("expression|#double(%f,%f)", min, max));
-        String doubleValue = generator.generate();
+        String doubleValue = generator.generate(String.format("expression|#double(%f,%f)", min, max));
         assertThat(Double.valueOf(doubleValue), allOf(greaterThanOrEqualTo(min), lessThanOrEqualTo(max)));
 
-        generator.parseRule("expression|#double(10.5,12.0,'￥%.2f')");
-        doubleValue = generator.generate();
+        doubleValue = generator.generate("expression|#double(10.5,12.0,'￥%.2f')");
         assertThat(Double.valueOf(doubleValue.substring(1)), allOf(greaterThanOrEqualTo(min), lessThanOrEqualTo(max)));
         assertThat(doubleValue, matchesRegex("^￥\\d+.\\d{2}$"));
     }
@@ -105,16 +101,14 @@ public class ExpressionGeneratorTest {
     public void testRandomIntGenerate() {
         int min = 10;
         int max = 15;
-        generator.parseRule(String.format("expression|#int(%d,%d)", min, max));
-        String val = generator.generate();
+        String val = generator.generate(String.format("expression|#int(%d,%d)", min, max));
         assertThat(Integer.valueOf(val), allOf(greaterThanOrEqualTo(min), lessThanOrEqualTo(max)));
     }
 
     @Test
     public void testRandomDataGenerate() {
 
-        generator.parseRule("expression|#oneOf('shenyu','number',1)");
-        String val = generator.generate();
+        String val = generator.generate("expression|#oneOf('shenyu','number',1)");
         assertThat(val, oneOf("\"shenyu\"", "\"number\"", "1"));
     }
 
@@ -123,8 +117,7 @@ public class ExpressionGeneratorTest {
 
         int minLength = 10;
         int maxLength = 20;
-        generator.parseRule(String.format("expression|#zh(%d,%d)", minLength, maxLength));
-        String val = generator.generate();
+        String val = generator.generate(String.format("expression|#zh(%d,%d)", minLength, maxLength));
         assertThat(val.length(), allOf(greaterThanOrEqualTo(minLength), lessThanOrEqualTo(maxLength)));
     }
 
