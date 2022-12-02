@@ -34,7 +34,7 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
-import org.apache.shenyu.common.utils.ShaUtils;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
@@ -122,7 +122,7 @@ public class DashboardUserController {
     public ShenyuAdminResult createDashboardUser(@Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         return Optional.ofNullable(dashboardUserDTO)
                 .map(item -> {
-                    item.setPassword(ShaUtils.shaEncryption(item.getPassword()));
+                    item.setPassword(DigestUtils.sha512Hex(item.getPassword()));
                     Integer createCount = dashboardUserService.createOrUpdate(item);
                     return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
                 })
@@ -144,7 +144,7 @@ public class DashboardUserController {
                                                  @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         dashboardUserDTO.setId(id);
         if (StringUtils.isNotBlank(dashboardUserDTO.getPassword())) {
-            dashboardUserDTO.setPassword(ShaUtils.shaEncryption(dashboardUserDTO.getPassword()));
+            dashboardUserDTO.setPassword(DigestUtils.sha512Hex(dashboardUserDTO.getPassword()));
         }
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
@@ -171,7 +171,7 @@ public class DashboardUserController {
         if (!userInfo.getUserId().equals(id) && !userInfo.getUserName().equals(dashboardUserModifyPasswordDTO.getUserName())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_MODIFY_PASSWORD_ERROR);
         }
-        dashboardUserModifyPasswordDTO.setPassword(ShaUtils.shaEncryption(dashboardUserModifyPasswordDTO.getPassword()));
+        dashboardUserModifyPasswordDTO.setPassword(DigestUtils.sha512Hex(dashboardUserModifyPasswordDTO.getPassword()));
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, dashboardUserService.modifyPassword(dashboardUserModifyPasswordDTO));
     }
     

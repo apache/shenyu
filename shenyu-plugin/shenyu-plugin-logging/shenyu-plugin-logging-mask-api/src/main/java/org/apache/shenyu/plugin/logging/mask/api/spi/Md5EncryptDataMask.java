@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.mask.api.spi;
 
-import org.apache.shenyu.common.utils.Md5Utils;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.spi.Join;
 
 /**
@@ -27,6 +27,6 @@ import org.apache.shenyu.spi.Join;
 public class Md5EncryptDataMask extends AbstractShenyuDataMask {
     @Override
     protected String doMask(final String source) {
-        return Md5Utils.md5(source);
+        return DigestUtils.md5Hex(source);
     }
 }
