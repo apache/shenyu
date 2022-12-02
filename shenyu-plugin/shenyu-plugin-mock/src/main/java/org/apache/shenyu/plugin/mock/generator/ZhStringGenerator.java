@@ -28,30 +28,23 @@ import java.util.List;
 @Join
 public class ZhStringGenerator implements Generator<String> {
 
-    private int min;
-
-    private int max;
-
     @Override
     public String getName() {
         return "zh";
     }
 
     @Override
-    public String generate() {
+    public String doGenerate(final List<String> params, final String rule) {
+        String[] range = params.get(0).split("-");
+        int min = Integer.parseInt(range[0]);
+        int max = Integer.parseInt(range[1]);
+
         return MockUtil.zh(min, max);
     }
 
     @Override
     public int getParamSize() {
         return 1;
-    }
-
-    @Override
-    public void initParam(final List<String> params, final String rule) {
-        String[] range = params.get(0).split("-");
-        min = Integer.parseInt(range[0]);
-        max = Integer.parseInt(range[1]);
     }
 
     @Override

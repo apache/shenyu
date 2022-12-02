@@ -38,16 +38,18 @@ public class ExpressionGenerator implements Generator<String> {
 
     private static final EvaluationContext CONTEXT = initContext();
 
-    private String expression;
-
     @Override
     public String getName() {
         return "expression";
     }
 
     @Override
-    public String generate() {
+    public String doGenerate(final List<String> params, final String rule) {
+
+        String expression = params.get(0);
+
         Object val = PARSER.parseExpression(expression).getValue(CONTEXT);
+
         if (val instanceof MockUtil.FormatDouble) {
             return val.toString();
         }
@@ -57,11 +59,6 @@ public class ExpressionGenerator implements Generator<String> {
     @Override
     public int getParamSize() {
         return 1;
-    }
-
-    @Override
-    public void initParam(final List<String> params, final String rule) {
-        expression = params.get(0);
     }
 
     @Override

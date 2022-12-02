@@ -29,35 +29,26 @@ import java.util.Objects;
 @Join
 public class RandomDoubleGenerator implements Generator<String> {
 
-    private Double min;
-
-    private Double max;
-
-    private String format;
-
     @Override
     public String getName() {
         return "double";
     }
 
     @Override
-    public String generate() {
+    public String doGenerate(final List<String> params, final String rule) {
+        String[] range = params.get(0).split("-");
+        double min = Double.parseDouble(range[0]);
+        double max = Double.parseDouble(range[1]);
+        String format = null;
+        if (params.size() == 2) {
+            format = Objects.equals(params.get(1), "") ? null : params.get(1);
+        }
         return MockUtil.randomDouble(min, max, format).toString();
     }
 
     @Override
     public int getParamSize() {
         return 1;
-    }
-
-    @Override
-    public void initParam(final List<String> params, final String rule) {
-        String[] range = params.get(0).split("-");
-        min = Double.parseDouble(range[0]);
-        max = Double.parseDouble(range[1]);
-        if (params.size() == 2) {
-            format = Objects.equals(params.get(1), "") ? null : params.get(1);
-        }
     }
 
     @Override
