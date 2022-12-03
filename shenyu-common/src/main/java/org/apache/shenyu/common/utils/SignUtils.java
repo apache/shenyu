@@ -20,7 +20,6 @@ package org.apache.shenyu.common.utils;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
