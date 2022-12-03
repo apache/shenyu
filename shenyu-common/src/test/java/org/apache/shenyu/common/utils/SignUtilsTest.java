@@ -37,16 +37,6 @@ public final class SignUtilsTest {
     }
 
     @Test
-    public void testGeneratesSignWithNullKeyOrNullData() {
-
-        assertThrowsExactly(NullPointerException.class,
-            () -> SignUtils.sign(SignUtils.SIGN_HS256, "key", null));
-
-        assertThrowsExactly(NullPointerException.class,
-            () -> SignUtils.sign(SignUtils.SIGN_HS256, null, "data"));
-    }
-
-    @Test
     public void testGeneratesSignWithUnsupportedAlgorithm() {
 
         assertThrowsExactly(UnsupportedOperationException.class,

@@ -51,13 +51,9 @@ public final class SignUtils {
      * @param key           key
      * @param data          data to sign
      * @return signature
-     * @throws NullPointerException          if key or data is null
      * @throws UnsupportedOperationException if algorithmName isn't supported
      */
     public static String sign(final String algorithmName, final String key, final String data) {
-        if (Objects.isNull(key) || Objects.isNull(data)) {
-            throw new NullPointerException("Key or data is null.");
-        }
 
         return Optional.ofNullable(SIGN_FUNCTION_MAP.get(algorithmName))
                 .orElseThrow(() -> new UnsupportedOperationException("unsupported sign algorithm:" + algorithmName))
