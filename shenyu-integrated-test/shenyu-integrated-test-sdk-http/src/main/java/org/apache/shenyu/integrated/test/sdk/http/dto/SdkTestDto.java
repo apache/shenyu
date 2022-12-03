@@ -15,20 +15,51 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
-
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+package org.apache.shenyu.integrated.test.sdk.http.dto;
 
 /**
- * Test cases for Md5Utils.
+ * SdkTestDto.
  */
-public final class Md5UtilsTest {
+public class SdkTestDto {
 
-    @Test
-    public void testMd5() {
-        final String md5 = "e10adc3949ba59abbe56e057f20f883e";
-        assertEquals(md5, Md5Utils.md5("123456"));
+    private String id;
+
+    private String name;
+
+    /**
+     * getId.
+     *
+     * @return id
+     */
+    public String getId() {
+        return id;
     }
+
+    /**
+     * setId.
+     *
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    /**
+     * getName.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * setName.
+     *
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
+
 }

@@ -15,33 +15,56 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
+package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.dto;
 
-import org.junit.jupiter.api.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import java.util.List;
 
 /**
- * Test cases for ShaUtils.
+ * DubboRequestBody.
+ * @param <T> type
  */
-public final class ShaUtilsTest {
+public class DubboRequestBody<T> {
 
-    @Test
-    public void testShaEncryption() {
-        assertThat(ShaUtils.shaEncryption("123456"), is("ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413"));
+    /**
+     * ids.
+     */
+
+    private List<T> ids;
+    /**
+     * name.
+     */
+
+    private String name;
+
+    /**
+     * getIds.
+     * @return list
+     */
+    public List<T> getIds() {
+        return ids;
     }
 
-    @Test
-    public void testShaEncryptionForNull() {
-        assertThat(ShaUtils.shaEncryption(null), nullValue());
+    /**
+     * setIds.
+     * @param ids ids
+     */
+    public void setIds(final List<T> ids) {
+        this.ids = ids;
     }
 
-    @Test
-    public void testShaDecryptionForEmptyString() {
-        assertThat(ShaUtils.shaEncryption(""), nullValue());
+    /**
+     * getName.
+     * @return name
+     */
+    public String getName() {
+        return name;
     }
 
+    /**
+     * setName.
+     * @param name name
+     */
+    public void setName(final String name) {
+        this.name = name;
+    }
 }
-

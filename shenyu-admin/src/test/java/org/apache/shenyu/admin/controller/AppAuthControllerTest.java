@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
@@ -26,8 +27,10 @@ import org.apache.shenyu.admin.model.dto.AuthPathDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
+import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
@@ -97,6 +100,30 @@ public final class AppAuthControllerTest {
                 .setControllerAdvice(appAuthMapper)
                 .setControllerAdvice(authPathMapper)
                 .build();
+    }
+
+    @Test
+    public void testSearch() throws Exception {
+        final String queryUri = "/appAuth/list/search";
+        PageCondition pageCondition = buildPageRecordLogQueryCondition();
+        this.mockMvc.perform(MockMvcRequestBuilders.post(queryUri)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(pageCondition)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andReturn();
+    }
+
+    @Test
+    public void testSearchAdaptor() throws Exception {
+        final String queryUri = "/appAuth/list/search/adaptor";
+        PageCondition pageCondition = buildPageRecordLogQueryCondition();
+        this.mockMvc.perform(MockMvcRequestBuilders.post(queryUri)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(pageCondition)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andReturn();
     }
 
     @Test
@@ -292,5 +319,19 @@ public final class AppAuthControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/syncData"))
                 .andExpect(status().isOk())
                 .andReturn();
+    }
+
+    private PageCondition<RecordLogQueryCondition> buildPageRecordLogQueryCondition() {
+        PageCondition<RecordLogQueryCondition> pageCondition = new PageCondition<>();
+        pageCondition.setPageSize(10);
+        pageCondition.setPageNum(1);
+        RecordLogQueryCondition recordLogQueryCondition = new RecordLogQueryCondition();
+        recordLogQueryCondition.setUsername("admin");
+        recordLogQueryCondition.setKeyword("testerror");
+        recordLogQueryCondition.setStartTime(new Date());
+        recordLogQueryCondition.setEndTime(new Date());
+        recordLogQueryCondition.setType("");
+        pageCondition.setCondition(recordLogQueryCondition);
+        return pageCondition;
     }
 }

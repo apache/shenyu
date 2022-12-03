@@ -24,4 +24,5 @@ int=org.apache.shenyu.plugin.mock.generator.RandomIntGenerator
 list=org.apache.shenyu.plugin.mock.generator.RangeDataGenerator
 zh=org.apache.shenyu.plugin.mock.generator.ZhStringGenerator
 array=org.apache.shenyu.plugin.mock.generator.ArrayGenerator
+expression=org.apache.shenyu.plugin.mock.generator.ExpressionGenerator
 

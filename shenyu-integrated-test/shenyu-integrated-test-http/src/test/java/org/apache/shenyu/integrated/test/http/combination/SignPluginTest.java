@@ -173,7 +173,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private Map<String, Object> buildHeadersMap(final String timestamp, final String path, final String appKey,
                                                 final String appSecret, final String version) {
-        String extSignKey = String.join("", Constants.TIMESTAMP, timestamp, Constants.PATH, path, Constants.VERSION, version, appSecret);
+        String extSignKey = String.join("", Constants.PATH, path, Constants.TIMESTAMP, timestamp, Constants.VERSION, version, appSecret);
         String sign = SignUtils.generateSign(extSignKey, null, null);
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
         headers.put("timestamp", timestamp);
@@ -185,7 +185,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private Map<String, Object> buildHeadersMapQueryParam(final String timestamp, final String path, final String appKey,
                                                           final String appSecret, final String version, final Map<String, String> queryParam) {
-        String extSignKey = String.join("", Constants.TIMESTAMP, timestamp, Constants.PATH, path, Constants.VERSION, version, appSecret);
+        String extSignKey = String.join("", Constants.PATH, path, Constants.TIMESTAMP, timestamp, Constants.VERSION, version, appSecret);
         String sign = SignUtils.generateSign(extSignKey, null, queryParam);
 
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
