@@ -81,6 +81,7 @@ public class ShenyuClientMethodHandler {
 
     private ShenyuRequest targetProcessor(final RequestTemplate requestTemplate, final Object[] args) {
         final RequestTemplate requestTemplateFrom = RequestTemplate.from(requestTemplate);
+        ShenyuRequest request = requestTemplateFrom.request();
         for (RequestTemplate.ParamMetadata paramMetadata : requestTemplateFrom.getParamMetadataList()) {
             final Annotation[] paramAnnotations = paramMetadata.getParamAnnotations();
             for (Annotation paramAnnotation : paramAnnotations) {
@@ -88,9 +89,9 @@ public class ShenyuClientMethodHandler {
                 if (ObjectUtils.isEmpty(processor)) {
                     continue;
                 }
-                processor.processArgument(requestTemplateFrom, paramAnnotation, args[paramMetadata.getParamIndexOnMethod()]);
+                processor.processArgument(request, paramAnnotation, args[paramMetadata.getParamIndexOnMethod()]);
             }
         }
-        return requestTemplateFrom.request();
+        return request;
     }
 }

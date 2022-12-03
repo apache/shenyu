@@ -58,6 +58,11 @@ public final class AdminConstants {
     public static final String SYS_PLUGIN_ID_NOT_EXIST = "The plugin(s) does not exist！";
 
     /**
+     * The constant SYS_API_ID_NOT_EXIST.
+     */
+    public static final String SYS_API_ID_NOT_EXIST = "The api(s) does not exist！";
+
+    /**
      * The constant DATA_PATH_IS_EXIST.
      */
     public static final String DATA_PATH_IS_EXIST = "The path already exists and can't be added repeatedly!";

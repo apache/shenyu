@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.sign;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -29,6 +28,7 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
 import org.apache.shenyu.plugin.sign.handler.SignRuleHandler;
+import org.apache.shenyu.plugin.sign.api.VerifyResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,7 +103,7 @@ public final class SignPluginTest {
     public void testSignPluginSimple() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
 
-        when(signService.signVerify(exchange)).thenReturn(Pair.of(true, ""));
+        when(signService.signVerify(exchange)).thenReturn(VerifyResult.success());
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
@@ -114,7 +114,7 @@ public final class SignPluginTest {
     public void testSignPluginSimple2() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
 
-        when(signService.signVerify(exchange)).thenReturn(Pair.of(false, ""));
+        when(signService.signVerify(exchange)).thenReturn(VerifyResult.fail(""));
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
@@ -133,7 +133,7 @@ public final class SignPluginTest {
         Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "3");
         Map<String, String> queryParams = exchange.getRequest().getQueryParams().toSingleValueMap();
-        when(signService.signVerify(exchange, requestBody, queryParams)).thenReturn(Pair.of(true, ""));
+        when(signService.signVerify(exchange, requestBody, queryParams)).thenReturn(VerifyResult.success());
         when(this.chain.execute(any())).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         signPluginDataHandler.handlerRule(ruleData);
@@ -154,7 +154,7 @@ public final class SignPluginTest {
         Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "4");
         Map<String, String> queryParams = exchange.getRequest().getQueryParams().toSingleValueMap();
-        when(signService.signVerify(exchange, requestBody, queryParams)).thenReturn(Pair.of(false, ""));
+        when(signService.signVerify(exchange, requestBody, queryParams)).thenReturn(VerifyResult.fail(""));
         when(this.chain.execute(any())).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         signPluginDataHandler.handlerRule(ruleData);

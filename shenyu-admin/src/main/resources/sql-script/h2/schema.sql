@@ -129,10 +129,11 @@ CREATE TABLE IF NOT EXISTS `mock_request_record`  (
   `api_id` varchar(128) NOT NULL COMMENT 'the api id',
   `host` varchar(32) NOT NULL COMMENT 'the request host',
   `port` int(5) NOT NULL COMMENT 'the request port',
-  `path_variable` varchar(255) NOT NULL COMMENT 'the request param in url',
-  `query` varchar(1024) NOT NULL COMMENT 'the request param after url',
-  `header` varchar(1024) NOT NULL COMMENT 'the request param in header',
-  `body` text NOT NULL COMMENT 'the request body',
+  `url` varchar(1024) NOT NULL COMMENT 'the request url',
+  `path_variable` varchar(255) NOT NULL DEFAULT '' COMMENT 'the request param in url',
+  `query` varchar(1024) NOT NULL DEFAULT '' COMMENT 'the request param after url',
+  `header` varchar(1024) NOT NULL DEFAULT '' COMMENT 'the request param in header',
+  `body` text COMMENT 'the request body',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`)
@@ -532,6 +533,8 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) 
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('36', 'loggingTencentCls', 'Logging', 176, '{"endpoint": "ap-guangzhou.cls.tencentcs.com", "topic": "shenyu-topic"}', '0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('38', 'loggingClickHouse', 'Logging', 195, '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', '0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`, `enabled`) VALUES ('39', 'casdoor', 'Authentication', 40, '{"endpoint":"http://localhost:8000"}', '0');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`) VALUES ('40', 'keyAuth', 'Authentication', 150, '0');
+
 /*insert plugin_handle data for sentinel*/
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613195784246', '10', 'flowRuleGrade', 'flowRuleGrade', 3, 2, 8, '{"required":"1","defaultValue":"1","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613199978496', '10', 'flowRuleControlBehavior', 'flowRuleControlBehavior', 3, 2, 5, '{"required":"1","defaultValue":"0","rule":""}');

@@ -217,9 +217,9 @@ public class RuleServiceImpl implements RuleService {
     public int delete(final List<String> ids) {
         List<RuleDO> rules = ruleMapper.selectByIds(ids);
         final int deleteCount = ruleMapper.deleteByIds(ids);
-        ruleConditionMapper.deleteByRuleIds(ids);
         if (deleteCount > 0) {
             ruleEventPublisher.onDeleted(rules);
+            ruleConditionMapper.deleteByRuleIds(ids);
         }
         return deleteCount;
     }

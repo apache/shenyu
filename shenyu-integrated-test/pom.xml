@@ -40,6 +40,9 @@
         <module>shenyu-integrated-test-sofa</module>
         <module>shenyu-integrated-test-websocket</module>
         <module>shenyu-integrated-test-combination</module>
+        <module>shenyu-integrated-test-sdk-apache-dubbo</module>
+        <module>shenyu-integrated-test-sdk-alibaba-dubbo</module>
+        <module>shenyu-integrated-test-sdk-http</module>
     </modules>
 
     <properties>

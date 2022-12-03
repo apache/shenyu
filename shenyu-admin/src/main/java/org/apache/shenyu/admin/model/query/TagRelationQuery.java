@@ -71,7 +71,7 @@ public class TagRelationQuery {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof TagQuery)) {
+        if (!(o instanceof TagRelationQuery)) {
             return false;
         }
         TagRelationQuery that = (TagRelationQuery) o;
@@ -82,5 +82,60 @@ public class TagRelationQuery {
     @Override
     public int hashCode() {
         return Objects.hash(apiId, tagId);
+    }
+
+    /**
+     * builder.
+     * @return TagRelationQueryBuilder
+     */
+    public static TagRelationQueryBuilder builder() {
+        return new TagRelationQueryBuilder();
+    }
+
+    public static final class TagRelationQueryBuilder {
+
+        /**
+         * apiId.
+         */
+        private String apiId;
+
+        /**
+         * tagId.
+         */
+        private String tagId;
+
+        private TagRelationQueryBuilder() {
+        }
+
+        /**
+         * build apiId.
+         * @param apiId apiId
+         * @return TagRelationQueryBuilder
+         */
+        public TagRelationQueryBuilder apiId(final String apiId) {
+            this.apiId = apiId;
+            return this;
+        }
+
+        /**
+         * build tagId.
+         * @param tagId tagId
+         * @return TagRelationQueryBuilder
+         */
+        public TagRelationQueryBuilder tagId(final String tagId) {
+            this.tagId = tagId;
+            return this;
+        }
+
+        /**
+         * build.
+         * @return TagRelationQuery
+         */
+        public TagRelationQuery build() {
+            TagRelationQuery tagRelationQuery = new TagRelationQuery();
+            tagRelationQuery.setApiId(apiId);
+            tagRelationQuery.setTagId(tagId);
+            return tagRelationQuery;
+        }
     }
 }

@@ -100,7 +100,7 @@ public class MockPluginTest extends AbstractPluginDataInit {
         
         MockHandle placeholderMockHandler = new MockHandle();
         placeholderMockHandler.setHttpStatusCode(200);
-        placeholderMockHandler.setResponseContent("{\"number\":${int|10-20}}");
+        placeholderMockHandler.setResponseContent("{\"number\":${expression|#int(10,20)}");
         ruleLocalDataList.add(buildRuleLocalData(TEST_PLACEHOLDER_MOCK, placeholderMockHandler));
         
         return ruleLocalDataList;
