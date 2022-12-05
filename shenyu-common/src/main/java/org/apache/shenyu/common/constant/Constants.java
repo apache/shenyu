@@ -638,6 +638,11 @@ public interface Constants {
     String CACHED = "cached";
 
     /**
+     * user can use the specify-domian to replace of upstream url of the divide plugin.
+     */
+    String SPECIFY_DOMAIN = "specify-domain";
+
+    /**
      * The maximum free memory reserved by the blocking queue for the JVM.
      */
     int THE_256_MB = 256 * 1024 * 1024;
