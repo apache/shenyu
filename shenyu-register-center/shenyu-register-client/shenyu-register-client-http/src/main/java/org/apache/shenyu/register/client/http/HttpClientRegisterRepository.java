@@ -26,6 +26,7 @@ import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.client.http.utils.RuntimeUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -46,6 +47,8 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
 
     private static URIRegisterDTO uriRegisterDTO;
 
+    private static ApiDocRegisterDTO staticApiDocRegisterDTO;
+
     private String username;
     
     private String password;
@@ -59,7 +62,17 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
      */
     public HttpClientRegisterRepository() {
     }
-    
+
+    /**
+     * 持久化apiDoc
+     * @param apiDocRegisterDTO
+     */
+    @Override
+    protected void doPersistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO) {
+        doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
+        staticApiDocRegisterDTO = apiDocRegisterDTO;
+    }
+
     /**
      * Instantiates a new Http client register repository.
      *
@@ -102,6 +115,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             uriRegisterDTO.setEventType(EventType.DELETED);
             doRegister(uriRegisterDTO, Constants.URI_PATH, Constants.URI);
         }
+        //TODO 删除apiDoc的文档
     }
 
     private void setAccessToken() {

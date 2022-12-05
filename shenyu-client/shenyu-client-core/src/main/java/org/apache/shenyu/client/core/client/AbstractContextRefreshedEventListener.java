@@ -25,6 +25,7 @@ import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentExcept
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
@@ -108,6 +109,11 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
         beans.forEach(this::handle);
+        ApiDocRegisterDTO apiDocRegisterDTO = new ApiDocRegisterDTO();
+        apiDocRegisterDTO.setContextPath("test");
+        apiDocRegisterDTO.setApiDesc("test");
+        apiDocRegisterDTO.setRpcType("http");
+        publisher.publishEvent(apiDocRegisterDTO);
     }
     
     protected abstract Map<String, T> getBeans(ApplicationContext context);

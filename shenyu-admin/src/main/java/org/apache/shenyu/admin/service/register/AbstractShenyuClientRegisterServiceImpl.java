@@ -40,6 +40,7 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationEventPublisher;
@@ -134,7 +135,13 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         }
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
+    @Override
+    public String registerApiDoc(ApiDocRegisterDTO apiDocRegisterDTO) {
+        System.out.println("start ApiDocRegisterDTO:" + apiDocRegisterDTO);
+        return ShenyuResultMessage.SUCCESS;
+    }
+
     /**
      * Register uri string.
      *

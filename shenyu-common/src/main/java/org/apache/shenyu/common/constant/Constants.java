@@ -537,6 +537,9 @@ public interface Constants {
      */
     String URI_PATH = "/shenyu-client/register-uri";
 
+    String API_DOC_TYPE = "apiDoc";
+
+    String API_DOC_PATH = "/shenyu-client/register-apiDoc";
     /**
      * When register by http, the login path.
      */

@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.disruptor.consumer.QueueConsumerExecutor;
 import org.apache.shenyu.disruptor.consumer.QueueConsumerFactory;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorSubscriber;
@@ -56,7 +57,6 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
         if (CollectionUtils.isEmpty(results)) {
             return;
         }
-        
         selectExecutor(results).executor(results);
     }
     
@@ -72,10 +72,14 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
                     metaDataRegisterDTO.getRuleName(),
                     metaDataRegisterDTO.getRpcType());
         }
+        if(data instanceof ApiDocRegisterDTO){
+            return true;
+        }
         return true;
     }
     
     private ExecutorSubscriber<DataTypeParent> selectExecutor(final Collection<DataTypeParent> list) {
+        System.out.println("selectExecutor:" + list);
         final Optional<DataTypeParent> first = list.stream().findFirst();
         return subscribers.get(first.orElseThrow(() -> new RuntimeException("the data type is not found")).getType());
     }

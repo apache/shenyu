@@ -21,6 +21,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.register.client.api.retry.FailureRegistryTask;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
@@ -78,7 +79,22 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             this.addFailureUriDataRegister(registerDTO);
         }
     }
-    
+
+    //TODO 持久化apiDoc
+    @Override
+    public void persistApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
+        try {
+            this.doPersistApiDoc(apiDocRegisterDTO);
+        } catch (Exception ex) {
+            //TODO 失败重试机制
+            //If a failure occurs, it needs to be added to the retry list.
+            //logger.warn("Failed to persistURI {}, cause:{}", registerDTO, ex.getMessage());
+            //this.addFailureUriDataRegister(registerDTO);
+        }
+    }
+
+    protected abstract void doPersistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO);
+
     /**
      * Add failure meta data register.
      *
@@ -149,7 +165,6 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
                 break;
         }
     }
-    
     /**
      * Do persist uri.
      *
