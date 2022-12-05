@@ -23,6 +23,7 @@ import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.common.utils.UriUtils;
+import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -73,7 +74,11 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     private final String host;
     
     private final String port;
-    
+
+    static {
+        VersionUtils.checkDuplicate(AbstractContextRefreshedEventListener.class);
+    }
+
     /**
      * Instantiates a new context refreshed event listener.
      *
