@@ -35,7 +35,7 @@ public final class RandomIntGeneratorTest {
     public void generate() {
         int min = 10;
         int max = 15;
-        Integer generate = generator.generate(String.format("int|%d-%d", min, max));
+        Integer generate = generator.generate(String.format("int|%d-%d", min, max), null);
         assertTrue(Objects.nonNull(generate) && generate >= min && generate <= max);
     }
 
