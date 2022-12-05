@@ -24,26 +24,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.apache.commons.codec.digest.DigestUtils;
-
 /**
  * SignUtils.
  */
 public final class SignUtils {
-
-    private static final SignUtils SIGN_UTILS = new SignUtils();
-
-    private SignUtils() {
-    }
-
-    /**
-     * getInstance.
-     *
-     * @return {@linkplain SignUtils}
-     */
-    public static SignUtils getInstance() {
-        return SIGN_UTILS;
-    }
 
     /**
      * acquired sign.
@@ -58,12 +42,12 @@ public final class SignUtils {
                 .sorted(Comparator.naturalOrder())
                 .map(key -> String.join("", key, jsonParams.get(key)))
                 .collect(Collectors.joining()).trim())
-            .orElse(null);
+                .orElse("");
         final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
                 .sorted(Comparator.naturalOrder())
                 .map(key -> String.join("", key, queryParams.get(key)))
                 .collect(Collectors.joining()).trim())
-            .orElse(null);
+                .orElse("");
         final String sign = String.join("", jsonSign, querySign, signKey);
         // TODO this is a risk for error charset coding with getBytes
         return DigestUtils.md5Hex(sign.getBytes()).toUpperCase();
@@ -78,7 +62,7 @@ public final class SignUtils {
      * @param signKey sign key
      * @return boolean
      */
-    public boolean isValid(final String sign, final Map<String, String> jsonParams, final Map<String, String> queryParams, final String signKey) {
+    public static boolean isValid(final String sign, final Map<String, String> jsonParams, final Map<String, String> queryParams, final String signKey) {
         return Objects.equals(sign, generateSign(signKey, jsonParams, queryParams));
     }
 
@@ -87,7 +71,7 @@ public final class SignUtils {
      *
      * @return the string
      */
-    public String generateKey() {
+    public static String generateKey() {
         return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
     }
 

@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
+package org.apache.shenyu.integrated.test.apache.dubbo;
 
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Test cases for Md5Utils.
+ * The type sdk Alibaba dubbo integrated bootstrap.
  */
-public final class Md5UtilsTest {
+@SpringBootApplication
+public class SdkAlibabaDubboIntegratedBootstrap {
 
-    @Test
-    public void testMd5() {
-        final String md5 = "e10adc3949ba59abbe56e057f20f883e";
-        assertEquals(md5, Md5Utils.md5("123456"));
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(SdkAlibabaDubboIntegratedBootstrap.class);
     }
 }

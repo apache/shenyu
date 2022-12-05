@@ -30,6 +30,7 @@
     <modules>
         <module>shenyu-examples-sdk-http</module>
         <module>shenyu-examples-sdk-dubbo</module>
+        <module>shenyu-examples-sdk-springcloud</module>
     </modules>
 
     <properties>

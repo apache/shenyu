@@ -36,7 +36,7 @@ import org.apache.shenyu.admin.service.impl.DashboardUserServiceImpl;
 import org.apache.shenyu.admin.service.publish.UserEventPublisher;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
-import org.apache.shenyu.common.utils.ShaUtils;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -201,7 +201,7 @@ public final class DashboardUserServiceTest {
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", ldapTemplate);
         LoginDashboardUserVO loginDashboardUserVO = dashboardUserService.login(TEST_USER_NAME, TEST_PASSWORD);
         assertEquals(TEST_USER_NAME, loginDashboardUserVO.getUserName());
-        assertEquals(ShaUtils.shaEncryption(TEST_PASSWORD), loginDashboardUserVO.getPassword());
+        assertEquals(DigestUtils.sha512Hex(TEST_PASSWORD), loginDashboardUserVO.getPassword());
         
         // test loginByDatabase
         ReflectionTestUtils.setField(dashboardUserService, "ldapTemplate", null);

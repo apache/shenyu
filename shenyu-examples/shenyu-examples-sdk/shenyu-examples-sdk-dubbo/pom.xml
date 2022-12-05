@@ -31,6 +31,8 @@
     <modules>
         <module>shenyu-examples-sdk-apache-dubbo-consumer</module>
         <module>shenyu-examples-sdk-apache-dubbo-provider</module>
+        <module>shenyu-examples-sdk-alibaba-dubbo-provider</module>
+        <module>shenyu-examples-sdk-alibaba-dubbo-consumer</module>
     </modules>
 
     <dependencyManagement>
