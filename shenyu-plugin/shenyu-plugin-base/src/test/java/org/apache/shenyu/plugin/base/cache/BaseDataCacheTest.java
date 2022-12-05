@@ -26,7 +26,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -202,14 +201,15 @@ public final class BaseDataCacheTest {
     public void testRemoveObsoleteRuleData() throws NoSuchFieldException, IllegalAccessException {
         RuleData firstCachedRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
         RuleData secondCachedRuleData = RuleData.builder().id("2").selectorId(mockSelectorId1).build();
+        RuleData thirdCachedRuleData = RuleData.builder().id("3").selectorId(mockSelectorId1).build();
         ConcurrentHashMap<String, List<RuleData>> ruleMap = getFieldByName(ruleMapStr);
-        ruleMap.put(mockSelectorId1, Lists.newArrayList(firstCachedRuleData,secondCachedRuleData));
+        ruleMap.put(mockSelectorId1, Lists.newArrayList(firstCachedRuleData, secondCachedRuleData, thirdCachedRuleData));
 
         Map<String, Set<String>> configRuleMap = Maps.newHashMap();
-        configRuleMap.put(mockSelectorId1,Sets.newHashSet("1"));
+        configRuleMap.put(mockSelectorId1, Sets.newHashSet("1", "2"));
 
         BaseDataCache.getInstance().removeObsoleteRuleData(configRuleMap);
-        assertEquals(Lists.newArrayList(firstCachedRuleData), ruleMap.get(mockSelectorId1));
+        assertEquals(Lists.newArrayList(firstCachedRuleData, secondCachedRuleData), ruleMap.get(mockSelectorId1));
     }
 
     @Test
