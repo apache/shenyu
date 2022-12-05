@@ -38,8 +38,6 @@ public class ExpressionGenerator implements Generator<String> {
 
     private static final ExpressionParser PARSER = new SpelExpressionParser();
 
-    private static final EvaluationContext CONTEXT = initContext();
-
     @Override
     public String getName() {
         return "expression";
@@ -49,8 +47,10 @@ public class ExpressionGenerator implements Generator<String> {
     public String doGenerate(final List<String> params, final String rule, final MockRequest mockRequest) {
 
         String expression = params.get(0);
-        CONTEXT.setVariable("req", mockRequest);
-        Object val = PARSER.parseExpression(expression).getValue(CONTEXT);
+        EvaluationContext context = initContext();
+
+        context.setVariable("req", mockRequest);
+        Object val = PARSER.parseExpression(expression).getValue(context);
 
         if (val instanceof MockUtil.FormatDouble) {
             return val.toString();
