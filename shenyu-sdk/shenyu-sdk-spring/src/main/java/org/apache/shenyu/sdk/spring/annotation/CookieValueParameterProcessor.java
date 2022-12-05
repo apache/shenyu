@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sdk.spring.annotation;
 
+import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.CookieValue;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static org.apache.shenyu.sdk.core.util.Util.checkState;
@@ -43,14 +45,17 @@ public class CookieValueParameterProcessor implements AnnotatedParameterProcesso
     }
 
     @Override
-    public boolean processArgument(final RequestTemplate requestTemplate, final Annotation annotation, final Object arg) {
+    public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
+        RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         CookieValue cookie = ANNOTATION.cast(annotation);
         String name = cookie.value().trim();
         checkState(emptyToNull(name) != null, "Cookie.name() was empty on parameter %s", requestTemplate.getMethod());
         Collection<String> cookieExpression = requestTemplate.getHeaders().getOrDefault(HttpHeaders.COOKIE, new ArrayList<>());
         cookieExpression.add(String.format("%s=%s", name, arg));
-        requestTemplate.getHeaders().remove(HttpHeaders.COOKIE);
-        requestTemplate.getHeaders().put(HttpHeaders.COOKIE, cookieExpression);
+        Map<String, Collection<String>> headers = shenyuRequest.getHeaders();
+        headers.remove(HttpHeaders.COOKIE);
+        headers.put(HttpHeaders.COOKIE, cookieExpression);
+        shenyuRequest.setHeaders(headers);
         return true;
     }
 

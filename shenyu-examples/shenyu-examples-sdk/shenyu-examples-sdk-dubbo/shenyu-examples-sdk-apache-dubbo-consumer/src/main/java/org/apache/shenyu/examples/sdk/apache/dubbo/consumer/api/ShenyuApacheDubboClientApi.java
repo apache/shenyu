@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.api;
 
-import java.util.List;
 import org.apache.shenyu.examples.dubbo.api.entity.ComplexBeanTest;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
@@ -29,10 +28,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 /**
  * ShenyuApacheDubboClientApi.
  */
-@ShenyuClient(contextId = "shenyu-gateway", name = "ShenyuSdkApiName")
+@ShenyuClient("shenyu-gateway")
 public interface ShenyuApacheDubboClientApi {
 
     /**
