@@ -30,10 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -249,5 +246,15 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                     .ifPresent(handler -> handler.removeRule(ruleData));
             
         }
+    }
+
+    /**
+     * remove obsolete rule data which has be deleted.
+     *
+     * @param configRuleIdMap the current ruleId map collect by selectorId
+     */
+    @Override
+    public void removeObsoleteRuleData(Map<String, Set<String>> configRuleIdMap) {
+        BaseDataCache.getInstance().removeObsoleteRuleData(configRuleIdMap);
     }
 }

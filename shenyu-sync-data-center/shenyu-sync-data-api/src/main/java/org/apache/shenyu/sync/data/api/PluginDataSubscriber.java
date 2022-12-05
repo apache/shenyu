@@ -18,6 +18,9 @@
 package org.apache.shenyu.sync.data.api;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -115,5 +118,13 @@ public interface PluginDataSubscriber {
      * @param ruleDataList the rule data list
      */
     default void refreshRuleDataSelf(List<RuleData> ruleDataList) {
+    }
+
+    /**
+     * remove obsolete rule data which has be deleted.
+     *
+     * @param configRuleIdMap the current ruleId map collect by selectorId
+     */
+    default void removeObsoleteRuleData(Map<String, Set<String>> configRuleIdMap) {
     }
 }

@@ -35,12 +35,7 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -112,6 +107,12 @@ public class NacosCacheHandler {
             List<RuleData> ruleDataList = GsonUtils.getInstance().toObjectMapList(configInfo, RuleData.class).values()
                     .stream().flatMap(Collection::stream)
                     .collect(Collectors.toList());
+            Map<String, Set<String>> ruleIdCollect = ruleDataList.stream()
+                    .collect(
+                            Collectors.groupingBy(RuleData::getSelectorId,
+                                    Collectors.mapping(RuleData::getId, Collectors.toSet()))
+                    );
+            Optional.ofNullable(pluginDataSubscriber).ifPresent( subscriber -> subscriber.removeObsoleteRuleData(ruleIdCollect));
             ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
                 subscriber.unRuleSubscribe(ruleData);
                 subscriber.onRuleSubscribe(ruleData);

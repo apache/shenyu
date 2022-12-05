@@ -19,13 +19,12 @@ package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
@@ -270,5 +269,30 @@ public final class BaseDataCache {
                 SELECTOR_MAP.put(key, Lists.newArrayList(data));
             }
         }
+    }
+
+    /**
+     * remove obsolete rule data which has be deleted.
+     *
+     * @param configRuleIdMap the current ruleId map collect by selectorId
+     */
+    public void removeObsoleteRuleData(final Map<String, Set<String>> configRuleIdMap) {
+        RULE_MAP.forEach((selectorId,ruleList) -> {
+            if (CollectionUtils.isNotEmpty(ruleList)){
+                if (!configRuleIdMap.containsKey(selectorId)){
+                    // all rules of this selector has been removed
+                    ruleList.clear();
+                }else {
+                    Set<String> configRuleIdSet = configRuleIdMap.get(selectorId);
+                    Iterator<RuleData> iterator = ruleList.iterator();
+                    while (iterator.hasNext()) {
+                        RuleData ruleData = iterator.next();
+                        if (!configRuleIdSet.contains(ruleData.getId())) {
+                            iterator.remove();
+                        }
+                    }
+                }
+            }
+        });
     }
 }
