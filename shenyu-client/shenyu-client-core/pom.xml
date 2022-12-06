@@ -79,8 +79,7 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-client-api-docs-annotations</artifactId>
-            <version>2.5.1-SNAPSHOT</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

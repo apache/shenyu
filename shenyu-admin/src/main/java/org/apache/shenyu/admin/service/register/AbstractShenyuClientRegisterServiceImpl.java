@@ -43,6 +43,8 @@ import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import javax.annotation.Resource;
@@ -55,7 +57,9 @@ import java.util.stream.Collectors;
  * Abstract strategy.
  */
 public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackShenyuClientRegisterService implements ShenyuClientRegisterService {
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuClientRegisterServiceImpl.class);
+
     /**
      * The Event publisher.
      */
@@ -137,8 +141,8 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     }
 
     @Override
-    public String registerApiDoc(ApiDocRegisterDTO apiDocRegisterDTO) {
-        System.out.println("start ApiDocRegisterDTO:" + apiDocRegisterDTO);
+    public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
+        LOG.info("start ApiDocRegisterDTO:" + apiDocRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
 

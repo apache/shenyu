@@ -76,7 +76,11 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
         return ShenyuResultMessage.SUCCESS;
     }
 
-
+    /**
+     * registerApiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
+     * @return String
+     */
     @PostMapping("/register-apiDoc")
     @ResponseBody
     public String registerApiDoc(@RequestBody final ApiDocRegisterDTO apiDocRegisterDTO) {

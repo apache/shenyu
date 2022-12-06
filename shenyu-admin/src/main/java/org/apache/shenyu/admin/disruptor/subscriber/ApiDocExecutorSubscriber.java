@@ -21,15 +21,18 @@ import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * The type Metadata executor subscriber.
  */
 public class ApiDocExecutorSubscriber implements ExecutorTypeSubscriber<ApiDocRegisterDTO> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ApiDocExecutorSubscriber.class);
 
     private final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService;
 
@@ -43,8 +46,8 @@ public class ApiDocExecutorSubscriber implements ExecutorTypeSubscriber<ApiDocRe
     }
 
     @Override
-    public void executor(Collection<ApiDocRegisterDTO> dataList) {
+    public void executor(final Collection<ApiDocRegisterDTO> dataList) {
         //TODO 实现注册落库的逻辑
-        System.out.println("adminList:" + dataList);
+        LOG.info("adminList:" + dataList);
     }
 }

@@ -21,13 +21,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.disruptor.consumer.QueueConsumerExecutor;
 import org.apache.shenyu.disruptor.consumer.QueueConsumerFactory;
-import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorSubscriber;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,9 +42,11 @@ import java.util.stream.Collectors;
  * The type Consumer executor.
  */
 public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<Collection<DataTypeParent>> {
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(RegisterServerConsumerExecutor.class);
+
     private final Map<DataType, ExecutorSubscriber<DataTypeParent>> subscribers;
-    
+
     private RegisterServerConsumerExecutor(final Map<DataType, ExecutorTypeSubscriber<DataTypeParent>> executorSubscriberMap) {
         this.subscribers = new HashMap<>(executorSubscriberMap);
     }
@@ -72,14 +75,11 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
                     metaDataRegisterDTO.getRuleName(),
                     metaDataRegisterDTO.getRpcType());
         }
-        if(data instanceof ApiDocRegisterDTO){
-            return true;
-        }
         return true;
     }
     
     private ExecutorSubscriber<DataTypeParent> selectExecutor(final Collection<DataTypeParent> list) {
-        System.out.println("selectExecutor:" + list);
+        LOG.info("selectExecutor:" + list);
         final Optional<DataTypeParent> first = list.stream().findFirst();
         return subscribers.get(first.orElseThrow(() -> new RuntimeException("the data type is not found")).getType());
     }

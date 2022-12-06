@@ -46,9 +46,9 @@ public interface ShenyuClientRegisterService {
 
 
     /**
-     * 注册apiDoc
-     * @param apiDocRegisterDTO
-     * @return
+     * registerApiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
+     * @return String
      */
     String registerApiDoc(ApiDocRegisterDTO apiDocRegisterDTO);
     

@@ -18,6 +18,8 @@
 package org.apache.shenyu.examples.http.controller;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.examples.http.dto.UserDTO;
@@ -61,6 +63,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/test")
 @ShenyuSpringMvcClient("/test/**")
+@ApiModule(value = "test")
 public class HttpTestController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpTestController.class);
@@ -72,6 +75,7 @@ public class HttpTestController {
      * @return the user dto
      */
     @PostMapping("/payment")
+    @ApiDoc(value = "payment")
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
@@ -83,6 +87,7 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/findByUserId")
+    @ApiDoc(value = "findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
         return buildUser(userId, "hello world");
     }

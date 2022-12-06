@@ -64,16 +64,6 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     }
 
     /**
-     * 持久化apiDoc
-     * @param apiDocRegisterDTO
-     */
-    @Override
-    protected void doPersistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO) {
-        doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
-        staticApiDocRegisterDTO = apiDocRegisterDTO;
-    }
-
-    /**
      * Instantiates a new Http client register repository.
      *
      * @param config the config
@@ -81,7 +71,17 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     public HttpClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
         init(config);
     }
-    
+
+    /**
+     * doPersistApiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
+     */
+    @Override
+    protected void doPersistApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
+        doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
+        staticApiDocRegisterDTO = apiDocRegisterDTO;
+    }
+
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         this.username = config.getProps().getProperty(Constants.USER_NAME);

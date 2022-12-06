@@ -45,10 +45,11 @@ public interface ShenyuClientRegisterRepository {
     void persistInterface(MetaDataRegisterDTO metadata);
 
     /**
-     *
-     * @param apiDocRegisterDTO
+     * persistApiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
      */
     default void persistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO) {
+
     }
     
     /**

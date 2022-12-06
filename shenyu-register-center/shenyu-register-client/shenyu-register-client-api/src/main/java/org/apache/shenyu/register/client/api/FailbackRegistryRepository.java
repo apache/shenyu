@@ -81,6 +81,10 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     }
 
     //TODO 持久化apiDoc
+    /**
+     * Persist apiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
+     */
     @Override
     public void persistApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
         try {
@@ -93,6 +97,10 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         }
     }
 
+    /**
+     * doPersistApiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
+     */
     protected abstract void doPersistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO);
 
     /**
@@ -165,6 +173,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
                 break;
         }
     }
+
     /**
      * Do persist uri.
      *

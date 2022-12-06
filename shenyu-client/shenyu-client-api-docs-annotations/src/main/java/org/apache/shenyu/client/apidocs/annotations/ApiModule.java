@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.shenyu.client.apidocs.annotations;
 
 import java.lang.annotation.Documented;
@@ -24,18 +23,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * ApiDoc
- * declaring {@code @ApiDoc}.
+ * api module, used to mark the purpose of an interface class module.
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
 @Documented
-public @interface ApiDoc {
+public @interface ApiModule {
 
     /**
-     * value.
-     *
-     * @return String
+     * module name
      */
     String value();
+
 }

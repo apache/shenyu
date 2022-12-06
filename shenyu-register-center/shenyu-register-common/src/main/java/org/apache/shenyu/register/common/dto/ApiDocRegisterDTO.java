@@ -20,9 +20,6 @@ package org.apache.shenyu.register.common.dto;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * The type Meta data dto.
  */
@@ -98,107 +95,237 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         return DataType.API_DOC;
     }
 
+    /**
+     * getContextPath.
+     *
+     * @return context path
+     */
     public String getContextPath() {
         return contextPath;
     }
 
-    public void setContextPath(String contextPath) {
+    /**
+     * set context path.
+     *
+     * @param contextPath context path
+     */
+    public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
     }
 
+    /**
+     * getApiPath.
+     *
+     * @return apiPath
+     */
     public String getApiPath() {
         return apiPath;
     }
 
-    public void setApiPath(String apiPath) {
+    /**
+     * setApiPath.
+     *
+     * @param apiPath apiPath
+     */
+    public void setApiPath(final String apiPath) {
         this.apiPath = apiPath;
     }
 
+    /**
+     * getHttpMethod.
+     *
+     * @return http method
+     */
     public Integer getHttpMethod() {
         return httpMethod;
     }
 
-    public void setHttpMethod(Integer httpMethod) {
+    /**
+     * setHttpMethod.
+     *
+     * @param httpMethod http method
+     */
+    public void setHttpMethod(final Integer httpMethod) {
         this.httpMethod = httpMethod;
     }
 
+    /**
+     * getConsume.
+     *
+     * @return consume
+     */
     public String getConsume() {
         return consume;
     }
 
-    public void setConsume(String consume) {
+    /**
+     * setConsume.
+     *
+     * @param consume consume
+     */
+    public void setConsume(final String consume) {
         this.consume = consume;
     }
 
+    /**
+     * getProduce.
+     *
+     * @return produce
+     */
     public String getProduce() {
         return produce;
     }
 
-    public void setProduce(String produce) {
+    /**
+     * setProduce.
+     *
+     * @param produce the produce
+     */
+    public void setProduce(final String produce) {
         this.produce = produce;
     }
 
+    /**
+     * getVersion.
+     *
+     * @return version
+     */
     public String getVersion() {
         return version;
     }
 
-    public void setVersion(String version) {
+    /**
+     * setVersion.
+     *
+     * @param version the version
+     */
+    public void setVersion(final String version) {
         this.version = version;
     }
 
+    /**
+     * getRpcType.
+     *
+     * @return rpc type
+     */
     public String getRpcType() {
         return rpcType;
     }
 
-    public void setRpcType(String rpcType) {
+    /**
+     * setRpcType.
+     *
+     * @param rpcType the rpc type
+     */
+    public void setRpcType(final String rpcType) {
         this.rpcType = rpcType;
     }
 
+    /**
+     * getState.
+     *
+     * @return state
+     */
     public Integer getState() {
         return state;
     }
 
-    public void setState(Integer state) {
+    /**
+     * setState.
+     *
+     * @param state state
+     */
+    public void setState(final Integer state) {
         this.state = state;
     }
 
+    /**
+     * getExt.
+     *
+     * @return extension.
+     */
     public String getExt() {
         return ext;
     }
 
-    public void setExt(String ext) {
+    /**
+     * setExt.
+     *
+     * @param ext extension
+     */
+    public void setExt(final String ext) {
         this.ext = ext;
     }
 
+    /**
+     * getApiOwner.
+     *
+     * @return apiOwner
+     */
     public String getApiOwner() {
         return apiOwner;
     }
 
-    public void setApiOwner(String apiOwner) {
+    /**
+     * setApiOwner.
+     *
+     * @param apiOwner apiOwner
+     */
+    public void setApiOwner(final String apiOwner) {
         this.apiOwner = apiOwner;
     }
 
+    /**
+     * getApiDesc.
+     *
+     * @return apiDesc
+     */
     public String getApiDesc() {
         return apiDesc;
     }
 
-    public void setApiDesc(String apiDesc) {
+    /**
+     * setApiDesc.
+     *
+     * @param apiDesc apiDesc
+     */
+    public void setApiDesc(final String apiDesc) {
         this.apiDesc = apiDesc;
     }
 
+    /**
+     * getApiSource.
+     *
+     * @return apiSource
+     */
     public Integer getApiSource() {
         return apiSource;
     }
 
-    public void setApiSource(Integer apiSource) {
+    /**
+     * setSource.
+     *
+     * @param apiSource apiSource
+     */
+    public void setApiSource(final Integer apiSource) {
         this.apiSource = apiSource;
     }
 
+    /**
+     * getDocument.
+     *
+     * @return document
+     */
     public String getDocument() {
         return document;
     }
 
-    public void setDocument(String document) {
+    /**
+     * setDocument.
+     *
+     * @param document document
+     */
+    public void setDocument(final String document) {
         this.document = document;
     }
 }
