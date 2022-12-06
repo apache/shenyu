@@ -25,6 +25,7 @@ import com.weibo.api.motan.config.springsupport.RegistryConfigBean;
 import com.weibo.api.motan.util.MotanSwitcherUtil;
 import org.apache.shenyu.client.motan.MotanServiceEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
@@ -46,6 +47,10 @@ import org.springframework.context.event.ContextRefreshedEvent;
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 @ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
 public class ShenyuMotanClientConfiguration implements ApplicationListener<ContextRefreshedEvent> {
+
+    static {
+        VersionUtils.checkDuplicate(ShenyuMotanClientConfiguration.class);
+    }
 
     /**
      * Motan service event listener.
