@@ -259,7 +259,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         cleanAuthData(APP_KEY);
     }
 
-    private String buildSign(final String signKey, String version, final String timeStamp, final String path, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
+    private String buildSign(final String signKey, final String version, final String timeStamp, final String path, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
 
         final String jsonSign = Optional.ofNullable(jsonParams).map(e -> e.keySet().stream()
                 .sorted(Comparator.naturalOrder())
