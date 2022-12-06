@@ -102,7 +102,7 @@ public final class VersionUtils {
     }
 
     /**
-     * checkDuplicate .
+     * checkDuplicate,this method refers to the design of dubbo,url:https://dubbo.apache.org/zh/docs/v2.7/dev/principals/dummy/ .
      * @param cls cls
      */
     public static void checkDuplicate(final Class<?> cls) {
