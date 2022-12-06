@@ -19,6 +19,7 @@ package org.apache.shenyu.client.core.client;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
@@ -109,13 +110,27 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
         beans.forEach(this::handle);
-        ApiDocRegisterDTO apiDocRegisterDTO = new ApiDocRegisterDTO();
-        apiDocRegisterDTO.setContextPath("test");
-        apiDocRegisterDTO.setApiDesc("test");
-        apiDocRegisterDTO.setRpcType("http");
-        publisher.publishEvent(apiDocRegisterDTO);
+//        ApiDocRegisterDTO apiDocRegisterDTO = new ApiDocRegisterDTO();
+//        apiDocRegisterDTO.setContextPath("test");
+//        apiDocRegisterDTO.setApiDesc("test");
+//        apiDocRegisterDTO.setRpcType("http");
+//        publisher.publishEvent(apiDocRegisterDTO);
+
+        //TODO 处理apiDoc
+        Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiDoc.class);
+        apiModules.forEach(this::handleApiDoc);
+
+
+
     }
-    
+
+
+    private void handleApiDoc(String s, Object o) {
+
+        System.out.println("handle api doc" + s + o);
+
+    }
+
     protected abstract Map<String, T> getBeans(ApplicationContext context);
     
     @SuppressWarnings("all")

@@ -35,6 +35,9 @@
         <module>shenyu-client-grpc</module>
         <module>shenyu-client-motan</module>
         <module>shenyu-client-websocket</module>
+        <module>shenyu-client-api-docs-annotaions</module>
+        <module>shenyu-client-api-docs-core</module>
+        <module>shenyu-client-api-docs-annotations</module>
     </modules>
 
     <dependencies>
