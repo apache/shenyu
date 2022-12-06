@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.web.controller;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +45,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -93,9 +91,7 @@ public class LocalPluginController {
     public Mono<String> cleanPlugin(@RequestParam("name") final String name) {
         LOG.info("clean apache shenyu local plugin for {}", name);
         BaseDataCache.getInstance().removePluginDataByPluginName(name);
-        List<SelectorData> selectorData = Optional
-                .ofNullable(BaseDataCache.getInstance().obtainSelectorData(name))
-                .orElse(Lists.newArrayList());
+        List<SelectorData> selectorData = BaseDataCache.getInstance().obtainSelectorData(name);
         final List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
         MatchDataCache.getInstance().removeSelectorData(name);
@@ -237,7 +233,7 @@ public class LocalPluginController {
      * Delete selector mono.
      *
      * @param pluginName the plugin name
-     * @param id         the id
+     * @param id the id
      * @return the mono
      */
     @GetMapping("/plugin/selector/delete")
@@ -252,7 +248,7 @@ public class LocalPluginController {
      * Find list selector mono.
      *
      * @param pluginName the plugin name
-     * @param id         the id
+     * @param id the id
      * @return the mono
      */
     @GetMapping("/plugin/selector/findList")
@@ -288,7 +284,7 @@ public class LocalPluginController {
      * Delete rule mono.
      *
      * @param selectorId the selector id
-     * @param id         the id
+     * @param id the id
      * @param pluginName the pluginName
      * @return the mono
      */
@@ -305,12 +301,12 @@ public class LocalPluginController {
      * Find list rule mono.
      *
      * @param selectorId the selector id
-     * @param id         the id
+     * @param id the id
      * @return the mono
      */
     @GetMapping("/plugin/rule/findList")
     public Mono<String> findListRule(@RequestParam("selectorId") final String selectorId,
-                                     @RequestParam(value = "id", required = false) final String id) {
+                                         @RequestParam(value = "id", required = false) final String id) {
         List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(selectorId);
         if (CollectionUtils.isEmpty(ruleDataList)) {
             return Mono.just("Error: can not find rule data by selector id :" + selectorId);

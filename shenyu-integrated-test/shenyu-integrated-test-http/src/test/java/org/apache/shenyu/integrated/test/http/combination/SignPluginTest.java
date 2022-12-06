@@ -176,7 +176,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private Map<String, Object> buildHeadersMap(final String timestamp, final String path, final String appKey,
                                                 final String appSecret, final String version) {
-        String sign = buildSign(appSecret, timestamp, path, null, null);
+        String sign = buildSign(appSecret, version, timestamp, path, null, null);
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
         headers.put("timestamp", timestamp);
         headers.put("appKey", appKey);
@@ -187,7 +187,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private Map<String, Object> buildHeadersMapQueryParam(final String timestamp, final String path, final String appKey,
                                                           final String appSecret, final String version, final Map<String, String> queryParam) {
-        String sign = buildSign(appSecret, timestamp, path, null, queryParam);
+        String sign = buildSign(appSecret, version, timestamp, path, null, queryParam);
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
         headers.put("timestamp", timestamp);
         headers.put("appKey", appKey);
@@ -259,7 +259,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         cleanAuthData(APP_KEY);
     }
 
-    private String buildSign(final String signKey, final String timeStamp, final String path, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
+    private String buildSign(final String signKey, String version, final String timeStamp, final String path, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
 
         final String jsonSign = Optional.ofNullable(jsonParams).map(e -> e.keySet().stream()
                 .sorted(Comparator.naturalOrder())
@@ -273,7 +273,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
                 .collect(Collectors.joining()).trim())
                 .orElse("");
 
-        final String extSignKey = String.join("", Constants.PATH, path, Constants.TIMESTAMP, timeStamp, Constants.VERSION, "1.0.0", signKey);
+        final String extSignKey = String.join("", Constants.PATH, path, Constants.TIMESTAMP, timeStamp, Constants.VERSION, version, signKey);
         final String data = String.join("", jsonSign, querySign);
         return SignUtils.sign(SignUtils.SIGN_MD5, extSignKey, data).toUpperCase();
     }
