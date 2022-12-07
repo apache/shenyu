@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -48,7 +49,10 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -243,7 +247,7 @@ public final class DefaultSignServiceTest {
     public void bodySign() {
         Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), SignUtils.transStringMap(requestBody), null));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), MapUtils.transStringMap(requestBody), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         VerifyResult ret = this.signService.signVerify(this.exchange, requestBody, null);
         assertEquals(ret, VerifyResult.success());
@@ -255,7 +259,7 @@ public final class DefaultSignServiceTest {
         requestBody.put("data", "data");
         Map<String, String> queryParams = Maps.newHashMapWithExpectedSize(1);
         queryParams.put("data2", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), SignUtils.transStringMap(requestBody), queryParams));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), MapUtils.transStringMap(requestBody), queryParams));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         VerifyResult ret = this.signService.signVerify(this.exchange, requestBody, queryParams);
         assertEquals(ret, VerifyResult.success());
@@ -267,7 +271,7 @@ public final class DefaultSignServiceTest {
         requestBody.put("data", "data");
         Map<String, String> queryParams = Maps.newHashMapWithExpectedSize(1);
         queryParams.put("data", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), SignUtils.transStringMap(requestBody), null));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), MapUtils.transStringMap(requestBody), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         // Tamper with request body parameters
         requestBody.put("data", "data2");
@@ -276,7 +280,21 @@ public final class DefaultSignServiceTest {
     }
 
     private String buildSign(final String signKey, final String timeStamp, final String path, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
+
+        final String jsonSign = Optional.ofNullable(jsonParams).map(e -> e.keySet().stream()
+                .sorted(Comparator.naturalOrder())
+                .map(key -> String.join("", key, jsonParams.get(key)))
+                .collect(Collectors.joining()).trim())
+                .orElse("");
+
+        final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
+                .sorted(Comparator.naturalOrder())
+                .map(key -> String.join("", key, queryParams.get(key)))
+                .collect(Collectors.joining()).trim())
+                .orElse("");
+
         final String extSignKey = String.join("", Constants.PATH, path, Constants.TIMESTAMP, timeStamp, Constants.VERSION, "1.0.0", signKey);
-        return SignUtils.generateSign(extSignKey, jsonParams, queryParams);
+        final String data = String.join("", jsonSign, querySign);
+        return SignUtils.sign(SignUtils.SIGN_MD5, extSignKey, data).toUpperCase();
     }
 }
