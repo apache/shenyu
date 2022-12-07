@@ -19,7 +19,10 @@ package org.apache.shenyu.plugin.sign.api;
 
 import org.apache.shenyu.common.utils.SignUtils;
 
+import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The Sign plugin default signer.
@@ -29,13 +32,28 @@ public class DefaultSignProvider implements SignProvider {
     /**
      * acquired sign.
      *
-     * @param signKey sign key
-     * @param jsonParams json params
-     * @param queryParams  url query params
+     * @param signKey     sign key
+     * @param jsonParams  json params
+     * @param queryParams url query params
      * @return sign
      */
     @Override
     public String generateSign(final String signKey, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
-        return SignUtils.generateSign(signKey, jsonParams, queryParams);
+
+        final String jsonSign = Optional.ofNullable(jsonParams).map(e -> e.keySet().stream()
+                .sorted(Comparator.naturalOrder())
+                .map(key -> String.join("", key, jsonParams.get(key)))
+                .collect(Collectors.joining()).trim())
+                .orElse("");
+
+        final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
+                .sorted(Comparator.naturalOrder())
+                .map(key -> String.join("", key, queryParams.get(key)))
+                .collect(Collectors.joining()).trim())
+                .orElse("");
+
+        final String data = String.join("", jsonSign, querySign);
+
+        return SignUtils.sign(SignUtils.SIGN_MD5, signKey, data).toUpperCase();
     }
 }
