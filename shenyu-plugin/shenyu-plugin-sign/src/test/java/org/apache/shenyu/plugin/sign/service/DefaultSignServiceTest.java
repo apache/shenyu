@@ -293,7 +293,7 @@ public final class DefaultSignServiceTest {
                 .collect(Collectors.joining()).trim())
                 .orElse("");
 
-        final String extSignKey = String.join("", Constants.PATH, path, Constants.TIMESTAMP, timeStamp, Constants.VERSION, "1.0.0", signKey);
+        final String extSignKey = String.join("", Constants.TIMESTAMP, timeStamp, Constants.PATH, path, Constants.VERSION, "1.0.0", signKey);
         final String data = String.join("", jsonSign, querySign);
         return SignUtils.sign(SignUtils.SIGN_MD5, extSignKey, data).toUpperCase();
     }
