@@ -247,7 +247,7 @@ public class ShenyuTrieNode implements Serializable {
     public void setPathRuleCache(final Cache<String, RuleData> pathRuleCache) {
         this.pathRuleCache = pathRuleCache;
     }
-
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -259,26 +259,27 @@ public class ShenyuTrieNode implements Serializable {
         ShenyuTrieNode that = (ShenyuTrieNode) o;
         return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr)
                 && fullPath.equals(that.fullPath) && children.equals(that.children)
+                && pathVariablesSet.equals(that.pathVariablesSet) && pathVariableNode.equals(that.pathVariableNode)
                 && pathRuleCache.equals(that.pathRuleCache) && bizInfo.equals(that.bizInfo);
     }
-
+    
     @Override
     public int hashCode() {
-        return Objects.hash(matchStr, fullPath, children, isWildcard, endOfPath, pathRuleCache, bizInfo);
+        return Objects.hash(matchStr, fullPath, children, pathVariablesSet, pathVariableNode, isWildcard, endOfPath, pathRuleCache, bizInfo);
     }
-
+    
     @Override
     public String toString() {
-        return "ShenyuTrieNode{" +
-                "matchStr='" + matchStr + '\'' +
-                ", fullPath='" + fullPath + '\'' +
-                ", children=" + children +
-                ", pathVariablesSet=" + pathVariablesSet +
-                ", pathVariableNode=" + pathVariableNode +
-                ", isWildcard=" + isWildcard +
-                ", endOfPath=" + endOfPath +
-                ", pathRuleCache=" + pathRuleCache +
-                ", bizInfo=" + bizInfo +
-                '}';
+        return "ShenyuTrieNode{"
+                + "matchStr='" + matchStr + '\''
+                + ", fullPath='" + fullPath + '\''
+                + ", children=" + children
+                + ", pathVariablesSet=" + pathVariablesSet
+                + ", pathVariableNode=" + pathVariableNode
+                + ", isWildcard=" + isWildcard
+                + ", endOfPath=" + endOfPath
+                + ", pathRuleCache=" + pathRuleCache
+                + ", bizInfo=" + bizInfo
+                + '}';
     }
 }
