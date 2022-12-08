@@ -20,9 +20,11 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -83,6 +85,9 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     
     @Resource
     private UpstreamCheckService upstreamCheckService;
+
+    @Resource
+    private ApiService apiService;
     
     /**
      * Selector handler string.
@@ -143,7 +148,29 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     @Override
     public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
         LOG.info("start ApiDocRegisterDTO:" + apiDocRegisterDTO);
+        //先删除 再新增api
+        ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
+        apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(),apiDTO.getHttpMethod(),apiDTO.getRpcType());
+        apiService.createOrUpdate(apiDTO);
         return ShenyuResultMessage.SUCCESS;
+    }
+
+    private ApiDTO buildApiDTO(ApiDocRegisterDTO apiDocRegisterDTO) {
+        ApiDTO apiDTO = new ApiDTO();
+        apiDTO.setApiPath(apiDocRegisterDTO.getApiPath());
+        apiDTO.setApiSource(1);
+        apiDTO.setApiOwner(apiDocRegisterDTO.getApiOwner());
+        apiDTO.setDocument(apiDocRegisterDTO.getDocument());
+        apiDTO.setExt(apiDocRegisterDTO.getExt());
+        apiDTO.setVersion(apiDocRegisterDTO.getVersion());
+        apiDTO.setRpcType(apiDocRegisterDTO.getRpcType());
+        apiDTO.setConsume(apiDocRegisterDTO.getConsume());
+        apiDTO.setProduce(apiDocRegisterDTO.getProduce());
+        apiDTO.setContextPath(apiDocRegisterDTO.getContextPath());
+        apiDTO.setHttpMethod(apiDocRegisterDTO.getHttpMethod());
+        apiDTO.setState(apiDocRegisterDTO.getState());
+        apiDTO.setApiDesc(apiDocRegisterDTO.getApiDesc());
+        return apiDTO;
     }
 
     /**

@@ -62,4 +62,6 @@ public interface ApiService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<ApiVO> listByPage(ApiQuery apiQuery);
+
+    int deleteByApiPathHttpMethodRpcType(String apiPath, Integer httpMethod, String rpcType);
 }

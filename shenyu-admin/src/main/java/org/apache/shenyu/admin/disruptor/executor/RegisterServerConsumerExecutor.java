@@ -79,7 +79,6 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
     }
     
     private ExecutorSubscriber<DataTypeParent> selectExecutor(final Collection<DataTypeParent> list) {
-        LOG.info("selectExecutor:" + list);
         final Optional<DataTypeParent> first = list.stream().findFirst();
         return subscribers.get(first.orElseThrow(() -> new RuntimeException("the data type is not found")).getType());
     }

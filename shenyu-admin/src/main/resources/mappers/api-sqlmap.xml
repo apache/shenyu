@@ -302,7 +302,7 @@
 
   <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
     SELECT
-    <include refid="Base_Column_List"/>
+        <include refid="Base_Column_List"/>
     FROM api
     WHERE id IN
     <foreach item="id" collection="list" open="(" separator="," close=")">
@@ -318,4 +318,13 @@
     </foreach>
   </delete>
 
+
+  <select id="selectByApiPathHttpMethodRpcType" resultMap="BaseResultMap">
+    SELECT
+        <include refid="Base_Column_List"/>
+    FROM api
+    WHERE api_path = #{apiPath,jdbcType=VARCHAR}
+    AND http_method = #{httpMethod,jdbcType=INTEGER}
+    AND rpc_type = #{rpcType,jdbcType=VARCHAR}
+  </select>
 </mapper>

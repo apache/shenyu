@@ -139,12 +139,12 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      * @param method
      * @return
      */
+    //TODO 公共方法获取参数 httpMethod 、consume、produce
     protected List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz,Method method) {
         final String contextPath = getContextPath();
         final A beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
         final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
         String apiPath = buildApiDocApiPath(method,superPath,beanShenyuClient);
-        //TODO 获取httpMethod 、consume、produce
         ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                 .build();
         return Collections.singletonList(build);

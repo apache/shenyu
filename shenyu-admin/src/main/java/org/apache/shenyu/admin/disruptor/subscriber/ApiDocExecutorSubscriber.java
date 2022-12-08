@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The type Metadata executor subscriber.
@@ -48,6 +49,13 @@ public class ApiDocExecutorSubscriber implements ExecutorTypeSubscriber<ApiDocRe
     @Override
     public void executor(final Collection<ApiDocRegisterDTO> dataList) {
         //TODO 实现注册落库的逻辑
-        LOG.info("adminList:" + dataList);
+        dataList.forEach(apiDoc -> {
+            Optional.ofNullable(this.shenyuClientRegisterService.get(apiDoc.getRpcType()))
+                    .ifPresent(shenyuClientRegisterService -> {
+                        synchronized (shenyuClientRegisterService) {
+                            shenyuClientRegisterService.registerApiDoc(apiDoc);
+                        }
+                    });
+        });
     }
 }

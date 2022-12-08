@@ -329,6 +329,25 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         this.document = document;
     }
 
+    @Override
+    public String toString() {
+        return "ApiDocRegisterDTO{" +
+                "contextPath='" + contextPath + '\'' +
+                ", apiPath='" + apiPath + '\'' +
+                ", httpMethod=" + httpMethod +
+                ", consume='" + consume + '\'' +
+                ", produce='" + produce + '\'' +
+                ", version='" + version + '\'' +
+                ", rpcType='" + rpcType + '\'' +
+                ", state=" + state +
+                ", ext='" + ext + '\'' +
+                ", apiOwner='" + apiOwner + '\'' +
+                ", apiDesc='" + apiDesc + '\'' +
+                ", apiSource=" + apiSource +
+                ", document='" + document + '\'' +
+                '}';
+    }
+
     public static ApiDocRegisterDTOBuilder builder() {
         return new ApiDocRegisterDTOBuilder();
     }
