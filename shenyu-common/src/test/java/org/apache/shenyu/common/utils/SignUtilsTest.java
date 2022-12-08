@@ -19,12 +19,10 @@ package org.apache.shenyu.common.utils;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 /**
  * Test cases for SignUtils.
@@ -32,40 +30,31 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public final class SignUtilsTest {
 
     @Test
-    public void testGenerateSign() {
-        Map<String, String> jsonParams = new HashMap<>();
-        jsonParams.put("a", "1");
-        jsonParams.put("b", "2");
-        Map<String, String> queryParams = new HashMap<>();
-        jsonParams.put("a", "1");
-        jsonParams.put("b", "2");
-        assertNotNull(SignUtils.generateSign("test", jsonParams, queryParams));
+    public void testGenerateMd5Sign() {
+
+        assertThat(SignUtils.sign(SignUtils.SIGN_MD5, "test", "a1b2"),
+                is("7aa98f7d67f8e4730e2d1d3902295ce6"));
     }
 
     @Test
-    public void testValid() {
-        final String sign = "7AA98F7D67F8E4730E2D1D3902295CE6";
-        Map<String, String> jsonParams = new HashMap<>();
-        jsonParams.put("a", "1");
-        jsonParams.put("b", "2");
-        Map<String, String> queryParams = new HashMap<>();
-        jsonParams.put("a", "1");
-        jsonParams.put("b", "2");
-        assertTrue(SignUtils.getInstance().isValid(sign, jsonParams, queryParams, "test"));
+    public void testGeneratesSignWithNullKeyOrNullData() {
+
+        assertThrowsExactly(NullPointerException.class,
+            () -> SignUtils.sign(SignUtils.SIGN_HS256, "key", null));
+
+        assertThrowsExactly(NullPointerException.class,
+            () -> SignUtils.sign(SignUtils.SIGN_HS256, null, "data"));
+    }
+
+    @Test
+    public void testGeneratesSignWithUnsupportedAlgorithm() {
+
+        assertThrowsExactly(UnsupportedOperationException.class,
+            () -> SignUtils.sign("supported_algorithm", "key", "data"));
     }
 
     @Test
     public void testGenerateKey() {
-        assertNotNull(SignUtils.getInstance().generateKey());
-    }
-
-    @Test
-    public void testTransStringMap() {
-        Map<String, Object> jsonParams = new HashMap<>();
-        jsonParams.put("a", "1");
-        jsonParams.put("b", "2");
-        Map<String, String> stringStringMap = SignUtils.transStringMap(jsonParams);
-        assertEquals(stringStringMap.get("a").getClass(), String.class);
-        assertEquals(stringStringMap.get("a"), "1");
+        assertNotNull(SignUtils.generateKey());
     }
 }

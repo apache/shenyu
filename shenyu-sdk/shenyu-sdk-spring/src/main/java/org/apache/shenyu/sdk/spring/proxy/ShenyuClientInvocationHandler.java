@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -82,7 +83,7 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
         for (RequestTemplate requestTemplate : requestTemplates) {
             requestTemplate.setUrl(shenyuClientFactoryBean.getUrl());
             requestTemplate.setName(shenyuClientFactoryBean.getName());
-            requestTemplate.setContextId(shenyuClientFactoryBean.getContextId());
+            requestTemplate.setContextId(Optional.ofNullable(shenyuClientFactoryBean.getContextId()).orElse(shenyuClientFactoryBean.getName()));
             if (StringUtils.hasText(shenyuClientFactoryBean.getPath())) {
                 requestTemplate.setPath(shenyuClientFactoryBean.getPath() + "/" + requestTemplate.getPath());
             }

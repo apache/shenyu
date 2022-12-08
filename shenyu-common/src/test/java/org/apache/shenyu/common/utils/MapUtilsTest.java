@@ -18,27 +18,21 @@
 package org.apache.shenyu.common.utils;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * Test cases for ShaUtils.
- */
-public final class ShaUtilsTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class MapUtilsTest {
 
     @Test
-    public void testShaEncryption() {
-        assertThat(ShaUtils.shaEncryption("123456"), is("ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548baeae6956df346ec8c17f5ea10f35ee3cbc514797ed7ddd3145464e2a0bab413"));
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    public void testShaEncryptionForNullOrEmpty(final String src) {
-        assertThat(ShaUtils.shaEncryption(src), nullValue());
+    public void testTransStringMap() {
+        Map<String, Object> jsonParams = new HashMap<>();
+        jsonParams.put("a", 1);
+        jsonParams.put("b", 2);
+        Map<String, String> stringStringMap = MapUtils.transStringMap(jsonParams);
+        assertEquals(stringStringMap.get("a").getClass(), String.class);
+        assertEquals(stringStringMap.get("a"), "1");
     }
 }
-

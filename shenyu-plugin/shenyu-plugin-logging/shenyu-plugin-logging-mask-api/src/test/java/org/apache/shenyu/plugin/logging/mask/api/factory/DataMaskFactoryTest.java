@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.mask.api.factory;
 
-import org.apache.shenyu.common.utils.Md5Utils;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.plugin.logging.mask.api.enums.DataMaskEnums;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ public class DataMaskFactoryTest {
         // test for md5
         String sourceData = "123456789";
         String maskedData = DataMaskFactory.selectMask(sourceData, DataMaskEnums.MD5_ENCRYPT.getDataMaskAlg());
-        Assertions.assertEquals(Md5Utils.md5(sourceData), maskedData);
+        Assertions.assertEquals(DigestUtils.md5Hex(sourceData), maskedData);
 
         // test for replacement
         String replaceText = DataMaskFactory.selectMask(sourceData, DataMaskEnums.CHARACTER_REPLACE.getDataMaskAlg());

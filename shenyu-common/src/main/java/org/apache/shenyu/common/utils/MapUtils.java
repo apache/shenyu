@@ -17,18 +17,22 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.junit.jupiter.api.Test;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+public class MapUtils {
 
-/**
- * Test cases for Md5Utils.
- */
-public final class Md5UtilsTest {
-
-    @Test
-    public void testMd5() {
-        final String md5 = "e10adc3949ba59abbe56e057f20f883e";
-        assertEquals(md5, Md5Utils.md5("123456"));
+    /**
+     * Transform to string map.
+     *
+     * @param map source map
+     * @return string map
+     */
+    public static Map<String, String> transStringMap(final Map<String, Object> map) {
+        return Optional.ofNullable(map)
+                .map(m -> m.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Objects.toString(e.getValue(), null))))
+                .orElse(null);
     }
 }
