@@ -302,7 +302,7 @@ public class HttpUtils {
      */
     public Response requestCall(final String url, final Map<String, ?> form, final Map<String, String> header,
         final HTTPMethod method, final List<UploadFile> files) throws IOException {
-        if (Objects.nonNull(files) && files.size() > 0) {
+        if (Objects.nonNull(files) && !files.isEmpty()) {
             return requestFile(url, form, header, files);
         } else {
             return requestForResponse(url, form, header, method);
