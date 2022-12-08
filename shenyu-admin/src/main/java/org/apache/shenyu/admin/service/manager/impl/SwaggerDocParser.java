@@ -169,7 +169,7 @@ public class SwaggerDocParser implements DocParser {
 
     protected String buildModuleName(final JsonObject docInfo, final JsonObject docRoot, final String basePath) {
         JsonArray tags = docInfo.getAsJsonArray("tags");
-        if (Objects.nonNull(tags) && tags.size() > 0) {
+        if (Objects.nonNull(tags) && !tags.isEmpty()) {
             return tags.get(0).getAsString();
         }
         return Optional.ofNullable(docRoot.getAsJsonObject("info")).map(jsonObject -> jsonObject.get("title").getAsString()).orElse(basePath);
