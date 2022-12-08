@@ -22,7 +22,13 @@ package org.apache.shenyu.common.enums;
  */
 public enum RuleTrieEventEnum {
 
+    /**
+     * Shenyu Trie insert event.
+     */
     INSERT,
 
-    REMOVE
+    /**
+     * Shenyu Trie remove event.
+     */
+    REMOVE;
 }

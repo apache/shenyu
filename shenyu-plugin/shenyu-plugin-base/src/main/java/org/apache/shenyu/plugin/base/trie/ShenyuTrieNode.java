@@ -47,6 +47,16 @@ public class ShenyuTrieNode implements Serializable {
     private Cache<String, ShenyuTrieNode> children;
 
     /**
+     * path variables.
+     */
+    private Cache<String, ShenyuTrieNode> pathVariablesSet;
+
+    /**
+     * path variable node.
+     */
+    private ShenyuTrieNode pathVariableNode;
+
+    /**
      * isWildcard, match all nodes, /a/b/**  /** is a match all Node.
      */
     private boolean isWildcard;
@@ -74,6 +84,7 @@ public class ShenyuTrieNode implements Serializable {
         this.fullPath = fullPath;
         this.endOfPath = endOfPath;
         this.pathRuleCache = Caffeine.newBuilder().maximumSize(size).build();
+        this.pathVariablesSet = Caffeine.newBuilder().maximumSize(size).build();
     }
 
     /**
@@ -119,6 +130,41 @@ public class ShenyuTrieNode implements Serializable {
      */
     public Cache<String, ShenyuTrieNode> getChildren() {
         return children;
+    }
+
+    /**
+     * get pathVariable set.
+     *
+     * @return path variable
+     */
+    public Cache<String, ShenyuTrieNode> getPathVariablesSet() {
+        return pathVariablesSet;
+    }
+
+    /**
+     * set pathVariable.
+     *
+     * @param pathVariablesSet pathVariablesSet
+     */
+    public void setPathVariablesSet(final Cache<String, ShenyuTrieNode> pathVariablesSet) {
+        this.pathVariablesSet = pathVariablesSet;
+    }
+
+    /**
+     * get pathVariable node.
+     *
+     * @return ShenyuTrieNode
+     */
+    public ShenyuTrieNode getPathVariableNode() {
+        return pathVariableNode;
+    }
+
+    /**
+     * set pathVariable node.
+     * @param pathVariableNode pathVariableNode
+     */
+    public void setPathVariableNode(final ShenyuTrieNode pathVariableNode) {
+        this.pathVariableNode = pathVariableNode;
     }
 
     /**
@@ -221,4 +267,18 @@ public class ShenyuTrieNode implements Serializable {
         return Objects.hash(matchStr, fullPath, children, isWildcard, endOfPath, pathRuleCache, bizInfo);
     }
 
+    @Override
+    public String toString() {
+        return "ShenyuTrieNode{" +
+                "matchStr='" + matchStr + '\'' +
+                ", fullPath='" + fullPath + '\'' +
+                ", children=" + children +
+                ", pathVariablesSet=" + pathVariablesSet +
+                ", pathVariableNode=" + pathVariableNode +
+                ", isWildcard=" + isWildcard +
+                ", endOfPath=" + endOfPath +
+                ", pathRuleCache=" + pathRuleCache +
+                ", bizInfo=" + bizInfo +
+                '}';
+    }
 }

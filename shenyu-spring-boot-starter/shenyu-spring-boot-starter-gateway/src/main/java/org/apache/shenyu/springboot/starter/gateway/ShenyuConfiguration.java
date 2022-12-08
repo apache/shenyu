@@ -267,7 +267,8 @@ public class ShenyuConfiguration {
      */
     @Bean
     public ShenyuTrie shenyuTrie(final ShenyuConfig shenyuConfig) {
-        return new ShenyuTrie(shenyuConfig.getTrie().getPathRuleCacheSize(), shenyuConfig.getTrie().getTrieChildrenSize());
+        return new ShenyuTrie(shenyuConfig.getTrie().getPathRuleCacheSize(), shenyuConfig.getTrie().getTrieChildrenSize(),
+                shenyuConfig.getTrie().getMatchMode());
     }
 
     /**

@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.plugin.base.trie;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.enums.TrieMatchModeEvent;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -36,10 +38,17 @@ public class ShenyuTrie {
 
     private final Long pathRuleCacheSize;
 
-    public ShenyuTrie(final Long pathRuleCacheSize, final Long childrenSize) {
+    /**
+     * the mode includes antPathMatch and pathPattern, please see {@linkplain TrieMatchModeEvent}.
+     * antPathMatch means all full match, pathPattern is used in web.
+     */
+    private final String matchMode;
+
+    public ShenyuTrie(final Long pathRuleCacheSize, final Long childrenSize, final String matchMode) {
         this.root = new ShenyuTrieNode("/", "/", false, pathRuleCacheSize);
         this.childrenSize = childrenSize;
         this.pathRuleCacheSize = pathRuleCacheSize;
+        this.matchMode = matchMode;
     }
 
     /**
@@ -73,9 +82,12 @@ public class ShenyuTrie {
             if (pathParts.length > 0) {
                 ShenyuTrieNode node = root;
                 for (String segment : pathParts) {
-                    node = putNode0(segment, node);
-                    if (isMatchAll(segment)) {
-                        break;
+                    node = putNode0(segment, node, matchMode);
+                    // if ant path match mode, when the current node is **, this means match all
+                    if (TrieMatchModeEvent.PATH_PATTERN.getMatchMode().equals(matchMode)) {
+                        if (isMatchAll(segment) || isMatchWildcard(segment)) {
+                            break;
+                        }
                     }
                 }
                 // after insert node, set full path and end of path
@@ -97,10 +109,28 @@ public class ShenyuTrie {
      * @param shenyuTrieNode current trie node
      * @return {@linkplain ShenyuTrieNode}
      */
-    private ShenyuTrieNode putNode0(final String segment, final ShenyuTrieNode shenyuTrieNode) {
-        if (isMatchAll(segment)) {
+    private ShenyuTrieNode putNode0(final String segment, final ShenyuTrieNode shenyuTrieNode, final String matchMode) {
+        if ((isMatchAll(segment) || isMatchWildcard(segment)) && TrieMatchModeEvent.PATH_PATTERN.getMatchMode().equals(matchMode)) {
             shenyuTrieNode.setWildcard(true);
             return shenyuTrieNode;
+        }
+        // dynamic route
+        if (segment.startsWith("{") && segment.endsWith("}")) {
+            ShenyuTrieNode childNode;
+            // contains key, get current pathVariable node
+            if (Objects.nonNull(shenyuTrieNode.getPathVariablesSet()) && containsKey(shenyuTrieNode.getPathVariablesSet(), segment)) {
+                childNode = getVal(shenyuTrieNode.getPathVariablesSet(), segment);
+            } else {
+                childNode = new ShenyuTrieNode();
+                childNode.setMatchStr(segment);
+                childNode.setEndOfPath(false);
+                if (Objects.isNull(shenyuTrieNode.getPathVariablesSet())) {
+                    shenyuTrieNode.setPathVariablesSet(Caffeine.newBuilder().maximumSize(childrenSize).build());
+                }
+                shenyuTrieNode.getPathVariablesSet().put(segment, childNode);
+                shenyuTrieNode.setPathVariableNode(childNode);
+            }
+            return childNode;
         }
         if (Objects.isNull(shenyuTrieNode.getChildren())) {
             shenyuTrieNode.setChildren(Caffeine.newBuilder().maximumSize(childrenSize).build());
@@ -126,6 +156,7 @@ public class ShenyuTrie {
      * @return {@linkplain ShenyuTrieNode}
      */
     public ShenyuTrieNode match(final String uriPath, final String selectorId, final String pluginName) {
+        Objects.requireNonNull(selectorId);
         Objects.requireNonNull(pluginName);
         if (!StringUtils.isEmpty(uriPath)) {
             String strippedPath = StringUtils.strip(uriPath, "/");
@@ -133,23 +164,28 @@ public class ShenyuTrie {
             if (pathParts.length > 0) {
                 ShenyuTrieNode currentNode = root;
                 for (String path : pathParts) {
-                    currentNode = matchNode(path, currentNode);
-                    // if not match route, exist the loop
-                    if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPathRuleCache())
-                            && Objects.nonNull(currentNode.getPathRuleCache().getIfPresent(selectorId))
-                            && pluginName.equals(currentNode.getPathRuleCache().getIfPresent(selectorId).getPluginName())) {
-                        break;
-                    }
-                    if (Objects.nonNull(currentNode) && currentNode.getWildcard()
-                            && Objects.nonNull(currentNode.getPathRuleCache().getIfPresent(selectorId))
-                            && pluginName.equals(currentNode.getPathRuleCache().getIfPresent(selectorId).getPluginName())) {
-                        break;
-                    }
-                    if (Objects.isNull(currentNode)) {
+                    currentNode = matchNode(path, currentNode, matchMode);
+                    if (Objects.nonNull(currentNode)) {
+                        // if matchMode is ant path and current node is **, continue to execute
+                        if (TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode().equals(matchMode)
+                                && checkChildrenNotNull(currentNode)
+                                && (MATCH_ALL.equals(currentNode.getMatchStr())) || WILDCARD.equals(currentNode.getMatchStr())) {
+                            continue;
+                        }
+                        // if not match route, exist the loop
+                        if (checkPathRuleNotNull(currentNode) && Objects.nonNull(getVal(currentNode.getPathRuleCache(), selectorId))
+                                && pluginName.equals(getVal(currentNode.getPathRuleCache(), selectorId).getPluginName())) {
+                            break;
+                        }
+                        if (currentNode.getWildcard() && Objects.nonNull(getVal(currentNode.getPathRuleCache(), selectorId))
+                                && pluginName.equals(getVal(currentNode.getPathRuleCache(), selectorId).getPluginName())) {
+                            break;
+                        }
+                    } else {
                         return null;
                     }
                 }
-                if (currentNode.getEndOfPath()) {
+                if (currentNode.getEndOfPath() || (Objects.nonNull(currentNode.getPathVariableNode()) && currentNode.getPathVariableNode().getEndOfPath())) {
                     return currentNode;
                 }
             }
@@ -157,13 +193,29 @@ public class ShenyuTrie {
         return null;
     }
 
-    private ShenyuTrieNode matchNode(final String segment, final ShenyuTrieNode node) {
-        if (Objects.nonNull(node) && Objects.nonNull(node.getChildren()) && Objects.nonNull(node.getChildren().getIfPresent(segment))) {
-            return node.getChildren().getIfPresent(segment);
-        }
-        // if the node is a wildcard, then return current node
-        if (Objects.nonNull(node) && node.getWildcard()) {
-            return node;
+    private ShenyuTrieNode matchNode(final String segment, final ShenyuTrieNode node, final String matchMode) {
+        if (Objects.nonNull(node)) {
+            // support ant path match
+            if (TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode().equals(matchMode) && checkChildrenNotNull(node)) {
+                if (containsKey(node.getChildren(), MATCH_ALL)) {
+                    return getVal(node.getChildren(), MATCH_ALL);
+                }
+                if (containsKey(node.getChildren(), WILDCARD)) {
+                    return getVal(node.getChildren(), WILDCARD);
+                }
+            }
+            // node exist in children
+            if (checkChildrenNotNull(node) && containsKey(node.getChildren(), segment)) {
+                return getVal(node.getChildren(), segment);
+            }
+            // if node is path variable node
+            if (Objects.nonNull(node.getPathVariableNode())) {
+                return node.getPathVariableNode();
+            }
+            // if the node is a wildcard, then return current node
+            if (node.getWildcard()) {
+                return node;
+            }
         }
         return null;
     }
@@ -270,7 +322,44 @@ public class ShenyuTrie {
         return trieNode.getBizInfo();
     }
 
-    private boolean isMatchAll(final String key) {
-        return MATCH_ALL.equals(key) || WILDCARD.equals(key);
+    /**
+     * match all, when the path is /ab/c/**, that means /a/b/c/d can be matched.
+     *
+     * @param key key
+     * @return match result
+     */
+    private static boolean isMatchAll(final String key) {
+        return MATCH_ALL.equals(key);
+    }
+
+    /**
+     * match wildcard, when the path is /a/b/*, the matched path maybe /a/b/c or /a/b/d and so on.
+     *
+     * @param key key
+     * @return match result
+     */
+    private static boolean isMatchWildcard(final String key) {
+        return WILDCARD.equals(key);
+    }
+
+    private static boolean isMatchAllOrWildcard(final String key) {
+        return isMatchAll(key) || isMatchWildcard(key);
+    }
+
+    private static <V> boolean containsKey(final Cache<String, V> cache, final String key) {
+        V value = cache.getIfPresent(key);
+        return Objects.nonNull(value);
+    }
+
+    private static <V> V getVal(final Cache<String, V> cache, final String key) {
+        return cache.getIfPresent(key);
+    }
+
+    private static boolean checkChildrenNotNull(final ShenyuTrieNode shenyuTrieNode) {
+        return Objects.nonNull(shenyuTrieNode) && Objects.nonNull(shenyuTrieNode.getChildren());
+    }
+    
+    private static boolean checkPathRuleNotNull(final ShenyuTrieNode shenyuTrieNode) {
+        return Objects.nonNull(shenyuTrieNode) && Objects.nonNull(shenyuTrieNode.getPathRuleCache());
     }
 }

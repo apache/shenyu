@@ -19,6 +19,7 @@ package org.apache.shenyu.common.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
+import org.apache.shenyu.common.enums.TrieMatchModeEvent;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -1697,6 +1698,12 @@ public class ShenyuConfig {
         private Long pathRuleCacheSize = 1000L;
 
         /**
+         * match mode.
+         * @see TrieMatchModeEvent
+         */
+        private String matchMode = TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode();
+
+        /**
          * get trie children size.
          *
          * @return trie children size
@@ -1730,6 +1737,24 @@ public class ShenyuConfig {
          */
         public void setPathRuleCacheSize(final Long pathRuleCacheSize) {
             this.pathRuleCacheSize = pathRuleCacheSize;
+        }
+
+        /**
+         * get match mode.
+         *
+         * @return motch mode
+         */
+        public String getMatchMode() {
+            return matchMode;
+        }
+
+        /**
+         * set match mode.
+         *
+         * @param matchMode match mode
+         */
+        public void setMatchMode(final String matchMode) {
+            this.matchMode = matchMode;
         }
     }
 }

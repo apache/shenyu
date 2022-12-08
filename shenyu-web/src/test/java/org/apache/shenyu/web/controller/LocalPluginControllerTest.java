@@ -29,6 +29,7 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.TrieMatchModeEvent;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -489,7 +490,7 @@ public final class LocalPluginControllerTest {
 
     private void mockShenyuTrieConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        when(context.getBean(ShenyuTrie.class)).thenReturn(new ShenyuTrie(100L, 100L));
+        when(context.getBean(ShenyuTrie.class)).thenReturn(new ShenyuTrie(100L, 100L, TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode()));
         SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 }

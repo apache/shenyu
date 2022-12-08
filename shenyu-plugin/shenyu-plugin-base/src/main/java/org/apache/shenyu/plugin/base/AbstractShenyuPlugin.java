@@ -244,7 +244,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Pair<Boolean, RuleData> matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
-        // RuleData ruleDataList = rules.stream().filter(rule -> filterRule(rule, exchange)).findFirst().orElse(null);
         List<RuleData> filterRuleData = rules.stream()
                 .filter(rule -> filterRule(rule, exchange))
                 .distinct()

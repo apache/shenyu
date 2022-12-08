@@ -69,6 +69,7 @@ shenyu:
   trie:
     trieChildrenSize: 10000
     pathRuleCacheSize: 1000
+    matchMode: antPathMatch
   matchCache:
     selectorEnabled: false
     maxSelectorFreeMemory: 256 # 256MB
