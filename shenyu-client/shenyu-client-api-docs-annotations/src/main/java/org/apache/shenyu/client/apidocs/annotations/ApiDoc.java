@@ -33,9 +33,9 @@ import java.lang.annotation.Target;
 public @interface ApiDoc {
 
     /**
-     * value.
+     * desc.
      *
      * @return String
      */
-    String value();
+    String desc();
 }

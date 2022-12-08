@@ -194,7 +194,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         Annotation[] declaredAnnotations = method.getDeclaredAnnotations();
         String apiDesc = Arrays.stream(declaredAnnotations).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
             ApiDoc apiDoc = (ApiDoc) item;
-            return apiDoc.value();
+            return apiDoc.desc();
         }).orElse("");
         //获取httpMethod 、consume、produce
         Map<RequestMethod, Pair<String, String>> methodPairMap = buildMethodPairMapByDeclaredAnnotations(declaredAnnotations);

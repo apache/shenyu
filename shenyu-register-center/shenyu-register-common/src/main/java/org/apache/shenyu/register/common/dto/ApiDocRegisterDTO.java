@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.register.common.dto;
 
+import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
+
+import java.util.Objects;
 
 /**
  * The type Meta data dto.
@@ -89,6 +92,7 @@ public class ApiDocRegisterDTO implements DataTypeParent {
      * complete documentation of the api, including request parameters and response parameters.
      */
     private String document;
+
 
     @Override
     public DataType getType() {
@@ -329,6 +333,7 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         this.document = document;
     }
 
+
     @Override
     public String toString() {
         return "ApiDocRegisterDTO{" +
@@ -369,7 +374,6 @@ public class ApiDocRegisterDTO implements DataTypeParent {
 
         private ApiDocRegisterDTOBuilder() {
         }
-
 
 
         public ApiDocRegisterDTOBuilder contextPath(String contextPath) {

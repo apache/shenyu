@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -46,8 +47,6 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientRegisterRepository.class);
 
     private static URIRegisterDTO uriRegisterDTO;
-
-    private static ApiDocRegisterDTO staticApiDocRegisterDTO;
 
     private String username;
     
@@ -79,7 +78,6 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     @Override
     protected void doPersistApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
         doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
-        staticApiDocRegisterDTO = apiDocRegisterDTO;
     }
 
     @Override
@@ -111,11 +109,10 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
 
     @Override
     public void close() {
-        if (uriRegisterDTO != null) {
+        if (Objects.nonNull(uriRegisterDTO)) {
             uriRegisterDTO.setEventType(EventType.DELETED);
             doRegister(uriRegisterDTO, Constants.URI_PATH, Constants.URI);
         }
-        //TODO 删除apiDoc的文档
     }
 
     private void setAccessToken() {
