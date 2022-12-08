@@ -27,8 +27,10 @@ import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentExcept
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -42,6 +44,8 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -110,15 +114,40 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
         beans.forEach(this::handle);
-        //TODO 处理apiDoc
+        //处理apiDoc
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
-        if (Objects.nonNull(apiModules)) {
-            apiModules.forEach(this::handleApiDoc);
+        apiModules.forEach(this::handleApiDoc);
+    }
+
+    private void handleApiDoc(final String name, final Object classes) {
+        Class<?> apiModuleClass = AopUtils.isAopProxy(classes) ? AopUtils.getTargetClass(classes) : classes.getClass();
+        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(apiModuleClass);
+        for (Method method : methods) {
+            if (method.isAnnotationPresent(ApiDoc.class)) {
+                List<ApiDocRegisterDTO> ApiDocDTOList = buildApiDocDTO(apiModuleClass,method);
+                for (ApiDocRegisterDTO apiDocRegisterDTO : ApiDocDTOList) {
+                    publisher.publishEvent(apiDocRegisterDTO);
+                }
+            }
         }
     }
 
-    private void handleApiDoc(final String s, final Object o) {
-        LOG.info("handle api doc" + s + o);
+
+    /**
+     * 公用方法
+     * @param clazz
+     * @param method
+     * @return
+     */
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz,Method method) {
+        final String contextPath = getContextPath();
+        final A beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
+        final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
+        String apiPath = buildApiDocApiPath(method,superPath,beanShenyuClient);
+        //TODO 获取httpMethod 、consume、produce
+        ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
+                .build();
+        return Collections.singletonList(build);
     }
 
     protected abstract Map<String, T> getBeans(ApplicationContext context);
@@ -176,6 +205,12 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     protected abstract String buildApiPath(Method method,
                                            String superPath,
                                            @NonNull A methodShenyuClient);
+
+    protected String buildApiDocApiPath(Method method,
+                                           String superPath,
+                                           @NonNull A methodShenyuClient){
+        return buildApiPath(method, superPath, methodShenyuClient);
+    };
 
     protected String pathJoin(@NonNull final String... path) {
         StringBuilder result = new StringBuilder(PATH_SEPARATOR);

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.http.controller;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.http.dto.OAuth2DTO;
 import org.apache.shenyu.examples.http.dto.OrderDTO;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -39,6 +42,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/order")
 @ShenyuSpringMvcClient("/order")
+@ApiModule(value = "order")
 public class OrderController {
 
     /**
@@ -47,8 +51,9 @@ public class OrderController {
      * @param orderDTO the order dto
      * @return the order dto
      */
-    @PostMapping("/save")
+    @PostMapping(value = "/save", consumes = "application/json", produces = "application/json")
     @ShenyuSpringMvcClient("/save")
+    @ApiDoc("/save")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
         orderDTO.setName("hello world save order");
         return orderDTO;
@@ -60,8 +65,9 @@ public class OrderController {
      * @param id the id
      * @return the order dto
      */
-    @GetMapping("/findById")
+    @RequestMapping(value = "/findById",method = {RequestMethod.POST,RequestMethod.GET})
     @ShenyuSpringMvcClient("/findById")
+    @ApiDoc("/findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
         return build(id, "hello world findById");
     }

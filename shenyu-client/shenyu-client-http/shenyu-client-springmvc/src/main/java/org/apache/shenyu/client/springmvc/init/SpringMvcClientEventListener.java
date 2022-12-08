@@ -17,8 +17,13 @@
 
 package org.apache.shenyu.client.springmvc.init;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
@@ -29,6 +34,7 @@ import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationContext;
@@ -37,12 +43,19 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -164,7 +177,106 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         }
         return pathJoin(contextPath, superPath);
     }
-    
+
+    /**
+     * 子类的方法
+     * @param clazz
+     * @param method
+     * @return
+     */
+    @Override
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz, Method method) {
+        final String contextPath = getContextPath();
+        ShenyuSpringMvcClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
+        final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
+        String apiPath = buildApiDocApiPath(method, superPath, beanShenyuClient);
+        Annotation[] declaredAnnotations = method.getDeclaredAnnotations();
+        String apiDesc = Arrays.stream(declaredAnnotations).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
+            ApiDoc apiDoc = (ApiDoc) item;
+            return apiDoc.value();
+        }).orElse("");
+        //获取httpMethod 、consume、produce
+        Map<RequestMethod, Pair<String, String>> methodPairMap = buildMethodPairMapByDeclaredAnnotations(declaredAnnotations);
+        List<ApiDocRegisterDTO> list = Lists.newArrayList();
+        methodPairMap.forEach((k, v) -> {
+            list.add(ApiDocRegisterDTO.builder()
+                    .contextPath(contextPath)
+                    .apiPath(apiPath)
+                    .httpMethod(1)
+                    .produce(v.getLeft())
+                    .consume(v.getRight())
+                    .rpcType(RpcTypeEnum.HTTP.getName())
+                    .apiOwner("")
+                    .document("")
+                    .ext("")
+                    .version("")
+                    .state(1)
+                    .apiDesc(apiDesc)
+                    .build());
+        });
+        return list;
+    }
+
+    private Map<RequestMethod, Pair<String, String>> buildMethodPairMapByDeclaredAnnotations(Annotation[] declaredAnnotations) {
+        Map<RequestMethod, Pair<String, String>> map = Maps.newHashMap();
+        for (Annotation declaredAnnotation : declaredAnnotations) {
+            if (declaredAnnotation instanceof RequestMapping) {
+                RequestMapping requestMapping = (RequestMapping) declaredAnnotation;
+                String produce = requestMapping.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.produces());
+                String consume = requestMapping.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.consumes());
+                for (RequestMethod requestMethod : requestMapping.method()) {
+                    Pair<String, String> of = Pair.of(produce, consume);
+                    map.put(requestMethod, of);
+                }
+                break;
+            }
+            if (declaredAnnotation instanceof PostMapping) {
+                PostMapping post = (PostMapping) declaredAnnotation;
+                String produce = post.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", post.produces());
+                String consume = post.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", post.consumes());
+                Pair<String, String> of = Pair.of(produce, consume);
+                map.put(RequestMethod.POST, of);
+            }
+            if (declaredAnnotation instanceof GetMapping) {
+                GetMapping get = (GetMapping) declaredAnnotation;
+                String produce = get.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", get.produces());
+                String consume = get.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", get.consumes());
+                Pair<String, String> of = Pair.of(produce, consume);
+                map.put(RequestMethod.GET, of);
+            }
+            if (declaredAnnotation instanceof PutMapping) {
+                PutMapping put = (PutMapping) declaredAnnotation;
+                String produce = put.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", put.produces());
+                String consume = put.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", put.consumes());
+                Pair<String, String> of = Pair.of(produce, consume);
+                map.put(RequestMethod.PUT, of);
+            }
+            if (declaredAnnotation instanceof DeleteMapping) {
+                DeleteMapping delete = (DeleteMapping) declaredAnnotation;
+                String produce = delete.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", delete.produces());
+                String consume = delete.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", delete.consumes());
+                Pair<String, String> of = Pair.of(produce, consume);
+                map.put(RequestMethod.DELETE, of);
+            }
+            if (declaredAnnotation instanceof PatchMapping) {
+                PatchMapping patch = (PatchMapping) declaredAnnotation;
+                String produce = patch.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", patch.produces());
+                String consume = patch.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", patch.consumes());
+                Pair<String, String> of = Pair.of(produce, consume);
+                map.put(RequestMethod.PATCH, of);
+            }
+        }
+        return map;
+    }
+
+    @Override
+    protected String buildApiDocApiPath(Method method, String superPath,
+                                        @Nullable final ShenyuSpringMvcClient beanShenyuClient) {
+        ShenyuSpringMvcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
+        methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
+        return super.buildApiDocApiPath(method, superPath, methodShenyuClient);
+    }
+
     private String getPathByMethod(@NonNull final Method method) {
         for (Class<? extends Annotation> mapping : mappingAnnotation) {
             final String pathByAnnotation = getPathByAnnotation(AnnotatedElementUtils.findMergedAnnotation(method, mapping));

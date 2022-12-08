@@ -328,4 +328,112 @@ public class ApiDocRegisterDTO implements DataTypeParent {
     public void setDocument(final String document) {
         this.document = document;
     }
+
+    public static ApiDocRegisterDTOBuilder builder() {
+        return new ApiDocRegisterDTOBuilder();
+    }
+
+    public static final class ApiDocRegisterDTOBuilder {
+        private String contextPath;
+        private String apiPath;
+        private Integer httpMethod;
+        private String consume;
+        private String produce;
+        private String version;
+        private String rpcType;
+        private Integer state;
+        private String ext;
+        private String apiOwner;
+        private String apiDesc;
+        private Integer apiSource;
+        private String document;
+
+        private ApiDocRegisterDTOBuilder() {
+        }
+
+
+
+        public ApiDocRegisterDTOBuilder contextPath(String contextPath) {
+            this.contextPath = contextPath;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder apiPath(String apiPath) {
+            this.apiPath = apiPath;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder httpMethod(Integer httpMethod) {
+            this.httpMethod = httpMethod;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder consume(String consume) {
+            this.consume = consume;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder produce(String produce) {
+            this.produce = produce;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder version(String version) {
+            this.version = version;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder rpcType(String rpcType) {
+            this.rpcType = rpcType;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder state(Integer state) {
+            this.state = state;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder ext(String ext) {
+            this.ext = ext;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder apiOwner(String apiOwner) {
+            this.apiOwner = apiOwner;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder apiDesc(String apiDesc) {
+            this.apiDesc = apiDesc;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder apiSource(Integer apiSource) {
+            this.apiSource = apiSource;
+            return this;
+        }
+
+        public ApiDocRegisterDTOBuilder document(String document) {
+            this.document = document;
+            return this;
+        }
+
+        public ApiDocRegisterDTO build() {
+            ApiDocRegisterDTO apiDocRegisterDTO = new ApiDocRegisterDTO();
+            apiDocRegisterDTO.setContextPath(contextPath);
+            apiDocRegisterDTO.setApiPath(apiPath);
+            apiDocRegisterDTO.setHttpMethod(httpMethod);
+            apiDocRegisterDTO.setConsume(consume);
+            apiDocRegisterDTO.setProduce(produce);
+            apiDocRegisterDTO.setVersion(version);
+            apiDocRegisterDTO.setRpcType(rpcType);
+            apiDocRegisterDTO.setState(state);
+            apiDocRegisterDTO.setExt(ext);
+            apiDocRegisterDTO.setApiOwner(apiOwner);
+            apiDocRegisterDTO.setApiDesc(apiDesc);
+            apiDocRegisterDTO.setApiSource(apiSource);
+            apiDocRegisterDTO.setDocument(document);
+            return apiDocRegisterDTO;
+        }
+    }
 }
