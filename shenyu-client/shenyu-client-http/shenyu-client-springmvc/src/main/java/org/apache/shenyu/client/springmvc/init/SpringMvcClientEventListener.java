@@ -27,6 +27,7 @@ import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -202,7 +203,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
             list.add(ApiDocRegisterDTO.builder()
                     .contextPath(contextPath)
                     .apiPath(apiPath)
-                    .httpMethod(1)
+                    .httpMethod(ApiHttpMethodEnum.getValueByName(String.valueOf(k)))
                     .produce(v.getLeft())
                     .consume(v.getRight())
                     .rpcType(RpcTypeEnum.HTTP.getName())

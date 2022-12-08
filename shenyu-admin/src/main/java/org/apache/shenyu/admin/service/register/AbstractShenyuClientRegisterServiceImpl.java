@@ -147,7 +147,6 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
 
     @Override
     public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
-        LOG.info("start ApiDocRegisterDTO:" + apiDocRegisterDTO);
         //先删除 再新增api
         ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
         apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(),apiDTO.getHttpMethod(),apiDTO.getRpcType());

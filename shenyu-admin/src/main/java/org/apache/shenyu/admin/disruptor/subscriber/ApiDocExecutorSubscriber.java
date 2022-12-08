@@ -33,8 +33,6 @@ import java.util.Optional;
  */
 public class ApiDocExecutorSubscriber implements ExecutorTypeSubscriber<ApiDocRegisterDTO> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ApiDocExecutorSubscriber.class);
-
     private final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService;
 
     public ApiDocExecutorSubscriber(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService) {
@@ -48,7 +46,6 @@ public class ApiDocExecutorSubscriber implements ExecutorTypeSubscriber<ApiDocRe
 
     @Override
     public void executor(final Collection<ApiDocRegisterDTO> dataList) {
-        //TODO 实现注册落库的逻辑
         dataList.forEach(apiDoc -> {
             Optional.ofNullable(this.shenyuClientRegisterService.get(apiDoc.getRpcType()))
                     .ifPresent(shenyuClientRegisterService -> {
