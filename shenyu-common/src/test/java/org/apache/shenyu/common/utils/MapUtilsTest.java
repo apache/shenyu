@@ -19,16 +19,20 @@ package org.apache.shenyu.common.utils;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Test cases for Md5Utils.
- */
-public final class Md5UtilsTest {
+public class MapUtilsTest {
 
     @Test
-    public void testMd5() {
-        final String md5 = "e10adc3949ba59abbe56e057f20f883e";
-        assertEquals(md5, Md5Utils.md5("123456"));
+    public void testTransStringMap() {
+        Map<String, Object> jsonParams = new HashMap<>();
+        jsonParams.put("a", 1);
+        jsonParams.put("b", 2);
+        Map<String, String> stringStringMap = MapUtils.transStringMap(jsonParams);
+        assertEquals(stringStringMap.get("a").getClass(), String.class);
+        assertEquals(stringStringMap.get("a"), "1");
     }
 }

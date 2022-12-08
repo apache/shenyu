@@ -262,7 +262,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         AppAuthDO appAuthDO = AppAuthDO.create(appAuthDTO);
         DataEventTypeEnum eventType;
         if (StringUtils.isBlank(appAuthDTO.getId())) {
-            appAuthDO.setAppSecret(SignUtils.getInstance().generateKey());
+            appAuthDO.setAppSecret(SignUtils.generateKey());
             appAuthCount = appAuthMapper.insertSelective(appAuthDO);
             eventType = DataEventTypeEnum.CREATE;
         } else {
