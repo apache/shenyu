@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.sign.api;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Map;
@@ -29,19 +28,21 @@ public interface SignService {
 
     /**
      * Sign verify pair.
-     * @param exchange   the exchange
+     *
+     * @param exchange    the exchange
      * @param requestBody the requestBody
-     * @param queryParams  url query params
+     * @param queryParams url query params
      * @return the pair
      */
-    Pair<Boolean, String> signVerify(ServerWebExchange exchange, Map<String, Object> requestBody, Map<String, String> queryParams);
+    VerifyResult signVerify(ServerWebExchange exchange, Map<String, Object> requestBody, Map<String, String> queryParams);
 
     /**
      * Sign verify pair.
-     * @param exchange   the exchange
+     *
+     * @param exchange the exchange
      * @return the pair
      */
-    default Pair<Boolean, String> signVerify(ServerWebExchange exchange) {
+    default VerifyResult signVerify(ServerWebExchange exchange) {
         return signVerify(exchange, null, null);
     }
 }

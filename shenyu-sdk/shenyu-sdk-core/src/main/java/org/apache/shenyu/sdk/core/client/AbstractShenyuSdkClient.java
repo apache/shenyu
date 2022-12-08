@@ -162,11 +162,11 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
                     .map(serverAddress -> Upstream.builder().url(UriUtils.appendScheme(serverAddress, scheme)).build())
                     .collect(Collectors.toList());
         } else {
-            List<InstanceEntity> instanceRegisters = watcherInstanceRegisterMap.get(request.getContextId());
+            List<InstanceEntity> instanceRegisters = watcherInstanceRegisterMap.get(request.getName());
             if (instanceRegisters == null) {
-                instanceRegisters = registerRepository.selectInstancesAndWatcher(request.getContextId(),
-                    instanceRegisterDTOs -> watcherInstanceRegisterMap.put(request.getContextId(), instanceRegisterDTOs));
-                watcherInstanceRegisterMap.put(request.getContextId(), instanceRegisters);
+                instanceRegisters = registerRepository.selectInstancesAndWatcher(request.getName(),
+                    instanceRegisterDTOs -> watcherInstanceRegisterMap.put(request.getName(), instanceRegisterDTOs));
+                watcherInstanceRegisterMap.put(request.getName(), instanceRegisters);
             }
             if (ObjectUtils.isEmpty(instanceRegisters)) {
                 throw new ShenyuException("Gateway address not found from registry.");

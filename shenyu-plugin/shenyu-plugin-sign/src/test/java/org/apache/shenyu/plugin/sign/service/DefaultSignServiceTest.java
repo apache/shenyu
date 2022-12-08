@@ -19,13 +19,13 @@ package org.apache.shenyu.plugin.sign.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -34,6 +34,7 @@ import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
 import org.apache.shenyu.plugin.sign.api.SignProvider;
 import org.apache.shenyu.plugin.sign.api.SignService;
+import org.apache.shenyu.plugin.sign.api.VerifyResult;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,10 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -121,8 +125,8 @@ public final class DefaultSignServiceTest {
     public void normalTest() {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(true, ""));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.success());
     }
 
     @Test
@@ -130,17 +134,20 @@ public final class DefaultSignServiceTest {
         this.passed.setTimestamp(null);
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.fail(Constants.SIGN_PARAMS_ERROR));
     }
 
     @Test
     public void nullSignTest() {
         this.passed.setSign(null);
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+        AppAuthData authData = SignAuthDataCache.getInstance().obtainAuthData(appKey);
+        authData.setPathDataList(Collections.emptyList());
+        SignAuthDataCache.getInstance().cacheAuthData(authData);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.fail(Constants.SIGN_PARAMS_ERROR));
     }
 
     @Test
@@ -148,19 +155,19 @@ public final class DefaultSignServiceTest {
         this.passed.setAppKey(null);
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.fail(Constants.SIGN_PARAMS_ERROR));
     }
 
     @Test
     public void overdueTest() {
-        long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - (long) ((delay + 1) * 1000 * 60);
+        long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - ((long) (delay + 1) * 1000 * 60);
         this.passed.setTimestamp(Long.toString(errorTimestamp));
         this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), null, null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(false, String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay)));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.fail(String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay)));
     }
 
     @Test
@@ -168,8 +175,8 @@ public final class DefaultSignServiceTest {
         this.passed.setAppKey("errorKey");
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(false, Constants.SIGN_APP_KEY_IS_NOT_EXIST));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.fail(Constants.SIGN_APP_KEY_IS_NOT_EXIST));
     }
 
     @Test
@@ -179,8 +186,8 @@ public final class DefaultSignServiceTest {
         authData.setPathDataList(Collections.emptyList());
         SignAuthDataCache.getInstance().cacheAuthData(authData);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(false, Constants.SIGN_PATH_NOT_EXIST));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.fail(Constants.SIGN_PATH_NOT_EXIST));
     }
 
     @Test
@@ -193,8 +200,8 @@ public final class DefaultSignServiceTest {
         authData.setParamDataList(Collections.singletonList(authParamData));
         SignAuthDataCache.getInstance().cacheAuthData(authData);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(true, ""));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.success());
     }
 
     @Test
@@ -203,8 +210,8 @@ public final class DefaultSignServiceTest {
         AppAuthData authData = SignAuthDataCache.getInstance().obtainAuthData(appKey);
         SignAuthDataCache.getInstance().cacheAuthData(authData);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(true, ""));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.success());
     }
 
     @Test
@@ -213,8 +220,8 @@ public final class DefaultSignServiceTest {
         this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), null, null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(false, Constants.SIGN_PATH_NOT_EXIST));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.fail(Constants.SIGN_PATH_NOT_EXIST));
     }
 
     @Test
@@ -222,8 +229,8 @@ public final class DefaultSignServiceTest {
         this.passed.setSign("errorSign");
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
+        VerifyResult ret = this.signService.signVerify(this.exchange);
+        assertEquals(ret, VerifyResult.fail(Constants.SIGN_VALUE_IS_ERROR));
     }
 
     @Test
@@ -232,18 +239,18 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "data");
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody, null);
-        assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
+        VerifyResult ret = this.signService.signVerify(this.exchange, requestBody, null);
+        assertEquals(ret, VerifyResult.fail(Constants.SIGN_VALUE_IS_ERROR));
     }
 
     @Test
     public void bodySign() {
         Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), SignUtils.transStringMap(requestBody), null));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), MapUtils.transStringMap(requestBody), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody, null);
-        assertEquals(ret, Pair.of(true, ""));
+        VerifyResult ret = this.signService.signVerify(this.exchange, requestBody, null);
+        assertEquals(ret, VerifyResult.success());
     }
 
     @Test
@@ -252,10 +259,10 @@ public final class DefaultSignServiceTest {
         requestBody.put("data", "data");
         Map<String, String> queryParams = Maps.newHashMapWithExpectedSize(1);
         queryParams.put("data2", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), SignUtils.transStringMap(requestBody), queryParams));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), MapUtils.transStringMap(requestBody), queryParams));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody, queryParams);
-        assertEquals(ret, Pair.of(true, ""));
+        VerifyResult ret = this.signService.signVerify(this.exchange, requestBody, queryParams);
+        assertEquals(ret, VerifyResult.success());
     }
 
     @Test
@@ -264,16 +271,30 @@ public final class DefaultSignServiceTest {
         requestBody.put("data", "data");
         Map<String, String> queryParams = Maps.newHashMapWithExpectedSize(1);
         queryParams.put("data", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), SignUtils.transStringMap(requestBody), null));
+        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), MapUtils.transStringMap(requestBody), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         // Tamper with request body parameters
         requestBody.put("data", "data2");
-        Pair<Boolean, String> ret = this.signService.signVerify(this.exchange, requestBody, queryParams);
-        assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
+        VerifyResult ret = this.signService.signVerify(this.exchange, requestBody, queryParams);
+        assertEquals(ret, VerifyResult.fail(Constants.SIGN_VALUE_IS_ERROR));
     }
 
     private String buildSign(final String signKey, final String timeStamp, final String path, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
-        final String extSignKey = String.join("", Constants.PATH, path, Constants.TIMESTAMP, timeStamp, Constants.VERSION, "1.0.0", signKey);
-        return SignUtils.generateSign(extSignKey, jsonParams, queryParams);
+
+        final String jsonSign = Optional.ofNullable(jsonParams).map(e -> e.keySet().stream()
+                .sorted(Comparator.naturalOrder())
+                .map(key -> String.join("", key, jsonParams.get(key)))
+                .collect(Collectors.joining()).trim())
+                .orElse("");
+
+        final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
+                .sorted(Comparator.naturalOrder())
+                .map(key -> String.join("", key, queryParams.get(key)))
+                .collect(Collectors.joining()).trim())
+                .orElse("");
+
+        final String extSignKey = String.join("", Constants.TIMESTAMP, timeStamp, Constants.PATH, path, Constants.VERSION, "1.0.0", signKey);
+        final String data = String.join("", jsonSign, querySign);
+        return SignUtils.sign(SignUtils.SIGN_MD5, extSignKey, data).toUpperCase();
     }
 }

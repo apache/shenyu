@@ -18,8 +18,8 @@
 package org.apache.shenyu.plugin.logging.mask.api.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.common.utils.Md5Utils;
 import org.apache.shenyu.plugin.logging.mask.api.enums.DataMaskEnums;
 import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.Assertions;
@@ -56,7 +56,7 @@ public class DataMaskUtilsTest {
 
         String maskedData = DataMaskUtils.maskSingleKeyword(true, "name", JSON_TEXT, keyWordMatch,
                 DataMaskEnums.MD5_ENCRYPT.getDataMaskAlg());
-        Assertions.assertEquals(Md5Utils.md5(JSON_TEXT), maskedData);
+        Assertions.assertEquals(DigestUtils.md5Hex(JSON_TEXT), maskedData);
     }
 
     @Test
@@ -66,7 +66,7 @@ public class DataMaskUtilsTest {
 
         String maskedData = DataMaskUtils.maskBody(true, JSON_TEXT, keyWordMatch, DataMaskEnums.MD5_ENCRYPT.getDataMaskAlg());
         Map<String, String> jsonMap = JsonUtils.jsonToMap(JSON_TEXT, String.class);
-        jsonMap.put("name", Md5Utils.md5(jsonMap.get("name")));
+        jsonMap.put("name", DigestUtils.md5Hex(jsonMap.get("name")));
         String jsonRet = JsonUtils.toJson(jsonMap);
         Assertions.assertEquals(jsonRet, maskedData);
 
@@ -78,7 +78,7 @@ public class DataMaskUtilsTest {
         DataMaskUtils.maskList(false, "name", list, keyWordMatch, DataMaskEnums.MD5_ENCRYPT.getDataMaskAlg());
         Assertions.assertTrue(CollectionUtils.isEqualCollection(list, list));
         DataMaskUtils.maskList(true, "name", list, keyWordMatch, DataMaskEnums.MD5_ENCRYPT.getDataMaskAlg());
-        List<String> md5List = Arrays.asList(Md5Utils.md5("name"), Md5Utils.md5("test"));
+        List<String> md5List = Arrays.asList(DigestUtils.md5Hex("name"), DigestUtils.md5Hex("test"));
         Assertions.assertTrue(CollectionUtils.isEqualCollection(md5List, list));
     }
 }

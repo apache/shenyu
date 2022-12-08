@@ -15,20 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
+package org.apache.shenyu.examples.sdk.springcloud.provider;
 
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
- * Test cases for Md5Utils.
+ * Please see the shenyu-examples-springcloud for the detailed information.
  */
-public final class Md5UtilsTest {
+@SpringBootApplication(scanBasePackages = {"org.apache.shenyu.examples.*"})
+@EnableDiscoveryClient
+public class ShenyuSdkSpringCloudProviderApplication {
 
-    @Test
-    public void testMd5() {
-        final String md5 = "e10adc3949ba59abbe56e057f20f883e";
-        assertEquals(md5, Md5Utils.md5("123456"));
+    /**
+     * main.
+     *
+     * @param args args
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(ShenyuSdkSpringCloudProviderApplication.class, args);
     }
 }
