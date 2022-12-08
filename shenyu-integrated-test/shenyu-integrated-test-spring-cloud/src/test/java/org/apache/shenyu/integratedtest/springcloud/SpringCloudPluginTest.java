@@ -26,12 +26,12 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SpringCloudPluginTest extends AbstractPluginDataInit {
-    
+
     @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.SPRING_CLOUD.getName(), "");
@@ -43,5 +43,21 @@ public class SpringCloudPluginTest extends AbstractPluginDataInit {
         OrderDTO order = new OrderDTO("123", "Phoenix");
         order = HttpHelper.INSTANCE.postGateway("/springcloud/order/save", order, OrderDTO.class);
         assertEquals("hello world spring cloud save order", order.getName());
+    }
+
+    @Test
+    public void testFallBack() throws IOException {
+
+        OrderDTO orderDto = HttpHelper.INSTANCE
+                .getHttpService("http://localhost:8899/findById?id=1", null, OrderDTO.class);
+        assertEquals("fallback", orderDto.getName());
+    }
+
+    @Test
+    public void testFallBackFactory() throws IOException {
+
+        OrderDTO orderDto = HttpHelper.INSTANCE
+                .getHttpService("http://localhost:8899/findById?id=1", null, OrderDTO.class);
+        assertEquals("fallback factory", orderDto.getName());
     }
 }
