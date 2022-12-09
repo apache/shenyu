@@ -85,6 +85,22 @@ public enum ApiHttpMethodEnum {
     }
 
     /**
+     * get name.
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * get value.
+     * @return value
+     */
+    public Integer getValue() {
+        return value;
+    }
+
+    /**
      * getValueByName.
      * @param name name
      * @return value

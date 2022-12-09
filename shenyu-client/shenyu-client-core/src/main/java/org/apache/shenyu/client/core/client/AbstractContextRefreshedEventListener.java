@@ -118,6 +118,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         apiModules.forEach(this::handleApiDoc);
     }
 
+    //TODO 父类的方法
     private void handleApiDoc(final String name, final Object classes) {
         Class<?> apiModuleClass = AopUtils.isAopProxy(classes) ? AopUtils.getTargetClass(classes) : classes.getClass();
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(apiModuleClass);
@@ -143,7 +144,6 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         final String contextPath = getContextPath();
         final A beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
         final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
-        String apiPath = buildApiDocApiPath(method, superPath, beanShenyuClient);
         ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                 .build();
         return Collections.singletonList(build);
@@ -204,12 +204,6 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     protected abstract String buildApiPath(Method method,
                                            String superPath,
                                            @NonNull A methodShenyuClient);
-
-    protected String buildApiDocApiPath(final Method method,
-                                        final String superPath,
-                                        final @NonNull A methodShenyuClient) {
-        return buildApiPath(method, superPath, methodShenyuClient);
-    }
 
     protected String pathJoin(@NonNull final String... path) {
         StringBuilder result = new StringBuilder(PATH_SEPARATOR);

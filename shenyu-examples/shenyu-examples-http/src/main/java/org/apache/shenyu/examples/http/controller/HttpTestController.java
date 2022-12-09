@@ -63,6 +63,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/test")
 @ShenyuSpringMvcClient("/test/**")
+@ApiModule(value = "test")
 public class HttpTestController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpTestController.class);
@@ -74,6 +75,7 @@ public class HttpTestController {
      * @return the user dto
      */
     @PostMapping("/payment")
+    @ApiDoc(desc = "payment")
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
@@ -85,6 +87,7 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/findByUserId")
+    @ApiDoc(desc = "findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
         return buildUser(userId, "hello world");
     }
@@ -97,6 +100,7 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/findByUserIdName")
+    @ApiDoc(desc = "findByUserIdName")
     public UserDTO findByUserId(@RequestParam("userId") final String userId, @RequestParam("name") final String name) {
         return buildUser(userId, name);
     }
@@ -110,6 +114,7 @@ public class HttpTestController {
      * @return the user dto
      */
     @GetMapping("/findByPage")
+    @ApiDoc(desc = "findByPage")
     public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
         return buildUser(keyword, "hello world keyword is " + keyword + " page is " + page + " pageSize is " + pageSize);
     }
@@ -122,6 +127,7 @@ public class HttpTestController {
      * @return the path variable
      */
     @GetMapping("/path/{id}")
+    @ApiDoc(desc = "getPathVariable")
     public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
         return buildUser(id, name);
     }
@@ -134,6 +140,7 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/path/{id}/name")
+    @ApiDoc(desc = "testRestFul")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
         return buildUser(id, "hello world");
     }
@@ -147,6 +154,7 @@ public class HttpTestController {
      * @return the string
      */
     @PutMapping("/putPathBody/{id}")
+    @ApiDoc(desc = "putPathVariableAndBody")
     public UserDTO putPathVariableAndBody(@PathVariable("id") final String id, @RequestBody final UserDTO userDTO) {
         userDTO.setUserId(id);
         userDTO.setUserName("hello world");
@@ -159,6 +167,7 @@ public class HttpTestController {
      * @return response. result bean
      */
     @PostMapping("/waf/pass")
+    @ApiDoc(desc = "waf/pass")
     public ResultBean pass() {
         ResultBean response = new ResultBean();
         response.setCode(200);
@@ -172,6 +181,7 @@ public class HttpTestController {
      * @return response. result bean
      */
     @PostMapping("/waf/deny")
+    @ApiDoc(desc = "waf/deny")
     public ResultBean deny() {
         ResultBean response = new ResultBean();
         response.setCode(403);
@@ -186,6 +196,7 @@ public class HttpTestController {
      * @return ResultBean result bean
      */
     @GetMapping("/request/parameter/pass")
+    @ApiDoc(desc = "request/parameter/pass")
     public ResultBean requestParameter(@RequestParam("requestParameter") final String requestParameter) {
         ResultBean response = new ResultBean();
         response.setCode(200);
@@ -204,6 +215,7 @@ public class HttpTestController {
      * @return ResultBean result bean
      */
     @GetMapping("/request/header/pass")
+    @ApiDoc(desc = "request/header/pass")
     public ResultBean requestHeader(@RequestHeader("requestHeader") final String requestHeader) {
         ResultBean response = new ResultBean();
         response.setCode(200);
@@ -222,6 +234,7 @@ public class HttpTestController {
      * @return ResultBean result bean
      */
     @GetMapping("/request/cookie/pass")
+    @ApiDoc(desc = "request/cookie/pass")
     public ResultBean requestCookie(@CookieValue("cookie") final String cookie) {
         ResultBean response = new ResultBean();
         response.setCode(200);
@@ -239,9 +252,11 @@ public class HttpTestController {
      * @return response. result bean
      */
     @PostMapping("/sentinel/pass")
+    @ApiDoc(desc = "sentinel/pass")
     public ResultBean sentinelPass() {
         return pass();
     }
+
 
     /**
      * modify response.
@@ -250,6 +265,7 @@ public class HttpTestController {
      * @return response mono
      */
     @GetMapping(path = "/modifyResponse")
+    @ApiDoc(desc = "modifyResponse")
     public Mono<String> modifyResponse(final ServerWebExchange exchange) {
         exchange.getResponse().getHeaders().add("useByModifyResponse", String.valueOf(true));
         exchange.getResponse().getHeaders().add("setHeadersExist", String.valueOf(true));
@@ -262,7 +278,6 @@ public class HttpTestController {
         return Mono.just(GsonUtils.getInstance().toJson(body));
     }
 
-
     /**
      * modify request.
      *
@@ -273,6 +288,7 @@ public class HttpTestController {
      * @return result
      */
     @PostMapping(path = "/modifyRequest")
+    @ApiDoc(desc = "modifyRequest")
     public Map<String, Object> modifyRequest(@RequestBody final UserDTO userDTO,
                                              @CookieValue(value = "cookie", defaultValue = "") final String cookie,
                                              @RequestHeader(value = "requestHeader", defaultValue = "") final String requestHeader,
@@ -293,6 +309,7 @@ public class HttpTestController {
      * @throws IOException io exception
      */
     @GetMapping(path = "/download")
+    @ApiDoc(desc = "download")
     public ResponseEntity<byte[]> downloadFile(@RequestParam(value = "body", defaultValue = "") final String body) throws IOException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
@@ -312,6 +329,7 @@ public class HttpTestController {
      * @throws IOException io exception
      */
     @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ApiDoc(desc = "upload")
     public String downloadFile(@RequestPart("file") final FilePart filePart) throws IOException {
         LOGGER.info("file name: {}", filePart.filename());
         Path tempFile = Files.createTempFile(String.valueOf(System.currentTimeMillis()), filePart.filename());
@@ -332,6 +350,7 @@ public class HttpTestController {
      * @return response. result bean
      */
     @GetMapping("/request/badrequest")
+    @ApiDoc(desc = "request/badrequest")
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResultBean badRequest() {
         ResultBean response = new ResultBean();
@@ -345,6 +364,7 @@ public class HttpTestController {
      * @return response. result bean
      */
     @GetMapping("/request/accepted")
+    @ApiDoc(desc = "request/accepted")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public ResultBean accepted() {
         ResultBean response = new ResultBean();
@@ -358,6 +378,7 @@ public class HttpTestController {
      * @return response. result bean
      */
     @GetMapping("/success")
+    @ApiDoc(desc = "success")
     public ResultBean success() {
         ResultBean response = new ResultBean();
         response.setCode(200);
@@ -377,6 +398,7 @@ public class HttpTestController {
      * @return response. result bean
      */
     @GetMapping ("/hystrix/pass")
+    @ApiDoc(desc = "hystrix/pass")
     public ResultBean hystrixPass() {
         ResultBean response = new ResultBean();
         response.setCode(200);
@@ -390,6 +412,7 @@ public class HttpTestController {
      * @return response. result bean
      */
     @GetMapping("/hystrix/fallback")
+    @ApiDoc(desc = "hystrix/fallback")
     public ResultBean hystrixFallback() {
         ResultBean response = new ResultBean();
         response.setCode(429);
@@ -403,6 +426,7 @@ public class HttpTestController {
      * @return response. result bean
      */
     @GetMapping("/cache")
+    @ApiDoc(desc = "cache")
     public ResultBean testCache() {
         ResultBean response = new ResultBean();
         response.setCode(200);
@@ -416,6 +440,7 @@ public class HttpTestController {
      * @return response body
      */
     @GetMapping("/nullResponse")
+    @ApiDoc(desc = "nullResponse")
     public Object testResponseBodyIsNull() {
         return null;
     }
@@ -428,6 +453,7 @@ public class HttpTestController {
      * @return the result of post
      */
     @PostMapping("/bigRequestBody")
+    @ApiDoc(desc = "bigRequestBody")
     public ResultBean postBigRequestBody(@RequestBody final UserDTO params) {
         ResultBean resultBean = new ResultBean();
         resultBean.setCode(200);

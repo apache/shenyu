@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.http.controller;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/request")
 @ShenyuSpringMvcClient("/request/**")
+@ApiModule(value = "request")
 public class RequestController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestController.class);
@@ -47,6 +50,7 @@ public class RequestController {
      * @return response
      */
     @GetMapping(path = "/header")
+    @ApiDoc(desc = "/header")
     public Mono<String> testRequestHeader(@RequestHeader("header_key1") final String headerKey1,
                                           final ServerHttpRequest serverHttpRequest) {
         LOGGER.info("header_key1:{}, receive headers: {}", headerKey1, serverHttpRequest.getHeaders());
@@ -60,6 +64,7 @@ public class RequestController {
      * @return  response
      */
     @PostMapping(path = "/parameter")
+    @ApiDoc(desc = "/parameter")
     public Mono<String> testRequestParameter(@RequestParam("parameter_key1") final String parameterKey1,
                                              final ServerHttpRequest serverHttpRequest) {
         LOGGER.info("parameter_key1: {}, receive param: {}", parameterKey1, serverHttpRequest.getQueryParams());
@@ -73,6 +78,7 @@ public class RequestController {
      * @return  response
      */
     @GetMapping(path = "/cookie")
+    @ApiDoc(desc = "/cookie")
     public Mono<String> testRequestCookie(@CookieValue("userId") final String userId,
                                           final ServerHttpRequest serverHttpRequest) {
         LOGGER.info("userId:{}, receive Cookies: {}", userId, serverHttpRequest.getCookies());

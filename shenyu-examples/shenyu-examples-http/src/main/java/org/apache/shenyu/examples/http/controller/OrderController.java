@@ -81,6 +81,7 @@ public class OrderController {
      */
     @GetMapping("/path/{id}/{name}")
     @ShenyuSpringMvcClient("/path/**")
+    @ApiDoc(desc = "getPathVariable")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
         return build(id, "hello world restful: " + name);
     }
@@ -93,6 +94,7 @@ public class OrderController {
      */
     @GetMapping("/path/{id}/name")
     @ShenyuSpringMvcClient("/path/**/name")
+    @ApiDoc(desc = "testRestFul")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
         return build(id, "hello world restful inline " + id);
     }
@@ -104,6 +106,7 @@ public class OrderController {
      */
     @GetMapping("/oauth2/test")
     @ShenyuSpringMvcClient("/oauth2/test")
+    @ApiDoc(desc = "oauth2/test")
     public OAuth2DTO testRestFul(final ServerHttpRequest request) {
         HttpHeaders headers = request.getHeaders();
         List<String> tokens = headers.get("Authorization");
