@@ -17,11 +17,8 @@
 
 package org.apache.shenyu.register.common.dto;
 
-import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
-
-import java.util.Objects;
 
 /**
  * The type Meta data dto.
@@ -92,7 +89,6 @@ public class ApiDocRegisterDTO implements DataTypeParent {
      * complete documentation of the api, including request parameters and response parameters.
      */
     private String document;
-
 
     @Override
     public DataType getType() {
@@ -333,114 +329,211 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         this.document = document;
     }
 
-
     @Override
     public String toString() {
-        return "ApiDocRegisterDTO{" +
-                "contextPath='" + contextPath + '\'' +
-                ", apiPath='" + apiPath + '\'' +
-                ", httpMethod=" + httpMethod +
-                ", consume='" + consume + '\'' +
-                ", produce='" + produce + '\'' +
-                ", version='" + version + '\'' +
-                ", rpcType='" + rpcType + '\'' +
-                ", state=" + state +
-                ", ext='" + ext + '\'' +
-                ", apiOwner='" + apiOwner + '\'' +
-                ", apiDesc='" + apiDesc + '\'' +
-                ", apiSource=" + apiSource +
-                ", document='" + document + '\'' +
-                '}';
+        return "ApiDocRegisterDTO{"
+                + "contextPath='"
+                + contextPath
+                + ", apiPath='"
+                + apiPath
+                + ", httpMethod="
+                + httpMethod
+                + ", consume='"
+                + consume
+                + ", produce='"
+                + produce
+                + ", version='"
+                + version
+                + ", rpcType='"
+                + rpcType
+                + ", state="
+                + state
+                + ", ext='"
+                + ext
+                + ", apiOwner='"
+                + apiOwner
+                + ", apiDesc='"
+                + apiDesc
+                + ", apiSource="
+                + apiSource
+                + ", document='"
+                + document
+                + '}';
     }
 
+    /**
+     * builder.
+     * @return ApiDocRegisterDTOBuilder
+     */
     public static ApiDocRegisterDTOBuilder builder() {
         return new ApiDocRegisterDTOBuilder();
     }
 
     public static final class ApiDocRegisterDTOBuilder {
+
         private String contextPath;
+
         private String apiPath;
+
         private Integer httpMethod;
+
         private String consume;
+
         private String produce;
+
         private String version;
+
         private String rpcType;
+
         private Integer state;
+
         private String ext;
+
         private String apiOwner;
+
         private String apiDesc;
+
         private Integer apiSource;
+
         private String document;
 
         private ApiDocRegisterDTOBuilder() {
         }
 
-
-        public ApiDocRegisterDTOBuilder contextPath(String contextPath) {
+        /**
+         * build contextPath.
+         * @param contextPath contextPath
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder contextPath(final String contextPath) {
             this.contextPath = contextPath;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder apiPath(String apiPath) {
+        /**
+         * build apiPath.
+         * @param apiPath apiPath
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder apiPath(final String apiPath) {
             this.apiPath = apiPath;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder httpMethod(Integer httpMethod) {
+        /**
+         * build httpMethod.
+         * @param httpMethod httpMethod
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder httpMethod(final Integer httpMethod) {
             this.httpMethod = httpMethod;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder consume(String consume) {
+        /**
+         * build consume.
+         * @param consume consume
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder consume(final String consume) {
             this.consume = consume;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder produce(String produce) {
+        /**
+         * build produce.
+         * @param produce produce
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder produce(final String produce) {
             this.produce = produce;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder version(String version) {
+        /**
+         * build version.
+         * @param version version
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder version(final String version) {
             this.version = version;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder rpcType(String rpcType) {
+        /**
+         * build rpcType.
+         * @param rpcType rpcType
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder rpcType(final String rpcType) {
             this.rpcType = rpcType;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder state(Integer state) {
+        /**
+         * build state.
+         * @param state state
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder state(final Integer state) {
             this.state = state;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder ext(String ext) {
+        /**
+         * build ext.
+         * @param ext ext
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder ext(final String ext) {
             this.ext = ext;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder apiOwner(String apiOwner) {
+        /**
+         * build apiOwner.
+         * @param apiOwner apiOwner
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder apiOwner(final String apiOwner) {
             this.apiOwner = apiOwner;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder apiDesc(String apiDesc) {
+        /**
+         * build apiDesc.
+         * @param apiDesc apiDesc
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder apiDesc(final String apiDesc) {
             this.apiDesc = apiDesc;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder apiSource(Integer apiSource) {
+        /**
+         * build apiSource.
+         * @param apiSource apiSource
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder apiSource(final Integer apiSource) {
             this.apiSource = apiSource;
             return this;
         }
 
-        public ApiDocRegisterDTOBuilder document(String document) {
+        /**
+         * build document.
+         * @param document document
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder document(final String document) {
             this.document = document;
             return this;
         }
 
+        /**
+         * build.
+         * @return ApiDocRegisterDTO
+         */
         public ApiDocRegisterDTO build() {
             ApiDocRegisterDTO apiDocRegisterDTO = new ApiDocRegisterDTO();
             apiDocRegisterDTO.setContextPath(contextPath);

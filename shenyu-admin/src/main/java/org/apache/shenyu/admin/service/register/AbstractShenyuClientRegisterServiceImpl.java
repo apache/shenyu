@@ -67,28 +67,28 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      */
     @Resource
     private ApplicationEventPublisher eventPublisher;
-    
+
     /**
      * The Selector service.
      */
     @Resource
     private SelectorService selectorService;
-    
+
     @Resource
     private MetaDataService metaDataService;
-    
+
     /**
      * The Rule service.
      */
     @Resource
     private RuleService ruleService;
-    
+
     @Resource
     private UpstreamCheckService upstreamCheckService;
 
     @Resource
     private ApiService apiService;
-    
+
     /**
      * Selector handler string.
      *
@@ -96,21 +96,21 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      * @return the string
      */
     protected abstract String selectorHandler(MetaDataRegisterDTO metaDataDTO);
-    
+
     /**
      * Rule handler string.
      *
      * @return the string
      */
     protected abstract String ruleHandler();
-    
+
     /**
      * Register metadata.
      *
      * @param metaDataDTO the meta data dto
      */
     protected abstract void registerMetadata(MetaDataRegisterDTO metaDataDTO);
-    
+
     /**
      * Build handle string.
      *
@@ -119,7 +119,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
      * @return the string
      */
     protected abstract String buildHandle(List<URIRegisterDTO> uriList, SelectorDO selectorDO);
-    
+
     /**
      * Register meta data.
      *
@@ -149,15 +149,15 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
         //先删除 再新增api
         ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
-        apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(),apiDTO.getHttpMethod(),apiDTO.getRpcType());
+        apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(), apiDTO.getHttpMethod(), apiDTO.getRpcType());
         apiService.createOrUpdate(apiDTO);
         return ShenyuResultMessage.SUCCESS;
     }
 
-    private ApiDTO buildApiDTO(ApiDocRegisterDTO apiDocRegisterDTO) {
+    private ApiDTO buildApiDTO(final ApiDocRegisterDTO apiDocRegisterDTO) {
         ApiDTO apiDTO = new ApiDTO();
         apiDTO.setApiPath(apiDocRegisterDTO.getApiPath());
-        apiDTO.setApiSource(1);
+        apiDTO.setApiSource(apiDocRegisterDTO.getApiSource());
         apiDTO.setApiOwner(apiDocRegisterDTO.getApiOwner());
         apiDTO.setDocument(apiDocRegisterDTO.getDocument());
         apiDTO.setExt(apiDocRegisterDTO.getExt());
@@ -204,7 +204,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         }
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * Gets meta data service.
      *
@@ -213,7 +213,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     public MetaDataService getMetaDataService() {
         return metaDataService;
     }
-    
+
     /**
      * Gets selector service.
      *
@@ -222,7 +222,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     public SelectorService getSelectorService() {
         return selectorService;
     }
-    
+
     /**
      * Gets rule service.
      *
@@ -231,7 +231,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     public RuleService getRuleService() {
         return ruleService;
     }
-    
+
     /**
      * Do submit.
      *
@@ -244,7 +244,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         return commonUpstreamList.stream().map(upstream -> upstreamCheckService.checkAndSubmit(selectorId, upstream))
                 .collect(Collectors.toList()).stream().findAny().orElse(false);
     }
-    
+
     /**
      * Build context path default rule dto rule dto.
      *
@@ -257,11 +257,11 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         String contextPath = metaDataDTO.getContextPath();
         return buildRuleDTO(selectorId, ruleHandler, contextPath, PathUtils.decoratorPath(contextPath));
     }
-    
+
     private RuleDTO buildRpcDefaultRuleDTO(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final String ruleHandler) {
         return buildRuleDTO(selectorId, ruleHandler, metaDataDTO.getRuleName(), metaDataDTO.getPath());
     }
-    
+
     private RuleDTO buildRuleDTO(final String selectorId, final String ruleHandler, final String ruleName, final String path) {
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId(selectorId)
@@ -293,6 +293,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     /**
      * adjustment such as '/aa/${xxx}/cc' replace to `/aa/`**`/cc` for client simpler annotation.
      * link: https://github.com/apache/shenyu/pull/3819
+     *
      * @param path the path
      * @return the replaced path
      */

@@ -42,9 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -179,11 +177,11 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    public int deleteByApiPathHttpMethodRpcType(String apiPath, Integer httpMethod, String rpcType) {
+    public int deleteByApiPathHttpMethodRpcType(final String apiPath, final Integer httpMethod, final String rpcType) {
         List<ApiDO> apiDOs = apiMapper.selectByApiPathHttpMethodRpcType(apiPath, httpMethod, rpcType);
         // delete apis.
         if (CollectionUtils.isNotEmpty(apiDOs)) {
-            final List<String> apiIds = ListUtil.map(apiDOs, ApiDO::getId);;
+            final List<String> apiIds = ListUtil.map(apiDOs, ApiDO::getId);
             final int deleteRows = this.apiMapper.deleteByIds(apiIds);
             if (deleteRows > 0) {
                 tagRelationMapper.deleteByApiIds(apiIds);

@@ -111,6 +111,12 @@ public interface ApiMapper extends ExistProvider {
      */
     int deleteByIds(List<String> ids);
 
-
+    /**
+     * selectByApiPathHttpMethodRpcType.
+     * @param apiPath apiPath
+     * @param httpMethod httpMethod
+     * @param rpcType rpcType
+     * @return {@linkplain ApiDO}
+     */
     List<ApiDO> selectByApiPathHttpMethodRpcType(@Param(value = "apiPath") String apiPath, @Param(value = "httpMethod") Integer httpMethod, @Param(value = "rpcType") String rpcType);
 }

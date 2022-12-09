@@ -19,20 +19,19 @@ package org.apache.shenyu.client.springmvc.init;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.PathUtils;
-import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -56,7 +55,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -180,13 +178,13 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     }
 
     /**
-     * 子类的方法
-     * @param clazz
-     * @param method
-     * @return
+     * buildApiDocDTO.
+     * @param clazz clazz
+     * @param method method
+     * @return ApiDocRegisterDTO
      */
     @Override
-    protected List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz, Method method) {
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
         final String contextPath = getContextPath();
         ShenyuSpringMvcClient beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
         final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
@@ -218,7 +216,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         return list;
     }
 
-    private Map<RequestMethod, Pair<String, String>> buildMethodPairMapByDeclaredAnnotations(Annotation[] declaredAnnotations) {
+    private Map<RequestMethod, Pair<String, String>> buildMethodPairMapByDeclaredAnnotations(final Annotation[] declaredAnnotations) {
         Map<RequestMethod, Pair<String, String>> map = Maps.newHashMap();
         for (Annotation declaredAnnotation : declaredAnnotations) {
             if (declaredAnnotation instanceof RequestMapping) {
@@ -271,8 +269,8 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     }
 
     @Override
-    protected String buildApiDocApiPath(Method method, String superPath,
-                                        @Nullable final ShenyuSpringMvcClient beanShenyuClient) {
+    protected String buildApiDocApiPath(final Method method, final String superPath,
+                                        final @Nullable ShenyuSpringMvcClient beanShenyuClient) {
         ShenyuSpringMvcClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringMvcClient.class);
         methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
         return super.buildApiDocApiPath(method, superPath, methodShenyuClient);

@@ -30,7 +30,6 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -124,8 +123,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(apiModuleClass);
         for (Method method : methods) {
             if (method.isAnnotationPresent(ApiDoc.class)) {
-                List<ApiDocRegisterDTO> ApiDocDTOList = buildApiDocDTO(apiModuleClass,method);
-                for (ApiDocRegisterDTO apiDocRegisterDTO : ApiDocDTOList) {
+                List<ApiDocRegisterDTO> apis = buildApiDocDTO(apiModuleClass, method);
+                for (ApiDocRegisterDTO apiDocRegisterDTO : apis) {
                     publisher.publishEvent(apiDocRegisterDTO);
                 }
             }
@@ -134,17 +133,17 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
 
 
     /**
-     * 公用方法
-     * @param clazz
-     * @param method
-     * @return
+     * buildApiDocDTO.
+     * @param clazz clazz
+     * @param method method
+     * @return ApiDocRegisterDTO
      */
     //TODO 公共方法获取参数 httpMethod 、consume、produce
-    protected List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz,Method method) {
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
         final String contextPath = getContextPath();
         final A beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
         final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
-        String apiPath = buildApiDocApiPath(method,superPath,beanShenyuClient);
+        String apiPath = buildApiDocApiPath(method, superPath, beanShenyuClient);
         ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                 .build();
         return Collections.singletonList(build);
@@ -206,11 +205,11 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
                                            String superPath,
                                            @NonNull A methodShenyuClient);
 
-    protected String buildApiDocApiPath(Method method,
-                                           String superPath,
-                                           @NonNull A methodShenyuClient){
+    protected String buildApiDocApiPath(final Method method,
+                                        final String superPath,
+                                        final @NonNull A methodShenyuClient) {
         return buildApiPath(method, superPath, methodShenyuClient);
-    };
+    }
 
     protected String pathJoin(@NonNull final String... path) {
         StringBuilder result = new StringBuilder(PATH_SEPARATOR);
