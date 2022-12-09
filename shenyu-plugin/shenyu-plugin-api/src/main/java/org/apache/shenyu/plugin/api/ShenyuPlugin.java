@@ -137,6 +137,8 @@ public interface ShenyuPlugin {
      * Accept ServerWebExchange.
      * @param exchange the current server exchange
      */
-    default void errorHook(ServerWebExchange exchange) {}
+    default void errorHook(ServerWebExchange exchange) {
+
+    }
 }
 
