@@ -81,7 +81,7 @@ public final class WebFluxResultUtils {
      * @param hook the hook
      * @return the result
      */
-    public static Mono<Void> result(final ServerWebExchange exchange, final Object result, Consumer<ServerWebExchange> hook) {
+    public static Mono<Void> result(final ServerWebExchange exchange, final Object result, final Consumer<ServerWebExchange> hook) {
         Mono<Void> mono = result(exchange, result);
         CompletableFuture.runAsync(() -> hook.accept(exchange));
         return mono;
