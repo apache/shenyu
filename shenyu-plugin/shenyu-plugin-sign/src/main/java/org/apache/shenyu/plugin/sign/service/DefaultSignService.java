@@ -172,7 +172,7 @@ public class DefaultSignService implements SignService {
     }
 
     private String buildExtSignKey(final String signKey, final SignParameters signParameters) {
-        return String.join("", Constants.PATH, signParameters.path, Constants.TIMESTAMP, signParameters.timestamp, Constants.VERSION, "1.0.0", signKey);
+        return String.join("", Constants.TIMESTAMP, signParameters.timestamp, Constants.PATH, signParameters.path, Constants.VERSION, "1.0.0", signKey);
     }
 
     private static final class SignParameters {
