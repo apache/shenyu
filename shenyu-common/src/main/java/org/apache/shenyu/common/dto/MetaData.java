@@ -29,6 +29,8 @@ public class MetaData {
 
     private String contextPath;
 
+    private String namespace;
+
     private String path;
 
     private String rpcType;
@@ -47,6 +49,36 @@ public class MetaData {
      * no args constructor.
      */
     public MetaData() {
+    }
+
+    /**
+     * all args constructor.
+     *
+     * @param id             id
+     * @param appName        appName
+     * @param contextPath    contextPath
+     * @param namespace      namespace
+     * @param path           path
+     * @param rpcType        rpcType
+     * @param serviceName    serviceName
+     * @param methodName     methodName
+     * @param parameterTypes parameterTypes
+     * @param rpcExt         rpcExt
+     * @param enabled        enabled
+     */
+    public MetaData(final String id, final String appName, final String contextPath, final String namespace, final String path, final String rpcType, final String serviceName,
+                    final String methodName, final String parameterTypes, final String rpcExt, final Boolean enabled) {
+        this.id = id;
+        this.appName = appName;
+        this.contextPath = contextPath;
+        this.namespace = namespace;
+        this.path = path;
+        this.rpcType = rpcType;
+        this.serviceName = serviceName;
+        this.methodName = methodName;
+        this.parameterTypes = parameterTypes;
+        this.rpcExt = rpcExt;
+        this.enabled = enabled;
     }
 
     /**
@@ -93,6 +125,7 @@ public class MetaData {
         this.parameterTypes = builder.parameterTypes;
         this.rpcExt = builder.rpcExt;
         this.enabled = builder.enabled;
+        this.namespace = builder.namespace;
     }
 
     /**
@@ -284,6 +317,14 @@ public class MetaData {
         this.enabled = enabled;
     }
 
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(final String namespace) {
+        this.namespace = namespace;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -369,6 +410,8 @@ public class MetaData {
          */
         private String contextPath;
 
+        private String namespace;
+
         /**
          * path.
          */
@@ -449,6 +492,11 @@ public class MetaData {
          */
         public Builder contextPath(final String contextPath) {
             this.contextPath = contextPath;
+            return this;
+        }
+
+        public Builder namespace(final String namespace) {
+            this.namespace = namespace;
             return this;
         }
 

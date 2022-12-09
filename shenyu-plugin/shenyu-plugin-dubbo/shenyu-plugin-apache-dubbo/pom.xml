@@ -38,6 +38,11 @@
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-register-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-loadbalancer</artifactId>
             <version>${project.version}</version>
         </dependency>

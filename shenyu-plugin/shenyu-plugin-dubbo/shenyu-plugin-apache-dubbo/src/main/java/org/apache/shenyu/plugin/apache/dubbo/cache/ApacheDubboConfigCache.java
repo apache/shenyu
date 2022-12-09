@@ -29,10 +29,14 @@ import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
+import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +46,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-
 
 /**
  * The type Application config cache.
@@ -74,8 +77,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
                     return new ReferenceConfig<>();
                 }
             });
-    
-    
+
     /**
      * Gets instance.
      *
@@ -155,17 +157,26 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         reference.setAsync(true);
         
         reference.setApplication(applicationConfig);
-        reference.setRegistry(registryConfig);
+        if (StringUtils.isNotBlank(metaData.getNamespace())) {
+            PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(RegisterTypeEnum.DUBBO.getName());
+            if (pluginData != null) {
+                String config = BaseDataCache.getInstance().obtainPluginData(RegisterTypeEnum.DUBBO.getName()).getConfig();
+                DubboRegisterConfig dubboRegisterConfig = GsonUtils.getGson().fromJson(config, DubboRegisterConfig.class);
+                reference.setRegistry(new RegistryConfig(dubboRegisterConfig.getRegister() + "?namespace=" + metaData.getNamespace()));
+            }
+        } else {
+            reference.setRegistry(registryConfig);
+        }
         reference.setConsumer(consumerConfig);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");
         reference.setCheck(false);
         reference.setLoadbalance("gray");
-        
+
         Map<String, String> parameters = new HashMap<>(2);
         parameters.put("dispatcher", "direct");
         reference.setParameters(parameters);
-        
+
         String rpcExt = metaData.getRpcExt();
         DubboParam dubboParam = parserToDubboParam(rpcExt);
         if (Objects.nonNull(dubboParam)) {
@@ -189,7 +200,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Object obj = reference.get();
             if (Objects.nonNull(obj)) {
                 LOG.info("init apache dubbo reference success there meteData is :{}", metaData);
-                cache.put(metaData.getPath(), reference);
+                cache.put(StringUtils.isBlank(metaData.getNamespace()) ? metaData.getPath() : metaData.getNamespace() + ":" + metaData.getPath(), reference);
             }
         } catch (Exception e) {
             LOG.error("init apache dubbo reference exception", e);
