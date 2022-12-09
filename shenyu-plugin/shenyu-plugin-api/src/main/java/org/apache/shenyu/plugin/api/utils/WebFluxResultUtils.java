@@ -29,6 +29,8 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * The type Shenyu result utils.
@@ -69,6 +71,20 @@ public final class WebFluxResultUtils {
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
             .bufferFactory().wrap(bytes))
             .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
+    }
+
+    /**
+     * Response result and Execute hooks asynchronously.
+     *
+     * @param exchange the exchange
+     * @param result    the result
+     * @param hook the hook
+     * @return the result
+     */
+    public static Mono<Void> result(final ServerWebExchange exchange, final Object result, Consumer<ServerWebExchange> hook) {
+        Mono<Void> mono = result(exchange, result);
+        CompletableFuture.runAsync(() -> hook.accept(exchange));
+        return mono;
     }
     
     /**
