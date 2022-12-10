@@ -317,10 +317,18 @@ public class MetaData {
         this.enabled = enabled;
     }
 
+    /**
+     *  support nacos namespace.
+     * @return namespace
+     */
     public String getNamespace() {
         return namespace;
     }
 
+    /**
+     * set nacos namespace.
+     * @param namespace namespace
+     */
     public void setNamespace(final String namespace) {
         this.namespace = namespace;
     }
@@ -337,12 +345,12 @@ public class MetaData {
         return Objects.equals(id, metaData.id) && Objects.equals(appName, metaData.appName) && Objects.equals(contextPath, metaData.contextPath)
                 && Objects.equals(path, metaData.path) && Objects.equals(rpcType, metaData.rpcType) && Objects.equals(serviceName, metaData.serviceName)
                 && Objects.equals(methodName, metaData.methodName) && Objects.equals(parameterTypes, metaData.parameterTypes)
-                && Objects.equals(rpcExt, metaData.rpcExt) && Objects.equals(enabled, metaData.enabled);
+                && Objects.equals(rpcExt, metaData.rpcExt) && Objects.equals(enabled, metaData.enabled) && Objects.equals(namespace, metaData.getNamespace());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, appName, contextPath, path, rpcType, serviceName, methodName, parameterTypes, rpcExt, enabled);
+        return Objects.hash(id, appName, contextPath, path, rpcType, serviceName, methodName, parameterTypes, rpcExt, enabled, namespace);
     }
 
     @Override
@@ -377,6 +385,9 @@ public class MetaData {
                 + '\''
                 + ", enabled="
                 + enabled
+                + '\''
+                + ", namespace="
+                + namespace
                 + '}';
     }
 
@@ -495,6 +506,11 @@ public class MetaData {
             return this;
         }
 
+        /**
+         * set namespace.
+         * @param namespace namespace
+         * @return namespace
+         */
         public Builder namespace(final String namespace) {
             this.namespace = namespace;
             return this;
