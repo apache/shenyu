@@ -32,7 +32,7 @@ public final class BoolGeneratorTest {
 
     @Test
     public void testGenerate() {
-        Boolean generate = boolGenerator.generate("bool");
+        Boolean generate = boolGenerator.generate("bool", null);
         Assertions.assertNotNull(generate);
 
     }
