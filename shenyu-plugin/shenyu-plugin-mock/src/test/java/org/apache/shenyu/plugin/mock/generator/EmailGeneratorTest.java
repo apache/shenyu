@@ -32,7 +32,7 @@ public final class EmailGeneratorTest {
 
     @Test
     public void testGenerate() {
-        String email = generator.generate("email");
+        String email = generator.generate("email", null);
         assertNotNull(email);
     }
 
