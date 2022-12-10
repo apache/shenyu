@@ -33,7 +33,7 @@ public final class EnStringGeneratorTest {
     public void testGenerate() {
         int max = 10;
         int min = 5;
-        String enString = generator.generate("en|" + min + "-" + max);
+        String enString = generator.generate("en|" + min + "-" + max, null);
         assertTrue(enString.matches("[a-zA-Z]{" + min + "," + max + "}"));
     }
 
