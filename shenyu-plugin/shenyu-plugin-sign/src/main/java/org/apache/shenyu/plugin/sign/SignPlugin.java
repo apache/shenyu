@@ -62,7 +62,8 @@ public class SignPlugin extends AbstractShenyuPlugin {
 
     /**
      * Instantiates a new Sign plugin.
-     * @param readers the sign use readers
+     *
+     * @param readers     the sign use readers
      * @param signService the sign service
      */
     public SignPlugin(final List<HttpMessageReader<?>> readers, final SignService signService) {
@@ -81,46 +82,50 @@ public class SignPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selectorData, final RuleData rule) {
         SignRuleHandler ruleHandler = SignPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (!ObjectUtils.isEmpty(ruleHandler) && ruleHandler.getSignRequestBody()) {
-            ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
-            Mono<String> mono = serverRequest.bodyToMono(String.class)
-                    .switchIfEmpty(Mono.defer(() -> Mono.just("")))
-                    .flatMap(originalBody -> signBody(originalBody, exchange));
-
-            BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono, String.class);
-            CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(exchange);
-            return bodyInserter.insert(outputMessage, new BodyInserterContext())
-                    .then(Mono.defer(() -> {
-                        ServerHttpRequestDecorator decorator = new SignRequestDecorator(exchange, outputMessage);
-                        return chain.execute(exchange.mutate().request(decorator).build());
-                    })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
-        }
-        VerifyResult result = signService.signVerify(exchange);
-        if (result.isFailed()) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getReason(), null);
-            return WebFluxResultUtils.result(exchange, error);
+        if (ObjectUtils.isEmpty(ruleHandler) || !ruleHandler.getSignRequestBody()) {
+            VerifyResult result = signService.signVerify(exchange);
+            if (result.isFailed()) {
+                return handleSignFailed(exchange, result.getReason());
+            }
+            return chain.execute(exchange);
         }
 
-        return chain.execute(exchange);
-
+        ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
+        return serverRequest.bodyToMono(String.class)
+                .switchIfEmpty(Mono.defer(() -> Mono.just("")))
+                .flatMap(originalBody -> {
+                    VerifyResult result = signBody(originalBody, exchange);
+                    if (result.isSuccess()) {
+                        return executeChain(originalBody, exchange, chain);
+                    }
+                    return handleSignFailed(exchange, result.getReason());
+                });
     }
 
-    @SuppressWarnings("rawtypes")
-    private Mono signBody(final String originalBody, final ServerWebExchange exchange) {
+    private VerifyResult signBody(final String originalBody, final ServerWebExchange exchange) {
         // get url params
         MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
         // get post body
         Map<String, Object> requestBody = StringUtils.isBlank(originalBody) ? null : JsonUtils.jsonToMap(originalBody);
         Map<String, String> queryParamsSingleValueMap = queryParams.toSingleValueMap();
-        VerifyResult result = signService.signVerify(exchange, requestBody, queryParamsSingleValueMap);
-        if (result.isFailed()) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getReason(), null);
-            return WebFluxResultUtils.result(exchange, error);
-        }
-        // return original data
-        return Mono.just(originalBody);
+        return signService.signVerify(exchange, requestBody, queryParamsSingleValueMap);
+    }
+
+    private Mono<Void> executeChain(final String requestBody, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        BodyInserter<String, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(requestBody);
+        CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(exchange);
+        return bodyInserter.insert(outputMessage, new BodyInserterContext())
+                .then(Mono.defer(() -> {
+                        ServerHttpRequestDecorator decorator = new SignRequestDecorator(exchange, outputMessage);
+                        return chain.execute(exchange.mutate().request(decorator).build());
+                    }
+                )).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
+    }
+
+    private Mono<Void> handleSignFailed(final ServerWebExchange exchange, final String reason) {
+        Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), reason, null);
+        return WebFluxResultUtils.result(exchange, error);
     }
 }
