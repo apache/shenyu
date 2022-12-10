@@ -48,14 +48,16 @@ public class SpringCloudPluginTest extends AbstractPluginDataInit {
     @Test
     public void testFallBack() throws IOException {
 
-        OrderDTO orderDto = HttpHelper.INSTANCE.getFromGateway("/springcloud/order/findById?id=1", OrderDTO.class);
+        OrderDTO orderDto = HttpHelper.INSTANCE.getHttpService("http://localhost:8899/findById?id=1",
+                null, OrderDTO.class);
         assertEquals("fallback", orderDto.getName());
     }
 
     @Test
     public void testFallBackFactory() throws IOException {
 
-        OrderDTO orderDto = HttpHelper.INSTANCE.getFromGateway("/springcloud/order/findById?id=1", OrderDTO.class);
+        OrderDTO orderDto = HttpHelper.INSTANCE.getHttpService("http://localhost:8899/findById?id=1",
+                null, OrderDTO.class);
         assertEquals("fallback factory", orderDto.getName());
     }
 }
