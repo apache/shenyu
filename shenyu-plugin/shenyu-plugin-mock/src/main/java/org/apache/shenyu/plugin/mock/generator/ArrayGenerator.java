@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.spi.Join;
 
 import java.util.List;
@@ -35,12 +36,12 @@ public class ArrayGenerator implements Generator<String> {
     }
 
     @Override
-    public String doGenerate(final List<String> params, final String rule) {
+    public String doGenerate(final List<String> params, final String rule, final MockRequest mockRequest) {
         int length = Integer.parseInt(rule.substring(rule.lastIndexOf("|") + 1));
 
         String replaceContentCopy = rule.substring(rule.indexOf("|") + 1, rule.lastIndexOf("|"));
         return IntStream.rangeClosed(0, length - 1)
-                .mapToObj(i -> GeneratorFactory.dealRule(replaceContentCopy))
+                .mapToObj(i -> GeneratorFactory.dealRule(replaceContentCopy, mockRequest))
                 .collect(Collectors.joining(","));
     }
 

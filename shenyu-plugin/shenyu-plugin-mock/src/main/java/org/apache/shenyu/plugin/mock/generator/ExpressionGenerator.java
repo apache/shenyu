@@ -18,10 +18,12 @@
 package org.apache.shenyu.plugin.mock.generator;
 
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -44,10 +46,11 @@ public class ExpressionGenerator implements Generator<String> {
     }
 
     @Override
-    public String doGenerate(final List<String> params, final String rule) {
+    public String doGenerate(final List<String> params, final String rule, final MockRequest mockRequest) {
 
         String expression = params.get(0);
 
+        CONTEXT.setVariable("req", mockRequest);
         Object val = PARSER.parseExpression(expression).getValue(CONTEXT);
 
         if (val instanceof MockUtil.FormatDouble) {
@@ -88,6 +91,8 @@ public class ExpressionGenerator implements Generator<String> {
             registerMockFunction(context, "oneOf", "oneOf", Object[].class);
 
             registerMockFunction(context, "current", "current", String[].class);
+
+            context.addPropertyAccessor(new MapAccessor());
 
         } catch (NoSuchMethodException e) {
             // It will never happen
