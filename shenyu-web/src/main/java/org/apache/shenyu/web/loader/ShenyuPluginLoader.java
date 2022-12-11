@@ -99,10 +99,12 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
             return Collections.emptyList();
         }
         List<ShenyuLoaderResult> results = new ArrayList<>();
+        boolean loadNewPlugin = false;
         for (File each : jarFiles) {
             if (jars.stream().map(PluginJar::absolutePath).filter(StringUtils::hasText).anyMatch(p -> p.equals(each.getAbsolutePath()))) {
                 continue;
             }
+            loadNewPlugin = true;
             JarFile jar = new JarFile(each, true);
             jars.add(new PluginJar(jar, each));
             Enumeration<JarEntry> entries = jar.entries();
@@ -114,6 +116,10 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
                     names.add(className);
                 }
             }
+        }
+
+        if (!loadNewPlugin) {
+            return results;
         }
 
         names.forEach(className -> {
