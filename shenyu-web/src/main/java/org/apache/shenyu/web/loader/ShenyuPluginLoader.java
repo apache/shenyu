@@ -28,6 +28,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -35,15 +36,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.Attributes;
@@ -107,6 +100,9 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         }
         List<ShenyuLoaderResult> results = new ArrayList<>();
         for (File each : jarFiles) {
+            if (jars.stream().map(PluginJar::absolutePath).filter(StringUtils::hasText).anyMatch(p -> p.equals(each.getAbsolutePath()))) {
+                continue;
+            }
             JarFile jar = new JarFile(each, true);
             jars.add(new PluginJar(jar, each));
             Enumeration<JarEntry> entries = jar.entries();
@@ -297,6 +293,10 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         PluginJar(final JarFile jarFile, final File sourcePath) {
             this.jarFile = jarFile;
             this.sourcePath = sourcePath;
+        }
+
+        public String absolutePath() {
+            return sourcePath.getAbsolutePath();
         }
     }
 }
