@@ -64,7 +64,7 @@ public class ApacheDubboProxyService {
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         ReferenceConfig<GenericService> reference = ApacheDubboConfigCache.getInstance().get(metaData.getPath());
-        if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
+        if (StringUtils.isEmpty(reference.getInterface())) {
             ApacheDubboConfigCache.getInstance().invalidate(metaData.getPath());
             reference = ApacheDubboConfigCache.getInstance().initRef(metaData);
         }
