@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.base.trie;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -41,16 +42,18 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
         List<ConditionData> filterConditions = conditionDataList.stream()
                 .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
                 .collect(Collectors.toList());
-        List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
-        switch (eventEnum) {
-            case INSERT:
-                uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode(path, ruleData, null));
-                break;
-            case REMOVE:
-                uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, ruleData.getSelectorId()));
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
+        if (CollectionUtils.isNotEmpty(filterConditions)) {
+            List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
+            switch (eventEnum) {
+                case INSERT:
+                    uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode(path, ruleData, null));
+                    break;
+                case REMOVE:
+                    uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, ruleData.getSelectorId()));
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
+            }
         }
     }
 }
