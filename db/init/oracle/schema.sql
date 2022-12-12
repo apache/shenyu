@@ -332,7 +332,7 @@ create table model
     model_desc VARCHAR2(1024) not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
-)
+);
 -- Add comments to the table
 comment on table MODEL
   is 'model desc table';
@@ -2101,6 +2101,7 @@ on column TAG.tag_desc
 comment
 on column TAG.parent_tag_id
   is 'parent tag id';
+comment
 on column TAG.ext
   is 'extension info';
 comment
