@@ -35,7 +35,7 @@ public final class ZhStringGeneratorTest {
     public void generate() {
         int minLength = 10;
         int maxLength = 20;
-        String generate = generator.generate(String.format("zh|%d-%d", minLength, maxLength));
+        String generate = generator.generate(String.format("zh|%d-%d", minLength, maxLength), null);
         assertTrue(
                 generate != null && generate.length() >= minLength && generate.length() <= maxLength);
     }
