@@ -249,7 +249,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 .distinct()
                 .collect(Collectors.toList());
         if (filterRuleData.size() > 1) {
-            return Pair.of(Boolean.FALSE, manyMatchRule(filterRuleData));
+            return Pair.of(Boolean.TRUE, manyMatchRule(filterRuleData));
         } else {
             return Pair.of(Boolean.TRUE, filterRuleData.stream().findFirst().orElse(null));
         }
