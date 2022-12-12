@@ -21,6 +21,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConsumerConfig;
@@ -29,23 +35,12 @@ import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.convert.plugin.DubboRegisterConfig;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.cache.DubboParam;
-import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 /**
  * The type Application config cache.
@@ -158,11 +153,11 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         
         reference.setApplication(applicationConfig);
         if (StringUtils.isNotBlank(metaData.getNamespace())) {
-            PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(RegisterTypeEnum.DUBBO.getName());
-            if (pluginData != null) {
-                String config = BaseDataCache.getInstance().obtainPluginData(RegisterTypeEnum.DUBBO.getName()).getConfig();
-                DubboRegisterConfig dubboRegisterConfig = GsonUtils.getGson().fromJson(config, DubboRegisterConfig.class);
-                reference.setRegistry(new RegistryConfig(dubboRegisterConfig.getRegister() + "?namespace=" + metaData.getNamespace()));
+            if (!registryConfig.getAddress().contains("namespace")) {
+                reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?namespace=" + metaData.getNamespace()));
+            } else {
+                String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf("namespace") + 1) + "namespace=" + metaData.getNamespace();
+                reference.setRegistry(new RegistryConfig(newAddress));
             }
         } else {
             reference.setRegistry(registryConfig);
