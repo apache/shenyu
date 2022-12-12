@@ -658,6 +658,11 @@ public interface Constants {
     Long LRU_MAP_MAXSIZE = 65536L;
 
     /**
+     * namespace.
+     */
+    String NAMESPACE = "namespace";
+
+    /**
      * String q.
      */
     default void findConstants() {

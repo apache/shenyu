@@ -153,10 +153,10 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         
         reference.setApplication(applicationConfig);
         if (StringUtils.isNotBlank(metaData.getNamespace())) {
-            if (!registryConfig.getAddress().contains("namespace")) {
-                reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?namespace=" + metaData.getNamespace()));
+            if (!registryConfig.getAddress().contains(Constants.NAMESPACE)) {
+                reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + metaData.getNamespace()));
             } else {
-                String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf("namespace") + 1) + "namespace=" + metaData.getNamespace();
+                String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + metaData.getNamespace();
                 reference.setRegistry(new RegistryConfig(newAddress));
             }
         } else {
