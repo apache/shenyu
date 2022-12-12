@@ -80,20 +80,17 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         }
     }
 
-    //TODO 持久化apiDoc
     /**
      * Persist apiDoc.
-     * @param apiDocRegisterDTO apiDocRegisterDTO
+     * @param registerDTO registerDTO
      */
     @Override
-    public void persistApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
+    public void persistApiDoc(final ApiDocRegisterDTO registerDTO) {
         try {
-            this.doPersistApiDoc(apiDocRegisterDTO);
+            this.doPersistApiDoc(registerDTO);
         } catch (Exception ex) {
-            //TODO 失败重试机制
+            //TODO error retry
             //If a failure occurs, it needs to be added to the retry list.
-            //logger.warn("Failed to persistURI {}, cause:{}", registerDTO, ex.getMessage());
-            //this.addFailureUriDataRegister(registerDTO);
         }
     }
 

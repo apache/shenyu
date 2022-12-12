@@ -113,12 +113,10 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
         beans.forEach(this::handle);
-        //处理apiDoc
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
         apiModules.forEach(this::handleApiDoc);
     }
 
-    //TODO 父类的方法
     private void handleApiDoc(final String name, final Object classes) {
         Class<?> apiModuleClass = AopUtils.isAopProxy(classes) ? AopUtils.getTargetClass(classes) : classes.getClass();
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(apiModuleClass);
@@ -133,21 +131,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     }
 
 
-    /**
-     * buildApiDocDTO.
-     * @param clazz clazz
-     * @param method method
-     * @return ApiDocRegisterDTO
-     */
-    //TODO 公共方法获取参数 httpMethod 、consume、produce
-    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
-        final String contextPath = getContextPath();
-        final A beanShenyuClient = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
-        final String superPath = buildApiSuperPath(clazz, beanShenyuClient);
-        ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
-                .build();
-        return Collections.singletonList(build);
-    }
+    protected abstract List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method);
 
     protected abstract Map<String, T> getBeans(ApplicationContext context);
 

@@ -31,6 +31,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.aop.support.AopUtils;
@@ -74,6 +75,11 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
         this.contextPath = contextPath;
         this.ipAndPort = this.getHost() + ":" + port;
         publisher.start(shenyuClientRegisterRepository);
+    }
+
+    @Override
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz, Method method) {
+        return null;
     }
 
     @Override

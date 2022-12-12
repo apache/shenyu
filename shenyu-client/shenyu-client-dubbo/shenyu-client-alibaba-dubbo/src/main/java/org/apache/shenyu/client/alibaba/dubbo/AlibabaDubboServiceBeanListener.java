@@ -29,6 +29,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.aop.support.AopUtils;
@@ -38,6 +39,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,6 +60,11 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
     public AlibabaDubboServiceBeanListener(final PropertiesConfig clientConfig,
                                            final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
+    }
+
+    @Override
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz, Method method) {
+        return null;
     }
 
     @Override

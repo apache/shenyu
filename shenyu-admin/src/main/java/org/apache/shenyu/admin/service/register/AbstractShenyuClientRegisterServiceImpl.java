@@ -148,17 +148,14 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
 
     @Override
     public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
-        //先删除 再新增api
-        if(apiDocRegisterDTO.getEventType().equals(EventType.REGISTER)){
+        if (apiDocRegisterDTO.getEventType().equals(EventType.REGISTER)) {
             ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
             apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(), apiDTO.getHttpMethod(), apiDTO.getRpcType());
             apiService.createOrUpdate(apiDTO);
-        }else if(apiDocRegisterDTO.getEventType().equals(EventType.OFFLINE)){
-            //TODO 下线
+        } else if (apiDocRegisterDTO.getEventType().equals(EventType.OFFLINE)) {
             String contextPath = apiDocRegisterDTO.getContextPath();
             apiService.offlineByContextPath(contextPath);
         }
-
         return ShenyuResultMessage.SUCCESS;
     }
 

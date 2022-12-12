@@ -30,6 +30,7 @@ import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -79,6 +80,11 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
         this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
         this.protocol = props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.WS);
         mappingAnnotation.add(ShenyuSpringWebSocketClient.class);
+    }
+
+    @Override
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz, Method method) {
+        return null;
     }
 
     @Override

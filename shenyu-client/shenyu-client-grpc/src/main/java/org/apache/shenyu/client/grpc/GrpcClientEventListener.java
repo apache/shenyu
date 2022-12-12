@@ -33,6 +33,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationContext;
@@ -67,7 +68,12 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
             throw new ShenyuClientIllegalArgumentException("grpc client must config the contextPath, ipAndPort");
         }
     }
-    
+
+    @Override
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz, Method method) {
+        return null;
+    }
+
     @Override
     protected void handle(final String beanName, final BindableService bean) {
         exportJsonGenericService(bean);

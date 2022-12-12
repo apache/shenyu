@@ -31,8 +31,6 @@ import java.util.Collection;
  */
 public class ShenyuClientApiDocExecutorSubscriber implements ExecutorTypeSubscriber<ApiDocRegisterDTO> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientApiDocExecutorSubscriber.class);
-
     private final ShenyuClientRegisterRepository shenyuClientRegisterRepository;
 
     /**
@@ -54,6 +52,5 @@ public class ShenyuClientApiDocExecutorSubscriber implements ExecutorTypeSubscri
         for (ApiDocRegisterDTO apiDocRegisterDTO : dataList) {
             shenyuClientRegisterRepository.persistApiDoc(apiDocRegisterDTO);
         }
-
     }
 }

@@ -192,7 +192,7 @@ public class ApiServiceImpl implements ApiService {
     }
 
     @Override
-    public String offlineByContextPath(String contextPath) {
+    public String offlineByContextPath(final String contextPath) {
         apiMapper.updateOfflineByContextPath(contextPath);
         return ShenyuResultMessage.SUCCESS;
     }

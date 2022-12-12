@@ -335,11 +335,19 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         this.document = document;
     }
 
+    /**
+     * getEventType.
+     * @return eventType
+     */
     public EventType getEventType() {
         return eventType;
     }
 
-    public void setEventType(EventType eventType) {
+    /**
+     * setEventType.
+     * @param eventType eventType
+     */
+    public void setEventType(final EventType eventType) {
         this.eventType = eventType;
     }
 

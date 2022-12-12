@@ -43,7 +43,7 @@ import java.util.Optional;
  */
 @Join
 public class HttpClientRegisterRepository extends FailbackRegistryRepository {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientRegisterRepository.class);
 
     private static URIRegisterDTO uriRegisterDTO;
@@ -51,13 +51,13 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     private static ApiDocRegisterDTO apiDocRegisterDTO;
 
     private String username;
-    
+
     private String password;
-    
+
     private List<String> serverList;
-    
+
     private String accessToken;
-    
+
     /**
      * Instantiates a new Http client register repository.
      */
@@ -75,6 +75,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
 
     /**
      * doPersistApiDoc.
+     *
      * @param registerDTO registerDTO
      */
     @Override
@@ -90,7 +91,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
         this.setAccessToken();
     }
-    
+
     /**
      * Persist uri.
      *
@@ -104,7 +105,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         doRegister(registerDTO, Constants.URI_PATH, Constants.URI);
         uriRegisterDTO = registerDTO;
     }
-    
+
     @Override
     public void doPersistInterface(final MetaDataRegisterDTO metadata) {
         doRegister(metadata, Constants.META_PATH, Constants.META_TYPE);
@@ -116,7 +117,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             uriRegisterDTO.setEventType(EventType.DELETED);
             doRegister(uriRegisterDTO, Constants.URI_PATH, Constants.URI);
         }
-        if(Objects.nonNull(apiDocRegisterDTO)){
+        if (Objects.nonNull(apiDocRegisterDTO)) {
             apiDocRegisterDTO.setEventType(EventType.OFFLINE);
             doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
         }
@@ -132,7 +133,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             }
         }
     }
-    
+
     private <T> void doRegister(final T t, final String path, final String type) {
         int i = 0;
         for (String server : serverList) {

@@ -120,5 +120,10 @@ public interface ApiMapper extends ExistProvider {
      */
     List<ApiDO> selectByApiPathHttpMethodRpcType(@Param(value = "apiPath") String apiPath, @Param(value = "httpMethod") Integer httpMethod, @Param(value = "rpcType") String rpcType);
 
+    /**
+     * updateOfflineByContextPath.
+     * @param contextPath context path
+     * @return update count
+     */
     int updateOfflineByContextPath(@Param(value = "contextPath") String contextPath);
 }

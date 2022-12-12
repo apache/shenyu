@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.springcloud.controller;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.examples.springcloud.dto.EntityResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("new/feature")
+@ApiModule(value = "new/feature")
 public class NewFeatureController {
     
     /**
@@ -39,6 +42,7 @@ public class NewFeatureController {
      * @return result
      */
     @RequestMapping("/gateway/not")
+    @ApiDoc(desc = "/gateway/not")
     public EntityResult noSupportGateway() {
         return new EntityResult(200, "no support gateway access");
     }
@@ -50,6 +54,7 @@ public class NewFeatureController {
      */
     @RequestMapping("/requst/mapping/path")
     @ShenyuSpringCloudClient
+    @ApiDoc(desc = "/requst/mapping/path")
     public EntityResult requestMappingUrl() {
         return new EntityResult(200, "Do not use shenyu annotation path. used request mapping path");
     }

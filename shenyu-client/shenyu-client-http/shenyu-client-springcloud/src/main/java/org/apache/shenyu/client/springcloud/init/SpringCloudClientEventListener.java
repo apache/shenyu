@@ -17,12 +17,17 @@
 
 package org.apache.shenyu.client.springcloud.init;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -30,8 +35,10 @@ import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -39,7 +46,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -51,6 +64,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Spring cloud client event listener.
@@ -58,13 +72,13 @@ import java.util.stream.Collectors;
 public class SpringCloudClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringCloudClient> {
 
     private final Boolean isFull;
-    
+
     private final Environment env;
-    
+
     private final String servletContextPath;
 
     private final boolean addPrefixed;
-    
+
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(3);
 
     /**
@@ -155,7 +169,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         }
         return pathJoin(contextPath, superPath);
     }
-    
+
     private String getPathByMethod(@NonNull final Method method) {
         for (Class<? extends Annotation> mapping : mappingAnnotation) {
             final Annotation mergedAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, mapping);
@@ -166,7 +180,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         }
         return null;
     }
-    
+
     private String getPathByAnnotation(@Nullable final Annotation annotation) {
         if (Objects.isNull(annotation)) {
             return null;
@@ -217,11 +231,128 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                         .map(m -> Arrays.stream(m.getParameterTypes())
                                 .map(Class::getName)
                                 .collect(Collectors.joining(","))
-                                ).orElse(null))
+                        ).orElse(null))
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .enabled(shenyuClient.enabled())
                 .ruleName(StringUtils.defaultIfBlank(shenyuClient.ruleName(), path))
                 .build();
+    }
+
+    /**
+     * buildApiDocDTO.
+     *
+     * @param clazz  clazz
+     * @param method method
+     * @return ApiDocRegisterDTO
+     */
+    @Override
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
+        final String contextPath = getContextPath();
+        String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
+            ApiDoc apiDoc = (ApiDoc) item;
+            return apiDoc.desc();
+        }).orElse("");
+        String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
+        if (superPath.indexOf("*") > 0) {
+            superPath = superPath.substring(0, superPath.lastIndexOf("/"));
+        }
+        RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
+        if (Objects.nonNull(requestMapping)) {
+            List<ApiDocRegisterDTO> list = Lists.newArrayList();
+            String produce = requestMapping.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.produces());
+            String consume = requestMapping.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.consumes());
+            String[] values = requestMapping.value();
+            for (String value : values) {
+                String apiPath = contextPath + superPath + value;
+                RequestMethod[] requestMethods = requestMapping.method();
+                if (requestMethods.length == 0) {
+                    requestMethods = RequestMethod.values();
+                }
+                for (RequestMethod requestMethod : requestMethods) {
+                    ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
+                            .consume(consume)
+                            .produce(produce)
+                            .httpMethod(ApiHttpMethodEnum.getValueByName(String.valueOf(requestMethod)))
+                            .contextPath(contextPath)
+                            .ext("{}")
+                            .document("{}")
+                            .version("v0.01")
+                            .rpcType(RpcTypeEnum.HTTP.getName())
+                            .apiDesc(apiDesc)
+                            .apiPath(apiPath)
+                            .apiSource(1)
+                            .state(1)
+                            .apiOwner("1")
+                            .eventType(EventType.REGISTER)
+                            .build();
+                    list.add(build);
+                }
+            }
+            return list;
+        } else {
+            return apiDocRegisterDTOListByDeclaredAnnotations(contextPath, superPath, method, apiDesc);
+        }
+    }
+
+    private List<ApiDocRegisterDTO> apiDocRegisterDTOListByDeclaredAnnotations(final String contextPath, final String superPath, final Method method, final String apiDesc) {
+        List<ApiDocRegisterDTO> list = Lists.newArrayList();
+        Map<ApiHttpMethodEnum, Triple<String[], String[], String[]>> methodConsumeProduceValueMap = httpMethodConsumeProduceValueMap(method);
+        methodConsumeProduceValueMap.forEach((k, v) -> {
+            String[] values = v.getRight();
+            String consume = v.getLeft().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", v.getLeft());
+            String produce = v.getMiddle().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", v.getMiddle());
+            for (String value : values) {
+                String apiPath = contextPath + superPath + value;
+                ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
+                        .consume(consume)
+                        .produce(produce)
+                        .httpMethod(k.getValue())
+                        .contextPath(contextPath)
+                        .ext("{}")
+                        .document("{}")
+                        .version("v0.01")
+                        .rpcType(RpcTypeEnum.HTTP.getName())
+                        .apiDesc(apiDesc)
+                        .apiPath(apiPath)
+                        .apiSource(1)
+                        .state(1)
+                        .apiOwner("1")
+                        .eventType(EventType.REGISTER)
+                        .build();
+                list.add(build);
+            }
+        });
+        return list;
+    }
+
+    private Map<ApiHttpMethodEnum, Triple<String[], String[], String[]>> httpMethodConsumeProduceValueMap(final Method method) {
+        Map<ApiHttpMethodEnum, Triple<String[], String[], String[]>> map = Maps.newHashMap();
+        GetMapping getMapping = AnnotatedElementUtils.findMergedAnnotation(method, GetMapping.class);
+        if (Objects.nonNull(getMapping)) {
+            map.put(ApiHttpMethodEnum.GET, Triple.of(getMapping.consumes(), getMapping.produces(), getMapping.value()));
+            return map;
+        }
+        PutMapping putMapping = AnnotatedElementUtils.findMergedAnnotation(method, PutMapping.class);
+        if (Objects.nonNull(putMapping)) {
+            map.put(ApiHttpMethodEnum.PUT, Triple.of(putMapping.consumes(), putMapping.produces(), putMapping.value()));
+            return map;
+        }
+        PostMapping postMapping = AnnotatedElementUtils.findMergedAnnotation(method, PostMapping.class);
+        if (Objects.nonNull(postMapping)) {
+            map.put(ApiHttpMethodEnum.POST, Triple.of(postMapping.consumes(), postMapping.produces(), postMapping.value()));
+            return map;
+        }
+        DeleteMapping deleteMapping = AnnotatedElementUtils.findMergedAnnotation(method, DeleteMapping.class);
+        if (Objects.nonNull(deleteMapping)) {
+            map.put(ApiHttpMethodEnum.DELETE, Triple.of(deleteMapping.consumes(), deleteMapping.produces(), deleteMapping.value()));
+            return map;
+        }
+        PatchMapping patchMapping = AnnotatedElementUtils.findMergedAnnotation(method, PatchMapping.class);
+        if (Objects.nonNull(patchMapping)) {
+            map.put(ApiHttpMethodEnum.PATCH, Triple.of(patchMapping.consumes(), patchMapping.produces(), patchMapping.value()));
+            return map;
+        }
+        return map;
     }
 
     @Override

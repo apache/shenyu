@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
@@ -188,19 +189,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     @Override
     protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
         final String contextPath = getContextPath();
-        Map<RequestMethod, ApiDocRegisterDTO> methodPairMap = buildMethodPairMapByDeclaredAnnotations(clazz, method, contextPath);
-        //获取httpMethod 、consume、produce
-        List<ApiDocRegisterDTO> list = Lists.newArrayList();
-        methodPairMap.forEach((k, v) -> {
-            list.add(v);
-        });
-        return list;
-    }
-
-    private Map<RequestMethod, ApiDocRegisterDTO> buildMethodPairMapByDeclaredAnnotations(final Class<?> clazz, final Method method, final String contextPath) {
-        Map<RequestMethod, ApiDocRegisterDTO> map = Maps.newHashMap();
-        Annotation[] declaredAnnotations = method.getDeclaredAnnotations();
-        String apiDesc = Stream.of(declaredAnnotations).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
+        String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
             ApiDoc apiDoc = (ApiDoc) item;
             return apiDoc.desc();
         }).orElse("");
@@ -208,47 +197,23 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         if (superPath.indexOf("*") > 0) {
             superPath = superPath.substring(0, superPath.lastIndexOf("/"));
         }
-        for (Annotation declaredAnnotation : declaredAnnotations) {
-            if (declaredAnnotation instanceof RequestMapping) {
-                RequestMapping requestMapping = (RequestMapping) declaredAnnotation;
-                String produce = requestMapping.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.produces());
-                String consume = requestMapping.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.consumes());
-                String[] values = requestMapping.value();
-                for (String value : values) {
-                    String apiPath = contextPath + superPath + value;
-                    for (RequestMethod requestMethod : requestMapping.method()) {
-                        ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
-                                .consume(consume)
-                                .produce(produce)
-                                .httpMethod(ApiHttpMethodEnum.getValueByName(String.valueOf(requestMethod)))
-                                .contextPath(contextPath)
-                                .ext("{}")
-                                .document("{}")
-                                .version("v0.01")
-                                .rpcType(RpcTypeEnum.HTTP.getName())
-                                .apiDesc(apiDesc)
-                                .apiPath(apiPath)
-                                .apiSource(1)
-                                .state(1)
-                                .apiOwner("1")
-                                .eventType(EventType.REGISTER)
-                                .build();
-                        map.put(requestMethod, build);
-                    }
+        RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
+        if (Objects.nonNull(requestMapping)) {
+            List<ApiDocRegisterDTO> list = Lists.newArrayList();
+            String produce = requestMapping.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.produces());
+            String consume = requestMapping.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.consumes());
+            String[] values = requestMapping.value();
+            for (String value : values) {
+                String apiPath = contextPath + superPath + value;
+                RequestMethod[] requestMethods = requestMapping.method();
+                if (requestMethods.length == 0) {
+                    requestMethods = RequestMethod.values();
                 }
-                return map;
-            }
-            if (declaredAnnotation instanceof PostMapping) {
-                PostMapping post = (PostMapping) declaredAnnotation;
-                String produce = post.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", post.produces());
-                String consume = post.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", post.consumes());
-                String[] values = post.value();
-                for (String value : values) {
-                    String apiPath = contextPath + superPath + value;
+                for (RequestMethod requestMethod : requestMethods) {
                     ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                             .consume(consume)
                             .produce(produce)
-                            .httpMethod(ApiHttpMethodEnum.POST.getValue())
+                            .httpMethod(ApiHttpMethodEnum.getValueByName(String.valueOf(requestMethod)))
                             .contextPath(contextPath)
                             .ext("{}")
                             .document("{}")
@@ -261,113 +226,72 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                             .apiOwner("1")
                             .eventType(EventType.REGISTER)
                             .build();
-                    map.put(RequestMethod.POST, build);
+                    list.add(build);
                 }
             }
-            if (declaredAnnotation instanceof GetMapping) {
-                GetMapping get = (GetMapping) declaredAnnotation;
-                String produce = get.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", get.produces());
-                String consume = get.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", get.consumes());
-                String[] values = get.value();
-                for (String value : values) {
-                    String apiPath = contextPath + superPath + value;
-                    ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
-                            .consume(consume)
-                            .produce(produce)
-                            .httpMethod(ApiHttpMethodEnum.GET.getValue())
-                            .contextPath(contextPath)
-                            .ext("{}")
-                            .document("{}")
-                            .version("v0.01")
-                            .rpcType(RpcTypeEnum.HTTP.getName())
-                            .apiDesc(apiDesc)
-                            .apiPath(apiPath)
-                            .apiSource(1)
-                            .state(1)
-                            .apiOwner("1")
-                            .eventType(EventType.REGISTER)
-                            .build();
-                    map.put(RequestMethod.GET, build);
-                }
+            return list;
+        } else {
+            return apiDocRegisterDTOListByDeclaredAnnotations(contextPath, superPath, method, apiDesc);
+        }
+    }
+
+    private List<ApiDocRegisterDTO> apiDocRegisterDTOListByDeclaredAnnotations(final String contextPath, final String superPath, final Method method, final String apiDesc) {
+        List<ApiDocRegisterDTO> list = Lists.newArrayList();
+        Map<ApiHttpMethodEnum, Triple<String[], String[], String[]>> methodConsumeProduceValueMap = httpMethodConsumeProduceValueMap(method);
+        methodConsumeProduceValueMap.forEach((k, v) -> {
+            String[] values = v.getRight();
+            String consume = v.getLeft().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", v.getLeft());
+            String produce = v.getMiddle().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", v.getMiddle());
+            for (String value : values) {
+                String apiPath = contextPath + superPath + value;
+                ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
+                        .consume(consume)
+                        .produce(produce)
+                        .httpMethod(k.getValue())
+                        .contextPath(contextPath)
+                        .ext("{}")
+                        .document("{}")
+                        .version("v0.01")
+                        .rpcType(RpcTypeEnum.HTTP.getName())
+                        .apiDesc(apiDesc)
+                        .apiPath(apiPath)
+                        .apiSource(1)
+                        .state(1)
+                        .apiOwner("1")
+                        .eventType(EventType.REGISTER)
+                        .build();
+                list.add(build);
             }
-            if (declaredAnnotation instanceof PutMapping) {
-                PutMapping put = (PutMapping) declaredAnnotation;
-                String produce = put.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", put.produces());
-                String consume = put.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", put.consumes());
-                String[] values = put.value();
-                for (String value : values) {
-                    String apiPath = contextPath + superPath + value;
-                    ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
-                            .consume(consume)
-                            .produce(produce)
-                            .httpMethod(ApiHttpMethodEnum.PUT.getValue())
-                            .contextPath(contextPath)
-                            .ext("{}")
-                            .document("{}")
-                            .version("v0.01")
-                            .rpcType(RpcTypeEnum.HTTP.getName())
-                            .apiDesc(apiDesc)
-                            .apiPath(apiPath)
-                            .apiSource(1)
-                            .state(1)
-                            .apiOwner("1")
-                            .eventType(EventType.REGISTER)
-                            .build();
-                    map.put(RequestMethod.PUT, build);
-                }
-            }
-            if (declaredAnnotation instanceof DeleteMapping) {
-                DeleteMapping delete = (DeleteMapping) declaredAnnotation;
-                String produce = delete.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", delete.produces());
-                String consume = delete.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", delete.consumes());
-                String[] values = delete.value();
-                for (String value : values) {
-                    String apiPath = contextPath + superPath + value;
-                    ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
-                            .consume(consume)
-                            .produce(produce)
-                            .httpMethod(ApiHttpMethodEnum.DELETE.getValue())
-                            .contextPath(contextPath)
-                            .ext("{}")
-                            .document("{}")
-                            .version("v0.01")
-                            .rpcType(RpcTypeEnum.HTTP.getName())
-                            .apiDesc(apiDesc)
-                            .apiPath(apiPath)
-                            .apiSource(1)
-                            .state(1)
-                            .apiOwner("1")
-                            .eventType(EventType.REGISTER)
-                            .build();
-                    map.put(RequestMethod.DELETE, build);
-                }
-            }
-            if (declaredAnnotation instanceof PatchMapping) {
-                PatchMapping patch = (PatchMapping) declaredAnnotation;
-                String produce = patch.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", patch.produces());
-                String consume = patch.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", patch.consumes());
-                String[] values = patch.value();
-                for (String value : values) {
-                    String apiPath = contextPath + superPath + value;
-                    ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
-                            .consume(consume)
-                            .produce(produce)
-                            .httpMethod(ApiHttpMethodEnum.PATCH.getValue())
-                            .contextPath(contextPath)
-                            .ext("{}")
-                            .document("{}")
-                            .version("v0.01")
-                            .rpcType(RpcTypeEnum.HTTP.getName())
-                            .apiDesc(apiDesc)
-                            .apiPath(apiPath)
-                            .apiSource(1)
-                            .state(1)
-                            .apiOwner("1")
-                            .eventType(EventType.REGISTER)
-                            .build();
-                    map.put(RequestMethod.PATCH, build);
-                }
-            }
+        });
+        return list;
+    }
+
+    private Map<ApiHttpMethodEnum, Triple<String[], String[], String[]>> httpMethodConsumeProduceValueMap(final Method method) {
+        Map<ApiHttpMethodEnum, Triple<String[], String[], String[]>> map = Maps.newHashMap();
+        GetMapping getMapping = AnnotatedElementUtils.findMergedAnnotation(method, GetMapping.class);
+        if (Objects.nonNull(getMapping)) {
+            map.put(ApiHttpMethodEnum.GET, Triple.of(getMapping.consumes(), getMapping.produces(), getMapping.value()));
+            return map;
+        }
+        PutMapping putMapping = AnnotatedElementUtils.findMergedAnnotation(method, PutMapping.class);
+        if (Objects.nonNull(putMapping)) {
+            map.put(ApiHttpMethodEnum.PUT, Triple.of(putMapping.consumes(), putMapping.produces(), putMapping.value()));
+            return map;
+        }
+        PostMapping postMapping = AnnotatedElementUtils.findMergedAnnotation(method, PostMapping.class);
+        if (Objects.nonNull(postMapping)) {
+            map.put(ApiHttpMethodEnum.POST, Triple.of(postMapping.consumes(), postMapping.produces(), postMapping.value()));
+            return map;
+        }
+        DeleteMapping deleteMapping = AnnotatedElementUtils.findMergedAnnotation(method, DeleteMapping.class);
+        if (Objects.nonNull(deleteMapping)) {
+            map.put(ApiHttpMethodEnum.DELETE, Triple.of(deleteMapping.consumes(), deleteMapping.produces(), deleteMapping.value()));
+            return map;
+        }
+        PatchMapping patchMapping = AnnotatedElementUtils.findMergedAnnotation(method, PatchMapping.class);
+        if (Objects.nonNull(patchMapping)) {
+            map.put(ApiHttpMethodEnum.PATCH, Triple.of(patchMapping.consumes(), patchMapping.produces(), patchMapping.value()));
+            return map;
         }
         return map;
     }
