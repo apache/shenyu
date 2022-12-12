@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
 
@@ -156,7 +157,24 @@ public class MockUtil {
 
     }
 
-    public static class FormatDouble {
+    /**
+     * Generate array.
+     *
+     * @param item   item
+     * @param length the length of array
+     * @return array
+     */
+    public static Object[] array(final Object item, final int length) {
+        Object[] array = new Object[length];
+        Arrays.fill(array, item);
+        return array;
+    }
+
+    /**
+     * how to json this Object?
+     * com.fasterxml.jackson.databind.ser.std.NumberSerializer#serialize
+     */
+    public static class FormatDouble extends Number {
 
         private final Double val;
 
@@ -178,6 +196,26 @@ public class MockUtil {
                 return val.toString();
             }
             return String.format(format, val);
+        }
+
+        @Override
+        public int intValue() {
+            return val.intValue();
+        }
+
+        @Override
+        public long longValue() {
+            return val.longValue();
+        }
+
+        @Override
+        public float floatValue() {
+            return val.floatValue();
+        }
+
+        @Override
+        public double doubleValue() {
+            return val;
         }
     }
 

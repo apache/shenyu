@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.shenyu.common.enums.HttpMethodEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.mock.api.MockRequest;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -134,6 +135,19 @@ public class ExpressionGeneratorTest {
 
         String val = generator.generate("expression|#oneOf('shenyu','number',1)", mockRequest);
         assertThat(val, oneOf("\"shenyu\"", "\"number\"", "1"));
+    }
+
+    @Test
+    public void testArrayGenerate() {
+
+        String val = generator.generate("expression|#array(#array('shenyu',2),2)", mockRequest);
+        assertThat(val, is("[[\"shenyu\",\"shenyu\"],[\"shenyu\",\"shenyu\"]]"));
+
+        val = generator.generate("expression|#array(#bool(),2)", mockRequest);
+        assertThat(val, oneOf("[true,false]", "[false,true]", "[false,false]", "[true,true]"));
+
+        val = generator.generate("expression|#array(#double(10.5,12.0,'%.2f'),2)", mockRequest);
+        assertThat(val, Matchers.notNullValue());
     }
 
     @Test
