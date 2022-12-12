@@ -52,10 +52,6 @@ public class ExpressionGenerator implements Generator<String> {
 
         CONTEXT.setVariable("req", mockRequest);
         Object val = PARSER.parseExpression(expression).getValue(CONTEXT);
-
-        if (val instanceof MockUtil.FormatDouble) {
-            return val.toString();
-        }
         return JsonUtils.toJson(val);
     }
 
@@ -91,6 +87,8 @@ public class ExpressionGenerator implements Generator<String> {
             registerMockFunction(context, "oneOf", "oneOf", Object[].class);
 
             registerMockFunction(context, "current", "current", String[].class);
+
+            registerMockFunction(context, "array", "array", Object.class, int.class);
 
             context.addPropertyAccessor(new MapAccessor());
 
