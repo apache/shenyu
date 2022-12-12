@@ -33,13 +33,13 @@ public final class RangeDataGeneratorTest {
 
     @Test
     public void generate() {
-        String rangeData = generator.generate("list|[shenyu,gateway]");
+        String rangeData = generator.generate("list|[shenyu,gateway]", null);
         assertTrue(Objects.equals("shenyu", rangeData) || Objects.equals("gateway", rangeData));
     }
 
     @Test
     public void testListDataContainComma() {
-        String rangeData = generator.generate("list|[shen\\,yu,gate\\,way]");
+        String rangeData = generator.generate("list|[shen\\,yu,gate\\,way]", null);
         assertTrue(Objects.equals("shen,yu", rangeData) || Objects.equals("gate,way", rangeData));
     }
 

@@ -32,16 +32,16 @@ public final class ArrayGeneratorTest {
 
     @Test
     public void testGenerate() {
-        String generate = arrayGenerator.generate("array|\"test\"|3");
+        String generate = arrayGenerator.generate("array|\"test\"|3", null);
         assertEquals("\"test\",\"test\",\"test\"", generate);
     }
 
     @Test
     public void testNestRuleGenerate() {
-        String generate = arrayGenerator.generate("array|{\"ints\":${array|10|3}}|3");
+        String generate = arrayGenerator.generate("array|{\"ints\":${array|10|3}}|3", null);
         assertEquals("{\"ints\":[10,10,10]},{\"ints\":[10,10,10]},{\"ints\":[10,10,10]}", generate);
 
-        generate = arrayGenerator.generate("array|{\"int\":${expression|#oneOf(10)}}|3");
+        generate = arrayGenerator.generate("array|{\"int\":${expression|#oneOf(10)}}|3", null);
         assertEquals("{\"int\":10},{\"int\":10},{\"int\":10}", generate);
     }
 

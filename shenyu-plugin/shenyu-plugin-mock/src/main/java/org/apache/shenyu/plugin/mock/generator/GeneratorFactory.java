@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,7 @@ public final class GeneratorFactory {
         return null;
     }
 
-    private static String generate(final String rule) {
+    private static String generate(final String rule, final MockRequest mockRequest) {
         final Matcher matcher = RULE_CONTENT_PATTERN.matcher(rule);
         if (!matcher.find()) {
             return rule;
@@ -78,7 +79,7 @@ public final class GeneratorFactory {
 
         String[] prefixAndSuffix = generator.getPrefixAndSuffix();
         try {
-            Object generateData = generator.generate(ruleContent);
+            Object generateData = generator.generate(ruleContent, mockRequest);
             return String.join("", prefixAndSuffix[0], generateData.toString(), prefixAndSuffix[1]);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -89,14 +90,15 @@ public final class GeneratorFactory {
     /**
      * replace placeholder in content.
      *
-     * @param content response content.
+     * @param content response content
+     * @param mockRequest request
      * @return replace the content after the placeholder.
      */
-    public static String dealRule(final String content) {
+    public static String dealRule(final String content, final MockRequest mockRequest) {
         String afterDeal = content;
         String placeHolder = getPlaceholder(content);
         while (placeHolder != null) {
-            Object generateData = generate(placeHolder);
+            Object generateData = generate(placeHolder, mockRequest);
             if (Objects.equals(generateData, placeHolder)) {
                 generateData = ERROR_PARSE;
             }
