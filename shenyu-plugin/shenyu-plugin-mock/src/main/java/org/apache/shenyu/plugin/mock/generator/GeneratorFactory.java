@@ -78,8 +78,7 @@ public final class GeneratorFactory {
 
         String[] prefixAndSuffix = generator.getPrefixAndSuffix();
         try {
-            generator.parseRule(ruleContent);
-            Object generateData = generator.generate();
+            Object generateData = generator.generate(ruleContent);
             return String.join("", prefixAndSuffix[0], generateData.toString(), prefixAndSuffix[1]);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -128,4 +127,5 @@ public final class GeneratorFactory {
         }
         return null;
     }
+
 }

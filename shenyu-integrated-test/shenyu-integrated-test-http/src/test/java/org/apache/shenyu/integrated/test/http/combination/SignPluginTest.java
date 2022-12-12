@@ -38,8 +38,11 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -173,8 +176,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private Map<String, Object> buildHeadersMap(final String timestamp, final String path, final String appKey,
                                                 final String appSecret, final String version) {
-        String extSignKey = String.join("", Constants.PATH, path, Constants.TIMESTAMP, timestamp, Constants.VERSION, version, appSecret);
-        String sign = SignUtils.generateSign(extSignKey, null, null);
+        String sign = buildSign(appSecret, version, timestamp, path, null, null);
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
         headers.put("timestamp", timestamp);
         headers.put("appKey", appKey);
@@ -185,9 +187,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private Map<String, Object> buildHeadersMapQueryParam(final String timestamp, final String path, final String appKey,
                                                           final String appSecret, final String version, final Map<String, String> queryParam) {
-        String extSignKey = String.join("", Constants.PATH, path, Constants.TIMESTAMP, timestamp, Constants.VERSION, version, appSecret);
-        String sign = SignUtils.generateSign(extSignKey, null, queryParam);
-
+        String sign = buildSign(appSecret, version, timestamp, path, null, queryParam);
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
         headers.put("timestamp", timestamp);
         headers.put("appKey", appKey);
@@ -257,5 +257,24 @@ public final class SignPluginTest extends AbstractPluginDataInit {
     public static void clean() throws IOException {
         cleanPluginData(PluginEnum.SIGN.getName());
         cleanAuthData(APP_KEY);
+    }
+
+    private String buildSign(final String signKey, final String version, final String timeStamp, final String path, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
+
+        final String jsonSign = Optional.ofNullable(jsonParams).map(e -> e.keySet().stream()
+                .sorted(Comparator.naturalOrder())
+                .map(key -> String.join("", key, jsonParams.get(key)))
+                .collect(Collectors.joining()).trim())
+                .orElse("");
+
+        final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
+                .sorted(Comparator.naturalOrder())
+                .map(key -> String.join("", key, queryParams.get(key)))
+                .collect(Collectors.joining()).trim())
+                .orElse("");
+
+        final String extSignKey = String.join("", Constants.TIMESTAMP, timeStamp, Constants.PATH, path, Constants.VERSION, version, signKey);
+        final String data = String.join("", jsonSign, querySign);
+        return SignUtils.sign(SignUtils.SIGN_MD5, extSignKey, data).toUpperCase();
     }
 }

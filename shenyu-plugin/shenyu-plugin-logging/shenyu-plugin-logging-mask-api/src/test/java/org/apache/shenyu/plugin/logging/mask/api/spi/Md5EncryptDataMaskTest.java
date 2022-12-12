@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.mask.api.spi;
 
-import org.apache.shenyu.common.utils.Md5Utils;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +29,6 @@ public class Md5EncryptDataMaskTest {
     @Test
     public void doMask() {
         Md5EncryptDataMask md5EncryptDataMask = new Md5EncryptDataMask();
-        Assertions.assertEquals(Md5Utils.md5("test"), md5EncryptDataMask.doMask("test"));
+        Assertions.assertEquals(DigestUtils.md5Hex("test"), md5EncryptDataMask.doMask("test"));
     }
 }

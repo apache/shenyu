@@ -28,43 +28,35 @@ import java.util.stream.IntStream;
  */
 @Join
 public class ArrayGenerator implements Generator<String> {
-    
-    private Integer length;
-    
-    private String repeatContent;
-    
+
     @Override
     public String getName() {
         return "array";
     }
-    
+
     @Override
-    public String generate() {
-        String replaceContentCopy = repeatContent;
+    public String doGenerate(final List<String> params, final String rule) {
+        int length = Integer.parseInt(rule.substring(rule.lastIndexOf("|") + 1));
+
+        String replaceContentCopy = rule.substring(rule.indexOf("|") + 1, rule.lastIndexOf("|"));
         return IntStream.rangeClosed(0, length - 1)
                 .mapToObj(i -> GeneratorFactory.dealRule(replaceContentCopy))
                 .collect(Collectors.joining(","));
     }
-    
+
     @Override
     public int getParamSize() {
         return 0;
     }
-    
-    @Override
-    public void initParam(final List<String> params, final String rule) {
-        length = Integer.parseInt(rule.substring(rule.lastIndexOf("|") + 1));
-        repeatContent = rule.substring(rule.indexOf("|") + 1, rule.lastIndexOf("|"));
-    }
-    
+
     @Override
     public boolean match(final String rule) {
         return rule.matches("^array\\|.+\\|\\d+$");
     }
-    
+
     @Override
     public String[] getPrefixAndSuffix() {
         return new String[]{"[", "]"};
     }
-    
+
 }

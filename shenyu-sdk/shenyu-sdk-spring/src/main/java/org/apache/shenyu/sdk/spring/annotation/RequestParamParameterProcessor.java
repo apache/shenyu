@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.sdk.spring.annotation;
 
+import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,7 +41,8 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
     }
 
     @Override
-    public boolean processArgument(final RequestTemplate requestTemplate, final Annotation annotation, final Object arg) {
+    public boolean processArgument(final ShenyuRequest shenyuRequest, final Annotation annotation, final Object arg) {
+        RequestTemplate requestTemplate = shenyuRequest.getRequestTemplate();
         RequestParam requestParam = ANNOTATION.cast(annotation);
         String name = requestParam.value();
         checkState(emptyToNull(name) != null, "RequestParam.value() was empty on parameter %s#%s",
@@ -58,7 +60,7 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
                 pathResult.append(key).append("=").append(value);
             });
         }
-        requestTemplate.setPath(pathResult.toString());
+        shenyuRequest.setUrl(requestTemplate.getUrl() + pathResult);
         return true;
     }
 
