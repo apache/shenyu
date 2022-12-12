@@ -36,6 +36,7 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -224,12 +225,13 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                                 .ext("{}")
                                 .document("{}")
                                 .version("v0.01")
-                                .rpcType(RpcTypeEnum.HTTP.name())
+                                .rpcType(RpcTypeEnum.HTTP.getName())
                                 .apiDesc(apiDesc)
                                 .apiPath(apiPath)
                                 .apiSource(1)
                                 .state(1)
                                 .apiOwner("1")
+                                .eventType(EventType.REGISTER)
                                 .build();
                         map.put(requestMethod, build);
                     }
@@ -251,12 +253,13 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                             .ext("{}")
                             .document("{}")
                             .version("v0.01")
-                            .rpcType(RpcTypeEnum.HTTP.name())
+                            .rpcType(RpcTypeEnum.HTTP.getName())
                             .apiDesc(apiDesc)
                             .apiPath(apiPath)
                             .apiSource(1)
                             .state(1)
                             .apiOwner("1")
+                            .eventType(EventType.REGISTER)
                             .build();
                     map.put(RequestMethod.POST, build);
                 }
@@ -276,12 +279,13 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                             .ext("{}")
                             .document("{}")
                             .version("v0.01")
-                            .rpcType(RpcTypeEnum.HTTP.name())
+                            .rpcType(RpcTypeEnum.HTTP.getName())
                             .apiDesc(apiDesc)
                             .apiPath(apiPath)
                             .apiSource(1)
                             .state(1)
                             .apiOwner("1")
+                            .eventType(EventType.REGISTER)
                             .build();
                     map.put(RequestMethod.GET, build);
                 }
@@ -301,12 +305,13 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                             .ext("{}")
                             .document("{}")
                             .version("v0.01")
-                            .rpcType(RpcTypeEnum.HTTP.name())
+                            .rpcType(RpcTypeEnum.HTTP.getName())
                             .apiDesc(apiDesc)
                             .apiPath(apiPath)
                             .apiSource(1)
                             .state(1)
                             .apiOwner("1")
+                            .eventType(EventType.REGISTER)
                             .build();
                     map.put(RequestMethod.PUT, build);
                 }
@@ -326,12 +331,13 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                             .ext("{}")
                             .document("{}")
                             .version("v0.01")
-                            .rpcType(RpcTypeEnum.HTTP.name())
+                            .rpcType(RpcTypeEnum.HTTP.getName())
                             .apiDesc(apiDesc)
                             .apiPath(apiPath)
                             .apiSource(1)
                             .state(1)
                             .apiOwner("1")
+                            .eventType(EventType.REGISTER)
                             .build();
                     map.put(RequestMethod.DELETE, build);
                 }
@@ -351,12 +357,13 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                             .ext("{}")
                             .document("{}")
                             .version("v0.01")
-                            .rpcType(RpcTypeEnum.HTTP.name())
+                            .rpcType(RpcTypeEnum.HTTP.getName())
                             .apiDesc(apiDesc)
                             .apiPath(apiPath)
                             .apiSource(1)
                             .state(1)
                             .apiOwner("1")
+                            .eventType(EventType.REGISTER)
                             .build();
                     map.put(RequestMethod.PATCH, build);
                 }

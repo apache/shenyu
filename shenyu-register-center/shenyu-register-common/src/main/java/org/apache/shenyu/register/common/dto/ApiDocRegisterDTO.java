@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.register.common.dto;
 
+import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
@@ -89,6 +90,11 @@ public class ApiDocRegisterDTO implements DataTypeParent {
      * complete documentation of the api, including request parameters and response parameters.
      */
     private String document;
+
+    /**
+     * event type.
+     */
+    private EventType eventType;
 
     @Override
     public DataType getType() {
@@ -329,6 +335,14 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         this.document = document;
     }
 
+    public EventType getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(EventType eventType) {
+        this.eventType = eventType;
+    }
+
     @Override
     public String toString() {
         return "ApiDocRegisterDTO{"
@@ -358,6 +372,8 @@ public class ApiDocRegisterDTO implements DataTypeParent {
                 + apiSource
                 + ", document='"
                 + document
+                + ", eventType='"
+                + eventType
                 + '}';
     }
 
@@ -396,6 +412,8 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         private Integer apiSource;
 
         private String document;
+
+        private EventType eventType;
 
         private ApiDocRegisterDTOBuilder() {
         }
@@ -531,6 +549,16 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         }
 
         /**
+         * build eventType.
+         * @param eventType eventType
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder eventType(final EventType eventType) {
+            this.eventType = eventType;
+            return this;
+        }
+
+        /**
          * build.
          * @return ApiDocRegisterDTO
          */
@@ -549,6 +577,7 @@ public class ApiDocRegisterDTO implements DataTypeParent {
             apiDocRegisterDTO.setApiDesc(apiDesc);
             apiDocRegisterDTO.setApiSource(apiSource);
             apiDocRegisterDTO.setDocument(document);
+            apiDocRegisterDTO.setEventType(eventType);
             return apiDocRegisterDTO;
         }
     }

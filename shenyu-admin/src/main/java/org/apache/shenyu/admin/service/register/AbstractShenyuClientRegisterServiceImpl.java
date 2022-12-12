@@ -45,6 +45,7 @@ import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -148,9 +149,16 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     @Override
     public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
         //先删除 再新增api
-        ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
-        apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(), apiDTO.getHttpMethod(), apiDTO.getRpcType());
-        apiService.createOrUpdate(apiDTO);
+        if(apiDocRegisterDTO.getEventType().equals(EventType.REGISTER)){
+            ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
+            apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(), apiDTO.getHttpMethod(), apiDTO.getRpcType());
+            apiService.createOrUpdate(apiDTO);
+        }else if(apiDocRegisterDTO.getEventType().equals(EventType.OFFLINE)){
+            //TODO 下线
+            String contextPath = apiDocRegisterDTO.getContextPath();
+            apiService.offlineByContextPath(contextPath);
+        }
+
         return ShenyuResultMessage.SUCCESS;
     }
 

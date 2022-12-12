@@ -48,6 +48,8 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
 
     private static URIRegisterDTO uriRegisterDTO;
 
+    private static ApiDocRegisterDTO apiDocRegisterDTO;
+
     private String username;
     
     private String password;
@@ -73,11 +75,12 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
 
     /**
      * doPersistApiDoc.
-     * @param apiDocRegisterDTO apiDocRegisterDTO
+     * @param registerDTO registerDTO
      */
     @Override
-    protected void doPersistApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
-        doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
+    protected void doPersistApiDoc(final ApiDocRegisterDTO registerDTO) {
+        doRegister(registerDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
+        apiDocRegisterDTO = registerDTO;
     }
 
     @Override
@@ -112,6 +115,10 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         if (Objects.nonNull(uriRegisterDTO)) {
             uriRegisterDTO.setEventType(EventType.DELETED);
             doRegister(uriRegisterDTO, Constants.URI_PATH, Constants.URI);
+        }
+        if(Objects.nonNull(apiDocRegisterDTO)){
+            apiDocRegisterDTO.setEventType(EventType.OFFLINE);
+            doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
         }
     }
 

@@ -71,4 +71,6 @@ public interface ApiService {
      * @return delete rows
      */
     int deleteByApiPathHttpMethodRpcType(String apiPath, Integer httpMethod, String rpcType);
+
+    String offlineByContextPath(String contextPath);
 }
