@@ -46,15 +46,15 @@ import org.slf4j.LoggerFactory;
  * The type Application config cache.
  */
 public final class ApacheDubboConfigCache extends DubboConfigCache {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(ApacheDubboConfigCache.class);
-    
+
     private ApplicationConfig applicationConfig;
-    
+
     private RegistryConfig registryConfig;
 
     private ConsumerConfig consumerConfig;
-    
+
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .removalListener((RemovalListener<Object, ReferenceConfig<GenericService>>) notification -> {
@@ -81,7 +81,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     public static ApacheDubboConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-    
+
     /**
      * Init.
      *
@@ -109,7 +109,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Optional.ofNullable(dubboRegisterConfig.getQueues()).ifPresent(consumerConfig::setQueues);
         }
     }
-    
+
     private boolean needUpdateRegistryConfig(final DubboRegisterConfig dubboRegisterConfig) {
         if (Objects.isNull(registryConfig)) {
             return true;
@@ -117,7 +117,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         return !Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol())
                 || !Objects.equals(dubboRegisterConfig.getRegister(), registryConfig.getAddress());
     }
-    
+
     /**
      * Init ref reference config.
      *
@@ -138,7 +138,8 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
 
     /**
      * Init ref reference config.
-     * @param metaData the meta data
+     *
+     * @param metaData  the meta data
      * @param namespace namespace
      * @return the reference config
      */
@@ -158,8 +159,9 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     }
 
     /**
-     *  build with dynamic namespace.
-     * @param metaData metaData
+     * build with dynamic namespace.
+     *
+     * @param metaData  metaData
      * @param namespace namespace
      * @return the reference config
      */
@@ -173,15 +175,11 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         }
         ReferenceConfig<GenericService> reference = buildReference(metaData);
         reference.setRegistry(new RegistryConfig());
-        if (StringUtils.isNotBlank(namespace)) {
-            if (!registryConfig.getAddress().contains(Constants.NAMESPACE)) {
-                reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace));
-            } else {
-                String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
-                reference.setRegistry(new RegistryConfig(newAddress));
-            }
+        if (!registryConfig.getAddress().contains(Constants.NAMESPACE)) {
+            reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace));
         } else {
-            reference.setRegistry(registryConfig);
+            String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
+            reference.setRegistry(new RegistryConfig(newAddress));
         }
         try {
             Object obj = reference.get();
@@ -221,6 +219,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
 
     /**
      * buildReference param.
+     *
      * @param metaData metaData
      * @return the reference config
      */
@@ -262,7 +261,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         }
         return reference;
     }
-    
+
     /**
      * Get reference config.
      *
@@ -276,7 +275,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             throw new ShenyuException(e.getCause());
         }
     }
-    
+
     /**
      * Invalidate.
      *
@@ -285,14 +284,14 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     public void invalidate(final String path) {
         cache.invalidate(path);
     }
-    
+
     /**
      * Invalidate all.
      */
     public void invalidateAll() {
         cache.invalidateAll();
     }
-    
+
     /**
      * The type Application config cache instance.
      */
@@ -301,9 +300,9 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
          * The Instance.
          */
         static final ApacheDubboConfigCache INSTANCE = new ApacheDubboConfigCache();
-        
+
         private ApplicationConfigCacheInstance() {
-        
+
         }
     }
 }
