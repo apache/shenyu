@@ -18,6 +18,8 @@
 package org.apache.shenyu.examples.tars.servant.testapp.impl;
 
 import com.qq.tars.spring.annotation.TarsServant;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.examples.tars.servant.testapp.UserServant;
@@ -25,14 +27,17 @@ import org.apache.shenyu.examples.tars.servant.testapp.UserServant;
 @TarsServant("UserObj")
 @ShenyuTarsClient("/user/**")
 @ShenyuTarsService(serviceName = "ShenyuExampleServer.ShenyuExampleApp.UserObj")
+@ApiModule("/user/**")
 public class UserServantImpl implements UserServant {
     
     @Override
+    @ApiDoc(desc = "hello")
     public String hello(final int no, final String name) {
         return String.format("hello no=%s, name=%s, time=%s", no, name, System.currentTimeMillis());
     }
     
     @Override
+    @ApiDoc(desc = "helloInt")
     public int helloInt(final int no, final String name) {
         return 1;
     }

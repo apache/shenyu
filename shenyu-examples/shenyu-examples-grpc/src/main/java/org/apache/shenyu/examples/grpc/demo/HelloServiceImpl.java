@@ -22,6 +22,8 @@ import hello.HelloResponse;
 import hello.HelloServiceGrpc;
 
 import io.grpc.stub.StreamObserver;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +31,13 @@ import org.springframework.stereotype.Service;
 
 @ShenyuGrpcClient("/helloService/**")
 @Service
+@ApiModule("/helloService/**")
 public class HelloServiceImpl extends HelloServiceGrpc.HelloServiceImplBase {
     
     private static final Logger LOG = LoggerFactory.getLogger(HelloServiceImpl.class);
     
     @Override
+    @ApiDoc(desc = "hello")
     public void hello(final HelloRequest request, final StreamObserver<HelloResponse> responseObserver) {
         HelloResponse response = HelloResponse.newBuilder().setData("hello: " + request.getData()).build();
         responseObserver.onNext(response);
@@ -41,6 +45,7 @@ public class HelloServiceImpl extends HelloServiceGrpc.HelloServiceImplBase {
     }
 
     @Override
+    @ApiDoc(desc = "helloEveryOne")
     public StreamObserver<HelloRequest> helloEveryOne(final StreamObserver<HelloResponse> responseObserver) {
         return new StreamObserver<HelloRequest>() {
             @Override

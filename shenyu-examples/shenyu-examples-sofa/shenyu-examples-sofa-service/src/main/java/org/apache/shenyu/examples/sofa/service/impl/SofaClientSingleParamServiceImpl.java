@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.sofa.service.impl;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.examples.sofa.api.entity.SofaSimpleTypeBean;
 import org.apache.shenyu.examples.sofa.api.service.SofaClientSingleParamService;
@@ -29,22 +31,26 @@ import java.util.Random;
  */
 @ShenyuSofaClient("/demo/**")
 @Service
+@ApiModule("/demo/**")
 public class SofaClientSingleParamServiceImpl implements SofaClientSingleParamService {
     
     @Override
     @ShenyuSofaClient("/findById")
+    @ApiDoc(desc = "findById")
     public SofaSimpleTypeBean findById(final String id) {
         return new SofaSimpleTypeBean(id, "hello world shenyu Sofa, findById");
     }
     
     @Override
     @ShenyuSofaClient("/findAll")
+    @ApiDoc(desc = "findAll")
     public SofaSimpleTypeBean findAll() {
         return new SofaSimpleTypeBean(String.valueOf(new Random().nextInt()), "hello world shenyu Sofa , findAll");
     }
     
     @Override
     @ShenyuSofaClient("/insert")
+    @ApiDoc(desc = "insert")
     public SofaSimpleTypeBean insert(final SofaSimpleTypeBean sofaSimpleTypeBean) {
         sofaSimpleTypeBean.setName("hello world shenyu Sofa: " + sofaSimpleTypeBean.getName());
         return sofaSimpleTypeBean;

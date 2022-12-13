@@ -22,12 +22,14 @@ import io.grpc.BindableService;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.client.grpc.common.dto.GrpcExt;
 import org.apache.shenyu.client.grpc.json.JsonServerServiceInterceptor;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -36,7 +38,9 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
@@ -48,18 +52,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Shenyu grpc client event listener.
  */
 public class GrpcClientEventListener extends AbstractContextRefreshedEventListener<BindableService, ShenyuGrpcClient> {
-    
+
     private final List<ServerServiceDefinition> serviceDefinitions = Lists.newArrayList();
-    
+
     /**
      * Instantiates a new Shenyu client bean post processor.
      *
-     * @param clientConfig the shenyu grpc client config
+     * @param clientConfig                   the shenyu grpc client config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
     public GrpcClientEventListener(final PropertiesConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
@@ -70,8 +75,41 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     }
 
     @Override
-    protected List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz, Method method) {
-        return null;
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
+        final String contextPath = getContextPath();
+        String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
+            ApiDoc apiDoc = (ApiDoc) item;
+            return apiDoc.desc();
+        }).orElse("");
+        String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
+        if (superPath.indexOf("*") > 0) {
+            superPath = superPath.substring(0, superPath.lastIndexOf("/"));
+        }
+        ShenyuGrpcClient shenyuGrpcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
+        if (Objects.isNull(shenyuGrpcClient)) {
+            return Lists.newArrayList();
+        }
+        List<ApiDocRegisterDTO> list = Lists.newArrayList();
+        String value = shenyuGrpcClient.value();
+        String apiPath = contextPath + superPath + value;
+        ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
+                .consume(ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE)
+                .produce(ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE)
+                .httpMethod(ApiHttpMethodEnum.NOT_HTTP.getValue())
+                .contextPath(contextPath)
+                .ext("{}")
+                .document("{}")
+                .version("v0.01")
+                .rpcType(RpcTypeEnum.GRPC.getName())
+                .apiDesc(apiDesc)
+                .apiPath(apiPath)
+                .apiSource(1)
+                .state(1)
+                .apiOwner("1")
+                .eventType(EventType.REGISTER)
+                .build();
+        list.add(build);
+        return list;
     }
 
     @Override
@@ -79,12 +117,12 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         exportJsonGenericService(bean);
         super.handle(beanName, bean);
     }
-    
+
     @Override
     protected Map<String, BindableService> getBeans(final ApplicationContext context) {
         return context.getBeansOfType(BindableService.class);
     }
-    
+
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, BindableService> beans) {
         return URIRegisterDTO.builder()
@@ -95,7 +133,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .port(Integer.parseInt(getPort()))
                 .build();
     }
-    
+
     @Override
     protected String buildApiSuperPath(final Class<?> clazz, final ShenyuGrpcClient beanShenyuClient) {
         if (Objects.nonNull(beanShenyuClient) && !StringUtils.isBlank(beanShenyuClient.path())) {
@@ -103,19 +141,19 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         }
         return "";
     }
-    
+
     @Override
     protected Class<ShenyuGrpcClient> getAnnotationType() {
         return ShenyuGrpcClient.class;
     }
-    
+
     @Override
     protected String buildApiPath(final Method method, final String superPath, @NonNull final ShenyuGrpcClient methodShenyuClient) {
         final String contextPath = getContextPath();
         return superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName())
                 : pathJoin(contextPath, superPath, methodShenyuClient.path());
     }
-    
+
     @Override
     protected void handleClass(final Class<?> clazz, final BindableService bean, @NonNull final ShenyuGrpcClient beanShenyuClient, final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
@@ -125,7 +163,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
             }
         }
     }
-    
+
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final BindableService bean, @NonNull final ShenyuGrpcClient shenyuClient, final String path, final Class<?> clazz, final Method method) {
         String desc = shenyuClient.desc();
@@ -153,12 +191,12 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .enabled(shenyuClient.enabled())
                 .build();
     }
-    
+
     private String buildHost() {
         final String host = this.getHost();
         return IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host);
     }
-    
+
     private String buildPackageName(final Class<?> clazz) {
         Class<?> parent = clazz.getSuperclass();
         Class<?> classes = parent.getDeclaringClass();
@@ -173,7 +211,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         }
         return packageName;
     }
-    
+
     private String buildRpcExt(final ShenyuGrpcClient shenyuGrpcClient,
                                final MethodDescriptor.MethodType methodType) {
         GrpcExt build = GrpcExt.builder()
@@ -185,7 +223,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
 
     private void exportJsonGenericService(final BindableService bindableService) {
         ServerServiceDefinition serviceDefinition = bindableService.bindService();
-        
+
         try {
             ServerServiceDefinition jsonDefinition = JsonServerServiceInterceptor.useJsonMessages(serviceDefinition);
             serviceDefinitions.add(serviceDefinition);

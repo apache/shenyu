@@ -43,7 +43,6 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -130,8 +129,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
     }
 
-
-    protected abstract List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method);
+    protected abstract List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz, Method method);
 
     protected abstract Map<String, T> getBeans(ApplicationContext context);
 

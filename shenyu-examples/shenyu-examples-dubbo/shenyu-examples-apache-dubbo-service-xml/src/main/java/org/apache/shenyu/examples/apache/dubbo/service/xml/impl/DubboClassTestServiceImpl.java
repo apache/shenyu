@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.apache.dubbo.service.xml.impl;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
@@ -31,25 +33,30 @@ import java.util.Random;
  */
 @Service("dubboClassTestService")
 @ShenyuDubboClient("/demo/**")
+@ApiModule("/demo/**")
 public class DubboClassTestServiceImpl implements DubboClassTestService {
     
     @Override
+    @ApiDoc(desc = "findById")
     public DubboTest findById(final String id) {
         return new DubboTest(id, "hello world shenyu Apache, findById");
     }
     
     @Override
+    @ApiDoc(desc = "findAll")
     public DubboTest findAll() {
         return new DubboTest(String.valueOf(new Random().nextInt()), "hello world shenyu Apache, findAll");
     }
     
     @Override
+    @ApiDoc(desc = "insert")
     public DubboTest insert(final DubboTest dubboTest) {
         dubboTest.setName("hello world shenyu Apache Dubbo: " + dubboTest.getName());
         return dubboTest;
     }
     
     @Override
+    @ApiDoc(desc = "findList")
     public ListResp findList() {
         return new ListResp(1, Collections.singletonList(new DubboTest("1", "test")));
     }
