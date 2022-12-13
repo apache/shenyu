@@ -57,7 +57,7 @@ public class ServerWebExchangeUtils {
                 }).then(Mono.defer(() -> {
                     ServerHttpRequestDecorator decorator = new RequestDecorator(exchange, outputMessage);
                     return Mono.just(exchange.mutate().request(decorator).build());
-                })).onErrorResume((Function<Throwable, Mono<ServerWebExchange>>) throwable -> ResponseUtils.release(outputMessage, throwable));
+                })).onErrorResume(throwable -> ResponseUtils.release(outputMessage, throwable));
 
     }
 }
