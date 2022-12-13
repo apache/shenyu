@@ -53,12 +53,11 @@ public class ServerWebExchangeUtils {
                 .flatMap(convert)
                 .flatMap(body -> {
                     BodyInserter<String, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(body);
-
-                    return bodyInserter.insert(outputMessage, new BodyInserterContext())
-                            .onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
+                    return bodyInserter.insert(outputMessage, new BodyInserterContext());
                 }).then(Mono.defer(() -> {
                     ServerHttpRequestDecorator decorator = new RequestDecorator(exchange, outputMessage);
                     return Mono.just(exchange.mutate().request(decorator).build());
-                }));
+                })).onErrorResume((Function<Throwable, Mono<ServerWebExchange>>) throwable -> ResponseUtils.release(outputMessage, throwable));
+
     }
 }
