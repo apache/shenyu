@@ -51,7 +51,7 @@ public class OrderController {
      * @param orderDTO the order dto
      * @return the order dto
      */
-    @PostMapping(value = "/save", consumes = {"text/plain", "application/*"}, produces = "text/plain;charset=UTF-8")
+    @PostMapping("/save")
     @ShenyuSpringMvcClient("/save")
     @ApiDoc(desc = "保存订单")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
@@ -65,7 +65,7 @@ public class OrderController {
      * @param id the id
      * @return the order dto
      */
-    @RequestMapping(value = "/findById", method = {RequestMethod.POST, RequestMethod.GET})
+    @GetMapping("/findById")
     @ShenyuSpringMvcClient("/findById")
     @ApiDoc(desc = "根据id查询")
     public OrderDTO findById(@RequestParam("id") final String id) {
