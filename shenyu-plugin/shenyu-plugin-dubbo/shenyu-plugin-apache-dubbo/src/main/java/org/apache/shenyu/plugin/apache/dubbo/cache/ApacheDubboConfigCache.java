@@ -21,6 +21,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
+import java.lang.ref.Reference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -135,7 +136,60 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         }
         return build(metaData);
     }
-    
+
+    public ReferenceConfig<GenericService> initRefN(final MetaData metaData, final String namespace) {
+        if (StringUtils.isBlank(namespace)) {
+            return initRef(metaData);
+        }
+        try {
+            ReferenceConfig<GenericService> referenceConfig = cache.get(metaData.getPath());
+            if (StringUtils.isNoneBlank(referenceConfig.getInterface())) {
+                return referenceConfig;
+            }
+        } catch (ExecutionException e) {
+            LOG.error("initRefN dubbo ref exception", e);
+        }
+        return buildN(metaData,namespace);
+    }
+
+    /**
+     * Build reference config.
+     *
+     * @param metaData the meta data
+     * @return the reference config
+     */
+    @SuppressWarnings("deprecation")
+    public ReferenceConfig<GenericService> buildN(final MetaData metaData, final String namespace) {
+        if (StringUtils.isBlank(namespace)) {
+            return build(metaData);
+        }
+        if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
+            return new ReferenceConfig<>();
+        }
+        ReferenceConfig<GenericService> reference = buildReference(metaData);
+        reference.setRegistry(new RegistryConfig());
+        if (StringUtils.isNotBlank(metaData.getNamespace())) {
+            if (!registryConfig.getAddress().contains(Constants.NAMESPACE)) {
+                reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + metaData.getNamespace()));
+            } else {
+                String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + metaData.getNamespace();
+                reference.setRegistry(new RegistryConfig(newAddress));
+            }
+        } else {
+            reference.setRegistry(registryConfig);
+        }
+        try {
+            Object obj = reference.get();
+            if (Objects.nonNull(obj)) {
+                LOG.info("buildN init apache dubbo reference success there meteData is :{}", metaData);
+                cache.put(StringUtils.isBlank(metaData.getNamespace()) ? metaData.getPath() : metaData.getNamespace() + ":" + metaData.getPath(), reference);
+            }
+        } catch (Exception e) {
+            LOG.error("buildN init apache dubbo reference exception", e);
+        }
+        return reference;
+    }
+
     /**
      * Build reference config.
      *
@@ -147,21 +201,26 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
             return new ReferenceConfig<>();
         }
+        ReferenceConfig<GenericService> reference = buildReference(metaData);
+        try {
+            Object obj = reference.get();
+            if (Objects.nonNull(obj)) {
+                LOG.info("init apache dubbo reference success there meteData is :{}", metaData);
+                cache.put(StringUtils.isBlank(metaData.getNamespace()) ? metaData.getPath() : metaData.getNamespace() + ":" + metaData.getPath(), reference);
+            }
+        } catch (Exception e) {
+            LOG.error("init apache dubbo reference exception", e);
+        }
+        return reference;
+    }
+
+    private  ReferenceConfig<GenericService> buildReference(MetaData metaData) {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
         reference.setAsync(true);
-        
+
         reference.setApplication(applicationConfig);
-        if (StringUtils.isNotBlank(metaData.getNamespace())) {
-            if (!registryConfig.getAddress().contains(Constants.NAMESPACE)) {
-                reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + metaData.getNamespace()));
-            } else {
-                String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + metaData.getNamespace();
-                reference.setRegistry(new RegistryConfig(newAddress));
-            }
-        } else {
-            reference.setRegistry(registryConfig);
-        }
+        reference.setRegistry(registryConfig);
         reference.setConsumer(consumerConfig);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");
@@ -190,15 +249,6 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Optional.ofNullable(dubboParam.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParam.getRetries()).ifPresent(reference::setRetries);
             Optional.ofNullable(dubboParam.getSent()).ifPresent(reference::setSent);
-        }
-        try {
-            Object obj = reference.get();
-            if (Objects.nonNull(obj)) {
-                LOG.info("init apache dubbo reference success there meteData is :{}", metaData);
-                cache.put(StringUtils.isBlank(metaData.getNamespace()) ? metaData.getPath() : metaData.getNamespace() + ":" + metaData.getPath(), reference);
-            }
-        } catch (Exception e) {
-            LOG.error("init apache dubbo reference exception", e);
         }
         return reference;
     }

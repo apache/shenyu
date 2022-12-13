@@ -64,17 +64,15 @@ public class ApacheDubboProxyService {
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         String referenceKey = metaData.getPath();
+        String namespace = "";
         if (CollectionUtils.isNotEmpty(exchange.getRequest().getHeaders().get(Constants.NAMESPACE))) {
-            String namespace = exchange.getRequest().getHeaders().get(Constants.NAMESPACE).get(0);
-            metaData.setNamespace(namespace);
+            namespace = exchange.getRequest().getHeaders().get(Constants.NAMESPACE).get(0);
             referenceKey = namespace + ":" + referenceKey;
-        } else {
-            metaData.setNamespace("");
         }
         ReferenceConfig<GenericService> reference = ApacheDubboConfigCache.getInstance().get(referenceKey);
         if (StringUtils.isEmpty(reference.getInterface())) {
             ApacheDubboConfigCache.getInstance().invalidate(metaData.getPath());
-            reference = ApacheDubboConfigCache.getInstance().initRef(metaData);
+            reference = ApacheDubboConfigCache.getInstance().initRefN(metaData, namespace);
         }
         GenericService genericService = reference.get();
         Pair<String[], Object[]> pair;
