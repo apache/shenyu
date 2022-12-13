@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
-import java.lang.ref.Reference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
