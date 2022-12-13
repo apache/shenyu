@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sign.decorator;
+package org.apache.shenyu.plugin.base.support;
 
-import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -29,14 +28,14 @@ import reactor.util.annotation.NonNull;
 /**
  * Build and modify the request class.
  */
-public class SignRequestDecorator extends ServerHttpRequestDecorator {
+public class RequestDecorator extends ServerHttpRequestDecorator {
 
     private final CachedBodyOutputMessage cachedBodyOutputMessage;
 
     private final ServerWebExchange exchange;
 
-    public SignRequestDecorator(final ServerWebExchange exchange,
-                                   final CachedBodyOutputMessage cachedBodyOutputMessage) {
+    public RequestDecorator(final ServerWebExchange exchange,
+                                final CachedBodyOutputMessage cachedBodyOutputMessage) {
         super(exchange.getRequest());
         this.cachedBodyOutputMessage = cachedBodyOutputMessage;
         this.exchange = exchange;

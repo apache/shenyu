@@ -25,10 +25,10 @@ import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.utils.DateUtils;
-import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
-import org.apache.shenyu.common.utils.SignUtils;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
 import org.apache.shenyu.plugin.sign.api.ShenyuSignProviderWrap;
 import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.sign.api.VerifyResult;
@@ -151,7 +151,7 @@ public class DefaultSignService implements SignService {
                                     final Map<String, Object> requestBody,
                                     final Map<String, String> queryParams) {
 
-        final String sign = ShenyuSignProviderWrap.generateSign(buildExtSignKey(appAuthData.getAppSecret(), signParameters), SignUtils.transStringMap(requestBody), queryParams);
+        final String sign = ShenyuSignProviderWrap.generateSign(buildExtSignKey(appAuthData.getAppSecret(), signParameters), MapUtils.transStringMap(requestBody), queryParams);
         boolean result = Objects.equals(sign, signParameters.sign);
         if (!result) {
             LOG.error("the SignUtils generated signature value is:{},the accepted value is:{}", sign, signParameters.sign);
@@ -172,7 +172,7 @@ public class DefaultSignService implements SignService {
     }
 
     private String buildExtSignKey(final String signKey, final SignParameters signParameters) {
-        return String.join("", Constants.PATH, signParameters.path, Constants.TIMESTAMP, signParameters.timestamp, Constants.VERSION, "1.0.0", signKey);
+        return String.join("", Constants.TIMESTAMP, signParameters.timestamp, Constants.PATH, signParameters.path, Constants.VERSION, "1.0.0", signKey);
     }
 
     private static final class SignParameters {
