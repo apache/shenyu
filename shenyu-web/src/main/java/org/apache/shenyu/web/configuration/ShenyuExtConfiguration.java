@@ -43,14 +43,4 @@ public class ShenyuExtConfiguration {
         return new DefaultShenyuResult();
     }
 
-    /**
-     * Remote address resolver remote address resolver.
-     *
-     * @return the remote address resolver
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = RemoteAddressResolver.class, search = SearchStrategy.ALL)
-    public RemoteAddressResolver remoteAddressResolver() {
-        return new ForwardedRemoteAddressResolver(1);
-    }
 }
