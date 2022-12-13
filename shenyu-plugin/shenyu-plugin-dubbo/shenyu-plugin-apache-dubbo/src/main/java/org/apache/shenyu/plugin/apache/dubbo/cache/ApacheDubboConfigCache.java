@@ -185,7 +185,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Object obj = reference.get();
             if (Objects.nonNull(obj)) {
                 LOG.info("buildN init apache dubbo reference success there meteData is :{}", metaData);
-                cache.put(StringUtils.isBlank(namespace) ? metaData.getPath() : namespace + ":" + metaData.getPath(), reference);
+                cache.put(namespace + ":" + metaData.getPath(), reference);
             }
         } catch (Exception e) {
             LOG.error("buildN init apache dubbo reference exception", e);
