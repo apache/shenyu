@@ -44,7 +44,6 @@
         <module>shenyu-dist</module>
         <module>shenyu-alert</module>
         <module>shenyu-sdk</module>
-        <module>shenyu-integrated-test</module>
     </modules>
 
     <licenses>
