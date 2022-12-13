@@ -139,7 +139,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     /**
      * Init ref reference config.
      *
-     * @param metaData  the meta data
+     * @param metaData  the meta data.
      * @param namespace namespace
      * @return the reference config
      */
