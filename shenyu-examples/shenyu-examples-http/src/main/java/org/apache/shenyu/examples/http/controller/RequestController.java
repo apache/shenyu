@@ -45,8 +45,9 @@ public class RequestController {
 
     /**
      * Test for header annotation.
-     * @param headerKey1  one RequestHeader key
-     * @param serverHttpRequest  request
+     *
+     * @param headerKey1        one RequestHeader key
+     * @param serverHttpRequest request
      * @return response
      */
     @GetMapping(path = "/header")
@@ -59,9 +60,10 @@ public class RequestController {
 
     /**
      * Test for param annotation.
-     * @param parameterKey1  one RequestParam key
-     * @param serverHttpRequest  request
-     * @return  response
+     *
+     * @param parameterKey1     one RequestParam key
+     * @param serverHttpRequest request
+     * @return response
      */
     @PostMapping(path = "/parameter")
     @ApiDoc(desc = "/parameter")
@@ -73,9 +75,10 @@ public class RequestController {
 
     /**
      * Test for cookie annotation.
-     * @param userId  a cookie key with the name userId
-     * @param serverHttpRequest  request
-     * @return  response
+     *
+     * @param userId            a cookie key with the name userId
+     * @param serverHttpRequest request
+     * @return response
      */
     @GetMapping(path = "/cookie")
     @ApiDoc(desc = "/cookie")

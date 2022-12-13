@@ -65,7 +65,7 @@ public class OrderController {
      * @param id the id
      * @return the order dto
      */
-    @RequestMapping(value = "/findById",method = {RequestMethod.POST,RequestMethod.GET})
+    @RequestMapping(value = "/findById", method = {RequestMethod.POST, RequestMethod.GET})
     @ShenyuSpringMvcClient("/findById")
     @ApiDoc(desc = "根据id查询")
     public OrderDTO findById(@RequestParam("id") final String id) {
@@ -101,6 +101,7 @@ public class OrderController {
 
     /**
      * Test oauth2 request.
+     *
      * @param request request with the oauth2 headers
      * @return the oauth2 dto
      */

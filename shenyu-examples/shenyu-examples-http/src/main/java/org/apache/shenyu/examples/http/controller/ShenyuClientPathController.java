@@ -73,7 +73,7 @@ public class ShenyuClientPathController {
         }
         return "hello! " + HELLO_SUFFIX;
     }
-    
+
     /**
      * hi.
      *

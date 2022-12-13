@@ -39,8 +39,9 @@ public class UploadController {
 
     /**
      * webFlux uploadFile.
-     * @param file  the file you upload
-     * @return  response
+     *
+     * @param file the file you upload
+     * @return response
      */
     @PostMapping(value = "/webFluxSingle", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.TEXT_PLAIN_VALUE})
     public Mono<String> webFluxSingle(@RequestPart("file") final FilePart file) {
@@ -49,7 +50,8 @@ public class UploadController {
 
     /**
      * webFlux uploadFiles.
-     * @param files  the file you upload
+     *
+     * @param files the file you upload
      * @return response
      */
     @PostMapping(value = "/webFluxFiles", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.TEXT_PLAIN_VALUE})

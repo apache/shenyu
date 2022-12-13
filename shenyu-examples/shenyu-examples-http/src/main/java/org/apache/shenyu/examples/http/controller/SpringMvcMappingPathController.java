@@ -28,9 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @ShenyuSpringMvcClient(desc = "spring annotation register")
 public class SpringMvcMappingPathController {
-    
+
     private static final String HELLO_SUFFIX = "I'm Shenyu-Gateway System. Welcome!";
-    
+
     /**
      * hello.
      *
@@ -40,7 +40,7 @@ public class SpringMvcMappingPathController {
     public String hello() {
         return "hello! " + HELLO_SUFFIX;
     }
-    
+
     /**
      * hi.
      *
@@ -51,7 +51,7 @@ public class SpringMvcMappingPathController {
     public String hello(final String name) {
         return "hi! " + name + "! " + HELLO_SUFFIX;
     }
-    
+
     /**
      * hi.
      *

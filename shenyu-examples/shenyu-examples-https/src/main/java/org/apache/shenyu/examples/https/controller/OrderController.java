@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/order")
 @ShenyuSpringMvcClient("/order")
 public class OrderController {
-    
+
     /**
      * Find by id order dto.
      *

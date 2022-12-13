@@ -96,7 +96,7 @@ public class HttpTestController {
      * Find by user id string.
      *
      * @param userId the user id
-     * @param name name
+     * @param name   name
      * @return the string
      */
     @GetMapping("/findByUserIdName")
@@ -397,7 +397,7 @@ public class HttpTestController {
      *
      * @return response. result bean
      */
-    @GetMapping ("/hystrix/pass")
+    @GetMapping("/hystrix/pass")
     @ApiDoc(desc = "hystrix/pass")
     public ResultBean hystrixPass() {
         ResultBean response = new ResultBean();

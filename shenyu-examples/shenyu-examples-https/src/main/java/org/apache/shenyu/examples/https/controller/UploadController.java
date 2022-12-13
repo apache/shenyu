@@ -36,7 +36,7 @@ public class UploadController {
     /**
      * upload file.
      *
-     * @param file  file
+     * @param file file
      * @return filename
      */
     @PostMapping(value = "/file", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
