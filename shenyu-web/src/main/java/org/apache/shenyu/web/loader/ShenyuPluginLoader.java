@@ -28,6 +28,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -106,7 +107,12 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
             return Collections.emptyList();
         }
         List<ShenyuLoaderResult> results = new ArrayList<>();
+        boolean loadNewPlugin = false;
         for (File each : jarFiles) {
+            if (jars.stream().map(PluginJar::absolutePath).filter(StringUtils::hasText).anyMatch(p -> p.equals(each.getAbsolutePath()))) {
+                continue;
+            }
+            loadNewPlugin = true;
             JarFile jar = new JarFile(each, true);
             jars.add(new PluginJar(jar, each));
             Enumeration<JarEntry> entries = jar.entries();
@@ -118,6 +124,10 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
                     names.add(className);
                 }
             }
+        }
+
+        if (!loadNewPlugin) {
+            return results;
         }
 
         names.forEach(className -> {
@@ -297,6 +307,10 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         PluginJar(final JarFile jarFile, final File sourcePath) {
             this.jarFile = jarFile;
             this.sourcePath = sourcePath;
+        }
+
+        public String absolutePath() {
+            return sourcePath.getAbsolutePath();
         }
     }
 }
