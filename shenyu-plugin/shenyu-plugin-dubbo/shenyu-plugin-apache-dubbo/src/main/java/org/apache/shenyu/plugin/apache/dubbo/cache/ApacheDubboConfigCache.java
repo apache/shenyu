@@ -167,11 +167,11 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         }
         ReferenceConfig<GenericService> reference = buildReference(metaData);
         reference.setRegistry(new RegistryConfig());
-        if (StringUtils.isNotBlank(metaData.getNamespace())) {
+        if (StringUtils.isNotBlank(namespace)) {
             if (!registryConfig.getAddress().contains(Constants.NAMESPACE)) {
-                reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + metaData.getNamespace()));
+                reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace));
             } else {
-                String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + metaData.getNamespace();
+                String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
                 reference.setRegistry(new RegistryConfig(newAddress));
             }
         } else {
@@ -181,7 +181,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Object obj = reference.get();
             if (Objects.nonNull(obj)) {
                 LOG.info("buildN init apache dubbo reference success there meteData is :{}", metaData);
-                cache.put(StringUtils.isBlank(metaData.getNamespace()) ? metaData.getPath() : metaData.getNamespace() + ":" + metaData.getPath(), reference);
+                cache.put(StringUtils.isBlank(namespace) ? metaData.getPath() : namespace + ":" + metaData.getPath(), reference);
             }
         } catch (Exception e) {
             LOG.error("buildN init apache dubbo reference exception", e);
@@ -205,7 +205,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Object obj = reference.get();
             if (Objects.nonNull(obj)) {
                 LOG.info("init apache dubbo reference success there meteData is :{}", metaData);
-                cache.put(StringUtils.isBlank(metaData.getNamespace()) ? metaData.getPath() : metaData.getNamespace() + ":" + metaData.getPath(), reference);
+                cache.put(metaData.getPath(), reference);
             }
         } catch (Exception e) {
             LOG.error("init apache dubbo reference exception", e);
