@@ -27,29 +27,21 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.support.BodyInserterContext;
-import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.base.utils.ResponseUtils;
+import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
 import org.apache.shenyu.plugin.sign.api.SignService;
-import org.apache.shenyu.plugin.sign.decorator.SignRequestDecorator;
+import org.apache.shenyu.plugin.sign.api.VerifyResult;
+import org.apache.shenyu.plugin.sign.exception.SignPluginException;
 import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
 import org.apache.shenyu.plugin.sign.handler.SignRuleHandler;
-import org.apache.shenyu.plugin.sign.api.VerifyResult;
-import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.reactive.function.BodyInserter;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Sign Plugin.
@@ -92,16 +84,19 @@ public class SignPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
 
-        ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
-        return serverRequest.bodyToMono(String.class)
-                .switchIfEmpty(Mono.defer(() -> Mono.just("")))
-                .flatMap(originalBody -> {
-                    VerifyResult result = signBody(originalBody, exchange);
-                    if (result.isSuccess()) {
-                        return executeChain(originalBody, exchange, chain);
-                    }
-                    return handleSignFailed(exchange, result.getReason());
-                });
+        return ServerWebExchangeUtils.rewriteRequestBody(exchange, messageReaders, body -> {
+            VerifyResult result = signBody(body, exchange);
+            if (result.isSuccess()) {
+                return Mono.just(body);
+            }
+            throw new SignPluginException(result.getReason());
+        }).flatMap(chain::execute)
+          .onErrorResume(error -> {
+              if (error instanceof SignPluginException) {
+                  return handleSignFailed(exchange, error.getMessage());
+              }
+              return Mono.error(error);
+          });
     }
 
     private VerifyResult signBody(final String originalBody, final ServerWebExchange exchange) {
@@ -111,17 +106,6 @@ public class SignPlugin extends AbstractShenyuPlugin {
         Map<String, Object> requestBody = StringUtils.isBlank(originalBody) ? null : JsonUtils.jsonToMap(originalBody);
         Map<String, String> queryParamsSingleValueMap = queryParams.toSingleValueMap();
         return signService.signVerify(exchange, requestBody, queryParamsSingleValueMap);
-    }
-
-    private Mono<Void> executeChain(final String requestBody, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        BodyInserter<String, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromValue(requestBody);
-        CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(exchange);
-        return bodyInserter.insert(outputMessage, new BodyInserterContext())
-                .then(Mono.defer(() -> {
-                        ServerHttpRequestDecorator decorator = new SignRequestDecorator(exchange, outputMessage);
-                        return chain.execute(exchange.mutate().request(decorator).build());
-                    }
-                )).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
     }
 
     private Mono<Void> handleSignFailed(final ServerWebExchange exchange, final String reason) {
