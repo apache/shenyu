@@ -136,6 +136,12 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         return build(metaData);
     }
 
+    /**
+     * Init ref reference config.
+     * @param metaData the meta data
+     * @param namespace namespace
+     * @return the reference config
+     */
     public ReferenceConfig<GenericService> initRefN(final MetaData metaData, final String namespace) {
         if (StringUtils.isBlank(namespace)) {
             return initRef(metaData);
@@ -148,13 +154,13 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         } catch (ExecutionException e) {
             LOG.error("initRefN dubbo ref exception", e);
         }
-        return buildN(metaData,namespace);
+        return buildN(metaData, namespace);
     }
 
     /**
-     * Build reference config.
-     *
-     * @param metaData the meta data
+     *  build with dynamic namespace.
+     * @param metaData metaData
+     * @param namespace namespace
      * @return the reference config
      */
     @SuppressWarnings("deprecation")
@@ -213,7 +219,12 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         return reference;
     }
 
-    private  ReferenceConfig<GenericService> buildReference(MetaData metaData) {
+    /**
+     * buildReference param.
+     * @param metaData metaData
+     * @return the reference config
+     */
+    private ReferenceConfig<GenericService> buildReference(final MetaData metaData) {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
         reference.setAsync(true);
