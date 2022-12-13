@@ -273,7 +273,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
                 .collect(Collectors.joining()).trim())
                 .orElse("");
 
-        final String extSignKey = String.join("", Constants.PATH, path, Constants.TIMESTAMP, timeStamp, Constants.VERSION, version, signKey);
+        final String extSignKey = String.join("", Constants.TIMESTAMP, timeStamp, Constants.PATH, path, Constants.VERSION, version, signKey);
         final String data = String.join("", jsonSign, querySign);
         return SignUtils.sign(SignUtils.SIGN_MD5, extSignKey, data).toUpperCase();
     }
