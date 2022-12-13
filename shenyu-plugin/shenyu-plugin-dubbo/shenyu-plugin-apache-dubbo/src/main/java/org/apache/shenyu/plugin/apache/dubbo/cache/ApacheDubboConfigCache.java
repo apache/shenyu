@@ -167,11 +167,11 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      */
     @SuppressWarnings("deprecation")
     public ReferenceConfig<GenericService> buildN(final MetaData metaData, final String namespace) {
-        if (StringUtils.isBlank(namespace)) {
-            return build(metaData);
-        }
         if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
             return new ReferenceConfig<>();
+        }
+        if (StringUtils.isBlank(namespace)) {
+            return build(metaData);
         }
         ReferenceConfig<GenericService> reference = buildReference(metaData);
         reference.setRegistry(new RegistryConfig());
@@ -201,9 +201,6 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      */
     @SuppressWarnings("deprecation")
     public ReferenceConfig<GenericService> build(final MetaData metaData) {
-        if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
-            return new ReferenceConfig<>();
-        }
         ReferenceConfig<GenericService> reference = buildReference(metaData);
         try {
             Object obj = reference.get();
