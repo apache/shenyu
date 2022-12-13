@@ -282,7 +282,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                             .apiPath(apiPath)
                             .apiSource(1)
                             .state(1)
-                            .apiOwner("1")
+                            .apiOwner("admin")
                             .eventType(EventType.REGISTER)
                             .build();
                     list.add(build);
@@ -316,7 +316,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                         .apiPath(apiPath)
                         .apiSource(1)
                         .state(1)
-                        .apiOwner("1")
+                        .apiOwner("admin")
                         .eventType(EventType.REGISTER)
                         .build();
                 list.add(build);

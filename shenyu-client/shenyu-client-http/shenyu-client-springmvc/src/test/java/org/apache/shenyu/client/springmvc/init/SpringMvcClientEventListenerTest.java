@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.client.springmvc.init;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
@@ -109,7 +111,7 @@ public class SpringMvcClientEventListenerTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, true);
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
@@ -121,7 +123,7 @@ public class SpringMvcClientEventListenerTest {
                 .thenAnswer((Answer<Void>) invocation -> null);
         SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, true);
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
@@ -169,21 +171,25 @@ public class SpringMvcClientEventListenerTest {
     @RestController
     @RequestMapping("/order")
     @ShenyuSpringMvcClient(path = "/order")
+    @ApiModule("/order")
     static class SpringMvcClientTestBean {
 
         @GetMapping("/hello")
         @ShenyuSpringMvcClient(path = "/hello")
+        @ApiDoc(desc = "hello")
         public String hello(@RequestBody final String input) {
             return "hello:" + input;
         }
 
         @GetMapping("/hello2")
         @ShenyuSpringMvcClient(path = "")
+        @ApiDoc(desc = "hello2")
         public String hello2(@RequestBody final String input) {
             return "hello:" + input;
         }
 
         @GetMapping("")
+        @ApiDoc(desc = "hello3")
         public String hello3(@RequestBody final String input) {
             return "hello:" + input;
         }
@@ -191,7 +197,9 @@ public class SpringMvcClientEventListenerTest {
 
     @RestController
     @RequestMapping("/hello2/*")
+    @ApiModule("/hello2/*")
     static class SpringMvcClientTestBean2 {
+        @ApiDoc(desc = "test")
         public String test(final String hello) {
             return hello + "";
         }
@@ -206,7 +214,9 @@ public class SpringMvcClientEventListenerTest {
 
     @RestController
     @ShenyuSpringMvcClient(path = "/order/*")
+    @ApiModule("/order/*")
     static class SpringMvcClientTestBean4 {
+        @ApiDoc(desc = "test")
         public String test(final String hello) {
             return hello + "";
         }

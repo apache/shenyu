@@ -21,6 +21,8 @@ import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
+import java.util.Objects;
+
 /**
  * The type Meta data dto.
  */
@@ -349,6 +351,26 @@ public class ApiDocRegisterDTO implements DataTypeParent {
      */
     public void setEventType(final EventType eventType) {
         this.eventType = eventType;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ApiDocRegisterDTO that = (ApiDocRegisterDTO) o;
+        return Objects.equals(contextPath, that.contextPath) && Objects.equals(apiPath, that.apiPath) && Objects.equals(httpMethod, that.httpMethod)
+                && Objects.equals(consume, that.consume) && Objects.equals(produce, that.produce) && Objects.equals(version, that.version)
+                && Objects.equals(rpcType, that.rpcType) && Objects.equals(state, that.state) && Objects.equals(ext, that.ext) && Objects.equals(apiOwner, that.apiOwner)
+                && Objects.equals(apiDesc, that.apiDesc) && Objects.equals(apiSource, that.apiSource) && Objects.equals(document, that.document) && eventType == that.eventType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(contextPath, apiPath, httpMethod, consume, produce, version, rpcType, state, ext, apiOwner, apiDesc, apiSource, document, eventType);
     }
 
     @Override

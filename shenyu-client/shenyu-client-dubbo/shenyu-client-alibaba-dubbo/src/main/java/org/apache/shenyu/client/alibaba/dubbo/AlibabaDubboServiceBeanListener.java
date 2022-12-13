@@ -100,7 +100,7 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
                 .apiPath(apiPath)
                 .apiSource(1)
                 .state(1)
-                .apiOwner("1")
+                .apiOwner("admin")
                 .eventType(EventType.REGISTER)
                 .build();
         list.add(build);
