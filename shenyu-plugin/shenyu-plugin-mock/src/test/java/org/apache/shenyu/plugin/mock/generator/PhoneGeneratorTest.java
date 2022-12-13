@@ -35,7 +35,7 @@ public final class PhoneGeneratorTest {
 
     @Test
     void testGenerate() {
-        String phone = generator.generate("phone");
+        String phone = generator.generate("phone", null);
         assertThat(phone, matchesRegex("^1[3-9]\\d{9}$"));
     }
 

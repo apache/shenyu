@@ -22,6 +22,7 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -96,10 +97,11 @@ public final class ResponseUtils {
      * release source.
      *
      * @param outputMessage CachedBodyOutputMessage
+     * @param <T> the reified {@link Subscriber} type
      * @param throwable     Throwable
      * @return Mono.
      */
-    public static Mono<Void> release(final CachedBodyOutputMessage outputMessage, final Throwable throwable) {
+    public static <T> Mono<T> release(final CachedBodyOutputMessage outputMessage, final Throwable throwable) {
         if (Boolean.TRUE.equals(outputMessage.getCache())) {
             return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
         }
