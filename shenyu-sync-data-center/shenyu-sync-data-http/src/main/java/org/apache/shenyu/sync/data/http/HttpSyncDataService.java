@@ -194,7 +194,7 @@ public class HttpSyncDataService implements SyncDataService {
             throw new ShenyuException(message, e);
         }
 
-        if (Objects.nonNull(groupJson) && groupJson.size() > 0) {
+        if (Objects.nonNull(groupJson) && !groupJson.isEmpty()) {
             // fetch group configuration async.
             ConfigGroupEnum[] changedGroups = GsonUtils.getGson().fromJson(groupJson, ConfigGroupEnum[].class);
             LOG.info("Group config changed: {}", Arrays.toString(changedGroups));

@@ -15,34 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.mock.generator;
+package org.apache.shenyu.plugin.sign.exception;
 
-import org.junit.jupiter.api.Test;
+import org.apache.shenyu.common.exception.ShenyuException;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.matchesRegex;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+public class SignPluginException extends ShenyuException {
 
-/**
- * The test case for {@link PhoneGenerator }.
- *
- * @date 2022/6/20 14:48
- */
-public final class PhoneGeneratorTest {
-
-    private final PhoneGenerator generator = new PhoneGenerator();
-
-    @Test
-    void testGenerate() {
-        String phone = generator.generate("phone", null);
-        assertThat(phone, matchesRegex("^1[3-9]\\d{9}$"));
+    public SignPluginException(final Throwable e) {
+        super(e);
     }
 
-    @Test
-    void match() {
-        assertTrue(generator.match("phone"));
-        assertFalse(generator.match("mobile"));
+    public SignPluginException(final String message) {
+        super(message);
+    }
 
+    public SignPluginException(final String message, final Throwable throwable) {
+        super(message, throwable);
     }
 }
