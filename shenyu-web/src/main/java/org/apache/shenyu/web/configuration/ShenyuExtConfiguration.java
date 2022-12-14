@@ -17,10 +17,8 @@
 
 package org.apache.shenyu.web.configuration;
 
-import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
-import org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
