@@ -38,5 +38,4 @@ public class EchoRequest {
     public void setMessage(final String message) {
         this.message = message;
     }
-
 }
