@@ -70,7 +70,7 @@ public interface ShenyuResult<T> {
         if (Objects.nonNull(clientResponse) && clientResponse.headers().contentType().isPresent()) {
             return clientResponse.headers().contentType().get();
         }
-        return MediaType.APPLICATION_JSON;
+        return MediaType.APPLICATION_JSON_UTF8;
     }
 
     /**
