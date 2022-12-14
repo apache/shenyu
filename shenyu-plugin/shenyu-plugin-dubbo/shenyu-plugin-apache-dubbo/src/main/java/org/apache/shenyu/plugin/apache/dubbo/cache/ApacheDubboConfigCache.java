@@ -133,7 +133,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         } catch (ExecutionException e) {
             LOG.error("init dubbo ref exception", e);
         }
-        return build(metaData);
+        return build(metaData, "");
     }
 
     /**
@@ -155,7 +155,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         } catch (ExecutionException e) {
             LOG.error("initRefN dubbo ref exception", e);
         }
-        return buildN(metaData, namespace);
+        return build(metaData, namespace);
     }
 
     /**
@@ -166,21 +166,11 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
      * @return the reference config
      */
     @SuppressWarnings("deprecation")
-    public ReferenceConfig<GenericService> buildN(final MetaData metaData, final String namespace) {
+    public ReferenceConfig<GenericService> build(final MetaData metaData, final String namespace) {
         if (Objects.isNull(applicationConfig) || Objects.isNull(registryConfig)) {
             return new ReferenceConfig<>();
         }
-        if (StringUtils.isBlank(namespace)) {
-            return build(metaData);
-        }
-        ReferenceConfig<GenericService> reference = buildReference(metaData);
-        reference.setRegistry(new RegistryConfig());
-        if (!registryConfig.getAddress().contains(Constants.NAMESPACE)) {
-            reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace));
-        } else {
-            String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
-            reference.setRegistry(new RegistryConfig(newAddress));
-        }
+        ReferenceConfig<GenericService> reference = buildReference(metaData, namespace);
         try {
             Object obj = reference.get();
             if (Objects.nonNull(obj)) {
@@ -194,33 +184,13 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
     }
 
     /**
-     * Build reference config.
-     *
-     * @param metaData the meta data
-     * @return the reference config
-     */
-    @SuppressWarnings("deprecation")
-    public ReferenceConfig<GenericService> build(final MetaData metaData) {
-        ReferenceConfig<GenericService> reference = buildReference(metaData);
-        try {
-            Object obj = reference.get();
-            if (Objects.nonNull(obj)) {
-                LOG.info("init apache dubbo reference success there meteData is :{}", metaData);
-                cache.put(metaData.getPath(), reference);
-            }
-        } catch (Exception e) {
-            LOG.error("init apache dubbo reference exception", e);
-        }
-        return reference;
-    }
-
-    /**
      * buildReference param.
      *
      * @param metaData metaData
+     * @param namespace namespace
      * @return the reference config
      */
-    private ReferenceConfig<GenericService> buildReference(final MetaData metaData) {
+    private ReferenceConfig<GenericService> buildReference(final MetaData metaData, final String namespace) {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
         reference.setAsync(true);
@@ -255,6 +225,16 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Optional.ofNullable(dubboParam.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParam.getRetries()).ifPresent(reference::setRetries);
             Optional.ofNullable(dubboParam.getSent()).ifPresent(reference::setSent);
+        }
+        if (StringUtils.isNotBlank(namespace)) {
+            if (!registryConfig.getAddress().contains(Constants.NAMESPACE)) {
+                reference.setRegistry(new RegistryConfig(registryConfig.getAddress() + "?" + Constants.NAMESPACE + "=" + namespace));
+            } else {
+                String newAddress = registryConfig.getAddress().substring(0, registryConfig.getAddress().indexOf(Constants.NAMESPACE) + 1) + Constants.NAMESPACE + "=" + namespace;
+                reference.setRegistry(new RegistryConfig(newAddress));
+            }
+        } else {
+            reference.setRegistry(registryConfig);
         }
         return reference;
     }
