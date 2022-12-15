@@ -34,7 +34,6 @@ public class AuthPathDTO implements Serializable {
     @NotBlank
     private String path;
 
-    @NotNull
     private Boolean enabled;
 
     /**
