@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.client.tars;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -26,13 +28,16 @@ import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentExcept
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -49,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The Tars ServiceBean EventListener.
@@ -74,6 +80,44 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
         this.contextPath = contextPath;
         this.ipAndPort = this.getHost() + ":" + port;
         publisher.start(shenyuClientRegisterRepository);
+    }
+
+    @Override
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
+        final String contextPath = getContextPath();
+        String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
+            ApiDoc apiDoc = (ApiDoc) item;
+            return apiDoc.desc();
+        }).orElse("");
+        String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
+        if (superPath.indexOf("*") > 0) {
+            superPath = superPath.substring(0, superPath.lastIndexOf("/"));
+        }
+        ShenyuTarsClient shenyuTarsClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuTarsClient.class);
+        if (Objects.isNull(shenyuTarsClient)) {
+            return Lists.newArrayList();
+        }
+        List<ApiDocRegisterDTO> list = Lists.newArrayList();
+        String value = shenyuTarsClient.value();
+        String apiPath = contextPath + superPath + value;
+        ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
+                .consume(ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE)
+                .produce(ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE)
+                .httpMethod(ApiHttpMethodEnum.NOT_HTTP.getValue())
+                .contextPath(contextPath)
+                .ext("{}")
+                .document("{}")
+                .version("v0.01")
+                .rpcType(RpcTypeEnum.TARS.getName())
+                .apiDesc(apiDesc)
+                .apiPath(apiPath)
+                .apiSource(1)
+                .state(1)
+                .apiOwner("admin")
+                .eventType(EventType.REGISTER)
+                .build();
+        list.add(build);
+        return list;
     }
 
     @Override

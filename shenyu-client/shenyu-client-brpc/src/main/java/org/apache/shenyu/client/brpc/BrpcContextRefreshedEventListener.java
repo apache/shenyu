@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.brpc;
 
 import com.baidu.cloud.starlight.springcloud.server.annotation.RpcService;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.brpc.common.annotation.ShenyuBrpcClient;
@@ -29,6 +30,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.springframework.context.ApplicationContext;
@@ -63,6 +65,11 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     public BrpcContextRefreshedEventListener(final PropertiesConfig clientConfig,
                                              final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
+    }
+
+    @Override
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
+        return Lists.newArrayList();
     }
 
     @Override

@@ -19,12 +19,15 @@ package org.apache.shenyu.client.core.client;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
@@ -40,6 +43,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -108,7 +112,24 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
         beans.forEach(this::handle);
+        Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
+        apiModules.forEach(this::handleApiDoc);
     }
+
+    private void handleApiDoc(final String name, final Object classes) {
+        Class<?> apiModuleClass = AopUtils.isAopProxy(classes) ? AopUtils.getTargetClass(classes) : classes.getClass();
+        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(apiModuleClass);
+        for (Method method : methods) {
+            if (method.isAnnotationPresent(ApiDoc.class)) {
+                List<ApiDocRegisterDTO> apis = buildApiDocDTO(apiModuleClass, method);
+                for (ApiDocRegisterDTO apiDocRegisterDTO : apis) {
+                    publisher.publishEvent(apiDocRegisterDTO);
+                }
+            }
+        }
+    }
+
+    protected abstract List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz, Method method);
     
     protected abstract Map<String, T> getBeans(ApplicationContext context);
     

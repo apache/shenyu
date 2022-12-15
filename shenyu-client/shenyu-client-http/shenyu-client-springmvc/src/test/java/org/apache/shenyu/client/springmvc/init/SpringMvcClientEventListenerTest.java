@@ -109,7 +109,7 @@ public class SpringMvcClientEventListenerTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, true);
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
@@ -121,7 +121,7 @@ public class SpringMvcClientEventListenerTest {
                 .thenAnswer((Answer<Void>) invocation -> null);
         SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, true);
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 

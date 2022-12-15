@@ -19,17 +19,23 @@ package org.apache.shenyu.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.client.sofa.common.dto.SofaRpcExt;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -43,9 +49,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The Sofa Service Event Listener.
@@ -149,6 +157,44 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
         for (Map.Entry<String, ServiceFactoryBean> entry : serviceBean.entrySet()) {
             handler(entry.getValue());
         }
+    }
+
+    @Override
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
+        final String contextPath = getContextPath();
+        String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
+            ApiDoc apiDoc = (ApiDoc) item;
+            return apiDoc.desc();
+        }).orElse("");
+        String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
+        if (superPath.indexOf("*") > 0) {
+            superPath = superPath.substring(0, superPath.lastIndexOf("/"));
+        }
+        ShenyuSofaClient shenyuSofaClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSofaClient.class);
+        if (Objects.isNull(shenyuSofaClient)) {
+            return Lists.newArrayList();
+        }
+        List<ApiDocRegisterDTO> list = Lists.newArrayList();
+        String value = shenyuSofaClient.value();
+        String apiPath = contextPath + superPath + value;
+        ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
+                .consume(ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE)
+                .produce(ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE)
+                .httpMethod(ApiHttpMethodEnum.NOT_HTTP.getValue())
+                .contextPath(contextPath)
+                .ext("{}")
+                .document("{}")
+                .version("v0.01")
+                .rpcType(RpcTypeEnum.SOFA.getName())
+                .apiDesc(apiDesc)
+                .apiPath(apiPath)
+                .apiSource(1)
+                .state(1)
+                .apiOwner("admin")
+                .eventType(EventType.REGISTER)
+                .build();
+        list.add(build);
+        return list;
     }
 
     private void handler(final ServiceFactoryBean serviceBean) {
