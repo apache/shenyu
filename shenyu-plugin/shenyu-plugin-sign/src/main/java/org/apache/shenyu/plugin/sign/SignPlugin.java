@@ -23,15 +23,14 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.exception.ResponsiveException;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
 import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.sign.api.VerifyResult;
-import org.apache.shenyu.plugin.sign.exception.SignPluginException;
 import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
 import org.apache.shenyu.plugin.sign.handler.SignRuleHandler;
 import org.springframework.http.codec.HttpMessageReader;
@@ -79,37 +78,33 @@ public class SignPlugin extends AbstractShenyuPlugin {
         if (ObjectUtils.isEmpty(ruleHandler) || !ruleHandler.getSignRequestBody()) {
             VerifyResult result = signService.signVerify(exchange);
             if (result.isFailed()) {
-                return handleSignFailed(exchange, result.getReason());
+                return WebFluxResultUtils.failedResult(ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(),
+                        result.getReason(), exchange);
             }
             return chain.execute(exchange);
         }
 
         return ServerWebExchangeUtils.rewriteRequestBody(exchange, messageReaders, body -> {
-            VerifyResult result = signBody(body, exchange);
+            VerifyResult result = signVerifyWithBody(body, exchange);
             if (result.isSuccess()) {
                 return Mono.just(body);
             }
-            throw new SignPluginException(result.getReason());
+            throw new ResponsiveException(ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getReason(), exchange);
         }).flatMap(chain::execute)
           .onErrorResume(error -> {
-              if (error instanceof SignPluginException) {
-                  return handleSignFailed(exchange, error.getMessage());
+              if (error instanceof ResponsiveException) {
+                  return WebFluxResultUtils.failedResult((ResponsiveException) error);
               }
               return Mono.error(error);
           });
     }
 
-    private VerifyResult signBody(final String originalBody, final ServerWebExchange exchange) {
+    private VerifyResult signVerifyWithBody(final String originalBody, final ServerWebExchange exchange) {
         // get url params
         MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
         // get post body
         Map<String, Object> requestBody = StringUtils.isBlank(originalBody) ? null : JsonUtils.jsonToMap(originalBody);
         Map<String, String> queryParamsSingleValueMap = queryParams.toSingleValueMap();
         return signService.signVerify(exchange, requestBody, queryParamsSingleValueMap);
-    }
-
-    private Mono<Void> handleSignFailed(final ServerWebExchange exchange, final String reason) {
-        Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), reason, null);
-        return WebFluxResultUtils.result(exchange, error);
     }
 }
