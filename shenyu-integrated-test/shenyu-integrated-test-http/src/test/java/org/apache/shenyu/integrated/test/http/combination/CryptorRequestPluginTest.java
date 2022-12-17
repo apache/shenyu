@@ -140,7 +140,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
         request.addProperty("data", "random_data");
 
         AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, AdminResponse.class);
-        ShenyuResultEnum resultEnum = way.equals("decrypt") ? DECRYPTION_ERROR : ENCRYPTION_ERROR;
+        ShenyuResultEnum resultEnum = "decrypt".equals(way) ? DECRYPTION_ERROR : ENCRYPTION_ERROR;
         assertThat(response.getCode(), is(resultEnum.getCode()));
         assertThat(response.getMessage(), is(resultEnum.getMsg()));
     }
@@ -158,7 +158,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
         JsonObject request = new JsonObject();
         AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, AdminResponse.class);
 
-        String keyName = way.equals("decrypt") ? "decryptKey" : "encryptKey";
+        String keyName = "decrypt".equals(way) ? "decryptKey" : "encryptKey";
         assertThat(response.getMessage(), is(String.format("Please check Cryptor request plugin's [%s]", keyName)));
     }
 
