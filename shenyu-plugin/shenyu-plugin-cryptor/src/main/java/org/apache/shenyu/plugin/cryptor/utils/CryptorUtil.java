@@ -34,13 +34,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * cryptor util.
  */
 public final class CryptorUtil {
-    
+
     private CryptorUtil() {
     }
 
     /**
      * error handling.
-     * @param mode decrypt or encrypt
+     *
+     * @param mode     decrypt or encrypt
      * @param exchange exchange
      * @return Mono
      */
@@ -58,13 +59,13 @@ public final class CryptorUtil {
      *
      * @param originalBody original Body of data.
      * @param modifiedBody modified body
-     * @param way mode decrypt or encrypt
-     * @param fieldNames fieldNames
-     * @return Mono
+     * @param way          mode decrypt or encrypt
+     * @param fieldNames   fieldNames
+     * @return new body
      */
-    public static Mono<String> success(final String originalBody, final String modifiedBody, final String way, final String fieldNames) {
+    public static String replace(final String originalBody, final String modifiedBody, final String way, final String fieldNames) {
         if (CryptorStrategyFactory.DECRYPT.equals(way)) {
-            return Mono.just(modifiedBody);
+            return modifiedBody;
         }
         AtomicInteger initDeep = new AtomicInteger();
         initDeep.set(0);
@@ -73,6 +74,6 @@ public final class CryptorUtil {
                 initDeep,
                 modifiedBody,
                 Arrays.asList(fieldNames.split("\\.")));
-        return Mono.just(resultJe.toString());
+        return resultJe.toString();
     }
 }

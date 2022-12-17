@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.model.dto;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -34,7 +33,6 @@ public class AuthPathDTO implements Serializable {
     @NotBlank
     private String path;
 
-    @NotNull
     private Boolean enabled;
 
     /**
