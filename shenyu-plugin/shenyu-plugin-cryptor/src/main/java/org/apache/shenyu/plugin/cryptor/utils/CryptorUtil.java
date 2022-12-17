@@ -103,7 +103,7 @@ public final class CryptorUtil {
         if (ruleHandle.getWay().equals(CryptorStrategyFactory.DECRYPT) && StringUtils.isEmpty(ruleHandle.getDecryptKey())) {
             return Pair.of(true, "decryptKey");
         }
-        if (ruleHandle.getWay().equals(CryptorStrategyFactory.ENCRYPT) && StringUtils.isEmpty(ruleHandle.getDecryptKey())) {
+        if (ruleHandle.getWay().equals(CryptorStrategyFactory.ENCRYPT) && StringUtils.isEmpty(ruleHandle.getEncryptKey())) {
             return Pair.of(true, "encryptKey");
         }
         return Pair.of(false, "");
