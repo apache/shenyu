@@ -29,8 +29,8 @@ public final class CurrentTimeGeneratorTest {
 
     @Test
     public void testGenerate() {
-        Assertions.assertTrue(generator.generate("current").matches("^\\d{4}(-\\d{2}){2} \\d{2}(:\\d{2}){2}$"));
-        Assertions.assertTrue(generator.generate("current|YYYY-MM-dd").matches("^\\d{4}(-\\d{2}){2}$"));
+        Assertions.assertTrue(generator.generate("current", null).matches("^\\d{4}(-\\d{2}){2} \\d{2}(:\\d{2}){2}$"));
+        Assertions.assertTrue(generator.generate("current|YYYY-MM-dd", null).matches("^\\d{4}(-\\d{2}){2}$"));
     }
 
     @Test

@@ -243,10 +243,10 @@ public class UpstreamCheckService {
 
     private void scheduled() {
         try {
-            if (ZOMBIE_SET.size() > 0) {
+            if (!ZOMBIE_SET.isEmpty()) {
                 ZOMBIE_SET.parallelStream().forEach(this::checkZombie);
             }
-            if (UPSTREAM_MAP.size() > 0) {
+            if (!UPSTREAM_MAP.isEmpty()) {
                 UPSTREAM_MAP.forEach(this::check);
             }
         } catch (Exception e) {
@@ -297,11 +297,11 @@ public class UpstreamCheckService {
 
     private void updateHandler(final String selectorId, final List<CommonUpstream> upstreamList, final List<CommonUpstream> successList) {
         //No node changes, including zombie node resurrection and live node death
-        if (successList.size() == upstreamList.size() && PENDING_SYNC.size() == 0) {
+        if (successList.size() == upstreamList.size() && PENDING_SYNC.isEmpty()) {
             return;
         }
         removePendingSync(successList);
-        if (successList.size() > 0) {
+        if (!successList.isEmpty()) {
             UPSTREAM_MAP.put(selectorId, successList);
             updateSelectorHandler(selectorId, successList);
         } else {
