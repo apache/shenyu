@@ -28,9 +28,9 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.cryptor.decorator.CryptorResponseDecorator;
-import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorResponsePluginDataHandler;
-import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
+import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
@@ -52,7 +52,7 @@ public class CryptorResponsePlugin extends AbstractShenyuPlugin {
             LOG.error("Cryptor response rule configuration is null :{}", rule.getId());
             return chain.execute(exchange);
         }
-        Pair<Boolean, String> pair = JsonUtil.checkParam(ruleHandle);
+        Pair<Boolean, String> pair = CryptorUtil.checkParam(ruleHandle);
         if (Boolean.TRUE.equals(pair.getLeft())) {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getCode(),
                     ShenyuResultEnum.CRYPTOR_RESPONSE_ERROR_CONFIGURATION.getMsg() + "[" + pair.getRight() + "]", null);
