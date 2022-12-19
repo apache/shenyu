@@ -68,6 +68,6 @@ public class CryptorResponseDecorator extends ServerHttpResponseDecorator {
         if (Objects.isNull(modifiedBody)) {
             return CryptorUtil.fail(ruleHandle.getWay(), exchange);
         }
-        return CryptorUtil.success(originalBody, modifiedBody, ruleHandle.getWay(), ruleHandle.getFieldNames());
+        return Mono.just(CryptorUtil.replace(originalBody, modifiedBody, ruleHandle.getWay(), ruleHandle.getFieldNames()));
     }
 }
