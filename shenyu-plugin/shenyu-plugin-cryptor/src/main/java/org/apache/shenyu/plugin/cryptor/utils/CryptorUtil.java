@@ -19,9 +19,12 @@ package org.apache.shenyu.plugin.cryptor.utils;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -34,13 +37,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * cryptor util.
  */
 public final class CryptorUtil {
-    
+
     private CryptorUtil() {
     }
 
     /**
      * error handling.
-     * @param mode decrypt or encrypt
+     *
+     * @param mode     decrypt or encrypt
      * @param exchange exchange
      * @return Mono
      */
@@ -58,13 +62,13 @@ public final class CryptorUtil {
      *
      * @param originalBody original Body of data.
      * @param modifiedBody modified body
-     * @param way mode decrypt or encrypt
-     * @param fieldNames fieldNames
-     * @return Mono
+     * @param way          mode decrypt or encrypt
+     * @param fieldNames   fieldNames
+     * @return new body
      */
-    public static Mono<String> success(final String originalBody, final String modifiedBody, final String way, final String fieldNames) {
+    public static String replace(final String originalBody, final String modifiedBody, final String way, final String fieldNames) {
         if (CryptorStrategyFactory.DECRYPT.equals(way)) {
-            return Mono.just(modifiedBody);
+            return modifiedBody;
         }
         AtomicInteger initDeep = new AtomicInteger();
         initDeep.set(0);
@@ -73,6 +77,35 @@ public final class CryptorUtil {
                 initDeep,
                 modifiedBody,
                 Arrays.asList(fieldNames.split("\\.")));
-        return Mono.just(resultJe.toString());
+        return resultJe.toString();
+    }
+
+    /**
+     * check param.
+     *
+     * @param ruleHandle ruleHandle
+     * @return is null
+     */
+    public static Pair<Boolean, String> checkParam(final CryptorRuleHandler ruleHandle) {
+
+        if (StringUtils.isEmpty(ruleHandle.getWay())) {
+            return Pair.of(true, "way");
+        }
+
+        if (StringUtils.isEmpty(ruleHandle.getStrategyName())) {
+            return Pair.of(true, "strategyName");
+        }
+
+        if (StringUtils.isEmpty(ruleHandle.getFieldNames())) {
+            return Pair.of(true, "fieldNames");
+        }
+
+        if (ruleHandle.getWay().equals(CryptorStrategyFactory.DECRYPT) && StringUtils.isEmpty(ruleHandle.getDecryptKey())) {
+            return Pair.of(true, "decryptKey");
+        }
+        if (ruleHandle.getWay().equals(CryptorStrategyFactory.ENCRYPT) && StringUtils.isEmpty(ruleHandle.getEncryptKey())) {
+            return Pair.of(true, "encryptKey");
+        }
+        return Pair.of(false, "");
     }
 }
