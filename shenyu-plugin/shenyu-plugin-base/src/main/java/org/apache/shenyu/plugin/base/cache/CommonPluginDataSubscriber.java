@@ -246,10 +246,10 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
-            eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.REMOVE, ruleData));
             BaseDataCache.getInstance().removeRuleData(ruleData);
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.removeRule(ruleData));
+            eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.REMOVE, ruleData));
         }
     }
 }

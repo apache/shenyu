@@ -82,7 +82,7 @@ public class ShenyuTrie {
             if (pathParts.length > 0) {
                 ShenyuTrieNode node = root;
                 for (int i = 0; i < pathParts.length; i++) {
-                    boolean endOfPath = isMatchAllOrWildcard(pathParts[i]) && i == pathParts.length - 1;
+                    boolean endOfPath = isMatchAllOrWildcard(pathParts[i]) && judgeEqual(i, pathParts.length - 1);
                     node = putNode0(pathParts[i], node, matchMode, endOfPath);
                 }
                 // after insert node, set full path and end of path
@@ -112,20 +112,20 @@ public class ShenyuTrie {
         if (TrieMatchModeEvent.PATH_PATTERN.getMatchMode().equals(matchMode)) {
             if (isMatchAll(segment)) {
                 // put node, and return node
-                return put(segment, shenyuTrieNode, true);
+                return this.put(segment, shenyuTrieNode, true);
             }
             if (isMatchWildcard(segment)) {
-                ShenyuTrieNode wildcardNode = put(segment, shenyuTrieNode, true);
+                ShenyuTrieNode wildcardNode = this.put(segment, shenyuTrieNode, true);
                 wildcardNode.setWildcard(true);
                 return wildcardNode;
             }
         }
         if (TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode().equals(matchMode)) {
             if (isMatchAll(segment) && isPathEnd) {
-                return put(segment, shenyuTrieNode, true);
+                return this.put(segment, shenyuTrieNode, true);
             }
             if (isMatchWildcard(segment) && isPathEnd) {
-                ShenyuTrieNode wildcardNode = put(segment, shenyuTrieNode, true);
+                ShenyuTrieNode wildcardNode = this.put(segment, shenyuTrieNode, true);
                 wildcardNode.setWildcard(true);
                 return wildcardNode;
             }
@@ -134,7 +134,7 @@ public class ShenyuTrie {
         if (segment.startsWith("{") && segment.endsWith("}")) {
             ShenyuTrieNode childNode;
             // contains key, get current pathVariable node
-            if (Objects.nonNull(shenyuTrieNode.getPathVariablesSet()) && containsKey(shenyuTrieNode.getPathVariablesSet(), segment)) {
+            if (containsKey(shenyuTrieNode.getPathVariablesSet(), segment)) {
                 childNode = getVal(shenyuTrieNode.getPathVariablesSet(), segment);
             } else {
                 childNode = new ShenyuTrieNode();
@@ -148,7 +148,7 @@ public class ShenyuTrie {
             }
             return childNode;
         }
-        return put(segment, shenyuTrieNode, false);
+        return this.put(segment, shenyuTrieNode, false);
     }
     
     /**
@@ -391,8 +391,12 @@ public class ShenyuTrie {
     }
 
     private static <V> boolean containsKey(final Cache<String, V> cache, final String key) {
-        V value = cache.getIfPresent(key);
-        return Objects.nonNull(value);
+        if (Objects.nonNull(cache)) {
+            V value = cache.getIfPresent(key);
+            return Objects.nonNull(value);
+        } else {
+            return false;
+        }
     }
 
     private static <V> V getVal(final Cache<String, V> cache, final String key) {
