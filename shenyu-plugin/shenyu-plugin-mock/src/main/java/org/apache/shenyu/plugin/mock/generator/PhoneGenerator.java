@@ -17,40 +17,38 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import org.apache.shenyu.plugin.mock.api.MockRequest;
+import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
+
+import java.util.List;
 
 /**
  * 11-digit mobile number generator.
  */
 @Join
 public class PhoneGenerator implements Generator<String> {
-    
+
     @Override
     public String getName() {
         return "phone";
     }
-    
+
     @Override
-    public String generate() {
-        StringBuilder builder = new StringBuilder("1");
-        builder.append(RandomUtil.randomInt(3, 9));
-        for (int i = 0; i < 9; i++) {
-            builder.append(RandomUtil.randomInt(0, 9));
-        }
-        return builder.toString();
+    public String doGenerate(final List<String> params, final String rule, final MockRequest mockRequest) {
+        return MockUtil.phone();
     }
-    
+
     @Override
     public int getParamSize() {
         return 0;
     }
-    
+
     @Override
     public boolean match(final String rule) {
         return rule.matches("^phone$");
     }
-    
+
     @Override
     public String[] getPrefixAndSuffix() {
         return new String[]{"\"", "\""};

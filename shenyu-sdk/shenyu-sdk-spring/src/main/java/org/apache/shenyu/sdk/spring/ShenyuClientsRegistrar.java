@@ -53,6 +53,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -172,7 +173,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
         String[] qualifiers = getQualifiers(attributes);
         if (ObjectUtils.isEmpty(qualifiers)) {
-            qualifiers = new String[] {contextId + "ShenyuClient"};
+            qualifiers = new String[] {Optional.ofNullable(contextId).orElse(name) + "ShenyuClient"};
         }
         BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, className, qualifiers);
         BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
@@ -181,7 +182,7 @@ public class ShenyuClientsRegistrar implements ImportBeanDefinitionRegistrar, Re
 
     private void validate(final Map<String, Object> attributes) {
         AnnotationAttributes annotation = AnnotationAttributes.fromMap(attributes);
-        // This blows up if an aliased property is overspecified
+        // This blows up if an aliased property is over specified
         validateFallback(annotation.getClass("fallback"));
         validateFallbackFactory(annotation.getClass("fallbackFactory"));
     }

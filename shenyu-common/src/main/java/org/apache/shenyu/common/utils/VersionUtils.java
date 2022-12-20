@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.common.utils;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +99,46 @@ public final class VersionUtils {
         }
         // return default version if no version info is found
         return StringUtils.isBlank(version) ? defaultVersion : version;
+    }
+
+    /**
+     * checkDuplicate,this method refers to the design of dubbo,url:https://dubbo.apache.org/zh/docs/v2.7/dev/principals/dummy/ .
+     * @param cls cls
+     */
+    public static void checkDuplicate(final Class<?> cls) {
+        try {
+            String path = cls.getName().replace('.', '/') + ".class";
+            Set<String> files = readResources(path, cls);
+            // duplicated jar is found
+            if (files.size() > 1) {
+                String error = "Duplicate class " + path + " in " + files.size() + " jar " + files;
+                LOG.error("checkDuplicate error,{}", error);
+            }
+        } catch (Throwable e) {
+            LOG.error("checkDuplicate error,msg={},e={}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * readResources.
+     * @param path path
+     * @param cls cls
+     * @return set
+     * @throws IOException ioexception
+     */
+    private static Set<String> readResources(final String path, final Class<?> cls) throws IOException {
+        Enumeration<URL> urls = cls.getClassLoader().getResources(path);
+        Set<String> files = new HashSet<String>();
+        while (urls.hasMoreElements()) {
+            URL url = urls.nextElement();
+            if (url != null) {
+                String file = url.getFile();
+                if (StringUtils.isNotEmpty(file)) {
+                    files.add(file);
+                }
+            }
+        }
+        return files;
     }
 }
 

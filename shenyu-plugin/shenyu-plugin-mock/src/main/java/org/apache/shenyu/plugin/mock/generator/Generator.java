@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.spi.SPI;
 
 import java.util.ArrayList;
@@ -29,55 +30,44 @@ import java.util.stream.Collectors;
  */
 @SPI
 public interface Generator<T> {
-    
+
     /**
      * rule name.
      *
      * @return name
      */
     String getName();
-    
+
     /**
      * generate mock data.
      *
-     * @return random data
+     * @param rule rule
+     * @param mockRequest request
+     * @return mock data
      */
-    T generate();
-    
+    default T generate(String rule, MockRequest mockRequest) {
+        List<String> params = extractParams(rule);
+        return doGenerate(params, rule, mockRequest);
+    }
+
+    /**
+     * generate mock data.
+     *
+     * @param params params
+     * @param rule   rule
+     * @param mockRequest request
+     * @return mock data
+     */
+    T doGenerate(List<String> params, String rule, MockRequest mockRequest);
+
     /**
      * get size of rule params.
      *
      * @return params size
      */
     int getParamSize();
-    
-    /**
-     * init generator.
-     *
-     * @param rule rule
-     */
-    default void parseRule(final String rule) {
-        List<String> params = new ArrayList<>();
-        String[] split = rule.split("(?<!\\\\)\\|");
-        if (split.length >= getParamSize() + 1) {
-            params.addAll(Arrays.stream(split)
-                    .map(p -> p.replaceAll("\\\\\\|", "|"))
-                    .skip(1)
-                    .collect(Collectors.toList()));
-        }
-        initParam(params, rule);
-    }
-    
-    /**
-     * param from rule.
-     *
-     * @param params rule params.
-     * @param rule   source rule content
-     */
-    default void initParam(List<String> params, String rule) {
-    
-    }
-    
+
+
     /**
      * Determine whether the rule meets the format requirements.
      *
@@ -85,8 +75,8 @@ public interface Generator<T> {
      * @return if match return true.
      */
     boolean match(String rule);
-    
-    
+
+
     /**
      * return prefix and suffix for generate data.
      *
@@ -95,5 +85,23 @@ public interface Generator<T> {
     default String[] getPrefixAndSuffix() {
         return new String[]{"", ""};
     }
-    
+
+    /**
+     * extract params from rule.
+     *
+     * @param rule rule
+     * @return params
+     */
+    default List<String> extractParams(final String rule) {
+        List<String> params = new ArrayList<>();
+        String[] split = rule.split("(?<!\\\\)\\|");
+        if (split.length >= getParamSize() + 1) {
+            params.addAll(Arrays.stream(split)
+                    .map(p -> p.replaceAll("\\\\\\|", "|"))
+                    .skip(1)
+                    .collect(Collectors.toList()));
+        }
+        return params;
+    }
+
 }

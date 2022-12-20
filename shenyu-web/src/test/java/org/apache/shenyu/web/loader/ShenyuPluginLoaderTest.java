@@ -144,6 +144,19 @@ public final class ShenyuPluginLoaderTest {
         definePackageInternal.invoke(ShenyuPluginLoader.getInstance(), "org.apache.shenyu.plugin.DividePlugin", manifest);
     }
 
+    @Test
+    public void testLoadSameJarTwice() throws IOException, NoSuchFieldException, IllegalAccessException {
+        ShenyuPluginLoader loader = ShenyuPluginLoader.getInstance();
+        Field field = ShenyuPluginLoader.class.getDeclaredField("jars");
+        field.setAccessible(true);
+        field.set(loader, Lists.newArrayList());
+        List<ShenyuLoaderResult> pluginList = loader.loadExtendPlugins(path.toString());
+        assertThat(pluginList.size(), is(1));
+        List<ShenyuLoaderResult> neoPluginList = loader.loadExtendPlugins(path.toString());
+        assertThat(neoPluginList.size(), is(0));
+        loader.close();
+    }
+
     @Component
     public static class TestComponent {
     }

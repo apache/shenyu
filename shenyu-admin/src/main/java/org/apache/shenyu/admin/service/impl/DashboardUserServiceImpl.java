@@ -46,7 +46,7 @@ import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
-import org.apache.shenyu.common.utils.ShaUtils;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.NameNotFoundException;
@@ -305,7 +305,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     RoleDO role = roleMapper.findByRoleName("default");
                     DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
                             .userName(userName)
-                            .password(ShaUtils.shaEncryption(password))
+                            .password(DigestUtils.sha512Hex(password))
                             .role(1)
                             .roles(Lists.newArrayList(role.getId()))
                             .enabled(true)
@@ -324,7 +324,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
     
     private DashboardUserVO loginByDatabase(final String userName, final String password) {
-        return findByQuery(userName, ShaUtils.shaEncryption(password));
+        return findByQuery(userName, DigestUtils.sha512Hex(password));
     }
     
     /**
