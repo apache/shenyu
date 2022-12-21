@@ -277,7 +277,6 @@ INSERT INTO "public"."plugin" VALUES ('40', 'keyAuth', NULL, 'Authentication', 1
 -- ----------------------------
 -- Table structure for mock_request_record
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."mock_request_record";
 CREATE TABLE "public"."mock_request_record"  (
      "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
      "api_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -303,3 +302,189 @@ COMMENT ON COLUMN "public"."mock_request_record"."header" IS 'the request param 
 COMMENT ON COLUMN "public"."mock_request_record"."body" IS 'the request body';
 COMMENT ON COLUMN "public"."mock_request_record"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."mock_request_record"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for api
+-- ----------------------------
+CREATE TABLE "public"."api" (
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "context_path" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "api_path"     varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "http_method" int4 NOT NULL,
+    "consume"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "produce"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "version"      varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "rpc_type"     varchar(64) COLLATE "pg_catalog"."default"  NOT NULL,
+    "state" int2 NOT NULL,
+    "ext"          varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "api_owner"    varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "api_desc"     varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "api_source" int4 NOT NULL,
+    "document"     text COLLATE "pg_catalog"."default"         NOT NULL,
+    "document_md5" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now()):: timestamp (0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now()):: timestamp (0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."api"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."api"."context_path" IS 'the context_path';
+COMMENT ON COLUMN "public"."api"."api_path" IS 'the api_path';
+COMMENT ON COLUMN "public"."api"."http_method" IS '0-get,1-head,2-post,3-put,4-patch,5-delete,6-options,7-trace';
+COMMENT ON COLUMN "public"."api"."consume" IS 'consume content-type';
+COMMENT ON COLUMN "public"."api"."produce" IS 'produce content-type';
+COMMENT ON COLUMN "public"."api"."version" IS 'api version,for example V0.01';
+COMMENT ON COLUMN "public"."api"."rpc_type" IS 'http,dubbo,sofa,tars,websocket,springCloud,motan,grpc';
+COMMENT ON COLUMN "public"."api"."state" IS '0-unpublished,1-published,2-offline';
+COMMENT ON COLUMN "public"."api"."ext" IS 'extended fields';
+COMMENT ON COLUMN "public"."api"."api_owner" IS 'api_owner';
+COMMENT ON COLUMN "public"."api"."api_desc" IS 'the api description';
+COMMENT ON COLUMN "public"."api"."api_source" IS '0-swagger,1-annotation generation,2-create manually,3-import swagger,4-import yapi';
+COMMENT ON COLUMN "public"."api"."document" IS 'complete documentation of the api, including request parameters and response parameters';
+COMMENT ON COLUMN "public"."api"."document_md5" IS 'document_md5';
+COMMENT ON COLUMN "public"."api"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."api"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for api_rule_relation
+-- ----------------------------
+CREATE TABLE "public"."api_rule_relation" (
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "api_id"       varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "rule_id"      varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now()):: timestamp (0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now()):: timestamp (0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."api_rule_relation"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."api_rule_relation"."api_id" IS 'the table api primary key id';
+COMMENT ON COLUMN "public"."api_rule_relation"."rule_id" IS 'the table rule primary key id';
+COMMENT ON COLUMN "public"."api_rule_relation"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."api_rule_relation"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for tag
+-- ----------------------------
+CREATE TABLE "public"."tag" (
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "tag_desc" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "parent_tag_id" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "ext" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."tag"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."tag"."name" IS 'tag name';
+COMMENT ON COLUMN "public"."tag"."tag_desc" IS 'tag desc';
+COMMENT ON COLUMN "public"."tag"."parent_tag_id" IS 'parent tag id';
+COMMENT ON COLUMN "public"."tag"."ext" IS 'extension';
+COMMENT ON COLUMN "public"."tag"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."tag"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for tag_relation
+-- ----------------------------
+CREATE TABLE "public"."tag_relation" (
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "api_id"       varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "tag_id"      varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."tag_relation"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."tag_relation"."api_id" IS 'the table api primary key id';
+COMMENT ON COLUMN "public"."tag_relation"."tag_id" IS 'tag id';
+COMMENT ON COLUMN "public"."tag_relation"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."tag_relation"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for param
+-- ----------------------------
+CREATE TABLE "public"."param" (
+    "id"           varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "api_id"       varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "model_id"     varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "type"         int4 NOT NULL,
+    "name"         varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "param_desc"   varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+    "required"     int2 NOT NULL,
+    "ext"          varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."param"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."param"."api_id" IS 'the api id';
+COMMENT ON COLUMN "public"."param"."model_id" IS 'the model id, empty if not a model';
+COMMENT ON COLUMN "public"."param"."type" IS '0-requestPathVariable,1-requestUrlParam,2-requestHeader,3-requestBody,4-responseHeader,5-responseBody';
+COMMENT ON COLUMN "public"."param"."name" IS 'the param name';
+COMMENT ON COLUMN "public"."param"."param_desc" IS 'the param description';
+COMMENT ON COLUMN "public"."param"."required" IS 'whether to require (0 not required, 1 required)';
+COMMENT ON COLUMN "public"."param"."ext" IS 'extended fields';
+COMMENT ON COLUMN "public"."param"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."param"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for model
+-- ----------------------------
+CREATE TABLE "public"."model"  (
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "model_desc" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."model"."id" IS 'id';
+COMMENT ON COLUMN "public"."model"."name" IS 'the model name';
+COMMENT ON COLUMN "public"."model"."model_desc" IS 'the model description';
+COMMENT ON COLUMN "public"."model"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."model"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for field
+-- ----------------------------
+CREATE TABLE "public"."field" (
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "model_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "self_model_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "field_desc" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+    "required" int2 NOT NULL,
+    "ext" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."field"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."field"."model_id" IS 'this field belongs to which model';
+COMMENT ON COLUMN "public"."field"."self_model_id" IS 'which model of this field is';
+COMMENT ON COLUMN "public"."field"."name" IS 'field name';
+COMMENT ON COLUMN "public"."field"."field_desc" IS 'field description';
+COMMENT ON COLUMN "public"."field"."required" IS 'whether to require (0 not required, 1 required)';
+COMMENT ON COLUMN "public"."field"."ext" IS 'extended fields,can store genericTypes,eg..{"genericTypes":[model_id1,model_id2]}';
+COMMENT ON COLUMN "public"."field"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."field"."date_updated" IS 'update time';
+
+-- ----------------------------
+-- Table structure for detail
+-- ----------------------------
+CREATE TABLE "public"."detail" (
+    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "field_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "is_example" int2 NOT NULL,
+    "field_value" text COLLATE "pg_catalog"."default" NOT NULL,
+    "value_desc" varchar(1024) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+)
+;
+COMMENT ON COLUMN "public"."detail"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."detail"."field_id" IS 'the field id';
+COMMENT ON COLUMN "public"."detail"."is_example" IS 'is example or not (0 not, 1 is)';
+COMMENT ON COLUMN "public"."detail"."field_value" IS 'the field value';
+COMMENT ON COLUMN "public"."detail"."value_desc" IS 'field value description';
+COMMENT ON COLUMN "public"."detail"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."detail"."date_updated" IS 'update time';

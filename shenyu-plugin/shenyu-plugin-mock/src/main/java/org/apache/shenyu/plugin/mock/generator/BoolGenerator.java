@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
 
@@ -34,7 +35,7 @@ public class BoolGenerator implements Generator<Boolean> {
     }
 
     @Override
-    public Boolean doGenerate(final List<String> params, final String rule) {
+    public Boolean doGenerate(final List<String> params, final String rule, final MockRequest mockRequest) {
         return MockUtil.bool();
     }
 

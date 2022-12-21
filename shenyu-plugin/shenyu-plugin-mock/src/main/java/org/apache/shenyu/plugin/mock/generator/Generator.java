@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.spi.SPI;
 
 import java.util.ArrayList;
@@ -39,12 +40,14 @@ public interface Generator<T> {
 
     /**
      * generate mock data.
+     *
      * @param rule rule
+     * @param mockRequest request
      * @return mock data
      */
-    default T generate(String rule) {
+    default T generate(String rule, MockRequest mockRequest) {
         List<String> params = extractParams(rule);
-        return doGenerate(params, rule);
+        return doGenerate(params, rule, mockRequest);
     }
 
     /**
@@ -52,9 +55,10 @@ public interface Generator<T> {
      *
      * @param params params
      * @param rule   rule
+     * @param mockRequest request
      * @return mock data
      */
-    T doGenerate(List<String> params, String rule);
+    T doGenerate(List<String> params, String rule, MockRequest mockRequest);
 
     /**
      * get size of rule params.

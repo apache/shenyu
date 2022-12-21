@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
 
@@ -35,7 +36,7 @@ public class RangeDataGenerator implements Generator<String> {
     }
 
     @Override
-    public String doGenerate(final List<String> params, final String rule) {
+    public String doGenerate(final List<String> params, final String rule, final MockRequest mockRequest) {
         String rangeData = params.get(0).replaceAll("\\[(.+)]", "$1");
         String[] data = Arrays.stream(rangeData.split("(?<!\\\\),"))
                 .map(_data -> _data.replace("\\,", ","))
