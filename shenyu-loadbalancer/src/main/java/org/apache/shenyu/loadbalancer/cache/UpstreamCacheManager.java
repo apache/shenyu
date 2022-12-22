@@ -138,7 +138,7 @@ public final class UpstreamCacheManager {
      * @param upstreamList the upstream list
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
-        List<Upstream> validUpstreamList = upstreamList.stream().filter(upstream -> upstream.isStatus()).collect(Collectors.toList());
+        List<Upstream> validUpstreamList = upstreamList.stream().filter(Upstream::isStatus).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(validUpstreamList)) {
             List<Upstream> existUpstream = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> Lists.newArrayList());
             existUpstream.stream().filter(upstream -> !validUpstreamList.contains(upstream))
