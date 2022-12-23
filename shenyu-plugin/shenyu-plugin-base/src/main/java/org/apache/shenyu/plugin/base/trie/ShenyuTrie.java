@@ -217,13 +217,13 @@ public class ShenyuTrie {
                         }
                         // include path variable node, general node, wildcard node
                         if (endPath && checkPathRuleNotNull(currentNode)
-                                && Objects.nonNull(getVal(currentNode.getPathRuleCache(), selectorId))) {
+                                && CollectionUtils.isNotEmpty(getVal(currentNode.getPathRuleCache(), selectorId))) {
                             break;
                         }
                         // path is end and the match str is **, means match all
                         if (isMatchAll(currentNode.getMatchStr()) && currentNode.getEndOfPath()
                                 && checkPathRuleNotNull(currentNode)
-                                && Objects.nonNull(getVal(currentNode.getPathRuleCache(), selectorId))) {
+                                && CollectionUtils.isNotEmpty(getVal(currentNode.getPathRuleCache(), selectorId))) {
                             break;
                         }
                     } else {
