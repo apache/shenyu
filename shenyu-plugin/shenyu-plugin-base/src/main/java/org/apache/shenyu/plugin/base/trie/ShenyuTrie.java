@@ -19,12 +19,17 @@ package org.apache.shenyu.plugin.base.trie;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.TrieMatchModeEvent;
 
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ShenyuTrie {
 
@@ -92,7 +97,17 @@ public class ShenyuTrie {
                 if (Objects.isNull(node.getPathRuleCache())) {
                     node.setPathRuleCache(Caffeine.newBuilder().maximumSize(pathRuleCacheSize).build());
                 }
-                node.getPathRuleCache().put(ruleData.getSelectorId(), ruleData);
+                List<RuleData> ruleDataList = getVal(node.getPathRuleCache(), ruleData.getSelectorId());
+                if (CollectionUtils.isNotEmpty(ruleDataList)) {
+                    synchronized (this) {
+                        ruleDataList.add(ruleData);
+                        final List<RuleData> collect = ruleDataList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
+                        node.getPathRuleCache().put(ruleData.getSelectorId(), collect);
+                    }
+                } else {
+                    node.getPathRuleCache().put(ruleData.getSelectorId(), Lists.newArrayList(ruleData));
+                }
+                //node.getPathRuleCache().put(ruleData.getSelectorId(), ruleData);
             }
         }
     }
@@ -202,15 +217,13 @@ public class ShenyuTrie {
                         }
                         // include path variable node, general node, wildcard node
                         if (endPath && checkPathRuleNotNull(currentNode)
-                                && Objects.nonNull(getVal(currentNode.getPathRuleCache(), selectorId))
-                                && pluginName.equals(getVal(currentNode.getPathRuleCache(), selectorId).getPluginName())) {
+                                && Objects.nonNull(getVal(currentNode.getPathRuleCache(), selectorId))) {
                             break;
                         }
                         // path is end and the match str is **, means match all
                         if (isMatchAll(currentNode.getMatchStr()) && currentNode.getEndOfPath()
                                 && checkPathRuleNotNull(currentNode)
-                                && Objects.nonNull(getVal(currentNode.getPathRuleCache(), selectorId))
-                                && pluginName.equals(getVal(currentNode.getPathRuleCache(), selectorId).getPluginName())) {
+                                && Objects.nonNull(getVal(currentNode.getPathRuleCache(), selectorId))) {
                             break;
                         }
                     } else {
@@ -400,7 +413,11 @@ public class ShenyuTrie {
     }
 
     private static <V> V getVal(final Cache<String, V> cache, final String key) {
-        return cache.getIfPresent(key);
+        if (Objects.nonNull(cache)) {
+            return cache.getIfPresent(key);
+        } else {
+            return null;
+        }
     }
 
     private static boolean checkChildrenNotNull(final ShenyuTrieNode shenyuTrieNode) {

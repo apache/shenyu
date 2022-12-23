@@ -22,6 +22,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.shenyu.common.dto.RuleData;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -69,7 +70,7 @@ public class ShenyuTrieNode implements Serializable {
     /**
      * selectorId mapping to RuleData.
      */
-    private Cache<String, RuleData> pathRuleCache;
+    private Cache<String, List<RuleData>> pathRuleCache;
 
     /**
      * biz info, route info and any other info store here, e.g. ruleId, selectorId and so on.
@@ -235,7 +236,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @return rule cache
      */
-    public Cache<String, RuleData> getPathRuleCache() {
+    public Cache<String, List<RuleData>> getPathRuleCache() {
         return pathRuleCache;
     }
 
@@ -244,7 +245,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param pathRuleCache path rule cache
      */
-    public void setPathRuleCache(final Cache<String, RuleData> pathRuleCache) {
+    public void setPathRuleCache(final Cache<String, List<RuleData>> pathRuleCache) {
         this.pathRuleCache = pathRuleCache;
     }
     

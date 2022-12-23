@@ -131,14 +131,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             // match path with rule uri condition
             ShenyuTrieNode matchTrieNode = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match(path, selectorData.getId(), pluginName);
             if (Objects.nonNull(matchTrieNode)) {
-                ruleData = matchTrieNode.getPathRuleCache().getIfPresent(selectorData.getId());
-                if (Objects.isNull(ruleData)) {
-                    ruleData = genericMatchRule(exchange, rules);
+                List<RuleData> ruleDataList = matchTrieNode.getPathRuleCache().getIfPresent(selectorData.getId());
+                if (CollectionUtils.isNotEmpty(ruleDataList)) {
+                    ruleData = genericMatchRule(exchange, ruleDataList);
                 } else {
-                    // match other conditions
-                    if (!filterRule(ruleData, exchange)) {
-                        return chain.execute(exchange);
-                    }
+                    ruleData = genericMatchRule(exchange, rules);
                 }
             } else {
                 ruleData = genericMatchRule(exchange, rules);
