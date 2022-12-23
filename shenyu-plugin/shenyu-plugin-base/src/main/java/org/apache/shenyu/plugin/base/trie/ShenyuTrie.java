@@ -99,6 +99,7 @@ public class ShenyuTrie {
                 }
                 List<RuleData> ruleDataList = getVal(node.getPathRuleCache(), ruleData.getSelectorId());
                 if (CollectionUtils.isNotEmpty(ruleDataList)) {
+                    // synchronized list
                     synchronized (this) {
                         ruleDataList.add(ruleData);
                         final List<RuleData> collect = ruleDataList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
