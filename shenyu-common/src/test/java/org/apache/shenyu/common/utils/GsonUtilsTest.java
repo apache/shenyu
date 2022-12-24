@@ -69,9 +69,8 @@ public class GsonUtilsTest {
     @Test
     public void testToJson() {
         TestObject testObject = generateTestObject();
-        JsonParser parser = new JsonParser();
-        JsonElement expectedJson = parser.parse(EXPECTED_JSON);
-        JsonElement objectJson = parser.parse(GsonUtils.getInstance().toJson(testObject));
+        JsonElement expectedJson = JsonParser.parseString(EXPECTED_JSON);
+        JsonElement objectJson = JsonParser.parseString(GsonUtils.getInstance().toJson(testObject));
 
         assertEquals(expectedJson, objectJson);
     }
@@ -83,7 +82,7 @@ public class GsonUtilsTest {
     public void testFromJsonAboutJsonElement() {
         TestObject testObject = generateTestObject();
 
-        JsonObject jsonObject = new JsonParser().parse(EXPECTED_JSON).getAsJsonObject();
+        JsonObject jsonObject = JsonParser.parseString(EXPECTED_JSON).getAsJsonObject();
         TestObject parseObject = GsonUtils.getInstance().fromJson(jsonObject, TestObject.class);
 
         assertEquals(testObject, parseObject);

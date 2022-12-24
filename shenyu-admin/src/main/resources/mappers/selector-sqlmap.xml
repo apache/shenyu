@@ -106,6 +106,7 @@
                 </foreach>
             </if>
         </where>
+        ORDER BY sort
     </select>
 
     <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
