@@ -19,9 +19,12 @@ package org.apache.shenyu.plugin.cryptor.utils;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -69,11 +72,40 @@ public final class CryptorUtil {
         }
         AtomicInteger initDeep = new AtomicInteger();
         initDeep.set(0);
-        JsonElement je = new JsonParser().parse(originalBody);
+        JsonElement je = JsonParser.parseString(originalBody);
         JsonElement resultJe = JsonUtil.replaceJsonNode(je,
                 initDeep,
                 modifiedBody,
                 Arrays.asList(fieldNames.split("\\.")));
         return resultJe.toString();
+    }
+
+    /**
+     * check param.
+     *
+     * @param ruleHandle ruleHandle
+     * @return is null
+     */
+    public static Pair<Boolean, String> checkParam(final CryptorRuleHandler ruleHandle) {
+
+        if (StringUtils.isEmpty(ruleHandle.getWay())) {
+            return Pair.of(true, "way");
+        }
+
+        if (StringUtils.isEmpty(ruleHandle.getStrategyName())) {
+            return Pair.of(true, "strategyName");
+        }
+
+        if (StringUtils.isEmpty(ruleHandle.getFieldNames())) {
+            return Pair.of(true, "fieldNames");
+        }
+
+        if (ruleHandle.getWay().equals(CryptorStrategyFactory.DECRYPT) && StringUtils.isEmpty(ruleHandle.getDecryptKey())) {
+            return Pair.of(true, "decryptKey");
+        }
+        if (ruleHandle.getWay().equals(CryptorStrategyFactory.ENCRYPT) && StringUtils.isEmpty(ruleHandle.getEncryptKey())) {
+            return Pair.of(true, "encryptKey");
+        }
+        return Pair.of(false, "");
     }
 }
