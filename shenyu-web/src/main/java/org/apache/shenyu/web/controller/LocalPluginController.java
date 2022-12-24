@@ -111,7 +111,7 @@ public class LocalPluginController {
                             .collect(Collectors.toList());
                     if (CollectionUtils.isNotEmpty(filterConditions)) {
                         List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
-                        uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, item));
+                        uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, item, rule.getId()));
                     }
                 });
             }

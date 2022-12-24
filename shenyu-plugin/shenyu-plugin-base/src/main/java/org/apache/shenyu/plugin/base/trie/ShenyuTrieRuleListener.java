@@ -49,7 +49,7 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
                     uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode(path, ruleData, null));
                     break;
                 case REMOVE:
-                    uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, ruleData.getSelectorId()));
+                    uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, ruleData.getSelectorId(), ruleData.getId()));
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());

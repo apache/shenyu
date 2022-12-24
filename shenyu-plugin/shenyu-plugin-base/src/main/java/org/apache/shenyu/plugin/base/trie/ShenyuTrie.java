@@ -276,8 +276,9 @@ public class ShenyuTrie {
      *
      * @param path path
      * @param selectorId selectorId
+     * @param ruleId ruleId
      */
-    public void remove(final String path, final String selectorId) {
+    public void remove(final String path, final String selectorId, final String ruleId) {
         if (StringUtils.isNotBlank(path)) {
             String strippedPath = StringUtils.strip(path, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
@@ -296,8 +297,12 @@ public class ShenyuTrie {
                     parentNode.getChildren().cleanUp();
                 } else {
                     // remove plugin mapping
-                    currentNode.getPathRuleCache().invalidate(selectorId);
-                    currentNode.getPathRuleCache().cleanUp();
+                    List<RuleData> delRuleData = getVal(currentNode.getPathRuleCache(), selectorId);
+                    if (CollectionUtils.isNotEmpty(delRuleData)) {
+                        synchronized (this) {
+                            delRuleData.removeIf(rule -> rule.getId().equals(ruleId));
+                        }
+                    }
                 }
             }
         }
