@@ -70,6 +70,18 @@ public class ConfUtils {
     }
 
     /**
+     * generate singleton ruleLocalData List.
+     *
+     * @param ruleHandle        ruleHandle
+     * @param conditionDataList conditionDataList
+     * @return RuleLocalDataList
+     */
+    public static List<RuleLocalData> singletonRuleLocalDataList(final RuleHandle ruleHandle,
+                                                                 final List<ConditionData> conditionDataList) {
+        return singletonRuleLocalDataList(ruleLocalData(ruleHandle, conditionDataList));
+    }
+
+    /**
      * generate ruleLocalData.
      *
      * @param ruleHandle        ruleHandle
@@ -82,17 +94,5 @@ public class ConfUtils {
         ruleLocalData.setRuleHandler(Objects.isNull(ruleHandle) ? null : JsonUtils.toJson(ruleHandle));
         ruleLocalData.setConditionDataList(conditionDataList);
         return ruleLocalData;
-    }
-
-    /**
-     * generate singleton ruleLocalData List.
-     *
-     * @param ruleHandle        ruleHandle
-     * @param conditionDataList conditionDataList
-     * @return RuleLocalDataList
-     */
-    public static List<RuleLocalData> singletonRuleLocalDataList(final RuleHandle ruleHandle,
-                                                                 final List<ConditionData> conditionDataList) {
-        return singletonRuleLocalDataList(ruleLocalData(ruleHandle, conditionDataList));
     }
 }
