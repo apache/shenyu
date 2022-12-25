@@ -123,7 +123,7 @@ public final class ApacheDubboConfigCacheTest {
         dubboRegisterConfig.setRegister("zookeeper://127.0.0.1:2181");
         dubboRegisterConfig.setProtocol("dubbo");
         apacheDubboConfigCacheMock.init(dubboRegisterConfig);
-        assertNotNull(apacheDubboConfigCacheMock.build(metaData));
+        assertNotNull(apacheDubboConfigCacheMock.build(metaData, ""));
     }
 
     @Test
