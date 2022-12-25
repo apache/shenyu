@@ -197,7 +197,6 @@ public class ShenyuTrie {
      *
      * @param uriPath uri path
      * @param selectorId selectorId
-     * @param pluginName pluginName
      * @return {@linkplain ShenyuTrieNode}
      */
     public ShenyuTrieNode match(final String uriPath, final String selectorId) {
