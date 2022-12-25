@@ -18,11 +18,13 @@
 package org.apache.shenyu.plugin.mqtt.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -66,8 +68,10 @@ public class MqttPluginDataHandlerTest {
                 + "  \"leakDetectorLevel\": \"DISABLED\""
                 + "}", "0", false);
         mqttPluginDataHandlerUnderTest.handlerPlugin(disablePluginData);
-        Thread.sleep(5000);
-        assertFalse(isPortUsing());
+
+        Awaitility.await()
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertFalse(isPortUsing()));
     }
 
     private boolean isPortUsing() {
