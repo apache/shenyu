@@ -30,6 +30,8 @@ import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.client.grpc.common.dto.GrpcExt;
 import org.apache.shenyu.client.grpc.json.JsonServerServiceInterceptor;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
+import org.apache.shenyu.common.enums.ApiSourceEnum;
+import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -39,6 +41,7 @@ import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
@@ -75,12 +78,13 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     }
 
     @Override
-    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method) {
         final String contextPath = getContextPath();
         String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
             ApiDoc apiDoc = (ApiDoc) item;
             return apiDoc.desc();
         }).orElse("");
+        Class<?> clazz = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
         String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
         if (superPath.indexOf("*") > 0) {
             superPath = superPath.substring(0, superPath.lastIndexOf("/"));
@@ -103,8 +107,8 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .rpcType(RpcTypeEnum.GRPC.getName())
                 .apiDesc(apiDesc)
                 .apiPath(apiPath)
-                .apiSource(1)
-                .state(1)
+                .apiSource(ApiSourceEnum.ANNOTATION_GENERATION.getValue())
+                .state(ApiStateEnum.PUBLISHED.getState())
                 .apiOwner("admin")
                 .eventType(EventType.REGISTER)
                 .build();

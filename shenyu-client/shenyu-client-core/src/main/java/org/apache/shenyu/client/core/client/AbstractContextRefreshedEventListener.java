@@ -116,12 +116,12 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         apiModules.forEach(this::handleApiDoc);
     }
 
-    private void handleApiDoc(final String name, final Object classes) {
-        Class<?> apiModuleClass = AopUtils.isAopProxy(classes) ? AopUtils.getTargetClass(classes) : classes.getClass();
+    private void handleApiDoc(final String name, final Object bean) {
+        Class<?> apiModuleClass = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(apiModuleClass);
         for (Method method : methods) {
             if (method.isAnnotationPresent(ApiDoc.class)) {
-                List<ApiDocRegisterDTO> apis = buildApiDocDTO(apiModuleClass, method);
+                List<ApiDocRegisterDTO> apis = buildApiDocDTO(bean, method);
                 for (ApiDocRegisterDTO apiDocRegisterDTO : apis) {
                     publisher.publishEvent(apiDocRegisterDTO);
                 }
@@ -129,7 +129,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
     }
 
-    protected abstract List<ApiDocRegisterDTO> buildApiDocDTO(Class<?> clazz, Method method);
+    protected abstract List<ApiDocRegisterDTO> buildApiDocDTO(Object bean, Method method);
     
     protected abstract Map<String, T> getBeans(ApplicationContext context);
     

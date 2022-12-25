@@ -68,7 +68,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     }
 
     @Override
-    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method) {
         return Lists.newArrayList();
     }
 

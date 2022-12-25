@@ -27,6 +27,8 @@ import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.client.sofa.common.dto.SofaRpcExt;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
+import org.apache.shenyu.common.enums.ApiSourceEnum;
+import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -160,12 +162,13 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
     }
 
     @Override
-    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method) {
         final String contextPath = getContextPath();
         String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
             ApiDoc apiDoc = (ApiDoc) item;
             return apiDoc.desc();
         }).orElse("");
+        Class<?> clazz = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
         String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
         if (superPath.indexOf("*") > 0) {
             superPath = superPath.substring(0, superPath.lastIndexOf("/"));
@@ -188,8 +191,8 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
                 .rpcType(RpcTypeEnum.SOFA.getName())
                 .apiDesc(apiDesc)
                 .apiPath(apiPath)
-                .apiSource(1)
-                .state(1)
+                .apiSource(ApiSourceEnum.ANNOTATION_GENERATION.getValue())
+                .state(ApiStateEnum.PUBLISHED.getState())
                 .apiOwner("admin")
                 .eventType(EventType.REGISTER)
                 .build();

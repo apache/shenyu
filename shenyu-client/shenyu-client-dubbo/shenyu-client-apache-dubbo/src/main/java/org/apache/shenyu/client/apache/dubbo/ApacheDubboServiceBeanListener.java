@@ -28,6 +28,8 @@ import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
+import org.apache.shenyu.common.enums.ApiSourceEnum;
+import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -60,7 +62,7 @@ import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
  * The Apache Dubbo ServiceBean Listener.
  */
 public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEventListener<ServiceBean, ShenyuDubboClient> {
-    
+
     /**
      * Instantiates a new context refreshed event listener.
      *
@@ -73,12 +75,13 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
     }
 
     @Override
-    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Class<?> clazz, final Method method) {
+    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method) {
         final String contextPath = getContextPath();
         String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
             ApiDoc apiDoc = (ApiDoc) item;
             return apiDoc.desc();
         }).orElse("");
+        Class<?> clazz = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
         String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
         if (superPath.indexOf("*") > 0) {
             superPath = superPath.substring(0, superPath.lastIndexOf("/"));
@@ -101,8 +104,8 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .rpcType(RpcTypeEnum.DUBBO.getName())
                 .apiDesc(apiDesc)
                 .apiPath(apiPath)
-                .apiSource(1)
-                .state(1)
+                .apiSource(ApiSourceEnum.ANNOTATION_GENERATION.getValue())
+                .state(ApiStateEnum.PUBLISHED.getState())
                 .apiOwner("admin")
                 .eventType(EventType.REGISTER)
                 .build();
