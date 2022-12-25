@@ -42,6 +42,8 @@ public class ShenyuTrie {
     private final Long childrenSize;
 
     private final Long pathRuleCacheSize;
+    
+    private final Object lock = new Object();
 
     /**
      * the mode includes antPathMatch and pathPattern, please see {@linkplain TrieMatchModeEvent}.
@@ -100,7 +102,7 @@ public class ShenyuTrie {
                 List<RuleData> ruleDataList = getVal(node.getPathRuleCache(), ruleData.getSelectorId());
                 if (CollectionUtils.isNotEmpty(ruleDataList)) {
                     // synchronized list
-                    synchronized (this) {
+                    synchronized (lock) {
                         ruleDataList.add(ruleData);
                         final List<RuleData> collect = ruleDataList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
                         node.getPathRuleCache().put(ruleData.getSelectorId(), collect);
@@ -108,7 +110,6 @@ public class ShenyuTrie {
                 } else {
                     node.getPathRuleCache().put(ruleData.getSelectorId(), Lists.newArrayList(ruleData));
                 }
-                //node.getPathRuleCache().put(ruleData.getSelectorId(), ruleData);
             }
         }
     }
@@ -299,7 +300,7 @@ public class ShenyuTrie {
                     // remove plugin mapping
                     List<RuleData> delRuleData = getVal(currentNode.getPathRuleCache(), selectorId);
                     if (CollectionUtils.isNotEmpty(delRuleData)) {
-                        synchronized (this) {
+                        synchronized (lock) {
                             delRuleData.removeIf(rule -> rule.getId().equals(ruleId));
                         }
                     }
@@ -400,22 +401,30 @@ public class ShenyuTrie {
     private static boolean isMatchWildcard(final String key) {
         return WILDCARD.equals(key);
     }
-
+    
+    /**
+     * determines whether the string is * or **.
+     *
+     * @param key the path key
+     * @return true or false
+     */
     private static boolean isMatchAllOrWildcard(final String key) {
         return isMatchAll(key) || isMatchWildcard(key);
     }
     
+    /**
+     * determines whether the string is path variable.
+     *
+     * @param key path string
+     * @return true or false
+     */
     private static boolean isPathVariable(final String key) {
         return Objects.nonNull(key) && key.startsWith("{") && key.endsWith("}");
     }
 
     private static <V> boolean containsKey(final Cache<String, V> cache, final String key) {
-        if (Objects.nonNull(cache)) {
-            V value = cache.getIfPresent(key);
-            return Objects.nonNull(value);
-        } else {
-            return false;
-        }
+        V ret = getVal(cache, key);
+        return Objects.nonNull(ret);
     }
 
     private static <V> V getVal(final Cache<String, V> cache, final String key) {
