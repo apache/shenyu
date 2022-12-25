@@ -200,9 +200,8 @@ public class ShenyuTrie {
      * @param pluginName pluginName
      * @return {@linkplain ShenyuTrieNode}
      */
-    public ShenyuTrieNode match(final String uriPath, final String selectorId, final String pluginName) {
+    public ShenyuTrieNode match(final String uriPath, final String selectorId) {
         Objects.requireNonNull(selectorId);
-        Objects.requireNonNull(pluginName);
         if (!StringUtils.isEmpty(uriPath)) {
             String strippedPath = StringUtils.strip(uriPath, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
