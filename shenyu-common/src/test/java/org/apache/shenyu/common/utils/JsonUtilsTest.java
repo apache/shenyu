@@ -75,9 +75,8 @@ public final class JsonUtilsTest {
                     }
                 })
                 .build();
-        JsonParser parser = new JsonParser();
-        JsonElement expectedJson = parser.parse(EXPECTED_JSON);
-        JsonElement objectJson = parser.parse(JsonUtils.toJson(object));
+        JsonElement expectedJson = JsonParser.parseString(EXPECTED_JSON);
+        JsonElement objectJson = JsonParser.parseString(JsonUtils.toJson(object));
         assertEquals(expectedJson, objectJson);
 
         Object o = new Object();

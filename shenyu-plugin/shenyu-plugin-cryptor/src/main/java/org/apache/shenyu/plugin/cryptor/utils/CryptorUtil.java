@@ -72,7 +72,7 @@ public final class CryptorUtil {
         }
         AtomicInteger initDeep = new AtomicInteger();
         initDeep.set(0);
-        JsonElement je = new JsonParser().parse(originalBody);
+        JsonElement je = JsonParser.parseString(originalBody);
         JsonElement resultJe = JsonUtil.replaceJsonNode(je,
                 initDeep,
                 modifiedBody,
