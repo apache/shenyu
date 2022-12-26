@@ -62,12 +62,9 @@ public class ShenyuTrie {
      * clear the trie.
      */
     public void clear() {
-        this.root.getChildren().invalidateAll();
-        this.root.getChildren().cleanUp();
-        this.root.getPathRuleCache().invalidateAll();
-        this.root.getPathRuleCache().cleanUp();
-        this.root.getPathVariablesSet().invalidateAll();
-        this.root.getPathVariablesSet().cleanUp();
+        cleanup(this.root.getChildren());
+        cleanup(this.root.getPathRuleCache());
+        cleanup(this.root.getPathVariablesSet());
         this.root.setPathVariableNode(null);
     }
 
@@ -436,6 +433,13 @@ public class ShenyuTrie {
             return cache.getIfPresent(key);
         } else {
             return null;
+        }
+    }
+    
+    private static <V> void cleanup(final Cache<String, V> cache) {
+        if (Objects.nonNull(cache)) {
+            cache.invalidateAll();
+            cache.cleanUp();
         }
     }
 
