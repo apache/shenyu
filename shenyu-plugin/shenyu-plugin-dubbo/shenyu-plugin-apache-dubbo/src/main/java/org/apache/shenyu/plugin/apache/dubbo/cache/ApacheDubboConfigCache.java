@@ -199,7 +199,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
         reference.setRegistry(registryConfig);
         reference.setConsumer(consumerConfig);
         reference.setInterface(metaData.getServiceName());
-        reference.setProtocol("dubbo");
+        reference.setProtocol("dubbo"); // dubbo default protocol
         reference.setCheck(false);
         reference.setLoadbalance("gray");
 
@@ -222,6 +222,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             if (StringUtils.isNoneBlank(dubboParam.getCluster())) {
                 reference.setCluster(dubboParam.getCluster());
             }
+            Optional.ofNullable(dubboParam.getProtocol()).ifPresent(reference::setProtocol); // set dubbo sub protocol
             Optional.ofNullable(dubboParam.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParam.getRetries()).ifPresent(reference::setRetries);
             Optional.ofNullable(dubboParam.getSent()).ifPresent(reference::setSent);
