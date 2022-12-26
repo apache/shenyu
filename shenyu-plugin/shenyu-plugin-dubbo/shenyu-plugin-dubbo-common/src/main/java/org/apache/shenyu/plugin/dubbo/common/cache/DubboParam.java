@@ -63,7 +63,7 @@ public class DubboParam {
     private String cluster;
 
     /**
-     * the protocol (dubbo3 sub protocol)
+     * the protocol (dubbo3 sub protocol).
      */
     private String protocol;
 
@@ -212,7 +212,7 @@ public class DubboParam {
     }
 
     /**
-     * Gets protocol
+     * Gets protocol.
      * @return the protocol
      */
     public String getProtocol() {
@@ -220,7 +220,7 @@ public class DubboParam {
     }
 
     /**
-     * Sets protocol
+     * Sets protocol.
      * @param protocol the protocol
      */
     public void setProtocol(final String protocol) {
