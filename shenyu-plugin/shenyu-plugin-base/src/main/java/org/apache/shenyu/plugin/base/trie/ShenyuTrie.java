@@ -37,7 +37,7 @@ public class ShenyuTrie {
 
     private static final String MATCH_ALL = "**";
 
-    private ShenyuTrieNode root;
+    private final ShenyuTrieNode root;
 
     private final Long childrenSize;
 
@@ -62,7 +62,10 @@ public class ShenyuTrie {
      * clear the trie.
      */
     public void clear() {
-        this.root = null;
+        this.root.getChildren().invalidateAll();
+        this.root.getPathRuleCache().invalidateAll();
+        this.root.getPathVariablesSet().invalidateAll();
+        this.root.setPathVariableNode(null);
     }
 
     /**
