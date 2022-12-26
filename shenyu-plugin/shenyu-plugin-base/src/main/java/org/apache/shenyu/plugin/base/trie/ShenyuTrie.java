@@ -63,8 +63,11 @@ public class ShenyuTrie {
      */
     public void clear() {
         this.root.getChildren().invalidateAll();
+        this.root.getChildren().cleanUp();
         this.root.getPathRuleCache().invalidateAll();
+        this.root.getPathRuleCache().cleanUp();
         this.root.getPathVariablesSet().invalidateAll();
+        this.root.getPathVariablesSet().cleanUp();
         this.root.setPathVariableNode(null);
     }
 
