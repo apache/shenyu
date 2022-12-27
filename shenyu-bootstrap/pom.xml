@@ -327,6 +327,12 @@
               <version>2.0.4</version>
           </dependency>-->
         <!-- Dubbo zookeeper registry dependency start -->
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-dependencies-zookeeper</artifactId>
+            <version>${apache.dubbo.version}</version>
+            <type>pom</type>
+        </dependency>
         <!-- Dubbo zookeeper registry dependency end -->
         <!-- shenyu  apache dubbo plugin end-->
 
