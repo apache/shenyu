@@ -15,21 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sign.exception;
+package org.apache.shenyu.examples.sdk.grpc.consumer.dto;
 
-import org.apache.shenyu.common.exception.ShenyuException;
+public class EchoRequest {
 
-public class SignPluginException extends ShenyuException {
+    private String message;
 
-    public SignPluginException(final Throwable e) {
-        super(e);
+    /**
+     * getMessage.
+     *
+     * @return message
+     */
+    public String getMessage() {
+        return message;
     }
 
-    public SignPluginException(final String message) {
-        super(message);
-    }
-
-    public SignPluginException(final String message, final Throwable throwable) {
-        super(message, throwable);
+    /**
+     * setMessage.
+     *
+     * @param message message
+     */
+    public void setMessage(final String message) {
+        this.message = message;
     }
 }

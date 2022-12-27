@@ -115,8 +115,7 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         when(selectorDO.getHandle()).thenReturn(returnStr);
         doReturn(false).when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
         String actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
-        JsonParser parser = new JsonParser();
-        assertEquals(parser.parse(expected), parser.parse(actual));
+        assertEquals(JsonParser.parseString(expected), JsonParser.parseString(actual));
         List<GrpcUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(resultList.size(), 2);
     
