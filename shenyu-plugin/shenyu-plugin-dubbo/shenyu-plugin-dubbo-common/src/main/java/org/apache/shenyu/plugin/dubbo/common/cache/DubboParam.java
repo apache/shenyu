@@ -63,6 +63,11 @@ public class DubboParam {
     private String cluster;
 
     /**
+     * the protocol (dubbo3 sub protocol).
+     */
+    private String protocol;
+
+    /**
      * Gets group.
      *
      * @return the group
@@ -204,5 +209,21 @@ public class DubboParam {
      */
     public void setCluster(final String cluster) {
         this.cluster = cluster;
+    }
+
+    /**
+     * Gets protocol.
+     * @return the protocol
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * Sets protocol.
+     * @param protocol the protocol
+     */
+    public void setProtocol(final String protocol) {
+        this.protocol = protocol;
     }
 }
