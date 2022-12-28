@@ -84,7 +84,6 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
     @Override
     public InetSocketAddress resolve(final ServerWebExchange exchange) {
         List<String> xForwardedValues = extractXForwardedValues(exchange);
-        Collections.reverse(xForwardedValues);
         if (!xForwardedValues.isEmpty()) {
             int index = Math.min(xForwardedValues.size(), maxTrustedIndex) - 1;
             return new InetSocketAddress(xForwardedValues.get(index), 0);
