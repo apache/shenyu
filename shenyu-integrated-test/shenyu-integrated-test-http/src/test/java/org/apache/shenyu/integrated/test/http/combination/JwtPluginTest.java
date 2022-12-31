@@ -49,7 +49,6 @@ public final class JwtPluginTest extends AbstractPluginDataInit {
 
     private static final List<RuleLocalData> RULE_LOCAL_DATA_LIST = singletonRuleLocalDataList(null, singletonURIEqConditionList("/http/test/findByUserId"));
 
-
     @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.JWT.getName(), "{\"secretKey\":\"shenyu-test-shenyu-test-shenyu-test\"}");

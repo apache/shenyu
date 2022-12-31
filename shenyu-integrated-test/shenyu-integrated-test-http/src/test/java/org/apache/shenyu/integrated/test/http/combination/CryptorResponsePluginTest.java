@@ -139,7 +139,6 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
 
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(), "", SINGLETON_CONDITION_LIST, Lists.newArrayList(ruleLocalData));
 
-
         AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, originalBody, AdminResponse.class);
         ShenyuResultEnum resultEnum = "decrypt".equals(way) ? DECRYPTION_ERROR : ENCRYPTION_ERROR;
         assertThat(response.getCode(), is(resultEnum.getCode()));
