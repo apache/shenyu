@@ -41,9 +41,9 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 
-import static org.apache.shenyu.integratedtest.common.util.ConfUtils.ruleLocalData;
-import static org.apache.shenyu.integratedtest.common.util.ConfUtils.singletonRuleLocalDataList;
-import static org.apache.shenyu.integratedtest.common.util.ConfUtils.singletonURIEqConditionList;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.ruleLocalData;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonRuleLocalDataList;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonURIEqConditionList;
 import static org.apache.shenyu.plugin.api.result.ShenyuResultEnum.DECRYPTION_ERROR;
 import static org.apache.shenyu.plugin.api.result.ShenyuResultEnum.ENCRYPTION_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integratedtest.common.util;
+package org.apache.shenyu.integratedtest.common.utils;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -60,6 +60,16 @@ public class ConfUtils {
     }
 
     /**
+     * generate singleton Condition List that has a URI-MATCH Condition.
+     *
+     * @param path path
+     * @return ConditionList
+     */
+    public static List<ConditionData> singletonURIMatchConditionList(final String path) {
+        return singletonConditionList(ParamTypeEnum.URI, OperatorEnum.MATCH, path);
+    }
+
+    /**
      * generate singleton ruleLocalData List.
      *
      * @param ruleLocalData ruleLocalData
@@ -90,8 +100,21 @@ public class ConfUtils {
      */
     public static RuleLocalData ruleLocalData(final RuleHandle ruleHandle,
                                               final List<ConditionData> conditionDataList) {
+        return ruleLocalData(Objects.isNull(ruleHandle) ? null : JsonUtils.toJson(ruleHandle),
+                conditionDataList);
+    }
+
+    /**
+     * generate ruleLocalData.
+     *
+     * @param ruleHandle        ruleHandle
+     * @param conditionDataList ConditionDataList
+     * @return ruleLocalData
+     */
+    public static RuleLocalData ruleLocalData(final String ruleHandle,
+                                              final List<ConditionData> conditionDataList) {
         final RuleLocalData ruleLocalData = new RuleLocalData();
-        ruleLocalData.setRuleHandler(Objects.isNull(ruleHandle) ? null : JsonUtils.toJson(ruleHandle));
+        ruleLocalData.setRuleHandler(ruleHandle);
         ruleLocalData.setConditionDataList(conditionDataList);
         return ruleLocalData;
     }
