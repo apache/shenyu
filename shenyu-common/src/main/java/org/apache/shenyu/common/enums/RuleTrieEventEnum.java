@@ -15,31 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
-
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.springframework.context.ApplicationEvent;
+package org.apache.shenyu.common.enums;
 
 /**
- * event of sort plugin.
+ * Rule trie event enum.
  */
-public class PluginHandlerEvent extends ApplicationEvent {
-
-    private static final long serialVersionUID = 3880398095608858961L;
-
-    private final PluginHandlerEventEnum pluginHandlerEventEnum;
-
-    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
-        super(source);
-        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
-    }
+public enum RuleTrieEventEnum {
 
     /**
-     * get plugin handler.
-     * @return plugin handler event
+     * Shenyu Trie insert event.
      */
-    public PluginHandlerEventEnum getPluginStateEnums() {
-        return pluginHandlerEventEnum;
-    }
+    INSERT,
+
+    /**
+     * Shenyu Trie remove event.
+     */
+    REMOVE;
 }
