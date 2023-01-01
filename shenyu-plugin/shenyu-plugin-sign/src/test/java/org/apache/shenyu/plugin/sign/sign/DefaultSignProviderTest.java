@@ -30,7 +30,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,8 +54,9 @@ public class DefaultSignProviderTest {
         jsonParams.put("a", "1");
         jsonParams.put("b", "2");
         Map<String, String> queryParams = new HashMap<>();
-        jsonParams.put("a", "1");
-        jsonParams.put("b", "2");
-        assertNotNull(ShenyuSignProviderWrap.generateSign("test", jsonParams, queryParams));
+        queryParams.put("a", "1");
+        queryParams.put("b", "2");
+        assertThat(ShenyuSignProviderWrap.generateSign("test", jsonParams, queryParams),
+                is("9DDBB668873D97C25904FD9D5D6314CD"));
     }
 }

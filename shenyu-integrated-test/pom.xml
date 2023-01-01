@@ -42,6 +42,7 @@
         <module>shenyu-integrated-test-combination</module>
         <module>shenyu-integrated-test-sdk-apache-dubbo</module>
         <module>shenyu-integrated-test-sdk-alibaba-dubbo</module>
+        <module>shenyu-integrated-test-sdk-http</module>
     </modules>
 
     <properties>

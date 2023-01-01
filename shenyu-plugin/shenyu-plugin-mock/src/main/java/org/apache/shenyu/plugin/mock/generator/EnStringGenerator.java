@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.shenyu.plugin.mock.util.RandomUtil;
+import org.apache.shenyu.plugin.mock.api.MockRequest;
+import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
 
 import java.util.List;
@@ -28,38 +28,30 @@ import java.util.List;
  */
 @Join
 public class EnStringGenerator implements Generator<String> {
-    
-    private int min;
-    
-    private int max;
-    
+
     @Override
     public String getName() {
         return "zh";
     }
-    
+
     @Override
-    public String generate() {
-        return RandomStringUtils.random(RandomUtil.randomInt(min, max), 5, 129, true, false);
+    public String doGenerate(final List<String> params, final String rule, final MockRequest mockRequest) {
+        String[] range = params.get(0).split("-");
+        int min = Integer.parseInt(range[0]);
+        int max = Integer.parseInt(range[1]);
+        return MockUtil.en(min, max);
     }
-    
+
     @Override
     public int getParamSize() {
         return 1;
     }
-    
-    @Override
-    public void initParam(final List<String> params, final String rule) {
-        String[] range = params.get(0).split("-");
-        min = Integer.parseInt(range[0]);
-        max = Integer.parseInt(range[1]);
-    }
-    
+
     @Override
     public boolean match(final String rule) {
         return rule.matches("^en\\|\\d+-\\d+$");
     }
-    
+
     @Override
     public String[] getPrefixAndSuffix() {
         return new String[]{"\"", "\""};

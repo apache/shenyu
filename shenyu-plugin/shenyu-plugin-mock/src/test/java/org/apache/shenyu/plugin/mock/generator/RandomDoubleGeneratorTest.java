@@ -17,34 +17,32 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Test;
-
 /**
  * The test case for {@link RandomDoubleGenerator}.
  */
 public final class RandomDoubleGeneratorTest {
-    
+
     private final RandomDoubleGenerator generator = new RandomDoubleGenerator();
-    
+
     @Test
     public void generate() {
-        generator.parseRule("double|10.5-12.0");
-        String doubleValue = generator.generate();
+        String doubleValue = generator.generate("double|10.5-12.0", null);
         assertNotNull(doubleValue);
-        generator.parseRule("double|10.5-12.0|￥%.2f");
-        String formated = generator.generate();
+        String formated = generator.generate("double|10.5-12.0|￥%.2f", null);
         assertAll(
             () -> assertNotNull(formated),
             () -> assertTrue(formated.matches("^￥\\d+.\\d{2}$"))
         );
-        
+
     }
-    
+
     @Test
     public void match() {
         assertTrue(generator.match("double|10-15"));

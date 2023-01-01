@@ -638,6 +638,11 @@ public interface Constants {
     String CACHED = "cached";
 
     /**
+     * user can use the specify-domian to replace of upstream url of the divide plugin.
+     */
+    String SPECIFY_DOMAIN = "specify-domain";
+
+    /**
      * The maximum free memory reserved by the blocking queue for the JVM.
      */
     int THE_256_MB = 256 * 1024 * 1024;
@@ -647,7 +652,15 @@ public interface Constants {
      */
     String DEFAULT_CLUSTER = "failover";
 
-    int PREFIX_FORWARD_ENABLE = 1;
+    /**
+     * cache data max size, means map size.
+     */
+    Long LRU_MAP_MAXSIZE = 65536L;
+
+    /**
+     * namespace,sush as nacos .
+     */
+    String NAMESPACE = "namespace";
 
     /**
      * String q.
