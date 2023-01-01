@@ -15,31 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
-
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
-import org.springframework.context.ApplicationEvent;
+package org.apache.shenyu.common.enums;
 
 /**
- * event of sort plugin.
+ * Shenyu match mode event.
  */
-public class PluginHandlerEvent extends ApplicationEvent {
+public enum TrieMatchModeEvent {
+    /**
+     * ant path match.
+     */
+    ANT_PATH_MATCH("antPathMatch"),
 
-    private static final long serialVersionUID = 3880398095608858961L;
+    /**
+     * path pattern.
+     */
+    PATH_PATTERN("pathPattern");
 
-    private final PluginHandlerEventEnum pluginHandlerEventEnum;
+    private final String matchMode;
 
-    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
-        super(source);
-        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
+    TrieMatchModeEvent(final String matchMode) {
+        this.matchMode = matchMode;
     }
 
     /**
-     * get plugin handler.
-     * @return plugin handler event
+     * get trie match mode.
+     *
+     * @return match mode
      */
-    public PluginHandlerEventEnum getPluginStateEnums() {
-        return pluginHandlerEventEnum;
+    public String getMatchMode() {
+        return matchMode;
     }
 }
