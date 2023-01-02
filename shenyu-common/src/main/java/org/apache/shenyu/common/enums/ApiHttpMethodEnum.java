@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.enums;
 
 import org.apache.shenyu.common.exception.ShenyuException;
+
 import java.util.Arrays;
 
 /**
@@ -76,7 +77,8 @@ public enum ApiHttpMethodEnum {
 
     /**
      * Construct.
-     * @param name name
+     *
+     * @param name  name
      * @param value value
      */
     ApiHttpMethodEnum(final String name, final Integer value) {
@@ -86,6 +88,7 @@ public enum ApiHttpMethodEnum {
 
     /**
      * get name.
+     *
      * @return name
      */
     public String getName() {
@@ -94,6 +97,7 @@ public enum ApiHttpMethodEnum {
 
     /**
      * get value.
+     *
      * @return value
      */
     public Integer getValue() {
@@ -102,6 +106,7 @@ public enum ApiHttpMethodEnum {
 
     /**
      * getValueByName.
+     *
      * @param name name
      * @return value
      */
@@ -112,7 +117,13 @@ public enum ApiHttpMethodEnum {
                 .orElseThrow(() -> new ShenyuException(String.format(" this http method can not support %s", name)));
     }
 
-    public static ApiHttpMethodEnum of(final String name){
+    /**
+     * build ApiHttpMethodEnum by name .
+     *
+     * @param name name
+     * @return ApiHttpMethodEnum
+     */
+    public static ApiHttpMethodEnum of(final String name) {
         return Arrays.stream(ApiHttpMethodEnum.values())
                 .filter(e -> e.name.equals(name)).findFirst()
                 .orElseThrow(() -> new ShenyuException(String.format(" this http method can not support %s", name)));

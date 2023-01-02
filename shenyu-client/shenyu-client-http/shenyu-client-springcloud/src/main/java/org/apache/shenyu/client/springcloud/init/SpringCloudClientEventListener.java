@@ -17,31 +17,25 @@
 
 package org.apache.shenyu.client.springcloud.init;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
-import org.apache.shenyu.common.enums.ApiSourceEnum;
-import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
-import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.common.enums.EventType;
+import org.javatuples.Sextet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -106,61 +100,20 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         mappingAnnotation.add(RequestMapping.class);
     }
 
-    /**
-     * buildApiDocDTO.
-     *
-     * @param bean  bean
-     * @param method method
-     * @return ApiDocRegisterDTO
-     */
     @Override
-    protected List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method) {
-        final String contextPath = getContextPath();
-        String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
-            ApiDoc apiDoc = (ApiDoc) item;
-            return apiDoc.desc();
-        }).orElse("");
-        Class<?> clazz = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
-        String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
-        if (superPath.indexOf("*") > 0) {
-            superPath = superPath.substring(0, superPath.lastIndexOf("/"));
-        }
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
         RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
-        if (Objects.isNull(requestMapping)) {
-            LOG.error("no RequestMapping found for path at bean: {}", bean);
-            return Lists.newArrayList();
-        }
-        List<ApiDocRegisterDTO> list = Lists.newArrayList();
         String produce = requestMapping.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.produces());
         String consume = requestMapping.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.consumes());
         String[] values = requestMapping.value();
-        for (String value : values) {
-            String apiPath = contextPath + superPath + value;
-            RequestMethod[] requestMethods = requestMapping.method();
-            if (requestMethods.length == 0) {
-                requestMethods = RequestMethod.values();
-            }
-            for (RequestMethod requestMethod : requestMethods) {
-                ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
-                        .consume(consume)
-                        .produce(produce)
-                        .httpMethod(ApiHttpMethodEnum.getValueByName(String.valueOf(requestMethod)))
-                        .contextPath(contextPath)
-                        .ext("{}")
-                        .document("{}")
-                        .version("v0.01")
-                        .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
-                        .apiDesc(apiDesc)
-                        .apiPath(apiPath)
-                        .apiSource(ApiSourceEnum.ANNOTATION_GENERATION.getValue())
-                        .state(ApiStateEnum.PUBLISHED.getState())
-                        .apiOwner("admin")
-                        .eventType(EventType.REGISTER)
-                        .build();
-                list.add(build);
-            }
+        RequestMethod[] requestMethods = requestMapping.method();
+        if (requestMethods.length == 0) {
+            requestMethods = RequestMethod.values();
         }
-        return list;
+        List<ApiHttpMethodEnum> collect = Stream.of(requestMethods).map(item -> ApiHttpMethodEnum.of(item.name())).collect(Collectors.toList());
+        ApiHttpMethodEnum[] apiHttpMethodEnums = collect.toArray(new ApiHttpMethodEnum[]{});
+        String version = "v0.01";
+        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.SPRING_CLOUD, version);
     }
 
     @Override
