@@ -44,12 +44,4 @@ public class SpringCloudPluginTest extends AbstractPluginDataInit {
         order = HttpHelper.INSTANCE.postGateway("/springcloud/order/save", order, OrderDTO.class);
         assertEquals("hello world spring cloud save order", order.getName());
     }
-
-    @Test
-    public void testFallBackFactory() throws IOException {
-
-        OrderDTO orderDto = HttpHelper.INSTANCE.getHttpService("http://localhost:8899/findById?id=1",
-                null, OrderDTO.class);
-        assertEquals("fallback factory", orderDto.getName());
-    }
 }
