@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.junit.jupiter.api.Test;
 
@@ -67,37 +66,6 @@ public final class MatchDataCacheTest {
         ConcurrentHashMap<String, MemorySafeWindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
         assertNull(selectorMap.get(mockPluginName1));
         selectorMap.clear();
-    }
-
-    @Test
-    public void testCacheRuleData() throws NoSuchFieldException, IllegalAccessException {
-        RuleData cacheRuleData = RuleData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
-        MatchDataCache.getInstance().cacheRuleData(path1, cacheRuleData, 5 * 1024);
-        ConcurrentHashMap<String, MemorySafeWindowTinyLFUMap<String, RuleData>> ruleMap = getFieldByName(ruleMapStr);
-        assertEquals(cacheRuleData, ruleMap.get(mockPluginName1).get(path1));
-        ruleMap.clear();
-    }
-
-    @Test
-    public void testObtainRuleData() throws NoSuchFieldException, IllegalAccessException {
-        RuleData cacheRuleData = RuleData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
-        ConcurrentHashMap<String, MemorySafeWindowTinyLFUMap<String, RuleData>> ruleMap = getFieldByName(ruleMapStr);
-        ruleMap.put(mockPluginName1, new MemorySafeWindowTinyLFUMap<>(5 * 1024, 16));
-        ruleMap.get(mockPluginName1).put(path1, cacheRuleData);
-        RuleData firstRuleDataCache = MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path1);
-        assertEquals(cacheRuleData, firstRuleDataCache);
-        ruleMap.clear();
-    }
-
-    @Test
-    public void testRemoveRuleData() throws NoSuchFieldException, IllegalAccessException {
-
-        RuleData cacheRuleData = RuleData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
-        MatchDataCache.getInstance().cacheRuleData(path1, cacheRuleData, 5 * 1024);
-        MatchDataCache.getInstance().removeRuleData(cacheRuleData.getPluginName());
-        ConcurrentHashMap<String, MemorySafeWindowTinyLFUMap<String, RuleData>> ruleMap = getFieldByName(ruleMapStr);
-        assertNull(ruleMap.get(mockPluginName1));
-        ruleMap.clear();
     }
 
     @SuppressWarnings("rawtypes")
