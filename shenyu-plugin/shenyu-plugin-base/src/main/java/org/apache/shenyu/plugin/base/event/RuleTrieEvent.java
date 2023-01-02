@@ -15,31 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.cache;
+package org.apache.shenyu.plugin.base.event;
 
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.enums.RuleTrieEventEnum;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * event of sort plugin.
+ * Rule trie event.
  */
-public class PluginHandlerEvent extends ApplicationEvent {
+public class RuleTrieEvent extends ApplicationEvent {
 
-    private static final long serialVersionUID = 3880398095608858961L;
+    private static final long serialVersionUID = -6616858497711197175L;
 
-    private final PluginHandlerEventEnum pluginHandlerEventEnum;
+    private final RuleTrieEventEnum ruleTrieEventEnum;
 
-    public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {
+    /**
+     * shenyu trie event.
+     *
+     * @param ruleTrieEventEnum ruleTrieEventEnum
+     * @param source data
+     */
+    public RuleTrieEvent(final RuleTrieEventEnum ruleTrieEventEnum, final RuleData source) {
         super(source);
-        this.pluginHandlerEventEnum = pluginHandlerEventEnum;
+        this.ruleTrieEventEnum = ruleTrieEventEnum;
     }
 
     /**
-     * get plugin handler.
-     * @return plugin handler event
+     * get rule trie build or remove event.
+     *
+     * @return {@linkplain RuleTrieEventEnum} include insert and remove event
      */
-    public PluginHandlerEventEnum getPluginStateEnums() {
-        return pluginHandlerEventEnum;
+    public RuleTrieEventEnum getRuleTrieEvent() {
+        return ruleTrieEventEnum;
     }
 }
