@@ -15,30 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.configuration;
-
-import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
-import org.apache.shenyu.plugin.api.result.ShenyuResult;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.SearchStrategy;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+package org.apache.shenyu.common.enums;
 
 /**
- * The type shenyu result configuration.
+ * Rule trie event enum.
  */
-@Configuration
-public class ShenyuExtConfiguration {
+public enum RuleTrieEventEnum {
 
     /**
-     * Shenyu result.
-     *
-     * @return the shenyu result
+     * Shenyu Trie insert event.
      */
-    @Bean
-    @ConditionalOnMissingBean(value = ShenyuResult.class, search = SearchStrategy.ALL)
-    public ShenyuResult<?> shenyuResult() {
-        return new DefaultShenyuResult();
-    }
+    INSERT,
 
+    /**
+     * Shenyu Trie remove event.
+     */
+    REMOVE;
 }

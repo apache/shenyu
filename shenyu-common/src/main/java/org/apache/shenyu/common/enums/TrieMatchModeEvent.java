@@ -15,30 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.configuration;
-
-import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
-import org.apache.shenyu.plugin.api.result.ShenyuResult;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.SearchStrategy;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+package org.apache.shenyu.common.enums;
 
 /**
- * The type shenyu result configuration.
+ * Shenyu match mode event.
  */
-@Configuration
-public class ShenyuExtConfiguration {
+public enum TrieMatchModeEvent {
+    /**
+     * ant path match.
+     */
+    ANT_PATH_MATCH("antPathMatch"),
 
     /**
-     * Shenyu result.
-     *
-     * @return the shenyu result
+     * path pattern.
      */
-    @Bean
-    @ConditionalOnMissingBean(value = ShenyuResult.class, search = SearchStrategy.ALL)
-    public ShenyuResult<?> shenyuResult() {
-        return new DefaultShenyuResult();
+    PATH_PATTERN("pathPattern");
+
+    private final String matchMode;
+
+    TrieMatchModeEvent(final String matchMode) {
+        this.matchMode = matchMode;
     }
 
+    /**
+     * get trie match mode.
+     *
+     * @return match mode
+     */
+    public String getMatchMode() {
+        return matchMode;
+    }
 }
