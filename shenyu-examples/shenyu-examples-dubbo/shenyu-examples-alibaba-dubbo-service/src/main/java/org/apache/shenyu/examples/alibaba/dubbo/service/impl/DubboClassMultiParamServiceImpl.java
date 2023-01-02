@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.examples.alibaba.dubbo.service.impl;
 
-import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
-import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.entity.ComplexBeanTest;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
@@ -36,12 +34,10 @@ import java.util.stream.Collectors;
  */
 @Service("dubboClassMultiParamService")
 @ShenyuDubboClient("/demo")
-@ApiModule(value = "/demo")
 public class DubboClassMultiParamServiceImpl implements DubboClassMultiParamService {
     
     @Override
     @ShenyuDubboClient("/findByIdsAndName")
-    @ApiDoc(desc = "findByIdsAndName")
     public DubboTest findByIdsAndName(final List<Integer> ids, final String name) {
         return new DubboTest(ids.toString(), "hello world shenyu alibaba dubbo param findByIdsAndName ：" + name);
     }
