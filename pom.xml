@@ -136,6 +136,7 @@
         <kafka-clients.version>3.2.0</kafka-clients.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>1.10.17</eureka.version>
+        <javatuples.version>1.2</javatuples.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -165,7 +166,6 @@
         <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
-        <javatuples.version>1.2</javatuples.version>
     </properties>
 
     <dependencyManagement>
