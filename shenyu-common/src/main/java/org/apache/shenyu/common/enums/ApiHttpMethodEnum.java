@@ -112,4 +112,10 @@ public enum ApiHttpMethodEnum {
                 .orElseThrow(() -> new ShenyuException(String.format(" this http method can not support %s", name)));
     }
 
+    public static ApiHttpMethodEnum of(final String name){
+        return Arrays.stream(ApiHttpMethodEnum.values())
+                .filter(e -> e.name.equals(name)).findFirst()
+                .orElseThrow(() -> new ShenyuException(String.format(" this http method can not support %s", name)));
+    }
+
 }
