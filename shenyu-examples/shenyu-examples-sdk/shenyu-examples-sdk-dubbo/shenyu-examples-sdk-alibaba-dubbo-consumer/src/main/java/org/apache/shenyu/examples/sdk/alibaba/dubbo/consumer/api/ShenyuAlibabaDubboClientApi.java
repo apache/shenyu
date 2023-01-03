@@ -22,6 +22,7 @@ import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 import org.apache.shenyu.examples.sdk.alibaba.dubbo.consumer.dto.DubboRequestBody;
 import org.apache.shenyu.examples.sdk.alibaba.dubbo.consumer.dto.DubboTestSaveRequest;
+import org.apache.shenyu.examples.sdk.alibaba.dubbo.consumer.impl.ShenyuAlibabaDubboClientApiFallBack;
 import org.apache.shenyu.sdk.spring.ShenyuClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,12 +34,13 @@ import java.util.List;
 /**
  * ShenyuApacheDubboClientApi.
  */
-@ShenyuClient("shenyu-gateway")
+@ShenyuClient(contextId = "shenyu-gateway", name = "ShenyuSdkApiName", fallback = ShenyuAlibabaDubboClientApiFallBack.class)
 public interface ShenyuAlibabaDubboClientApi {
 
     /**
      * findAll.
      * test Get.
+     *
      * @return SdkTestDto
      */
     @GetMapping("/dubbo/findAll")
@@ -46,6 +48,7 @@ public interface ShenyuAlibabaDubboClientApi {
 
     /**
      * findList.
+     *
      * @return ListResp
      */
     @GetMapping("/dubbo/findList")
@@ -53,6 +56,7 @@ public interface ShenyuAlibabaDubboClientApi {
 
     /**
      * findById.
+     *
      * @param id id
      * @return DubboTest
      */
@@ -61,6 +65,7 @@ public interface ShenyuAlibabaDubboClientApi {
 
     /**
      * insert.
+     *
      * @param dubboTest dubboTest
      * @return DubboTest
      */
@@ -69,6 +74,7 @@ public interface ShenyuAlibabaDubboClientApi {
 
     /**
      * findByListId.
+     *
      * @param ids ids
      * @return DubboTest
      */
@@ -77,6 +83,7 @@ public interface ShenyuAlibabaDubboClientApi {
 
     /**
      * findByIdsAndName.
+     *
      * @param dubboRequestBody dubboRequestBody
      * @return DubboTest
      */
@@ -85,6 +92,7 @@ public interface ShenyuAlibabaDubboClientApi {
 
     /**
      * findByArrayIdsAndName.
+     *
      * @param dubboRequestBody dubboRequestBody
      * @return DubboTest
      */
@@ -93,6 +101,7 @@ public interface ShenyuAlibabaDubboClientApi {
 
     /**
      * saveComplexBeanTest.
+     *
      * @param complexBeanTest complexBeanTest
      * @return DubboTest
      */
@@ -101,6 +110,7 @@ public interface ShenyuAlibabaDubboClientApi {
 
     /**
      * batchSave.
+     *
      * @param dubboTestSaveRequest dubboTestSaveRequest
      * @return DubboTest
      */
@@ -109,6 +119,7 @@ public interface ShenyuAlibabaDubboClientApi {
 
     /**
      * batchSaveAndNameAndId.
+     *
      * @param dubboTestSaveRequest dubboTestSaveRequest
      * @return DubboTest
      */

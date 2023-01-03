@@ -15,61 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.dto;
+package org.apache.shenyu.sdk.spring;
 
-import java.util.List;
+public class NoFallbackAvailableException extends RuntimeException {
 
-/**
- * DubboRequestBody.
- *
- * @param <T> type
- */
-public class DubboRequestBody<T> {
+    public NoFallbackAvailableException(final String message, final Throwable cause) {
 
-    /**
-     * ids.
-     */
-
-    private List<T> ids;
-    /**
-     * name.
-     */
-
-    private String name;
-
-    /**
-     * getIds.
-     *
-     * @return list
-     */
-    public List<T> getIds() {
-        return ids;
-    }
-
-    /**
-     * setIds.
-     *
-     * @param ids ids
-     */
-    public void setIds(final List<T> ids) {
-        this.ids = ids;
-    }
-
-    /**
-     * getName.
-     *
-     * @return name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * setName.
-     *
-     * @param name name
-     */
-    public void setName(final String name) {
-        this.name = name;
+        super(message, cause);
     }
 }
