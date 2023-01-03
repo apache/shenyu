@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -34,7 +35,7 @@ public class ApacheDubboPluginTest extends AbstractPluginDataInit {
 
     @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.DUBBO.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\"}");
+        String pluginResult = initPlugin(PluginEnum.DUBBO.getName(), "{\"register\":\"zookeeper://localhost:2181\"}");
         assertThat(pluginResult, is("success"));
     }
 
@@ -47,7 +48,7 @@ public class ApacheDubboPluginTest extends AbstractPluginDataInit {
     @Test
     public void testFindAllFallBck() throws IOException {
 
-        DubboTest dubboTest = HttpHelper.INSTANCE.postGateway("http://localhost:8899/sdk/dubbo/findByListId", null, DubboTest.class);
+        DubboTest dubboTest = HttpHelper.INSTANCE.postHttpService("http://localhost:8899/sdk/dubbo/findByListId", null, new ArrayList<>(), DubboTest.class);
         assertEquals("fallback", dubboTest.getName());
     }
 
