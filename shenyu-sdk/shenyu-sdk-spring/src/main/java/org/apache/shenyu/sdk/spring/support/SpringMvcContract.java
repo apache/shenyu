@@ -81,7 +81,7 @@ public class SpringMvcContract extends Contract.BaseContract {
             if (pathValue != null && !pathValue.isEmpty()) {
                 pathValue = resolve(pathValue);
                 // Append path from @RequestMapping if value is present on method
-                if (!pathValue.startsWith("/") && !requestTemplate.getPath().endsWith("/")) {
+                if (!pathValue.startsWith("/") && requestTemplate.getPath() != null && !requestTemplate.getPath().endsWith("/")) {
                     pathValue = "/" + pathValue;
                 }
                 requestTemplate.setPath(pathValue);
