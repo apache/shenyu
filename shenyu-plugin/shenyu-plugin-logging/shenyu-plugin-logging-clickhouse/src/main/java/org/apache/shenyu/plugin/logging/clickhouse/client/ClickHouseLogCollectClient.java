@@ -17,7 +17,13 @@
 
 package org.apache.shenyu.plugin.logging.clickhouse.client;
 
-import com.clickhouse.client.*;
+import com.clickhouse.client.ClickHouseClient;
+import com.clickhouse.client.ClickHouseCredentials;
+import com.clickhouse.client.ClickHouseNode;
+import com.clickhouse.client.ClickHouseRequest;
+import com.clickhouse.client.ClickHouseFormat;
+import com.clickhouse.client.ClickHouseProtocol;
+import com.clickhouse.client.ClickHouseValue;
 import com.clickhouse.client.data.ClickHouseIntegerValue;
 import com.clickhouse.client.data.ClickHouseLongValue;
 import com.clickhouse.client.data.ClickHouseOffsetDateTimeValue;
@@ -44,6 +50,7 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
     private ClickHouseNode endpoint;
 
     private String database;
+
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) throws Exception {
         if (CollectionUtils.isNotEmpty(logs)) {
@@ -83,18 +90,17 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
                             ClickHouseStringValue.ofNull(),
                             ClickHouseStringValue.ofNull(),
                             ClickHouseStringValue.ofNull(),
-                    ClickHouseIntegerValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseIntegerValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseLongValue.ofNull(false),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                },
-                datas).get();
+                            ClickHouseIntegerValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseIntegerValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseLongValue.ofNull(false),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                    }, datas).get();
         }
     }
 

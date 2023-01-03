@@ -79,7 +79,7 @@ public class ClickHouseLogCollectConfig {
          * set clusterName.
          * @param clusterName clusterName
          */
-        public void setClusterName(String clusterName) {
+        public void setClusterName(final String clusterName) {
             this.clusterName = clusterName;
         }
 
@@ -92,10 +92,10 @@ public class ClickHouseLogCollectConfig {
         }
 
         /**
-         * set engine
+         * set engine.
          * @param engine engine
          */
-        public void setEngine(String engine) {
+        public void setEngine(final String engine) {
             this.engine = engine;
         }
 

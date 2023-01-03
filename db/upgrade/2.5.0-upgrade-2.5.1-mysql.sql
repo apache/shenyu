@@ -67,6 +67,8 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172773', '38', 'username', 'us
 INSERT INTO `plugin_handle` VALUES ('1529402613204172774', '38', 'password', 'password', 2, 3, 7, '{\"required\":\"0\",\"defaultValue\":\"\",\"rule\":\"\"}', '2022-12-30 00:17:21.150', '2022-12-30 00:17:21.150');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172775', '38', 'engine', 'engine', 3, 3, 8, '{\"required\":\"0\",\"defaultValue\":\"MergeTree\",\"rule\":\"\"}', '2022-12-30 00:17:21.150', '2022-12-30 00:17:21.150');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172776', '38', 'clusterName', 'clusterName', 3, 3, 9, '{\"required\":\"1\",\"defaultValue\":\"cluster\",\"rule\":\"\"}', '2022-12-30 00:17:21.150', '2022-12-30 00:17:21.150');
+INSERT INTO `shenyu_dict` VALUES ('1572621976689762305', 'engine', 'engine', 'ReplacingMergeTree', 'ReplacingMergeTree', '', 0, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
+INSERT INTO `shenyu_dict` VALUES ('1572621976689762306', 'engine', 'engine', 'MergeTree', 'MergeTree', '', 1, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
 
 /* insert plugin_handle data for plugin loggingKafka */
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784271', 'securityProtocol', 'SECURITY_PROTOCOL', 'default', '', '', 0, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
@@ -80,8 +82,6 @@ INSERT INTO `shenyu_dict` VALUES ('1529402613195784278', 'saslMechanism', 'SASL_
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784279', 'saslMechanism', 'SASL_MECHANISM', 'OAUTHBEARER', 'OAUTHBEARER', '', 3, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784280', 'saslMechanism', 'SASL_MECHANISM', 'SCRAM-SHA-256', 'SCRAM-SHA-256', '', 4, 1,'2022-09-02 00:00:00', '2022-09-02 00:00:00');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784281', 'saslMechanism', 'SASL_MECHANISM', 'SCRAM-SHA-512', 'SCRAM-SHA-512', '', 5, 1, '2022-09-02 00:00:00', '2022-09-02 00:00:00');
-INSERT INTO `shenyu_dict` VALUES ('1572621976689762305', 'engine', 'engine', 'ReplacingMergeTree', 'ReplacingMergeTree', '', 0, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
-INSERT INTO `shenyu_dict` VALUES ('1572621976689762306', 'engine', 'engine', 'MergeTree', 'MergeTree', '', 1, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
 
 INSERT INTO `plugin_handle` VALUES ('1529402613204172898', '33', 'securityProtocol', 'securityProtocol', 3, 3, 8, '{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-09-01 22:00:00', '2022-09-01 22:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172899', '33', 'saslMechanism', 'saslMechanism', 3, 3, 9,'{\"required\":\"0\",\"defaultValue\":\"\"}', '2022-07-04 22:00:00', '2022-09-01 22:00:00');

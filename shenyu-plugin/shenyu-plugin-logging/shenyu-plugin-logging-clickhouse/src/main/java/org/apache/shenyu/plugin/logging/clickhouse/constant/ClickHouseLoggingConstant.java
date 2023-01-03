@@ -58,8 +58,8 @@ public class ClickHouseLoggingConstant {
     /**
      * The constant CREATE_DISTRIBUTED_TABLE_SQL.
      */
-    public static final String CREATE_DISTRIBUTED_TABLE_SQL = "create table if not exists `%s`.request_log_distributed\n" +
-            " AS `%s`.request_log ENGINE = Distributed('%s', '%s', 'request_log', rand());";
+    public static final String CREATE_DISTRIBUTED_TABLE_SQL = "create table if not exists `%s`.request_log_distributed\n"
+            + " AS `%s`.request_log ENGINE = Distributed('%s', '%s', 'request_log', rand());";
 
     /**
      * The constant PRE_INSERT_SQL.
