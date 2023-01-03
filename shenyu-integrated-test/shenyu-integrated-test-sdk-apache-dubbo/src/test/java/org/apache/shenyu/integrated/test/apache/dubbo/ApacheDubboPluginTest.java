@@ -47,7 +47,7 @@ public class ApacheDubboPluginTest extends AbstractPluginDataInit {
     @Test
     public void testFindAllFallBck() throws IOException {
 
-        DubboTest dubboTest = HttpHelper.INSTANCE.getHttpService("http://localhost:8899/sdk/dubbo/findByListId", null, DubboTest.class);
+        DubboTest dubboTest = HttpHelper.INSTANCE.postGateway("http://localhost:8899/sdk/dubbo/findByListId", null, DubboTest.class);
         assertEquals("fallback", dubboTest.getName());
     }
 
