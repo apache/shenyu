@@ -72,10 +72,10 @@ public class ShenyuClientMethodHandler {
     private Object handlerResponse(final ShenyuResponse shenyuResponse, final Class<?> returnType) {
         if (shenyuResponse == null || void.class == returnType) {
             return null;
-        } else if (shenyuResponse.getStatus() != HttpStatus.OK.value()) {
-            throw new HttpClientErrorException(HttpStatus.valueOf(shenyuResponse.getStatus()));
         } else if (ShenyuResponse.class == returnType) {
             return shenyuResponse;
+        } else if (shenyuResponse.getStatus() != HttpStatus.OK.value()) {
+            throw new HttpClientErrorException(HttpStatus.valueOf(shenyuResponse.getStatus()));
         } else if (StringUtils.hasText(shenyuResponse.getBody())) {
             return JsonUtils.jsonToObject(shenyuResponse.getBody(), returnType);
         } else {
