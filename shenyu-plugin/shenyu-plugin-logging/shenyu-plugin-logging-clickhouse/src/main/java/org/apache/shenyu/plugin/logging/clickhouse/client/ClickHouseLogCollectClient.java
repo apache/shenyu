@@ -35,6 +35,7 @@ import org.apache.shenyu.plugin.logging.clickhouse.constant.ClickHouseLoggingCon
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.springframework.lang.NonNull;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
