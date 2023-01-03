@@ -35,7 +35,7 @@ public class ApacheDubboPluginTest extends AbstractPluginDataInit {
 
     @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.DUBBO.getName(), "{\"register\":\"zookeeper://localhost:2181\"}");
+        String pluginResult = initPlugin(PluginEnum.DUBBO.getName(), "{\"register\":\"zookeeper://shenyu-zk:2181\"}");
         assertThat(pluginResult, is("success"));
     }
 
