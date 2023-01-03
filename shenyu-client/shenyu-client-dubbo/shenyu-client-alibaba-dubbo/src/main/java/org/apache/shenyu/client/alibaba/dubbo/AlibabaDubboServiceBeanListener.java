@@ -21,8 +21,10 @@ import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -31,11 +33,14 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.javatuples.Sextet;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
@@ -58,6 +63,21 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
     public AlibabaDubboServiceBeanListener(final PropertiesConfig clientConfig,
                                            final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
+    }
+
+    @Override
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
+        ShenyuDubboClient shenyuDubboClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuDubboClient.class);
+        if (Objects.isNull(shenyuDubboClient)) {
+            return null;
+        }
+        String produce = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+        String consume = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+        String[] values = new String[]{shenyuDubboClient.value()};
+        ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
+        //TODO 获取dubbo version
+        String version = "v0.01";
+        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.DUBBO, version);
     }
 
     @Override

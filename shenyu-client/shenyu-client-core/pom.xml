@@ -76,5 +76,10 @@
             <artifactId>spring-context-support</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-client-api-docs-annotations</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

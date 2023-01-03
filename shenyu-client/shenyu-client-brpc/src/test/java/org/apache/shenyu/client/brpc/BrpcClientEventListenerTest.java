@@ -72,7 +72,7 @@ public class BrpcClientEventListenerTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         BrpcContextRefreshedEventListener springMvcClientEventListener = buildBrpcClientEventListener();
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
     
@@ -83,7 +83,7 @@ public class BrpcClientEventListenerTest {
                 .thenAnswer((Answer<Void>) invocation -> null);
         BrpcContextRefreshedEventListener springMvcClientEventListener = buildBrpcClientEventListener();
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
     
