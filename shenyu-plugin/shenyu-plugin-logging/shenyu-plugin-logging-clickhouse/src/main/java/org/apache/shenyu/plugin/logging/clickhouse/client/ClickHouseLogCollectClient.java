@@ -17,13 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.clickhouse.client;
 
-import com.clickhouse.client.ClickHouseClient;
-import com.clickhouse.client.ClickHouseCredentials;
-import com.clickhouse.client.ClickHouseFormat;
-import com.clickhouse.client.ClickHouseNode;
-import com.clickhouse.client.ClickHouseProtocol;
-import com.clickhouse.client.ClickHouseRequest;
-import com.clickhouse.client.ClickHouseValue;
+import com.clickhouse.client.*;
 import com.clickhouse.client.data.ClickHouseIntegerValue;
 import com.clickhouse.client.data.ClickHouseLongValue;
 import com.clickhouse.client.data.ClickHouseOffsetDateTimeValue;
@@ -49,6 +43,7 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
 
     private ClickHouseNode endpoint;
 
+    private String database;
     @Override
     public void consume0(@NonNull final List<ShenyuRequestLog> logs) throws Exception {
         if (CollectionUtils.isNotEmpty(logs)) {
@@ -77,17 +72,17 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
                 };
                 datas[i] = data;
             }
-            ClickHouseClient.send(endpoint, ClickHouseLoggingConstant.PRE_INSERT_SQL,
-                new ClickHouseValue[] {
-                    ClickHouseOffsetDateTimeValue.ofNull(3, TimeZone.getTimeZone("Asia/Shanghai")),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
-                    ClickHouseStringValue.ofNull(),
+            ClickHouseClient.send(endpoint, String.format(ClickHouseLoggingConstant.PRE_INSERT_SQL, database),
+                    new ClickHouseValue[]{
+                            ClickHouseOffsetDateTimeValue.ofNull(3, TimeZone.getTimeZone("Asia/Shanghai")),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
+                            ClickHouseStringValue.ofNull(),
                     ClickHouseIntegerValue.ofNull(),
                     ClickHouseStringValue.ofNull(),
                     ClickHouseIntegerValue.ofNull(),
@@ -119,17 +114,18 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
     public void initClient0(@NonNull final ClickHouseLogCollectConfig.ClickHouseLogConfig config) {
         final String username = config.getUsername();
         final String password = config.getPassword();
+        database = config.getDatabase();
         endpoint = ClickHouseNode.builder()
             .host(config.getHost())
             .port(ClickHouseProtocol.HTTP, Integer.valueOf(config.getPort()))
-            .database(config.getDatabase())
             .credentials(ClickHouseCredentials.fromUserAndPassword(username, password))
             .build();
         try {
             client = ClickHouseClient.builder().build();
             ClickHouseRequest<?> request = client.connect(endpoint).format(ClickHouseFormat.TabSeparatedWithNamesAndTypes);
-            request.query(ClickHouseLoggingConstant.CREATE_DATABASE_SQL).executeAndWait();
-            request.query(ClickHouseLoggingConstant.CREATE_TABLE_SQL).executeAndWait();
+            request.query(String.format(ClickHouseLoggingConstant.CREATE_DATABASE_SQL, database)).executeAndWait();
+            request.query(String.format(ClickHouseLoggingConstant.CREATE_TABLE_SQL, database, config.getEngine())).executeAndWait();
+            request.query(String.format(ClickHouseLoggingConstant.CREATE_DISTRIBUTED_TABLE_SQL, database, database, config.getClusterName(), database)).executeAndWait();
         } catch (Exception e) {
             LOG.error("inti ClickHouseLogClient error" + e);
         }
