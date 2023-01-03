@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.examples.sdk.apache.dubbo.consumer.dto;
 
-import java.util.List;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
+
+import java.util.List;
 
 /**
  * DubboTestSaveRequest.
@@ -42,6 +43,7 @@ public class DubboTestSaveRequest {
 
     /**
      * getId.
+     *
      * @return id
      */
     public String getId() {
@@ -50,6 +52,7 @@ public class DubboTestSaveRequest {
 
     /**
      * setId.
+     *
      * @param id id
      */
     public void setId(final String id) {
@@ -58,6 +61,7 @@ public class DubboTestSaveRequest {
 
     /**
      * getName.
+     *
      * @return name
      */
     public String getName() {
@@ -66,6 +70,7 @@ public class DubboTestSaveRequest {
 
     /**
      * setName.
+     *
      * @param name name
      */
     public void setName(final String name) {
@@ -74,6 +79,7 @@ public class DubboTestSaveRequest {
 
     /**
      * getDubboTestList.
+     *
      * @return list
      */
     public List<DubboTest> getDubboTestList() {
@@ -82,6 +88,7 @@ public class DubboTestSaveRequest {
 
     /**
      * setDubboTestList.
+     *
      * @param dubboTestList dubboTestList
      */
     public void setDubboTestList(final List<DubboTest> dubboTestList) {
