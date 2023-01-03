@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.web.configuration;
 
-import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,14 +49,6 @@ public class ShenyuExtConfigurationTest {
         applicationContextRunner.run(context -> {
             ShenyuResult shenyuResult = context.getBean("shenyuResult", ShenyuResult.class);
             assertNotNull(shenyuResult);
-        });
-    }
-
-    @Test
-    public void testRemoteAddressResolver() {
-        applicationContextRunner.run(context -> {
-            RemoteAddressResolver remoteAddressResolver = context.getBean("remoteAddressResolver", RemoteAddressResolver.class);
-            assertNotNull(remoteAddressResolver);
         });
     }
 

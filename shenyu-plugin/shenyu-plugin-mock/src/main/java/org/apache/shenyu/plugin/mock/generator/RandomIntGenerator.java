@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
 
@@ -34,7 +35,7 @@ public class RandomIntGenerator implements Generator<Integer> {
     }
 
     @Override
-    public Integer doGenerate(final List<String> params, final String rule) {
+    public Integer doGenerate(final List<String> params, final String rule, final MockRequest mockRequest) {
         String[] range = params.get(0).split("-");
         int min = Integer.parseInt(range[0]);
         int max = Integer.parseInt(range[1]);

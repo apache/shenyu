@@ -26,6 +26,8 @@ import org.springframework.context.ApplicationEvent;
  */
 public class PluginHandlerEvent extends ApplicationEvent {
 
+    private static final long serialVersionUID = 3880398095608858961L;
+
     private final PluginHandlerEventEnum pluginHandlerEventEnum;
 
     public PluginHandlerEvent(final PluginHandlerEventEnum pluginHandlerEventEnum, final PluginData source) {

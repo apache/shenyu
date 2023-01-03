@@ -15,23 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integrated.test.apache.dubbo;
+package org.apache.shenyu.examples.sdk.grpc.consumer.dto;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+public class EchoRequest {
 
-/**
- * The type sdk Alibaba dubbo integrated bootstrap.
- */
-@SpringBootApplication
-public class SdkAlibabaDubboIntegratedBootstrap {
+    private String message;
 
     /**
-     * The entry point of application.
+     * getMessage.
      *
-     * @param args the input arguments
+     * @return message
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(SdkAlibabaDubboIntegratedBootstrap.class);
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * setMessage.
+     *
+     * @param message message
+     */
+    public void setMessage(final String message) {
+        this.message = message;
     }
 }
