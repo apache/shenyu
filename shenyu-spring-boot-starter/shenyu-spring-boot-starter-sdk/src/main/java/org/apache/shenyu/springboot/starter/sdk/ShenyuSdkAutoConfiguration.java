@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.sdk;
 
+import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.core.ShenyuInstanceRegisterRepositoryFactory;
@@ -52,9 +53,13 @@ import java.util.Properties;
  * The type Shenyu sdk autoConfiguration.
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(value = {"shenyu.sdk.enabled"}, havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "shenyu.sdk.enabled", havingValue = "true", matchIfMissing = true)
 public class ShenyuSdkAutoConfiguration {
-    
+
+    static {
+        VersionUtils.checkDuplicate(ShenyuSdkAutoConfiguration.class);
+    }
+
     /**
      * springMvcContract.
      *
