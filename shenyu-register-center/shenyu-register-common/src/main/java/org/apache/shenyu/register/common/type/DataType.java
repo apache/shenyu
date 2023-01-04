@@ -31,4 +31,9 @@ public enum DataType {
      * Uri data type enum.
      */
     URI,
+
+    /**
+     * Api doc type enum.
+     */
+    API_DOC,
 }
