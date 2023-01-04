@@ -22,16 +22,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
+import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.PathUtils;
-import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.javatuples.Sextet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -40,6 +44,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -51,11 +56,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Spring cloud client event listener.
  */
 public class SpringCloudClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringCloudClient> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientEventListener.class);
 
     private final Boolean isFull;
     
@@ -90,6 +98,22 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         this.servletContextPath = env.getProperty("server.servlet.context-path", "");
         mappingAnnotation.add(ShenyuSpringCloudClient.class);
         mappingAnnotation.add(RequestMapping.class);
+    }
+
+    @Override
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
+        RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
+        String produce = requestMapping.produces().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.produces());
+        String consume = requestMapping.consumes().length == 0 ? ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE : String.join(",", requestMapping.consumes());
+        String[] values = requestMapping.value();
+        RequestMethod[] requestMethods = requestMapping.method();
+        if (requestMethods.length == 0) {
+            requestMethods = RequestMethod.values();
+        }
+        List<ApiHttpMethodEnum> collect = Stream.of(requestMethods).map(item -> ApiHttpMethodEnum.of(item.name())).collect(Collectors.toList());
+        ApiHttpMethodEnum[] apiHttpMethodEnums = collect.toArray(new ApiHttpMethodEnum[]{});
+        String version = "v0.01";
+        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.SPRING_CLOUD, version);
     }
 
     @Override

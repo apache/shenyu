@@ -15,35 +15,45 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.enums;
+package org.apache.shenyu.common.enums;
 
 /**
- * The enum Event type.
+ * the api state.
  */
-public enum EventType {
-    
-    /**
-     * Register event type.
-     */
-    REGISTER,
+public enum ApiStateEnum {
 
     /**
-     * Updated event type.
+     * unpublished.
      */
-    UPDATED,
+    UNPUBLISHED(0),
 
     /**
-     * Deleted event type.
+     * published.
      */
-    DELETED,
+    PUBLISHED(1),
 
     /**
-     * Ignored event type.
+     * offline.
      */
-    IGNORED,
+    OFFLINE(2);
+
+    private final int state;
 
     /**
-     * offline event type.
+     * Construct.
+     *
+     * @param state state
      */
-    OFFLINE
+    ApiStateEnum(final int state) {
+        this.state = state;
+    }
+
+    /**
+     * get the state.
+     *
+     * @return the state
+     */
+    public int getState() {
+        return state;
+    }
 }

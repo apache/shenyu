@@ -15,35 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.common.enums;
+package org.apache.shenyu.client.apidocs.annotations;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * The enum Event type.
+ * ApiDoc
+ * declaring {@code @ApiDoc}.
  */
-public enum EventType {
-    
-    /**
-     * Register event type.
-     */
-    REGISTER,
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface ApiDoc {
 
     /**
-     * Updated event type.
+     * desc.
+     *
+     * @return String
      */
-    UPDATED,
-
-    /**
-     * Deleted event type.
-     */
-    DELETED,
-
-    /**
-     * Ignored event type.
-     */
-    IGNORED,
-
-    /**
-     * offline event type.
-     */
-    OFFLINE
+    String desc();
 }
