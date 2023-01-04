@@ -95,7 +95,7 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
 
     private void buildMethodHandlerMap(final Class<?> apiClass, final ShenyuClient shenyuClient) {
         // parseAndValidate RequestTemplate
-        final List<RequestTemplate> requestTemplates = contract.parseAndValidateRequestTemplate(apiClass);
+        final List<RequestTemplate> requestTemplates = contract.parseAndValidateRequestTemplate(apiClass, shenyuClientFactoryBean);
 
         final ShenyuSdkClient shenyuSdkClient = applicationContext.getBean(ShenyuSdkClient.class);
         final Map<String, AnnotatedParameterProcessor> annotatedParameterProcessorMap = applicationContext.getBeansOfType(AnnotatedParameterProcessor.class);
@@ -107,7 +107,7 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
             requestTemplate.setName(shenyuClientFactoryBean.getName());
             requestTemplate.setContextId(Optional.ofNullable(shenyuClientFactoryBean.getContextId()).orElse(shenyuClientFactoryBean.getName()));
             if (StringUtils.hasText(shenyuClientFactoryBean.getPath())) {
-                requestTemplate.setPath(shenyuClientFactoryBean.getPath() + "/" + requestTemplate.getPath());
+                requestTemplate.setPath(shenyuClientFactoryBean.getPath() + requestTemplate.getPath());
             }
             methodHandlerMap.put(requestTemplate.getMethod(),
                     new ShenyuClientMethodHandler(shenyuClient, requestTemplate, shenyuSdkClient, annotatedArgumentProcessors));

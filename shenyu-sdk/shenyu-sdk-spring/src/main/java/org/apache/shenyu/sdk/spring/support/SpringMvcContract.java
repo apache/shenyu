@@ -19,6 +19,7 @@ package org.apache.shenyu.sdk.spring.support;
 
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
+import org.apache.shenyu.sdk.spring.ShenyuClientFactoryBean;
 import org.apache.shenyu.sdk.spring.factory.Contract;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -47,17 +48,18 @@ public class SpringMvcContract extends Contract.BaseContract {
     private ResourceLoader resourceLoader = new DefaultResourceLoader();
 
     @Override
-    public RequestTemplate parseRequestTemplate(final Method method) {
+    public RequestTemplate parseRequestTemplate(final Method method, final ShenyuClientFactoryBean shenyuClientFactoryBean) {
         final RequestTemplate requestTemplate = new RequestTemplate();
         requestTemplate.setMethod(method);
         requestTemplate.setReturnType(method.getReturnType());
         for (final Annotation methodAnnotation : method.getAnnotations()) {
-            this.processAnnotationOnMethod(requestTemplate, methodAnnotation, method);
+            this.processAnnotationOnMethod(requestTemplate, methodAnnotation, method, shenyuClientFactoryBean);
         }
         return requestTemplate;
     }
 
-    protected void processAnnotationOnMethod(final RequestTemplate requestTemplate, final Annotation methodAnnotation, final Method method) {
+    protected void processAnnotationOnMethod(final RequestTemplate requestTemplate, final Annotation methodAnnotation,
+                                             final Method method, final ShenyuClientFactoryBean shenyuClientFactoryBean) {
 
         if (!RequestMapping.class.isInstance(methodAnnotation)
                 && !methodAnnotation.annotationType().isAnnotationPresent(RequestMapping.class)) {
@@ -81,7 +83,9 @@ public class SpringMvcContract extends Contract.BaseContract {
             if (pathValue != null && !pathValue.isEmpty()) {
                 pathValue = resolve(pathValue);
                 // Append path from @RequestMapping if value is present on method
-                if (!pathValue.startsWith("/") && requestTemplate.getPath() != null && !requestTemplate.getPath().endsWith("/")) {
+                if (!pathValue.startsWith("/")
+                        && StringUtils.hasText(shenyuClientFactoryBean.getPath())
+                        && !shenyuClientFactoryBean.getPath().endsWith("/")) {
                     pathValue = "/" + pathValue;
                 }
                 requestTemplate.setPath(pathValue);
