@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.integrated.test.alibaba.dubbo;
+package org.apache.shenyu.integrated.test.apache.dubbo;
 
-import java.io.IOException;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.DubboTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -41,6 +42,13 @@ public class ApacheDubboPluginTest extends AbstractPluginDataInit {
     public void testFindAll() throws IOException {
         DubboTest dubboTest = HttpHelper.INSTANCE.getHttpService("http://localhost:8899/sdk/dubbo/findAll", null, DubboTest.class);
         assertEquals("hello world shenyu Apache, findAll", dubboTest.getName());
+    }
+
+    @Test
+    public void testFindAllFallBck() throws IOException {
+
+        DubboTest dubboTest = HttpHelper.INSTANCE.getHttpService("http://localhost:8899/sdk/dubbo/findAll", null, DubboTest.class);
+        assertEquals("fallback", dubboTest.getName());
     }
 
 }

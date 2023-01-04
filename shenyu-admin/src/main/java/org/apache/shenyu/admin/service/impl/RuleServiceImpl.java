@@ -273,7 +273,7 @@ public class RuleServiceImpl implements RuleService {
                 .orElseGet(ArrayList::new)
                 .stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toMap(RuleConditionDO::getRuleId, ruleConditionDO -> ListUtil.of(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO)), ListUtil::merge));
+                .collect(Collectors.toMap(RuleConditionDO::getRuleId, ruleConditionDO -> ListUtil.list(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO)), ListUtil::merge));
         
         return ruleDOList.stream()
                 .filter(Objects::nonNull)
