@@ -62,4 +62,20 @@ public interface ApiService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<ApiVO> listByPage(ApiQuery apiQuery);
+
+    /**
+     * deleteByApiPathHttpMethodRpcType.
+     * @param apiPath apiPath
+     * @param httpMethod httpMethod
+     * @param rpcType rpcType
+     * @return delete rows
+     */
+    int deleteByApiPathHttpMethodRpcType(String apiPath, Integer httpMethod, String rpcType);
+
+    /**
+     * offlineByContextPath.
+     * @param contextPath context path
+     * @return the string
+     */
+    String offlineByContextPath(String contextPath);
 }
