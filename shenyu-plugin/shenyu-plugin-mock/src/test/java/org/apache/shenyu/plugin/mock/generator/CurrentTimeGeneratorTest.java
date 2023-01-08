@@ -24,17 +24,15 @@ import org.junit.jupiter.api.Test;
  * The test case for {@link CurrentTimeGenerator}.
  */
 public final class CurrentTimeGeneratorTest {
-    
+
     private final CurrentTimeGenerator generator = new CurrentTimeGenerator();
-    
+
     @Test
     public void testGenerate() {
-        generator.parseRule("${current}");
-        Assertions.assertTrue(generator.generate().matches("^\\d{4}(-\\d{2}){2} \\d{2}(:\\d{2}){2}$"));
-        generator.parseRule("current|YYYY-MM-dd");
-        Assertions.assertTrue(generator.generate().matches("^\\d{4}(-\\d{2}){2}$"));
+        Assertions.assertTrue(generator.generate("current", null).matches("^\\d{4}(-\\d{2}){2} \\d{2}(:\\d{2}){2}$"));
+        Assertions.assertTrue(generator.generate("current|YYYY-MM-dd", null).matches("^\\d{4}(-\\d{2}){2}$"));
     }
-    
+
     @Test
     public void testMatch() {
         Assertions.assertTrue(generator.match("current"));

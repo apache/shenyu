@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,24 +30,24 @@ import java.util.regex.Pattern;
  * GeneratorFactory.
  */
 public final class GeneratorFactory {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(GeneratorFactory.class);
-    
+
     /**
      * If expression parsing fails, the ${} placeholder
      * will be replaced with the following.
      */
     private static final String ERROR_PARSE = "\"[#ERROR EXPRESSION#]\"";
-    
+
     /**
      * Regular expression to extract rule content.
      */
     private static final Pattern RULE_CONTENT_PATTERN = Pattern
             .compile("^\\$\\{(.+?)}$", Pattern.MULTILINE);
-    
+
     private GeneratorFactory() {
     }
-    
+
     /**
      * New instance mock data generator.
      *
@@ -62,47 +63,53 @@ public final class GeneratorFactory {
         }
         return null;
     }
-    
-    private static String generate(final String rule) {
+
+    private static String generate(final String rule, final MockRequest mockRequest) {
         final Matcher matcher = RULE_CONTENT_PATTERN.matcher(rule);
-        if (matcher.find()) {
-            String ruleContent = matcher.group(1);
-            String ruleName = ruleContent.split("\\|")[0];
-            Generator<?> generator = newInstance(ruleName, rule);
-            if (generator == null || !generator.match(ruleContent)) {
-                return rule;
-            }
-            String[] prefixAndSuffix = generator.getPrefixAndSuffix();
-            generator.parseRule(ruleContent);
-            Object generateData = generator.generate();
+        if (!matcher.find()) {
+            return rule;
+        }
+
+        String ruleContent = matcher.group(1);
+        String ruleName = ruleContent.split("\\|")[0];
+        Generator<?> generator = newInstance(ruleName, rule);
+        if (generator == null || !generator.match(ruleContent)) {
+            return rule;
+        }
+
+        String[] prefixAndSuffix = generator.getPrefixAndSuffix();
+        try {
+            Object generateData = generator.generate(ruleContent, mockRequest);
             return String.join("", prefixAndSuffix[0], generateData.toString(), prefixAndSuffix[1]);
-        } else {
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
             return rule;
         }
     }
-    
+
     /**
      * replace placeholder in content.
      *
-     * @param content response content.
+     * @param content response content
+     * @param mockRequest request
      * @return replace the content after the placeholder.
      */
-    public static String dealRule(final String content) {
+    public static String dealRule(final String content, final MockRequest mockRequest) {
         String afterDeal = content;
         String placeHolder = getPlaceholder(content);
         while (placeHolder != null) {
-            Object generateData = generate(placeHolder);
+            Object generateData = generate(placeHolder, mockRequest);
             if (Objects.equals(generateData, placeHolder)) {
                 generateData = ERROR_PARSE;
             }
             String toString = String.valueOf(generateData);
-            placeHolder = placeHolder.replaceAll("([$|{}\\]\\[])", "\\\\$1");
+            placeHolder = placeHolder.replaceAll("([$|{}()\\]\\[])", "\\\\$1");
             afterDeal = afterDeal.replaceFirst(placeHolder, toString);
             placeHolder = getPlaceholder(afterDeal);
         }
         return afterDeal;
     }
-    
+
     private static String getPlaceholder(final String rule) {
         int start = rule.indexOf("${");
         if (start < 0) {
@@ -122,4 +129,5 @@ public final class GeneratorFactory {
         }
         return null;
     }
+
 }

@@ -262,7 +262,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         AppAuthDO appAuthDO = AppAuthDO.create(appAuthDTO);
         DataEventTypeEnum eventType;
         if (StringUtils.isBlank(appAuthDTO.getId())) {
-            appAuthDO.setAppSecret(SignUtils.getInstance().generateKey());
+            appAuthDO.setAppSecret(SignUtils.generateKey());
             appAuthCount = appAuthMapper.insertSelective(appAuthDO);
             eventType = DataEventTypeEnum.CREATE;
         } else {
@@ -286,17 +286,19 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
+        List<AppAuthDO> appAuthList = appAuthMapper.selectByIds(ids);
+        if (CollectionUtils.isEmpty(appAuthList)) {
+            return 0;
+        }
         int affectCount = appAuthMapper.deleteByIds(ids);
-        authParamMapper.deleteByAuthIds(ids);
-        authPathMapper.deleteByAuthIds(ids);
         if (affectCount <= 0) {
             return affectCount;
         }
-
-        List<AppAuthDO> appAuthList = appAuthMapper.selectByIds(ids);
-        if (CollectionUtils.isEmpty(appAuthList)) {
-            return affectCount;
-        }
+        authParamMapper.deleteByAuthIds(ids);
+        authPathMapper.deleteByAuthIds(ids);
 
         List<AppAuthData> appAuthData = new ArrayList<>(appAuthList.size());
         appAuthList.forEach(appAuthDO -> {

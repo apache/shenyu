@@ -76,4 +76,9 @@ public final class ShenyuClientConstants {
      * prefix forward status.
      */
     public static final String ADD_PREFIXED = "addPrefixed";
+
+    /**
+     * media type all value.
+     */
+    public static final String MEDIA_TYPE_ALL_VALUE = "*/*";
 }

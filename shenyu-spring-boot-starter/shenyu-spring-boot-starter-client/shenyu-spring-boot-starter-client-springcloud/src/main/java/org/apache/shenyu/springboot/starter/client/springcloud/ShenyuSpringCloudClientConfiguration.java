@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.starter.client.springcloud;
 
 import org.apache.shenyu.client.springcloud.init.SpringCloudClientEventListener;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
@@ -35,7 +36,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 @ConditionalOnProperty(value = "shenyu.register.enabled", matchIfMissing = true, havingValue = "true")
 public class ShenyuSpringCloudClientConfiguration {
-    
+
+    static {
+        VersionUtils.checkDuplicate(ShenyuSpringCloudClientConfiguration.class);
+    }
+
     /**
      * Spring cloud client bean post processor.
      *

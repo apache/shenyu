@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
 
 /**
  * The test case for {@link ZhStringGenerator}.
@@ -28,19 +28,18 @@ import org.junit.jupiter.api.Test;
  * @date 2022/6/20 15:44
  */
 public final class ZhStringGeneratorTest {
-    
+
     private final ZhStringGenerator generator = new ZhStringGenerator();
-    
+
     @Test
     public void generate() {
         int minLength = 10;
         int maxLength = 20;
-        generator.parseRule(String.format("zh|%d-%d", minLength, maxLength));
-        String generate = generator.generate();
+        String generate = generator.generate(String.format("zh|%d-%d", minLength, maxLength), null);
         assertTrue(
-            generate != null && generate.length() >= minLength && generate.length() <= maxLength);
+                generate != null && generate.length() >= minLength && generate.length() <= maxLength);
     }
-    
+
     @Test
     public void match() {
         assertTrue(generator.match("zh|10-15"));

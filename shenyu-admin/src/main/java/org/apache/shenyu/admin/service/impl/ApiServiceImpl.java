@@ -90,7 +90,6 @@ public class ApiServiceImpl implements ApiService {
                         .id(UUIDUtils.getInstance().generateShortUuid())
                         .apiId(apiDO.getId())
                         .tagId(tagId)
-                        .dateCreated(currentTime)
                         .dateUpdated(currentTime)
                         .build());
             }
@@ -175,5 +174,26 @@ public class ApiServiceImpl implements ApiService {
                     }
                     return ApiVO.buildApiVO(item, tagVOS);
                 }).collect(Collectors.toList()));
+    }
+
+    @Override
+    public int deleteByApiPathHttpMethodRpcType(final String apiPath, final Integer httpMethod, final String rpcType) {
+        List<ApiDO> apiDOs = apiMapper.selectByApiPathHttpMethodRpcType(apiPath, httpMethod, rpcType);
+        // delete apis.
+        if (CollectionUtils.isNotEmpty(apiDOs)) {
+            final List<String> apiIds = ListUtil.map(apiDOs, ApiDO::getId);
+            final int deleteRows = this.apiMapper.deleteByIds(apiIds);
+            if (deleteRows > 0) {
+                tagRelationMapper.deleteByApiIds(apiIds);
+            }
+            return deleteRows;
+        }
+        return 0;
+    }
+
+    @Override
+    public String offlineByContextPath(final String contextPath) {
+        apiMapper.updateOfflineByContextPath(contextPath);
+        return ShenyuResultMessage.SUCCESS;
     }
 }

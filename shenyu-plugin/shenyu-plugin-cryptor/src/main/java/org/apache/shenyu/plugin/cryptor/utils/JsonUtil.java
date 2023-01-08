@@ -20,10 +20,7 @@ package org.apache.shenyu.plugin.cryptor.utils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -61,22 +58,6 @@ public final class JsonUtil {
             return map.get(fieldNames) == null ? null : map.get(fieldNames).toString();
         }
         return str;
-    }
-
-    /**
-     * check param.
-     * @param ruleHandle ruleHandle
-     * @return is null
-     */
-    public static Pair<Boolean, String> checkParam(final CryptorRuleHandler ruleHandle) {
-        String json = GsonUtils.getGson().toJson(ruleHandle);
-        Map<String, String> map = GsonUtils.getInstance().toObjectMap(json, String.class);
-        for (Map.Entry<String, String> entry : map.entrySet()) {
-            if (StringUtils.isEmpty(map.get(entry.getKey()))) {
-                return Pair.of(true, entry.getKey());
-            }
-        }
-        return Pair.of(false, "");
     }
 
     /**
