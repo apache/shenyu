@@ -72,7 +72,7 @@ public class BrpcRegisterConfig implements Serializable {
      *
      * @param port port
      */
-    public void setPort(Integer port) {
+    public void setPort(final Integer port) {
         this.port = port;
     }
 
@@ -149,11 +149,17 @@ public class BrpcRegisterConfig implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         BrpcRegisterConfig that = (BrpcRegisterConfig) o;
-        return Objects.equals(address, that.address) && Objects.equals(port, that.port) && Objects.equals(threadpool, that.threadpool) && Objects.equals(corethreads, that.corethreads) && Objects.equals(threads, that.threads) && Objects.equals(queues, that.queues);
+        return Objects.equals(address, that.address) && Objects.equals(port, that.port)
+                && Objects.equals(threadpool, that.threadpool) && Objects.equals(corethreads, that.corethreads)
+                && Objects.equals(threads, that.threads) && Objects.equals(queues, that.queues);
     }
 
     @Override
@@ -163,13 +169,15 @@ public class BrpcRegisterConfig implements Serializable {
 
     @Override
     public String toString() {
-        return "BrpcRegisterConfig{" +
-                "address='" + address + '\'' +
-                ", port=" + port +
-                ", threadpool='" + threadpool + '\'' +
-                ", corethreads=" + corethreads +
-                ", threads=" + threads +
-                ", queues=" + queues +
-                '}';
+        return "BrpcRegisterConfig{"
+                + "address='" + address
+                + '\''
+                + ", port=" + port
+                + ", threadpool='" + threadpool
+                + '\''
+                + ", corethreads=" + corethreads
+                + ", threads=" + threads
+                + ", queues=" + queues
+                + '}';
     }
 }
