@@ -83,6 +83,11 @@ public interface Constants {
     String MOTAN_RPC_RESULT_EMPTY = "motan has not return value!";
 
     /**
+     * The constant BRPC_RPC_RESULT_EMPTY.
+     */
+    String BRPC_RPC_RESULT_EMPTY = "brpc has not return value!";
+
+    /**
      * The constant CLIENT_RESPONSE_RESULT_TYPE.
      */
     String CLIENT_RESPONSE_RESULT_TYPE = "webHandlerClientResponseResultType";
