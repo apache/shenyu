@@ -62,9 +62,9 @@ public class BrpcPluginConfigurationTest {
     @Test
     public void testBrpcMetaDataHandler() {
         applicationContextRunner.run(context -> {
-                    MetaDataHandler handler = context.getBean("brpcMetaDataHandler", MetaDataHandler.class);
-                    assertNotNull(handler);
-                }
+                MetaDataHandler handler = context.getBean("brpcMetaDataHandler", MetaDataHandler.class);
+                assertNotNull(handler);
+            }
         );
     }
 
