@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * ShenyuApacheDubboClientApi.
  */
-@ShenyuClient(contextId = "shenyu-gateway", name = "ShenyuSdkApiName", fallback = ShenyuAlibabaDubboClientApiFallBack.class)
+@ShenyuClient(value = "shenyu-gateway", fallback = ShenyuAlibabaDubboClientApiFallBack.class)
 public interface ShenyuAlibabaDubboClientApi {
 
     /**
