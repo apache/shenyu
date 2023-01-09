@@ -45,7 +45,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test for {@link BrpcClientEventListenerTest}.
+ * Test for {@link BrpcContextRefreshedEventListener}.
  */
 @ExtendWith(MockitoExtension.class)
 public class BrpcClientEventListenerTest {

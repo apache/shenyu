@@ -133,7 +133,11 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, final ShenyuBrpcClient shenyuBrpcClient, final String superPath, final Class<?> clazz, final Method method) {
         String serviceName = clazz.getAnnotation(RpcService.class).serviceId();
         if (StringUtils.isEmpty(serviceName)) {
-            serviceName = clazz.getInterfaces()[0].getName();
+            if (clazz.getInterfaces().length > 0) {
+                serviceName = clazz.getInterfaces()[0].getName();
+            } else {
+                serviceName = clazz.getName();
+            }
         }
         String path = superPath;
         String desc = shenyuBrpcClient.desc();
