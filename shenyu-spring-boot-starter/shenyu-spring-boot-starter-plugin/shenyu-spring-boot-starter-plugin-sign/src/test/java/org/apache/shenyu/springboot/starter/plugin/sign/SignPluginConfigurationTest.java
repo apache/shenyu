@@ -18,8 +18,8 @@
 package org.apache.shenyu.springboot.starter.plugin.sign;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.sign.api.SignProvider;
-import org.apache.shenyu.plugin.sign.api.SignService;
+import org.apache.shenyu.plugin.sign.provider.SignProvider;
+import org.apache.shenyu.plugin.sign.service.SignService;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
