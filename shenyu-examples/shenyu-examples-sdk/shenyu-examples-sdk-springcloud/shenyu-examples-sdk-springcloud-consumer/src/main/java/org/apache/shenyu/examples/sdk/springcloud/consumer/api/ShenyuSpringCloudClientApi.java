@@ -26,9 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@ShenyuClient(contextId = "SHENYU-BOOTSTRAP",
-        name = "ShenyuSpringCloudClientApi",
-        fallbackFactory = ShenyuSpringCloudClientApiFallbackFactory.class)
+@ShenyuClient(value = "shenyu-gateway", fallbackFactory = ShenyuSpringCloudClientApiFallbackFactory.class)
 public interface ShenyuSpringCloudClientApi {
 
     /**
