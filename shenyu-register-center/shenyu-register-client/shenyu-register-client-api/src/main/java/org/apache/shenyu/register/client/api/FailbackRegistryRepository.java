@@ -21,6 +21,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
 import org.apache.shenyu.register.client.api.retry.FailureRegistryTask;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.slf4j.Logger;
@@ -78,6 +79,26 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
             this.addFailureUriDataRegister(registerDTO);
         }
     }
+
+    /**
+     * Persist apiDoc.
+     * @param registerDTO registerDTO
+     */
+    @Override
+    public void persistApiDoc(final ApiDocRegisterDTO registerDTO) {
+        try {
+            this.doPersistApiDoc(registerDTO);
+        } catch (Exception ex) {
+            //TODO error retry
+            //If a failure occurs, it needs to be added to the retry list.
+        }
+    }
+
+    /**
+     * doPersistApiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
+     */
+    protected abstract void doPersistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO);
     
     /**
      * Add failure meta data register.

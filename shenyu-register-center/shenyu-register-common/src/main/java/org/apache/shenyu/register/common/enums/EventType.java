@@ -40,5 +40,10 @@ public enum EventType {
     /**
      * Ignored event type.
      */
-    IGNORED
+    IGNORED,
+
+    /**
+     * offline event type.
+     */
+    OFFLINE
 }

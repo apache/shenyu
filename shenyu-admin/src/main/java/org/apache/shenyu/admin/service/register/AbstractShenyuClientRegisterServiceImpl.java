@@ -20,9 +20,11 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.service.ApiService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
@@ -40,8 +42,10 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.context.ApplicationEventPublisher;
 
 import javax.annotation.Resource;
@@ -78,7 +82,10 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
     
     @Resource
     private UpstreamCheckService upstreamCheckService;
-    
+
+    @Resource
+    private ApiService apiService;
+
     /**
      * Selector handler string.
      *
@@ -134,7 +141,38 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         }
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
+    @Override
+    public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
+        if (apiDocRegisterDTO.getEventType().equals(EventType.REGISTER)) {
+            ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
+            apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(), apiDTO.getHttpMethod(), apiDTO.getRpcType());
+            apiService.createOrUpdate(apiDTO);
+        } else if (apiDocRegisterDTO.getEventType().equals(EventType.OFFLINE)) {
+            String contextPath = apiDocRegisterDTO.getContextPath();
+            apiService.offlineByContextPath(contextPath);
+        }
+        return ShenyuResultMessage.SUCCESS;
+    }
+
+    private ApiDTO buildApiDTO(final ApiDocRegisterDTO apiDocRegisterDTO) {
+        ApiDTO apiDTO = new ApiDTO();
+        apiDTO.setApiPath(apiDocRegisterDTO.getApiPath());
+        apiDTO.setApiSource(apiDocRegisterDTO.getApiSource());
+        apiDTO.setApiOwner(apiDocRegisterDTO.getApiOwner());
+        apiDTO.setDocument(apiDocRegisterDTO.getDocument());
+        apiDTO.setExt(apiDocRegisterDTO.getExt());
+        apiDTO.setVersion(apiDocRegisterDTO.getVersion());
+        apiDTO.setRpcType(apiDocRegisterDTO.getRpcType());
+        apiDTO.setConsume(apiDocRegisterDTO.getConsume());
+        apiDTO.setProduce(apiDocRegisterDTO.getProduce());
+        apiDTO.setContextPath(apiDocRegisterDTO.getContextPath());
+        apiDTO.setHttpMethod(apiDocRegisterDTO.getHttpMethod());
+        apiDTO.setState(apiDocRegisterDTO.getState());
+        apiDTO.setApiDesc(apiDocRegisterDTO.getApiDesc());
+        return apiDTO;
+    }
+
     /**
      * Register uri string.
      *
