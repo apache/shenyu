@@ -56,7 +56,10 @@ public class ShenyuApacheDubboClientAplFallBack implements ShenyuApacheDubboClie
 
     @Override
     public DubboTest findByListId(final List<String> ids) {
-        return null;
+        DubboTest dubboTest = new DubboTest();
+        dubboTest.setId("a");
+        dubboTest.setName("fallback");
+        return dubboTest;
     }
 
     @Override
