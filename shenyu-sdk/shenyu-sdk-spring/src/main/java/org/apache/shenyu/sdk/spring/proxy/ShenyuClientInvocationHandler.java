@@ -26,6 +26,9 @@ import org.apache.shenyu.sdk.spring.ShenyuClient;
 import org.apache.shenyu.sdk.spring.ShenyuClientFactoryBean;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.apache.shenyu.sdk.spring.factory.Contract;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -46,6 +49,7 @@ import java.util.stream.Collectors;
  * ShenyuClientInvocationHandler.
  */
 public class ShenyuClientInvocationHandler implements InvocationHandler {
+    protected static final Logger LOG = LoggerFactory.getLogger(ShenyuClientInvocationHandler.class);
 
     private final Map<Method, ShenyuClientMethodHandler> methodHandlerMap = new ConcurrentHashMap<>();
 
@@ -55,12 +59,16 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
 
     private final ShenyuClientFactoryBean shenyuClientFactoryBean;
 
+    private final FallbackFactory<?> fallbackFactory;
+
     public ShenyuClientInvocationHandler(final Class<?> apiClass, final ApplicationContext applicationContext,
                                          final ShenyuClientFactoryBean shenyuClientFactoryBean) {
         this.shenyuClientFactoryBean = shenyuClientFactoryBean;
         this.applicationContext = applicationContext;
         this.contract = applicationContext.getBean(Contract.class);
         ShenyuClient shenyuClient = apiClass.getAnnotation(ShenyuClient.class);
+        fallbackFactory = getFallbackFactory(shenyuClientFactoryBean.getFallback(),
+                shenyuClientFactoryBean.getFallbackFactory());
         buildMethodHandlerMap(apiClass, shenyuClient);
     }
 
@@ -71,12 +79,11 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
         if (ObjectUtils.isEmpty(handler)) {
             throw new ShenyuException(String.format("the method cannot be called, please check the annotation and configuration, method %s", method.getName()));
         }
-        FallbackFactory<?> fallbackFactory = getFallbackFactory(shenyuClientFactoryBean.getFallback(),
-                shenyuClientFactoryBean.getFallbackFactory());
         Object result;
         try {
             result = handler.invoke(args);
         } catch (Throwable throwable) {
+            LOG.error("ShenYu Client invoke error  ", throwable);
             if (fallbackFactory == null) {
                 throw new NoFallbackAvailableException("No fallback available.", throwable);
             }
@@ -88,7 +95,7 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
 
     private void buildMethodHandlerMap(final Class<?> apiClass, final ShenyuClient shenyuClient) {
         // parseAndValidate RequestTemplate
-        final List<RequestTemplate> requestTemplates = contract.parseAndValidateRequestTemplate(apiClass);
+        final List<RequestTemplate> requestTemplates = contract.parseAndValidateRequestTemplate(apiClass, shenyuClientFactoryBean);
 
         final ShenyuSdkClient shenyuSdkClient = applicationContext.getBean(ShenyuSdkClient.class);
         final Map<String, AnnotatedParameterProcessor> annotatedParameterProcessorMap = applicationContext.getBeansOfType(AnnotatedParameterProcessor.class);
@@ -100,7 +107,7 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
             requestTemplate.setName(shenyuClientFactoryBean.getName());
             requestTemplate.setContextId(Optional.ofNullable(shenyuClientFactoryBean.getContextId()).orElse(shenyuClientFactoryBean.getName()));
             if (StringUtils.hasText(shenyuClientFactoryBean.getPath())) {
-                requestTemplate.setPath(shenyuClientFactoryBean.getPath() + "/" + requestTemplate.getPath());
+                requestTemplate.setPath(shenyuClientFactoryBean.getPath() + requestTemplate.getPath());
             }
             methodHandlerMap.put(requestTemplate.getMethod(),
                     new ShenyuClientMethodHandler(shenyuClient, requestTemplate, shenyuSdkClient, annotatedArgumentProcessors));
@@ -117,20 +124,16 @@ public class ShenyuClientInvocationHandler implements InvocationHandler {
     }
 
     private FallbackFactory<?> getFallbackFactory(final Class<?> fallback, final Class<?> fallbackFactory) {
-
-        if (fallback != void.class) {
-            Object fallbackInstance = applicationContext.getBean(fallback);
-            if (fallbackInstance == null) {
-                throw new IllegalStateException("No fallback instance found for shenyu client");
+        try {
+            if (fallback != void.class) {
+                Object fallbackInstance = applicationContext.getBean(fallback);
+                return new FallbackFactory.Default<>(fallbackInstance);
+            } else if (fallbackFactory != void.class) {
+                return (FallbackFactory<?>) applicationContext.getBean(fallbackFactory);
             }
-            return new FallbackFactory.Default<>(fallbackInstance);
-        } else if (fallbackFactory != void.class) {
-            FallbackFactory<?> fallbackFactoryInstance = (FallbackFactory<?>) applicationContext.getBean(fallbackFactory);
-            if (fallbackFactoryInstance == null) {
-                throw new IllegalStateException("No fallbackFactory instance found for shenyu client");
-            }
-            return fallbackFactoryInstance;
-        } else {
+            return null;
+        } catch (BeansException exception) {
+            LOG.error("No fallback available ", exception);
             return null;
         }
     }
