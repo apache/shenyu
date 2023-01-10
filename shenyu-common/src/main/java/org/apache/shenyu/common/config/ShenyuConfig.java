@@ -1693,9 +1693,11 @@ public class ShenyuConfig {
      * shenyu trie config.
      */
     public static class ShenyuTrieConfig {
-        private Long trieChildrenSize = 10000L;
+        private Long childrenSize = 10000L;
 
         private Long pathRuleCacheSize = 1000L;
+        
+        private Long pathVariableSize = 1000L;
 
         /**
          * match mode.
@@ -1708,17 +1710,17 @@ public class ShenyuConfig {
          *
          * @return trie children size
          */
-        public Long getTrieChildrenSize() {
-            return trieChildrenSize;
+        public Long getChildrenSize() {
+            return childrenSize;
         }
 
         /**
          * set trie children size.
          *
-         * @param trieChildrenSize trie children size
+         * @param childrenSize trie children size
          */
-        public void setTrieChildrenSize(final Long trieChildrenSize) {
-            this.trieChildrenSize = trieChildrenSize;
+        public void setChildrenSize(final Long childrenSize) {
+            this.childrenSize = childrenSize;
         }
 
         /**
@@ -1738,7 +1740,25 @@ public class ShenyuConfig {
         public void setPathRuleCacheSize(final Long pathRuleCacheSize) {
             this.pathRuleCacheSize = pathRuleCacheSize;
         }
-
+        
+        /**
+         * get path variable node size.
+         *
+         * @return path variable node size
+         */
+        public Long getPathVariableSize() {
+            return pathVariableSize;
+        }
+    
+        /**
+         * set path variable node size.
+         *
+         * @param pathVariableSize path variable node size
+         */
+        public void setPathVariableSize(final Long pathVariableSize) {
+            this.pathVariableSize = pathVariableSize;
+        }
+    
         /**
          * get match mode.
          *
