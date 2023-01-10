@@ -64,5 +64,6 @@
         <module>shenyu-plugin-mock</module>
         <module>shenyu-plugin-casdoor</module>
         <module>shenyu-plugin-key-auth</module>
+        <module>shenyu-plugin-brpc</module>
     </modules>
 </project>
