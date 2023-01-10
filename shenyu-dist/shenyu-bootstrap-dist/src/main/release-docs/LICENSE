@@ -517,6 +517,7 @@ The text of each license is the standard Apache 2.0 license.
     oltu 1.0.2: https://oltu.apache.org/, Apache 2.0
     httpclient 4.5.13: https://github.com/apache/httpcomponents-client, Apache 2.0
     okhttp 3.14.9: https://square.github.io/okhttp, Apache 2.0
+    brpc 2022.2.0: https://github.com/baidu/starlight, Apache 2.0
 
 ========================================================================
 BSD licenses
