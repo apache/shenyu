@@ -573,6 +573,9 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <skip>${skipTests}</skip>
+                    <parallel>all</parallel>
+                    <forkCount>4</forkCount>
+                    <useUnlimitedThreads>true</useUnlimitedThreads>
                 </configuration>
             </plugin>
             <plugin>
