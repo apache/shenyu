@@ -36,6 +36,8 @@ import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -46,6 +48,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Disabled
 public final class SignPlugin4089Test extends AbstractPluginDataInit {
 
     private static final String APP_KEY = "108C27175A2C43C1BC29B1E483D57E3D";
@@ -70,7 +73,7 @@ public final class SignPlugin4089Test extends AbstractPluginDataInit {
         initSelectorAndRules(PluginEnum.SIGN.getName(), "", buildSelectorConditionList(POST_PATH), buildRuleLocalDataList(true, POST_PATH));
     }
 
-    @Disabled
+    @Test
     public void testSign() throws Exception {
         String now = String.valueOf(System.currentTimeMillis());
         Map<String, Object> normalHeaders = buildHeadersMap(now, GET_PATH, APP_KEY, APP_SECRET, VERSION, null, null);
@@ -79,7 +82,7 @@ public final class SignPlugin4089Test extends AbstractPluginDataInit {
         assertEquals("Lee", result.getUserName());
     }
 
-    @Disabled
+    @Test
     public void testSignWithWrongPath() throws Exception {
         String now = String.valueOf(System.currentTimeMillis());
         Map<String, Object> errorPathHeaders = buildHeadersMap(now, "wrong_path", APP_KEY, APP_SECRET, VERSION, null, null);
@@ -88,7 +91,7 @@ public final class SignPlugin4089Test extends AbstractPluginDataInit {
         assertEquals("signature value is error!", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithWrongVersion() throws Exception {
         String now = String.valueOf(System.currentTimeMillis());
         Map<String, Object> headers = buildHeadersMap(now, GET_PATH, APP_KEY, APP_SECRET, "1.0.2", null, null);
@@ -99,7 +102,7 @@ public final class SignPlugin4089Test extends AbstractPluginDataInit {
         assertEquals("signature value is error!", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithWrongKey() throws Exception {
         String now = String.valueOf(System.currentTimeMillis());
         Map<String, Object> headers = buildHeadersMap(now, GET_PATH, "ERRORKEY", APP_SECRET, VERSION, null, null);
@@ -110,7 +113,7 @@ public final class SignPlugin4089Test extends AbstractPluginDataInit {
         assertEquals("sign appKey does not exist.", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithExpiredSignature() throws Exception {
 
         String errorTime = String.valueOf(System.currentTimeMillis() - 360000);
@@ -122,7 +125,7 @@ public final class SignPlugin4089Test extends AbstractPluginDataInit {
         assertEquals("The signature timestamp has exceeded 5 minutes!", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithBodyAndQueryParam() throws Exception {
 
         String now = String.valueOf(System.currentTimeMillis());
@@ -138,7 +141,7 @@ public final class SignPlugin4089Test extends AbstractPluginDataInit {
         assertEquals("3", result.getUserId());
     }
 
-    @Disabled
+    @Test
     public void testSignWithWrongBody() throws Exception {
 
         String now = String.valueOf(System.currentTimeMillis());
@@ -153,7 +156,7 @@ public final class SignPlugin4089Test extends AbstractPluginDataInit {
         assertEquals("signature value is error!", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithIncompleteParam() throws Exception {
 
         AdminResponse<Object> result = HttpHelper.INSTANCE
@@ -162,7 +165,7 @@ public final class SignPlugin4089Test extends AbstractPluginDataInit {
         assertEquals("sign parameters are incomplete!", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithNotConfiguredPath() throws Exception {
 
         String notConfiguredPath = "/http/test/notConfiguredPath";

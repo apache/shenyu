@@ -37,6 +37,7 @@ import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 
 import java.io.IOException;
@@ -53,6 +54,7 @@ import java.util.Optional;
 import static org.apache.shenyu.integratedtest.common.helper.HttpHelper.GATEWAY_END_POINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Disabled
 public final class SignPlugin4208Test extends AbstractPluginDataInit {
 
     private static final String APP_KEY = "108C27175A2C43C1BC29B1E483D57E3D";
@@ -77,7 +79,7 @@ public final class SignPlugin4208Test extends AbstractPluginDataInit {
         initSelectorAndRules(PluginEnum.SIGN.getName(), "", buildSelectorConditionList(POST_PATH), buildRuleLocalDataList(true, POST_PATH));
     }
 
-    @Disabled
+    @Test
     public void testSign() throws Exception {
         String now = String.valueOf(System.currentTimeMillis());
         Map<String, Object> normalHeaders = buildHeadersMap(GATEWAY_END_POINT + GET_URL, now, APP_KEY, APP_SECRET, VERSION, null);
@@ -86,7 +88,7 @@ public final class SignPlugin4208Test extends AbstractPluginDataInit {
         assertEquals("Lee", result.getUserName());
     }
 
-    @Disabled
+    @Test
     public void testSignWithWrongPath() throws Exception {
         String now = String.valueOf(System.currentTimeMillis());
         Map<String, Object> errorPathHeaders = buildHeadersMap(GATEWAY_END_POINT + "/wrong_path", now, APP_KEY, APP_SECRET, VERSION, null);
@@ -95,7 +97,7 @@ public final class SignPlugin4208Test extends AbstractPluginDataInit {
         assertEquals("signature value is error!", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithWrongKey() throws Exception {
         String now = String.valueOf(System.currentTimeMillis());
         Map<String, Object> headers = buildHeadersMap(GATEWAY_END_POINT + GET_URL, now, "ERRORKEY", APP_SECRET, VERSION, null);
@@ -106,7 +108,7 @@ public final class SignPlugin4208Test extends AbstractPluginDataInit {
         assertEquals("sign appKey does not exist.", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithExpiredSignature() throws Exception {
 
         String errorTime = String.valueOf(System.currentTimeMillis() - 360000);
@@ -118,7 +120,7 @@ public final class SignPlugin4208Test extends AbstractPluginDataInit {
         assertEquals("The signature timestamp has exceeded 5 minutes!", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithBodyAndQueryParam() throws Exception {
 
         String now = String.valueOf(System.currentTimeMillis());
@@ -134,7 +136,7 @@ public final class SignPlugin4208Test extends AbstractPluginDataInit {
         assertEquals("3", result.getUserId());
     }
 
-    @Disabled
+    @Test
     public void testSignWithWrongBody() throws Exception {
 
         String now = String.valueOf(System.currentTimeMillis());
@@ -149,7 +151,7 @@ public final class SignPlugin4208Test extends AbstractPluginDataInit {
         assertEquals("signature value is error!", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithIncompleteParam() throws Exception {
 
         AdminResponse<Object> result = HttpHelper.INSTANCE
@@ -158,7 +160,7 @@ public final class SignPlugin4208Test extends AbstractPluginDataInit {
         assertEquals("sign parameters are incomplete!", result.getMessage());
     }
 
-    @Disabled
+    @Test
     public void testSignWithNotConfiguredPath() throws Exception {
 
         String notConfiguredPath = "/http/test/notConfiguredPath";
@@ -176,7 +178,7 @@ public final class SignPlugin4208Test extends AbstractPluginDataInit {
                 result.getMessage());
     }
 
-    @Disabled
+    @Test
     private Map<String, Object> buildHeadersMap(final String uri, final String timestamp, final String appKey,
                                                 final String appSecret, final String version, final String requestBody) {
         String parameters = buildParameters(timestamp, appKey, version);
