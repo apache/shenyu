@@ -17,14 +17,18 @@
 
 package org.apache.shenyu.springboot.starter.plugin.sign;
 
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.sign.api.SignProvider;
 import org.apache.shenyu.plugin.sign.SignPlugin;
-import org.apache.shenyu.plugin.sign.extractor.DefaultExtractor;
+import org.apache.shenyu.plugin.sign.extractor._4089Extractor;
+import org.apache.shenyu.plugin.sign.extractor._4208Extractor;
 import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
-import org.apache.shenyu.plugin.sign.provider.DefaultSignProvider;
-import org.apache.shenyu.plugin.sign.provider.SignProvider;
+import org.apache.shenyu.plugin.sign.provider._4089SignProvider;
+import org.apache.shenyu.plugin.sign.provider._4208SignProvider;
 import org.apache.shenyu.plugin.sign.service.ComposableSignService;
+import org.apache.shenyu.plugin.sign.service.DefaultSignService;
 import org.apache.shenyu.plugin.sign.service.SignService;
 import org.apache.shenyu.plugin.sign.subscriber.SignAuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -44,13 +48,22 @@ public class SignPluginConfiguration {
 
     /**
      * Sign service.
-     *
+     * <pre>
+     * 1.return new DefaultSignService() //deprecated <br/>
+     * //recommend
+     * 2.return new ComposableSignService(
+     *                   new _4208Extractor()
+     *                  ,new _4208SignProvider())
+     *                  </br>
+     * 3.return new ComposableSignService(
+     *                   new _4089Extractor()
+     *                  ,new _4089SignProvider()) </pre>
      * @return the sign service
      */
     @Bean
     @ConditionalOnMissingBean(value = SignService.class, search = SearchStrategy.ALL)
     public SignService signService() {
-        return new ComposableSignService(new DefaultExtractor(), new DefaultSignProvider());
+        return new DefaultSignService();
     }
 
     /**
@@ -67,7 +80,7 @@ public class SignPluginConfiguration {
     /**
      * sign plugin.
      *
-     * @param configurer  the spring server codec config
+     * @param configurer the spring server codec config
      * @param signService the sign service
      * @return the shenyu plugin
      */

@@ -45,6 +45,34 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
+/**
+ * The ComposableSignService is composable SignService.
+ * <pre>
+ *  1. new ComposableSignService(new _4208Extractor(), new _4208SignProvider())
+ *    Implements from <a href="https://github.com/apache/shenyu/issues/4208">4208</a>
+ *    parameters:
+ *     {
+ *           "alg":"HMD5",
+ *           "version":"1.0.0",
+ *           "appKey":"506EEB535CF740D7A755CB4B9F4A1536",
+ *           "timestamp":"1571711067186"
+ *     }<br>
+ *   signature = Sign(base64Encoding(parameters )
+ *    + Relative URL+ Body* ,secret); * indicate Optional , it
+ *    depends on config.<br>
+ *    Relative URL = path [ "?" query ]
+ *    eg: /apache/shenyu/pulls?name=xiaoMing
+ *
+ *    token = base64Encoding(header) + '.'
+ *    + base64Encoding(signature)
+ *
+ * 2. new ComposableSignService(new _4098Extractor(), new _4098SignProvider())
+ *     Implements from <a href = "https://github.com/apache/shenyu/pull/4089">#4089</a>
+ *
+ * 3. new ComposableSignService(new CustomExtractor(), new CustomSignProvider())
+ *     Customs {@link org.apache.shenyu.plugin.sign.extractor.SignParameterExtractor} and {@link org.apache.shenyu.plugin.sign.provider.SignProvider}
+ *  </pre>
+ */
 public class ComposableSignService implements SignService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ComposableSignService.class);
@@ -61,7 +89,6 @@ public class ComposableSignService implements SignService {
         this.extractor = extractor;
 
         this.signProvider = signProvider;
-
     }
 
     @Override

@@ -33,10 +33,8 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.api.VerifyResult;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
-import org.apache.shenyu.plugin.sign.extractor.NewExtractor;
-import org.apache.shenyu.plugin.sign.provider.DefaultSignProvider;
-import org.apache.shenyu.plugin.sign.provider.NewSignProvider;
-import org.apache.shenyu.plugin.sign.provider.SignProvider;
+import org.apache.shenyu.plugin.sign.extractor._4208Extractor;
+import org.apache.shenyu.plugin.sign.provider._4208SignProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,14 +59,13 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * DefaultSignService Test.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public final class NewSignServiceTest {
+public final class SignService4208Test {
 
     private SignService signService;
 
@@ -85,7 +82,7 @@ public final class NewSignServiceTest {
 
     @BeforeEach
     public void setup() {
-        this.signService = new ComposableSignService(new NewExtractor(), new NewSignProvider());
+        this.signService = new ComposableSignService(new _4208Extractor(), new _4208SignProvider());
 
         final String path = "/test-api/demo/test";
         PluginData signData = new PluginData();
@@ -118,7 +115,6 @@ public final class NewSignServiceTest {
 
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        when(context.getBean(SignProvider.class)).thenReturn(new DefaultSignProvider());
     }
 
     @Test

@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
@@ -27,164 +27,185 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.SignUtils;
+import org.apache.shenyu.common.utils.DigestUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * @deprecated (2.5.1)
+ */
+@Deprecated
 public final class SignPluginTest extends AbstractPluginDataInit {
 
     private static final String APP_KEY = "108C27175A2C43C1BC29B1E483D57E3D";
 
     private static final String APP_SECRET = "061521A73DD94A3FA873C25D050685BB";
 
-    private static final String GET_PATH = "/http/test/path/456";
-
-    private static final String POST_PATH = "/http/test/payment";
-
-    private static final String GET_URL = "/http/test/path/456?name=Lee&data=3";
-
-    private static final String POST_URL = "/http/test/payment?userName=Lee&userId=3";
-
-    private static final String VERSION = "1.0.0";
-
-    @BeforeAll
-    public static void setUp() throws IOException {
-        initAuthData(APP_KEY, APP_SECRET, buildAuthParamDataList(), buildAuthPathDataList());
-        initPlugin(PluginEnum.SIGN.getName(), null);
-        initSelectorAndRules(PluginEnum.SIGN.getName(), "", buildSelectorConditionList(GET_PATH), buildRuleLocalDataList(false, GET_PATH));
-        initSelectorAndRules(PluginEnum.SIGN.getName(), "", buildSelectorConditionList(POST_PATH), buildRuleLocalDataList(true, POST_PATH));
-    }
-
     @Test
     public void testSign() throws Exception {
+        String authResult = initAuthData(APP_KEY, APP_SECRET, buildAuthParamDataList(), buildAuthPathDataList());
+        assertThat(authResult, is("success"));
+        String pluginResult = initPlugin(PluginEnum.SIGN.getName(), null);
+        assertThat(pluginResult, is("success"));
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.SIGN.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
+        assertThat(selectorAndRulesResult, is("success"));
+        final String path = "/http/test/path/456";
+        final String testUrlPath = "/http/test/path/456?name=Lee&data=3";
+        final String version = "1.0.0";
         String now = String.valueOf(System.currentTimeMillis());
-        Map<String, Object> normalHeaders = buildHeadersMap(now, GET_PATH, APP_KEY, APP_SECRET, VERSION, null, null);
-        UserDTO result = HttpHelper.INSTANCE
-                .getFromGateway(GET_URL, normalHeaders, UserDTO.class);
-        assertEquals("Lee", result.getUserName());
-    }
+        Map<String, Object> normalHeaders = buildHeadersMap(now, path, APP_KEY, APP_SECRET, version);
+        UserDTO normalRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath, normalHeaders,
+                UserDTO.class);
+        assertEquals("Lee", normalRespFuture.getUserName());
 
-    @Test
-    public void testSignWithWrongPath() throws Exception {
-        String now = String.valueOf(System.currentTimeMillis());
-        Map<String, Object> errorPathHeaders = buildHeadersMap(now, "wrong_path", APP_KEY, APP_SECRET, VERSION, null, null);
-        AdminResponse<Object> result = HttpHelper.INSTANCE
-                .getFromGateway(GET_URL, errorPathHeaders, AdminResponse.class);
-        assertEquals("signature value is error!", result.getMessage());
-    }
+        Map<String, Object> errorPathHeaders = buildHeadersMap(now, "errorPath", APP_KEY, APP_SECRET, version);
+        AdminResponse<Object> rejectedErrorPathRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorPathHeaders,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("signature value is error!", rejectedErrorPathRespFuture.getMessage());
 
-    @Test
-    public void testSignWithWrongVersion() throws Exception {
-        String now = String.valueOf(System.currentTimeMillis());
-        Map<String, Object> headers = buildHeadersMap(now, GET_PATH, APP_KEY, APP_SECRET, "1.0.2", null, null);
+        Map<String, Object> errorAppKeyHeaders = buildHeadersMap(now, path, "ERRORKEY", APP_SECRET, version);
+        AdminResponse<Object> rejectedErrorAKRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorAppKeyHeaders,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("sign appKey does not exist.", rejectedErrorAKRespFuture.getMessage());
 
-        AdminResponse<Object> result = HttpHelper.INSTANCE
-                .getFromGateway(GET_URL, headers, AdminResponse.class);
+        Map<String, Object> errorAppSecretHeaders = buildHeadersMap(now, path, APP_KEY, "ERRORSECRET", version);
+        AdminResponse<Object> rejectedErrorSKRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorAppSecretHeaders,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("signature value is error!", rejectedErrorSKRespFuture.getMessage());
 
-        assertEquals("signature value is error!", result.getMessage());
-    }
-
-    @Test
-    public void testSignWithWrongKey() throws Exception {
-        String now = String.valueOf(System.currentTimeMillis());
-        Map<String, Object> headers = buildHeadersMap(now, GET_PATH, "ERRORKEY", APP_SECRET, VERSION, null, null);
-
-        AdminResponse<Object> result = HttpHelper.INSTANCE
-                .getFromGateway(GET_URL, headers, AdminResponse.class);
-
-        assertEquals("sign appKey does not exist.", result.getMessage());
-    }
-
-    @Test
-    public void testSignWithExpiredSignature() throws Exception {
+        Map<String, Object> errorVersionHeaders = buildHeadersMap(now, path, APP_KEY, APP_SECRET, "1.0.2");
+        AdminResponse<Object> rejectedErrorVersionRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorVersionHeaders,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("signature value is error!", rejectedErrorVersionRespFuture.getMessage());
 
         String errorTime = String.valueOf(System.currentTimeMillis() - 360000);
-        Map<String, Object> headers = buildHeadersMap(errorTime, GET_PATH, APP_KEY, APP_SECRET, VERSION, null, null);
-
-        AdminResponse<Object> result = HttpHelper.INSTANCE
-                .getFromGateway(GET_URL, headers, AdminResponse.class);
-
-        assertEquals("The signature timestamp has exceeded 5 minutes!", result.getMessage());
+        Map<String, Object> errorTimestampHeaders = buildHeadersMap(errorTime, path, APP_KEY, APP_SECRET, version);
+        AdminResponse<Object> rejectedErrorTimestampRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorTimestampHeaders,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("The signature timestamp has exceeded 5 minutes!", rejectedErrorTimestampRespFuture.getMessage());
     }
 
     @Test
-    public void testSignWithBodyAndQueryParam() throws Exception {
+    public void testSignRequestBody() throws Exception {
 
+        String authResult = initAuthData(APP_KEY, APP_SECRET, buildAuthParamDataList(), buildAuthPathDataList());
+        assertThat(authResult, is("success"));
+        String pluginResult = initPlugin(PluginEnum.SIGN.getName(), null);
+        assertThat(pluginResult, is("success"));
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.SIGN.getName(), "",
+                buildSelectorConditionListOpenRequestBody(), buildRuleLocalDataListRequestBody());
+        assertThat(selectorAndRulesResult, is("success"));
+        final String path = "/http/test/path/789";
+        final String testUrlPath = "/http/test/path/789?name=Lee&data=3";
+        final String version = "1.0.0";
         String now = String.valueOf(System.currentTimeMillis());
         Map<String, String> requestBody = Maps.newHashMapWithExpectedSize(2);
-        requestBody.put("userName", "Lee");
-        requestBody.put("userId", "3");
-        Map<String, Object> headers = buildHeadersMap(now, POST_PATH, APP_KEY, APP_SECRET, VERSION, requestBody, requestBody);
+        requestBody.put("name", "Lee");
+        requestBody.put("data", "3");
+        Map<String, Object> normalHeaders = buildHeadersMapRequestBody(now, path, APP_KEY, APP_SECRET, version, requestBody);
+        UserDTO normalRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath, normalHeaders,
+                UserDTO.class);
+        assertEquals("Lee", normalRespFuture.getUserName());
 
-        UserDTO result = HttpHelper.INSTANCE
-                .postGateway(POST_URL, headers, requestBody, UserDTO.class);
+        Map<String, Object> errorPathHeaders = buildHeadersMapRequestBody(now, "errorPath", APP_KEY, APP_SECRET, version, requestBody);
+        AdminResponse<Object> rejectedErrorPathRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorPathHeaders,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("signature value is error!", rejectedErrorPathRespFuture.getMessage());
 
-        assertEquals("Lee", result.getUserName());
-        assertEquals("3", result.getUserId());
-    }
+        Map<String, Object> errorAppKeyHeaders = buildHeadersMapRequestBody(now, path, "ERRORKEY", APP_SECRET, version, requestBody);
+        AdminResponse<Object> rejectedErrorAKRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorAppKeyHeaders,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("sign appKey does not exist.", rejectedErrorAKRespFuture.getMessage());
 
-    @Test
-    public void testSignWithWrongBody() throws Exception {
+        Map<String, Object> errorAppSecretHeaders = buildHeadersMapRequestBody(now, path, APP_KEY, "ERRORSECRET", version, requestBody);
+        AdminResponse<Object> rejectedErrorSKRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorAppSecretHeaders,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("signature value is error!", rejectedErrorSKRespFuture.getMessage());
 
-        String now = String.valueOf(System.currentTimeMillis());
-        Map<String, String> requestBody = Maps.newHashMapWithExpectedSize(2);
-        requestBody.put("userName", "Lee");
-        requestBody.put("userId", "3");
+        Map<String, Object> errorVersionHeaders = buildHeadersMapRequestBody(now, path, APP_KEY, APP_SECRET, "1.0.2", requestBody);
+        AdminResponse<Object> rejectedErrorVersionRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorVersionHeaders,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("signature value is error!", rejectedErrorVersionRespFuture.getMessage());
 
-        Map<String, Object> headers = buildHeadersMap(now, POST_PATH, APP_KEY, APP_SECRET, VERSION, ImmutableMap.of("userId", "1234"), requestBody);
-        AdminResponse<Object> result = HttpHelper.INSTANCE
-                .postGateway(POST_URL, headers, requestBody, AdminResponse.class);
+        Map<String, Object> errorRequestBody = buildHeadersMapRequestBody(now, path, APP_KEY, APP_SECRET, "1.0.0", null);
+        AdminResponse<Object> rejectedErrorRequestBodyRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorRequestBody,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("signature value is error!", rejectedErrorRequestBodyRespFuture.getMessage());
 
-        assertEquals("signature value is error!", result.getMessage());
-    }
-
-    @Test
-    public void testSignWithIncompleteParam() throws Exception {
-
-        AdminResponse<Object> result = HttpHelper.INSTANCE
-                .getFromGateway(GET_URL, AdminResponse.class);
-
-        assertEquals("sign parameters are incomplete!", result.getMessage());
-    }
-
-    @Test
-    public void testSignWithNotConfiguredPath() throws Exception {
-
-        String notConfiguredPath = "/http/test/notConfiguredPath";
-        initSelectorAndRules(PluginEnum.SIGN.getName(),
-                "",
-                buildSelectorConditionList(notConfiguredPath),
-                buildRuleLocalDataList(false, notConfiguredPath));
-        String now = String.valueOf(System.currentTimeMillis());
-        Map<String, Object> headers = buildHeadersMap(now, notConfiguredPath, APP_KEY, APP_SECRET, "1.0.0", null, null);
-
-        AdminResponse<Object> result = HttpHelper.INSTANCE
-                .getFromGateway(notConfiguredPath, headers, AdminResponse.class);
-
-        assertEquals("you have not configured the sign path.",
-                result.getMessage());
+        String errorTime = String.valueOf(System.currentTimeMillis() - 360000);
+        Map<String, Object> errorTimestampHeaders = buildHeadersMapRequestBody(errorTime, path, APP_KEY, APP_SECRET, version, requestBody);
+        AdminResponse<Object> rejectedErrorTimestampRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
+                errorTimestampHeaders,
+                new TypeToken<AdminResponse<Object>>() {
+                }.getType());
+        assertEquals("The signature timestamp has exceeded 5 minutes!", rejectedErrorTimestampRespFuture.getMessage());
     }
 
     private Map<String, Object> buildHeadersMap(final String timestamp, final String path, final String appKey,
-                                                final String appSecret, final String version, final Map<String, String> queryParams, final Map<String, String> body) {
+                                                final String appSecret, final String version) {
+        Map<String, String> params = Maps.newHashMapWithExpectedSize(3);
+        params.put("timestamp", timestamp);
+        params.put("path", path);
+        params.put("version", version);
+        String sign = generateSign(appSecret, params);
 
-        String sign = buildSign(appSecret, version, timestamp, path, queryParams, body);
+        Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
+        headers.put("timestamp", timestamp);
+        headers.put("appKey", appKey);
+        headers.put("sign", sign);
+        headers.put("version", version);
+        return headers;
+    }
+
+    private Map<String, Object> buildHeadersMapRequestBody(final String timestamp, final String path, final String appKey,
+                                                           final String appSecret, final String version, final Map<String, String> requestBody) {
+        Map<String, String> params = Maps.newHashMapWithExpectedSize(3);
+        params.put("timestamp", timestamp);
+        params.put("path", path);
+        params.put("version", version);
+        if (!ObjectUtils.isEmpty(requestBody)) {
+            params.putAll(requestBody);
+        }
+        String sign = generateSign(appSecret, params);
+
         Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
         headers.put("timestamp", timestamp);
         headers.put("appKey", appKey);
@@ -203,30 +224,51 @@ public final class SignPluginTest extends AbstractPluginDataInit {
     private static List<AuthPathData> buildAuthPathDataList() {
         AuthPathData authPathData = new AuthPathData();
         authPathData.setAppName("http-sign");
-        authPathData.setPath(GET_PATH);
-        authPathData.setPath(POST_PATH);
+        authPathData.setPath("/http/test/path/456");
         authPathData.setEnabled(true);
-        return Lists.newArrayList(new AuthPathData("http-sign", GET_PATH, true),
-                new AuthPathData("http-sign", POST_PATH, true));
+        AuthPathData authPathData2 = new AuthPathData();
+        authPathData2.setAppName("http-sign");
+        authPathData2.setPath("/http/test/path/789");
+        authPathData2.setEnabled(true);
+        return Arrays.asList(authPathData, authPathData2);
     }
 
-    private static List<ConditionData> buildSelectorConditionList(final String path) {
-        return buildConditionList(path);
-    }
-
-    private static List<RuleLocalData> buildRuleLocalDataList(final boolean signRequestBody, final String path) {
-        final RuleLocalData ruleLocalData = new RuleLocalData();
-        ruleLocalData.setConditionDataList(buildConditionList(path));
-        ruleLocalData.setRuleHandler(String.format("{\"signRequestBody\": %s}", signRequestBody));
-        return Collections.singletonList(ruleLocalData);
-    }
-
-    private static List<ConditionData> buildConditionList(final String path) {
+    private static List<ConditionData> buildSelectorConditionList() {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue(path);
+        conditionData.setParamValue("/http/test/path/456");
         return Collections.singletonList(conditionData);
+    }
+
+    private static List<ConditionData> buildSelectorConditionListOpenRequestBody() {
+        ConditionData conditionData2 = new ConditionData();
+        conditionData2.setParamType(ParamTypeEnum.URI.getName());
+        conditionData2.setOperator(OperatorEnum.EQ.getAlias());
+        conditionData2.setParamValue("/http/test/path/789");
+        return Collections.singletonList(conditionData2);
+    }
+
+    private static List<RuleLocalData> buildRuleLocalDataList() {
+        final RuleLocalData ruleLocalData = new RuleLocalData();
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.EQ.getAlias());
+        conditionData.setParamValue("/http/test/path/456");
+        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
+        ruleLocalData.setRuleHandler("{\"signRequestBody\": false}");
+        return Collections.singletonList(ruleLocalData);
+    }
+
+    private static List<RuleLocalData> buildRuleLocalDataListRequestBody() {
+        final RuleLocalData ruleLocalData2 = new RuleLocalData();
+        ConditionData conditionData2 = new ConditionData();
+        conditionData2.setParamType(ParamTypeEnum.URI.getName());
+        conditionData2.setOperator(OperatorEnum.EQ.getAlias());
+        conditionData2.setParamValue("/http/test/path/789");
+        ruleLocalData2.setConditionDataList(Collections.singletonList(conditionData2));
+        ruleLocalData2.setRuleHandler("{\"signRequestBody\": true}");
+        return Collections.singletonList(ruleLocalData2);
     }
 
     @AfterAll
@@ -235,22 +277,14 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         cleanAuthData(APP_KEY);
     }
 
-    private String buildSign(final String signKey, final String version, final String timeStamp, final String path, final Map<String, String> body, final Map<String, String> queryParams) {
-
-        final String jsonSign = Optional.ofNullable(body).map(e -> e.keySet().stream()
+    private String generateSign(String signKey,Map<String,String> params){
+        final String sign = params.keySet().stream()
                 .sorted(Comparator.naturalOrder())
-                .map(key -> String.join("", key, body.get(key)))
-                .collect(Collectors.joining()).trim())
-                .orElse("");
-
-        final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
-                .sorted(Comparator.naturalOrder())
-                .map(key -> String.join("", key, queryParams.get(key)))
-                .collect(Collectors.joining()).trim())
-                .orElse("");
-
-        final String extSignKey = String.join("", Constants.TIMESTAMP, timeStamp, Constants.PATH, path, Constants.VERSION, version, signKey);
-        final String data = String.join("", jsonSign, querySign);
-        return SignUtils.sign(SignUtils.SIGN_MD5, extSignKey, data).toUpperCase();
+                .filter(key -> !Objects.equals(key, Constants.SIGN))
+                .map(key -> String.join("", key, params.get(key)))
+                .collect(Collectors.joining()).trim()
+                .concat(signKey);
+        // TODO this is a risk for error charset coding with getBytes
+        return DigestUtils.md5Hex(sign.getBytes()).toUpperCase();
     }
 }

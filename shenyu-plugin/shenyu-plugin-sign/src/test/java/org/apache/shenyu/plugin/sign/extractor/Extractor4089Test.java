@@ -17,45 +17,31 @@
 
 package org.apache.shenyu.plugin.sign.extractor;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.sign.api.SignParameters;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class NewExtractorTest {
+public class Extractor4089Test {
 
-    private final NewExtractor extractor = new NewExtractor();
+    private final SignParameterExtractor extractor = new _4089Extractor();
 
     @Test
     public void testExtract() {
 
-        Map<String, String> map = ImmutableMap.of(
-                "timestamp", "1660659201000",
-                "appKey", "BD7980F5688A4DE6BCF1B5327FE07F5C",
-                "version", "1.0.0",
-                "sign", "BF485842D2C08A3378308BA9992A309F",
-                "alg", "MD5");
-
-        String parameters = Base64.getEncoder().encodeToString(JsonUtils.toJson(map).getBytes(StandardCharsets.UTF_8));
-        String token = parameters + ".BF485842D2C08A3378308BA9992A309F";
-
         HttpRequest httpRequest = MockServerHttpRequest
                 .get("http://localhost:9195/springcloud/class/annotation/get?id=1&id=1")
-                .header(HttpHeaders.AUTHORIZATION, token)
+                .header("timestamp", "1660659201000")
+                .header("appKey", "BD7980F5688A4DE6BCF1B5327FE07F5C")
+                .header("version", "1.0.0")
+                .header("sign", "BF485842D2C08A3378308BA9992A309F")
                 .build();
+
         SignParameters signParameters = new SignParameters("BD7980F5688A4DE6BCF1B5327FE07F5C", "1660659201000",
                 "BF485842D2C08A3378308BA9992A309F", httpRequest.getURI(), "MD5");
-        signParameters.setParameters(parameters);
         assertThat(extractor.extract(httpRequest).toString(), is(signParameters.toString()));
     }
 }

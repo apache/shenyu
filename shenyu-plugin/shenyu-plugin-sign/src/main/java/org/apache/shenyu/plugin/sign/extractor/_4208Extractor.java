@@ -27,7 +27,10 @@ import org.springframework.http.HttpRequest;
 import java.util.Base64;
 import java.util.Map;
 
-public class NewExtractor implements SignParameterExtractor {
+/**
+ * Implements from <a href="https://github.com/apache/shenyu/issues/4208">#4208</a>.
+ */
+public class _4208Extractor implements SignParameterExtractor {
 
     @Override
     public SignParameters extract(final HttpRequest httpRequest) {

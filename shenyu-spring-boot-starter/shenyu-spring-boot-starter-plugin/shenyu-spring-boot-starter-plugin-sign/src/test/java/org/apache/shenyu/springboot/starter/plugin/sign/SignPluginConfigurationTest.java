@@ -18,9 +18,9 @@
 package org.apache.shenyu.springboot.starter.plugin.sign;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.sign.provider.SignProvider;
-import org.apache.shenyu.plugin.sign.service.SignService;
+import org.apache.shenyu.plugin.sign.api.SignProvider;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.sign.service.SignService;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,46 +45,46 @@ public class SignPluginConfigurationTest {
     @BeforeEach
     public void before() {
         applicationContextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(SignPluginConfiguration.class))
-            .withBean(SignPluginConfigurationTest.class)
-            .withBean(DefaultServerCodecConfigurer.class)
-            .withPropertyValues("debug=true");
+                .withConfiguration(AutoConfigurations.of(SignPluginConfiguration.class))
+                .withBean(SignPluginConfigurationTest.class)
+                .withBean(DefaultServerCodecConfigurer.class)
+                .withPropertyValues("debug=true");
     }
 
     @Test
     public void testDefaultSignService() {
         applicationContextRunner.run(context -> {
-                SignService service = context.getBean("signService", SignService.class);
-                assertNotNull(service);
-            }
+                    SignService service = context.getBean("signService", SignService.class);
+                    assertNotNull(service);
+                }
         );
     }
 
     @Test
     public void testSignPlugin() {
         applicationContextRunner.run(context -> {
-                SignProvider provider = context.getBean("signProvider", SignProvider.class);
-                assertNotNull(provider);
-            }
+                    SignProvider provider = context.getBean("signProvider", SignProvider.class);
+                    assertNotNull(provider);
+                }
         );
     }
 
     @Test
     public void testDefaultSignProvider() {
         applicationContextRunner.run(context -> {
-                ShenyuPlugin plugin = context.getBean("signPlugin", ShenyuPlugin.class);
-                assertNotNull(plugin);
-                assertThat(plugin.named()).isEqualTo(PluginEnum.SIGN.getName());
-            }
+                    ShenyuPlugin plugin = context.getBean("signPlugin", ShenyuPlugin.class);
+                    assertNotNull(plugin);
+                    assertThat(plugin.named()).isEqualTo(PluginEnum.SIGN.getName());
+                }
         );
     }
 
     @Test
     public void testSignAuthDataSubscriber() {
         applicationContextRunner.run(context -> {
-                AuthDataSubscriber subscriber = context.getBean("signAuthDataSubscriber", AuthDataSubscriber.class);
-                assertNotNull(subscriber);
-            }
+                    AuthDataSubscriber subscriber = context.getBean("signAuthDataSubscriber", AuthDataSubscriber.class);
+                    assertNotNull(subscriber);
+                }
         );
     }
 }

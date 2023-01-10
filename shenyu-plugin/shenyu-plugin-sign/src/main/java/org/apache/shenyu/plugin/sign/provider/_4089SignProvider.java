@@ -29,7 +29,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class DefaultSignProvider implements SignProvider {
+/**
+ * Implements from <a href="https://github.com/apache/shenyu/pull/4089">#4089</a>.
+ */
+public class _4089SignProvider implements SignProvider {
 
     @Override
     public String generateSign(final String signKey, final SignParameters signParameters, final String requestBody) {

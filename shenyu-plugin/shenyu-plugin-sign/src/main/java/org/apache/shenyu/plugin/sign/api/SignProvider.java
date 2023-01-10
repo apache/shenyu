@@ -15,25 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sign.extractor;
+package org.apache.shenyu.plugin.sign.api;
 
-import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.plugin.sign.api.SignParameters;
-import org.springframework.http.HttpRequest;
+import java.util.Map;
 
-import java.net.URI;
+/**
+ * The Sign plugin sign provider.
+ * @deprecated (2.5.1)  use  {@link org.apache.shenyu.plugin.sign.provider.SignProvider} instead.
+ */
+@Deprecated
+public interface SignProvider {
 
-public class DefaultExtractor implements SignParameterExtractor {
-
-    @Override
-    public SignParameters extract(final HttpRequest httpRequest) {
-
-        String appKey = httpRequest.getHeaders().getFirst(Constants.APP_KEY);
-        String signature = httpRequest.getHeaders().getFirst(Constants.SIGN);
-        String timestamp = httpRequest.getHeaders().getFirst(Constants.TIMESTAMP);
-        URI uri = httpRequest.getURI();
-
-        return new SignParameters(appKey, timestamp, signature, uri);
-    }
-
+    /**
+     * acquired sign.
+     *
+     * @param signKey sign key
+     * @param params  params
+     * @return sign
+     */
+    String generateSign(String signKey, Map<String, String> params);
 }
