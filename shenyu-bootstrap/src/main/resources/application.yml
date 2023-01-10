@@ -67,7 +67,8 @@ management:
 
 shenyu:
   trie:
-    trieChildrenSize: 10000
+    childrenSize: 10000
+    pathVariableSize: 1000
     pathRuleCacheSize: 1000
     matchMode: antPathMatch
   matchCache:
