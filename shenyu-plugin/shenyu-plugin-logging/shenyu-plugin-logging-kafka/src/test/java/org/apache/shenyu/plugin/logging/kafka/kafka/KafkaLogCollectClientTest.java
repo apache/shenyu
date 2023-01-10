@@ -60,7 +60,7 @@ public class KafkaLogCollectClientTest {
     @Test
     @Ignore
     public void testInitClient() throws NoSuchFieldException, IllegalAccessException {
-        try (final MockedConstruction<KafkaProducer> construction = mockConstruction(KafkaProducer.class)) {
+        try (MockedConstruction<KafkaProducer> construction = mockConstruction(KafkaProducer.class)) {
             kafkaLogCollectClient.initClient(globalLogConfig);
             Field field = kafkaLogCollectClient.getClass().getDeclaredField("topic");
             field.setAccessible(true);
