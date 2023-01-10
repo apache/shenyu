@@ -27,7 +27,7 @@ import java.util.Optional;
 /**
  * Implements from <a href="https://github.com/apache/shenyu/issues/4208">#4208</a>.
  */
-public class _4208SignProvider implements SignProvider {
+public class SignProvider4208 implements SignProvider {
 
     @Override
     public String generateSign(final String signKey, final SignParameters signParameters, final String requestBody) {

@@ -34,7 +34,7 @@ import static org.hamcrest.Matchers.is;
 
 public class Extractor4208Test {
 
-    private final SignParameterExtractor extractor = new _4208Extractor();
+    private final SignParameterExtractor extractor = new Extractor4208();
 
     @Test
     public void testExtract() {

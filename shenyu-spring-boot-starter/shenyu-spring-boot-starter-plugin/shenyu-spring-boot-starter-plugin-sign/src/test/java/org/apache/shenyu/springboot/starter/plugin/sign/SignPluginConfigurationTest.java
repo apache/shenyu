@@ -54,37 +54,37 @@ public class SignPluginConfigurationTest {
     @Test
     public void testDefaultSignService() {
         applicationContextRunner.run(context -> {
-                    SignService service = context.getBean("signService", SignService.class);
-                    assertNotNull(service);
-                }
+                SignService service = context.getBean("signService", SignService.class);
+                assertNotNull(service);
+            }
         );
     }
 
     @Test
     public void testSignPlugin() {
         applicationContextRunner.run(context -> {
-                    SignProvider provider = context.getBean("signProvider", SignProvider.class);
-                    assertNotNull(provider);
-                }
+                SignProvider provider = context.getBean("signProvider", SignProvider.class);
+                assertNotNull(provider);
+            }
         );
     }
 
     @Test
     public void testDefaultSignProvider() {
         applicationContextRunner.run(context -> {
-                    ShenyuPlugin plugin = context.getBean("signPlugin", ShenyuPlugin.class);
-                    assertNotNull(plugin);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.SIGN.getName());
-                }
+                ShenyuPlugin plugin = context.getBean("signPlugin", ShenyuPlugin.class);
+                assertNotNull(plugin);
+                assertThat(plugin.named()).isEqualTo(PluginEnum.SIGN.getName());
+            }
         );
     }
 
     @Test
     public void testSignAuthDataSubscriber() {
         applicationContextRunner.run(context -> {
-                    AuthDataSubscriber subscriber = context.getBean("signAuthDataSubscriber", AuthDataSubscriber.class);
-                    assertNotNull(subscriber);
-                }
+                AuthDataSubscriber subscriber = context.getBean("signAuthDataSubscriber", AuthDataSubscriber.class);
+                assertNotNull(subscriber);
+            }
         );
     }
 }

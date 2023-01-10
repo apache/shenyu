@@ -33,8 +33,8 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.api.VerifyResult;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
-import org.apache.shenyu.plugin.sign.extractor._4208Extractor;
-import org.apache.shenyu.plugin.sign.provider._4208SignProvider;
+import org.apache.shenyu.plugin.sign.extractor.Extractor4208;
+import org.apache.shenyu.plugin.sign.provider.SignProvider4208;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,7 +82,7 @@ public final class SignService4208Test {
 
     @BeforeEach
     public void setup() {
-        this.signService = new ComposableSignService(new _4208Extractor(), new _4208SignProvider());
+        this.signService = new ComposableSignService(new Extractor4208(), new SignProvider4208());
 
         final String path = "/test-api/demo/test";
         PluginData signData = new PluginData();

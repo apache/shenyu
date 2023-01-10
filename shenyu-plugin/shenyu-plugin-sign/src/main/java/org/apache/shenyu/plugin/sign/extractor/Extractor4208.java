@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Implements from <a href="https://github.com/apache/shenyu/issues/4208">#4208</a>.
  */
-public class _4208Extractor implements SignParameterExtractor {
+public class Extractor4208 implements SignParameterExtractor {
 
     @Override
     public SignParameters extract(final HttpRequest httpRequest) {

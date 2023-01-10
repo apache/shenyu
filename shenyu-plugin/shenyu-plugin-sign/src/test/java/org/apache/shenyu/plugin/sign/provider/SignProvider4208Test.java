@@ -29,9 +29,9 @@ import java.util.Base64;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class _4208SignProviderTest {
+public class SignProvider4208Test {
 
-    private final SignProvider signProvider = new _4208SignProvider();
+    private final SignProvider signProvider = new SignProvider4208();
 
     @Test
     void testGenerateSign() {

@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 /**
  * Implements from <a href="https://github.com/apache/shenyu/pull/4089">#4089</a>.
  */
-public class _4089SignProvider implements SignProvider {
+public class SignProvider4089 implements SignProvider {
 
     @Override
     public String generateSign(final String signKey, final SignParameters signParameters, final String requestBody) {

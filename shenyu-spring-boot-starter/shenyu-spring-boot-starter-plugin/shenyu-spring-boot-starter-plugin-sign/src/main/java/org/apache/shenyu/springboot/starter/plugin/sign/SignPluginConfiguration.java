@@ -22,12 +22,7 @@ import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.sign.api.SignProvider;
 import org.apache.shenyu.plugin.sign.SignPlugin;
-import org.apache.shenyu.plugin.sign.extractor._4089Extractor;
-import org.apache.shenyu.plugin.sign.extractor._4208Extractor;
 import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
-import org.apache.shenyu.plugin.sign.provider._4089SignProvider;
-import org.apache.shenyu.plugin.sign.provider._4208SignProvider;
-import org.apache.shenyu.plugin.sign.service.ComposableSignService;
 import org.apache.shenyu.plugin.sign.service.DefaultSignService;
 import org.apache.shenyu.plugin.sign.service.SignService;
 import org.apache.shenyu.plugin.sign.subscriber.SignAuthDataSubscriber;
@@ -49,15 +44,16 @@ public class SignPluginConfiguration {
     /**
      * Sign service.
      * <pre>
-     * 1.return new DefaultSignService() //deprecated <br/>
+     * 1.return new DefaultSignService() //deprecated <br>
      * //recommend
      * 2.return new ComposableSignService(
-     *                   new _4208Extractor()
-     *                  ,new _4208SignProvider())
-     *                  </br>
+     *                   new Extractor4208()
+     *                  ,new SignProvider4208())
+     *                  <br>
      * 3.return new ComposableSignService(
-     *                   new _4089Extractor()
-     *                  ,new _4089SignProvider()) </pre>
+     *                   new Extractor4089()
+     *                  ,new SignProvider4089())
+     * </pre>
      * @return the sign service
      */
     @Bean

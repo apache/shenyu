@@ -27,9 +27,9 @@ import java.net.URI;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class _4089SignProviderTest {
+public class SignProvider4089Test {
 
-    private final SignProvider signProvider = new _4089SignProvider();
+    private final SignProvider signProvider = new SignProvider4089();
 
     @Test
     void testGenerateSign() {

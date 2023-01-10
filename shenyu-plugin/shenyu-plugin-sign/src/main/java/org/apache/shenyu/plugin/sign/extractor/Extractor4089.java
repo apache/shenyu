@@ -26,7 +26,7 @@ import java.net.URI;
 /**
  * Implements from <a href="https://github.com/apache/shenyu/pull/4089">#4089</a>.
  */
-public class _4089Extractor implements SignParameterExtractor {
+public class Extractor4089 implements SignParameterExtractor {
 
     @Override
     public SignParameters extract(final HttpRequest httpRequest) {

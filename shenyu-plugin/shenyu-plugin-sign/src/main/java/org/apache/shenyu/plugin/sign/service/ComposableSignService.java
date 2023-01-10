@@ -48,8 +48,8 @@ import java.util.function.BiFunction;
 /**
  * The ComposableSignService is composable SignService.
  * <pre>
- *  1. new ComposableSignService(new _4208Extractor(), new _4208SignProvider())
- *    Implements from <a href="https://github.com/apache/shenyu/issues/4208">4208</a>
+ *  1. new ComposableSignService(new Extractor4208(), new SignProvider4208())
+ *    Implements from <a href="https://github.com/apache/shenyu/issues/4208">#4208</a>
  *    parameters:
  *     {
  *           "alg":"HMD5",
