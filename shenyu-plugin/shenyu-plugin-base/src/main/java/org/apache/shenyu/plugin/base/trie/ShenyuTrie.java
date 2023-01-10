@@ -43,6 +43,8 @@ public class ShenyuTrie {
 
     private final Long pathRuleCacheSize;
     
+    private final Long pathVariableSize;
+    
     private final Object lock = new Object();
 
     /**
@@ -51,10 +53,11 @@ public class ShenyuTrie {
      */
     private final String matchMode;
 
-    public ShenyuTrie(final Long pathRuleCacheSize, final Long childrenSize, final String matchMode) {
-        this.root = new ShenyuTrieNode("/", "/", false, pathRuleCacheSize);
+    public ShenyuTrie(final Long childrenSize, final Long pathRuleCacheSize, final Long pathVariableSize, final String matchMode) {
+        this.root = new ShenyuTrieNode("/", "/", false, childrenSize, pathRuleCacheSize, pathVariableSize);
         this.childrenSize = childrenSize;
         this.pathRuleCacheSize = pathRuleCacheSize;
+        this.pathVariableSize = pathVariableSize;
         this.matchMode = matchMode;
     }
 
@@ -71,11 +74,12 @@ public class ShenyuTrie {
     /**
      * judge the trie is empty.
      *
-     * @param shenyuTrie trie
      * @return status
      */
-    public boolean isEmpty(final ShenyuTrie shenyuTrie) {
-        return shenyuTrie.root.getChildren().estimatedSize() == 0 && "/".equals(shenyuTrie.root.getMatchStr());
+    public boolean isEmpty() {
+        return this.root.getChildren().estimatedSize() == 0
+                && this.root.getPathVariablesSet().estimatedSize() == 0
+                && Objects.isNull(this.root.getPathVariableNode());
     }
 
     /**
@@ -161,7 +165,7 @@ public class ShenyuTrie {
                 childNode.setMatchStr(segment);
                 childNode.setEndOfPath(false);
                 if (Objects.isNull(shenyuTrieNode.getPathVariablesSet())) {
-                    shenyuTrieNode.setPathVariablesSet(Caffeine.newBuilder().maximumSize(childrenSize).build());
+                    shenyuTrieNode.setPathVariablesSet(Caffeine.newBuilder().maximumSize(pathVariableSize).build());
                 }
                 shenyuTrieNode.getPathVariablesSet().put(segment, childNode);
                 shenyuTrieNode.setPathVariableNode(childNode);
@@ -221,20 +225,17 @@ public class ShenyuTrie {
                         // include path variable node, general node, wildcard node
                         if (endPath && checkPathRuleNotNull(currentNode)
                                 && CollectionUtils.isNotEmpty(getVal(currentNode.getPathRuleCache(), selectorId))) {
-                            break;
+                            return currentNode;
                         }
                         // path is end and the match str is **, means match all
                         if (isMatchAll(currentNode.getMatchStr()) && currentNode.getEndOfPath()
                                 && checkPathRuleNotNull(currentNode)
                                 && CollectionUtils.isNotEmpty(getVal(currentNode.getPathRuleCache(), selectorId))) {
-                            break;
+                            return currentNode;
                         }
                     } else {
                         return null;
                     }
-                }
-                if (currentNode.getEndOfPath() || (Objects.nonNull(currentNode.getPathVariableNode()) && currentNode.getPathVariableNode().getEndOfPath())) {
-                    return currentNode;
                 }
             }
         }
@@ -290,7 +291,8 @@ public class ShenyuTrie {
             if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPathRuleCache())) {
                 // check current mapping
                 currentNode.getPathRuleCache().cleanUp();
-                if (currentNode.getPathRuleCache().estimatedSize() == 1 && Objects.isNull(currentNode.getChildren())) {
+                List<RuleData> ruleDataList = getVal(currentNode.getPathRuleCache(), selectorId);
+                if (CollectionUtils.isNotEmpty(ruleDataList) && ruleDataList.size() == 1 && Objects.isNull(currentNode.getChildren())) {
                     // remove current node from parent node
                     String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
                     String parentPath = String.join("/", parentPathArray);
@@ -321,8 +323,7 @@ public class ShenyuTrie {
             String strippedPath = StringUtils.strip(uriPath, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
             if (pathParts.length > 0) {
-                ShenyuTrieNode currentNode = root;
-                return getNode0(currentNode, pathParts);
+                return getNode0(root, pathParts);
             } else {
                 return null;
             }
@@ -350,7 +351,7 @@ public class ShenyuTrie {
                 }
                 return node.getPathVariableNode();
             } else if (isMatchAllOrWildcard(key)) {
-                return node;
+                return getVal(node.getChildren(), key);
             } else {
                 if (Objects.isNull(node) || !checkChildrenNotNull(node)) {
                     return null;
