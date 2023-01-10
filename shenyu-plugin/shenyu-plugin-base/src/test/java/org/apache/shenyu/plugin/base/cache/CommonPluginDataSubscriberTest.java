@@ -233,7 +233,7 @@ public final class CommonPluginDataSubscriberTest {
 
     private void mockShenyuTrieConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        when(context.getBean(ShenyuTrie.class)).thenReturn(new ShenyuTrie(100L, 100L, TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode()));
+        when(context.getBean(ShenyuTrie.class)).thenReturn(new ShenyuTrie(100L, 100L, 100L, TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode()));
         SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 }
