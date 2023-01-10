@@ -377,6 +377,7 @@ The text of each license is the standard Apache 2.0 license.
     curator-client 4.3.0: https://github.com/apache/curator, Apache 2.0
     curator-framework 4.3.0: https://github.com/apache/curator, Apache 2.0
     curator-recipes 4.3.0: https://github.com/apache/curator, Apache 2.0
+    brpc 2022.2.0: https://github.com/baidu/starlight, Apache 2.0
 
 ========================================================================
 BSD licenses
