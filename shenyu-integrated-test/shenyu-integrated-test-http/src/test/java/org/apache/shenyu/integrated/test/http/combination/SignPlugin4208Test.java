@@ -250,7 +250,7 @@ public final class SignPlugin4208Test extends AbstractPluginDataInit {
         return SignUtils.sign(SignUtils.SIGN_MD5, signKey, data).toUpperCase();
     }
 
-    public String getRelativeURL(final URI uri) {
+    private String getRelativeURL(final URI uri) {
         if (Objects.isNull(uri.getQuery())) {
             return uri.getPath();
         }
