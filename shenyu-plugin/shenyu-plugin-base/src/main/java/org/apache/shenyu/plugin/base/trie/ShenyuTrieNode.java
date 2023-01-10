@@ -80,12 +80,14 @@ public class ShenyuTrieNode implements Serializable {
     public ShenyuTrieNode() {
     }
 
-    public ShenyuTrieNode(final String matchStr, final String fullPath, final boolean endOfPath, final Long size) {
+    public ShenyuTrieNode(final String matchStr, final String fullPath, final boolean endOfPath,
+                          final Long childrenSize, final Long pathRuleCacheSize, final Long pathVariableSize) {
         this.matchStr = matchStr;
         this.fullPath = fullPath;
         this.endOfPath = endOfPath;
-        this.pathRuleCache = Caffeine.newBuilder().maximumSize(size).build();
-        this.pathVariablesSet = Caffeine.newBuilder().maximumSize(size).build();
+        this.children = Caffeine.newBuilder().maximumSize(childrenSize).build();
+        this.pathRuleCache = Caffeine.newBuilder().maximumSize(pathRuleCacheSize).build();
+        this.pathVariablesSet = Caffeine.newBuilder().maximumSize(pathVariableSize).build();
     }
 
     /**

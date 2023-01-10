@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * ShenyuApacheDubboClientApi.
  */
-@ShenyuClient(contextId = "shenyu-gateway", name = "ShenyuSdkApiName", fallback = ShenyuApacheDubboClientAplFallBack.class)
+@ShenyuClient(value = "shenyu-gateway", path = "/dubbo/demo", fallback = ShenyuApacheDubboClientAplFallBack.class)
 public interface ShenyuApacheDubboClientApi {
 
     /**
@@ -43,7 +43,7 @@ public interface ShenyuApacheDubboClientApi {
      *
      * @return DubboTest
      */
-    @GetMapping("/dubbo/findAll")
+    @GetMapping("findAll")
     DubboTest findAll();
 
     /**
@@ -51,7 +51,7 @@ public interface ShenyuApacheDubboClientApi {
      *
      * @return ListResp
      */
-    @GetMapping("/dubbo/findList")
+    @GetMapping("findList")
     ListResp findList();
 
     /**
@@ -60,7 +60,7 @@ public interface ShenyuApacheDubboClientApi {
      * @param id id
      * @return DubboTest
      */
-    @GetMapping("/dubbo/findById")
+    @GetMapping("findById")
     DubboTest findById(@RequestParam("id") String id);
 
     /**
@@ -69,7 +69,7 @@ public interface ShenyuApacheDubboClientApi {
      * @param dubboTest dubboTest
      * @return DubboTest
      */
-    @PostMapping("/dubbo/insert")
+    @PostMapping("insert")
     DubboTest insert(@RequestBody DubboTest dubboTest);
 
     /**
@@ -78,7 +78,7 @@ public interface ShenyuApacheDubboClientApi {
      * @param ids ids
      * @return DubboTest
      */
-    @PostMapping("/dubbo/findByListId")
+    @PostMapping("findByListId")
     DubboTest findByListId(@RequestBody List<String> ids);
 
     /**
@@ -87,7 +87,7 @@ public interface ShenyuApacheDubboClientApi {
      * @param dubboRequestBody dubboRequestBody
      * @return DubboTest
      */
-    @PostMapping("/dubbo/demo/findByIdsAndName")
+    @PostMapping("findByIdsAndName")
     DubboTest findByIdsAndName(@RequestBody DubboRequestBody dubboRequestBody);
 
     /**
@@ -96,7 +96,7 @@ public interface ShenyuApacheDubboClientApi {
      * @param dubboRequestBody dubboRequestBody
      * @return DubboTest
      */
-    @PostMapping("/dubbo/demo/findByIdsAndName")
+    @PostMapping("findByIdsAndName")
     DubboTest findByArrayIdsAndName(@RequestBody DubboRequestBody dubboRequestBody);
 
     /**
@@ -105,7 +105,7 @@ public interface ShenyuApacheDubboClientApi {
      * @param complexBeanTest complexBeanTest
      * @return DubboTest
      */
-    @PostMapping("/dubbo/saveComplexBeanTest")
+    @PostMapping("saveComplexBeanTest")
     DubboTest saveComplexBeanTest(@RequestBody ComplexBeanTest complexBeanTest);
 
     /**
@@ -114,7 +114,7 @@ public interface ShenyuApacheDubboClientApi {
      * @param dubboTestSaveRequest dubboTestSaveRequest
      * @return DubboTest
      */
-    @PostMapping("/dubbo/batchSave")
+    @PostMapping("batchSave")
     DubboTest batchSave(@RequestBody DubboTestSaveRequest dubboTestSaveRequest);
 
     /**
@@ -123,6 +123,6 @@ public interface ShenyuApacheDubboClientApi {
      * @param dubboTestSaveRequest dubboTestSaveRequest
      * @return DubboTest
      */
-    @PostMapping("/dubbo/batchSaveAndNameAndId")
+    @PostMapping("batchSaveAndNameAndId")
     DubboTest batchSaveAndNameAndId(@RequestBody DubboTestSaveRequest dubboTestSaveRequest);
 }
