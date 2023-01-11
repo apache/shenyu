@@ -16,6 +16,17 @@
 
 -- this file works for PostgreSQL, can not use "`" syntax.
 
+/* insert plugin for brpc */
+INSERT INTO "public"."plugin" VALUES ('41', 'brpc', '{"address":"127.0.0.1","port":"8005","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 'Proxy', 310, 0, '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+
+/*insert plugin_handle data for plugin brpc*/
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172957', '41', 'address', 'address', 2, 3, 0, '{"required":"1","defaultValue":"127.0.0.1","placeholder":"address","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172958', '41', 'port', 'port', 2, 3, 0, '{"required":"1","defaultValue":"8005","placeholder":"port","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172959', '41', 'corethreads', 'corethreads', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"corethreads","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172960', '41', 'threads', 'threads', 1, 3, 0, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172961', '41', 'queues', 'queues', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172962', '41', 'threadpool', 'threadpool', 3, 3, 0, '{"required":"0","defaultValue":"shared","placeholder":"threadpool","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+
 /*insert plugin_handle data for plugin loggingElasticSearch*/
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524972', '32', 'username', 'username', 2, 3, 4, '{"required":"0","defaultValue":""}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902783524973', '32', 'password', 'password', 2, 3, 5, '{"required":"0","defaultValue":""}', '2022-08-20 21:00:00', '2022-08-20 21:00:00');
