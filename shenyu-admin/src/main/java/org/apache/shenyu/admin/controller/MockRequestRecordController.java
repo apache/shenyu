@@ -84,7 +84,7 @@ public class MockRequestRecordController {
      */
     @DeleteMapping("/{id}")
     public ShenyuAdminResult delete(@PathVariable @Valid @Existed(provider = MockRequestRecordMapper.class,
-            message = " is not existed") String id) {
+            message = " is not existed") final String id) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, mockRequestRecordService.delete(id));
     }
 

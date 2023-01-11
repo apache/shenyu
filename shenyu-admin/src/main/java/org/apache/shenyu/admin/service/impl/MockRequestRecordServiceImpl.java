@@ -126,7 +126,7 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
     }
 
     @Override
-    public MockRequestRecordVO queryByApiId(String apiId) {
+    public MockRequestRecordVO queryByApiId(final String apiId) {
         MockRequestRecordQuery mockRequestRecordQuery = new MockRequestRecordQuery();
         mockRequestRecordQuery.setApiId(apiId);
         List<MockRequestRecordDO> mockRequestRecordDOList = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
