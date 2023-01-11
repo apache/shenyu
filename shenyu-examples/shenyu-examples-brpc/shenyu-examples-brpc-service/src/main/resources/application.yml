@@ -1,0 +1,58 @@
+## Licensed to the Apache Software Foundation (ASF) under one or more
+## contributor license agreements.  See the NOTICE file distributed with
+## this work for additional information regarding copyright ownership.
+## The ASF licenses this file to You under the Apache License, Version 2.0
+## (the "License"); you may not use this file except in compliance with
+## the License.  You may obtain a copy of the License at
+##
+##     http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+#
+server:
+  port: 8011
+  address: 0.0.0.0
+  servlet:
+    context-path: /
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: brpc-exmaples
+
+shenyu:
+  register:
+    registerType: http #zookeeper #etcd #nacos #consul
+    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
+    props:
+      username: admin
+      password: 123456
+  client:
+    brpc:
+      props:
+        contextPath: /brpc
+        ipAndPort: brpc
+        appName: brpc
+        port: 8005
+        host: 127.0.0.1
+
+#brpc:
+#  global:
+#    naming:
+#      namingServiceUrl: zookeeper://127.0.0.1:2181 # 注册中心名称
+#      group: "normal" # 实例分组名称，用于区分同一个接口不同提供方场景，默认default
+#      version: 1.0.0 # 提供方接口实现版本
+#      ignoreFailOfNamingService: false # false：注册中心连不上时会报错。
+#    server: # server配置跟RpcServerOptions一样
+#      port: 8002
+#      workThreadNum: 1
+#      ioThreadNum: 1
+# starlight 配置
+starlight:
+  server:
+    enable: true
+    port: 8005
