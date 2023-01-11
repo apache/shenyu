@@ -48,7 +48,7 @@ import java.util.function.BiFunction;
 /**
  * The ComposableSignService is composable SignService.
  * <pre>
- *  1. new ComposableSignService(new Extractor4208(), new SignProvider4208())
+ *  1. new ComposableSignService(new DefaultExtractor(), new DefaultSignProvider())
  *    Implements from <a href="https://github.com/apache/shenyu/issues/4208">#4208</a>
  *    parameters:
  *     {
@@ -65,11 +65,7 @@ import java.util.function.BiFunction;
  *
  *    token = base64Encoding(header) + '.'
  *    + base64Encoding(signature)
- *
- * 2. new ComposableSignService(new _4098Extractor(), new _4098SignProvider())
- *     Implements from <a href = "https://github.com/apache/shenyu/pull/4089">#4089</a>
- *
- * 3. new ComposableSignService(new CustomExtractor(), new CustomSignProvider())
+ * 2. new ComposableSignService(new CustomExtractor(), new CustomSignProvider())
  *     Customs {@link org.apache.shenyu.plugin.sign.extractor.SignParameterExtractor} and {@link org.apache.shenyu.plugin.sign.provider.SignProvider}
  *  </pre>
  */

@@ -33,7 +33,6 @@ public class SignParameters {
 
     private final String signAlg;
 
-    //for new SignProvider
     private String parameters;
 
     public SignParameters(final String appKey,

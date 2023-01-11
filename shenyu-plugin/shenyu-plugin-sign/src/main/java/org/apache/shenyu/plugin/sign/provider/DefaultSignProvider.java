@@ -24,10 +24,7 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * Implements from <a href="https://github.com/apache/shenyu/issues/4208">#4208</a>.
- */
-public class SignProvider4208 implements SignProvider {
+public class DefaultSignProvider implements SignProvider {
 
     @Override
     public String generateSign(final String signKey, final SignParameters signParameters, final String requestBody) {

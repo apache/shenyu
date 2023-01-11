@@ -17,26 +17,40 @@
 
 package org.apache.shenyu.plugin.sign.extractor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.sign.api.SignParameters;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 
-import java.net.URI;
+import java.util.Base64;
+import java.util.Map;
 
-/**
- * Implements from <a href="https://github.com/apache/shenyu/pull/4089">#4089</a>.
- */
-public class Extractor4089 implements SignParameterExtractor {
+public class DefaultExtractor implements SignParameterExtractor {
 
     @Override
     public SignParameters extract(final HttpRequest httpRequest) {
 
-        String appKey = httpRequest.getHeaders().getFirst(Constants.APP_KEY);
-        String signature = httpRequest.getHeaders().getFirst(Constants.SIGN);
-        String timestamp = httpRequest.getHeaders().getFirst(Constants.TIMESTAMP);
-        URI uri = httpRequest.getURI();
+        String token = httpRequest.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        return new SignParameters(appKey, timestamp, signature, uri);
+        if (StringUtils.isEmpty(token) || !token.contains(".")) {
+            return new SignParameters();
+        }
+        String[] tokenArray = StringUtils.split(token, '.');
+        String parameters = tokenArray[0];
+        String signature = tokenArray[1];
+
+        Map<String, Object> headerMap = JsonUtils.jsonToMap(new String(Base64.getDecoder().decode(parameters)));
+
+        SignParameters signParameters = new SignParameters(
+                (String) headerMap.get(Constants.APP_KEY),
+                (String) headerMap.get(Constants.TIMESTAMP),
+                signature,
+                httpRequest.getURI(),
+                (String) headerMap.get("alg"));
+        signParameters.setParameters(parameters);
+
+        return signParameters;
     }
-
 }

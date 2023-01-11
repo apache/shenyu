@@ -32,9 +32,9 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class Extractor4208Test {
+public class DefaultExtractorTest {
 
-    private final SignParameterExtractor extractor = new Extractor4208();
+    private final SignParameterExtractor extractor = new DefaultExtractor();
 
     @Test
     public void testExtract() {
