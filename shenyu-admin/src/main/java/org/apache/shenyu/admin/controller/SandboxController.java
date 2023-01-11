@@ -121,10 +121,8 @@ public class SandboxController {
 
     private Map<String, String> buildReqHeaders(final ProxyGatewayDTO proxyGatewayDTO) {
         Map<String, String> reqHeaders = new HashMap<>();
-        reqHeaders.put("Cookie", proxyGatewayDTO.getCookie());
         try {
             String reqJson = JsonUtils.toJson(proxyGatewayDTO.getHeaders());
-            reqJson = StringEscapeUtils.escapeHtml4(reqJson);
             Map<String, String> reqMap = JsonUtils.jsonToMap(reqJson, String.class);
             LOG.info("bizParam toMap= {}", JsonUtils.toJson(reqMap));
             reqHeaders.putAll(reqMap);
