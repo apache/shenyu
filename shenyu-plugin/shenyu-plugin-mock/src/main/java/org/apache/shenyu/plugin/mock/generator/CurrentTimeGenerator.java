@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
 
@@ -28,35 +29,30 @@ import java.util.List;
 @Join
 public class CurrentTimeGenerator implements Generator<String> {
 
-    private String format;
-    
     @Override
     public String getName() {
         return "current";
     }
-    
+
     @Override
-    public String generate() {
+    public String doGenerate(final List<String> params, final String rule, final MockRequest mockRequest) {
+        String format = null;
+        if (params.size() >= 1) {
+            format = params.get(0);
+        }
         return MockUtil.current(format);
     }
-    
+
     @Override
     public int getParamSize() {
         return 0;
     }
-    
-    @Override
-    public void initParam(final List<String> params, final String rule) {
-        if (params.size() >= 1) {
-            format = params.get(0);
-        }
-    }
-    
+
     @Override
     public boolean match(final String rule) {
         return rule.matches("^current(\\|.+)?");
     }
-    
+
     @Override
     public String[] getPrefixAndSuffix() {
         return new String[]{"\"", "\""};

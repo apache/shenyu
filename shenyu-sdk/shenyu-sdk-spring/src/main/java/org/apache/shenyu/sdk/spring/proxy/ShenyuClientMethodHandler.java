@@ -24,8 +24,10 @@ import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
 import org.apache.shenyu.sdk.core.common.RequestTemplate;
 import org.apache.shenyu.sdk.spring.ShenyuClient;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -72,6 +74,8 @@ public class ShenyuClientMethodHandler {
             return null;
         } else if (ShenyuResponse.class == returnType) {
             return shenyuResponse;
+        } else if (shenyuResponse.getStatus() != HttpStatus.OK.value()) {
+            throw new HttpClientErrorException(HttpStatus.valueOf(shenyuResponse.getStatus()));
         } else if (StringUtils.hasText(shenyuResponse.getBody())) {
             return JsonUtils.jsonToObject(shenyuResponse.getBody(), returnType);
         } else {
@@ -81,6 +85,7 @@ public class ShenyuClientMethodHandler {
 
     private ShenyuRequest targetProcessor(final RequestTemplate requestTemplate, final Object[] args) {
         final RequestTemplate requestTemplateFrom = RequestTemplate.from(requestTemplate);
+        ShenyuRequest request = requestTemplateFrom.request();
         for (RequestTemplate.ParamMetadata paramMetadata : requestTemplateFrom.getParamMetadataList()) {
             final Annotation[] paramAnnotations = paramMetadata.getParamAnnotations();
             for (Annotation paramAnnotation : paramAnnotations) {
@@ -88,9 +93,9 @@ public class ShenyuClientMethodHandler {
                 if (ObjectUtils.isEmpty(processor)) {
                     continue;
                 }
-                processor.processArgument(requestTemplateFrom, paramAnnotation, args[paramMetadata.getParamIndexOnMethod()]);
+                processor.processArgument(request, paramAnnotation, args[paramMetadata.getParamIndexOnMethod()]);
             }
         }
-        return requestTemplateFrom.request();
+        return request;
     }
 }

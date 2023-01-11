@@ -17,55 +17,51 @@
 
 package org.apache.shenyu.common.utils;
 
-import java.util.Comparator;
+import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * SignUtils.
  */
 public final class SignUtils {
 
-    /**
-     * acquired sign.
-     *
-     * @param signKey sign key
-     * @param jsonParams json params
-     * @param queryParams  url query params
-     * @return sign
-     */
-    public static String generateSign(final String signKey, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
-        final String jsonSign = Optional.ofNullable(jsonParams).map(e -> e.keySet().stream()
-                .sorted(Comparator.naturalOrder())
-                .map(key -> String.join("", key, jsonParams.get(key)))
-                .collect(Collectors.joining()).trim())
-                .orElse("");
-        final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
-                .sorted(Comparator.naturalOrder())
-                .map(key -> String.join("", key, queryParams.get(key)))
-                .collect(Collectors.joining()).trim())
-                .orElse("");
-        final String sign = String.join("", jsonSign, querySign, signKey);
-        // TODO this is a risk for error charset coding with getBytes
-        return DigestUtils.md5Hex(sign.getBytes()).toUpperCase();
-    }
+    public static final String SIGN_MD5 = "MD5";
+
+    public static final String SIGN_HMD5 = "HMD5";
+
+    public static final String SIGN_HS256 = "HS256";
+
+    public static final String SIGN_HS512 = "HS512";
+
+    private static final Map<String, SignFunction> SIGN_FUNCTION_MAP = ImmutableMap.of(
+            SIGN_MD5, (key, data) -> DigestUtils.md5Hex(data + key),
+            SIGN_HMD5, HmacUtils::hmacMd5Hex,
+            SIGN_HS256, HmacUtils::hmacSha256Hex,
+            SIGN_HS512, HmacUtils::hmacSha512Hex
+    );
 
     /**
-     * isValid.
+     * Returns signature of data as hex string (lowercase).
      *
-     * @param sign    sign
-     * @param jsonParams json params
-     * @param queryParams  url query params
-     * @param signKey sign key
-     * @return boolean
+     * @param algorithmName the name of sign algorithm
+     * @param key           key
+     * @param data          data to sign
+     * @return signature
+     * @throws NullPointerException          if key or data is null
+     * @throws UnsupportedOperationException if algorithmName isn't supported
      */
-    public static boolean isValid(final String sign, final Map<String, String> jsonParams, final Map<String, String> queryParams, final String signKey) {
-        return Objects.equals(sign, generateSign(signKey, jsonParams, queryParams));
+    public static String sign(final String algorithmName, final String key, final String data) {
+        if (Objects.isNull(key) || Objects.isNull(data)) {
+            throw new NullPointerException("Key or data is null.");
+        }
+
+        return Optional.ofNullable(SIGN_FUNCTION_MAP.get(algorithmName))
+                .orElseThrow(() -> new UnsupportedOperationException("unsupported sign algorithm:" + algorithmName))
+                .sign(key, data);
     }
 
     /**
@@ -77,16 +73,9 @@ public final class SignUtils {
         return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
     }
 
-    /**
-     * Transform to string map.
-     *
-     * @param map source map
-     * @return string map
-     */
-    public static Map<String, String> transStringMap(final Map<String, Object> map) {
-        return Optional.ofNullable(map)
-                .map(m -> m.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Objects.toString(e.getValue(), null))))
-                .orElse(null);
+    @FunctionalInterface
+    private interface SignFunction {
+        String sign(String key, String data);
     }
 
 }

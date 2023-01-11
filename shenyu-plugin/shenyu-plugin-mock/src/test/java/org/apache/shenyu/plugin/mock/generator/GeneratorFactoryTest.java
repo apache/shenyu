@@ -29,14 +29,14 @@ public class GeneratorFactoryTest {
 
     @Test
     public void testDealRule() {
-        String dealedContent = GeneratorFactory.dealRule("${phone}");
+        String dealedContent = GeneratorFactory.dealRule("${phone}", null);
         assertThat(dealedContent, matchesRegex("^\"1[3-9]\\d{9}\"$"));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"${expression|(sdxc}", "${wrong_rule|123}"})
     public void testDealRuleWithWrongContent(final String content) {
-        String dealedContent = GeneratorFactory.dealRule(content);
+        String dealedContent = GeneratorFactory.dealRule(content, null);
         assertThat(dealedContent, is("\"[#ERROR EXPRESSION#]\""));
     }
 }

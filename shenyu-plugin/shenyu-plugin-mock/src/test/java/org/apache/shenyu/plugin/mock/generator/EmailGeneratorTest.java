@@ -17,26 +17,25 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
 
 /**
  * The test case for {@link EmailGenerator}.
  */
 public final class EmailGeneratorTest {
-    
+
     private final EmailGenerator generator = new EmailGenerator();
-    
+
     @Test
     public void testGenerate() {
-        generator.parseRule("email");
-        String email = generator.generate();
+        String email = generator.generate("email", null);
         assertNotNull(email);
     }
-    
+
     @Test
     public void match() {
         assertTrue(generator.match("email"));

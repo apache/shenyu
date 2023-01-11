@@ -79,7 +79,7 @@ public final class RequestTemplate {
      * @return {@link ShenyuRequest}
      */
     public ShenyuRequest request() {
-        return ShenyuRequest.create(this.httpMethod, this.url + this.path, this.headers, this.body, contextId, this);
+        return ShenyuRequest.create(this.httpMethod, this.url + this.path, new HashMap<>(this.headers), this.body, name, this);
     }
 
     /**

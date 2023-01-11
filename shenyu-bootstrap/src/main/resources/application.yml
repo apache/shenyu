@@ -66,11 +66,14 @@ management:
       enabled: false
 
 shenyu:
+  trie:
+    childrenSize: 10000
+    pathVariableSize: 1000
+    pathRuleCacheSize: 1000
+    matchMode: antPathMatch
   matchCache:
     selectorEnabled: false
-    ruleEnabled: true
     maxSelectorFreeMemory: 256 # 256MB
-    maxRuleFreeMemory: 256 # 256MB
   netty:
     http:
       # set to false, user can custom the netty tcp server config.

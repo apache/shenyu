@@ -19,6 +19,7 @@ package org.apache.shenyu.common.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
+import org.apache.shenyu.common.enums.TrieMatchModeEvent;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -62,6 +63,8 @@ public class ShenyuConfig {
     private SharedPool sharedPool = new SharedPool();
     
     private MetricsConfig metrics = new MetricsConfig();
+
+    private ShenyuTrieConfig trie = new ShenyuTrieConfig();
     
     /**
      * Gets health.
@@ -332,7 +335,25 @@ public class ShenyuConfig {
     public void setCross(final CrossFilterConfig cross) {
         this.cross = cross;
     }
-    
+
+    /**
+     * get shenyu trie config.
+     *
+     * @return shenyu trie config
+     */
+    public ShenyuTrieConfig getTrie() {
+        return trie;
+    }
+
+    /**
+     * set shenyu trie config.
+     *
+     * @param trie trie config
+     */
+    public void setTrie(final ShenyuTrieConfig trie) {
+        this.trie = trie;
+    }
+
     /**
      * The type Scheduler.
      */
@@ -513,14 +534,10 @@ public class ShenyuConfig {
 
         private boolean selectorEnabled;
 
-        private boolean ruleEnabled;
-
         /**
          * Max free memory, unit mb.
          */
         private Integer maxSelectorFreeMemory = 256;
-
-        private Integer maxRuleFreeMemory = 256;
 
         /**
          * Get selector cache enabled.
@@ -540,23 +557,6 @@ public class ShenyuConfig {
             this.selectorEnabled = selectorEnabled;
         }
 
-        /**
-         * get rule cache enabled.
-         *
-         * @return rule enabled
-         */
-        public boolean getRuleEnabled() {
-            return ruleEnabled;
-        }
-
-        /**
-         * set rule cache enabled.
-         *
-         * @param ruleEnabled rule cache enabled
-         */
-        public void setRuleEnabled(final boolean ruleEnabled) {
-            this.ruleEnabled = ruleEnabled;
-        }
 
         /**
          * Gets maxFreeMemory.
@@ -574,24 +574,6 @@ public class ShenyuConfig {
          */
         public void setMaxSelectorFreeMemory(final Integer maxSelectorFreeMemory) {
             this.maxSelectorFreeMemory = maxSelectorFreeMemory;
-        }
-
-        /**
-         * Gets maxFreeMemory.
-         *
-         * @return the maxFreeMemory
-         */
-        public Integer getMaxRuleFreeMemory() {
-            return maxRuleFreeMemory;
-        }
-
-        /**
-         * Sets maxFreeMemory.
-         *
-         * @param maxRuleFreeMemory the maxFreeMemory
-         */
-        public void setMaxRuleFreeMemory(final Integer maxRuleFreeMemory) {
-            this.maxRuleFreeMemory = maxRuleFreeMemory;
         }
     }
     
@@ -1704,6 +1686,95 @@ public class ShenyuConfig {
          */
         public void setProps(final Properties props) {
             this.props = props;
+        }
+    }
+
+    /**
+     * shenyu trie config.
+     */
+    public static class ShenyuTrieConfig {
+        private Long childrenSize = 10000L;
+
+        private Long pathRuleCacheSize = 1000L;
+        
+        private Long pathVariableSize = 1000L;
+
+        /**
+         * match mode.
+         * @see TrieMatchModeEvent
+         */
+        private String matchMode = TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode();
+
+        /**
+         * get trie children size.
+         *
+         * @return trie children size
+         */
+        public Long getChildrenSize() {
+            return childrenSize;
+        }
+
+        /**
+         * set trie children size.
+         *
+         * @param childrenSize trie children size
+         */
+        public void setChildrenSize(final Long childrenSize) {
+            this.childrenSize = childrenSize;
+        }
+
+        /**
+         * get path rule cache size.
+         *
+         * @return path rule cache size
+         */
+        public Long getPathRuleCacheSize() {
+            return pathRuleCacheSize;
+        }
+
+        /**
+         * set path rule cache size.
+         *
+         * @param pathRuleCacheSize path rule cache size
+         */
+        public void setPathRuleCacheSize(final Long pathRuleCacheSize) {
+            this.pathRuleCacheSize = pathRuleCacheSize;
+        }
+        
+        /**
+         * get path variable node size.
+         *
+         * @return path variable node size
+         */
+        public Long getPathVariableSize() {
+            return pathVariableSize;
+        }
+    
+        /**
+         * set path variable node size.
+         *
+         * @param pathVariableSize path variable node size
+         */
+        public void setPathVariableSize(final Long pathVariableSize) {
+            this.pathVariableSize = pathVariableSize;
+        }
+    
+        /**
+         * get match mode.
+         *
+         * @return motch mode
+         */
+        public String getMatchMode() {
+            return matchMode;
+        }
+
+        /**
+         * set match mode.
+         *
+         * @param matchMode match mode
+         */
+        public void setMatchMode(final String matchMode) {
+            this.matchMode = matchMode;
         }
     }
 }
