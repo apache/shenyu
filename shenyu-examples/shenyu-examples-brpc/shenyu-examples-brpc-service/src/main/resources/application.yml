@@ -40,7 +40,7 @@ shenyu:
         port: 8005
         host: 127.0.0.1
 
-# starlight 配置
+# starlight
 starlight:
   server:
     enable: true
