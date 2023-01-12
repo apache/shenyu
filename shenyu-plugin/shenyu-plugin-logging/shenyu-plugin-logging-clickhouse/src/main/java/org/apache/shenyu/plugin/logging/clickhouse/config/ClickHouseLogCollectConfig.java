@@ -62,6 +62,43 @@ public class ClickHouseLogCollectConfig {
 
         private String database;
 
+        private String clusterName;
+
+        private String engine;
+
+        /**
+         * get clusterName.
+         * @return clusterName
+         */
+        public String getClusterName() {
+            return clusterName;
+        }
+
+
+        /**
+         * set clusterName.
+         * @param clusterName clusterName
+         */
+        public void setClusterName(final String clusterName) {
+            this.clusterName = clusterName;
+        }
+
+        /**
+         * get Engine.
+         * @return Engine
+         */
+        public String getEngine() {
+            return engine;
+        }
+
+        /**
+         * set engine.
+         * @param engine engine
+         */
+        public void setEngine(final String engine) {
+            this.engine = engine;
+        }
+
         /**
          * get host.
          *
