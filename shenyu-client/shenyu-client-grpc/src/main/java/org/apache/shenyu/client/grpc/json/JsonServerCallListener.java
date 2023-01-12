@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.grpc.json;
 
+import com.google.common.collect.Maps;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
@@ -30,6 +31,7 @@ import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -41,6 +43,8 @@ import java.util.Objects;
 public class JsonServerCallListener<R, P> extends ForwardingServerCallListener<R> {
 
     private static final Logger LOG = LoggerFactory.getLogger(JsonServerCallListener.class);
+
+    private static final Map<String, Message.Builder> REQUEST_BUILDER_MAP = Maps.newConcurrentMap();
 
     private final Listener<R> delegate;
 
@@ -60,9 +64,10 @@ public class JsonServerCallListener<R, P> extends ForwardingServerCallListener<R
     @Override
     public void onMessage(final R message) {
         Message.Builder builder;
-        Class<?> t = JsonServerServiceInterceptor.getRequestClazzMap().get(call.getMethodDescriptor().getFullMethodName());
+        final String fullMethodName = call.getMethodDescriptor().getFullMethodName();
+        Class<?> t = JsonServerServiceInterceptor.getRequestClazzMap().get(fullMethodName);
         try {
-            builder = (Message.Builder) ReflectUtils.invokeStaticMethod(t, "newBuilder");
+            builder = REQUEST_BUILDER_MAP.computeIfAbsent(fullMethodName, k -> (Message.Builder) ReflectUtils.invokeStaticMethod(t, "newBuilder"));
 
             String reqData = JsonMessage.getDataFromDynamicMessage((DynamicMessage) message);
             JsonFormat.parser().ignoringUnknownFields().merge(reqData, builder);
