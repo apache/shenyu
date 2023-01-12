@@ -18,6 +18,8 @@
 package org.apache.shenyu.examples.http.controller;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.examples.http.dto.UserDTO;
@@ -61,6 +63,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/test")
 @ShenyuSpringMvcClient("/test/**")
+@ApiModule("/test")
 public class HttpTestController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpTestController.class);
@@ -72,6 +75,7 @@ public class HttpTestController {
      * @return the user dto
      */
     @PostMapping("/payment")
+    @ApiDoc(desc = "payment")
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
@@ -83,6 +87,7 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/findByUserId")
+    @ApiDoc(desc = "findByUserId")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
         return buildUser(userId, "hello world");
     }
@@ -95,6 +100,7 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/findByUserIdName")
+    @ApiDoc(desc = "findByUserIdName")
     public UserDTO findByUserId(@RequestParam("userId") final String userId, @RequestParam("name") final String name) {
         return buildUser(userId, name);
     }
@@ -108,6 +114,7 @@ public class HttpTestController {
      * @return the user dto
      */
     @GetMapping("/findByPage")
+    @ApiDoc(desc = "findByPage")
     public UserDTO findByPage(final String keyword, final Integer page, final Integer pageSize) {
         return buildUser(keyword, "hello world keyword is " + keyword + " page is " + page + " pageSize is " + pageSize);
     }
@@ -120,6 +127,7 @@ public class HttpTestController {
      * @return the path variable
      */
     @GetMapping("/path/{id}")
+    @ApiDoc(desc = "path/{id}")
     public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
         return buildUser(id, name);
     }
@@ -132,6 +140,7 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/path/{id}/name")
+    @ApiDoc(desc = "path/{id}/name")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
         return buildUser(id, "hello world");
     }
