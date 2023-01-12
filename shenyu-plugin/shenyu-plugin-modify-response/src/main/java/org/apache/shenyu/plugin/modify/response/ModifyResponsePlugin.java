@@ -41,6 +41,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -143,8 +144,9 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             this.getDelegate().getHeaders().clear();
             this.getDelegate().getHeaders().putAll(httpHeaders);
             int rowStatusCode = clientResponse.rawStatusCode();
+            ExchangeStrategies strategies = clientResponse.strategies();
 
-            return ClientResponse.create(statusCode)
+            return ClientResponse.create(statusCode, strategies)
                     .rawStatusCode(rowStatusCode)
                     .headers(headers -> headers.addAll(httpHeaders))
                     .cookies(cookies -> cookies.addAll(this.getCookies()))

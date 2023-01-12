@@ -57,7 +57,7 @@ public class LoggingKafkaPluginDataHandlerTest {
         List<ConditionData> list = new ArrayList<>();
         list.add(conditionData);
         selectorData.setConditionList(list);
-        pluginData.setEnabled(true);
+        pluginData.setEnabled(false);
         pluginData.setConfig("{\"topic\":\"test\", \"namesrvAddr\":\"localhost:8082\"}");
     }
 
