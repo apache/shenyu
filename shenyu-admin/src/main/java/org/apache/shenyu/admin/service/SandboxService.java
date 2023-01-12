@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * sandbox service.
@@ -33,6 +34,7 @@ public interface SandboxService {
      * @param proxyGatewayDTO proxyGatewayDTO
      * @param request         request
      * @param response        response
+     * @throws IOException throw io exception
      */
-    void requestProxyGateway(ProxyGatewayDTO proxyGatewayDTO, HttpServletRequest request, HttpServletResponse response);
+    void requestProxyGateway(ProxyGatewayDTO proxyGatewayDTO, HttpServletRequest request, HttpServletResponse response) throws IOException;
 }

@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.impl;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
@@ -45,12 +44,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.List;
-import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
@@ -69,15 +67,8 @@ public class SandboxServiceImpl implements SandboxService {
         this.appAuthService = appAuthService;
     }
 
-    /**
-     * proxy Gateway.
-     *
-     * @param proxyGatewayDTO proxyGatewayDTO
-     * @param request         request
-     * @param response        response
-     */
     @Override
-    public void requestProxyGateway(final ProxyGatewayDTO proxyGatewayDTO, final HttpServletRequest request, final HttpServletResponse response) {
+    public void requestProxyGateway(final ProxyGatewayDTO proxyGatewayDTO, final HttpServletRequest request, final HttpServletResponse response) throws IOException {
         // Public request headers.
         Map<String, String> header = this.buildReqHeaders(proxyGatewayDTO);
 
@@ -100,13 +91,8 @@ public class SandboxServiceImpl implements SandboxService {
         // Public request parameters.
         Map<String, Object> reqParams = this.buildReqBizParams(proxyGatewayDTO);
         List<HttpUtils.UploadFile> files = this.uploadFiles(request);
-        ResponseBody body = null;
-        try {
-            Response resp = HTTP_UTILS.requestCall(uriComponents.toUriString(), reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files);
-            body = resp.body();
-        } catch (Exception e) {
-            LOG.error("sandbox proxy request response error. msg={}", e.getMessage());
-        }
+        Response resp = HTTP_UTILS.requestCall(uriComponents.toUriString(), reqParams, header, HttpUtils.HTTPMethod.fromValue(proxyGatewayDTO.getHttpMethod()), files);
+        ResponseBody body = resp.body();
 
         if (Objects.isNull(body)) {
             return;
@@ -115,20 +101,15 @@ public class SandboxServiceImpl implements SandboxService {
             response.addHeader("sandbox-beforesign", UriUtils.encode(signContent, StandardCharsets.UTF_8));
             response.addHeader("sandbox-sign", UriUtils.encode(sign, StandardCharsets.UTF_8));
         }
-        try {
-            IOUtils.copy(body.byteStream(), response.getOutputStream());
-            response.flushBuffer();
-        } catch (Exception e) {
-            LOG.error("sandbox proxy request response to byte error. msg={}", e.getMessage());
-        }
+
+        IOUtils.copy(body.byteStream(), response.getOutputStream());
+        response.flushBuffer();
     }
 
     private Map<String, String> buildReqHeaders(final ProxyGatewayDTO proxyGatewayDTO) {
         Map<String, String> reqHeaders = new HashMap<>();
-        reqHeaders.put("Cookie", proxyGatewayDTO.getCookie());
         try {
             String reqJson = JsonUtils.toJson(proxyGatewayDTO.getHeaders());
-            reqJson = StringEscapeUtils.escapeHtml4(reqJson);
             Map<String, String> reqMap = JsonUtils.jsonToMap(reqJson, String.class);
             LOG.info("Sandbox Request Headers. toMap={}", JsonUtils.toJson(reqMap));
             reqHeaders.putAll(reqMap);
