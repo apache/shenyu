@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 
 /**
  * Sandbox environment.
@@ -47,12 +48,12 @@ public class SandboxController {
      * @param proxyGatewayDTO proxyGatewayDTO
      * @param request         request
      * @param response        response
+     * @throws IOException throw io exception
      */
     @PostMapping(path = "/proxyGateway")
     public void proxyGateway(@RequestBody @Valid final ProxyGatewayDTO proxyGatewayDTO,
                             final HttpServletRequest request,
-                            final HttpServletResponse response) {
-
+                            final HttpServletResponse response) throws IOException {
         sandboxService.requestProxyGateway(proxyGatewayDTO, request, response);
     }
 }
