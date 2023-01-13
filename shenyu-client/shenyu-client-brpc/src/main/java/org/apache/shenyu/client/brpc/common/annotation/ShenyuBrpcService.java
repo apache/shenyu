@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.brpc.common.annotation;
 
 import com.baidu.cloud.starlight.springcloud.server.annotation.RpcService;
+import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -34,4 +35,28 @@ import java.lang.annotation.Target;
 @RpcService
 @ShenyuBrpcClient
 public @interface ShenyuBrpcService {
+
+    /**
+     * service id.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = RpcService.class)
+    String serviceId() default "";
+
+    /**
+     * protocol.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = RpcService.class)
+    String protocol() default "";
+
+    /**
+     * filters.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = RpcService.class)
+    String filters() default "";
 }
