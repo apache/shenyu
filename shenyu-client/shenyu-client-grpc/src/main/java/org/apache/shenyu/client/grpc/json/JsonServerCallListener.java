@@ -65,9 +65,11 @@ public class JsonServerCallListener<R, P> extends ForwardingServerCallListener<R
     public void onMessage(final R message) {
         Message.Builder builder;
         final String fullMethodName = call.getMethodDescriptor().getFullMethodName();
-        Class<?> t = JsonServerServiceInterceptor.getRequestClazzMap().get(fullMethodName);
         try {
-            builder = REQUEST_BUILDER_MAP.computeIfAbsent(fullMethodName, k -> (Message.Builder) ReflectUtils.invokeStaticMethod(t, "newBuilder"));
+            builder = REQUEST_BUILDER_MAP.computeIfAbsent(fullMethodName, key -> {
+                Class<?> clazz = JsonServerServiceInterceptor.getRequestClazzMap().get(key);
+                return (Message.Builder) ReflectUtils.invokeStaticMethod(clazz, "newBuilder");
+            });
 
             String reqData = JsonMessage.getDataFromDynamicMessage((DynamicMessage) message);
             JsonFormat.parser().ignoringUnknownFields().merge(reqData, builder);
