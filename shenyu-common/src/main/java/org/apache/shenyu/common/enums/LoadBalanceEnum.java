@@ -35,7 +35,12 @@ public enum LoadBalanceEnum {
     /**
      * Round robin load balance enum.
      */
-    ROUND_ROBIN(3, "roundRobin", true);
+    ROUND_ROBIN(3, "roundRobin", true),
+
+    /**
+     * response time load balance enum.
+     */
+    RESPONSE_TIME(4, "responseTime", true);
 
     private final int code;
 
