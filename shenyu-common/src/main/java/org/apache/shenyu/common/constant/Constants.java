@@ -83,6 +83,11 @@ public interface Constants {
     String MOTAN_RPC_RESULT_EMPTY = "motan has not return value!";
 
     /**
+     * The constant BRPC_RPC_RESULT_EMPTY.
+     */
+    String BRPC_RPC_RESULT_EMPTY = "brpc has not return value!";
+
+    /**
      * The constant CLIENT_RESPONSE_RESULT_TYPE.
      */
     String CLIENT_RESPONSE_RESULT_TYPE = "webHandlerClientResponseResultType";
@@ -536,6 +541,11 @@ public interface Constants {
      * When register by http, the uri path.
      */
     String URI_PATH = "/shenyu-client/register-uri";
+
+
+    String API_DOC_TYPE = "apiDoc";
+
+    String API_DOC_PATH = "/shenyu-client/register-apiDoc";
 
     /**
      * When register by http, the login path.

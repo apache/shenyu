@@ -56,7 +56,6 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
         if (CollectionUtils.isEmpty(results)) {
             return;
         }
-        
         selectExecutor(results).executor(results);
     }
     

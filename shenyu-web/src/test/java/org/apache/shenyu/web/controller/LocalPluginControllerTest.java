@@ -29,11 +29,14 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.TrieMatchModeEvent;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.controller.LocalPluginController.SelectorRuleData;
 import org.junit.jupiter.api.Assertions;
@@ -45,6 +48,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -63,6 +67,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -84,6 +89,7 @@ public final class LocalPluginControllerTest {
 
     @BeforeEach
     public void setup() {
+        this.mockShenyuTrieConfig();
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
         subscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher);
         mockMvc = MockMvcBuilders.standaloneSetup(new LocalPluginController(subscriber))
@@ -480,5 +486,11 @@ public final class LocalPluginControllerTest {
         LocalPluginController localPluginController = mock(LocalPluginController.class);
 
         buildDefaultRuleData.invoke(localPluginController, RuleData.builder().sort(1).enabled(true).loged(true).build());
+    }
+
+    private void mockShenyuTrieConfig() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuTrie.class)).thenReturn(new ShenyuTrie(100L, 100L, 100L, TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode()));
+        SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 }

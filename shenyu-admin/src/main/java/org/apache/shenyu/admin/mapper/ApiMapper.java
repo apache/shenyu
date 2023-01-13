@@ -110,4 +110,21 @@ public interface ApiMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(List<String> ids);
+
+    /**
+     * selectByApiPathHttpMethodRpcType.
+     * @param apiPath apiPath
+     * @param httpMethod httpMethod
+     * @param rpcType rpcType
+     * @return {@linkplain ApiDO}
+     */
+    List<ApiDO> selectByApiPathHttpMethodRpcType(@Param(value = "apiPath") String apiPath, @Param(value = "httpMethod") Integer httpMethod, @Param(value = "rpcType") String rpcType);
+
+    /**
+     * updateOfflineByContextPath.
+     * @param contextPath context path
+     * @return update count
+     */
+    int updateOfflineByContextPath(@Param(value = "contextPath") String contextPath);
+
 }
