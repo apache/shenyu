@@ -40,7 +40,7 @@ import static org.mockito.Mockito.mockStatic;
 /**
  * The type Hash balance test.
  */
-public final class HashLoadBalanceTest {
+public final class HashLoadBalancerTest {
 
     private Method hash;
 
