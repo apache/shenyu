@@ -18,13 +18,17 @@
 package org.apache.shenyu.plugin.sign.provider;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.plugin.sign.api.SignParameters;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -67,8 +71,10 @@ public class VersionOneSignProvider implements SignProvider {
         }
 
         //get requestBodyParameter
-        JsonUtils.jsonToMap(requestBody)
-                .forEach((k, v) -> params.putIfAbsent(k, Objects.toString(v, null)));
+        if(StringUtils.isEmpty(requestBody)){
+            JsonUtils.jsonToMap(requestBody)
+                    .forEach((k, v) -> params.putIfAbsent(k, Objects.toString(v, null)));
+        }
 
         // get url params
         Map<String, String> queryParams = UriComponentsBuilder.fromUri(signParameters.getUri())
@@ -78,6 +84,30 @@ public class VersionOneSignProvider implements SignProvider {
         params.putAll(queryParams);
 
         return params;
+    }
+
+    public static void main(String[] args) {
+        String now = String.valueOf(System.currentTimeMillis());
+
+        Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
+        //timestamp为毫秒数的字符串形式 String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli())
+        map.put("timestamp","1673684838107");  //值应该为毫秒数的字符串形式
+        map.put("path", "/http/order/save");
+        map.put("version", "1.0.0");
+        map.put("id", "123");
+        map.put("name", "order");
+
+        List<String> storedKeys = Arrays.stream(map.keySet()
+                .toArray(new String[]{}))
+                .sorted(Comparator.naturalOrder())
+                .collect(Collectors.toList());
+        final String sign = storedKeys.stream()
+                .map(key -> String.join("", key, map.get(key)))
+                .collect(Collectors.joining()).trim()
+                .concat("2D47C325AE5B4A4C926C23FD4395C719");
+        System.out.println(now);
+
+        System.out.println(DigestUtils.md5DigestAsHex(sign.getBytes()).toUpperCase());
     }
 
 }
