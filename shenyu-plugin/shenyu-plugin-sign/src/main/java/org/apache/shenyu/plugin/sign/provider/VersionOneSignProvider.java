@@ -71,7 +71,7 @@ public class VersionOneSignProvider implements SignProvider {
         }
 
         //get requestBodyParameter
-        if(StringUtils.isEmpty(requestBody)){
+        if (StringUtils.isEmpty(requestBody)) {
             JsonUtils.jsonToMap(requestBody)
                     .forEach((k, v) -> params.putIfAbsent(k, Objects.toString(v, null)));
         }
@@ -91,7 +91,7 @@ public class VersionOneSignProvider implements SignProvider {
 
         Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
         //timestamp为毫秒数的字符串形式 String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+8")).toEpochMilli())
-        map.put("timestamp","1673684838107");  //值应该为毫秒数的字符串形式
+        map.put("timestamp", "1673684838107");  //值应该为毫秒数的字符串形式
         map.put("path", "/http/order/save");
         map.put("version", "1.0.0");
         map.put("id", "123");
