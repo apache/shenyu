@@ -71,7 +71,7 @@ public class VersionOneSignProvider implements SignProvider {
         }
 
         //get requestBodyParameter
-        if (StringUtils.isEmpty(requestBody)) {
+        if (!StringUtils.isEmpty(requestBody)) {
             JsonUtils.jsonToMap(requestBody)
                     .forEach((k, v) -> params.putIfAbsent(k, Objects.toString(v, null)));
         }
