@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.motan.service.impl;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanService;
 import org.apache.shenyu.examples.common.aop.Log;
@@ -30,17 +32,20 @@ import org.apache.shenyu.springboot.starter.client.motan.ShenyuMotanClientConfig
  * please refer to {@link ShenyuMotanClientConfiguration}
  */
 @ShenyuMotanService(value = "/demo/**", export = "motan2:8002")
+@ApiModule("MotanDemoService")
 public class MotanDemoServiceImpl implements MotanDemoService {
 
     @Override
     @ShenyuMotanClient(value = "/hello")
     @Log
+    @ApiDoc(desc = "hello")
     public String hello(final String name) {
         return "hello " + name;
     }
 
     @Override
     @ShenyuMotanClient(value = "/timeout")
+    @ApiDoc(desc = "timeout")
     public String testTimeOut(final long seconds) {
         try {
             Thread.sleep(seconds * 1000);

@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.ApiMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
-import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
-import org.apache.shenyu.admin.validation.annotation.Existed;
 
 /**
  * this is mockrequestrecord from by web front.
@@ -38,7 +39,7 @@ public class MockRequestRecordDTO implements Serializable {
     /**
      * apiId.
      */
-    @Existed(provider = MockRequestRecordMapper.class, nullOfIgnore = true, message = "the apiId is not exited")
+    @Existed(provider = ApiMapper.class, nullOfIgnore = true, message = "the apiId is not exited")
     private String apiId;
 
     /**
