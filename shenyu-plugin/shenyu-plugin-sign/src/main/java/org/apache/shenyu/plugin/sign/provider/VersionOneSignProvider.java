@@ -23,12 +23,9 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.plugin.sign.api.SignParameters;
-import org.springframework.util.DigestUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
