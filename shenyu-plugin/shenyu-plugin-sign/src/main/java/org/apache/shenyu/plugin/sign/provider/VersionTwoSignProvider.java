@@ -17,31 +17,33 @@
 
 package org.apache.shenyu.plugin.sign.provider;
 
-import com.google.common.collect.ImmutableMap;
+import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.plugin.sign.api.SignParameters;
 
-import java.util.Map;
+import java.net.URI;
+import java.util.Objects;
+import java.util.Optional;
 
-import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_1;
-import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_2;
-
-public class DefaultSignProvider implements SignProvider {
-
-    private static final Map<String, SignProvider> VERSION_SIGN =
-            ImmutableMap.of(
-                    VERSION_1, new VersionOneSignProvider(),
-                    VERSION_2, new VersionTwoSignProvider()
-            );
+public class VersionTwoSignProvider implements SignProvider {
 
     @Override
     public String generateSign(final String signKey, final SignParameters signParameters, final String requestBody) {
-        return VERSION_SIGN.get(signParameters.getVersion())
-                .generateSign(signKey, signParameters, requestBody);
+
+        String data = signParameters.getParameters()
+                + getRelativeURL(signParameters.getUri())
+                + Optional.ofNullable(requestBody).orElse("");
+        return SignUtils.sign(signParameters.getSignAlg(), signKey, data).toUpperCase();
     }
 
     @Override
     public String generateSign(final String signKey, final SignParameters signParameters) {
-        return VERSION_SIGN.get(signParameters.getVersion())
-                .generateSign(signKey, signParameters);
+        return generateSign(signKey, signParameters, null);
+    }
+
+    private String getRelativeURL(final URI uri) {
+        if (Objects.isNull(uri.getQuery())) {
+            return uri.getPath();
+        }
+        return uri.getPath() + "?" + uri.getQuery();
     }
 }

@@ -29,6 +29,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
+import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_1;
+import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_2;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -37,12 +39,27 @@ public class DefaultExtractorTest {
     private final SignParameterExtractor extractor = new DefaultExtractor();
 
     @Test
-    public void testExtract() {
+    public void testVersionOneExtract() {
+
+        HttpRequest httpRequest = MockServerHttpRequest
+                .get("http://localhost:9195/springcloud/class/annotation/get?id=1&id=1")
+                .header("timestamp", "1660659201000")
+                .header("appKey", "BD7980F5688A4DE6BCF1B5327FE07F5C")
+                .header("version", VERSION_1)
+                .header("sign", "BF485842D2C08A3378308BA9992A309F")
+                .build();
+
+        SignParameters signParameters = new SignParameters(VERSION_1, "BD7980F5688A4DE6BCF1B5327FE07F5C", "1660659201000",
+                "BF485842D2C08A3378308BA9992A309F", httpRequest.getURI(), "MD5");
+        assertThat(extractor.extract(httpRequest).toString(), is(signParameters.toString()));
+    }
+
+    @Test
+    public void testVersionTwoExtract() {
 
         Map<String, String> map = ImmutableMap.of(
                 "timestamp", "1660659201000",
                 "appKey", "BD7980F5688A4DE6BCF1B5327FE07F5C",
-                "version", "1.0.0",
                 "sign", "BF485842D2C08A3378308BA9992A309F",
                 "alg", "MD5");
 
@@ -52,8 +69,9 @@ public class DefaultExtractorTest {
         HttpRequest httpRequest = MockServerHttpRequest
                 .get("http://localhost:9195/springcloud/class/annotation/get?id=1&id=1")
                 .header(HttpHeaders.AUTHORIZATION, token)
+                .header("version", VERSION_2)
                 .build();
-        SignParameters signParameters = new SignParameters("BD7980F5688A4DE6BCF1B5327FE07F5C", "1660659201000",
+        SignParameters signParameters = new SignParameters(VERSION_2, "BD7980F5688A4DE6BCF1B5327FE07F5C", "1660659201000",
                 "BF485842D2C08A3378308BA9992A309F", httpRequest.getURI(), "MD5");
         signParameters.setParameters(parameters);
         assertThat(extractor.extract(httpRequest).toString(), is(signParameters.toString()));
