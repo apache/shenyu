@@ -15,22 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sign.api;
+package org.apache.shenyu.examples.brpc.service;
 
-import java.util.Map;
+import com.baidu.cloud.starlight.springcloud.server.annotation.StarlightScan;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * The Sign plugin sign provider.
+ * Brpc service starter.
  */
-public interface SignProvider {
+@SpringBootApplication
+@StarlightScan
+public class TestBrpcApplication {
 
     /**
-     * acquired sign.
+     * Main Entrance.
      *
-     * @param signKey sign key
-     * @param jsonParams json params
-     * @param queryParams  url query params
-     * @return sign
+     * @param args startup arguments
      */
-    String generateSign(String signKey, Map<String, String> jsonParams, Map<String, String> queryParams);
+    public static void main(final String[] args) {
+        SpringApplication.run(TestBrpcApplication.class, args);
+    }
 }

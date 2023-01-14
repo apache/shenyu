@@ -540,6 +540,14 @@
         </dependency>
         <!-- shenyu logging-clickhouse plugin end -->
 
+        <!-- shenyu brpc plugin start -->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-brpc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu brpc plugin end -->
+
     </dependencies>
     <profiles>
         <profile>

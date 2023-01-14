@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.brpc;
 
-import com.baidu.cloud.starlight.springcloud.server.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.brpc.common.annotation.ShenyuBrpcClient;
@@ -131,8 +130,8 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
 
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, final ShenyuBrpcClient shenyuBrpcClient, final String superPath, final Class<?> clazz, final Method method) {
-        String serviceName = clazz.getAnnotation(RpcService.class).serviceId();
-        String path = shenyuBrpcClient.path();
+        String serviceName = clazz.getInterfaces().length > 0 ? clazz.getInterfaces()[0].getName() : clazz.getName();
+        String path = superPath;
         String desc = shenyuBrpcClient.desc();
         String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
         String configRuleName = shenyuBrpcClient.ruleName();
