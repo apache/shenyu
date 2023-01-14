@@ -276,7 +276,7 @@ public final class SignPluginVersionOneTest extends AbstractPluginDataInit {
         cleanAuthData(APP_KEY);
     }
 
-    private String generateSign(String signKey, Map<String, String> params) {
+    private String generateSign(final String signKey, final Map<String, String> params) {
         final String sign = params.keySet().stream()
                 .sorted(Comparator.naturalOrder())
                 .filter(key -> !Objects.equals(key, Constants.SIGN))
