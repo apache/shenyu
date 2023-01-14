@@ -25,17 +25,16 @@ import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.MapUtils;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
-import org.apache.shenyu.plugin.sign.api.DefaultSignProvider;
-import org.apache.shenyu.plugin.sign.api.SignProvider;
-import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.sign.api.VerifyResult;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
+import org.apache.shenyu.plugin.sign.extractor.DefaultExtractor;
+import org.apache.shenyu.plugin.sign.provider.DefaultSignProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,19 +43,22 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * DefaultSignService Test.
@@ -80,8 +82,7 @@ public final class DefaultSignServiceTest {
 
     @BeforeEach
     public void setup() {
-        this.signService = new DefaultSignService();
-        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+        this.signService = new ComposableSignService(new DefaultExtractor(), new DefaultSignProvider());
 
         final String path = "/test-api/demo/test";
         PluginData signData = new PluginData();
@@ -109,90 +110,125 @@ public final class DefaultSignServiceTest {
         this.passed.setRpcType("springCloud");
         this.passed.setHttpMethod("GET");
         this.passed.setPath(path);
-        final String timestamp = String.valueOf(System.currentTimeMillis());
-        this.passed.setTimestamp(timestamp);
-        this.passed.setSign(buildSign(this.secretKey, timestamp, this.passed.getPath(), null, null));
-        this.passed.setAppKey(appKey);
         this.passed.setContextPath("/test-api");
         this.passed.setRealUrl("/demo/test");
 
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        when(context.getBean(SignProvider.class)).thenReturn(new DefaultSignProvider());
     }
 
     @Test
     public void normalTest() {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/test-api/demo/test"), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.success());
     }
 
     @Test
     public void nullTimestampTest() {
-        this.passed.setTimestamp(null);
+
+        String parameters = buildParameters(null, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/test-api/demo/test"), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.fail(Constants.SIGN_PARAMS_ERROR));
     }
 
     @Test
     public void nullSignTest() {
-        this.passed.setSign(null);
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                null);
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+
         AppAuthData authData = SignAuthDataCache.getInstance().obtainAuthData(appKey);
         authData.setPathDataList(Collections.emptyList());
         SignAuthDataCache.getInstance().cacheAuthData(authData);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.fail(Constants.SIGN_PARAMS_ERROR));
     }
 
     @Test
     public void nullAppKeyTest() {
-        this.passed.setAppKey(null);
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, null);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/test-api/demo/test"), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.fail(Constants.SIGN_PARAMS_ERROR));
     }
 
     @Test
     public void overdueTest() {
-        long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - ((long) (delay + 1) * 1000 * 60);
-        this.passed.setTimestamp(Long.toString(errorTimestamp));
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), null, null));
+        String errorTimestamp = String.valueOf(System.currentTimeMillis() - ((long) (delay + 1) * 1000 * 60));
+        String parameters = buildParameters(errorTimestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/test-api/demo/test"), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.fail(String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay)));
     }
 
     @Test
     public void errorAppKeyTest() {
-        this.passed.setAppKey("errorKey");
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, "errorKey");
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                buildSign("errorKey", parameters, URI.create("http://localhost/test-api/demo/test"), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.fail(Constants.SIGN_APP_KEY_IS_NOT_EXIST));
     }
 
     @Test
     public void emptyAuthPath() {
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/test-api/demo/test"), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+
         AppAuthData authData = SignAuthDataCache.getInstance().obtainAuthData(appKey);
         authData.setPathDataList(Collections.emptyList());
         SignAuthDataCache.getInstance().cacheAuthData(authData);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.fail(Constants.SIGN_PATH_NOT_EXIST));
     }
 
     @Test
     public void fillParamPath() {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/test-api/demo/test"), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+
         AppAuthData authData = SignAuthDataCache.getInstance().obtainAuthData(appKey);
         AuthParamData authParamData = new AuthParamData();
         authParamData.setAppParam("appParam");
@@ -200,101 +236,146 @@ public final class DefaultSignServiceTest {
         authData.setParamDataList(Collections.singletonList(authParamData));
         SignAuthDataCache.getInstance().cacheAuthData(authData);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.success());
     }
 
     @Test
     public void emptyParamPath() {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/test-api/demo/test"), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+
         AppAuthData authData = SignAuthDataCache.getInstance().obtainAuthData(appKey);
         SignAuthDataCache.getInstance().cacheAuthData(authData);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.success());
     }
 
     @Test
     public void errorAuthPath() {
-        this.passed.setPath("errorPath");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), null, null));
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/errorPath",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/errorPath"), null));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.fail(Constants.SIGN_PATH_NOT_EXIST));
     }
 
     @Test
     public void errorSign() {
-        this.passed.setSign("errorSign");
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters, "errorSign");
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
-        VerifyResult ret = this.signService.signVerify(this.exchange);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange);
         assertEquals(ret, VerifyResult.fail(Constants.SIGN_VALUE_IS_ERROR));
     }
 
     @Test
     public void errorBodySign() {
-        this.passed.setSign("errorSign");
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                "errorSign");
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+
         Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "data");
-        VerifyResult ret = this.signService.signVerify(this.exchange, requestBody, null);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange, JsonUtils.toJson(requestBody));
         assertEquals(ret, VerifyResult.fail(Constants.SIGN_VALUE_IS_ERROR));
     }
 
     @Test
     public void bodySign() {
-        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
+        Map<String, String> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), MapUtils.transStringMap(requestBody), null));
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/test-api/demo/test"), JsonUtils.toJson(requestBody)));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        VerifyResult ret = this.signService.signVerify(this.exchange, requestBody, null);
+
+        VerifyResult ret = this.signService.signatureVerify(this.exchange, JsonUtils.toJson(requestBody));
         assertEquals(ret, VerifyResult.success());
     }
 
     @Test
     public void bodyAndUrlQueryParamsSign() {
-        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
+        Map<String, String> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "data");
-        Map<String, String> queryParams = Maps.newHashMapWithExpectedSize(1);
-        queryParams.put("data2", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), MapUtils.transStringMap(requestBody), queryParams));
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test?data2=data",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/test-api/demo/test?data2=data"), JsonUtils.toJson(requestBody)));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        VerifyResult ret = this.signService.signVerify(this.exchange, requestBody, queryParams);
+
+        VerifyResult ret = this.signService.signatureVerify(this.exchange, JsonUtils.toJson(requestBody));
         assertEquals(ret, VerifyResult.success());
     }
 
     @Test
     public void errorBodyAndUrlQueryParamsSign() {
-        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
+        Map<String, String> requestBody = Maps.newHashMapWithExpectedSize(1);
         requestBody.put("data", "data");
-        Map<String, String> queryParams = Maps.newHashMapWithExpectedSize(1);
-        queryParams.put("data", "data");
-        this.passed.setSign(buildSign(this.secretKey, this.passed.getTimestamp(), this.passed.getPath(), MapUtils.transStringMap(requestBody), null));
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String parameters = buildParameters(timestamp, appKey);
+        this.exchange = buildServerWebExchange("http://localhost/test-api/demo/test?data=data",
+                parameters,
+                buildSign(secretKey, parameters, URI.create("http://localhost/test-api/demo/test?data=data"), JsonUtils.toJson(requestBody)));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
+
         // Tamper with request body parameters
         requestBody.put("data", "data2");
-        VerifyResult ret = this.signService.signVerify(this.exchange, requestBody, queryParams);
+        VerifyResult ret = this.signService.signatureVerify(this.exchange, JsonUtils.toJson(requestBody));
         assertEquals(ret, VerifyResult.fail(Constants.SIGN_VALUE_IS_ERROR));
     }
 
-    private String buildSign(final String signKey, final String timeStamp, final String path, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
+    private String buildSign(final String signKey, final String parameters, final URI url, final String body) {
 
-        final String jsonSign = Optional.ofNullable(jsonParams).map(e -> e.keySet().stream()
-                .sorted(Comparator.naturalOrder())
-                .map(key -> String.join("", key, jsonParams.get(key)))
-                .collect(Collectors.joining()).trim())
-                .orElse("");
+        String data = parameters + getRelativeURL(url) + Optional.ofNullable(body).orElse("");
+        return SignUtils.sign(SignUtils.SIGN_MD5, signKey, data).toUpperCase();
+    }
 
-        final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
-                .sorted(Comparator.naturalOrder())
-                .map(key -> String.join("", key, queryParams.get(key)))
-                .collect(Collectors.joining()).trim())
-                .orElse("");
+    private String buildParameters(final String timestamp, final String appKey) {
+        Map<String, String> map = new HashMap<>();
+        if (timestamp != null) {
+            map.put(Constants.TIMESTAMP, timestamp);
+        }
+        if (appKey != null) {
+            map.put(Constants.APP_KEY, appKey);
+        }
+        map.put("alg", "MD5");
+        map.put("version", "1.0.0");
+        return Base64.getEncoder().encodeToString(JsonUtils.toJson(map).getBytes(StandardCharsets.UTF_8));
+    }
 
-        final String extSignKey = String.join("", Constants.TIMESTAMP, timeStamp, Constants.PATH, path, Constants.VERSION, "1.0.0", signKey);
-        final String data = String.join("", jsonSign, querySign);
-        return SignUtils.sign(SignUtils.SIGN_MD5, extSignKey, data).toUpperCase();
+    private ServerWebExchange buildServerWebExchange(final String url, final String parameters, final String sign) {
+
+        return MockServerWebExchange
+                .builder(MockServerHttpRequest.get(url)
+                        .header(HttpHeaders.AUTHORIZATION, Objects.isNull(sign) ? parameters : parameters + "." + sign)).build();
+    }
+
+    private String getRelativeURL(final URI uri) {
+        if (Objects.isNull(uri.getQuery())) {
+            return uri.getPath();
+        }
+        return uri.getPath() + "?" + uri.getQuery();
     }
 }
