@@ -169,7 +169,7 @@ public final class SignPluginVersionOneTest extends AbstractPluginDataInit {
                 }.getType());
         assertEquals("signature value is error!", rejectedErrorRequestBodyRespFuture.getMessage());
 
-        String errorTime = String.valueOf(LocalDateTime.now().toInstant(ZoneOffset.of("+0")).toEpochMilli() - 360000);
+        String errorTime = String.valueOf(System.currentTimeMillis() - 360000);
         Map<String, Object> errorTimestampHeaders = buildHeadersMapRequestBody(errorTime, path, APP_KEY, APP_SECRET, version, requestBody);
         AdminResponse<Object> rejectedErrorTimestampRespFuture = HttpHelper.INSTANCE.getFromGateway(testUrlPath,
                 errorTimestampHeaders,
