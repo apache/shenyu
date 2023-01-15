@@ -93,14 +93,14 @@ public class BrpcProxyService {
         })).onErrorMap(ShenyuException::new);
     }
 
-    private Map<String, String> getValue(final MetaData metaData, final Object[] params) {
+    private Object getValue(final MetaData metaData, final Object[] params) {
         try {
             AsyncGenericService service = ApplicationConfigCache.getInstance().get(metaData.getPath());
             if (Objects.isNull(service)) {
                 ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
                 service = ApplicationConfigCache.getInstance().initService(metaData);
             }
-            Map<String, String> result = (Map<String, String>) service.$invokeFuture(metaData.getMethodName(), params).get();
+            Object result = service.$invokeFuture(metaData.getMethodName(), params).get();
             return result;
         } catch (Exception e) {
             LOG.error("Exception caught in BrpcProxyService#genericInvoker.", e);
