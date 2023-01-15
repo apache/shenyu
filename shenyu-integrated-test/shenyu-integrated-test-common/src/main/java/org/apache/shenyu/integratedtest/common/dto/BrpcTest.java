@@ -18,7 +18,6 @@
 package org.apache.shenyu.integratedtest.common.dto;
 
 import java.util.List;
-import java.util.Map;
 
 public class BrpcTest {
 
