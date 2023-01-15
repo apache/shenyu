@@ -70,7 +70,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     }
 
     @Override
-    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, Object> beans) {
         ShenyuBrpcClient shenyuBrpcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuBrpcClient.class);
         if (Objects.isNull(shenyuBrpcClient)) {
             return null;

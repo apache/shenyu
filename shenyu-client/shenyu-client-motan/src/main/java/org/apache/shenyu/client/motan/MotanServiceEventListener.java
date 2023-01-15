@@ -72,7 +72,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     }
 
     @Override
-    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, Object> beans) {
         ShenyuMotanClient shenyuMotanClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuMotanClient.class);
         if (Objects.isNull(shenyuMotanClient)) {
             return null;
