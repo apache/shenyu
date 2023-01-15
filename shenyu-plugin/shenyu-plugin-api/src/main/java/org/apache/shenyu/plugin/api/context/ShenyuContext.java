@@ -155,60 +155,6 @@ public class ShenyuContext implements Serializable {
     }
 
     /**
-     * Gets sign.
-     *
-     * @return the sign
-     */
-    public String getSign() {
-        return sign;
-    }
-
-    /**
-     * Sets sign.
-     *
-     * @param sign the sign
-     */
-    public void setSign(final String sign) {
-        this.sign = sign;
-    }
-
-    /**
-     * Gets timestamp.
-     *
-     * @return the timestamp
-     */
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    /**
-     * Sets timestamp.
-     *
-     * @param timestamp the timestamp
-     */
-    public void setTimestamp(final String timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    /**
-     * Gets app key.
-     *
-     * @return the app key
-     */
-    public String getAppKey() {
-        return appKey;
-    }
-
-    /**
-     * Sets app key.
-     *
-     * @param appKey the app key
-     */
-    public void setAppKey(final String appKey) {
-        this.appKey = appKey;
-    }
-
-    /**
      * Gets path.
      *
      * @return the path
