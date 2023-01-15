@@ -15,34 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sign.api;
+package org.apache.shenyu.plugin.sign.extractor;
 
-import org.springframework.web.server.ServerWebExchange;
+import org.apache.shenyu.plugin.sign.api.SignParameters;
+import org.springframework.http.HttpRequest;
 
-import java.util.Map;
-
-/**
- * The interface Sign service.
- */
-public interface SignService {
+public interface SignParameterExtractor {
 
     /**
-     * Sign verify pair.
-     *
-     * @param exchange    the exchange
-     * @param requestBody the requestBody
-     * @param queryParams url query params
-     * @return the pair
+     * Extracts signParameters from httpRequest.
+     * @param httpRequest httpRequest
+     * @return signParameters
      */
-    VerifyResult signVerify(ServerWebExchange exchange, Map<String, Object> requestBody, Map<String, String> queryParams);
+    SignParameters extract(HttpRequest httpRequest);
 
-    /**
-     * Sign verify pair.
-     *
-     * @param exchange the exchange
-     * @return the pair
-     */
-    default VerifyResult signVerify(ServerWebExchange exchange) {
-        return signVerify(exchange, null, null);
-    }
 }

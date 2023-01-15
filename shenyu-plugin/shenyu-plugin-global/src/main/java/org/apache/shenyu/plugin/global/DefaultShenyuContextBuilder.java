@@ -82,15 +82,9 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
     }
 
     private ShenyuContext buildDefaultContext(final ServerHttpRequest request) {
-        String appKey = request.getHeaders().getFirst(Constants.APP_KEY);
-        String sign = request.getHeaders().getFirst(Constants.SIGN);
-        String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);
         ShenyuContext shenyuContext = new ShenyuContext();
         String path = request.getURI().getPath();
         shenyuContext.setPath(path);
-        shenyuContext.setAppKey(appKey);
-        shenyuContext.setSign(sign);
-        shenyuContext.setTimestamp(timestamp);
         shenyuContext.setStartDateTime(LocalDateTime.now());
         Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
         return shenyuContext;

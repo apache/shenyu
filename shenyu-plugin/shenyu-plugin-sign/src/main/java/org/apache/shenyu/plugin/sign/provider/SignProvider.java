@@ -15,22 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sign.api;
+package org.apache.shenyu.plugin.sign.provider;
 
-import java.util.Map;
+import org.apache.shenyu.plugin.sign.api.SignParameters;
 
-/**
- * The Sign plugin sign provider.
- */
 public interface SignProvider {
 
     /**
-     * acquired sign.
+     * Generates sign.
      *
-     * @param signKey sign key
-     * @param jsonParams json params
-     * @param queryParams  url query params
+     * @param signKey        signKey
+     * @param signParameters signParameters
+     * @param requestBody    requestBody
      * @return sign
      */
-    String generateSign(String signKey, Map<String, String> jsonParams, Map<String, String> queryParams);
+    String generateSign(String signKey, SignParameters signParameters, String requestBody);
+
+    /**
+     * Generates sign.
+     *
+     * @param signKey        signKey
+     * @param signParameters signParameters
+     * @return sign
+     */
+    String generateSign(String signKey, SignParameters signParameters);
 }
