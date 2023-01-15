@@ -70,13 +70,13 @@ public class JsonServerCallListener<R, P> extends ForwardingServerCallListener<R
                 Class<?> clazz = JsonServerServiceInterceptor.getRequestClazzMap().get(key);
                 return (Message.Builder) ReflectUtils.invokeStaticMethod(clazz, "newBuilder");
             });
-
-            String reqData = JsonMessage.getDataFromDynamicMessage((DynamicMessage) message);
-            JsonFormat.parser().ignoringUnknownFields().merge(reqData, builder);
             if (Objects.isNull(builder)) {
                 throw new ShenyuException("build json response message is error, newBuilder method is null");
             }
+            builder.clear();
 
+            String reqData = JsonMessage.getDataFromDynamicMessage((DynamicMessage) message);
+            JsonFormat.parser().ignoringUnknownFields().merge(reqData, builder);
             delegate.onMessage((R) builder.build());
         } catch (Exception e) {
             LOG.error("handle json generic request is error", e);
