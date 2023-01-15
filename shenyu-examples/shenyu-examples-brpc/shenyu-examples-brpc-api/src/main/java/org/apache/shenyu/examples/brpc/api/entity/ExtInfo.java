@@ -15,34 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sign.api;
+package org.apache.shenyu.examples.brpc.api.entity;
 
-import org.springframework.web.server.ServerWebExchange;
+public class ExtInfo {
+    private String key;
 
-import java.util.Map;
+    private String value;
 
-/**
- * The interface Sign service.
- */
-public interface SignService {
-
-    /**
-     * Sign verify pair.
-     *
-     * @param exchange    the exchange
-     * @param requestBody the requestBody
-     * @param queryParams url query params
-     * @return the pair
-     */
-    VerifyResult signVerify(ServerWebExchange exchange, Map<String, Object> requestBody, Map<String, String> queryParams);
-
-    /**
-     * Sign verify pair.
-     *
-     * @param exchange the exchange
-     * @return the pair
-     */
-    default VerifyResult signVerify(ServerWebExchange exchange) {
-        return signVerify(exchange, null, null);
+    public ExtInfo(final String key, final String value) {
+        this.key = key;
+        this.value = value;
     }
 }

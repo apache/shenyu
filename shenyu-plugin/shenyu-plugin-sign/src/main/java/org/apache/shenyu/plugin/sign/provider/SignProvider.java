@@ -15,38 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.sign.api;
+package org.apache.shenyu.plugin.sign.provider;
 
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.sign.api.SignParameters;
 
-import java.util.Map;
+public interface SignProvider {
 
-/**
- * The shenyu sign plugin sign provider warp.
- */
-public final class ShenyuSignProviderWrap {
-    
-    private ShenyuSignProviderWrap() {
-    }
-    
     /**
-     * find the sign provider object.
+     * Generates sign.
      *
-     * @return the sign provider
-     */
-    public static SignProvider signProvider() {
-        return SpringBeanUtils.getInstance().getBean(SignProvider.class);
-    }
-    
-    /**
-     * acquired sign.
-     *
-     * @param signKey sign key
-     * @param jsonParams json params
-     * @param queryParams  url query params
+     * @param signKey        signKey
+     * @param signParameters signParameters
+     * @param requestBody    requestBody
      * @return sign
      */
-    public static String generateSign(final String signKey, final Map<String, String> jsonParams, final Map<String, String> queryParams) {
-        return signProvider().generateSign(signKey, jsonParams, queryParams);
-    }
+    String generateSign(String signKey, SignParameters signParameters, String requestBody);
+
+    /**
+     * Generates sign.
+     *
+     * @param signKey        signKey
+     * @param signParameters signParameters
+     * @return sign
+     */
+    String generateSign(String signKey, SignParameters signParameters);
 }

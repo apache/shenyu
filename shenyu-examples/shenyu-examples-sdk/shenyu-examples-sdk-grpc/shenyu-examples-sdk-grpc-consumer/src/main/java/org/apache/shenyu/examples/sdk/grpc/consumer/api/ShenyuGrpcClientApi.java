@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
-@ShenyuClient(contextId = "SHENYU-BOOTSTRAP", name = "ShenyuGrpclientApi")
+@ShenyuClient(value = "shenyu-gateway")
 public interface ShenyuGrpcClientApi {
 
     /**
