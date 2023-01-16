@@ -29,7 +29,7 @@ Content-Type: application/json
   ]
 }
 
-### 在src/main/http/下创建文件grpc-test-api.http
+### create the file grpc-test-api.http under src/main/http/
 ### shengyu getway proxy unaryFun
 POST http://localhost:9195/grpc/unaryFun
 Accept: application/json
