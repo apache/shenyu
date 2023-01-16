@@ -144,8 +144,9 @@ jobs:
 
   requirement:
     name: e2e
-    if: always()
+    if: ${{ needs.changes.outputs.e2e == 'true' }}
     needs:
+      - changes
       - e2e
     runs-on: ubuntu-latest
     steps:
