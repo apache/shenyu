@@ -18,9 +18,12 @@
 package org.apache.shenyu.integrated.test.brpc;
 
 import com.google.gson.reflect.TypeToken;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.BrpcTest;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -29,10 +32,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 public class BrpcPluginTest extends AbstractPluginDataInit {
-
+    
+    @BeforeAll
+    public static void setup() throws IOException {
+        String pluginResult = initPlugin(PluginEnum.BRPC.getName(), "{\"address\":\"127.0.0.1\", \"port\":\"8005\",\"corethreads\":0, \"threads\":2147483647, \"queues\":0, \"threadpool\":\"shared\"}");
+        assertThat(pluginResult, Matchers.is("success"));
+    }
+    
     @Test
     public void testHelloWorld() throws IOException {
-        BrpcTest response = HttpHelper.INSTANCE.getFromGateway("/brpc/getUser?userId=1001", new TypeToken<BrpcTest>() { }.getType());
+        BrpcTest response = HttpHelper.INSTANCE.getFromGateway("/brpc/getUser?userId=1001", new TypeToken<BrpcTest>() {}.getType());
         assertThat(response.getUserName(), is("User1"));
         assertThat(response.getUserId(), is(1001L));
     }
