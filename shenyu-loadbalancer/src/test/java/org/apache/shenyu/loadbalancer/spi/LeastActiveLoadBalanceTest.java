@@ -50,8 +50,8 @@ public class LeastActiveLoadBalanceTest {
     public void testResponseTimeBalancer() throws Exception {
         buildUpstreamList();
         final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
-        Upstream upstream = leastActiveLoadBalance.doSelect(onlyOneList, "127.0.0.1");
-        Upstream upstream1 = leastActiveLoadBalance.doSelect(onlyOneList, "127.0.0.1");
+        Upstream upstream = leastActiveLoadBalance.doSelect(onlyOneList, "localhost");
+        Upstream upstream1 = leastActiveLoadBalance.doSelect(onlyOneList, "localhost");
         Assert.assertTrue((upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com")) || upstream1.getUrl().equals("baidu.com") && upstream.getUrl().equals("pro.jd.com"));
 
     }
