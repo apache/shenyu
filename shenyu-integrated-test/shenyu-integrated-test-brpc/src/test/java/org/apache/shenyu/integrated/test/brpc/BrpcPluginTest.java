@@ -35,13 +35,15 @@ public class BrpcPluginTest extends AbstractPluginDataInit {
     
     @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.BRPC.getName(), "{\"address\":\"127.0.0.1\", \"port\":\"8005\",\"corethreads\":0, \"threads\":2147483647, \"queues\":0, \"threadpool\":\"shared\"}");
+        String pluginResult = initPlugin(PluginEnum.BRPC.getName(),
+                "{\"address\":\"127.0.0.1\", \"port\":\"8005\",\"corethreads\":0, \"threads\":2147483647, \"queues\":0, \"threadpool\":\"shared\"}");
         assertThat(pluginResult, Matchers.is("success"));
     }
     
     @Test
     public void testHelloWorld() throws IOException {
-        BrpcTest response = HttpHelper.INSTANCE.getFromGateway("/brpc/getUser?userId=1001", new TypeToken<BrpcTest>() {}.getType());
+        BrpcTest response = HttpHelper.INSTANCE.getFromGateway("/brpc/getUser?userId=1001", new TypeToken<BrpcTest>() {
+        }.getType());
         assertThat(response.getUserName(), is("User1"));
         assertThat(response.getUserId(), is(1001L));
     }
