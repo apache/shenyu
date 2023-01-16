@@ -78,7 +78,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
         String consume = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
         String[] values = new String[]{shenyuDubboClient.value()};
         ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
-        //TODO 获取dubbo version
+        //TODO get dubbo version
         String version = "v0.01";
         return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.DUBBO, version);
     }
