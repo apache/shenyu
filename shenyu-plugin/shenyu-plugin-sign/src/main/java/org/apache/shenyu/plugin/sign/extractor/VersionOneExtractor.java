@@ -17,40 +17,22 @@
 
 package org.apache.shenyu.plugin.sign.extractor;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.sign.api.SignParameters;
 import org.springframework.http.HttpRequest;
 
-import java.util.Map;
-import java.util.Objects;
+import java.net.URI;
 
-public class DefaultExtractor implements SignParameterExtractor {
+import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_1;
 
-    public static final String VERSION_1 = "1.0.0";
-
-    public static final String VERSION_2 = "2.0.0";
-
-    private static final Map<String, SignParameterExtractor> VERSION_EXTRACTOR =
-            ImmutableMap.of(
-                    VERSION_1, new VersionOneExtractor(),
-                    VERSION_2, new VersionTwoExtractor()
-            );
-
+public class VersionOneExtractor implements SignParameterExtractor {
     @Override
     public SignParameters extract(final HttpRequest httpRequest) {
+        String appKey = httpRequest.getHeaders().getFirst(Constants.APP_KEY);
+        String signature = httpRequest.getHeaders().getFirst(Constants.SIGN);
+        String timestamp = httpRequest.getHeaders().getFirst(Constants.TIMESTAMP);
+        URI uri = httpRequest.getURI();
 
-        String version = httpRequest.getHeaders().getFirst(Constants.VERSION);
-        if (Objects.isNull(version)) {
-            return SignParameters.ERROR_PARAMETERS;
-        }
-
-        SignParameterExtractor extractor = VERSION_EXTRACTOR.get(version);
-
-        if (Objects.isNull(extractor)) {
-            return SignParameters.ERROR_PARAMETERS;
-        }
-
-        return extractor.extract(httpRequest);
+        return new SignParameters(VERSION_1, appKey, timestamp, signature, uri);
     }
 }
