@@ -49,7 +49,8 @@ import java.util.function.BiFunction;
  * The ComposableSignService is composable SignService.
  * <pre>
  *  1. new ComposableSignService(new DefaultExtractor(), new DefaultSignProvider())
- *    Implements from <a href="https://github.com/apache/shenyu/issues/4208">#4208</a>
+ *    Version 1: 2.5.0 SignService
+ *    Version 2:Implements from <a href="https://github.com/apache/shenyu/issues/4208">#4208</a>
  *    parameters:
  *     {
  *           "alg":"HMD5",
