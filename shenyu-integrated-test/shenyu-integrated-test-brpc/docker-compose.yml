@@ -32,13 +32,13 @@ services:
       retries: 30
       start_period: 5s
 
-  shenyu-examples-brpc:
+  shenyu-examples-brpc-service:
     deploy:
       resources:
         limits:
           memory: 2048M
-    container_name: shenyu-examples-brpc
-    image: shenyu-examples-brpc:latest
+    container_name: shenyu-examples-brpc-service
+    image: shenyu-examples-brpc-service:latest
     restart: always
     environment:
       - shenyu.register.serverLists=http://shenyu-admin:9095

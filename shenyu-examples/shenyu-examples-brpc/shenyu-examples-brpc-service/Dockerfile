@@ -16,7 +16,7 @@
 
 FROM openjdk:8-jre-alpine
 
-ENV APP_NAME shenyu-examples-brpc
+ENV APP_NAME shenyu-examples-brpc-service
 ENV LOCAL_PATH /opt/${APP_NAME}
 
 RUN mkdir -p ${LOCAL_PATH}
