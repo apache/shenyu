@@ -23,6 +23,8 @@ import java.net.URI;
 
 public class SignParameters {
 
+    public static final SignParameters ERROR_PARAMETERS = new SignParameters();
+
     private final String appKey;
 
     private final String timestamp;
@@ -33,20 +35,25 @@ public class SignParameters {
 
     private final String signAlg;
 
+    private final String version;
+
     private String parameters;
 
-    public SignParameters(final String appKey,
+    public SignParameters(final String version,
+                          final String appKey,
                           final String timestamp,
                           final String signature,
                           final URI uri) {
-        this(appKey, timestamp, signature, uri, SignUtils.SIGN_MD5);
+        this(version, appKey, timestamp, signature, uri, SignUtils.SIGN_MD5);
     }
 
-    public SignParameters(final String appKey,
+    public SignParameters(final String version,
+                          final String appKey,
                           final String timestamp,
                           final String signature,
                           final URI uri,
                           final String signAlg) {
+        this.version = version;
         this.appKey = appKey;
         this.timestamp = timestamp;
         this.signature = signature;
@@ -121,6 +128,15 @@ public class SignParameters {
         this.parameters = parameters;
     }
 
+    /**
+     * Gets version.
+     *
+     * @return version
+     */
+    public String getVersion() {
+        return version;
+    }
+
     @Override
     public String toString() {
         return "SignParameters{"
@@ -129,6 +145,7 @@ public class SignParameters {
                 + ", signature='" + signature + '\''
                 + ", uri=" + uri
                 + ", signAlg='" + signAlg + '\''
+                + ", version='" + version + '\''
                 + ", parameters='" + parameters + '\''
                 + '}';
     }
