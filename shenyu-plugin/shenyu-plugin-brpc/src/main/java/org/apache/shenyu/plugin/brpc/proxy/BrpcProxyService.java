@@ -81,8 +81,7 @@ public class BrpcProxyService {
             }
         }
         initThreadPool();
-        CompletableFuture<Object> future = null;
-        future = new CompletableFuture<>().supplyAsync(() -> getValue(metaData, params), threadPool);
+        CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> getValue(metaData, params), threadPool);
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.BRPC_RPC_RESULT_EMPTY;
@@ -100,8 +99,7 @@ public class BrpcProxyService {
                 ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
                 service = ApplicationConfigCache.getInstance().initService(metaData);
             }
-            Object result = service.$invokeFuture(metaData.getMethodName(), params).get();
-            return result;
+            return service.$invokeFuture(metaData.getMethodName(), params).get();
         } catch (Exception e) {
             LOG.error("Exception caught in BrpcProxyService#genericInvoker.", e);
             return null;
