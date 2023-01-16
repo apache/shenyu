@@ -1081,7 +1081,7 @@ VALUES ('1545812228228259842', 'engine', 'engine', 'MergeTree', 'MergeTree', '',
 
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
-values ('1545812228228259843', 'loadBalance', 'LOAD_BALANCE', 'leastActivity', 'leastActivity', 'leastActivity', 1, 1);
+values ('1545812228228259843', 'loadBalance', 'LOAD_BALANCE', 'leastActive', 'leastActive', 'leastActive', 1, 1);
 
 
 /*plugin*/

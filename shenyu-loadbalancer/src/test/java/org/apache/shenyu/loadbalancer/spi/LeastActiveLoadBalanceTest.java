@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 /**
  * The type least activity load balance test.
  */
-public class LeastActivityLoadBalanceTest {
+public class LeastActiveLoadBalanceTest {
     private List<Upstream> onlyOneList = new ArrayList<>();
 
     /**

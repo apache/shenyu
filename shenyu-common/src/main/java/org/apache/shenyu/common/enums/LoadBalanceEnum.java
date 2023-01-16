@@ -40,7 +40,7 @@ public enum LoadBalanceEnum {
     /**
      * least activity load balance enum.
      */
-    LEAST_ACTIVITY(4, "leastActivity", true);
+    LEAST_ACTIVITY(4, "leastActive", true);
 
     private final int code;
 
