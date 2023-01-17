@@ -18,9 +18,8 @@
 package org.apache.shenyu.springboot.starter.plugin.sign;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.sign.api.SignProvider;
-import org.apache.shenyu.plugin.sign.api.SignService;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.sign.service.SignService;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,10 +44,10 @@ public class SignPluginConfigurationTest {
     @BeforeEach
     public void before() {
         applicationContextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(SignPluginConfiguration.class))
-            .withBean(SignPluginConfigurationTest.class)
-            .withBean(DefaultServerCodecConfigurer.class)
-            .withPropertyValues("debug=true");
+                .withConfiguration(AutoConfigurations.of(SignPluginConfiguration.class))
+                .withBean(SignPluginConfigurationTest.class)
+                .withBean(DefaultServerCodecConfigurer.class)
+                .withPropertyValues("debug=true");
     }
 
     @Test
@@ -62,15 +61,6 @@ public class SignPluginConfigurationTest {
 
     @Test
     public void testSignPlugin() {
-        applicationContextRunner.run(context -> {
-                SignProvider provider = context.getBean("signProvider", SignProvider.class);
-                assertNotNull(provider);
-            }
-        );
-    }
-
-    @Test
-    public void testDefaultSignProvider() {
         applicationContextRunner.run(context -> {
                 ShenyuPlugin plugin = context.getBean("signPlugin", ShenyuPlugin.class);
                 assertNotNull(plugin);

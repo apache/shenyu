@@ -156,7 +156,8 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
     }
 
     @Override
-    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation,
+                                                                                                           final Map<String, ServiceFactoryBean> beans) {
         ShenyuSofaClient shenyuSofaClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSofaClient.class);
         if (Objects.isNull(shenyuSofaClient)) {
             return null;

@@ -223,7 +223,7 @@ The text of each license is the standard Apache 2.0 license.
     caffeine 2.9.3 https://github.com/ben-manes/caffeine, Apache 2.0
     classmate 1.5.1: https://github.com/FasterXML/java-classmate, Apache 2.0
     commons-beanutils 1.9.4: https://github.com/apache/commons-beanutils, Apache 2.0
-    commons-codec 1.13: https://github.com/apache/commons-codec, Apache 2.0
+    commons-codec 1.15: https://github.com/apache/commons-codec, Apache 2.0
     commons-collections 3.2.2: https://github.com/apache/commons-collections, Apache 2.0
     commons-collections4 4.4: https://github.com/apache/commons-collections, Apache 2.0
     commons-io 2.11.0：https://commons.apache.org/proper/commons-io, Apache 2.0
@@ -233,7 +233,7 @@ The text of each license is the standard Apache 2.0 license.
     failsafe 2.4.4: https://github.com/jhalterman/failsafe, Apache 2.0
     failureaccess 1.0.1:https://github.com/google/guava, Apache 2.0
     grpc-api 1.33.1: https://github.com/grpc/grpc, Apache 2.0
-    grpc-context 1.27.1: https://github.com/grpc/grpc, Apache 2.0
+    grpc-context 1.33.1: https://github.com/grpc/grpc, Apache 2.0
     grpc-core 1.48.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-grpclb 1.48.0: https://github.com/grpc/grpc, Apache 2.0
     grpc-netty 1.48.0: https://github.com/grpc/grpc, Apache 2.0
@@ -338,11 +338,12 @@ The text of each license is the standard Apache 2.0 license.
     spring-boot-starter-tomcat 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-tomcat, Apache 2.0
     spring-boot-starter-validation 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation, Apache 2.0
     spring-boot-starter-web 2.6.8: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web, Apache 2.0
-    spring-boot-starter-websocket https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket, Apache 2.0
+    spring-boot-starter-websocket 2.6.8:  https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket, Apache 2.0
     spring-context 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-context, Apache 2.0
     spring-context-support 5.3.20: https://spring.io, Apache 2.0
     spring-core 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-context-support, Apache 2.0
     spring-data-commons 2.6.4: https://mvnrepository.com/artifact/org.springframework.data/spring-data-commons, Apache 2.0
+	spring-data-ldap 2.6.4: https://mvnrepository.com/artifact/org.springframework.data/spring-data-ldap, Apache 2.0
     spring-expression 5.3.20: https://mvnrepository.com/artifact/org.springframework/spring-expression, Apache 2.0
     springfox-core 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-core, Apache 2.0
     springfox-schema 2.9.2: https://mvnrepository.com/artifact/io.springfox/springfox-schema, Apache 2.0
@@ -364,8 +365,8 @@ The text of each license is the standard Apache 2.0 license.
     swagger-annotations 1.5.20: https://github.com/swagger-api/swagger-core/modules/swagger-annotations, Apache 2.0
     swagger-models 1.5.20: https://github.com/swagger-api/swagger-core/modules/swagger-models, Apache 2.0
     thymeleaf 3.0.15.RELEASE: http://www.thymeleaf.org, Apache 2.0
-    thymeleaf extras-java8time-3.0.4.RELEASE: http://www.thymeleaf.org, Apache 2.0
-    thymeleaf spring5-3.0.15.RELEASE: http://www.thymeleaf.org, Apache 2.0
+    thymeleaf-extras-java8time-3.0.4.RELEASE: http://www.thymeleaf.org, Apache 2.0
+    thymeleaf-spring5-3.0.15.RELEASE: http://www.thymeleaf.org, Apache 2.0
     tomcat-embed-core 9.0.63: https://tomcat.apache.org, Apache 2.0
     tomcat-embed-el 9.0.63: https://tomcat.apache.org, Apache 2.0
     tomcat-embed-websocket 9.0.63: https://tomcat.apache.org, Apache 2.0
@@ -377,6 +378,7 @@ The text of each license is the standard Apache 2.0 license.
     curator-client 4.3.0: https://github.com/apache/curator, Apache 2.0
     curator-framework 4.3.0: https://github.com/apache/curator, Apache 2.0
     curator-recipes 4.3.0: https://github.com/apache/curator, Apache 2.0
+    brpc 2022.2.0: https://github.com/baidu/starlight, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -411,7 +413,7 @@ The following components are provided under the EPL License. See project link fo
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
     aspectjweaver 1.9.7: https://mvnrepository.com/artifact/org.aspectj/aspectjweaver/1.9.7, EPL 1.0
-    H2 Database 1.4.200: http://www.h2database.com/html/main.html , MPL 2.0 or EPL 1.0
+    h2 Database 1.4.200: http://www.h2database.com/html/main.html , MPL 2.0 or EPL 1.0
     jakarta.annotation-api 1.3.5: https://projects.eclipse.org/projects/ee4j.ca, EPL 2.0
     logback-classic 1.2.11: https://github.com/qos-ch/logback, EPL 1.0
     logback-core 1.2.11: https://github.com/qos-ch/logback, EPL 1.0
@@ -428,7 +430,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     java-jwt 3.12.0: https://mvnrepository.com/artifact/com.auth0/java-jwt, MIT
     jcl-over-slf4j 1.7.36: https://www.slf4j.org, MIT
     jul-to-slf4j 1.7.36: http://www.slf4j.org, MIT
-    pagehelper 5.3.0: https://github.com/pagehelper/Mybatis-PageHelper, MIT
+    pagehelper 5.3.1: https://github.com/pagehelper/Mybatis-PageHelper, MIT
     slf4j-api 1.7.36: https://www.slf4j.org, MIT
 
 ========================================================================
