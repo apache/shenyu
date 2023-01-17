@@ -73,7 +73,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     }
 
     @Override
-    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, BindableService> beans) {
         ShenyuGrpcClient shenyuGrpcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuGrpcClient.class);
         if (Objects.isNull(shenyuGrpcClient)) {
             return null;

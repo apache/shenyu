@@ -107,7 +107,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         this.port = props.getProperty(ShenyuClientConstants.PORT);
         publisher.start(shenyuClientRegisterRepository);
     }
-    
+
     @Override
     public void onApplicationEvent(@NonNull final ContextRefreshedEvent event) {
         final ApplicationContext context = event.getApplicationContext();
@@ -121,15 +121,17 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
         beans.forEach(this::handle);
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
-        apiModules.forEach(this::handleApiDoc);
+        apiModules.forEach((k, v) -> {
+            handleApiDoc(v, beans);
+        });
     }
 
-    private void handleApiDoc(final String name, final Object bean) {
+    private void handleApiDoc(final Object bean, final Map<String, T> beans) {
         Class<?> apiModuleClass = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(apiModuleClass);
         for (Method method : methods) {
             if (method.isAnnotationPresent(ApiDoc.class)) {
-                List<ApiDocRegisterDTO> apis = buildApiDocDTO(bean, method);
+                List<ApiDocRegisterDTO> apis = buildApiDocDTO(bean, method, beans);
                 for (ApiDocRegisterDTO apiDocRegisterDTO : apis) {
                     publisher.publishEvent(apiDocRegisterDTO);
                 }
@@ -137,7 +139,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
     }
 
-    private List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method) {
+    private List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method, final Map<String, T> beans) {
         String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
             ApiDoc apiDoc = (ApiDoc) item;
             return apiDoc.desc();
@@ -151,7 +153,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         if (Objects.isNull(annotation)) {
             return Lists.newArrayList();
         }
-        Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> sextet = buildApiDocSextet(method, annotation);
+        Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> sextet = buildApiDocSextet(method, annotation, beans);
         if (Objects.isNull(sextet)) {
             return Lists.newArrayList();
         }
@@ -184,7 +186,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         return list;
     }
 
-    protected abstract Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(Method method, Annotation annotation);
+    protected abstract Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(Method method, Annotation annotation, Map<String, T> beans);
     
     protected abstract Map<String, T> getBeans(ApplicationContext context);
     

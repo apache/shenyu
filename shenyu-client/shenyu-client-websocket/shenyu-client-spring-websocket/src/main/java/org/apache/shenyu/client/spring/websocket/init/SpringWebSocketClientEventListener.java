@@ -84,7 +84,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     }
 
     @Override
-    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, Object> beans) {
         ShenyuSpringWebSocketClient shenyuSpringWebSocketClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSpringWebSocketClient.class);
         if (Objects.isNull(shenyuSpringWebSocketClient)) {
             return null;
