@@ -18,6 +18,7 @@
 package org.apache.shenyu.register.client.api;
 
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.spi.SPI;
@@ -49,6 +50,13 @@ public interface ShenyuClientRegisterRepository {
      * @param registerDTO the register dto
      */
     default void persistURI(URIRegisterDTO registerDTO) {
+    }
+
+    /**
+     * persistApiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
+     */
+    default void persistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO) {
     }
     
     /**

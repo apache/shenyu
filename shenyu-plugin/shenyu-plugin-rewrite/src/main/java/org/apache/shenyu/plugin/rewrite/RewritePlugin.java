@@ -69,7 +69,8 @@ public class RewritePlugin extends AbstractShenyuPlugin {
                 RpcTypeEnum.GRPC,
                 RpcTypeEnum.TARS,
                 RpcTypeEnum.MOTAN,
-                RpcTypeEnum.SOFA);
+                RpcTypeEnum.SOFA,
+                RpcTypeEnum.BRPC);
     }
 
     @Override

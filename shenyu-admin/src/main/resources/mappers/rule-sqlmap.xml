@@ -86,6 +86,7 @@
                 </foreach>
             </if>
         </where>
+        ORDER BY sort
     </select>
 
     <select id="findBySelectorId" parameterType="java.lang.String" resultMap="BaseResultMap">

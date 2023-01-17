@@ -81,7 +81,8 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
                 RpcTypeEnum.GRPC,
                 RpcTypeEnum.TARS,
                 RpcTypeEnum.MOTAN,
-                RpcTypeEnum.SOFA);
+                RpcTypeEnum.SOFA,
+                RpcTypeEnum.BRPC);
     }
     
     private ContextMappingRuleHandle buildRuleHandle(final RuleData rule) {

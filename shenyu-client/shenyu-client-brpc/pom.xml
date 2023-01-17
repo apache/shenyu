@@ -38,7 +38,7 @@
         <dependency>
             <groupId>com.baidu.cloud</groupId>
             <artifactId>spring-cloud-starter-baidu-starlight</artifactId>
-            <version>2022.2.0</version>
+            <version>${brpc.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
