@@ -198,6 +198,11 @@ public interface Constants {
     String SIGN_PARAMS_ERROR = "sign parameters are incomplete!";
 
     /**
+     * The constant SIGN_PARAMS_ERROR.
+     */
+    String SIGN_VERSION_ERROR = "sign version does not exist or is wrong!";
+
+    /**
      * The constant SIGN_APP_KEY_IS_NOT_EXIST.
      */
     String SIGN_APP_KEY_IS_NOT_EXIST = "sign appKey does not exist.";
@@ -656,7 +661,7 @@ public interface Constants {
      * The maximum free memory reserved by the blocking queue for the JVM.
      */
     int THE_256_MB = 256 * 1024 * 1024;
-    
+
     /**
      * The default cluster of dubbo client.
      */
