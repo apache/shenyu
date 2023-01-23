@@ -249,7 +249,6 @@ public final class SignPluginVersionOneTest extends AbstractPluginDataInit {
                 .map(key -> String.join("", key, params.get(key)))
                 .collect(Collectors.joining()).trim()
                 .concat(signKey);
-        System.out.println(sign);
         return DigestUtils.md5Hex(sign.getBytes()).toUpperCase();
     }
 }
