@@ -282,7 +282,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             ruleConditionDTO.setOperator(OperatorEnum.STARTS_WITH.getAlias());
         } else if (path.endsWith(AdminConstants.URI_SUFFIX)) {
             ruleConditionDTO.setOperator(OperatorEnum.PATH_PATTERN.getAlias());
-        } else if (1 < path.indexOf("*")) {
+        } else if (path.indexOf("*") > 1) {
             ruleConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
         } else {
             ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());

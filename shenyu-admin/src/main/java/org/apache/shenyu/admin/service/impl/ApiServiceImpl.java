@@ -83,13 +83,11 @@ public class ApiServiceImpl implements ApiService {
         final int updateRows = apiMapper.updateByPrimaryKeySelective(apiDO);
         if (CollectionUtils.isNotEmpty(apiDTO.getTagIds()) && 0 < updateRows) {
             List<String> tagIds = apiDTO.getTagIds();
-            List<TagRelationDO> tags;
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
+            List<TagRelationDO> tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .apiId(apiDO.getId())
                 .tagId(tagId)
-                .dateUpdated(currentTime)
+                .dateUpdated(new Timestamp(System.currentTimeMillis()))
                 .build()).collect(Collectors.toList());
             tagRelationMapper.deleteByApiId(apiDO.getId());
             tagRelationMapper.batchInsert(tags);
