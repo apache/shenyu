@@ -125,7 +125,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
      *
      * @param event event
      */
-    @EventListener(value = BatchPluginDeletedEvent.class)
+    @EventListener(BatchPluginDeletedEvent.class)
     public void onPluginDeleted(final BatchPluginDeletedEvent event) {
         deletePluginHandles(ListUtil.map(pluginHandleMapper.selectByPluginIdList(event.getDeletedPluginIds()), BaseDO::getId));
     }

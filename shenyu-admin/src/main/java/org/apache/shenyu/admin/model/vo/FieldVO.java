@@ -264,7 +264,7 @@ public class FieldVO {
      * @return FieldVO
      */
     public static FieldVO buildFieldVO(final FieldDO fieldDO) {
-        return FieldVO.builder().id(fieldDO.getId())
+        return builder().id(fieldDO.getId())
                 .ext(fieldDO.getExt())
                 .fieldDesc(fieldDO.getFieldDesc())
                 .name(fieldDO.getName())

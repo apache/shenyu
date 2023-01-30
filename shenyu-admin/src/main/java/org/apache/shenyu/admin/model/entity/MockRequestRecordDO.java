@@ -243,9 +243,6 @@ public class MockRequestRecordDO extends BaseDO {
 
         private Timestamp dateUpdated;
 
-        public MockRequestRecordDOBuilder() {
-        }
-        
         /**
          * id.
          *

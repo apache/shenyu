@@ -208,7 +208,7 @@ public final class AppAuthDO extends BaseDO {
     public static AppAuthDO create(final AppAuthDTO appAuthDTO) {
         return Optional.ofNullable(appAuthDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            AppAuthDO appAuthDO = AppAuthDO.builder()
+            AppAuthDO appAuthDO = builder()
                     .appKey(item.getAppKey())
                     .appSecret(item.getAppSecret())
                     .open(item.getOpen())
@@ -234,7 +234,7 @@ public final class AppAuthDO extends BaseDO {
     public static AppAuthDO create(final AuthApplyDTO authApplyDTO) {
         return Optional.ofNullable(authApplyDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            return AppAuthDO.builder()
+            return builder()
                     .id(UUIDUtils.getInstance().generateShortUuid())
                     .userId(item.getUserId())
                     .phone(item.getPhone())

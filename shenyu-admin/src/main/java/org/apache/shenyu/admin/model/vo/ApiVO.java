@@ -461,7 +461,7 @@ public class ApiVO implements Serializable {
      * @return ApiVO.
      */
     public static ApiVO buildApiVO(final ApiDO apiDO, final List<TagVO> tags) {
-        return ApiVO.builder()
+        return builder()
                 .id(apiDO.getId())
                 .contextPath(apiDO.getContextPath())
                 .apiPath(apiDO.getApiPath())

@@ -71,7 +71,7 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
     protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
         List<TarsUpstream> addList = buildTarsUpstreamList(uriList);
         List<TarsUpstream> canAddList = new CopyOnWriteArrayList<>();
-        boolean isEventDeleted = uriList.size() == 1 && EventType.DELETED.equals(uriList.get(0).getEventType());
+        boolean isEventDeleted = 1 == uriList.size() && EventType.DELETED == uriList.get(0).getEventType();
         if (isEventDeleted) {
             addList.get(0).setStatus(false);
         }

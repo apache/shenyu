@@ -36,7 +36,7 @@ public final class ZookeeperPropertiesTest extends AbstractConfigurationTest {
         final String url = "127.0.0.1:2181";
         final Integer sessionTimeOut = 5000;
         final Integer connectionTimeout = 2000;
-        final String[] inlinedProperties = new String[]{
+        final String[] inlinedProperties = {
             "shenyu.sync.zookeeper.url=" + url,
             "shenyu.sync.zookeeper.sessionTimeout=" + sessionTimeOut,
             "shenyu.sync.zookeeper.connectionTimeout=" + connectionTimeout,

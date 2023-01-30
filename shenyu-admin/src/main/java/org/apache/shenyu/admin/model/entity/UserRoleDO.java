@@ -104,7 +104,7 @@ public final class UserRoleDO extends BaseDO {
     public static UserRoleDO buildUserRoleDO(final UserRoleDTO userRoleDTO) {
         return Optional.ofNullable(userRoleDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            UserRoleDO userRoleDO = UserRoleDO.builder()
+            UserRoleDO userRoleDO = builder()
                     .roleId(item.getRoleId())
                     .userId(item.getUserId())
                     .build();

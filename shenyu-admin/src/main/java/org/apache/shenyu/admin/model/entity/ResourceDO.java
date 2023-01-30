@@ -357,7 +357,7 @@ public final class ResourceDO extends BaseDO {
     public static ResourceDO buildResourceDO(final ResourceDTO resourceDTO) {
         return Optional.ofNullable(resourceDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            ResourceDO resourceDO = ResourceDO.builder()
+            ResourceDO resourceDO = builder()
                     .parentId(item.getParentId())
                     .title(item.getTitle())
                     .name(item.getName())
@@ -390,7 +390,7 @@ public final class ResourceDO extends BaseDO {
     public static ResourceDO buildResourceDO(final CreateResourceDTO createResourceDTO) {
         return Optional.ofNullable(createResourceDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            ResourceDO resourceDO = ResourceDO.builder()
+            return builder()
                 .parentId(item.getParentId())
                 .title(item.getTitle())
                 .name(item.getName())
@@ -406,7 +406,6 @@ public final class ResourceDO extends BaseDO {
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .dateCreated(currentTime)
                 .build();
-            return resourceDO;
         }).orElse(null);
     }
 

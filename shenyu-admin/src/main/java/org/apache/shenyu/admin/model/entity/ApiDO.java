@@ -404,7 +404,7 @@ public class ApiDO {
 
         return Optional.ofNullable(apiDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            ApiDO apiDO = ApiDO.builder()
+            ApiDO apiDO = builder()
                     .contextPath(item.getContextPath())
                     .apiPath(item.getApiPath())
                     .httpMethod(item.getHttpMethod())

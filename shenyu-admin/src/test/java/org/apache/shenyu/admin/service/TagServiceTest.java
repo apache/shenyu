@@ -148,7 +148,7 @@ public class TagServiceTest {
 
     private TagDO buildTagDO() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        TagDO tagDO = TagDO.builder()
+        return TagDO.builder()
                 .name("film")
                 .tagDesc("this is a pic tag")
                 .parentTagId("0")
@@ -156,12 +156,11 @@ public class TagServiceTest {
                 .dateUpdated(now)
                 .dateCreated(now)
                 .build();
-        return tagDO;
     }
 
     private TagDO buildParentTagDO() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        TagDO tagDO = TagDO.builder()
+        return TagDO.builder()
                 .name("film")
                 .tagDesc("this is a pic tag")
                 .parentTagId("123")
@@ -169,12 +168,11 @@ public class TagServiceTest {
                 .dateUpdated(now)
                 .dateCreated(now)
                 .build();
-        return tagDO;
     }
 
     private TagDO buildParentTagDO1() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        TagDO tagDO = TagDO.builder()
+        return TagDO.builder()
                 .name("film")
                 .tagDesc("this is a pic tag789")
                 .parentTagId("456")
@@ -182,12 +180,11 @@ public class TagServiceTest {
                 .dateUpdated(now)
                 .dateCreated(now)
                 .build();
-        return tagDO;
     }
 
     private TagDO buildParentTagDO2() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        TagDO tagDO = TagDO.builder()
+        return TagDO.builder()
                 .name("film")
                 .tagDesc("this is a pic tag789")
                 .parentTagId("789")
@@ -195,7 +192,6 @@ public class TagServiceTest {
                 .dateUpdated(now)
                 .dateCreated(now)
                 .build();
-        return tagDO;
     }
 
 }

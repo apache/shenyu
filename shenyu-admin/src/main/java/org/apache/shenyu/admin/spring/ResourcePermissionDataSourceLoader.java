@@ -26,7 +26,6 @@ import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -106,9 +105,7 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void run(final ApplicationArguments args) throws Exception {
-        ShenyuDictVO shenyuInitData = shenyuDictService
-                .findByDictCodeName(AdminConstants.DICT_TABLE_FLAG_DICTCODE,
-                        AdminConstants.DICT_TABLE_FLAG_DICTNAME);
+        ShenyuDictVO shenyuInitData = shenyuDictService.findByDictCodeName(DICT_TABLE_FLAG_DICTCODE, DICT_TABLE_FLAG_DICTNAME);
         String id = null;
         if (Objects.nonNull(shenyuInitData)) {
             if (Boolean.TRUE.toString().equals(shenyuInitData.getDictValue())) {

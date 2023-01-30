@@ -28,7 +28,7 @@ import java.sql.SQLException;
 /**
  * PostgreSQL's custom type handler for Boolean types.
  */
-@MappedTypes(value = Boolean.class)
+@MappedTypes(Boolean.class)
 public class PostgreSQLBooleanHandler extends BaseTypeHandler<Boolean> {
 
     @Override

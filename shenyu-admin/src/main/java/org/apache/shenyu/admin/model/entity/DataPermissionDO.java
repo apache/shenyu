@@ -128,7 +128,7 @@ public final class DataPermissionDO extends BaseDO {
     public static DataPermissionDO buildPermissionDO(final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            DataPermissionDO dataPermissionDo = DataPermissionDO.builder()
+            DataPermissionDO dataPermissionDo = builder()
                     .userId(item.getUserId())
                     .dataId(item.getDataId())
                     .dataType(item.getDataType())
@@ -154,7 +154,7 @@ public final class DataPermissionDO extends BaseDO {
 
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
 
-        return DataPermissionDO.builder()
+        return builder()
                 .userId(userId)
                 .dataId(dataId)
                 .dataType(dataType)

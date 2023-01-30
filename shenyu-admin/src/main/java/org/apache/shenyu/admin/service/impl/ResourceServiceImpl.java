@@ -209,7 +209,7 @@ public class ResourceServiceImpl implements ResourceService {
      *
      * @param event event
      */
-    @EventListener(value = PluginCreatedEvent.class)
+    @EventListener(PluginCreatedEvent.class)
     public void onPluginCreated(final PluginCreatedEvent event) {
         Assert.isNull(resourceMapper.nameExisted(event.getPlugin().getName()), AdminConstants.RESOURCE_NAME_IS_EXIST);
         ResourceDO resourceDO = ResourceUtil.buildPluginResource(event.getPlugin().getName());
@@ -222,7 +222,7 @@ public class ResourceServiceImpl implements ResourceService {
      *
      * @param event event
      */
-    @EventListener(value = BatchPluginDeletedEvent.class)
+    @EventListener(BatchPluginDeletedEvent.class)
     public void onPluginDeleted(final BatchPluginDeletedEvent event) {
         // 5. delete resource & permission.
         final List<ResourceVO> resources = listByTitles(ListUtil.map((List<?>) event.getSource(), s -> ((PluginDO) s).getName()));

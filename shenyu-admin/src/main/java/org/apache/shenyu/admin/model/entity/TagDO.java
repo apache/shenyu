@@ -157,7 +157,7 @@ public final class TagDO extends BaseDO {
     public static TagDO buildTagDO(final TagDTO tagDTO) {
         return Optional.ofNullable(tagDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            TagDO tagDO = TagDO.builder()
+            TagDO tagDO = builder()
                     .parentTagId(tagDTO.getParentTagId())
                     .tagDesc(tagDTO.getTagDesc())
                     .name(tagDTO.getName())

@@ -104,7 +104,7 @@ public final class PermissionDO extends BaseDO {
     public static PermissionDO buildPermissionDO(final PermissionDTO permissionDTO) {
         return Optional.ofNullable(permissionDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            PermissionDO permissionDO = PermissionDO.builder()
+            PermissionDO permissionDO = builder()
                     .objectId(item.getObjectId())
                     .resourceId(item.getResourceId())
                     .build();

@@ -223,7 +223,7 @@ public final class ShenyuDictDO extends BaseDO {
      */
     public static ShenyuDictDO buildShenyuDictDO(final ShenyuDictDTO shenyuDictDTO) {
         return Optional.ofNullable(shenyuDictDTO).map(item -> {
-            ShenyuDictDO shenyuDictDO = ShenyuDictDO.builder()
+            ShenyuDictDO shenyuDictDO = builder()
                     .id(item.getId())
                     .dictCode(item.getDictCode())
                     .dictName(item.getDictName())

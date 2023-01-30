@@ -104,7 +104,7 @@ public final class TagRelationDO extends BaseDO {
     public static TagRelationDO buildTagRelationDO(final TagRelationDTO tagRelationDTO) {
         return Optional.ofNullable(tagRelationDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            TagRelationDO tagRelationDO = TagRelationDO.builder()
+            TagRelationDO tagRelationDO = builder()
                     .apiId(tagRelationDTO.getApiId())
                     .tagId(tagRelationDTO.getTagId())
                     .dateUpdated(currentTime)

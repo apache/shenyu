@@ -42,7 +42,7 @@ public class DataBaseConfiguration {
      * @return {@linkplain DataBaseProperties}
      */
     @Bean
-    @ConditionalOnMissingBean(value = DataBaseProperties.class)
+    @ConditionalOnMissingBean(DataBaseProperties.class)
     public DataBaseProperties dataBaseProperties(@Value("${shenyu.database.dialect:h2}") final String dialect,
                                                    @Value("${shenyu.database.init_script:sql-script/h2/schema.sql}") final String initScript,
                                                    @Value("${shenyu.database.init_enable:true}") final Boolean initEnable) {

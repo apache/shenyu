@@ -294,24 +294,20 @@ public class AppAuthServiceImpl implements AppAuthService {
             return 0;
         }
         int affectCount = appAuthMapper.deleteByIds(ids);
-        if (affectCount <= 0) {
+        if (0 >= affectCount) {
             return affectCount;
         }
         authParamMapper.deleteByAuthIds(ids);
         authPathMapper.deleteByAuthIds(ids);
 
-        List<AppAuthData> appAuthData = new ArrayList<>(appAuthList.size());
-        appAuthList.forEach(appAuthDO -> {
-            AppAuthData data = AppAuthData.builder()
-                    .appKey(appAuthDO.getAppKey())
-                    .appSecret(appAuthDO.getAppSecret())
-                    .open(appAuthDO.getOpen())
-                    .enabled(appAuthDO.getEnabled())
-                    .paramDataList(null)
-                    .pathDataList(null)
-                    .build();
-            appAuthData.add(data);
-        });
+        List<AppAuthData> appAuthData = appAuthList.stream().map(appAuthDO -> AppAuthData.builder()
+            .appKey(appAuthDO.getAppKey())
+            .appSecret(appAuthDO.getAppSecret())
+            .open(appAuthDO.getOpen())
+            .enabled(appAuthDO.getEnabled())
+            .paramDataList(null)
+            .pathDataList(null)
+            .build()).collect(Collectors.toCollection(() -> new ArrayList<>(appAuthList.size())));
         // publish delete event of AppAuthData
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, appAuthData));
 

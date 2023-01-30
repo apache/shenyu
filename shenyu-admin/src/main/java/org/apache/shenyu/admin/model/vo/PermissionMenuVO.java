@@ -332,7 +332,7 @@ public class PermissionMenuVO implements Serializable {
             return Optional.ofNullable(resourceVO).map(item -> {
                 MenuInfo menuInfo = null;
                 if (!resourceVO.getResourceType().equals(ResourceTypeConstants.MENU_TYPE_2)) {
-                    menuInfo = MenuInfo.builder()
+                    menuInfo = builder()
                             .id(item.getId())
                             .name(item.getName())
                             .url(item.getUrl())
@@ -508,8 +508,7 @@ public class PermissionMenuVO implements Serializable {
              * @return build object.
              */
             public MenuInfo build() {
-                MenuInfo menuInfo = new MenuInfo(id, name, url, component, meta, children, sort);
-                return menuInfo;
+                return new MenuInfo(id, name, url, component, meta, children, sort);
             }
         }
     }

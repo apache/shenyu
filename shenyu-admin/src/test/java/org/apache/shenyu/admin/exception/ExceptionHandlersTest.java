@@ -130,7 +130,7 @@ public final class ExceptionHandlersTest {
 
     @Test
     public void testHandleHttpRequestMethodNotSupportedException() {
-        String[] supportedMethod = new String[]{"POST", "GET"};
+        String[] supportedMethod = {"POST", "GET"};
         HttpRequestMethodNotSupportedException exception = new HttpRequestMethodNotSupportedException("POST", supportedMethod, "request method");
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleHttpRequestMethodNotSupportedException(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);

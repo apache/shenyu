@@ -313,7 +313,7 @@ public final class SelectorDO extends BaseDO {
     public static SelectorDO buildSelectorDO(final SelectorDTO selectorDTO) {
         return Optional.ofNullable(selectorDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            SelectorDO selectorDO = SelectorDO.builder()
+            SelectorDO selectorDO = builder()
                     .type(item.getType())
                     .sort(item.getSort())
                     .enabled(item.getEnabled())

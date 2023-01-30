@@ -72,9 +72,6 @@ public class SwaggerConfiguration {
     @Value("${shenyu.swagger.enable:false}")
     private boolean enable;
 
-    public SwaggerConfiguration() {
-    }
-
     /**
      * Configure The Docket with Swagger.
      *

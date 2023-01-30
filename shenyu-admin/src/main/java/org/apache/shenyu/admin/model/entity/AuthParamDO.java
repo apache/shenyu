@@ -117,7 +117,7 @@ public final class AuthParamDO extends BaseDO {
      */
     public static AuthParamDO create(final String authId, final String appName, final String appParam) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        return AuthParamDO.builder()
+        return builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .authId(authId)
                 .appName(appName)
@@ -132,7 +132,7 @@ public final class AuthParamDO extends BaseDO {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (null == o || getClass() != o.getClass()) {
             return false;
         }
         if (!super.equals(o)) {

@@ -89,7 +89,7 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         record.setTagDesc("2222222");
         tagMapper.updateByPrimaryKey(record);
         TagDO tagDO = tagMapper.selectByPrimaryKey(record.getId());
-        assertThat(tagDO.getTagDesc().equals("2222222"), equalTo(true));
+        assertThat("2222222".equals(tagDO.getTagDesc()), equalTo(true));
         int delete = tagMapper.deleteByPrimaryKey(record.getId());
         assertEquals(delete, 1);
     }

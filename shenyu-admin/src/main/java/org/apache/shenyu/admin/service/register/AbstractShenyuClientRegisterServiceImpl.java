@@ -144,11 +144,11 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
 
     @Override
     public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
-        if (apiDocRegisterDTO.getEventType().equals(EventType.REGISTER)) {
+        if (EventType.REGISTER == apiDocRegisterDTO.getEventType()) {
             ApiDTO apiDTO = buildApiDTO(apiDocRegisterDTO);
             apiService.deleteByApiPathHttpMethodRpcType(apiDTO.getApiPath(), apiDTO.getHttpMethod(), apiDTO.getRpcType());
             apiService.createOrUpdate(apiDTO);
-        } else if (apiDocRegisterDTO.getEventType().equals(EventType.OFFLINE)) {
+        } else if (EventType.OFFLINE == apiDocRegisterDTO.getEventType()) {
             String contextPath = apiDocRegisterDTO.getContextPath();
             apiService.offlineByContextPath(contextPath);
         }
@@ -194,7 +194,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         //update upstream
         List<URIRegisterDTO> validUriList = uriList.stream().filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost())).collect(Collectors.toList());
         String handler = buildHandle(validUriList, selectorDO);
-        if (handler != null) {
+        if (null != handler) {
             selectorDO.setHandle(handler);
             SelectorData selectorData = selectorService.buildByName(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()));
             selectorData.setHandle(handler);
@@ -282,7 +282,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             ruleConditionDTO.setOperator(OperatorEnum.STARTS_WITH.getAlias());
         } else if (path.endsWith(AdminConstants.URI_SUFFIX)) {
             ruleConditionDTO.setOperator(OperatorEnum.PATH_PATTERN.getAlias());
-        } else if (path.indexOf("*") > 1) {
+        } else if (1 < path.indexOf("*")) {
             ruleConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
         } else {
             ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());

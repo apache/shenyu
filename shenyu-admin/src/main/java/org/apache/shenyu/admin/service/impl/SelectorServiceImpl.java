@@ -281,7 +281,7 @@ public class SelectorServiceImpl implements SelectorService {
      *
      * @param event event
      */
-    @EventListener(value = BatchPluginDeletedEvent.class)
+    @EventListener(BatchPluginDeletedEvent.class)
     public void onPluginDeleted(final BatchPluginDeletedEvent event) {
         deleteSelector(selectorMapper.findByPluginIds(event.getDeletedPluginIds()), event.getPlugins());
     }
