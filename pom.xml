@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.5.1</version>
+    <version>2.5.2-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -58,7 +58,7 @@
         <url>https://github.com/apache/shenyu</url>
         <connection>scm:git:https://github.com/apache/shenyu.git</connection>
         <developerConnection>scm:git:https://github.com/apache/shenyu.git</developerConnection>
-        <tag>v2.5.1</tag>
+        <tag>v2.5.0</tag>
     </scm>
 
     <mailingLists>
