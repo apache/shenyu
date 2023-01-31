@@ -49,9 +49,9 @@ public class SelectorDTO implements ResourceDTO {
     @JsonProperty("selectorConditions")
     private List<Condition> conditionList;
     
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SS")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private Date dateCreated;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SS")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private Date dateUpdated;
     
 }
