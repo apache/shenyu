@@ -20,6 +20,7 @@ package org.apache.shenyu.common.utils;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MapUtils {
@@ -34,5 +35,21 @@ public class MapUtils {
         return Optional.ofNullable(map)
                 .map(m -> m.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Objects.toString(e.getValue(), null))))
                 .orElse(null);
+    }
+
+    /**
+     * jdk8 performance bug, see: https://bugs.openjdk.java.net/browse/JDK-8161372
+     *
+     * @param map source map
+     * @param key key
+     * @param mappingFunction mappingFunction
+     * @param <K> k
+     * @param <V> v
+     * @return v
+     */
+    public static <K, V> V computeIfAbsent(Map<K, V> map, K key, Function<? super K, ? extends V> mappingFunction) {
+        V v = map.get(key);
+        if (v != null) return v;
+        return map.computeIfAbsent(key, mappingFunction);
     }
 }
