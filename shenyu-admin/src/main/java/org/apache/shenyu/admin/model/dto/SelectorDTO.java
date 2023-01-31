@@ -66,8 +66,8 @@ public final class SelectorDTO implements Serializable {
      * selector type.
      */
     @NotNull
-    @Min(0)
-    @Max(1)
+    @Min(value = 0)
+    @Max(value = 1)
     private Integer type;
     
     /**

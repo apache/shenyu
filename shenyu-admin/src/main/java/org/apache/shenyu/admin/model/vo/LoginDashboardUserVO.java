@@ -36,6 +36,9 @@ public class LoginDashboardUserVO extends DashboardUserVO {
      */
     private Long expiredTime;
 
+    public LoginDashboardUserVO() {
+    }
+
     /**
      * Gets the value of token.
      *

@@ -40,6 +40,9 @@ public class DashboardUserEditVO extends DashboardUserVO {
      */
     private List<RoleVO> allRoles;
 
+    public DashboardUserEditVO() {
+    }
+
     /**
      * Gets the value of roles.
      *

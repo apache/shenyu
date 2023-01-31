@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 
-import java.util.stream.Stream;
-
 /**
  * The type Zookeeper data changed init.
  *
@@ -43,6 +41,8 @@ public class ZookeeperDataChangedInit extends AbstractDataChangedInit {
 
     @Override
     protected boolean notExist() {
-        return Stream.of(DefaultPathConstants.PLUGIN_PARENT, DefaultPathConstants.APP_AUTH_PARENT, DefaultPathConstants.META_DATA).noneMatch(zkClient::isExist);
+        return !zkClient.isExist(DefaultPathConstants.PLUGIN_PARENT)
+                && !zkClient.isExist(DefaultPathConstants.APP_AUTH_PARENT)
+                && !zkClient.isExist(DefaultPathConstants.META_DATA);
     }
 }

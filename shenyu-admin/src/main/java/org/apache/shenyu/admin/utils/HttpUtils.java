@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 public class HttpUtils {
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
 
-    private Map<String, List<Cookie>> cookieStore = new HashMap<>();
+    private Map<String, List<Cookie>> cookieStore = new HashMap<String, List<Cookie>>();
 
     private OkHttpClient httpClient;
 
@@ -199,10 +199,13 @@ public class HttpUtils {
         addHeader(requestBuilder, header);
 
         Request request = requestBuilder.build();
-        try (Response response = httpClient
+        Response response = httpClient
             .newCall(request)
-            .execute()) {
+            .execute();
+        try {
             return response.body().string();
+        } finally {
+            response.close();
         }
     }
 
@@ -224,10 +227,13 @@ public class HttpUtils {
         addHeader(requestBuilder, header);
 
         Request request = requestBuilder.build();
-        try (Response response = httpClient
+        Response response = httpClient
             .newCall(request)
-            .execute()) {
+            .execute();
+        try {
             return response.body().string();
+        } finally {
+            response.close();
         }
     }
 
@@ -381,6 +387,9 @@ public class HttpUtils {
         PUT,
         HEAD,
         DELETE;
+
+        HTTPMethod() {
+        }
 
         /**
          * fromValue.

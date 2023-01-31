@@ -184,6 +184,9 @@ public class RoleEditVO implements Serializable {
              */
             private List<String> permissionIds;
 
+            public PermissionInfoBuilder() {
+            }
+
             /**
              * treeList.
              *
@@ -212,7 +215,8 @@ public class RoleEditVO implements Serializable {
              * @return build object.
              */
             public PermissionInfo build() {
-                return new PermissionInfo(treeList, permissionIds);
+                PermissionInfo permissionInfo = new PermissionInfo(treeList, permissionIds);
+                return permissionInfo;
             }
         }
     }
@@ -377,7 +381,7 @@ public class RoleEditVO implements Serializable {
          */
         public static ResourceInfo buildResourceInfo(final ResourceVO resourceVO) {
             return Optional.ofNullable(resourceVO).map(item -> {
-                ResourceInfo resourceInfo = builder()
+                ResourceInfo resourceInfo = ResourceInfo.builder()
                         .id(item.getId())
                         .title(item.getTitle())
                         .name(item.getName())
@@ -516,7 +520,8 @@ public class RoleEditVO implements Serializable {
              * @return build object.
              */
             public ResourceInfo build() {
-                return new ResourceInfo(id, title, name, children, isLeaf, parentId);
+                ResourceInfo resourceInfo = new ResourceInfo(id, title, name, children, isLeaf, parentId);
+                return resourceInfo;
             }
         }
     }

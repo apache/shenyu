@@ -43,6 +43,6 @@ public class UploadUtilsTest {
         fileMultiValueMap.add("file", mock(MultipartFile.class));
         when(httpServletRequest.getMultiFileMap()).thenReturn(fileMultiValueMap);
         final Collection<MultipartFile> uploadFiles = UploadUtils.getUploadFiles(httpServletRequest);
-        Assertions.assertFalse(uploadFiles.isEmpty());
+        Assertions.assertTrue(uploadFiles.size() > 0);
     }
 }

@@ -227,7 +227,7 @@ public final class PluginHandleDO extends BaseDO {
      */
     public static PluginHandleDO buildPluginHandleDO(final PluginHandleDTO pluginHandleDTO) {
         return Optional.ofNullable(pluginHandleDTO).map(item -> {
-            PluginHandleDO pluginHandleDO = builder()
+            PluginHandleDO pluginHandleDO = PluginHandleDO.builder()
                     .id(item.getId())
                     .pluginId(item.getPluginId())
                     .field(item.getField())

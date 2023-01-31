@@ -231,7 +231,12 @@ public class RoleServiceImpl implements RoleService {
             if (CollectionUtils.isNotEmpty(children)) {
                 ResourceInfo resourceInfo = resourceInfoMap.get(parent);
                 List<ResourceInfo> targetList = Objects.isNull(resourceInfo) ? retList : resourceInfo.getChildren();
-                children.stream().map(resourceInfoMap::get).filter(Objects::nonNull).forEach(targetList::add);
+                children.forEach(child -> {
+                    ResourceInfo data = resourceInfoMap.get(child);
+                    if (Objects.nonNull(data)) {
+                        targetList.add(data);
+                    }
+                });
             }
         });
         return retList;

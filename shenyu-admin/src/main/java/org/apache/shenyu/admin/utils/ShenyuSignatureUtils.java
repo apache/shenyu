@@ -61,10 +61,11 @@ public class ShenyuSignatureUtils {
                 .toArray(new String[] {}))
             .sorted(Comparator.naturalOrder())
             .collect(Collectors.toList());
-        return storedKeys.stream()
+        final String signContent = storedKeys.stream()
             .map(key -> String.join("", key, map.get(key)))
             .collect(Collectors.joining()).trim()
             .concat(secureKey);
+        return signContent;
     }
 
 }

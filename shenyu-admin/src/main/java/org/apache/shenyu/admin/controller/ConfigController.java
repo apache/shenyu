@@ -55,7 +55,7 @@ public class ConfigController {
      * @return the shenyu result
      */
     @GetMapping("/fetch")
-    public ShenyuAdminResult fetchConfigs(final @NotNull String... groupKeys) {
+    public ShenyuAdminResult fetchConfigs(@NotNull final String[] groupKeys) {
         Map<String, ConfigData<?>> result = Maps.newHashMap();
         for (String groupKey : groupKeys) {
             ConfigData<?> data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey));
@@ -70,7 +70,7 @@ public class ConfigController {
      * @param request  the request
      * @param response the response
      */
-    @PostMapping("/listener")
+    @PostMapping(value = "/listener")
     public void listener(final HttpServletRequest request, final HttpServletResponse response) {
         longPollingListener.doLongPolling(request, response);
     }

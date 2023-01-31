@@ -224,7 +224,7 @@ public class DetailVO {
      * @return DetailVO
      */
     public static DetailVO buildDetailVO(final DetailDO detailDO) {
-        return builder().id(detailDO.getId())
+        return DetailVO.builder().id(detailDO.getId())
                 .example(detailDO.getExample())
                 .valueDesc(detailDO.getValueDesc())
                 .fieldValue(detailDO.getFieldValue())

@@ -143,7 +143,8 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
      * @return List
      */
     private List<UpstreamInstance> getAllClusterLastUpdateInstanceList() {
-        List<String> pluginNames = RpcTypeEnum.acquireSupportSwaggers().stream().map(rpcTypeEnum -> PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName())).collect(Collectors.toList());
+        List<String> pluginNames = new ArrayList<>();
+        RpcTypeEnum.acquireSupportSwaggers().forEach(rpcTypeEnum -> pluginNames.add(PluginNameAdapter.rpcTypeAdapter(rpcTypeEnum.getName())));
         final List<PluginDO> pluginDOList = pluginMapper.selectByNames(pluginNames);
         if (CollectionUtils.isEmpty(pluginDOList)) {
             return Collections.emptyList();

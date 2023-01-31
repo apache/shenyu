@@ -176,7 +176,7 @@ public final class SelectorConditionDO extends BaseDO {
     public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionDTO selectorConditionDTO) {
         return Optional.ofNullable(selectorConditionDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            SelectorConditionDO selectorConditionDO = builder()
+            SelectorConditionDO selectorConditionDO = SelectorConditionDO.builder()
                     .paramType(item.getParamType())
                     .selectorId(item.getSelectorId())
                     .operator(item.getOperator())

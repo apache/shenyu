@@ -178,11 +178,12 @@ public final class DashboardUserDO extends BaseDO {
     public static DashboardUserDO buildDashboardUserDO(final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
         return Optional.ofNullable(dashboardUserModifyPasswordDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            return builder()
+            DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
                     .password(item.getPassword())
                     .dateUpdated(currentTime)
                     .id(item.getId())
                     .build();
+            return dashboardUserDO;
         }).orElse(null);
     }
 
@@ -195,7 +196,7 @@ public final class DashboardUserDO extends BaseDO {
     public static DashboardUserDO buildDashboardUserDO(final DashboardUserDTO dashboardUserDTO) {
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            DashboardUserDO dashboardUserDO = builder()
+            DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
                 .userName(item.getUserName())
                 .password(item.getPassword())
                 .role(item.getRole())

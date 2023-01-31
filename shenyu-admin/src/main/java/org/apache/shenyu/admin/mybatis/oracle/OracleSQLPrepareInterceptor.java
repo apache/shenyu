@@ -32,7 +32,9 @@ import java.util.Properties;
 /**
  * the mybatis interceptor for update/insert/delete.
  */
-@Intercepts(@Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class}))
+@Intercepts({
+        @Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})
+})
 public class OracleSQLPrepareInterceptor implements Interceptor {
 
     @Override

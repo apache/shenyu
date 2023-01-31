@@ -176,7 +176,7 @@ public final class RuleConditionDO extends BaseDO {
     public static RuleConditionDO buildRuleConditionDO(final RuleConditionDTO ruleConditionDTO) {
         return Optional.ofNullable(ruleConditionDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            RuleConditionDO ruleConditionDO = builder()
+            RuleConditionDO ruleConditionDO = RuleConditionDO.builder()
                     .paramType(item.getParamType())
                     .ruleId(item.getRuleId())
                     .operator(item.getOperator())

@@ -129,7 +129,7 @@ public final class AuthPathDO extends BaseDO {
      */
     public static AuthPathDO create(final String path, final String authId, final String appName) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        return builder()
+        return AuthPathDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .authId(authId)
                 .appName(appName)
@@ -145,7 +145,7 @@ public final class AuthPathDO extends BaseDO {
         if (this == o) {
             return true;
         }
-        if (null == o || getClass() != o.getClass()) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         if (!super.equals(o)) {

@@ -107,7 +107,7 @@ public abstract class AbstractReflectGetterSetterTest {
                     if (f.isSynthetic()) {
                         return;
                     }
-                    if (null != excludeFields && excludeFields.contains(f.getName())) {
+                    if (excludeFields != null && excludeFields.contains(f.getName())) {
                         return;
                     }
                     try {
@@ -132,7 +132,7 @@ public abstract class AbstractReflectGetterSetterTest {
 
     private Object defaultValue(final Class<?> clazz) throws IllegalAccessException, InstantiationException {
         final Object obj = DEFAULT_MAPPERS.get(clazz);
-        if (null != obj) {
+        if (obj != null) {
             return obj;
         }
 

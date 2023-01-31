@@ -233,7 +233,7 @@ public final class RuleDO extends BaseDO {
     public static RuleDO buildRuleDO(final RuleDTO ruleDTO) {
         return Optional.ofNullable(ruleDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            RuleDO ruleDO = builder()
+            RuleDO ruleDO = RuleDO.builder()
                     .selectorId(item.getSelectorId())
                     .matchMode(item.getMatchMode())
                     .name(item.getName())

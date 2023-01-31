@@ -313,7 +313,7 @@ public class MockRequestRecordVO implements Serializable {
      * @return MockRequestRecordVO
      */
     public static MockRequestRecordVO buildMockRequestRecordVO(final MockRequestRecordDO mockRequestRecordDO) {
-        return builder()
+        return MockRequestRecordVO.builder()
                 .id(mockRequestRecordDO.getId())
                 .apiId(mockRequestRecordDO.getApiId())
                 .header(mockRequestRecordDO.getHeader())

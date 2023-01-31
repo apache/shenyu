@@ -103,13 +103,14 @@ public class TagRelationServiceTest {
 
     private TagRelationDO buildTagRelationDO() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        return TagRelationDO.builder()
+        TagRelationDO tagRelationDO = TagRelationDO.builder()
                 .tagId("123")
                 .id("11111")
                 .apiId("123456")
                 .dateUpdated(now)
                 .dateCreated(now)
                 .build();
+        return tagRelationDO;
     }
 
     private TagRelationDTO buildTagRelationDTO() {

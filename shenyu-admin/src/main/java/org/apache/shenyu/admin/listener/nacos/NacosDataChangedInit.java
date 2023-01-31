@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.stream.Stream;
 
 /**
  * The type Nacos data changed init.
@@ -50,7 +49,9 @@ public class NacosDataChangedInit extends AbstractDataChangedInit {
 
     @Override
     protected boolean notExist() {
-        return Stream.of(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID).allMatch(this::dataIdNotExist);
+        return dataIdNotExist(NacosPathConstants.PLUGIN_DATA_ID)
+                && dataIdNotExist(NacosPathConstants.AUTH_DATA_ID)
+                && dataIdNotExist(NacosPathConstants.META_DATA_ID);
     }
 
     private boolean dataIdNotExist(final String pluginDataId) {

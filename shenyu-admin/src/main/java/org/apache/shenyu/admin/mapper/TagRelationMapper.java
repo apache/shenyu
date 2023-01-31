@@ -109,20 +109,20 @@ public interface TagRelationMapper extends ExistProvider {
      * @param list list
      * @return insert rows
      */
-    int batchInsert(@Param("list") List<TagRelationDO> list);
+    int batchInsert(@Param(value = "list") List<TagRelationDO> list);
 
     /**
      * deleteByApiId.
      * @param apiId apiId
      * @return delete rows
      */
-    int deleteByApiId(@Param("apiId") String apiId);
+    int deleteByApiId(@Param(value = "apiId") String apiId);
 
     /**
      * deleteByApiIds.
      * @param apiIds apiIds
      * @return delete rows
      */
-    int deleteByApiIds(@Param("apiIds") List<String> apiIds);
+    int deleteByApiIds(@Param(value = "apiIds") List<String> apiIds);
 }
 

@@ -75,7 +75,13 @@ public class DocItem {
     public boolean isUploadRequest() {
         boolean upload = false;
         if (requestParameters != null) {
-            upload = requestParameters.stream().map(DocParameter::getType).anyMatch("file"::equalsIgnoreCase);
+            for (DocParameter requestParameter : requestParameters) {
+                String type = requestParameter.getType();
+                if ("file".equalsIgnoreCase(type)) {
+                    upload = true;
+                    break;
+                }
+            }
         }
         return multiple || upload;
     }

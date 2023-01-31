@@ -22,12 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.model.dto.TagDTO;
-import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.query.TagQuery;
 import org.apache.shenyu.admin.model.vo.TagVO;
@@ -101,7 +99,10 @@ public class TagServiceImpl implements TagService {
         }
         List<String> rootIds = tagDOS.stream().map(TagDO::getId).collect(Collectors.toList());
         List<TagDO> tagDOList = tagMapper.selectByParentTagIds(rootIds);
-        Map<String, Boolean> map = tagDOList.stream().collect(Collectors.toMap(TagDO::getParentTagId, tagDO -> true, (a, b) -> b, ConcurrentHashMap::new));
+        Map<String, Boolean> map = new ConcurrentHashMap<>();
+        tagDOList.forEach(tagDO -> {
+            map.put(tagDO.getParentTagId(), true);
+        });
         return tagDOS.stream().map(tag -> {
             TagVO tagVO = TagVO.buildTagVO(tag);
             if (map.get(tag.getId()) != null) {
@@ -117,11 +118,13 @@ public class TagServiceImpl implements TagService {
      */
     private void updateSubTags(final TagDTO tagDTO) {
         List<TagDO> allData = tagMapper.selectByQuery(new TagQuery());
-        Map<String, TagDO> allDataMap = allData.stream().collect(Collectors.toMap(BaseDO::getId, Function.identity(), (a, b) -> b, ConcurrentHashMap::new));
+        Map<String, TagDO> allDataMap = new ConcurrentHashMap<>();
+        allData.stream().forEach(tagDO -> allDataMap.put(tagDO.getId(), tagDO));
         TagDO update = TagDO.buildTagDO(tagDTO);
         allDataMap.put(update.getId(), update);
         Map<String, List<String>> relationMap = new ConcurrentHashMap<>();
-        allDataMap.keySet().stream().map(allDataMap::get).forEach(tagDO -> {
+        allDataMap.keySet().forEach(tagId -> {
+            TagDO tagDO = allDataMap.get(tagId);
             if (CollectionUtils.isEmpty(relationMap.get(tagDO.getParentTagId()))) {
                 relationMap.put(tagDO.getParentTagId(), Lists.newArrayList(tagDO.getId()));
             } else {

@@ -82,7 +82,7 @@ public class TagRelationMapperTest extends AbstractSpringIntegrationTest {
         record.setTagId("2222222");
         tagRelationMapper.updateByPrimaryKey(record);
         TagRelationDO tagRelationDO = tagRelationMapper.selectByPrimaryKey(record.getId());
-        assertThat("2222222".equals(tagRelationDO.getTagId()), equalTo(true));
+        assertThat(tagRelationDO.getTagId().equals("2222222"), equalTo(true));
     }
 
     @Test
