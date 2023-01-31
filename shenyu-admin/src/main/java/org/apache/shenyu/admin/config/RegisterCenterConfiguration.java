@@ -61,8 +61,7 @@ public class RegisterCenterConfiguration {
         String registerType = shenyuRegisterCenterConfig.getRegisterType();
         ShenyuClientServerRegisterRepository registerRepository = ExtensionLoader.getExtensionLoader(ShenyuClientServerRegisterRepository.class).getJoin(registerType);
         RegisterClientServerDisruptorPublisher publisher = RegisterClientServerDisruptorPublisher.getInstance();
-        Map<String, ShenyuClientRegisterService> registerServiceMap = shenyuClientRegisterService.stream().collect(Collectors.toMap(ShenyuClientRegisterService::rpcType,
-            Function.identity()));
+        Map<String, ShenyuClientRegisterService> registerServiceMap = shenyuClientRegisterService.stream().collect(Collectors.toMap(ShenyuClientRegisterService::rpcType, Function.identity()));
         publisher.start(registerServiceMap);
         registerRepository.init(publisher, shenyuRegisterCenterConfig);
         return registerRepository;
