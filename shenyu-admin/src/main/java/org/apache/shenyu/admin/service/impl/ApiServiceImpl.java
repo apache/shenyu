@@ -83,16 +83,14 @@ public class ApiServiceImpl implements ApiService {
         final int updateRows = apiMapper.updateByPrimaryKeySelective(apiDO);
         if (CollectionUtils.isNotEmpty(apiDTO.getTagIds()) && updateRows > 0) {
             List<String> tagIds = apiDTO.getTagIds();
-            List<TagRelationDO> tags = Lists.newArrayList();
+            List<TagRelationDO> tags;
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            for (String tagId : tagIds) {
-                tags.add(TagRelationDO.builder()
-                        .id(UUIDUtils.getInstance().generateShortUuid())
-                        .apiId(apiDO.getId())
-                        .tagId(tagId)
-                        .dateUpdated(currentTime)
-                        .build());
-            }
+            tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .apiId(apiDO.getId())
+                .tagId(tagId)
+                .dateUpdated(currentTime)
+                .build()).collect(Collectors.toList());
             tagRelationMapper.deleteByApiId(apiDO.getId());
             tagRelationMapper.batchInsert(tags);
         }
@@ -110,17 +108,15 @@ public class ApiServiceImpl implements ApiService {
         final int insertRows = apiMapper.insertSelective(apiDO);
         if (CollectionUtils.isNotEmpty(apiDTO.getTagIds()) && insertRows > 0) {
             List<String> tagIds = apiDTO.getTagIds();
-            List<TagRelationDO> tags = Lists.newArrayList();
+            List<TagRelationDO> tags;
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            for (String tagId : tagIds) {
-                tags.add(TagRelationDO.builder()
-                        .id(UUIDUtils.getInstance().generateShortUuid())
-                        .apiId(apiDO.getId())
-                        .tagId(tagId)
-                        .dateCreated(currentTime)
-                        .dateUpdated(currentTime)
-                        .build());
-            }
+            tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .apiId(apiDO.getId())
+                .tagId(tagId)
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build()).collect(Collectors.toList());
             tagRelationMapper.batchInsert(tags);
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
@@ -151,9 +147,7 @@ public class ApiServiceImpl implements ApiService {
             List<TagVO> tagVOS = Lists.newArrayList();
             if (CollectionUtils.isNotEmpty(tagIds)) {
                 List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
-                for (TagDO tagDO : tagDOS) {
-                    tagVOS.add(TagVO.buildTagVO(tagDO));
-                }
+                tagVOS = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
             }
             return ApiVO.buildApiVO(item, tagVOS);
         }).orElse(null);
@@ -168,9 +162,7 @@ public class ApiServiceImpl implements ApiService {
                     List<TagVO> tagVOS = Lists.newArrayList();
                     if (CollectionUtils.isNotEmpty(tagIds)) {
                         List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
-                        for (TagDO tagDO : tagDOS) {
-                            tagVOS.add(TagVO.buildTagVO(tagDO));
-                        }
+                        tagVOS = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
                     }
                     return ApiVO.buildApiVO(item, tagVOS);
                 }).collect(Collectors.toList()));

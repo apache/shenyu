@@ -48,6 +48,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -151,11 +153,7 @@ public final class PluginServiceTest {
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         PluginQuery pluginQuery = new PluginQuery("sofa", 1, pageParameter);
-        List<PluginDO> pluginDOList = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            PluginDO pluginDO = buildPluginDO(String.valueOf(i));
-            pluginDOList.add(pluginDO);
-        }
+        List<PluginDO> pluginDOList = IntStream.range(0, 10).mapToObj(i -> buildPluginDO(String.valueOf(i))).collect(Collectors.toList());
         given(this.pluginMapper.selectByQuery(pluginQuery)).willReturn(pluginDOList);
         final CommonPager<PluginVO> pluginDOCommonPager = this.pluginService.listByPage(pluginQuery);
         assertEquals(pluginDOCommonPager.getDataList().size(), pluginDOList.size());
