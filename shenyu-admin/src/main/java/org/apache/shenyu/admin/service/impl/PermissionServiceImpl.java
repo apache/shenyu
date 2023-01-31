@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -255,7 +256,7 @@ public class PermissionServiceImpl implements PermissionService {
         
         Map<String, Integer> map = preList.stream()
                 .distinct()
-                .collect(Collectors.toMap(source -> source, source -> 1));
+                .collect(Collectors.toMap(Function.identity(), source -> 1));
         return lastList.stream()
                 .filter(item -> !map.containsKey(item))
                 .collect(Collectors.toList());

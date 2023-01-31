@@ -88,11 +88,7 @@ public class DocManagerImpl implements DocManager {
         }
         List<DocModule> docModules = docInfo.getDocModuleList();
         DOC_DEFINITION_MAP.put(docInfo.getTitle(), docInfo);
-        docModules.forEach(docModule -> {
-            docModule.getDocItems().forEach(docItem -> {
-                ITEM_DOC_MAP.put(docItem.getId(), docItem);
-            });
-        });
+        docModules.forEach(docModule -> docModule.getDocItems().forEach(docItem -> ITEM_DOC_MAP.put(docItem.getId(), docItem)));
         callback.accept(docInfo);
     }
 

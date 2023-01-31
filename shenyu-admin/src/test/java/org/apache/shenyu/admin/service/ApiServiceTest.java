@@ -43,6 +43,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -104,11 +106,7 @@ public final class ApiServiceTest {
         pageParameter.setTotalCount(10);
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         ApiQuery apiQuery = new ApiQuery(null, 0, "", pageParameter);
-        List<ApiDO> apiDOList = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            final ApiDO apiDO = buildApiDO("" + i);
-            apiDOList.add(apiDO);
-        }
+        List<ApiDO> apiDOList = IntStream.range(0, 10).mapToObj(i -> buildApiDO("" + i)).collect(Collectors.toList());
         given(this.apiMapper.selectByQuery(apiQuery)).willReturn(apiDOList);
         final CommonPager<ApiVO> apiDOCommonPager = this.apiService.listByPage(apiQuery);
         assertEquals(apiDOCommonPager.getDataList().size(), apiDOList.size());
