@@ -43,8 +43,7 @@ public class ShenyuAdminConfiguration {
      */
     @Bean
     public SelectorHandleConverterFactor selectorHandleConverterFactor(final List<SelectorHandleConverter> converterList) {
-        Map<String, SelectorHandleConverter> converterMap = converterList.stream().collect(Collectors.toMap(SelectorHandleConverter::pluginName,
-            Function.identity()));
+        Map<String, SelectorHandleConverter> converterMap = converterList.stream().collect(Collectors.toMap(SelectorHandleConverter::pluginName, Function.identity()));
         return new SelectorHandleConverterFactor(converterMap);
     }
 }
