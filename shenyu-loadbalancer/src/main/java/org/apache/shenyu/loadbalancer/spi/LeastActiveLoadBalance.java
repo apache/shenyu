@@ -17,10 +17,13 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
@@ -30,34 +33,26 @@ import org.apache.shenyu.spi.Join;
 @Join
 public class LeastActiveLoadBalance extends AbstractLoadBalancer {
 
-    private Map<String, Integer> countMap = new ConcurrentHashMap<>();
+    private final Map<String, Integer> countMap = new ConcurrentHashMap<>();
 
     @Override
     protected Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
-        Map<String, Upstream> domainList = new ConcurrentHashMap<>();
-        upstreamList.stream().forEach(upstream -> {
-            domainList.put(upstream.buildDomain(), upstream);
-        });
-        countMap.keySet().forEach(key -> {
-            if (!domainList.keySet().contains(key)) {
-                countMap.remove(key);
-            }
-        });
-        for (Upstream upstream:upstreamList) {
-            if (countMap.get(upstream.buildDomain()) == null) {
-                countMap.put(upstream.buildDomain(), 1);
-                return upstream;
-            } else {
-                countMap.put(upstream.buildDomain(), countMap.get(upstream.buildDomain()) + 1);
-            }
-        }
-        AtomicReference<String> leastDomainUrl = new AtomicReference<>(upstreamList.get(0).buildDomain());
-        countMap.keySet().forEach(key -> {
-            if (countMap.get(key) < countMap.get(leastDomainUrl)) {
-                leastDomainUrl.set(key);
-            }
-        });
-        return domainList.get(leastDomainUrl);
+        Map<String, Upstream> domainMap = upstreamList.stream()
+                .collect(Collectors.toConcurrentMap(Upstream::buildDomain, upstream -> upstream));
+
+        domainMap.keySet().stream()
+                .filter(key -> !countMap.containsKey(key))
+                .forEach(domain -> countMap.put(domain, 0));
+
+        final String domain = countMap.entrySet().stream()
+                // Ensure that the filtered domain is included in the domainMap.
+                .filter(entry -> domainMap.containsKey(entry.getKey()))
+                .min(Comparator.comparingInt(Map.Entry::getValue))
+                .map(Map.Entry::getKey)
+                .orElse(upstreamList.get(0).buildDomain());
+
+        countMap.computeIfPresent(domain, (key, actived) -> Optional.of(actived).orElse(0) + 1);
+        return domainMap.get(domain);
     }
     
 }
