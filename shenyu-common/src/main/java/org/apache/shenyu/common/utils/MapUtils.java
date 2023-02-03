@@ -38,7 +38,7 @@ public class MapUtils {
     }
 
     /**
-     * jdk8 performance bug, see: https://bugs.openjdk.java.net/browse/JDK-8161372
+     * This is jdk8 performance bug, see: https://bugs.openjdk.java.net/browse/JDK-8161372.
      *
      * @param map source map
      * @param key key
@@ -47,9 +47,11 @@ public class MapUtils {
      * @param <V> v
      * @return v
      */
-    public static <K, V> V computeIfAbsent(Map<K, V> map, K key, Function<? super K, ? extends V> mappingFunction) {
+    public static <K, V> V computeIfAbsent(final Map<K, V> map, final K key, final Function<? super K, ? extends V> mappingFunction) {
         V v = map.get(key);
-        if (v != null) return v;
+        if (v != null) {
+            return v;
+        }
         return map.computeIfAbsent(key, mappingFunction);
     }
 }
