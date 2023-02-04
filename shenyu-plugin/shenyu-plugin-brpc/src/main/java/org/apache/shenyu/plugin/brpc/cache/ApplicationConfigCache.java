@@ -62,7 +62,16 @@ public final class ApplicationConfigCache {
 
     private JDKProxyFactory proxyFactory;
 
-    private final LoadingCache<String, AsyncGenericService> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<String, ServiceConfig> serviceConfigCache = CacheBuilder.newBuilder()
+            .maximumSize(Constants.CACHE_MAX_COUNT)
+            .build(new CacheLoader<String, ServiceConfig>() {
+                @Override
+                public ServiceConfig load(@NonNull final String key) {
+                    return null;
+                }
+            });
+
+    private final LoadingCache<String, AsyncGenericService> serviceCache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
             .build(new CacheLoader<String, AsyncGenericService>() {
                 @Override
@@ -82,7 +91,7 @@ public final class ApplicationConfigCache {
      */
     public AsyncGenericService initService(final MetaData metaData) {
         try {
-            AsyncGenericService service = cache.get(metaData.getPath());
+            AsyncGenericService service = serviceCache.get(metaData.getPath());
             if (Objects.nonNull(service)) {
                 return service;
             }
@@ -106,6 +115,14 @@ public final class ApplicationConfigCache {
         }
     }
 
+    public ServiceConfig buildServiceConfig(final MetaData metaData) {
+        ServiceConfig serviceConfig = new ServiceConfig();
+        serviceConfig.setProtocol(BRPC_PROTOCOL);
+        serviceConfig.setServiceId(metaData.getServiceName());
+        serviceConfigCache.put(metaData.getPath(), serviceConfig);
+        return serviceConfig;
+    }
+
     /**
      * Build service.
      *
@@ -116,9 +133,7 @@ public final class ApplicationConfigCache {
         if (Objects.isNull(clientConfig)) {
             throw new UnsupportedOperationException("unsupport!!");
         }
-        ServiceConfig serviceConfig = new ServiceConfig();
-        serviceConfig.setProtocol(BRPC_PROTOCOL);
-        serviceConfig.setServiceId(metaData.getServiceName());
+        ServiceConfig serviceConfig = initServiceConfig(metaData);
 
         BrpcParamExtInfo brpcParamExtInfo =
                 GsonUtils.getInstance().fromJson(metaData.getRpcExt(), BrpcParamExtInfo.class);
@@ -140,7 +155,7 @@ public final class ApplicationConfigCache {
             }
         });
         AsyncGenericService service = proxyFactory.getProxy(AsyncGenericService.class, serviceConfig, clientConfig);
-        cache.put(metaData.getPath(), service);
+        serviceCache.put(metaData.getPath(), service);
         return service;
     }
 
@@ -152,10 +167,22 @@ public final class ApplicationConfigCache {
      */
     public AsyncGenericService get(final String path) {
         try {
-            return cache.get(path);
+            return serviceCache.get(path);
         } catch (ExecutionException e) {
             throw new ShenyuBrpcPluginException(e.getCause());
         }
+    }
+
+    public ServiceConfig initServiceConfig(final MetaData metaData) {
+        try {
+            ServiceConfig config = serviceConfigCache.get(metaData.getPath());
+            if (Objects.nonNull(config)) {
+                return config;
+            }
+        } catch (Exception e) {
+            LOG.warn("init brpc config ref ex:{}", e.getMessage());
+        }
+        return buildServiceConfig(metaData);
     }
 
     /**
@@ -164,14 +191,14 @@ public final class ApplicationConfigCache {
      * @param path the path name
      */
     public void invalidate(final String path) {
-        cache.invalidate(path);
+        serviceConfigCache.invalidate(path);
     }
 
     /**
      * Invalidate all.
      */
     public void invalidateAll() {
-        cache.invalidateAll();
+        serviceConfigCache.invalidateAll();
     }
 
     /**
