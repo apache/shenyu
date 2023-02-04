@@ -115,6 +115,12 @@ public final class ApplicationConfigCache {
         }
     }
 
+    /**
+     * Build config service.
+     *
+     * @param metaData the meta data
+     * @return service config
+     */
     public ServiceConfig buildServiceConfig(final MetaData metaData) {
         ServiceConfig serviceConfig = new ServiceConfig();
         serviceConfig.setProtocol(BRPC_PROTOCOL);
@@ -173,6 +179,12 @@ public final class ApplicationConfigCache {
         }
     }
 
+    /**
+     * init brpc service config.
+     *
+     * @param metaData the meta data
+     * @return service config
+     */
     public ServiceConfig initServiceConfig(final MetaData metaData) {
         try {
             ServiceConfig config = serviceConfigCache.get(metaData.getPath());
