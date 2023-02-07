@@ -160,7 +160,7 @@ public class OAuth2PluginConfiguration {
         shenyuClientRegistration.userInfoUri("/");
         shenyuClientRegistration.clientId("shenyu");
         shenyuClientRegistration.clientSecret("shenyu");
-        shenyuClientRegistration.redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}");
+        shenyuClientRegistration.redirectUri("/login/oauth2/code/shenyu");
         return new InMemoryReactiveClientRegistrationRepository(shenyuClientRegistration.build());
     }
 }
