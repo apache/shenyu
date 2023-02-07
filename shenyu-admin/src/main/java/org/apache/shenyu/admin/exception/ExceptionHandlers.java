@@ -67,19 +67,19 @@ public class ExceptionHandlers {
     
     @ExceptionHandler(DuplicateKeyException.class)
     protected ShenyuAdminResult handleDuplicateKeyException(final DuplicateKeyException exception) {
-        LOG.error("duplicate key exception ", exception);
+        LOG.error("duplicate key exception {}", exception.getMessage());
         return ShenyuAdminResult.error(ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
     }
     
     @ExceptionHandler(UnauthorizedException.class)
     protected ShenyuAdminResult handleUnauthorizedException(final UnauthorizedException exception) {
-        LOG.error("unauthorized exception", exception);
+        LOG.error("unauthorized exception {}", exception.getMessage());
         return ShenyuAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
     }
     
     @ExceptionHandler(NullPointerException.class)
     protected ShenyuAdminResult handleNullPointException(final NullPointerException exception) {
-        LOG.error("null pointer exception ", exception);
+        LOG.error("null pointer exception {}", exception.getMessage());
         return ShenyuAdminResult.error(CommonErrorCode.NOT_FOUND_EXCEPTION, ShenyuResultMessage.NOT_FOUND_EXCEPTION);
     }
     
@@ -127,7 +127,7 @@ public class ExceptionHandlers {
     
     @ExceptionHandler(ShenyuAdminException.class)
     protected ShenyuAdminResult handleShenyuException(final ShenyuAdminException exception) {
-        LOG.error("shenyu admin exception ", exception);
+        LOG.error("shenyu admin exception {}", exception.getMessage());
         return ShenyuAdminResult.error(CommonErrorCode.ERROR, exception.getMessage());
     }
 }

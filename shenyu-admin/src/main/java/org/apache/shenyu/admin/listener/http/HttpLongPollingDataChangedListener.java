@@ -106,7 +106,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 super.refreshLocalCache();
                 LOG.info("http sync strategy refresh config success.");
             } catch (Exception e) {
-                LOG.error("http sync strategy refresh config error!", e);
+                LOG.error("http sync strategy refresh config error! {}", e.getMessage());
             }
         }, syncInterval, syncInterval, TimeUnit.MILLISECONDS);
         LOG.info("http sync strategy refresh interval: {}ms", syncInterval);
@@ -232,7 +232,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().println(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, changedGroups)));
         } catch (IOException ex) {
-            LOG.error("Sending response failed.", ex);
+            LOG.error("Sending response failed. {}", ex.getMessage());
         }
     }
 
@@ -349,7 +349,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 }, timeoutTime, TimeUnit.MILLISECONDS);
                 clients.add(this);
             } catch (Exception ex) {
-                log.error("add long polling client error", ex);
+                log.error("add long polling client error {}", ex.getMessage());
             }
         }
 

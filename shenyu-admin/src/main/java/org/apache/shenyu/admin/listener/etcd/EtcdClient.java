@@ -62,7 +62,7 @@ public class EtcdClient {
             List<KeyValue> keyValues = client.getKVClient().get(ByteSequence.from(key, StandardCharsets.UTF_8), option).get().getKvs();
             return !keyValues.isEmpty();
         } catch (Exception e) {
-            LOG.error("check node exists error.", e);
+            LOG.error("check node exists error. {}", e.getMessage());
             throw new ShenyuException(e.getMessage());
         }
     }
@@ -76,7 +76,7 @@ public class EtcdClient {
         try {
             client.getKVClient().put(ByteSequence.from(key, StandardCharsets.UTF_8), ByteSequence.from(value, StandardCharsets.UTF_8)).get();
         } catch (Exception e) {
-            LOG.error("update value of node error.", e);
+            LOG.error("update value of node error. {}", e.getMessage());
             throw new ShenyuException(e.getMessage());
         }
     }

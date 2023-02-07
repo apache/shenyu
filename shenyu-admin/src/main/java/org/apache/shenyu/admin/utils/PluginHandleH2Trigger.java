@@ -45,7 +45,7 @@ public class PluginHandleH2Trigger implements Trigger {
                         + " VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)")) {
             BaseTrigger.sqlExecute(newRow, statement);
         } catch (ShenyuException e) {
-            LOG.error("PluginHandleH2Trigger Error:", e);
+            LOG.error("PluginHandleH2Trigger Error: {}", e.getMessage());
         }
     }
 

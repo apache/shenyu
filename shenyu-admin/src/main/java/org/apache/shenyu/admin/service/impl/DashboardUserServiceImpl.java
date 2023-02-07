@@ -318,7 +318,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         } catch (NameNotFoundException e) {
             return null;
         } catch (Exception e) {
-            LOG.error("ldap verify error.", e);
+            LOG.error("ldap verify error: {}", e.getMessage());
             return null;
         }
     }

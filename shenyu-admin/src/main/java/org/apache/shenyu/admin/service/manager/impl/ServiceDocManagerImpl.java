@@ -63,7 +63,8 @@ public class ServiceDocManagerImpl implements ServiceDocManager {
     public void pullApiDocument(final UpstreamInstance instance) {
         String clusterName = instance.getClusterName();
         if (!canPull(instance)) {
-            LOG.info("api document has been pulled and cannot be pulled againl，instance={}", JsonUtils.toJson(instance));
+            String log = JsonUtils.toJson(instance);
+            LOG.info("api document has been pulled and cannot be pulled againl，instance= {}", log);
             return;
         }
         String url = getSwaggerRequestUrl(instance);
@@ -77,7 +78,7 @@ public class ServiceDocManagerImpl implements ServiceDocManager {
             );
             CLUSTER_LASTSTARTUPTIME_MAP.put(clusterName, instance.getStartupTime());
         } catch (Exception e) {
-            LOG.error("add api document fail. url={} error={}", url, e);
+            LOG.error("add api document fail. url={} error={}", url, e.getMessage());
         }
     }
 

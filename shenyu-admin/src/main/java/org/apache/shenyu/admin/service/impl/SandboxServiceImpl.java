@@ -112,10 +112,10 @@ public class SandboxServiceImpl implements SandboxService {
             String reqJson = JsonUtils.toJson(proxyGatewayDTO.getHeaders());
             Map<String, String> reqMap = JsonUtils.jsonToMap(reqJson, String.class);
             String log = JsonUtils.toJson(reqMap);
-            LOG.info("Sandbox Request Headers. toMap={}", log);
+            LOG.info("Sandbox Request Headers. toMap= {}", log);
             reqHeaders.putAll(reqMap);
         } catch (Exception e) {
-            LOG.error("proxyGateway JsonUtils.toMap error={}", e.getMessage());
+            LOG.error("proxyGateway JsonUtils.toMap error= {}", e.getMessage());
         }
         return reqHeaders;
     }

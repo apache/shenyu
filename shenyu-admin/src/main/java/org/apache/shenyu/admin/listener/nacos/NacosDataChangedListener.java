@@ -52,7 +52,7 @@ public class NacosDataChangedListener extends AbstractListDataChangedListener {
                     GsonUtils.getInstance().toJson(data),
                     ConfigType.JSON.getType());
         } catch (NacosException e) {
-            LOG.error("Publish data to nacos error.", e);
+            LOG.error("Publish data to nacos error. {}", e.getMessage());
             throw new ShenyuException(e.getMessage());
         }
     }
@@ -63,7 +63,7 @@ public class NacosDataChangedListener extends AbstractListDataChangedListener {
             String config = configService.getConfig(dataId, NacosPathConstants.GROUP, NacosPathConstants.DEFAULT_TIME_OUT);
             return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
         } catch (NacosException e) {
-            LOG.error("Get data from nacos error.", e);
+            LOG.error("Get data from nacos error. {}", e.getMessage());
             throw new ShenyuException(e.getMessage());
         }
     }

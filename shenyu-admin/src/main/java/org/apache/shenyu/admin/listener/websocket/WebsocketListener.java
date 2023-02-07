@@ -51,7 +51,7 @@ public class WebsocketListener implements ServletRequestListener {
                 session.removeAttribute(CLIENT_IP_NAME);
             }
         } catch (Exception e) {
-            LOG.error("request destroyed error", e);
+            LOG.error("request destroyed error: {}", e.getMessage());
         }
     }
 
@@ -65,7 +65,7 @@ public class WebsocketListener implements ServletRequestListener {
                 session.setAttribute(CLIENT_IP_NAME, sre.getServletRequest().getRemoteAddr());
             }
         } catch (Exception e) {
-            LOG.error("request initialized error", e);
+            LOG.error("request initialized error: {}", e.getMessage());
         }
     }
 }

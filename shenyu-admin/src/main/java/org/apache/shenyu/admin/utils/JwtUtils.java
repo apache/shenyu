@@ -90,7 +90,7 @@ public final class JwtUtils {
                     .withExpiresAt(new Date(System.currentTimeMillis() + Optional.ofNullable(expireSeconds).orElse(TOKEN_EXPIRE_SECONDS)))
                     .sign(Algorithm.HMAC256(key));
         } catch (IllegalArgumentException | JWTCreationException e) {
-            LOG.error("JWTToken generate fail ", e);
+            LOG.error("JWTToken generate fail: {}", e.getMessage());
         }
         return StringUtils.EMPTY_STRING;
     }

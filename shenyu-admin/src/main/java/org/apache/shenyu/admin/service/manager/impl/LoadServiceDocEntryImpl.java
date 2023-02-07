@@ -217,7 +217,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                     allInstances.add(instance);
                 }
             } catch (Exception e) {
-                LOG.error("Error getting cluster instance list. contextPath={} error={}", contextPath, e);
+                LOG.error("Error getting cluster instance list. contextPath={} error={}", contextPath, e.getMessage());
                 return Collections.emptyList();
             }
         }

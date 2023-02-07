@@ -224,7 +224,7 @@ public class UpstreamCheckService {
             return submit(selectorId, commonUpstream);
         }
         ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
-        LOG.error("add zombie node, url={}", commonUpstream.getUpstreamUrl());
+        LOG.error("add zombie node, url= {}", commonUpstream.getUpstreamUrl());
         return true;
     }
 
@@ -250,7 +250,7 @@ public class UpstreamCheckService {
                 UPSTREAM_MAP.forEach(this::check);
             }
         } catch (Exception e) {
-            LOG.error("upstream scheduled check error -------- ", e);
+            LOG.error("upstream scheduled check error -------- {}", e.getMessage());
         }
     }
 

@@ -146,7 +146,7 @@ public class WebsocketCollector {
         try {
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {
-            LOG.error("websocket send result is exception: ", e);
+            LOG.error("websocket send result is exception: {}", e.getMessage());
         }
     }
     

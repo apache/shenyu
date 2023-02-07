@@ -73,7 +73,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
             Connection connection = DriverManager.getConnection(jdbcUrl, properties.getUsername(), properties.getPassword());
             this.execute(connection, dataBaseProperties.getInitScript());
         } catch (Exception e) {
-            LOG.error("Datasource init error.", e);
+            LOG.error("Datasource init error. {}", e.getMessage());
             throw new ShenyuException(e.getMessage());
         }
     }

@@ -71,7 +71,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
         try {
             subject.login(token);
         } catch (Exception e) {
-            LOG.error("token is warning. token : {}.", tokenValue, e);
+            LOG.error("token is warning. token : {}.", tokenValue, e.getMessage());
             unionFailResponse(servletResponse);
             return false;
         }

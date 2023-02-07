@@ -61,7 +61,7 @@ public class NacosDataChangedInit extends AbstractDataChangedInit {
                             NacosPathConstants.GROUP,
                             NacosPathConstants.DEFAULT_TIME_OUT));
         } catch (NacosException e) {
-            LOG.error("Get data from nacos error.", e);
+            LOG.error("Get data from nacos error. {}", e.getMessage());
             throw new ShenyuException(e.getMessage());
         }
     }

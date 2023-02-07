@@ -74,7 +74,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                 createOrUpdate(metaDataPath, data);
                 LOG.debug("[DataChangedListener] change metaDataPath {}", metaDataPath);
             } catch (UnsupportedEncodingException e) {
-                LOG.error("[DataChangedListener] url encode error.", e);
+                LOG.error("[DataChangedListener] url encode error. {}", e.getMessage());
                 throw new ShenyuException(e.getMessage());
             }
         }
