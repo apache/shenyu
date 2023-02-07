@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
 import org.apache.shenyu.common.constant.ConsulConstants;
 
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * The type Consul data changed init.
@@ -43,9 +44,7 @@ public class ConsulDataChangedInit extends AbstractDataChangedInit {
 
     @Override
     protected boolean notExist() {
-        return dataKeyNotExist(ConsulConstants.PLUGIN_DATA)
-                && dataKeyNotExist(ConsulConstants.AUTH_DATA)
-                && dataKeyNotExist(ConsulConstants.META_DATA);
+        return Stream.of(ConsulConstants.PLUGIN_DATA, ConsulConstants.AUTH_DATA, ConsulConstants.META_DATA).allMatch(this::dataKeyNotExist);
     }
 
     private boolean dataKeyNotExist(final String dataKey) {

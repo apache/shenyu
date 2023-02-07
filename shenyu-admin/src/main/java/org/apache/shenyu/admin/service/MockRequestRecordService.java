@@ -68,4 +68,11 @@ public interface MockRequestRecordService {
      */
     CommonPager<MockRequestRecordVO> listByPage(MockRequestRecordQuery mockRequestRecordQuery);
 
+    /**
+     * find mock request by api id.
+     *
+     * @param apiId the api id.
+     * @return {@linkplain MockRequestRecordVO}
+     */
+    MockRequestRecordVO queryByApiId(String apiId);
 }

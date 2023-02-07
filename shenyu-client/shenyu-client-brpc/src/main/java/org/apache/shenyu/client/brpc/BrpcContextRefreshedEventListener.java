@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.brpc;
 
-import com.baidu.cloud.starlight.springcloud.server.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.brpc.common.annotation.ShenyuBrpcClient;
@@ -71,7 +70,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     }
 
     @Override
-    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, Object> beans) {
         ShenyuBrpcClient shenyuBrpcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuBrpcClient.class);
         if (Objects.isNull(shenyuBrpcClient)) {
             return null;
@@ -131,14 +130,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
 
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, final ShenyuBrpcClient shenyuBrpcClient, final String superPath, final Class<?> clazz, final Method method) {
-        String serviceName = clazz.getAnnotation(RpcService.class).serviceId();
-        if (StringUtils.isEmpty(serviceName)) {
-            if (clazz.getInterfaces().length > 0) {
-                serviceName = clazz.getInterfaces()[0].getName();
-            } else {
-                serviceName = clazz.getName();
-            }
-        }
+        String serviceName = clazz.getInterfaces().length > 0 ? clazz.getInterfaces()[0].getName() : clazz.getName();
         String path = superPath;
         String desc = shenyuBrpcClient.desc();
         String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());

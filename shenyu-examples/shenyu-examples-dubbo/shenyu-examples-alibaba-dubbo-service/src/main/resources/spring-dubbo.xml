@@ -30,11 +30,11 @@
 
     <dubbo:protocol name="dubbo" port="20888"/>
 
-    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboTestService" ref="dubboTestService"/>
+    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboTestService" ref="dubboTestService" version="v0.0.1"/>
 
-    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboMultiParamService" ref="dubboMultiParamService"/>
+    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboMultiParamService" ref="dubboMultiParamService" version="v0.0.1"/>
 
-    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboClassTestService" ref="dubboClassTestService"/>
+    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboClassTestService" ref="dubboClassTestService" version="v0.0.1"/>
 
-    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboClassMultiParamService" ref="dubboClassMultiParamService"/>
+    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboClassMultiParamService" ref="dubboClassMultiParamService" version="v0.0.1"/>
 </beans>

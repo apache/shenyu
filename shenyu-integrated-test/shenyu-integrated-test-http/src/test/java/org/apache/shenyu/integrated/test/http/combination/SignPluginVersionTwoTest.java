@@ -27,6 +27,7 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
@@ -36,18 +37,24 @@ import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 
 import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static org.apache.shenyu.integratedtest.common.helper.HttpHelper.GATEWAY_END_POINT;
+import static org.apache.shenyu.plugin.sign.extractor.DefaultExtractor.VERSION_2;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public final class SignPluginTest extends AbstractPluginDataInit {
+public final class SignPluginVersionTwoTest extends AbstractPluginDataInit {
 
     private static final String APP_KEY = "108C27175A2C43C1BC29B1E483D57E3D";
 
@@ -61,8 +68,6 @@ public final class SignPluginTest extends AbstractPluginDataInit {
 
     private static final String POST_URL = "/http/test/payment?userName=Lee&userId=3";
 
-    private static final String VERSION = "1.0.0";
-
     @BeforeAll
     public static void setUp() throws IOException {
         initAuthData(APP_KEY, APP_SECRET, buildAuthParamDataList(), buildAuthPathDataList());
@@ -74,7 +79,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
     @Test
     public void testSign() throws Exception {
         String now = String.valueOf(System.currentTimeMillis());
-        Map<String, Object> normalHeaders = buildHeadersMap(now, GET_PATH, APP_KEY, APP_SECRET, VERSION, null, null);
+        Map<String, Object> normalHeaders = buildHeadersMap(GATEWAY_END_POINT + GET_URL, now, APP_KEY, APP_SECRET, null);
         UserDTO result = HttpHelper.INSTANCE
                 .getFromGateway(GET_URL, normalHeaders, UserDTO.class);
         assertEquals("Lee", result.getUserName());
@@ -83,27 +88,16 @@ public final class SignPluginTest extends AbstractPluginDataInit {
     @Test
     public void testSignWithWrongPath() throws Exception {
         String now = String.valueOf(System.currentTimeMillis());
-        Map<String, Object> errorPathHeaders = buildHeadersMap(now, "wrong_path", APP_KEY, APP_SECRET, VERSION, null, null);
+        Map<String, Object> errorPathHeaders = buildHeadersMap(GATEWAY_END_POINT + "/wrong_path", now, APP_KEY, APP_SECRET, null);
         AdminResponse<Object> result = HttpHelper.INSTANCE
                 .getFromGateway(GET_URL, errorPathHeaders, AdminResponse.class);
         assertEquals("signature value is error!", result.getMessage());
     }
 
     @Test
-    public void testSignWithWrongVersion() throws Exception {
-        String now = String.valueOf(System.currentTimeMillis());
-        Map<String, Object> headers = buildHeadersMap(now, GET_PATH, APP_KEY, APP_SECRET, "1.0.2", null, null);
-
-        AdminResponse<Object> result = HttpHelper.INSTANCE
-                .getFromGateway(GET_URL, headers, AdminResponse.class);
-
-        assertEquals("signature value is error!", result.getMessage());
-    }
-
-    @Test
     public void testSignWithWrongKey() throws Exception {
         String now = String.valueOf(System.currentTimeMillis());
-        Map<String, Object> headers = buildHeadersMap(now, GET_PATH, "ERRORKEY", APP_SECRET, VERSION, null, null);
+        Map<String, Object> headers = buildHeadersMap(GATEWAY_END_POINT + GET_URL, now, "ERRORKEY", APP_SECRET, null);
 
         AdminResponse<Object> result = HttpHelper.INSTANCE
                 .getFromGateway(GET_URL, headers, AdminResponse.class);
@@ -115,7 +109,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
     public void testSignWithExpiredSignature() throws Exception {
 
         String errorTime = String.valueOf(System.currentTimeMillis() - 360000);
-        Map<String, Object> headers = buildHeadersMap(errorTime, GET_PATH, APP_KEY, APP_SECRET, VERSION, null, null);
+        Map<String, Object> headers = buildHeadersMap(GATEWAY_END_POINT + GET_URL, errorTime, APP_KEY, APP_SECRET, null);
 
         AdminResponse<Object> result = HttpHelper.INSTANCE
                 .getFromGateway(GET_URL, headers, AdminResponse.class);
@@ -130,7 +124,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         Map<String, String> requestBody = Maps.newHashMapWithExpectedSize(2);
         requestBody.put("userName", "Lee");
         requestBody.put("userId", "3");
-        Map<String, Object> headers = buildHeadersMap(now, POST_PATH, APP_KEY, APP_SECRET, VERSION, requestBody, requestBody);
+        Map<String, Object> headers = buildHeadersMap(GATEWAY_END_POINT + POST_URL, now, APP_KEY, APP_SECRET, JsonUtils.toJson(requestBody));
 
         UserDTO result = HttpHelper.INSTANCE
                 .postGateway(POST_URL, headers, requestBody, UserDTO.class);
@@ -147,7 +141,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         requestBody.put("userName", "Lee");
         requestBody.put("userId", "3");
 
-        Map<String, Object> headers = buildHeadersMap(now, POST_PATH, APP_KEY, APP_SECRET, VERSION, ImmutableMap.of("userId", "1234"), requestBody);
+        Map<String, Object> headers = buildHeadersMap(GATEWAY_END_POINT + POST_URL, now, APP_KEY, APP_SECRET, JsonUtils.toJson(ImmutableMap.of("userId", "1234")));
         AdminResponse<Object> result = HttpHelper.INSTANCE
                 .postGateway(POST_URL, headers, requestBody, AdminResponse.class);
 
@@ -157,8 +151,11 @@ public final class SignPluginTest extends AbstractPluginDataInit {
     @Test
     public void testSignWithIncompleteParam() throws Exception {
 
+        Map<String, Object> headers = buildHeadersMap(GATEWAY_END_POINT + POST_URL,
+                null, APP_KEY, APP_SECRET, null);
+
         AdminResponse<Object> result = HttpHelper.INSTANCE
-                .getFromGateway(GET_URL, AdminResponse.class);
+                .getFromGateway(GET_URL, headers, AdminResponse.class);
 
         assertEquals("sign parameters are incomplete!", result.getMessage());
     }
@@ -172,7 +169,7 @@ public final class SignPluginTest extends AbstractPluginDataInit {
                 buildSelectorConditionList(notConfiguredPath),
                 buildRuleLocalDataList(false, notConfiguredPath));
         String now = String.valueOf(System.currentTimeMillis());
-        Map<String, Object> headers = buildHeadersMap(now, notConfiguredPath, APP_KEY, APP_SECRET, "1.0.0", null, null);
+        Map<String, Object> headers = buildHeadersMap(GATEWAY_END_POINT + notConfiguredPath, now, APP_KEY, APP_SECRET, null);
 
         AdminResponse<Object> result = HttpHelper.INSTANCE
                 .getFromGateway(notConfiguredPath, headers, AdminResponse.class);
@@ -181,16 +178,13 @@ public final class SignPluginTest extends AbstractPluginDataInit {
                 result.getMessage());
     }
 
-    private Map<String, Object> buildHeadersMap(final String timestamp, final String path, final String appKey,
-                                                final String appSecret, final String version, final Map<String, String> queryParams, final Map<String, String> body) {
-
-        String sign = buildSign(appSecret, version, timestamp, path, queryParams, body);
-        Map<String, Object> headers = Maps.newHashMapWithExpectedSize(4);
-        headers.put("timestamp", timestamp);
-        headers.put("appKey", appKey);
-        headers.put("sign", sign);
-        headers.put("VERSION", version);
-        return headers;
+    @Test
+    private Map<String, Object> buildHeadersMap(final String uri, final String timestamp, final String appKey,
+                                                final String appSecret, final String requestBody) {
+        String parameters = buildParameters(timestamp, appKey);
+        String sign = buildSign(appSecret, parameters, URI.create(uri), requestBody);
+        String token = parameters + "." + sign;
+        return ImmutableMap.of(HttpHeaders.AUTHORIZATION, token, Constants.VERSION, VERSION_2);
     }
 
     private static List<AuthParamData> buildAuthParamDataList() {
@@ -235,22 +229,28 @@ public final class SignPluginTest extends AbstractPluginDataInit {
         cleanAuthData(APP_KEY);
     }
 
-    private String buildSign(final String signKey, final String version, final String timeStamp, final String path, final Map<String, String> body, final Map<String, String> queryParams) {
+    private String buildParameters(final String timestamp, final String appKey) {
+        Map<String, String> map = new HashMap<>();
+        if (timestamp != null) {
+            map.put(Constants.TIMESTAMP, timestamp);
+        }
+        if (appKey != null) {
+            map.put(Constants.APP_KEY, appKey);
+        }
+        map.put("alg", "MD5");
+        return Base64.getEncoder().encodeToString(JsonUtils.toJson(map).getBytes(StandardCharsets.UTF_8));
+    }
 
-        final String jsonSign = Optional.ofNullable(body).map(e -> e.keySet().stream()
-                .sorted(Comparator.naturalOrder())
-                .map(key -> String.join("", key, body.get(key)))
-                .collect(Collectors.joining()).trim())
-                .orElse("");
+    private String buildSign(final String signKey, final String parameters, final URI url, final String body) {
 
-        final String querySign = Optional.ofNullable(queryParams).map(e -> e.keySet().stream()
-                .sorted(Comparator.naturalOrder())
-                .map(key -> String.join("", key, queryParams.get(key)))
-                .collect(Collectors.joining()).trim())
-                .orElse("");
+        String data = parameters + getRelativeURL(url) + Optional.ofNullable(body).orElse("");
+        return SignUtils.sign(SignUtils.SIGN_MD5, signKey, data).toUpperCase();
+    }
 
-        final String extSignKey = String.join("", Constants.TIMESTAMP, timeStamp, Constants.PATH, path, Constants.VERSION, version, signKey);
-        final String data = String.join("", jsonSign, querySign);
-        return SignUtils.sign(SignUtils.SIGN_MD5, extSignKey, data).toUpperCase();
+    private String getRelativeURL(final URI uri) {
+        if (Objects.isNull(uri.getQuery())) {
+            return uri.getPath();
+        }
+        return uri.getPath() + "?" + uri.getQuery();
     }
 }

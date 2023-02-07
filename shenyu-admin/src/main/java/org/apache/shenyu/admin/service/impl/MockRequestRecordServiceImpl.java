@@ -17,9 +17,6 @@
 
 package org.apache.shenyu.admin.service.impl;
 
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
 import org.apache.shenyu.admin.model.dto.MockRequestRecordDTO;
@@ -29,7 +26,12 @@ import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
 import org.apache.shenyu.admin.model.vo.MockRequestRecordVO;
 import org.apache.shenyu.admin.service.MockRequestRecordService;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.stereotype.Service;
+
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link MockRequestRecordService}.
@@ -92,6 +94,7 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
                 .apiId(mockRequestRecordDTO.getApiId())
                 .header(mockRequestRecordDTO.getHeader())
                 .host(mockRequestRecordDTO.getHost())
+                .port(mockRequestRecordDTO.getPort())
                 .query(mockRequestRecordDTO.getQuery())
                 .url(mockRequestRecordDTO.getUrl())
                 .pathVariable(mockRequestRecordDTO.getPathVariable())
@@ -107,11 +110,12 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         MockRequestRecordDO mockRequestRecordDO = MockRequestRecordDO.builder()
-                .id(mockRequestRecordDTO.getId())
+                .id(UUIDUtils.getInstance().generateShortUuid())
                 .apiId(mockRequestRecordDTO.getApiId())
                 .header(mockRequestRecordDTO.getHeader())
                 .host(mockRequestRecordDTO.getHost())
                 .query(mockRequestRecordDTO.getQuery())
+                .port(mockRequestRecordDTO.getPort())
                 .url(mockRequestRecordDTO.getUrl())
                 .pathVariable(mockRequestRecordDTO.getPathVariable())
                 .body(mockRequestRecordDTO.getBody())
@@ -119,5 +123,15 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
                 .dateCreated(currentTime)
                 .build();
         return mockRequestRecordMapper.insert(mockRequestRecordDO);
+    }
+
+    @Override
+    public MockRequestRecordVO queryByApiId(final String apiId) {
+        MockRequestRecordQuery mockRequestRecordQuery = new MockRequestRecordQuery();
+        mockRequestRecordQuery.setApiId(apiId);
+        List<MockRequestRecordDO> mockRequestRecordDOList = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
+        return mockRequestRecordDOList.isEmpty()
+                ? new MockRequestRecordVO()
+                : MockRequestRecordVO.buildMockRequestRecordVO(mockRequestRecordDOList.get(0));
     }
 }
