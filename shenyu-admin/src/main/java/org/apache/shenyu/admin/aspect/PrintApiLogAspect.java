@@ -72,14 +72,16 @@ public class PrintApiLogAspect {
     
     private void postLog(final ProceedingJoinPoint point, final long start) {
         if (Boolean.TRUE.equals(properties.getEnablePrintApiLog())) {
-            LOG.info("{} exec: method [{}.{}] over, time cost: {}", SessionUtil.visitorName(),
+            String visitorName = SessionUtil.visitorName();
+            LOG.info("{} exec: method [{}.{}] over, time cost: {}", visitorName,
                     point.getTarget().getClass().getSimpleName(), point.getSignature().getName(), System.currentTimeMillis() - start);
         }
     }
     
     private void preLog(final ProceedingJoinPoint point) {
         if (Boolean.TRUE.equals(properties.getEnablePrintApiLog())) {
-            LOG.info("{} exec: method [{}.{}]", SessionUtil.visitorName(), point.getTarget().getClass().getSimpleName(), point.getSignature().getName());
+            String visitorName = SessionUtil.visitorName();
+            LOG.info("{} exec: method [{}.{}]", visitorName, point.getTarget().getClass().getSimpleName(), point.getSignature().getName());
         }
     }
     

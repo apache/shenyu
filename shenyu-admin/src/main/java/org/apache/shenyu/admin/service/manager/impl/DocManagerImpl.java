@@ -104,7 +104,7 @@ public class DocManagerImpl implements DocManager {
             docInfo.setClusterName(clusterName);
             return docInfo;
         } catch (Exception e) {
-            LOG.error("getDocInfo error={}", e);
+            LOG.error("getDocInfo error= ", e);
             return null;
         }
     }

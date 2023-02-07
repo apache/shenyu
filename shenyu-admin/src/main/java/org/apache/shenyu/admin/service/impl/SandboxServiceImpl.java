@@ -111,7 +111,8 @@ public class SandboxServiceImpl implements SandboxService {
         try {
             String reqJson = JsonUtils.toJson(proxyGatewayDTO.getHeaders());
             Map<String, String> reqMap = JsonUtils.jsonToMap(reqJson, String.class);
-            LOG.info("Sandbox Request Headers. toMap={}", JsonUtils.toJson(reqMap));
+            String log = JsonUtils.toJson(reqMap);
+            LOG.info("Sandbox Request Headers. toMap={}", log);
             reqHeaders.putAll(reqMap);
         } catch (Exception e) {
             LOG.error("proxyGateway JsonUtils.toMap error={}", e.getMessage());
@@ -123,7 +124,8 @@ public class SandboxServiceImpl implements SandboxService {
         Map<String, Object> reqParams = new HashMap<>();
         try {
             Map<String, Object> reqMap = JsonUtils.toMap(proxyGatewayDTO.getBizParam());
-            LOG.info("sandbox Request Params. toMap={}", JsonUtils.toJson(reqMap));
+            String log = JsonUtils.toJson(reqMap);
+            LOG.info("sandbox Request Params. toMap={}", log);
             reqParams.putAll(reqMap);
         } catch (Exception e) {
             LOG.error("proxyGateway JsonUtils.toMap error={}", e.getMessage());
