@@ -75,7 +75,7 @@ public class HttpTestController {
      * @return the user dto
      */
     @PostMapping("/payment")
-    @ApiDoc(desc = "payment", tags = {"test1", "test2"})
+    @ApiDoc(desc = "payment")
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
