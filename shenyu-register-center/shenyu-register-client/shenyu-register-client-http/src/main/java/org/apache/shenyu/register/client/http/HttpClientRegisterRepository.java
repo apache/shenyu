@@ -26,6 +26,7 @@ import org.apache.shenyu.register.client.api.FailbackRegistryRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.apache.shenyu.register.client.http.utils.RuntimeUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
@@ -34,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -45,6 +47,8 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientRegisterRepository.class);
 
     private static URIRegisterDTO uriRegisterDTO;
+
+    private static ApiDocRegisterDTO apiDocRegisterDTO;
 
     private String username;
     
@@ -90,6 +94,17 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         doRegister(registerDTO, Constants.URI_PATH, Constants.URI);
         uriRegisterDTO = registerDTO;
     }
+
+    /**
+     * doPersistApiDoc.
+     *
+     * @param registerDTO registerDTO
+     */
+    @Override
+    protected void doPersistApiDoc(final ApiDocRegisterDTO registerDTO) {
+        doRegister(registerDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
+        apiDocRegisterDTO = registerDTO;
+    }
     
     @Override
     public void doPersistInterface(final MetaDataRegisterDTO metadata) {
@@ -98,9 +113,13 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
 
     @Override
     public void close() {
-        if (uriRegisterDTO != null) {
+        if (Objects.nonNull(uriRegisterDTO)) {
             uriRegisterDTO.setEventType(EventType.DELETED);
             doRegister(uriRegisterDTO, Constants.URI_PATH, Constants.URI);
+        }
+        if (Objects.nonNull(apiDocRegisterDTO)) {
+            apiDocRegisterDTO.setEventType(EventType.OFFLINE);
+            doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
         }
     }
 

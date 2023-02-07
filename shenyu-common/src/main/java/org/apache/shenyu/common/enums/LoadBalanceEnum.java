@@ -35,7 +35,12 @@ public enum LoadBalanceEnum {
     /**
      * Round robin load balance enum.
      */
-    ROUND_ROBIN(3, "roundRobin", true);
+    ROUND_ROBIN(3, "roundRobin", true),
+
+    /**
+     * least activity load balance enum.
+     */
+    LEAST_ACTIVITY(4, "leastActive", true);
 
     private final int code;
 

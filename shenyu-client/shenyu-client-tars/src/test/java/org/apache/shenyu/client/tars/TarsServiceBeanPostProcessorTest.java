@@ -88,7 +88,7 @@ public final class TarsServiceBeanPostProcessorTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         TarsServiceBeanEventListener tarsServiceBeanEventListener = buildTarsServiceBeanEventListener(true);
         tarsServiceBeanEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
@@ -97,7 +97,7 @@ public final class TarsServiceBeanPostProcessorTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         TarsServiceBeanEventListener tarsServiceBeanEventListener = buildTarsServiceBeanEventListener(false);
         tarsServiceBeanEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 

@@ -21,9 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -32,12 +34,15 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.javatuples.Sextet;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
@@ -51,7 +56,7 @@ import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
  * The Apache Dubbo ServiceBean Listener.
  */
 public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEventListener<ServiceBean, ShenyuDubboClient> {
-    
+
     /**
      * Instantiates a new context refreshed event listener.
      *
@@ -62,7 +67,29 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                                           final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
     }
-    
+
+    @Override
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, ServiceBean> beans) {
+        ShenyuDubboClient shenyuDubboClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuDubboClient.class);
+        if (Objects.isNull(shenyuDubboClient)) {
+            return null;
+        }
+        String produce = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+        String consume = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+        String[] values = new String[]{shenyuDubboClient.value()};
+        ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
+        String defaultVersion = "v0.01";
+        Class methodClass = method.getDeclaringClass();
+        Class[] interfaces = methodClass.getInterfaces();
+        for (Class anInterface : interfaces) {
+            if (beans.containsKey(anInterface.getName())) {
+                ServiceBean serviceBean = beans.get(anInterface.getName());
+                defaultVersion = Optional.ofNullable(serviceBean.getVersion()).orElse(defaultVersion);
+            }
+        }
+        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.DUBBO, defaultVersion);
+    }
+
     @Override
     protected Map<String, ServiceBean> getBeans(final ApplicationContext context) {
         return context.getBeansOfType(ServiceBean.class);
@@ -174,6 +201,7 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
     
     private String buildRpcExt(final ServiceBean<?> serviceBean) {
         DubboRpcExt build = DubboRpcExt.builder()
+                .protocol(StringUtils.isNotEmpty(serviceBean.getProtocol().getName()) ? serviceBean.getProtocol().getName() : "")
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
                 .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : CommonConstants.DEFAULT_LOADBALANCE)

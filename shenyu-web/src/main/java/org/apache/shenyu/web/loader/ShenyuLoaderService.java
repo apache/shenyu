@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  */
 public class ShenyuLoaderService {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuLoaderService.class);
     
     private final ShenyuWebHandler webHandler;
     
