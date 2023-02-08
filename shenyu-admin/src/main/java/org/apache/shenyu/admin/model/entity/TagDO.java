@@ -168,6 +168,7 @@ public final class TagDO extends BaseDO {
                 tagDO.setDateCreated(currentTime);
             } else {
                 tagDO.setId(item.getId());
+                tagDO.setDateCreated(currentTime);
             }
             return tagDO;
         }).orElse(null);

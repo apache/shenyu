@@ -20,6 +20,8 @@ package org.apache.shenyu.admin.listener.etcd;
 import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 
+import java.util.stream.Stream;
+
 /**
  * The type Etcd data changed init.
  *
@@ -40,8 +42,6 @@ public class EtcdDataChangedInit extends AbstractDataChangedInit {
 
     @Override
     protected boolean notExist() {
-        return !etcdClient.exists(DefaultPathConstants.PLUGIN_PARENT)
-                && !etcdClient.exists(DefaultPathConstants.APP_AUTH_PARENT)
-                && !etcdClient.exists(DefaultPathConstants.META_DATA);
+        return Stream.of(DefaultPathConstants.PLUGIN_PARENT, DefaultPathConstants.APP_AUTH_PARENT, DefaultPathConstants.META_DATA).noneMatch(etcdClient::exists);
     }
 }

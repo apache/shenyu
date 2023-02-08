@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -91,7 +92,7 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
             Map<DataType, ExecutorTypeSubscriber<DataTypeParent>> maps = getSubscribers()
                     .stream()
                     .map(e -> (ExecutorTypeSubscriber<DataTypeParent>) e)
-                    .collect(Collectors.toMap(ExecutorTypeSubscriber::getType, e -> e));
+                    .collect(Collectors.toMap(ExecutorTypeSubscriber::getType, Function.identity()));
             return new RegisterServerConsumerExecutor(maps);
         }
     
