@@ -46,7 +46,7 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     /**
      * Instantiates a new Fallback shenyu client register service.
      */
-    public FallbackShenyuClientRegisterService() {
+    protected FallbackShenyuClientRegisterService() {
         timer = WheelTimerFactory.getSharedTimer();
     }
 

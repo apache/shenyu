@@ -21,7 +21,7 @@ shenyu:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:~/shenyu;DB_CLOSE_DELAY=-1;MODE=MySQL;
+    url: jdbc:h2:mem:${HOME:${HOMEDRIVE}${HOMEPATH}}/shenyu;DB_CLOSE_DELAY=-1;MODE=MySQL;
     username: sa
     password: sa
     driver-class-name: org.h2.Driver
