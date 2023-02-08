@@ -140,7 +140,7 @@ public class SandboxServiceImpl implements SandboxService {
 
     private List<HttpUtils.UploadFile> uploadFiles(final HttpServletRequest request) {
         Collection<MultipartFile> uploadFiles = UploadUtils.getUploadFiles(request);
-        List<HttpUtils.UploadFile> files = uploadFiles.stream()
+        return uploadFiles.stream()
             .map(multipartFile -> {
                 try {
                     return new HttpUtils.UploadFile(multipartFile.getName(), multipartFile.getOriginalFilename(), multipartFile.getBytes());
@@ -151,7 +151,6 @@ public class SandboxServiceImpl implements SandboxService {
             })
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-        return files;
     }
 
 }
