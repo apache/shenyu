@@ -30,7 +30,6 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
-import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
 import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
 import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
 import org.slf4j.Logger;
@@ -41,7 +40,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Cryptor request plugin.
@@ -102,14 +100,6 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
         if (Objects.isNull(parseBody)) {
             throw new ResponsiveException(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(), ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg() + "[fieldNames]", exchange);
         }
-
-        String modifiedBody = CryptorStrategyFactory.match(ruleHandle, parseBody);
-        if (Objects.isNull(modifiedBody)) {
-            throw Optional.ofNullable(ruleHandle.getWay())
-                    .filter(CryptorStrategyFactory.DECRYPT::equals)
-                    .map(data -> new ResponsiveException(ShenyuResultEnum.DECRYPTION_ERROR, exchange))
-                    .orElse(new ResponsiveException(ShenyuResultEnum.ENCRYPTION_ERROR, exchange));
-        }
-        return CryptorUtil.replace(originalBody, modifiedBody, ruleHandle.getWay(), ruleHandle.getFieldNames());
+        return CryptorUtil.crypt(ruleHandle, parseBody, originalBody, exchange);
     }
 }
