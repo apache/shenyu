@@ -794,6 +794,8 @@ public class ShenyuConfig {
     public static class UpstreamCheck {
     
         private boolean enabled;
+
+        private Integer poolSize = 10;
         
         private Integer timeout = 3000;
         
@@ -824,7 +826,25 @@ public class ShenyuConfig {
         public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
-    
+
+        /**
+         * get checkThreadPoolSize.
+         *
+         * @return checkThreadPoolSize
+         */
+        public Integer getPoolSize() {
+            return poolSize;
+        }
+
+        /**
+         * set checkThreadPoolSize.
+         *
+         * @param poolSize checkThreadPoolSize
+         */
+        public void setPoolSize(final Integer poolSize) {
+            this.poolSize = poolSize;
+        }
+
         /**
          * Gets timeout.
          *

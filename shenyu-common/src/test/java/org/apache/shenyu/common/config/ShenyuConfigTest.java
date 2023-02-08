@@ -80,6 +80,7 @@ public class ShenyuConfigTest {
     public void testUpstreamCheck() {
         ShenyuConfig.UpstreamCheck upstreamCheck = config.getUpstreamCheck();
         upstreamCheck.setEnabled(false);
+        upstreamCheck.setPoolSize(10);
         upstreamCheck.setHealthyThreshold(4);
         upstreamCheck.setTimeout(10);
         upstreamCheck.setInterval(5);
@@ -87,7 +88,7 @@ public class ShenyuConfigTest {
         upstreamCheck.setPrintEnabled(false);
         upstreamCheck.setPrintInterval(5);
 
-        notEmptyElements(upstreamCheck.getEnabled(), upstreamCheck.getHealthyThreshold(), upstreamCheck.getTimeout(),
+        notEmptyElements(upstreamCheck.getEnabled(), upstreamCheck.getPoolSize(), upstreamCheck.getHealthyThreshold(), upstreamCheck.getTimeout(),
                 upstreamCheck.getInterval(), upstreamCheck.getUnhealthyThreshold(), upstreamCheck.getPrintInterval(), upstreamCheck.getPrintEnabled());
     }
 
