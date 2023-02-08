@@ -96,8 +96,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             return;
         }
         final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-        String log = JsonUtils.toJson(currentServices);
-        LOG.info("load api document  serviceList={}", log);
+        LOG.info("load api document  serviceList={}", JsonUtils.toJson(currentServices));
         serviceDocManager.pullApiDocument(currentServices);
     }
 
@@ -113,8 +112,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                 return;
             }
             final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-            String log = JsonUtils.toJson(currentServices);
-            LOG.info("loadDocOnSelectorChanged serviceList={}", log);
+            LOG.info("loadDocOnSelectorChanged serviceList={}", JsonUtils.toJson(currentServices));
             serviceDocManager.pullApiDocument(currentServices);
         }
     }
