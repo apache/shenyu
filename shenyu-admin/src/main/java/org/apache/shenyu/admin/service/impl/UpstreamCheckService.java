@@ -117,9 +117,8 @@ public class UpstreamCheckService {
     private ScheduledFuture<?> scheduledFuture;
 
     private ScheduledThreadPoolExecutor invokeExecutor;
-    private final List<CompletableFuture<UpstreamWithSelectorId>> futures = Lists.newArrayList();
-    private final List<CompletableFuture<UpstreamWithSelectorId>> zombieFutures = Lists.newArrayList();
 
+    private final List<CompletableFuture<UpstreamWithSelectorId>> futures = Lists.newArrayList();
 
     /**
      * Instantiates a new Upstream check service.
@@ -217,7 +216,7 @@ public class UpstreamCheckService {
         executor.execute(() -> updateHandler(selectorId, upstreams, upstreams));
         return true;
     }
-    
+
     /**
      * If the health check passes, the service will be added to
      * the normal service list; if the health check fails, the service
@@ -265,19 +264,14 @@ public class UpstreamCheckService {
         }
     }
 
-    private void doCheck () {
+    private void doCheck() {
         // check zombie
         ZOMBIE_SET.parallelStream().forEach(this::checkZombie);
         // check up
         UPSTREAM_MAP.forEach(this::check);
     }
 
-    /**
-     * wait check finish
-     * @throws InterruptedException
-     * @throws ExecutionException
-     */
-    private void waitFinish () throws InterruptedException, ExecutionException {
+    private void waitFinish() throws InterruptedException, ExecutionException {
         for (final CompletableFuture<UpstreamWithSelectorId> future : futures) {
             final UpstreamWithSelectorId upstreamWithSelectorId = future.get();
             final String selectorId = upstreamWithSelectorId.getSelectorId();
@@ -288,12 +282,12 @@ public class UpstreamCheckService {
             List<CommonUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList()));
             final List<CommonUpstream> successList = Lists.newArrayListWithCapacity(old.size());
             if (status) {
-                if (!successList.contains(upstream)){
+                if (!successList.contains(upstream)) {
                     upstream.setTimestamp(System.currentTimeMillis());
                     successList.add(upstream);
                 }
                 ZOMBIE_SET.remove(ZombieUpstream.transform(upstream, oriZombieCheckTimes, selectorId));
-            }else {
+            } else {
                 successList.remove(upstream);
                 if (oriZombieCheckTimes > 0) {
                     ZOMBIE_SET.add(ZombieUpstream.transform(upstream, oriZombieCheckTimes, selectorId));
@@ -302,10 +296,8 @@ public class UpstreamCheckService {
             this.updateHandler(selectorId, old, successList);
         }
 
-        // 清理 future
         futures.clear();
     }
-
 
     private void checkZombie(final ZombieUpstream zombieUpstream) {
         CompletableFuture<UpstreamWithSelectorId> future = CompletableFuture.supplyAsync(() -> checkZombie0(zombieUpstream), invokeExecutor);
@@ -336,9 +328,9 @@ public class UpstreamCheckService {
             futures.add(future);
         }
     }
+
     private UpstreamWithSelectorId check0(final String selectorId, final CommonUpstream commonUpstream) {
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
-        // 健康的
         if (pass) {
             if (!commonUpstream.isStatus()) {
                 commonUpstream.setTimestamp(System.currentTimeMillis());
@@ -346,7 +338,6 @@ public class UpstreamCheckService {
                 LOG.info("UpstreamCacheManager check success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
             }
         } else {
-            // 不健康的
             commonUpstream.setStatus(false);
             LOG.error("check the url={} is fail ", commonUpstream.getUpstreamUrl());
         }
@@ -419,7 +410,7 @@ public class UpstreamCheckService {
                     }
                 });
     }
-    
+
     /**
      * listen {@link SelectorCreatedEvent} add data permission.
      *
@@ -433,7 +424,7 @@ public class UpstreamCheckService {
             replace(event.getSelector().getId(), CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
         }
     }
-    
+
     /**
      * listen {@link SelectorCreatedEvent} add data permission.
      *

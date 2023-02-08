@@ -433,12 +433,12 @@ public interface Constants {
     String DEFAULT_CHECK_VALUE = "false";
 
     /**
-     * zombie check threads
+     * zombie check threads.
      */
     String ZOMBIE_CHECK_THREADS = "zombieCheckThreads";
 
     /**
-     * default zombie check threads value
+     * default zombie check threads value.
      */
     String ZOMBIE_CHECK_THREADS_VALUE = "10";
 
