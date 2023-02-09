@@ -38,7 +38,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -73,7 +72,7 @@ public final class SandboxControllerTest {
         AppAuthDO appAuthDO = buildAppAuthDO();
         ProxyGatewayDTO proxyGatewayDTO = buildProxyGatewayDTO();
         when(this.appAuthService.findByAppKey(any())).thenReturn(appAuthDO);
-        MockHttpServletResponse response = mockMvc.perform((RequestBuilder) MockMvcRequestBuilders.post("/sandbox/proxyGateway")
+        MockHttpServletResponse response = mockMvc.perform(MockMvcRequestBuilders.post("/sandbox/proxyGateway")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(proxyGatewayDTO)))
                 .andReturn().getResponse();

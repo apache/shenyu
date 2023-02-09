@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -128,7 +129,7 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(resultList.size(), 3);
-        assertEquals(resultList.stream().anyMatch(CommonUpstream::isStatus), true);
+        assertTrue(resultList.stream().anyMatch(CommonUpstream::isStatus));
 
         list.clear();
         list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.GRPC.getName()).host("localhost").port(8090).build());
@@ -138,10 +139,10 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(resultList.size(), 2);
-        assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
-                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(CommonUpstream::isStatus), true);
-        assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
-                .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
+        assertTrue(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
+                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(CommonUpstream::isStatus));
+        assertTrue(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
+                .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()));
 
         list.clear();
         list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.GRPC.getName()).host("localhost").port(8090).eventType(EventType.DELETED).build());
@@ -151,14 +152,14 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(resultList.size(), 2);
-        assertEquals(resultList.stream().anyMatch(r -> !r.isStatus() && r.getUpstreamUrl().equals("localhost:8090")), true);
-        assertEquals(resultList.stream().anyMatch(r -> r.isStatus() && !r.getUpstreamUrl().equals("localhost:8090")), true);
+        assertTrue(resultList.stream().anyMatch(r -> !r.isStatus() && r.getUpstreamUrl().equals("localhost:8090")));
+        assertTrue(resultList.stream().anyMatch(r -> r.isStatus() && !r.getUpstreamUrl().equals("localhost:8090")));
 
         list.clear();
         doReturn(false).when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
         actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
-        assertEquals(resultList.stream().allMatch(r -> !r.isStatus()), true);
+        assertTrue(resultList.stream().allMatch(r -> !r.isStatus()));
     }
     
     @Test

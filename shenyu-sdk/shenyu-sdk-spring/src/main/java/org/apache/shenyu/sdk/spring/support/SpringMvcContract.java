@@ -61,7 +61,7 @@ public class SpringMvcContract extends Contract.BaseContract {
     protected void processAnnotationOnMethod(final RequestTemplate requestTemplate, final Annotation methodAnnotation,
                                              final Method method, final ShenyuClientFactoryBean shenyuClientFactoryBean) {
 
-        if (!RequestMapping.class.isInstance(methodAnnotation)
+        if (!(methodAnnotation instanceof RequestMapping)
                 && !methodAnnotation.annotationType().isAnnotationPresent(RequestMapping.class)) {
             return;
         }
@@ -120,13 +120,11 @@ public class SpringMvcContract extends Contract.BaseContract {
     }
 
     private void parseHeaders(final RequestTemplate requestTemplate, final RequestMapping annotation) {
-        if (annotation.headers().length > 0) {
-            for (String header : annotation.headers()) {
-                int index = header.indexOf('=');
-                if (!header.contains("!=") && index >= 0) {
-                    requestTemplate.getHeaders().put(resolve(header.substring(0, index)),
-                            Collections.singleton(resolve(header.substring(index + 1).trim())));
-                }
+        for (String header : annotation.headers()) {
+            int index = header.indexOf('=');
+            if (!header.contains("!=") && index >= 0) {
+                requestTemplate.getHeaders().put(resolve(header.substring(0, index)),
+                        Collections.singleton(resolve(header.substring(index + 1).trim())));
             }
         }
     }
