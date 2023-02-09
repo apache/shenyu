@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * nacos client-server package info.
+ */
 package org.apache.shenyu.register.client.server.nacos;

@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * consul client package info.
+ */
 package org.apache.shenyu.register.client.consul;

@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * alibaba dubbo plugin package info.
+ */
 package org.apache.shenyu.plugin.alibaba.dubbo;

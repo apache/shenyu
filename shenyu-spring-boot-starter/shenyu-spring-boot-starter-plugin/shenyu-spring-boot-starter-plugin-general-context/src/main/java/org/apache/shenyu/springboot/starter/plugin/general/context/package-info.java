@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springboot general context plugin package info.
+ */
 package org.apache.shenyu.springboot.starter.plugin.general.context;

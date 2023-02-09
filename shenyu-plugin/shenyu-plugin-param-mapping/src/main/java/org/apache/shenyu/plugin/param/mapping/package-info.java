@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * param mapping plugin package info.
+ */
 package org.apache.shenyu.plugin.param.mapping;

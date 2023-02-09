@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springboot context-path plugin package info.
+ */
 package org.apache.shenyu.springboot.starter.plugin.context.path;

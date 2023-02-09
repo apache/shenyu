@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * uri plugin package info.
+ */
 package org.apache.shenyu.plugin.uri;

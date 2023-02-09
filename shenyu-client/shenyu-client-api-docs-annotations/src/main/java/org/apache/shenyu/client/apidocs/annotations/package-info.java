@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * client apidocs annotations package info.
+ */
 package org.apache.shenyu.client.apidocs.annotations;

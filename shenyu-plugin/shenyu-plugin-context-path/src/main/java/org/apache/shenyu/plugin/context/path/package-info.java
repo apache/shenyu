@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * context path plugin package info.
+ */
 package org.apache.shenyu.plugin.context.path;

@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springboot cryptor plugin package info.
+ */
 package org.apache.shenyu.springboot.starter.plugin.cryptor;

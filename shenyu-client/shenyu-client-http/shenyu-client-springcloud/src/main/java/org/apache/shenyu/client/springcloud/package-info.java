@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springcloud client package info.
+ */
 package org.apache.shenyu.client.springcloud;

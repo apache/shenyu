@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * httpclient sdk package info.
+ */
 package org.apache.shenyu.sdk.httpclient;

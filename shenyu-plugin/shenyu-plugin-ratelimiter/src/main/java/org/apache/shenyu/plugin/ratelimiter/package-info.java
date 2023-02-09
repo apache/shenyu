@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * ratelimiter plugin package info.
+ */
 package org.apache.shenyu.plugin.ratelimiter;

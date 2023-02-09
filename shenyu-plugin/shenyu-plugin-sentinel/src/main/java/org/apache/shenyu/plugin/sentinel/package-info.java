@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * sentinel plugin package info.
+ */
 package org.apache.shenyu.plugin.sentinel;

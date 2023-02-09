@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * websocket sync-data package info.
+ */
 package org.apache.shenyu.plugin.sync.data.websocket;

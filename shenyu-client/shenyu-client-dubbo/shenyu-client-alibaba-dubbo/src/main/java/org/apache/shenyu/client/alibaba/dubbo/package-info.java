@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * alibaba dubbo client package info.
+ */
 package org.apache.shenyu.client.alibaba.dubbo;

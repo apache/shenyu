@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springboot dubbo common plugin package info.
+ */
 package org.apache.shenyu.springboot.plugin.dubbo.common;

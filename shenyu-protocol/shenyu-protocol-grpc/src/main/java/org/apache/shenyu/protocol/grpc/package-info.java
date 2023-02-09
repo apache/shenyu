@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * grpc protocol package info.
+ */
 package org.apache.shenyu.protocol.grpc;

@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * disruptor package info.
+ */
 package org.apache.shenyu.disruptor;

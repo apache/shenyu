@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * redis cache plugin package info.
+ */
 package org.apache.shenyu.plugin.cache.redis;

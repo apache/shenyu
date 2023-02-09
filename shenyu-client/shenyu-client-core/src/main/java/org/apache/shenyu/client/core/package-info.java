@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * client core package info.
+ */
 package org.apache.shenyu.client.core;

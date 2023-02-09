@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * console logging package info.
+ */
 package org.apache.shenyu.plugin.logging.console;

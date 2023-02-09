@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * pulsar logging plugin package info.
+ */
 package org.apache.shenyu.plugin.logging.pulsar;

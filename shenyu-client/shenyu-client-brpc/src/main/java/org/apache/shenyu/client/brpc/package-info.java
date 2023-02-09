@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * brpc client package info.
+ */
 package org.apache.shenyu.client.brpc;

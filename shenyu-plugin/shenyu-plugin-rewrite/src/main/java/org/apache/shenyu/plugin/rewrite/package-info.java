@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * rewrite plugin package info.
+ */
 package org.apache.shenyu.plugin.rewrite;

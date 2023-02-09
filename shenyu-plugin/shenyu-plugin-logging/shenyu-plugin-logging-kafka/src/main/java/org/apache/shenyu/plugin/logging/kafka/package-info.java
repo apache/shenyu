@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * kafka logging plugin package info.
+ */
 package org.apache.shenyu.plugin.logging.kafka;

@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * grpc client package info.
+ */
 package org.apache.shenyu.client.grpc;

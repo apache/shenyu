@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springboot jwt plugin package info.
+ */
 package org.apache.shenyu.springboot.starter.plugin.jwt;

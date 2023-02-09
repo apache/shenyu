@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * jwt plugin package info.
+ */
 package org.apache.shenyu.plugin.jwt;

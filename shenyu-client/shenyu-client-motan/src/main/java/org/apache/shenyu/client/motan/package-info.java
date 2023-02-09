@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * motan client package info.
+ */
 package org.apache.shenyu.client.motan;

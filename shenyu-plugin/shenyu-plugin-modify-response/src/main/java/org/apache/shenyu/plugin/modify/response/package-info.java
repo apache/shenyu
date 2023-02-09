@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * modify response plugin package info.
+ */
 package org.apache.shenyu.plugin.modify.response;

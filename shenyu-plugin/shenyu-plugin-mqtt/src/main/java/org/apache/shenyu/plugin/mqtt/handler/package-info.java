@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * mqtt handler plugin package info.
+ */
 package org.apache.shenyu.plugin.mqtt.handler;

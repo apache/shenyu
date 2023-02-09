@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * sign plugin package info.
+ */
 package org.apache.shenyu.plugin.sign;

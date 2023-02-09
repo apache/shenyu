@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springboot resilience4j plugin package info.
+ */
 package org.apache.shenyu.springboot.starter.plugin.resilience4j;

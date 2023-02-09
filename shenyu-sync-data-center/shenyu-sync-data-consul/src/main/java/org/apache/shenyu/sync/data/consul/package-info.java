@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * consul sync-data package info.
+ */
 package org.apache.shenyu.sync.data.consul;

@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * oauth2 plugin package info.
+ */
 package org.apache.shenyu.plugin.oauth2;

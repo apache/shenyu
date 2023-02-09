@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * alibaba websocket client package info.
+ */
 package org.apache.shenyu.client.spring.websocket;

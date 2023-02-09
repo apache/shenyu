@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * dubbo plugin common package info.
+ */
 package org.apache.shenyu.plugin.dubbo.common;

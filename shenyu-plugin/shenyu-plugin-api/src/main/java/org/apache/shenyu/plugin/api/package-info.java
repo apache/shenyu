@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * plugin base api package info.
+ */
 package org.apache.shenyu.plugin.api;

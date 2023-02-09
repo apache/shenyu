@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * hystrix plugin package info.
+ */
 package org.apache.shenyu.plugin.hystrix;

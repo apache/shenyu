@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * logging common package info.
+ */
 package org.apache.shenyu.plugin.logging.common;

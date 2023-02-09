@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * websocket plugin package info.
+ */
 package org.apache.shenyu.plugin.websocket;

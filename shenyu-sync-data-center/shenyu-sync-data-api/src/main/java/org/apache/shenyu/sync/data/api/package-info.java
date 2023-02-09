@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * sync data base api package info.
+ */
 package org.apache.shenyu.sync.data.api;

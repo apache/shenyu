@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * okhttp sdk package info.
+ */
 package org.apache.shenyu.sdk.okhttp;

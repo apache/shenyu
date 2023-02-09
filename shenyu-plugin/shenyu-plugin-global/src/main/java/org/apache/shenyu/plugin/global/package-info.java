@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * global plugin package info.
+ */
 package org.apache.shenyu.plugin.global;

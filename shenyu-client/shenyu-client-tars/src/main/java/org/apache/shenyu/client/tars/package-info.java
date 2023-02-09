@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * tars client package info.
+ */
 package org.apache.shenyu.client.tars;

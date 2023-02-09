@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * mask logging api plugin package info.
+ */
 package org.apache.shenyu.plugin.logging.mask.api;

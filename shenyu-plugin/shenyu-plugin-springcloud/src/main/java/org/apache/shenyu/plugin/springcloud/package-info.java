@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springcloud plugin package info.
+ */
 package org.apache.shenyu.plugin.springcloud;

@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * sofa client package info.
+ */
 package org.apache.shenyu.client.sofa;

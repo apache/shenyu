@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * register client-server base api package info.
+ */
 package org.apache.shenyu.register.client.server.api;

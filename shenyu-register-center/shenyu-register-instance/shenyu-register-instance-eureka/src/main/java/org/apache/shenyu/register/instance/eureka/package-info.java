@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * eureka instance package info.
+ */
 package org.apache.shenyu.register.instance.eureka;

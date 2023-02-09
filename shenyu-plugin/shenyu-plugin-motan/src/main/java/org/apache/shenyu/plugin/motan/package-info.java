@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * motan plugin package info.
+ */
 package org.apache.shenyu.plugin.motan;

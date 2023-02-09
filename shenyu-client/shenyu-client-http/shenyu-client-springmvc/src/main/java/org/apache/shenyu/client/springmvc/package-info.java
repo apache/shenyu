@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springmvc client package info.
+ */
 package org.apache.shenyu.client.springmvc;

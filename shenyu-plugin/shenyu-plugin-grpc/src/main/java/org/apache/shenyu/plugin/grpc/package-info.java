@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * grpc plugin package info.
+ */
 package org.apache.shenyu.plugin.grpc;

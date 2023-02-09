@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * redirect plugin package info.
+ */
 package org.apache.shenyu.plugin.redirect;

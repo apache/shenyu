@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * nacos register instance package info.
+ */
 package org.apache.shenyu.register.instance.nacos;

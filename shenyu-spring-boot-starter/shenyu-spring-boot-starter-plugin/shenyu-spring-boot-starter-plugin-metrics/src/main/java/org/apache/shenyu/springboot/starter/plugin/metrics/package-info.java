@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springboot metrics plugin package info.
+ */
 package org.apache.shenyu.springboot.starter.plugin.metrics;

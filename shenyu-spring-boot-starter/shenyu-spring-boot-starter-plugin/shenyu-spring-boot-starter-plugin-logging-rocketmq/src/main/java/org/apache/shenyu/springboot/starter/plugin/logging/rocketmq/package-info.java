@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springboot rocketmq logging plugin package info.
+ */
 package org.apache.shenyu.springboot.starter.plugin.logging.rocketmq;

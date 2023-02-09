@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * shenyu web package info.
+ */
 package org.apache.shenyu.web;

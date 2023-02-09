@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * sdk core package info.
+ */
 package org.apache.shenyu.sdk.core;

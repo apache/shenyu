@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * http sync-data package info.
+ */
 package org.apache.shenyu.sync.data.http;

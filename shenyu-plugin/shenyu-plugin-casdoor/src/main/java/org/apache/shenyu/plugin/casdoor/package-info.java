@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * casdoor plugin package info.
+ */
 package org.apache.shenyu.plugin.casdoor;

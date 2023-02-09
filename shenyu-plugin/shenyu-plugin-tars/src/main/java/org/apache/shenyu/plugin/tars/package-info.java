@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * tars plugin package info.
+ */
 package org.apache.shenyu.plugin.tars;

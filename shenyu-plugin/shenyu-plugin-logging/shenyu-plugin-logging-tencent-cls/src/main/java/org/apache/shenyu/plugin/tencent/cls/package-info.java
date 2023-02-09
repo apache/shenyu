@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * tencent cls logging plugin package info.
+ */
 package org.apache.shenyu.plugin.tencent.cls;

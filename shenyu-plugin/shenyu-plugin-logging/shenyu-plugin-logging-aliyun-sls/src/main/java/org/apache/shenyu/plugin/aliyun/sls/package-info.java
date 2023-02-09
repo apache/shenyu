@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * aliyun sls logging plugin package info.
+ */
 package org.apache.shenyu.plugin.aliyun.sls;

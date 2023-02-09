@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * mqtt protocol package info.
+ */
 package org.apache.shenyu.protocol.mqtt;

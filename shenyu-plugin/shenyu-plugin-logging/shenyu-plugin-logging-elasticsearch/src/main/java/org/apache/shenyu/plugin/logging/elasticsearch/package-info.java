@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * elasticsearch logging package info.
+ */
 package org.apache.shenyu.plugin.logging.elasticsearch;

@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * register common package info.
+ */
 package org.apache.shenyu.register.common;

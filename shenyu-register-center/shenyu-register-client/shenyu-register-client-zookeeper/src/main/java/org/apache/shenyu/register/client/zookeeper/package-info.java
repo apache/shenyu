@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * zookeeper client package info.
+ */
 package org.apache.shenyu.register.client.zookeeper;

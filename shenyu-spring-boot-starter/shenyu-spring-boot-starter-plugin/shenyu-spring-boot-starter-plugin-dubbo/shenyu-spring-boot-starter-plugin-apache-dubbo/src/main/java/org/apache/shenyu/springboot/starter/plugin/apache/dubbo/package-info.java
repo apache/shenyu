@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * apache dubbo plugin package info.
+ */
 package org.apache.shenyu.springboot.starter.plugin.apache.dubbo;

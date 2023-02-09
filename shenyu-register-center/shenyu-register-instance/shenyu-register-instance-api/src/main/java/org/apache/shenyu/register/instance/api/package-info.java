@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * register instance base api package info.
+ */
 package org.apache.shenyu.register.instance.api;

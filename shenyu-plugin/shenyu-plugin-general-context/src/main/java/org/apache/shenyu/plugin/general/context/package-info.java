@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * general context plugin package info.
+ */
 package org.apache.shenyu.plugin.general.context;

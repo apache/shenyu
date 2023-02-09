@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-/*
-  shenyu common packege.
+/**
+ * shenyu common packege.
  */
 package org.apache.shenyu.common;

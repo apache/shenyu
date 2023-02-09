@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * springboot websocket plugin package info.
+ */
 package org.apache.shenyu.springboot.plugin.websocket;

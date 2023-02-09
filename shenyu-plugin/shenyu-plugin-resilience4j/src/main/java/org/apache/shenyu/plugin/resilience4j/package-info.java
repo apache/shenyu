@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * resilience4j plugin package info.
+ */
 package org.apache.shenyu.plugin.resilience4j;

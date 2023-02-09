@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * etcd client package info.
+ */
 package org.apache.shenyu.register.client.etcd;

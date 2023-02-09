@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * cryptor plugin package info.
+ */
 package org.apache.shenyu.plugin.cryptor;

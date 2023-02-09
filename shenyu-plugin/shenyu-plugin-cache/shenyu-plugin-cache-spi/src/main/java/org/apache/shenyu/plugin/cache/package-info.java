@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * cache plugin base api package info.
+ */
 package org.apache.shenyu.plugin.cache;

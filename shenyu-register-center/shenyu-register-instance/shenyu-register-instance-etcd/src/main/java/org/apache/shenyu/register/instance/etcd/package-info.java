@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * etcd register instance package info.
+ */
 package org.apache.shenyu.register.instance.etcd;

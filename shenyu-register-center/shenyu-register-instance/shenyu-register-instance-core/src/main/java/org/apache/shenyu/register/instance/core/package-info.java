@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * register instance core package info.
+ */
 package org.apache.shenyu.register.instance.core;

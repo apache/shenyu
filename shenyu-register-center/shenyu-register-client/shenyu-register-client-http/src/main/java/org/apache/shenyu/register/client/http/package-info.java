@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * http client package info.
+ */
 package org.apache.shenyu.register.client.http;

@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * key auth plugin package info.
+ */
 package org.apache.shenyu.plugin.key.auth;

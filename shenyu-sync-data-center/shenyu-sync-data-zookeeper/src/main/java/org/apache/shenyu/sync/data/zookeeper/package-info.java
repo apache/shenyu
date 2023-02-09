@@ -15,4 +15,7 @@
  * limitations under the License.
  */
 
+/**
+ * zookeeper sync-data package info.
+ */
 package org.apache.shenyu.sync.data.zookeeper;
