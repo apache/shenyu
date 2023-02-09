@@ -198,7 +198,7 @@ public interface Constants {
     String SIGN_PARAMS_ERROR = "sign parameters are incomplete!";
 
     /**
-     * The constant SIGN_PARAMS_ERROR.
+     * The constant SIGN_VERSION_ERROR.
      */
     String SIGN_VERSION_ERROR = "sign version does not exist or is wrong!";
 
