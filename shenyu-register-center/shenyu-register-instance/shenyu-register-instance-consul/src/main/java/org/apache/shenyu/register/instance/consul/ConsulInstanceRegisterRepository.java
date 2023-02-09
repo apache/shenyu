@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
@@ -168,7 +169,7 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
             return;
         }
         synchronized (lock) {
-            eventListeners = listenerMap.computeIfAbsent(selectKey, s -> new HashSet<>());
+            eventListeners = MapUtils.computeIfAbsent(listenerMap, selectKey, s -> new HashSet<>());
         }
         eventListeners.add(watcherListener);
         watchFutures.add(this.executor.scheduleWithFixedDelay(() -> this.watchConfigKeyValues(selectKey),

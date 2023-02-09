@@ -29,6 +29,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -171,7 +172,7 @@ public class NacosCacheHandler {
             }
         };
         oc.change(getConfigAndSignListener(dataId, listener));
-        LISTENERS.computeIfAbsent(dataId, key -> new ArrayList<>()).add(listener);
+        MapUtils.computeIfAbsent(LISTENERS, dataId, key -> new ArrayList<>()).add(listener);
     }
 
     protected interface OnChange {

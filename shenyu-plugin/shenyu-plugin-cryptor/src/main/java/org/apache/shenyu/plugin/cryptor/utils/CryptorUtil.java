@@ -21,6 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.plugin.api.exception.ResponsiveException;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
@@ -30,6 +31,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -107,5 +109,28 @@ public final class CryptorUtil {
             return Pair.of(true, "encryptKey");
         }
         return Pair.of(false, "");
+    }
+
+    /**
+     * encrypt or decrypt the response body.
+     * @param ruleHandle ruleHandle
+     * @param originalData originalData
+     * @param originalBody originalBody
+     * @param exchange exchange
+     * @return new body
+     */
+    public static String crypt(final CryptorRuleHandler ruleHandle, final String originalData, final String originalBody, final ServerWebExchange exchange) {
+
+        String modifiedData = CryptorStrategyFactory.match(ruleHandle, originalData);
+
+        if (Objects.isNull(modifiedData)) {
+            throw Optional.ofNullable(ruleHandle.getWay())
+                    .filter(CryptorStrategyFactory.DECRYPT::equals)
+                    .map(data -> new ResponsiveException(ShenyuResultEnum.DECRYPTION_ERROR, exchange))
+                    .orElse(new ResponsiveException(ShenyuResultEnum.ENCRYPTION_ERROR, exchange));
+        }
+
+        return CryptorUtil.replace(originalBody, modifiedData, ruleHandle.getWay(), ruleHandle.getFieldNames());
+
     }
 }
