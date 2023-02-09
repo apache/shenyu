@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.slf4j.Logger;
@@ -271,7 +272,7 @@ public final class UpstreamCheckTask implements Runnable {
 
     private void putToMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
         synchronized (lock) {
-            List<Upstream> list = map.computeIfAbsent(selectorId, k -> Lists.newArrayList());
+            List<Upstream> list = MapUtils.computeIfAbsent(map, selectorId, k -> Lists.newArrayList());
             if (!list.contains(upstream)) {
                 list.add(upstream);
             }
