@@ -224,7 +224,7 @@ public class ZookeeperClient {
     public TreeCache addCache(final String path, final TreeCacheListener... listeners) {
         TreeCache cache = TreeCache.newBuilder(client, path).build();
         caches.put(path, cache);
-        if (listeners != null && listeners.length > 0) {
+        if (listeners != null) {
             for (TreeCacheListener listener : listeners) {
                 cache.getListenable().addListener(listener);
             }

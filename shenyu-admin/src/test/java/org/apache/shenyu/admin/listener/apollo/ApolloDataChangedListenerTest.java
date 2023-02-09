@@ -63,11 +63,11 @@ public class ApolloDataChangedListenerTest {
     @Test
     public void testPublishConfig() {
         doNothing().when(apolloClient)
-                .createOrUpdateItem(Mockito.<String>any(), Mockito.<Object>any(), Mockito.<String>any());
-        doNothing().when(apolloClient).publishNamespace(Mockito.<String>any(), Mockito.<String>any());
+                .createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
+        doNothing().when(apolloClient).publishNamespace(Mockito.any(), Mockito.any());
         apolloDataChangedListener.publishConfig("42", "Data");
-        verify(apolloClient).createOrUpdateItem(Mockito.<String>any(), Mockito.<Object>any(), Mockito.<String>any());
-        verify(apolloClient).publishNamespace(Mockito.<String>any(), Mockito.<String>any());
+        verify(apolloClient).createOrUpdateItem(Mockito.any(), Mockito.<Object>any(), Mockito.any());
+        verify(apolloClient).publishNamespace(Mockito.any(), Mockito.any());
     }
 
     /**
@@ -75,9 +75,9 @@ public class ApolloDataChangedListenerTest {
      */
     @Test
     public void testGetConfig() {
-        when(apolloClient.getItemValue(Mockito.<String>any())).thenReturn("42");
+        when(apolloClient.getItemValue(Mockito.any())).thenReturn("42");
         assertEquals("42", apolloDataChangedListener.getConfig("42"));
-        verify(apolloClient).getItemValue(Mockito.<String>any());
+        verify(apolloClient).getItemValue(Mockito.any());
     }
 
     /**
@@ -85,9 +85,9 @@ public class ApolloDataChangedListenerTest {
      */
     @Test
     public void testGetConfig2() {
-        when(apolloClient.getItemValue(Mockito.<String>any())).thenReturn("");
+        when(apolloClient.getItemValue(Mockito.any())).thenReturn("");
         assertEquals("{}", apolloDataChangedListener.getConfig("42"));
-        verify(apolloClient).getItemValue(Mockito.<String>any());
+        verify(apolloClient).getItemValue(Mockito.any());
     }
 }
 

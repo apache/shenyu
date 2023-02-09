@@ -68,7 +68,7 @@ import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -234,7 +234,7 @@ public class DataSyncConfiguration {
         @ConditionalOnMissingBean(ConfigFileService.class)
         public ConfigFileService polarisConfigFileService(final PolarisProperties polarisProperties) {
             com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.defaultConfig();
-            configuration.getConfigFile().getServerConnector().setAddresses(Arrays.asList(polarisProperties.getUrl()));
+            configuration.getConfigFile().getServerConnector().setAddresses(Collections.singletonList(polarisProperties.getUrl()));
             return ConfigFileServiceFactory.createConfigFileService(configuration);
         }
 
@@ -247,7 +247,7 @@ public class DataSyncConfiguration {
         @ConditionalOnMissingBean(ConfigFilePublishService.class)
         public ConfigFilePublishService polarisConfigFilePublishService(final PolarisProperties polarisProperties) {
             com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.defaultConfig();
-            configuration.getConfigFile().getServerConnector().setAddresses(Arrays.asList(polarisProperties.getUrl()));
+            configuration.getConfigFile().getServerConnector().setAddresses(Collections.singletonList(polarisProperties.getUrl()));
             return ConfigFileServicePublishFactory.createConfigFilePublishService(configuration);
         }
 
