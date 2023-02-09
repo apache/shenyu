@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.grpc.cache;
 
 import com.google.common.collect.Maps;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.plugin.grpc.client.GrpcClientBuilder;
 import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
 
@@ -50,7 +51,7 @@ public final class GrpcClientCache {
      * @param contextPath contextPath
      */
     public static void initGrpcClient(final String contextPath) {
-        CLIENT_CACHE.computeIfAbsent(contextPath, s -> GrpcClientBuilder.buildClient(contextPath));
+        MapUtils.computeIfAbsent(CLIENT_CACHE, contextPath, s -> GrpcClientBuilder.buildClient(contextPath));
     }
     
     /**
