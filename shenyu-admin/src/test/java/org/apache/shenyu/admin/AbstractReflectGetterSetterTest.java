@@ -26,6 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -86,7 +87,7 @@ public abstract class AbstractReflectGetterSetterTest {
     protected abstract Class<?> getTargetClass();
 
     protected Set<String> getExcludeFields() {
-        return new HashSet<>(Collections.singletonList("serialVersionUID"));
+        return new HashSet<>(Arrays.asList("serialVersionUID"));
     }
 
     /**
@@ -112,7 +113,7 @@ public abstract class AbstractReflectGetterSetterTest {
                     try {
                         // get the get and set methods of the field by PropertyDescriptor
                         // (String) f.getName() for java11 (can not find com.sun.beans.introspect.PropertyInfo class)
-                        PropertyDescriptor property = new PropertyDescriptor(f.getName(), clazz);
+                        PropertyDescriptor property = new PropertyDescriptor((String) f.getName(), clazz);
                         Method getter = property.getReadMethod();
                         Method setter = property.getWriteMethod();
 

@@ -27,9 +27,9 @@ import org.junit.jupiter.api.Test;
  */
 public class ClickHouseLogCollectConfigTest {
 
-    private final ClickHouseLogCollectConfig clickHouseLogCollectConfig = new ClickHouseLogCollectConfig();
+    private ClickHouseLogCollectConfig clickHouseLogCollectConfig = new ClickHouseLogCollectConfig();
 
-    private final ClickHouseLogCollectConfig.ClickHouseLogConfig clickHouseLogConfig = new ClickHouseLogCollectConfig.ClickHouseLogConfig();
+    private ClickHouseLogCollectConfig.ClickHouseLogConfig clickHouseLogConfig = new ClickHouseLogCollectConfig.ClickHouseLogConfig();
 
     @BeforeEach
     public void setUp() {

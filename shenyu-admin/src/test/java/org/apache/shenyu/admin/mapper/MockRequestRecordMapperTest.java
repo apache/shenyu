@@ -62,7 +62,7 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
         assertEquals(queryResult.getPathVariable(), "");
         assertEquals(queryResult.getQuery(), "");
         assertEquals(queryResult.getHeader(), "");
-        assertNull(queryResult.getBody());
+        assertEquals(queryResult.getBody(), null);
     }
 
     @Test

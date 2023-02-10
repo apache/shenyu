@@ -196,10 +196,12 @@ public class ApacheDubboClientValidator implements Validator {
 
     private static boolean hasConstraintParameter(final Method method) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        for (Annotation[] annotations : parameterAnnotations) {
-            for (Annotation annotation : annotations) {
-                if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
-                    return true;
+        if (parameterAnnotations.length > 0) {
+            for (Annotation[] annotations : parameterAnnotations) {
+                for (Annotation annotation : annotations) {
+                    if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
+                        return true;
+                    }
                 }
             }
         }

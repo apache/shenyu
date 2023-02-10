@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -180,7 +179,7 @@ public final class DividePluginTest {
      */
     @Test
     public void handleSelectorIfNullTest() {
-        assertNotNull(dividePlugin.handleSelectorIfNull(PluginEnum.DIVIDE.getName(), exchange, chain));
+        assertTrue(dividePlugin.handleSelectorIfNull(PluginEnum.DIVIDE.getName(), exchange, chain) != null);
     }
 
     /**
@@ -188,7 +187,7 @@ public final class DividePluginTest {
      */
     @Test
     public void handleRuleIfNullTest() {
-        assertNotNull(dividePlugin.handleRuleIfNull(PluginEnum.DIVIDE.getName(), exchange, chain));
+        assertTrue(dividePlugin.handleRuleIfNull(PluginEnum.DIVIDE.getName(), exchange, chain) != null);
     }
 
     /**

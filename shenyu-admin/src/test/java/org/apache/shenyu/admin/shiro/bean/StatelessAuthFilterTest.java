@@ -33,8 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -61,13 +60,13 @@ public final class StatelessAuthFilterTest {
     @Test
     public void testIsAccessAllowed() {
         Object obj = mock(Object.class);
-        assertFalse(statelessAuthFilter.isAccessAllowed(httpServletRequest, httpServletResponse, obj));
+        assertEquals(false, statelessAuthFilter.isAccessAllowed(httpServletRequest, httpServletResponse, obj));
     }
     
     @Test
     public void testOnAccessDenied() throws Exception {
         when(httpServletRequest.getMethod()).thenReturn(HttpMethod.OPTIONS.name());
-        assertTrue(statelessAuthFilter.onAccessDenied(httpServletRequest, httpServletResponse));
+        assertEquals(true, statelessAuthFilter.onAccessDenied(httpServletRequest, httpServletResponse));
     }
     
     @Test

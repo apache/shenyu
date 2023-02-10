@@ -79,7 +79,10 @@ public class KeyAuthPlugin extends AbstractShenyuPlugin {
             return true;
         }
         MultiValueMap<String, String> multiValueMap = exchange.getRequest().getQueryParams();
-        return StringUtils.equals(multiValueMap.getFirst(keyName), key);
+        if (StringUtils.equals(multiValueMap.getFirst(keyName), key)) {
+            return true;
+        }
+        return false;
     }
 
 }

@@ -19,9 +19,6 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
-import org.apache.shenyu.admin.model.vo.PermissionMenuVO.AuthPerm;
-import org.apache.shenyu.admin.model.vo.PermissionMenuVO.MenuInfo;
-import org.apache.shenyu.admin.model.vo.PermissionMenuVO.Meta;
 import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
@@ -31,7 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -56,10 +53,10 @@ public class PermissionControllerTest {
     @Test
     public void testGetUserPermissionByToken() {
         final PermissionMenuVO permissionMenuVO = new PermissionMenuVO(
-                Collections.singletonList(new MenuInfo("id", "name", "url", "component",
-                        new Meta("icon", "title"), Collections.emptyList(), 0)),
-                Collections.singletonList(new AuthPerm("perms1", "description1", "icon")),
-                Collections.singletonList(new AuthPerm("perms2", "description2", "icon")));
+                Arrays.asList(new PermissionMenuVO.MenuInfo("id", "name", "url", "component",
+                        new PermissionMenuVO.Meta("icon", "title"), Arrays.asList(), 0)),
+                Arrays.asList(new PermissionMenuVO.AuthPerm("perms1", "description1", "icon")),
+                Arrays.asList(new PermissionMenuVO.AuthPerm("perms2", "description2", "icon")));
         when(mockPermissionService.getPermissionMenu("token")).thenReturn(permissionMenuVO);
         final ShenyuAdminResult result = permissionController.getUserPermissionByToken("token");
         assertThat(result.getCode(), is(CommonErrorCode.SUCCESSFUL));

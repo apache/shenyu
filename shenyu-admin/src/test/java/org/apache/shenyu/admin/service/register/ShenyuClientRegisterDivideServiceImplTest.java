@@ -48,8 +48,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -123,10 +121,10 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         assertEquals(JsonParser.parseString(expected.replaceAll("\\d{13}", "0")), JsonParser.parseString(actual.replaceAll("\\d{13}", "0")));
         List<DivideUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
         assertEquals(resultList.size(), 3);
-        assertTrue(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
-                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(CommonUpstream::isStatus));
-        assertTrue(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
-                .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()));
+        assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
+                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(CommonUpstream::isStatus), true);
+        assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
+                .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
 
         list.clear();
         list.add(URIRegisterDTO.builder().protocol("http://").appName("test1").rpcType(RpcTypeEnum.HTTP.getName()).host(LOCALHOST).port(8093).build());
@@ -137,10 +135,10 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         resultList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
         //localhost:8090 was removed because the stop time was too long
         assertEquals(resultList.size(), 3);
-        assertTrue(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
-                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(CommonUpstream::isStatus));
-        assertTrue(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
-                .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()));
+        assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
+                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(CommonUpstream::isStatus), true);
+        assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
+                .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
 
         list.clear();
         list.add(URIRegisterDTO.builder().protocol("http://").appName("test1").rpcType(RpcTypeEnum.HTTP.getName()).host(LOCALHOST).port(8091)/*.eventType(EventType.DELETED)*/.build());
@@ -150,7 +148,7 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
         assertEquals(resultList.size(), 2);
-        assertTrue(resultList.stream().anyMatch(r -> !r.isStatus() /*&& r.getUpstreamUrl().equals("localhost:8091")*/));
+        assertEquals(resultList.stream().anyMatch(r -> !r.isStatus() /*&& r.getUpstreamUrl().equals("localhost:8091")*/), true);
 
         list.clear();
         list.add(URIRegisterDTO.builder().protocol("http://").appName("test1").rpcType(RpcTypeEnum.HTTP.getName()).host(LOCALHOST).port(8090).eventType(EventType.DELETED).build());
@@ -160,18 +158,18 @@ public final class ShenyuClientRegisterDivideServiceImplTest {
         actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
         assertEquals(resultList.size(), 2);
-        assertTrue(resultList.stream().anyMatch(r -> r.isStatus() && r.getUpstreamUrl().equals("localhost:8091")));
-        assertTrue(resultList.stream().anyMatch(r -> !r.isStatus() && r.getUpstreamUrl().equals("localhost:8092")));
+        assertEquals(resultList.stream().anyMatch(r -> r.isStatus() && r.getUpstreamUrl().equals("localhost:8091")), true);
+        assertEquals(resultList.stream().anyMatch(r -> !r.isStatus() && r.getUpstreamUrl().equals("localhost:8092")), true);
 
         doReturn(true).when(shenyuClientRegisterDivideService).doSubmit(any(), any());
         actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
-        assertNull(actual);
+        assertEquals(actual, null);
 
         list.clear();
         doReturn(false).when(shenyuClientRegisterDivideService).doSubmit(any(), any());
         actual = shenyuClientRegisterDivideService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, DivideUpstream.class);
-        assertTrue(resultList.stream().allMatch(r -> !r.isStatus()));
+        assertEquals(resultList.stream().allMatch(r -> !r.isStatus()), true);
     }
     
     @Test

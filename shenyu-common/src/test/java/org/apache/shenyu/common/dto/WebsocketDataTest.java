@@ -20,7 +20,6 @@ package org.apache.shenyu.common.dto;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,7 +35,7 @@ public class WebsocketDataTest {
     @Test
     public void testGetterSetter() {
         WebsocketData<AppAuthData> websocketData = new WebsocketData<>(
-                "groupType", "eventType", Collections.singletonList(new AppAuthData()));
+                "groupType", "eventType", Arrays.asList(new AppAuthData()));
         
         websocketData.setGroupType("groupType1");
         websocketData.setEventType("eventType1");
@@ -50,9 +49,9 @@ public class WebsocketDataTest {
     @Test
     public void testEqualsAndHashCode() {
         WebsocketData<AppAuthData> websocketData1 = new WebsocketData<>(
-                "groupType", "eventType", Collections.singletonList(new AppAuthData()));
+                "groupType", "eventType", Arrays.asList(new AppAuthData()));
         WebsocketData<AppAuthData> websocketData2 = new WebsocketData<>(
-                "groupType", "eventType", Collections.singletonList(new AppAuthData()));
+                "groupType", "eventType", Arrays.asList(new AppAuthData()));
         
         Set<WebsocketData> set = new HashSet<>();
         set.add(websocketData1);

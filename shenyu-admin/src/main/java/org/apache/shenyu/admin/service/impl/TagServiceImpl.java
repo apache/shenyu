@@ -43,7 +43,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TagServiceImpl implements TagService {
 
-    private final TagMapper tagMapper;
+    private TagMapper tagMapper;
 
     public TagServiceImpl(final TagMapper tagMapper) {
         this.tagMapper = tagMapper;

@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
  */
 public final class OkHttpToolsTest {
 
-    private final String url = "http://localhost:9095";
+    private String url = "http://localhost:9095";
 
     private String getUrl;
 

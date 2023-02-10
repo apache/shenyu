@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
     
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -61,7 +60,7 @@ public class MetadataExecutorSubscriberTest {
     public void testExecutor() {
         List<MetaDataRegisterDTO> list = new ArrayList<>();
         metadataExecutorSubscriber.executor(list);
-        assertTrue(list.isEmpty());
+        assertEquals(true, list.isEmpty());
         list.add(MetaDataRegisterDTO.builder().appName("test").build());
         ShenyuClientRegisterService service = mock(ShenyuClientRegisterService.class);
         when(shenyuClientRegisterService.get(any())).thenReturn(service);

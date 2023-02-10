@@ -42,7 +42,7 @@ public class ShenyuClientMethodHandler {
 
     private final ShenyuSdkClient shenyuHttpClient;
 
-    private final RequestTemplate requestTemplate;
+    private RequestTemplate requestTemplate;
 
     private final Map<Class<? extends Annotation>, AnnotatedParameterProcessor> annotatedArgumentProcessors;
 

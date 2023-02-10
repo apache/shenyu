@@ -23,7 +23,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * add test case for {@link NacosACMConfig}.
@@ -77,10 +78,10 @@ public final class NacosACMConfigTest {
 
     @Test
     public void testEquals() {
-        assertEquals(nacosACMConfig, nacosACMConfig);
-        assertEquals(nacosACMConfig, that);
-        assertNotEquals(null, nacosACMConfig);
-        assertNotEquals(nacosACMConfig, new Object());
+        assertTrue(nacosACMConfig.equals(nacosACMConfig));
+        assertTrue(nacosACMConfig.equals(that));
+        assertFalse(nacosACMConfig.equals(null));
+        assertFalse(nacosACMConfig.equals(new Object()));
     }
 
     @Test
