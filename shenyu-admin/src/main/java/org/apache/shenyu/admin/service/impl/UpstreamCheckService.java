@@ -228,7 +228,7 @@ public class UpstreamCheckService {
      * that do not register with the gateway by listening to
      * {@link org.springframework.context.event.ContextRefreshedEvent},
      * which will cause some problems,
-     * check https://github.com/apache/shenyu/issues/3484 for more details.
+     * check <a href="https://github.com/apache/shenyu/issues/3484">...</a> for more details.
      *
      * @param selectorId     the selector id
      * @param commonUpstream the common upstream
@@ -268,9 +268,13 @@ public class UpstreamCheckService {
 
     private void doCheck() {
         // check zombie
-        ZOMBIE_SET.parallelStream().forEach(this::checkZombie);
+        if (!ZOMBIE_SET.isEmpty()) {
+            ZOMBIE_SET.forEach(this::checkZombie);
+        }
         // check up
-        UPSTREAM_MAP.forEach(this::check);
+        if (!UPSTREAM_MAP.isEmpty()) {
+            UPSTREAM_MAP.forEach(this::check);
+        }
     }
 
     private void waitFinish() throws InterruptedException, ExecutionException {
