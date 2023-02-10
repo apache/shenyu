@@ -42,13 +42,13 @@ public class DefaultExtractor implements SignParameterExtractor {
 
         String version = httpRequest.getHeaders().getFirst(Constants.VERSION);
         if (Objects.isNull(version)) {
-            return SignParameters.ERROR_PARAMETERS;
+            return SignParameters.VERSION_ERROR_PARAMETERS;
         }
 
         SignParameterExtractor extractor = VERSION_EXTRACTOR.get(version);
 
         if (Objects.isNull(extractor)) {
-            return SignParameters.ERROR_PARAMETERS;
+            return SignParameters.VERSION_ERROR_PARAMETERS;
         }
 
         return extractor.extract(httpRequest);
