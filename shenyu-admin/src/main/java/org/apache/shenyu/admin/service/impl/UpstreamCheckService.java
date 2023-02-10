@@ -34,7 +34,6 @@ import org.apache.shenyu.admin.model.event.selector.SelectorCreatedEvent;
 import org.apache.shenyu.admin.model.event.selector.SelectorUpdatedEvent;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
-import org.apache.shenyu.admin.service.pojo.UpstreamWithSelectorId;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
 import org.apache.shenyu.admin.utils.SelectorUtil;
@@ -68,7 +67,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -119,7 +117,7 @@ public class UpstreamCheckService {
 
     private ScheduledThreadPoolExecutor invokeExecutor;
 
-    private final List<CompletableFuture<UpstreamWithSelectorId>> futures = Lists.newArrayList();
+    private final List<CompletableFuture<Void>> futures = Lists.newArrayList();
 
     /**
      * Instantiates a new Upstream check service.
@@ -142,7 +140,6 @@ public class UpstreamCheckService {
         this.pluginMapper = pluginMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.converterFactor = converterFactor;
-
         Properties props = shenyuRegisterCenterConfig.getProps();
         this.checked = Boolean.parseBoolean(props.getProperty(Constants.IS_CHECKED, Constants.DEFAULT_CHECK_VALUE));
         this.scheduledThreads = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_THREADS, Constants.ZOMBIE_CHECK_THREADS_VALUE));
@@ -277,42 +274,20 @@ public class UpstreamCheckService {
         }
     }
 
-    private void waitFinish() throws InterruptedException, ExecutionException {
-        for (final CompletableFuture<UpstreamWithSelectorId> future : futures) {
-            final UpstreamWithSelectorId upstreamWithSelectorId = future.get();
-            final String selectorId = upstreamWithSelectorId.getSelectorId();
-            final CommonUpstream upstream = upstreamWithSelectorId.getUpstream();
-            final boolean status = upstream.isStatus();
-            final int oriZombieCheckTimes = upstreamWithSelectorId.getZombieCheckTimes();
-
-            List<CommonUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList()));
-            final List<CommonUpstream> successList = Lists.newArrayListWithCapacity(old.size());
-            if (status) {
-                if (!successList.contains(upstream)) {
-                    upstream.setTimestamp(System.currentTimeMillis());
-                    successList.add(upstream);
-                }
-                ZOMBIE_SET.remove(ZombieUpstream.transform(upstream, oriZombieCheckTimes, selectorId));
-            } else {
-                successList.remove(upstream);
-                if (oriZombieCheckTimes > 0) {
-                    ZOMBIE_SET.add(ZombieUpstream.transform(upstream, oriZombieCheckTimes, selectorId));
-                }
-            }
-            this.updateHandler(selectorId, old, successList);
-        }
-
+    private void waitFinish() {
+        // wait all check success
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        // clear, for next time
         futures.clear();
     }
 
     private void checkZombie(final ZombieUpstream zombieUpstream) {
-        CompletableFuture<UpstreamWithSelectorId> future = CompletableFuture.supplyAsync(() -> checkZombie0(zombieUpstream), invokeExecutor);
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> checkZombie0(zombieUpstream), invokeExecutor);
         futures.add(future);
     }
 
-    private UpstreamWithSelectorId checkZombie0(final ZombieUpstream zombieUpstream) {
+    private void checkZombie0(final ZombieUpstream zombieUpstream) {
         ZOMBIE_SET.remove(zombieUpstream);
-
         String selectorId = zombieUpstream.getSelectorId();
         CommonUpstream commonUpstream = zombieUpstream.getCommonUpstream();
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
@@ -320,34 +295,49 @@ public class UpstreamCheckService {
             commonUpstream.setTimestamp(System.currentTimeMillis());
             commonUpstream.setStatus(true);
             LOG.info("UpstreamCacheManager check zombie upstream success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
+            List<CommonUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList()));
+            this.submit(selectorId, commonUpstream);
+            updateHandler(selectorId, old, UPSTREAM_MAP.get(selectorId));
         } else {
             LOG.error("check zombie upstream the url={} is fail", commonUpstream.getUpstreamUrl());
-            // decr zombieCheckTimes
-            zombieUpstream.setZombieCheckTimes(zombieUpstream.getZombieCheckTimes() - NumberUtils.INTEGER_ONE);
+            if (zombieUpstream.getZombieCheckTimes() > NumberUtils.INTEGER_ZERO) {
+                zombieUpstream.setZombieCheckTimes(zombieUpstream.getZombieCheckTimes() - NumberUtils.INTEGER_ONE);
+                ZOMBIE_SET.add(zombieUpstream);
+            }
         }
-        return new UpstreamWithSelectorId(selectorId, commonUpstream, zombieUpstream.getZombieCheckTimes());
     }
 
     private void check(final String selectorId, final List<CommonUpstream> upstreamList) {
-        for (final CommonUpstream commonUpstream : upstreamList) {
-            CompletableFuture<UpstreamWithSelectorId> future = CompletableFuture.supplyAsync(() -> check0(selectorId, commonUpstream), invokeExecutor);
-            futures.add(future);
+        final List<CompletableFuture<CommonUpstream>> checkFutures = new ArrayList<>(upstreamList.size());
+        for (CommonUpstream commonUpstream : upstreamList) {
+            checkFutures.add(CompletableFuture.supplyAsync(() -> {
+                final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
+                if (pass) {
+                    if (!commonUpstream.isStatus()) {
+                        commonUpstream.setTimestamp(System.currentTimeMillis());
+                        commonUpstream.setStatus(true);
+                        LOG.info("UpstreamCacheManager check success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
+                    }
+                    return commonUpstream;
+                } else {
+                    commonUpstream.setStatus(false);
+                    ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
+                    LOG.error("check the url={} is fail ", commonUpstream.getUpstreamUrl());
+                }
+                return null;
+            }).exceptionally(ex -> {
+                LOG.error("An exception occurred during the check of url {}: {}", commonUpstream.getUpstreamUrl(), ex);
+                return null;
+            }));
         }
-    }
 
-    private UpstreamWithSelectorId check0(final String selectorId, final CommonUpstream commonUpstream) {
-        final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
-        if (pass) {
-            if (!commonUpstream.isStatus()) {
-                commonUpstream.setTimestamp(System.currentTimeMillis());
-                commonUpstream.setStatus(true);
-                LOG.info("UpstreamCacheManager check success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
-            }
-        } else {
-            commonUpstream.setStatus(false);
-            LOG.error("check the url={} is fail ", commonUpstream.getUpstreamUrl());
-        }
-        return new UpstreamWithSelectorId(selectorId, commonUpstream, zombieCheckTimes);
+        this.futures.add(CompletableFuture.runAsync(() -> {
+            List<CommonUpstream> successList = checkFutures.stream()
+                    .map(CompletableFuture::join)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            updateHandler(selectorId, upstreamList, successList);
+        }));
     }
 
     private void updateHandler(final String selectorId, final List<CommonUpstream> upstreamList, final List<CommonUpstream> successList) {
