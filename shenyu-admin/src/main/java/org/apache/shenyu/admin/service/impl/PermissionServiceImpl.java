@@ -247,7 +247,7 @@ public class PermissionServiceImpl implements PermissionService {
      */
     private List<String> getListDiff(final List<String> preList, final List<String> lastList) {
         if (CollectionUtils.isEmpty(lastList)) {
-            return null;
+            return Collections.emptyList();
         }
         
         if (CollectionUtils.isEmpty(preList)) {

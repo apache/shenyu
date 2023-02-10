@@ -20,27 +20,26 @@ package org.apache.shenyu.loadbalancer.spi;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
  * The type least activity load balance test.
  */
 public class LeastActiveLoadBalanceTest {
-    private List<Upstream> onlyOneList = new ArrayList<>();
+    private final List<Upstream> onlyOneList = new ArrayList<>();
 
     /**
      * build upstream list.
-     * @throws Exception exception
      */
-    public void buildUpstreamList() throws Exception {
+    public void buildUpstreamList() {
         Upstream upstream1 = Upstream.builder()
                 .url("baidu.com")
-                .protocol("https")
+                .protocol("https://")
                 .build();
         Upstream upstream2 = Upstream.builder()
                 .url("pro.jd.com")
-                .protocol("https")
+                .protocol("https://")
                 .build();
         onlyOneList.add(upstream1);
         onlyOneList.add(upstream2);
@@ -52,7 +51,7 @@ public class LeastActiveLoadBalanceTest {
         final LeastActiveLoadBalance leastActiveLoadBalance = new LeastActiveLoadBalance();
         Upstream upstream = leastActiveLoadBalance.doSelect(onlyOneList, "localhost");
         Upstream upstream1 = leastActiveLoadBalance.doSelect(onlyOneList, "localhost");
-        Assert.assertTrue((upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com")) || upstream1.getUrl().equals("baidu.com") && upstream.getUrl().equals("pro.jd.com"));
-
+        Assertions.assertTrue((upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com"))
+                || upstream1.getUrl().equals("baidu.com") && upstream.getUrl().equals("pro.jd.com"));
     }
 }
