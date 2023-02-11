@@ -113,7 +113,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                 .build();
 
         // save authPath
-        if (appAuthDO.getOpen()) {
+        if (Boolean.TRUE.equals(appAuthDO.getOpen())) {
             List<AuthPathDO> collect = authApplyDTO.getPathList()
                     .stream()
                     .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName()))
@@ -147,7 +147,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             authParamMapper.save(AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
         }
 
-        if (appAuthDO.getOpen()) {
+        if (Boolean.TRUE.equals(appAuthDO.getOpen())) {
             List<AuthPathDO> existList = authPathMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
             if (CollectionUtils.isNotEmpty(existList)) {
                 authPathMapper.deleteByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
@@ -300,18 +300,14 @@ public class AppAuthServiceImpl implements AppAuthService {
         authParamMapper.deleteByAuthIds(ids);
         authPathMapper.deleteByAuthIds(ids);
 
-        List<AppAuthData> appAuthData = new ArrayList<>(appAuthList.size());
-        appAuthList.forEach(appAuthDO -> {
-            AppAuthData data = AppAuthData.builder()
-                    .appKey(appAuthDO.getAppKey())
-                    .appSecret(appAuthDO.getAppSecret())
-                    .open(appAuthDO.getOpen())
-                    .enabled(appAuthDO.getEnabled())
-                    .paramDataList(null)
-                    .pathDataList(null)
-                    .build();
-            appAuthData.add(data);
-        });
+        List<AppAuthData> appAuthData = appAuthList.stream().map(appAuthDO -> AppAuthData.builder()
+            .appKey(appAuthDO.getAppKey())
+            .appSecret(appAuthDO.getAppSecret())
+            .open(appAuthDO.getOpen())
+            .enabled(appAuthDO.getEnabled())
+            .paramDataList(null)
+            .pathDataList(null)
+            .build()).collect(Collectors.toCollection(() -> new ArrayList<>(appAuthList.size())));
         // publish delete event of AppAuthData
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, appAuthData));
 

@@ -56,11 +56,12 @@ import org.mockito.stubbing.Answer;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
@@ -149,11 +150,7 @@ public final class RuleServiceTest {
         parameter.setTotalCount(10);
         parameter.setTotalPage(parameter.getTotalCount() / parameter.getPageSize());
         RuleQuery ruleQuery = new RuleQuery("456", null, parameter);
-        List<RuleDO> ruleDOList = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            RuleDO ruleDO = buildRuleDO(String.valueOf(i));
-            ruleDOList.add(ruleDO);
-        }
+        List<RuleDO> ruleDOList = IntStream.range(0, 10).mapToObj(i -> buildRuleDO(String.valueOf(i))).collect(Collectors.toList());
         given(this.ruleMapper.selectByQuery(ruleQuery)).willReturn(ruleDOList);
         final CommonPager<RuleVO> ruleVOCommonPager = this.ruleService.listByPage(ruleQuery);
         assertEquals(ruleVOCommonPager.getDataList().size(), ruleDOList.size());

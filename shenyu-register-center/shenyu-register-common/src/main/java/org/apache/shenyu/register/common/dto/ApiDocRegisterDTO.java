@@ -21,6 +21,7 @@ import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.register.common.type.DataType;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -97,6 +98,27 @@ public class ApiDocRegisterDTO implements DataTypeParent {
      * event type.
      */
     private EventType eventType;
+
+    /**
+     * tags.
+     */
+    private List<String> tags;
+
+    /**
+     * getTags.
+     * @return tags
+     */
+    public List<String> getTags() {
+        return tags;
+    }
+
+    /**
+     * setTags.
+     * @param tags tags
+     */
+    public void setTags(final List<String> tags) {
+        this.tags = tags;
+    }
 
     @Override
     public DataType getType() {
@@ -362,15 +384,15 @@ public class ApiDocRegisterDTO implements DataTypeParent {
             return false;
         }
         ApiDocRegisterDTO that = (ApiDocRegisterDTO) o;
-        return Objects.equals(contextPath, that.contextPath) && Objects.equals(apiPath, that.apiPath) && Objects.equals(httpMethod, that.httpMethod)
-                && Objects.equals(consume, that.consume) && Objects.equals(produce, that.produce) && Objects.equals(version, that.version)
-                && Objects.equals(rpcType, that.rpcType) && Objects.equals(state, that.state) && Objects.equals(ext, that.ext) && Objects.equals(apiOwner, that.apiOwner)
-                && Objects.equals(apiDesc, that.apiDesc) && Objects.equals(apiSource, that.apiSource) && Objects.equals(document, that.document) && eventType == that.eventType;
+        return Objects.equals(contextPath, that.contextPath) && Objects.equals(apiPath, that.apiPath) && Objects.equals(httpMethod, that.httpMethod) && Objects.equals(consume, that.consume)
+                && Objects.equals(produce, that.produce) && Objects.equals(version, that.version) && Objects.equals(rpcType, that.rpcType) && Objects.equals(state, that.state)
+                && Objects.equals(ext, that.ext) && Objects.equals(apiOwner, that.apiOwner) && Objects.equals(apiDesc, that.apiDesc) && Objects.equals(apiSource, that.apiSource)
+                && Objects.equals(document, that.document) && eventType == that.eventType && Objects.equals(tags, that.tags);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contextPath, apiPath, httpMethod, consume, produce, version, rpcType, state, ext, apiOwner, apiDesc, apiSource, document, eventType);
+        return Objects.hash(contextPath, apiPath, httpMethod, consume, produce, version, rpcType, state, ext, apiOwner, apiDesc, apiSource, document, eventType, tags);
     }
 
     @Override
@@ -404,6 +426,8 @@ public class ApiDocRegisterDTO implements DataTypeParent {
                 + document
                 + ", eventType='"
                 + eventType
+                + ", tags='"
+                + tags
                 + '}';
     }
 
@@ -444,6 +468,8 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         private String document;
 
         private EventType eventType;
+
+        private List<String> tags;
 
         private ApiDocRegisterDTOBuilder() {
         }
@@ -589,6 +615,16 @@ public class ApiDocRegisterDTO implements DataTypeParent {
         }
 
         /**
+         * build tags.
+         * @param tags tags
+         * @return ApiDocRegisterDTOBuilder
+         */
+        public ApiDocRegisterDTOBuilder tags(final List<String> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        /**
          * build.
          * @return ApiDocRegisterDTO
          */
@@ -608,6 +644,7 @@ public class ApiDocRegisterDTO implements DataTypeParent {
             apiDocRegisterDTO.setApiSource(apiSource);
             apiDocRegisterDTO.setDocument(document);
             apiDocRegisterDTO.setEventType(eventType);
+            apiDocRegisterDTO.setTags(tags);
             return apiDocRegisterDTO;
         }
     }
