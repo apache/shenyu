@@ -64,6 +64,8 @@ public final class UpstreamCheckTask implements Runnable {
 
     private ExecutorService executor;
 
+    private int poolSize;
+
     private int checkTimeout = 3000;
 
     private int healthyThreshold = 1;
@@ -99,7 +101,7 @@ public final class UpstreamCheckTask implements Runnable {
 
         // executor for async request, avoid request block health check thread
         ThreadFactory requestFactory = ShenyuThreadFactory.create("upstream-health-check-request", true);
-        executor = new ScheduledThreadPoolExecutor(10, requestFactory);
+        executor = new ScheduledThreadPoolExecutor(poolSize, requestFactory);
     }
     
     /**
@@ -110,7 +112,25 @@ public final class UpstreamCheckTask implements Runnable {
     public void setCheckTimeout(final int checkTimeout) {
         this.checkTimeout = checkTimeout;
     }
-    
+
+    /**
+     * get checkThreadPoolSize.
+     *
+     * @return checkThreadPoolSize
+     */
+    public int getPoolSize() {
+        return poolSize;
+    }
+
+    /**
+     * set checkThreadPoolSize.
+     *
+     * @param poolSize checkThreadPoolSize
+     */
+    public void setPoolSize(final int poolSize) {
+        this.poolSize = poolSize;
+    }
+
     /**
      * Set healthy threshold.
      *
