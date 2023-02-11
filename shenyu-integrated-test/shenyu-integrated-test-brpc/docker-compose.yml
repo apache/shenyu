@@ -67,10 +67,11 @@ services:
     environment:
       - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
     depends_on:
-      shenyu-admin:
+      shenyu-examples-brpc-service:
         condition: service_healthy
     ports:
       - "9195:9195"
+      - "8015:8015"
     healthcheck:
       test: [ "CMD", "wget", "-q", "-O", "-", "http://shenyu-integrated-test-brpc:9195/actuator/health" ]
       timeout: 2s

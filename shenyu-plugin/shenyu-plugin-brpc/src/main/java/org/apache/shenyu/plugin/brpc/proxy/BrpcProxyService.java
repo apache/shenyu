@@ -98,7 +98,7 @@ public class BrpcProxyService {
     private Object getValue(final MetaData metaData, final Object[] params) {
         try {
             ServiceConfig serviceConfig = ApplicationConfigCache.getInstance().get(metaData.getPath());
-            if (StringUtils.isEmpty(serviceConfig.getServiceId())) {
+            if (StringUtils.isBlank(serviceConfig.getServiceId())) {
                 ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
                 serviceConfig = ApplicationConfigCache.getInstance().initRef(metaData);
             }

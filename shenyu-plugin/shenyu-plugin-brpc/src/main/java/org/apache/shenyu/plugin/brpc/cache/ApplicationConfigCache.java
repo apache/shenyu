@@ -28,6 +28,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -112,9 +113,9 @@ public final class ApplicationConfigCache {
      */
     public ServiceConfig initRef(final MetaData metaData) {
         try {
-            ServiceConfig service = cache.get(metaData.getPath());
-            if (Objects.nonNull(service)) {
-                return service;
+            ServiceConfig serviceConfig = cache.get(metaData.getPath());
+            if (StringUtils.isNotBlank(serviceConfig.getServiceId())) {
+                return serviceConfig;
             }
         } catch (Exception e) {
             LOG.warn("init brpc ref ex:{}", e.getMessage());

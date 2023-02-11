@@ -35,7 +35,7 @@ shenyu:
     enabled: true
   sync:
     websocket:
-      urls: ws://shenyu-admin:9095/websocket
+      urls: ws://localhost:9095/websocket
       allowOrigin: ws://localhost:9195
   exclude:
     enabled: true
