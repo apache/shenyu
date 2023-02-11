@@ -238,6 +238,7 @@ shenyu:
     threads: 16
   upstreamCheck:
     enabled: false
+    poolSize: 10
     timeout: 3000
     healthyThreshold: 1
     unhealthyThreshold: 1

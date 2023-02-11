@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.base.utils;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.support.RequestDecorator;
+import org.apache.shenyu.plugin.base.support.ResponseDecorator;
 import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
@@ -36,9 +37,10 @@ public class ServerWebExchangeUtils {
 
     /**
      * Rewrites Request Body.
+     *
      * @param exchange serverWebExchange
-     * @param readers reader to read request-body
-     * @param convert convert body to new body
+     * @param readers  reader to read request-body
+     * @param convert  convert body to new body
      * @return Mono.
      */
     public static Mono<ServerWebExchange> rewriteRequestBody(final ServerWebExchange exchange,
@@ -59,5 +61,18 @@ public class ServerWebExchangeUtils {
                     return Mono.just(exchange.mutate().request(decorator).build());
                 })).onErrorResume(throwable -> ResponseUtils.release(outputMessage, throwable));
 
+    }
+
+    /**
+     * Rewrites Response Body.
+     *
+     * @param exchange serverWebExchange
+     * @param convert  convert body to new body
+     * @return Mono.
+     */
+    public static ServerWebExchange rewriteResponseBody(final ServerWebExchange exchange,
+                                                        final Function<String, String> convert) {
+        return exchange.mutate()
+                .response(new ResponseDecorator(exchange, convert)).build();
     }
 }
