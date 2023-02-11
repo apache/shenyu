@@ -92,10 +92,10 @@ public final class ApplicationConfigCacheTest {
         pluginData.setConfig("{\"address\" : \"127.0.0.1\", \"port\" : \"8005\"}");
         BrpcRegisterConfig registerConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), BrpcRegisterConfig.class);
         applicationConfigCache.init(registerConfig);
-        Assertions.assertNotNull(applicationConfigCache.getClientConfig());
+        Assertions.assertNotNull(applicationConfigCache.getClient());
         Assertions.assertNotNull(applicationConfigCache.getProxyFactory());
-        Assertions.assertTrue(applicationConfigCache.getClientConfig().isActive());
-        applicationConfigCache.getClientConfig().destroy();
-        Assertions.assertFalse(applicationConfigCache.getClientConfig().isActive());
+        Assertions.assertTrue(applicationConfigCache.getClient().isActive());
+        applicationConfigCache.getClient().destroy();
+        Assertions.assertFalse(applicationConfigCache.getClient().isActive());
     }
 }

@@ -26,6 +26,7 @@ import com.baidu.cloud.starlight.core.rpc.proxy.JDKProxyFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
@@ -58,12 +59,22 @@ public final class ApplicationConfigCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
 
-    private StarlightClient clientConfig;
+    private static final ConcurrentMap<ServiceConfig, AsyncGenericService> PROXY_CACHE = new ConcurrentHashMap<>();
+
+    private StarlightClient client;
 
     private JDKProxyFactory proxyFactory;
 
     private final LoadingCache<String, ServiceConfig> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
+            .removalListener((RemovalListener<Object, ServiceConfig>) notification -> {
+                ServiceConfig config = notification.getValue();
+                if (Objects.nonNull(config)) {
+                    // After the configuration change, destroys the instance, but does not empty it.
+                    // If it is not handled, it will get NULL when reinitializing and cause a NULL pointer problem.
+                    PROXY_CACHE.remove(config);
+                }
+            })
             .build(new CacheLoader<String, ServiceConfig>() {
                 @Override
                 public ServiceConfig load(@NonNull final String key) {
@@ -74,19 +85,30 @@ public final class ApplicationConfigCache {
     private ApplicationConfigCache() {
     }
 
-    public AsyncGenericService buildService(ServiceConfig serviceConfig) {
-        if (Objects.isNull(clientConfig)) {
+    /**
+     * build service.
+     *
+     * @param serviceConfig the service config
+     * @return service
+     */
+    public AsyncGenericService buildService(final ServiceConfig serviceConfig) {
+        AsyncGenericService service = PROXY_CACHE.get(serviceConfig);
+        if (Objects.nonNull(service)) {
+            return service;
+        }
+        if (Objects.isNull(client)) {
             throw new UnsupportedOperationException("unsupport!!");
         }
-        //todo cache it
-        return proxyFactory.getProxy(AsyncGenericService.class, serviceConfig, clientConfig);
+        service = proxyFactory.getProxy(AsyncGenericService.class, serviceConfig, client);
+        PROXY_CACHE.put(serviceConfig, service);
+        return service;
     }
     
     /**
      * init service.
      *
      * @param metaData the meta data
-     * @return service
+     * @return service config
      */
     public ServiceConfig initRef(final MetaData metaData) {
         try {
@@ -106,19 +128,19 @@ public final class ApplicationConfigCache {
      * @param brpcRegisterConfig the config of brpc
      */
     public void init(final BrpcRegisterConfig brpcRegisterConfig) {
-        if (Objects.isNull(clientConfig)) {
+        if (Objects.isNull(client)) {
             TransportConfig config = new TransportConfig();
-            clientConfig = new SingleStarlightClient(brpcRegisterConfig.getAddress(), brpcRegisterConfig.getPort(), config);
-            clientConfig.init();
+            client = new SingleStarlightClient(brpcRegisterConfig.getAddress(), brpcRegisterConfig.getPort(), config);
+            client.init();
             proxyFactory = new JDKProxyFactory();
         }
     }
 
     /**
-     * Build service.
+     * Build service config.
      *
      * @param metaData the meta data
-     * @return service
+     * @return service config
      */
     public ServiceConfig build(final MetaData metaData) {
         ServiceConfig serviceConfig = new ServiceConfig();
@@ -148,10 +170,10 @@ public final class ApplicationConfigCache {
     }
 
     /**
-     * Get service.
+     * Get service config.
      *
      * @param path path
-     * @return the service
+     * @return the service config
      */
     public ServiceConfig get(final String path) {
         try {
@@ -193,8 +215,8 @@ public final class ApplicationConfigCache {
      *
      * @return the client config
      */
-    public StarlightClient getClientConfig() {
-        return clientConfig;
+    public StarlightClient getClient() {
+        return client;
     }
 
     /**
