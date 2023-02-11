@@ -62,27 +62,35 @@ public final class ApplicationConfigCache {
 
     private JDKProxyFactory proxyFactory;
 
-    private final LoadingCache<String, AsyncGenericService> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<String, ServiceConfig> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
-            .build(new CacheLoader<String, AsyncGenericService>() {
+            .build(new CacheLoader<String, ServiceConfig>() {
                 @Override
-                public AsyncGenericService load(@NonNull final String key) {
-                    return null;
+                public ServiceConfig load(@NonNull final String key) {
+                    return new ServiceConfig();
                 }
             });
 
     private ApplicationConfigCache() {
     }
 
+    public AsyncGenericService buildService(ServiceConfig serviceConfig) {
+        if (Objects.isNull(clientConfig)) {
+            throw new UnsupportedOperationException("unsupport!!");
+        }
+        //todo cache it
+        return proxyFactory.getProxy(AsyncGenericService.class, serviceConfig, clientConfig);
+    }
+    
     /**
      * init service.
      *
      * @param metaData the meta data
      * @return service
      */
-    public AsyncGenericService initService(final MetaData metaData) {
+    public ServiceConfig initRef(final MetaData metaData) {
         try {
-            AsyncGenericService service = cache.get(metaData.getPath());
+            ServiceConfig service = cache.get(metaData.getPath());
             if (Objects.nonNull(service)) {
                 return service;
             }
@@ -112,10 +120,7 @@ public final class ApplicationConfigCache {
      * @param metaData the meta data
      * @return service
      */
-    public AsyncGenericService build(final MetaData metaData) {
-        if (Objects.isNull(clientConfig)) {
-            throw new UnsupportedOperationException("unsupport!!");
-        }
+    public ServiceConfig build(final MetaData metaData) {
         ServiceConfig serviceConfig = new ServiceConfig();
         serviceConfig.setProtocol(BRPC_PROTOCOL);
         serviceConfig.setServiceId(metaData.getServiceName());
@@ -139,9 +144,7 @@ public final class ApplicationConfigCache {
                 }
             }
         });
-        AsyncGenericService service = proxyFactory.getProxy(AsyncGenericService.class, serviceConfig, clientConfig);
-        cache.put(metaData.getPath(), service);
-        return service;
+        return serviceConfig;
     }
 
     /**
@@ -150,7 +153,7 @@ public final class ApplicationConfigCache {
      * @param path path
      * @return the service
      */
-    public AsyncGenericService get(final String path) {
+    public ServiceConfig get(final String path) {
         try {
             return cache.get(path);
         } catch (ExecutionException e) {
