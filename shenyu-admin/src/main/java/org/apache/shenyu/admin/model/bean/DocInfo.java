@@ -26,7 +26,7 @@ public class DocInfo {
 
     private String title;
 
-    private transient String clusterName;
+    private String clusterName;
 
     private List<DocModule> docModuleList;
 
