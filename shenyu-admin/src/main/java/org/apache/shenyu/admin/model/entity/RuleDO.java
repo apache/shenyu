@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -288,7 +289,7 @@ public final class RuleDO extends BaseDO {
      * @return ruleData
      */
     public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
-        return transFrom(ruleDO, pluginName, conditionDataList, null);
+        return transFrom(ruleDO, pluginName, conditionDataList, Collections.emptyList());
     }
 
     @Override

@@ -114,7 +114,7 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
      * @param condition condition
      */
     public void onUpdated(final RuleDO rule, final RuleDO before, final List<RuleConditionDTO> condition) {
-        onUpdated(rule, before, condition, null);
+        onUpdated(rule, before, condition, Collections.emptyList());
     }
 
     /**
