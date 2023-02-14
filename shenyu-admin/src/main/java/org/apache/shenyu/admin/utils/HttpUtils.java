@@ -32,12 +32,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -161,7 +161,7 @@ public class HttpUtils {
                 @Override
                 public List<Cookie> loadForRequest(final HttpUrl httpUrl) {
                     List<Cookie> cookies = cookieStore.get(httpUrl.host());
-                    return cookies != null ? cookies : new ArrayList<Cookie>();
+                    return cookies != null ? cookies : new ArrayList<>();
                 }
             }).build();
     }
@@ -640,7 +640,7 @@ public class HttpUtils {
             }
             InputStream input = null;
             try {
-                input = new FileInputStream(file);
+                input = Files.newInputStream(file.toPath());
                 return toBytes(input);
             } finally {
                 try {

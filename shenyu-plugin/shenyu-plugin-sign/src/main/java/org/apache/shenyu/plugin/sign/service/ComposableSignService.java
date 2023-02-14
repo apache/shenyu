@@ -161,6 +161,12 @@ public class ComposableSignService implements SignService {
     }
 
     private VerifyResult verifySignParameters(final SignParameters signParameters) {
+
+        if (signParameters == SignParameters.VERSION_ERROR_PARAMETERS) {
+            LOG.error("sign version does not exist or is wrong");
+            return VerifyResult.fail(Constants.SIGN_VERSION_ERROR);
+        }
+
         boolean success = StringUtils.isNoneBlank(signParameters.getAppKey())
                 && StringUtils.isNoneBlank(signParameters.getTimestamp())
                 && StringUtils.isNoneBlank(signParameters.getSignature());

@@ -42,6 +42,7 @@ shenyu:
       sessionTimeout: 5000
       connectionTimeout: 2000
       checked: true
+      zombieCheckThreads: 10
       zombieCheckTimes: 5
       scheduledTime: 10
       nacosNameSpace: ShenyuRegisterCenter

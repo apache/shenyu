@@ -61,7 +61,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
     private static final Logger LOG = LoggerFactory.getLogger(LoadServiceDocEntryImpl.class);
 
     @SuppressWarnings("unchecked")
-    private static Map<String, String> supportSwaggerPluginMap = Collections.EMPTY_MAP;
+    private static Map<String, String> supportSwaggerPluginMap = Collections.emptyMap();
 
     private final SelectorService selectorService;
 
@@ -96,8 +96,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             return;
         }
         final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-        String log = JsonUtils.toJson(currentServices);
-        LOG.info("load api document  serviceList={}", log);
+        LOG.info("load api document  serviceList={}", JsonUtils.toJson(currentServices));
         serviceDocManager.pullApiDocument(currentServices);
     }
 
@@ -113,8 +112,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                 return;
             }
             final Set<UpstreamInstance> currentServices = new HashSet<>(serviceList);
-            String log = JsonUtils.toJson(currentServices);
-            LOG.info("loadDocOnSelectorChanged serviceList={}", log);
+            LOG.info("loadDocOnSelectorChanged serviceList={}", JsonUtils.toJson(currentServices));
             serviceDocManager.pullApiDocument(currentServices);
         }
     }
@@ -217,7 +215,7 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
                     allInstances.add(instance);
                 }
             } catch (Exception e) {
-                LOG.error("Error getting cluster instance list. contextPath={} error={}", contextPath, e.getMessage());
+                LOG.error("Error getting cluster instance list. contextPath={} error={}", contextPath, e);
                 return Collections.emptyList();
             }
         }
