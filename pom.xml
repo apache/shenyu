@@ -484,12 +484,6 @@
                 <artifactId>eureka-client</artifactId>
                 <version>${eureka.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>org.apache.shenyu</groupId>
-                <artifactId>shenyu</artifactId>
-                <version>${shenyu.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
