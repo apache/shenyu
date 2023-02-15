@@ -325,7 +325,7 @@ public class UpstreamCheckService {
                     LOG.error("check the url={} is fail ", commonUpstream.getUpstreamUrl());
                 }
                 return null;
-            }).exceptionally(ex -> {
+            }, invokeExecutor).exceptionally(ex -> {
                 LOG.error("An exception occurred during the check of url {}: {}", commonUpstream.getUpstreamUrl(), ex);
                 return null;
             }));
