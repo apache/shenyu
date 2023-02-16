@@ -102,7 +102,7 @@ public class BrpcProxyService {
                 ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
                 serviceConfig = ApplicationConfigCache.getInstance().initRef(metaData);
             }
-            AsyncGenericService service = ApplicationConfigCache.getInstance().buildService(serviceConfig);
+            AsyncGenericService service = ApplicationConfigCache.getInstance().buildService(serviceConfig, metaData);
             return service.$invokeFuture(metaData.getMethodName(), params).get();
         } catch (Exception e) {
             LOG.error("Exception caught in BrpcProxyService#genericInvoker.", e);
