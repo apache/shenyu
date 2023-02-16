@@ -771,7 +771,6 @@ CREATE TABLE `plugin`  (
   `role` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'plug-in role',
   `sort` int(0) NULL DEFAULT NULL COMMENT 'sort',
   `enabled` tinyint(0) NOT NULL DEFAULT 0 COMMENT 'whether to open (0, not open, 1 open)',
-  `jar_resource` LONGBLOB  DEFAULT NULL COMMENT 'upload plugin jar',
   `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
   `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
