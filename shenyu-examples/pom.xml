@@ -23,7 +23,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu-examples</artifactId>
-    <version>2.5.1-SNAPSHOT</version>
+    <version>${shenyu.version}</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -38,6 +38,7 @@
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
+        <shenyu.version>2.6.0-SNAPSHOT</shenyu.version>
     </properties>
 
     <modules>
@@ -56,6 +57,7 @@
         <module>shenyu-examples-springmvc</module>
         <module>shenyu-examples-springmvc-tomcat</module>
         <module>shenyu-examples-sdk</module>
+        <module>shenyu-examples-brpc</module>
     </modules>
 
     <build>

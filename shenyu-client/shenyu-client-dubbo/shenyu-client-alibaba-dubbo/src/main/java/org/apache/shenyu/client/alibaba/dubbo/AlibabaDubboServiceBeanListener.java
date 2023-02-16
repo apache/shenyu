@@ -66,7 +66,7 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
     }
 
     @Override
-    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, ServiceBean> beans) {
         ShenyuDubboClient shenyuDubboClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuDubboClient.class);
         if (Objects.isNull(shenyuDubboClient)) {
             return null;
@@ -75,9 +75,16 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
         String consume = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
         String[] values = new String[]{shenyuDubboClient.value()};
         ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
-        //TODO 获取dubbo version
-        String version = "v0.01";
-        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.DUBBO, version);
+        String defaultVersion = "v0.01";
+        Class methodClass = method.getDeclaringClass();
+        Class[] interfaces = methodClass.getInterfaces();
+        for (Class anInterface : interfaces) {
+            if (beans.containsKey(anInterface.getName())) {
+                ServiceBean serviceBean = beans.get(anInterface.getName());
+                defaultVersion = Optional.ofNullable(serviceBean.getVersion()).orElse(defaultVersion);
+            }
+        }
+        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.DUBBO, defaultVersion);
     }
 
     @Override
