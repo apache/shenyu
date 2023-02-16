@@ -73,6 +73,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      * Instantiates a new shenyu web handler.
      *
      * @param plugins the plugins
+     * @param shenyuLoaderService shenyuLoaderService
      * @param shenyuConfig plugins config
      */
     public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuLoaderService shenyuLoaderService, final ShenyuConfig shenyuConfig) {
