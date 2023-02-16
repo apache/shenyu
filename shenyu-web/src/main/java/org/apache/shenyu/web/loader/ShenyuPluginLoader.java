@@ -158,7 +158,6 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      *
      * @param base64JarList base64JarList
      * @return the list
-     * @throws IOException the io exception
      */
     public List<ShenyuLoaderResult> loadBase64Plugins(final List<String> base64JarList) {
         List<byte[]> jarByteArrayList = base64JarList.stream().map(base64JarStr -> Base64.getDecoder().decode(base64JarStr)).collect(Collectors.toList());
