@@ -94,6 +94,7 @@ public final class ApplicationConfigCache {
      * build service.
      *
      * @param serviceConfig the service config
+     * @param metaData the meta data
      * @return service
      */
     public AsyncGenericService buildService(final ServiceConfig serviceConfig,
