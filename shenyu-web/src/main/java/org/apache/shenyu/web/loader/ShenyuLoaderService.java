@@ -28,7 +28,6 @@ import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -62,11 +61,11 @@ public class ShenyuLoaderService {
         ExtPlugin config = shenyuConfig.getExtPlugin();
         if (config.getEnabled()) {
             ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(config.getThreads(), ShenyuThreadFactory.create("plugin-ext-loader", true));
-            executor.scheduleAtFixedRate(this::loadExtendPlugins, config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
+            executor.scheduleAtFixedRate(this::loaderExtPlugins, config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
         }
     }
 
-    private void loadExtendPlugins(){
+    private void loaderExtPlugins() {
         try {
             List<ShenyuLoaderResult> extendPlugins = ShenyuPluginLoader.getInstance().loadExtendPlugins(shenyuConfig.getExtPlugin().getPath());
             loaderPlugins(extendPlugins);
@@ -80,7 +79,7 @@ public class ShenyuLoaderService {
      *
      * @param base64JarStrList base64JarStrList
      */
-    public void loadBase64JarPlugins(final List<String> base64JarStrList){
+    public void loadBase64JarPlugins(final List<String> base64JarStrList) {
         try {
             List<ShenyuLoaderResult> extendPlugins = ShenyuPluginLoader.getInstance().loadBase64Plugins(base64JarStrList);
             loaderPlugins(extendPlugins);
@@ -89,7 +88,12 @@ public class ShenyuLoaderService {
         }
     }
 
-    private void loaderPlugins(List<ShenyuLoaderResult> results) {
+    /**
+     * loaderPlugins.
+     *
+     * @param results results
+     */
+    private void loaderPlugins(final List<ShenyuLoaderResult> results) {
         if (CollectionUtils.isEmpty(results)) {
             return;
         }

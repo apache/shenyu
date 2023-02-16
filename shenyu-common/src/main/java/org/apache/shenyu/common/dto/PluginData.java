@@ -84,7 +84,7 @@ public class PluginData {
     }
 
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
-                      final Integer sort, final String  jarResourcesBase64) {
+                      final Integer sort, final String jarResourcesBase64) {
         this.id = id;
         this.name = name;
         this.config = config;
@@ -240,7 +240,7 @@ public class PluginData {
      *
      * @param jarResourcesBase64 String
      */
-    public void setJarResourcesBase64(String jarResourcesBase64) {
+    public void setJarResourcesBase64(final String jarResourcesBase64) {
         this.jarResourcesBase64 = jarResourcesBase64;
     }
 

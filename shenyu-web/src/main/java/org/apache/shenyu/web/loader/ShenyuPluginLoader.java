@@ -186,7 +186,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
      *
      * @param jarBytes jarBytes
      */
-    private void parserJar(byte[] jarBytes) {
+    private void parserJar(final byte[] jarBytes) {
         try (JarInputStream jarInputStream = new JarInputStream(new ByteArrayInputStream(jarBytes))) {
             JarEntry jarEntry;
             while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
