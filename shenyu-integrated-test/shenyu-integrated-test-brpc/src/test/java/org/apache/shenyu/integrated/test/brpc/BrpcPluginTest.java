@@ -36,7 +36,7 @@ public class BrpcPluginTest extends AbstractPluginDataInit {
     @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.BRPC.getName(),
-                "{\"address\":\"shenyu\", \"port\":\"8015\",\"corethreads\":0, \"threads\":2147483647, \"queues\":0, \"threadpool\":\"shared\"}");
+                "{\"address\":\"127.0.0.1\", \"port\":\"8015\",\"corethreads\":0, \"threads\":2147483647, \"queues\":0, \"threadpool\":\"shared\"}");
         assertThat(pluginResult, Matchers.is("success"));
     }
     
