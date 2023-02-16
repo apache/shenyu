@@ -78,7 +78,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final Duration duration = Duration.ofMillis(timeout);
         final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(RetryEnum.CURRENT::getName);
-        LOG.info("The request urlPath is {}, retryTimes is {}, retryStrategy is {}", uri.toASCIIString(), retryTimes, retryStrategy);
+        LOG.info("The request urlPath is {}, retryTimes is {}, retryStrategy is {}", uri, retryTimes, retryStrategy);
         final HttpHeaders httpHeaders = buildHttpHeaders(exchange);
         final Mono<R> response = doRequest(exchange, exchange.getRequest().getMethodValue(), uri, httpHeaders, exchange.getRequest().getBody())
                 .timeout(duration, Mono.error(new TimeoutException("Response took longer than timeout: " + duration)))
