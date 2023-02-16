@@ -18,6 +18,7 @@
 package org.apache.shenyu.web.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
@@ -25,6 +26,7 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
+import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
@@ -36,6 +38,8 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +64,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     private final List<ShenyuPlugin> sourcePlugins;
 
+    private ShenyuLoaderService shenyuLoaderService;
+
     private final boolean scheduled;
 
     private Scheduler scheduler;
@@ -70,9 +76,10 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      * @param plugins the plugins
      * @param shenyuConfig plugins config
      */
-    public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuConfig shenyuConfig) {
+    public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuLoaderService shenyuLoaderService, final ShenyuConfig shenyuConfig) {
         this.sourcePlugins = new ArrayList<>(plugins);
         this.plugins = new ArrayList<>(plugins);
+        this.shenyuLoaderService = shenyuLoaderService;
         ShenyuConfig.Scheduler config = shenyuConfig.getScheduler();
         this.scheduled = config.getEnabled();
         if (scheduled) {
@@ -168,6 +175,10 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     private synchronized void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
+        if (StringUtils.isNoneBlank(pluginData.getJarResourcesBase64())) {
+            LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
+            shenyuLoaderService.loadBase64JarPlugins(Collections.singletonList(pluginData.getJarResourcesBase64()));
+        }
         final List<ShenyuPlugin> enabledPlugins = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
                 && pluginData.getEnabled()).collect(Collectors.toList());
         enabledPlugins.removeAll(this.plugins);

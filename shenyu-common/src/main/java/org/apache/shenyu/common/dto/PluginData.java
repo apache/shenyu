@@ -35,8 +35,10 @@ public class PluginData {
     private String role;
 
     private Boolean enabled;
-    
+
     private Integer sort;
+
+    private String jarResourcesBase64;
 
     /**
      * no args constructor.
@@ -60,10 +62,10 @@ public class PluginData {
         this.role = role;
         this.enabled = enabled;
     }
-    
+
     /**
      * all args constructor.
-     * 
+     *
      * @param id id
      * @param name name
      * @param config config
@@ -79,6 +81,17 @@ public class PluginData {
         this.role = role;
         this.enabled = enabled;
         this.sort = sort;
+    }
+
+    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
+                      final Integer sort, final String  jarResourcesBase64) {
+        this.id = id;
+        this.name = name;
+        this.config = config;
+        this.role = role;
+        this.enabled = enabled;
+        this.sort = sort;
+        this.jarResourcesBase64 = jarResourcesBase64;
     }
 
     /**
@@ -197,7 +210,7 @@ public class PluginData {
 
     /**
      * set sort.
-     * 
+     *
      * @param sort sort value
      */
     public void setSort(final Integer sort) {
@@ -211,6 +224,24 @@ public class PluginData {
      */
     public void setEnabled(final Boolean enabled) {
         this.enabled = enabled;
+    }
+
+
+    /**
+     *  get plugin jar resources byte array.
+     * @return byte[]
+     */
+    public String getJarResourcesBase64() {
+        return jarResourcesBase64;
+    }
+
+    /**
+     * set plugin jar resources byte array.
+     *
+     * @param jarResourcesBase64 String
+     */
+    public void setJarResourcesBase64(String jarResourcesBase64) {
+        this.jarResourcesBase64 = jarResourcesBase64;
     }
 
     @Override
@@ -285,6 +316,11 @@ public class PluginData {
          * sort.
          */
         private Integer sort;
+
+        /**
+         * jarResources.
+         */
+        private String jarResourcesBase64;
 
         /**
          * no args constructor.
@@ -364,6 +400,17 @@ public class PluginData {
          */
         public Builder sort(final Integer sort) {
             this.sort = sort;
+            return this;
+        }
+
+        /**
+         * build jarResources.
+         *
+         * @param jarResourcesBase64 jarResources
+         * @return this
+         */
+        public Builder jarResources(final String jarResourcesBase64) {
+            this.jarResourcesBase64 = jarResourcesBase64;
             return this;
         }
     }
