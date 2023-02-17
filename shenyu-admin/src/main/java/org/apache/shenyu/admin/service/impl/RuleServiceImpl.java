@@ -152,11 +152,17 @@ public class RuleServiceImpl implements RuleService {
         Assert.notNull(before, "the updated rule is not found");
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
+
+        // need old data for cleaning
+        final List<RuleConditionDO> beforeRuleCondition = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
+
         //delete rule condition then add
         ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
+
+        // insert new condition
         addCondition(ruleDO, ruleDTO.getRuleConditions());
         if (ruleCount > 0) {
-            ruleEventPublisher.onUpdated(ruleDO, before, ruleDTO.getRuleConditions());
+            ruleEventPublisher.onUpdated(ruleDO, before, ruleDTO.getRuleConditions(), beforeRuleCondition);
         }
         return ruleCount;
     }
