@@ -134,7 +134,7 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     @ValueSource(strings = {"decrypt", "encrypt"})
     public void testWhenDecryptionOrEncryptionIsFailed(final String way) throws Exception {
 
-        CryptorRuleHandler handler = buildRuleHandler("ras", way, "wrong_encrypt_key", "wrong_decrypt_key", "userId");
+        CryptorRuleHandler handler = buildRuleHandler("rsa", way, "wrong_encrypt_key", "wrong_decrypt_key", "userId");
         RuleLocalData ruleLocalData = ruleLocalData(handler, SINGLETON_CONDITION_LIST);
 
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(), "", SINGLETON_CONDITION_LIST, Lists.newArrayList(ruleLocalData));
@@ -150,7 +150,7 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     @ValueSource(strings = {"decrypt", "encrypt"})
     public void testWhenKeyIsNull(final String way) throws Exception {
 
-        CryptorRuleHandler handler = buildRuleHandler("ras", way, null, null, "data");
+        CryptorRuleHandler handler = buildRuleHandler("rsa", way, null, null, "data");
 
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
                 "", SINGLETON_CONDITION_LIST, singletonRuleLocalDataList(handler, SINGLETON_CONDITION_LIST));
@@ -166,7 +166,7 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     @Test
     public void testWhenFieldNamesIsNull() throws Exception {
 
-        CryptorRuleHandler handler = buildRuleHandler("ras", "decrypt", RSA_PUBLIC_KEY, RSA_PRIVATE_KEY, null);
+        CryptorRuleHandler handler = buildRuleHandler("rsa", "decrypt", RSA_PUBLIC_KEY, RSA_PRIVATE_KEY, null);
 
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(), "", SINGLETON_CONDITION_LIST,
                 singletonRuleLocalDataList(handler, SINGLETON_CONDITION_LIST));

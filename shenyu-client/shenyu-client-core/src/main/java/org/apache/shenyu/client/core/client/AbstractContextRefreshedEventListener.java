@@ -20,6 +20,7 @@ package org.apache.shenyu.client.core.client;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
@@ -50,6 +51,8 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -140,10 +143,15 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     }
 
     private List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method, final Map<String, T> beans) {
-        String apiDesc = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
+        Pair<String, List<String>> pairs = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
             ApiDoc apiDoc = (ApiDoc) item;
-            return apiDoc.desc();
-        }).orElse("");
+            String[] tags = apiDoc.tags();
+            List<String> tagsList = new ArrayList<>();
+            if (tags.length > 0 && StringUtils.isNotBlank(tags[0])) {
+                tagsList = Arrays.asList(tags);
+            }
+            return Pair.of(apiDoc.desc(), tagsList);
+        }).orElse(Pair.of("", new ArrayList<>()));
         Class<?> clazz = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
         String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
         if (superPath.indexOf("*") > 0) {
@@ -173,7 +181,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
                         .document("{}")
                         .rpcType(sextet.getValue4().getName())
                         .version(sextet.getValue5())
-                        .apiDesc(apiDesc)
+                        .apiDesc(pairs.getLeft())
+                        .tags(pairs.getRight())
                         .apiPath(apiPath)
                         .apiSource(ApiSourceEnum.ANNOTATION_GENERATION.getValue())
                         .state(ApiStateEnum.PUBLISHED.getState())

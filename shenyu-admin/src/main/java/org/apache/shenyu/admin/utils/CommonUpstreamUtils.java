@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
  * Build upstream for rpc plugin.
  */
 public class CommonUpstreamUtils {
+
+    private static final String LOCALHOST = "localhost";
     
     /**
      * Build divide upstream divide upstream.
@@ -44,7 +46,7 @@ public class CommonUpstreamUtils {
      * @return the divide upstream
      */
     public static DivideUpstream buildDefaultDivideUpstream(final String host, final Integer port) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
+        return DivideUpstream.builder().upstreamHost(LOCALHOST).protocol("http://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
                 .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
 
@@ -55,7 +57,7 @@ public class CommonUpstreamUtils {
      * @return the divide upstream
      */
     public static DivideUpstream buildDefaultAliveDivideUpstream(final String upstreamUrl) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(upstreamUrl).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
+        return DivideUpstream.builder().upstreamHost(LOCALHOST).protocol("http://").upstreamUrl(upstreamUrl).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
 
     /**
@@ -67,7 +69,7 @@ public class CommonUpstreamUtils {
      * @return the divide upstream
      */
     public static DivideUpstream buildDivideUpstream(final String protocol, final String host, final Integer port) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
+        return DivideUpstream.builder().upstreamHost(LOCALHOST).protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
                 .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
 
@@ -79,7 +81,7 @@ public class CommonUpstreamUtils {
      * @return the divide upstream
      */
     public static DivideUpstream buildAliveDivideUpstream(final String protocol, final String upstreamUrl) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol(protocol).upstreamUrl(upstreamUrl).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
+        return DivideUpstream.builder().upstreamHost(LOCALHOST).protocol(protocol).upstreamUrl(upstreamUrl).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
 
     /**
@@ -91,7 +93,7 @@ public class CommonUpstreamUtils {
      * @return the websocket upstream
      */
     public static WebSocketUpstream buildWebSocketUpstream(final String protocol, final String host, final Integer port) {
-        return WebSocketUpstream.builder().host("localhost").protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
+        return WebSocketUpstream.builder().host(LOCALHOST).protocol(protocol).upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
                 .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
 
@@ -103,7 +105,7 @@ public class CommonUpstreamUtils {
      * @return the dubbo upstream
      */
     public static DubboUpstream buildDefaultDubboUpstream(final String host, final Integer port) {
-        return DubboUpstream.builder().upstreamHost("localhost").protocol("dubbo://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
+        return DubboUpstream.builder().upstreamHost(LOCALHOST).protocol("dubbo://").upstreamUrl(buildUrl(host, port)).weight(50).warmup(10).timestamp(System.currentTimeMillis())
                 .status(Objects.nonNull(port) && StringUtils.isNotBlank(host)).build();
     }
 
@@ -114,7 +116,7 @@ public class CommonUpstreamUtils {
      * @return the dubbo upstream
      */
     public static DubboUpstream buildAliveDubboUpstream(final String upstreamUrl) {
-        return DubboUpstream.builder().upstreamHost("localhost").protocol("dubbo://").upstreamUrl(upstreamUrl).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
+        return DubboUpstream.builder().upstreamHost(LOCALHOST).protocol("dubbo://").upstreamUrl(upstreamUrl).weight(50).warmup(10).timestamp(System.currentTimeMillis()).build();
     }
 
     /**

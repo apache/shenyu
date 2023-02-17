@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-integrated-test</artifactId>
-        <version>2.5.1-SNAPSHOT</version>
+        <version>${shenyu.version}</version>
     </parent>
 
     <artifactId>shenyu-integrated-test-alibaba-dubbo</artifactId>

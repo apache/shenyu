@@ -99,12 +99,24 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
      * @param rule      rule
      * @param before    before rule
      * @param condition condition
+     * @param beforeCondition beforeCondition
+     */
+    public void onUpdated(final RuleDO rule, final RuleDO before, final List<RuleConditionDTO> condition, final List<RuleConditionDO> beforeCondition) {
+        publish(new RuleUpdatedEvent(rule, before, SessionUtil.visitorName()));
+        publishEvent(rule, condition, beforeCondition);
+    }
+
+    /**
+     * on rule updated.
+     *
+     * @param rule      rule
+     * @param before    before rule
+     * @param condition condition
      */
     public void onUpdated(final RuleDO rule, final RuleDO before, final List<RuleConditionDTO> condition) {
-        publish(new RuleUpdatedEvent(rule, before, SessionUtil.visitorName()));
-        publishEvent(rule, condition);
+        onUpdated(rule, before, condition, Collections.emptyList());
     }
-    
+
     /**
      * on rule updated.
      *
@@ -176,12 +188,22 @@ public class RuleEventPublisher implements AdminDataModelChangedEventPublisher<R
     public void publish(final AdminDataModelChangedEvent event) {
         publisher.publishEvent(event);
     }
-    
+
     private void publishEvent(final RuleDO ruleDO, final List<RuleConditionDTO> condition) {
         // publish change event.
         final RuleData rule = RuleDO.transFrom(ruleDO,
                 ruleMapper.getPluginNameBySelectorId(ruleDO.getSelectorId()),
                 map(condition, ConditionTransfer.INSTANCE::mapToRuleDTO));
+        publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE, Collections.singletonList(rule)));
+    }
+
+    private void publishEvent(final RuleDO ruleDO, final List<RuleConditionDTO> condition, final List<RuleConditionDO> beforeCondition) {
+        // publish change event.
+        final RuleData rule = RuleDO.transFrom(ruleDO,
+                ruleMapper.getPluginNameBySelectorId(ruleDO.getSelectorId()),
+                map(condition, ConditionTransfer.INSTANCE::mapToRuleDTO),
+                map(beforeCondition, ConditionTransfer.INSTANCE::mapToRuleDO)
+        );
         publisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE, Collections.singletonList(rule)));
     }
 }

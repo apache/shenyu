@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -259,9 +260,10 @@ public final class RuleDO extends BaseDO {
      * @param ruleDO            the rule do
      * @param pluginName        the plugin name
      * @param conditionDataList the condition data list
+     * @param beforeConditionDataList the before condition data list
      * @return the rule data
      */
-    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
+    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList, final List<ConditionData> beforeConditionDataList) {
         return RuleData.builder()
                 .id(ruleDO.getId())
                 .name(ruleDO.getName())
@@ -273,7 +275,21 @@ public final class RuleDO extends BaseDO {
                 .loged(ruleDO.getLoged())
                 .handle(ruleDO.getHandle())
                 .conditionDataList(conditionDataList)
+                .beforeConditionDataList(beforeConditionDataList)
                 .build();
+    }
+
+    /**
+     * Trans from rule data.
+     *
+     * @param ruleDO            the rule do
+     * @param pluginName        the plugin name
+     * @param conditionDataList the condition data list
+     *
+     * @return ruleData
+     */
+    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
+        return transFrom(ruleDO, pluginName, conditionDataList, Collections.emptyList());
     }
 
     @Override
