@@ -38,6 +38,7 @@
         <module>shenyu-integrated-test-grpc</module>
         <module>shenyu-integrated-test-motan</module>
         <module>shenyu-integrated-test-sofa</module>
+        <module>shenyu-integrated-test-brpc</module>
         <module>shenyu-integrated-test-websocket</module>
         <module>shenyu-integrated-test-combination</module>
         <module>shenyu-integrated-test-sdk-apache-dubbo</module>
