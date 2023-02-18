@@ -51,7 +51,7 @@ shenyu:
     props:
       username: admin
       password: 123456
-      nacosNameSpace: 
+      nacosNameSpace: ShenyuRegisterCenter
   client:
     springCloud:
       props:
