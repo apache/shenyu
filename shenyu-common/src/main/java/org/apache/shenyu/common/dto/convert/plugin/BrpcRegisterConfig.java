@@ -27,10 +27,6 @@ public class BrpcRegisterConfig implements Serializable {
 
     private static final long serialVersionUID = -1124348422759120146L;
 
-    private String address;
-
-    private Integer port;
-
     private String threadpool;
 
     private Integer corethreads;
@@ -38,43 +34,6 @@ public class BrpcRegisterConfig implements Serializable {
     private Integer threads;
 
     private Integer queues;
-
-
-    /**
-     * get address.
-     *
-     * @return address
-     */
-    public String getAddress() {
-        return address;
-    }
-
-    /**
-     * set address.
-     *
-     * @param address address
-     */
-    public void setAddress(final String address) {
-        this.address = address;
-    }
-
-    /**
-     * get port.
-     *
-     * @return port
-     */
-    public Integer getPort() {
-        return port;
-    }
-
-    /**
-     * set port.
-     *
-     * @param port port
-     */
-    public void setPort(final Integer port) {
-        this.port = port;
-    }
 
     /**
      * get threadpool.
@@ -157,23 +116,19 @@ public class BrpcRegisterConfig implements Serializable {
             return false;
         }
         BrpcRegisterConfig that = (BrpcRegisterConfig) o;
-        return Objects.equals(address, that.address) && Objects.equals(port, that.port)
-                && Objects.equals(threadpool, that.threadpool) && Objects.equals(corethreads, that.corethreads)
+        return Objects.equals(threadpool, that.threadpool) && Objects.equals(corethreads, that.corethreads)
                 && Objects.equals(threads, that.threads) && Objects.equals(queues, that.queues);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(address, port, threadpool, corethreads, threads, queues);
+        return Objects.hash(threadpool, corethreads, threads, queues);
     }
 
     @Override
     public String toString() {
         return "BrpcRegisterConfig{"
-                + "address='" + address
-                + '\''
-                + ", port=" + port
-                + ", threadpool='" + threadpool
+                + "threadpool='" + threadpool
                 + '\''
                 + ", corethreads=" + corethreads
                 + ", threads=" + threads
