@@ -15,25 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.enums;
+package org.apache.shenyu.integrated.test.brpc;
 
-/**
- * Rule trie event enum.
- */
-public enum RuleTrieEventEnum {
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@SpringBootApplication
+public class BrpcIntegratedBootstrap {
+    
     /**
-     * Shenyu Trie insert event.
+     * main mathod of app.
+     *
+     * @param args args
      */
-    INSERT,
-
-    /**
-     * Shenyu Trie update event.
-     */
-    UPDATE,
-
-    /**
-     * Shenyu Trie remove event.
-     */
-    REMOVE;
+    public static void main(final String[] args) {
+        SpringApplication.run(BrpcIntegratedBootstrap.class);
+    }
 }
