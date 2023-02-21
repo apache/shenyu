@@ -105,10 +105,10 @@ public class ShenyuConsulConfigWatch implements SmartLifecycle {
                         LOGGER.trace("Same index for context {}", context);
                     }
                 } else if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("No value for context {}", context);
+                    LOGGER.warn("No value for context {}", context);
                 }
             } catch (Exception e) {
-                LOGGER.warn("Error querying consul Key/Values for context '{}'. Message: {}", context, e.getMessage());
+                LOGGER.error("Error querying consul Key/Values for context '{}'. Message: {}", context, e.getMessage());
             }
         });
     }
