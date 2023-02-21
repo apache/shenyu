@@ -37,6 +37,46 @@ import java.lang.annotation.Target;
 public @interface ShenyuBrpcService {
 
     /**
+     * Value string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = ShenyuBrpcClient.class)
+    String value() default "";
+
+    /**
+     * Path string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = ShenyuBrpcClient.class)
+    String path() default "";
+
+    /**
+     * Rule name string.
+     *
+     * @return the string
+     */
+    @AliasFor(annotation = ShenyuBrpcClient.class)
+    String ruleName() default "";
+
+    /**
+     * Desc string.
+     *
+     * @return String string
+     */
+    @AliasFor(annotation = ShenyuBrpcClient.class)
+    String desc() default "";
+
+    /**
+     * Enabled boolean.
+     *
+     * @return the boolean
+     */
+    @AliasFor(annotation = ShenyuBrpcClient.class)
+    boolean enabled() default true;
+
+    /**
      * service id.
      *
      * @return the string

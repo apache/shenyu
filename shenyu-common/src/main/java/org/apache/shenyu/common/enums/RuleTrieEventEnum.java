@@ -28,6 +28,11 @@ public enum RuleTrieEventEnum {
     INSERT,
 
     /**
+     * Shenyu Trie update event.
+     */
+    UPDATE,
+
+    /**
      * Shenyu Trie remove event.
      */
     REMOVE;
