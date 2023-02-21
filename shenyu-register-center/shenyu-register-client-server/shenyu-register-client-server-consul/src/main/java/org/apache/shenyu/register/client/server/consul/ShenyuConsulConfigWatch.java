@@ -21,6 +21,7 @@ import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.slf4j.Logger;
@@ -88,7 +89,7 @@ public class ShenyuConsulConfigWatch implements SmartLifecycle {
             try {
                 Long currentIndex = this.consulIndexes.computeIfAbsent(context, k -> -1L);
                 Response<List<GetValue>> response = this.consul.getKVValues(context, null, new QueryParams(waitTime, currentIndex));
-                if (response.getValue() != null && !response.getValue().isEmpty()) {
+                if (CollectionUtils.isNotEmpty(response.getValue())) {
                     Long newIndex = response.getConsulIndex();
 
                     if (Objects.nonNull(newIndex) && !newIndex.equals(currentIndex)) {
