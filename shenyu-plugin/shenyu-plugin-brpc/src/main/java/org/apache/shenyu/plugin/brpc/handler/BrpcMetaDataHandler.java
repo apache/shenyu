@@ -43,7 +43,7 @@ public class BrpcMetaDataHandler implements MetaDataHandler {
             MetaData exist = META_DATA.get(metaData.getPath());
             if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getPath()))) {
                 // The first initialization
-                ApplicationConfigCache.getInstance().initService(metaData);
+                ApplicationConfigCache.getInstance().initRef(metaData);
             } else {
                 if (!exist.getServiceName().equals(metaData.getServiceName()) || !exist.getRpcExt().equals(metaData.getRpcExt())) {
                     // update
