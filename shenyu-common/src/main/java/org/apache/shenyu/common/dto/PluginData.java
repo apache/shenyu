@@ -38,7 +38,7 @@ public class PluginData {
 
     private Integer sort;
 
-    private String jarResourcesBase64;
+    private String jarResources;
 
     /**
      * no args constructor.
@@ -84,14 +84,14 @@ public class PluginData {
     }
 
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
-                      final Integer sort, final String jarResourcesBase64) {
+                      final Integer sort, final String jarResources) {
         this.id = id;
         this.name = name;
         this.config = config;
         this.role = role;
         this.enabled = enabled;
         this.sort = sort;
-        this.jarResourcesBase64 = jarResourcesBase64;
+        this.jarResources = jarResources;
     }
 
     /**
@@ -106,6 +106,7 @@ public class PluginData {
         this.role = builder.role;
         this.enabled = builder.enabled;
         this.sort = builder.sort;
+        this.jarResources = builder.jarResources;
     }
 
     /**
@@ -231,17 +232,17 @@ public class PluginData {
      *  get plugin jar resources byte array.
      * @return byte[]
      */
-    public String getJarResourcesBase64() {
-        return jarResourcesBase64;
+    public String getJarResources() {
+        return jarResources;
     }
 
     /**
      * set plugin jar resources byte array.
      *
-     * @param jarResourcesBase64 String
+     * @param jarResources String
      */
-    public void setJarResourcesBase64(final String jarResourcesBase64) {
-        this.jarResourcesBase64 = jarResourcesBase64;
+    public void setJarResources(final String jarResources) {
+        this.jarResources = jarResources;
     }
 
     @Override
@@ -254,12 +255,12 @@ public class PluginData {
         }
         PluginData that = (PluginData) o;
         return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(config, that.config)
-                && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled);
+                && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled) && Objects.equals(jarResources, that.jarResources);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, config, role, enabled);
+        return Objects.hash(id, name, config, role, enabled, jarResources);
     }
 
     @Override
@@ -279,6 +280,8 @@ public class PluginData {
                 + '\''
                 + ", enabled="
                 + enabled
+                + ", jarResources="
+                + jarResources
                 + '}';
     }
 
@@ -320,7 +323,7 @@ public class PluginData {
         /**
          * jarResources.
          */
-        private String jarResourcesBase64;
+        private String jarResources;
 
         /**
          * no args constructor.
@@ -406,11 +409,11 @@ public class PluginData {
         /**
          * build jarResources.
          *
-         * @param jarResourcesBase64 jarResources
+         * @param jarResources jarResources
          * @return this
          */
-        public Builder jarResources(final String jarResourcesBase64) {
-            this.jarResourcesBase64 = jarResourcesBase64;
+        public Builder jarResources(final String jarResources) {
+            this.jarResources = jarResources;
             return this;
         }
     }
