@@ -17,36 +17,28 @@
 
 package org.apache.shenyu.plugin.brpc.proxy;
 
+import com.baidu.cloud.starlight.api.extension.ExtensionLoader;
 import com.baidu.cloud.starlight.api.rpc.config.ServiceConfig;
+import com.baidu.cloud.starlight.api.rpc.threadpool.ThreadPoolFactory;
 import com.baidu.cloud.starlight.core.rpc.generic.AsyncGenericService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
-import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.convert.plugin.BrpcRegisterConfig;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.Singleton;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.brpc.cache.ApplicationConfigCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Brpc proxy service.
@@ -82,9 +74,8 @@ public class BrpcProxyService {
                 params[i] = bodyMap.get(brpcParamInfo.getParamNames()[i]).toString();
             }
         }
-        initThreadPool();
-        //todo use com.baidu.cloud.starlight.api.rpc.threadpool.ThreadPoolFactory impl it
-        CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> getValue(metaData, params), threadPool);
+        ThreadPoolFactory threadFactory = ExtensionLoader.getInstance(ThreadPoolFactory.class).getExtension("shard");
+        CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> getValue(metaData, params), threadFactory.defaultThreadPool());
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.BRPC_RPC_RESULT_EMPTY;
@@ -107,42 +98,6 @@ public class BrpcProxyService {
         } catch (Exception e) {
             LOG.error("Exception caught in BrpcProxyService#genericInvoker.", e);
             return null;
-        }
-    }
-
-    private void initThreadPool() {
-        if (Objects.nonNull(threadPool)) {
-            return;
-        }
-        BrpcRegisterConfig config = Singleton.INST.get(BrpcRegisterConfig.class);
-        if (Objects.isNull(config)) {
-            // should not execute to here
-            threadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
-                    60L, TimeUnit.SECONDS,
-                    new SynchronousQueue<Runnable>(),
-                    factory);
-            return;
-        }
-        final String threadpool = Optional.ofNullable(config.getThreadpool()).orElse(Constants.CACHED);
-        switch (threadpool) {
-            case Constants.SHARED:
-                try {
-                    threadPool = SpringBeanUtils.getInstance().getBean(ShenyuThreadPoolExecutor.class);
-                    return;
-                } catch (NoSuchBeanDefinitionException t) {
-                    throw new ShenyuException("shared thread pool is not enable, config ${shenyu.sharedPool.enable} in your xml/yml !", t);
-                }
-            case Constants.FIXED:
-            case Constants.EAGER:
-            case Constants.LIMITED:
-                throw new UnsupportedOperationException();
-            case Constants.CACHED:
-            default:
-                int corePoolSize = Optional.ofNullable(config.getCorethreads()).orElse(0);
-                int maximumPoolSize = Optional.ofNullable(config.getThreads()).orElse(Integer.MAX_VALUE);
-                int queueSize = Optional.ofNullable(config.getQueues()).orElse(0);
-                threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, 60L, TimeUnit.SECONDS,
-                        queueSize > 0 ? new LinkedBlockingQueue<>(queueSize) : new SynchronousQueue<>(), factory);
         }
     }
 

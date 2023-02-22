@@ -109,7 +109,9 @@ public final class ApplicationConfigCache {
         StarlightClient client = CLIENT_CACHE.get(serviceConfig);
         if (Objects.isNull(client)) {
             BrpcParamExtInfo brpcParamExtInfo = GsonUtils.getInstance().fromJson(metaData.getRpcExt(), BrpcParamExtInfo.class);
-            client = new SingleStarlightClient(brpcParamExtInfo.getHost(), brpcParamExtInfo.getPort(), new TransportConfig());
+            TransportConfig transportConfig = new TransportConfig();
+            transportConfig.setBizThreadPoolName("shard");
+            client = new SingleStarlightClient(brpcParamExtInfo.getHost(), brpcParamExtInfo.getPort(), transportConfig);
             client.init();
             CLIENT_CACHE.put(serviceConfig, client);
         }
