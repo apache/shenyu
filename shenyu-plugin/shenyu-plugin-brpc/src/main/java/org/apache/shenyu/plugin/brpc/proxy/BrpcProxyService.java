@@ -22,7 +22,6 @@ import com.baidu.cloud.starlight.api.rpc.config.ServiceConfig;
 import com.baidu.cloud.starlight.api.rpc.threadpool.ThreadPoolFactory;
 import com.baidu.cloud.starlight.core.rpc.generic.AsyncGenericService;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
