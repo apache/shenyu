@@ -75,13 +75,13 @@ public class ShenyuLoaderService {
     }
 
     /**
-     * loadBase64JarPlugins.
+     * loadUploadedJarPlugins.
      *
-     * @param base64JarStrList base64JarStrList
+     * @param uploadedJarResources uploadedJarResources
      */
-    public void loadBase64JarPlugins(final List<String> base64JarStrList) {
+    public void loadUploadedJarPlugins(final List<String> uploadedJarResources) {
         try {
-            List<ShenyuLoaderResult> extendPlugins = ShenyuPluginLoader.getInstance().loadBase64Plugins(base64JarStrList);
+            List<ShenyuLoaderResult> extendPlugins = ShenyuPluginLoader.getInstance().loadUploadedJarPlugins(uploadedJarResources);
             loaderPlugins(extendPlugins);
         } catch (Exception e) {
             LOG.error("shenyu ext plugins load has error ", e);

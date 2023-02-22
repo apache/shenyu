@@ -80,7 +80,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
 
     private final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
 
-    private final Map<String, byte[]> base64JarClassByteArrayCache = new ConcurrentHashMap<>();
+    private final Map<String, byte[]> uploadedJarClassByteArrayCache = new ConcurrentHashMap<>();
 
     private ShenyuPluginLoader() {
         super(ShenyuPluginLoader.class.getClassLoader());
@@ -154,13 +154,13 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
 
     /**
-     * Load Base64 plugins list.
+     * loadUploadedJarResourcesList.
      *
-     * @param base64JarList base64JarList
+     * @param loadUploadedJarResources loadUploadedJarResources
      * @return the list
      */
-    public List<ShenyuLoaderResult> loadBase64Plugins(final List<String> base64JarList) {
-        List<byte[]> jarByteArrayList = base64JarList.stream().map(base64JarStr -> Base64.getDecoder().decode(base64JarStr)).collect(Collectors.toList());
+    public List<ShenyuLoaderResult> loadUploadedJarPlugins(final List<String> loadUploadedJarResources) {
+        List<byte[]> jarByteArrayList = loadUploadedJarResources.stream().map(loadUploadedJarResourceStr -> Base64.getDecoder().decode(loadUploadedJarResourceStr)).collect(Collectors.toList());
         for (byte[] jarByteArray : jarByteArrayList) {
             parserJar(jarByteArray);
         }
@@ -171,10 +171,10 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
                 instance = getOrCreateSpringBean(className);
                 if (Objects.nonNull(instance)) {
                     results.add(buildResult(instance));
-                    LOG.info("The class successfully loaded into a upload-base64-plugin {} is registered as a spring bean", className);
+                    LOG.info("The class successfully loaded into a upload-Jar-plugin {} is registered as a spring bean", className);
                 }
             } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-                LOG.warn("Registering upload-base64-plugins succeeds spring bean fails:{}", className);
+                LOG.warn("Registering upload-Jar-plugins succeeds spring bean fails:{}", className);
             }
         });
         return results;
@@ -200,7 +200,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
                         buffer.flush();
                         byte[] classByteArray = buffer.toByteArray();
                         names.add(className);
-                        base64JarClassByteArrayCache.put(className, classByteArray);
+                        uploadedJarClassByteArrayCache.put(className, classByteArray);
                     }
                 }
             }
@@ -222,8 +222,8 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
             clazz = classCache.get(name);
             if (clazz == null) {
                 // support base64Jar
-                if (base64JarClassByteArrayCache.containsKey(name)) {
-                    byte[] currClazzByteArray = base64JarClassByteArrayCache.remove(name);
+                if (uploadedJarClassByteArrayCache.containsKey(name)) {
+                    byte[] currClazzByteArray = uploadedJarClassByteArrayCache.remove(name);
                     clazz = defineClass(name, currClazzByteArray, 0, currClazzByteArray.length);
                     classCache.put(name, clazz);
                     return clazz;
