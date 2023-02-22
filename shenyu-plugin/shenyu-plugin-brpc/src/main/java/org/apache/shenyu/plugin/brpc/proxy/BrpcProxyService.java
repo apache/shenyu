@@ -47,10 +47,6 @@ public class BrpcProxyService {
 
     private static final Logger LOG = LoggerFactory.getLogger(BrpcProxyService.class);
 
-    private final ThreadFactory factory = ShenyuThreadFactory.create("shenyu-brpc", true);
-
-    private ExecutorService threadPool;
-
     /**
      * Generic invoker object.
      *
