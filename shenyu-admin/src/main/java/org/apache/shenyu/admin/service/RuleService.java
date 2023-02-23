@@ -56,11 +56,10 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
         // check rule uri condition
         try {
             final List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
-            List<String> uriPaths = ruleConditions.stream()
+            ruleConditions.stream()
                     .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
                     .map(RuleConditionDTO::getParamValue)
-                    .collect(Collectors.toList());
-            uriPaths.forEach(PathPatternParser.defaultInstance::parse);
+                    .forEach(PathPatternParser.defaultInstance::parse);
         } catch (Exception e) {
             throw new ShenyuAdminException("uri validation of Condition failed, please check.");
         }
