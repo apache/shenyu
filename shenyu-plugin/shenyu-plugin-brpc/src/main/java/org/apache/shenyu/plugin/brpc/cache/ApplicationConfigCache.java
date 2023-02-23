@@ -110,7 +110,7 @@ public final class ApplicationConfigCache {
         if (Objects.isNull(client)) {
             BrpcParamExtInfo brpcParamExtInfo = GsonUtils.getInstance().fromJson(metaData.getRpcExt(), BrpcParamExtInfo.class);
             TransportConfig transportConfig = new TransportConfig();
-            transportConfig.setBizThreadPoolName(Constants.SHARED_BIZTHREADPOOLNAME);
+            transportConfig.setBizThreadPoolName("shared");
             client = new SingleStarlightClient(brpcParamExtInfo.getHost(), brpcParamExtInfo.getPort(), transportConfig);
             client.init();
             CLIENT_CACHE.put(serviceConfig, client);
