@@ -31,7 +31,6 @@ import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.springframework.web.util.pattern.PathPatternParser;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * this is rule service.
