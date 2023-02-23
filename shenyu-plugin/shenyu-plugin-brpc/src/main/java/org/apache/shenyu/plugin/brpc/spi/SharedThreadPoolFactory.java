@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * shared threadpool factory.
+ *  shared threadpool factory.
  */
 public class SharedThreadPoolFactory implements ThreadPoolFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(SharedThreadPoolFactory.class);
