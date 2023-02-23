@@ -688,7 +688,7 @@ public interface Constants {
     String NAMESPACE = "namespace";
 
     /**
-     * brpc spi bizThreadPoolName.
+     * brpc bizThreadPoolName.
      */
     String SHARED_BIZTHREADPOOLNAME = "shared";
 
