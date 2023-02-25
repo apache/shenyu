@@ -21,6 +21,8 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.ecwid.consul.v1.ConsulClient;
+import com.tencent.polaris.configuration.api.core.ConfigFileService;
+import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
 import io.etcd.jetcd.Client;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ConsulProperties;
@@ -39,6 +41,7 @@ import org.apache.shenyu.admin.listener.etcd.EtcdDataDataChangedListener;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedInit;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
+import org.apache.shenyu.admin.listener.polaris.PolarisDataChangedInit;
 import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
@@ -192,6 +195,38 @@ public class DataSyncConfiguration {
         public DataChangedInit nacosDataChangedInit(final ConfigService configService) {
             return new NacosDataChangedInit(configService);
         }
+    }
+
+    /**
+     * The type Polaris listener.
+     */
+    @Configuration
+    @ConditionalOnProperty(prefix = "shenyu.sync.polaris", name = "address")
+    static class PolarisListener {
+
+        /**
+         * register configFileService in spring ioc.
+         *
+         * @return ConfigFileService {@linkplain ConfigFileService}
+         */
+        @Bean
+        @ConditionalOnMissingBean(ConfigFileService.class)
+        public ConfigFileService polarisConfigService() {
+            return ConfigFileServiceFactory.createConfigFileService();
+        }
+
+        /**
+         * Polaris data init polaris data init.
+         *
+         * @param configFileService the config service
+         * @return the polaris data init
+         */
+        @Bean
+        @ConditionalOnMissingBean(PolarisDataChangedInit.class)
+        public DataChangedInit polarisDataChangedInit(final ConfigFileService configFileService) {
+            return new PolarisDataChangedInit(configFileService);
+        }
+
     }
 
     /**

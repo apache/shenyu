@@ -56,10 +56,10 @@ shenyu:
       scheduledTime: 10
       nacosNameSpace: ShenyuRegisterCenter
   sync:
-    websocket:
-      enabled: true
-      messageMaxSize: 10240
-      allowOrigins: ws://localhost:9095;ws://localhost:9195;
+#    websocket:
+#      enabled: true
+#      messageMaxSize: 10240
+#      allowOrigins: ws://localhost:9095;ws://localhost:9195;
 #      zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000
@@ -77,6 +77,9 @@ shenyu:
 #          namespace:
 #          accessKey:
 #          secretKey:
+    polaris:
+      address: grpc://127.0.0.1:8080
+      namespace: default # 设置配置中心命名空间
 #    etcd:
 #      url: http://localhost:2379
 #    consul:
