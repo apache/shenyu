@@ -70,7 +70,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     }
 
     @Override
-    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation) {
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, Object> beans) {
         ShenyuBrpcClient shenyuBrpcClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuBrpcClient.class);
         if (Objects.isNull(shenyuBrpcClient)) {
             return null;
@@ -153,15 +153,15 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
                 .ruleName(ruleName)
                 .parameterTypes(parameterTypes)
                 .rpcType(RpcTypeEnum.BRPC.getName())
-                .rpcExt(buildRpcExt(method))
+                .rpcExt(buildRpcExt(method, host, port))
                 .enabled(shenyuBrpcClient.enabled())
                 .build();
     }
 
-    private String buildRpcExt(final Method method) {
+    private String buildRpcExt(final Method method, final String host, final int port) {
         List<BrpcRpcExt.RpcExt> list = new ArrayList<>();
         list.add(build(method));
-        BrpcRpcExt buildList = new BrpcRpcExt(list);
+        BrpcRpcExt buildList = new BrpcRpcExt(list, host, port);
         return GsonUtils.getInstance().toJson(buildList);
     }
 

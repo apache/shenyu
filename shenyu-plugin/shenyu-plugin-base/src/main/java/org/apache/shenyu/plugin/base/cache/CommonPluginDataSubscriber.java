@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.common.enums.RuleTrieEventEnum;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.event.RuleTrieEvent;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -83,7 +84,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         }
         for (PluginDataHandler handler : handlers) {
             String pluginNamed = handler.pluginNamed();
-            handlerMap.computeIfAbsent(pluginNamed, name -> {
+            MapUtils.computeIfAbsent(handlerMap, pluginNamed, name -> {
                 LOG.info("shenyu auto add extends plugin data handler name is :{}", pluginNamed);
                 return handler;
             });
@@ -204,7 +205,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             BaseDataCache.getInstance().cacheRuleData(ruleData);
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.handlerRule(ruleData));
-            eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.INSERT, ruleData));
+            if (CollectionUtils.isEmpty(ruleData.getBeforeConditionDataList())) {
+                eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.INSERT, ruleData));
+            } else {
+                // if has before condition, use upodate
+                eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.UPDATE, ruleData));
+            }
         }
     }
 

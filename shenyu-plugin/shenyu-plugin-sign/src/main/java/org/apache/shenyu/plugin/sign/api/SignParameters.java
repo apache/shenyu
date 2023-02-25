@@ -23,7 +23,7 @@ import java.net.URI;
 
 public class SignParameters {
 
-    public static final SignParameters ERROR_PARAMETERS = new SignParameters();
+    public static final SignParameters VERSION_ERROR_PARAMETERS = new SignParameters();
 
     private final String appKey;
 

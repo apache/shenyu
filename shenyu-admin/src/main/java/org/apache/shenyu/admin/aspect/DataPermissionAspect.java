@@ -94,7 +94,7 @@ public class DataPermissionAspect {
             case DATA_PERMISSION_SELECTOR:
             case DATA_PERMISSION_RULE:
                 Stream.of(args)
-                        .filter(arg -> arg instanceof FilterQuery)
+                        .filter(FilterQuery.class::isInstance)
                         .forEach(q -> ((FilterQuery) q).setFilterIds(dataPermissionList));
                 break;
             default:

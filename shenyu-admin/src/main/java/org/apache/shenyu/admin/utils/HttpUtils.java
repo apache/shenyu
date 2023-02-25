@@ -32,12 +32,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 public class HttpUtils {
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
 
-    private Map<String, List<Cookie>> cookieStore = new HashMap<String, List<Cookie>>();
+    private Map<String, List<Cookie>> cookieStore = new HashMap<>();
 
     private OkHttpClient httpClient;
 
@@ -161,7 +161,7 @@ public class HttpUtils {
                 @Override
                 public List<Cookie> loadForRequest(final HttpUrl httpUrl) {
                     List<Cookie> cookies = cookieStore.get(httpUrl.host());
-                    return cookies != null ? cookies : new ArrayList<Cookie>();
+                    return cookies != null ? cookies : new ArrayList<>();
                 }
             }).build();
     }
@@ -199,13 +199,10 @@ public class HttpUtils {
         addHeader(requestBuilder, header);
 
         Request request = requestBuilder.build();
-        Response response = httpClient
+        try (Response response = httpClient
             .newCall(request)
-            .execute();
-        try {
+            .execute()) {
             return response.body().string();
-        } finally {
-            response.close();
         }
     }
 
@@ -227,13 +224,10 @@ public class HttpUtils {
         addHeader(requestBuilder, header);
 
         Request request = requestBuilder.build();
-        Response response = httpClient
+        try (Response response = httpClient
             .newCall(request)
-            .execute();
-        try {
+            .execute()) {
             return response.body().string();
-        } finally {
-            response.close();
         }
     }
 
@@ -646,7 +640,7 @@ public class HttpUtils {
             }
             InputStream input = null;
             try {
-                input = new FileInputStream(file);
+                input = Files.newInputStream(file.toPath());
                 return toBytes(input);
             } finally {
                 try {

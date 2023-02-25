@@ -30,6 +30,15 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - 'health'
+          - 'prometheus'
+    enabled-by-default: true
+
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
@@ -42,6 +51,7 @@ shenyu:
       sessionTimeout: 5000
       connectionTimeout: 2000
       checked: true
+      zombieCheckThreads: 10
       zombieCheckTimes: 5
       scheduledTime: 10
       nacosNameSpace: ShenyuRegisterCenter
@@ -91,6 +101,7 @@ shenyu:
       - /websocket
       - /error
       - /actuator/health
+      - /actuator/prometheus
       - /swagger-ui.html
       - /webjars/**
       - /swagger-resources/**

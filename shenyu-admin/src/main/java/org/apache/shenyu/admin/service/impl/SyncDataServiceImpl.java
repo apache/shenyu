@@ -105,18 +105,16 @@ public class SyncDataServiceImpl implements SyncDataService {
                 Collections.singletonList(PluginTransfer.INSTANCE.mapDataTOVO(pluginVO))));
 
         List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
-        if (CollectionUtils.isEmpty(selectorDataList)) {
-            return true;
+
+        if (!CollectionUtils.isEmpty(selectorDataList)) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
+
+            List<String> selectorIdList = selectorDataList.stream().map(SelectorData::getId)
+                    .collect(Collectors.toList());
+            List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
+
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
         }
-
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
-
-        List<String> selectorIdList = selectorDataList.stream().map(SelectorData::getId)
-                .collect(Collectors.toList());
-        List<RuleData> allRuleDataList = ruleService.findBySelectorIdList(selectorIdList);
-
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
-
         return true;
     }
 }

@@ -26,7 +26,9 @@ import com.baidu.cloud.starlight.core.rpc.proxy.JDKProxyFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
@@ -40,6 +42,7 @@ import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -58,16 +61,29 @@ public final class ApplicationConfigCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
 
-    private StarlightClient clientConfig;
+    private static final ConcurrentMap<ServiceConfig, AsyncGenericService> PROXY_CACHE = new ConcurrentHashMap<>();
+    
+    private static final ConcurrentMap<ServiceConfig, StarlightClient> CLIENT_CACHE = new ConcurrentHashMap<>();
 
     private JDKProxyFactory proxyFactory;
 
-    private final LoadingCache<String, AsyncGenericService> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<String, ServiceConfig> cache = CacheBuilder.newBuilder()
             .maximumSize(Constants.CACHE_MAX_COUNT)
-            .build(new CacheLoader<String, AsyncGenericService>() {
+            .removalListener((RemovalListener<Object, ServiceConfig>) notification -> {
+                ServiceConfig config = notification.getValue();
+                if (Objects.nonNull(config)) {
+                    // After the configuration change, destroys the instance, but does not empty it.
+                    // If it is not handled, it will get NULL when reinitializing and cause a NULL pointer problem.
+                    PROXY_CACHE.remove(config);
+                    Optional.ofNullable(CLIENT_CACHE.get(config))
+                            .ifPresent(StarlightClient::destroy);
+                    CLIENT_CACHE.remove(config);
+                }
+            })
+            .build(new CacheLoader<String, ServiceConfig>() {
                 @Override
-                public AsyncGenericService load(@NonNull final String key) {
-                    return null;
+                public ServiceConfig load(@NonNull final String key) {
+                    return new ServiceConfig();
                 }
             });
 
@@ -75,16 +91,46 @@ public final class ApplicationConfigCache {
     }
 
     /**
-     * init service.
+     * build service.
      *
+     * @param serviceConfig the service config
      * @param metaData the meta data
      * @return service
      */
-    public AsyncGenericService initService(final MetaData metaData) {
+    public AsyncGenericService buildService(final ServiceConfig serviceConfig,
+                                            final MetaData metaData) {
+        AsyncGenericService service = PROXY_CACHE.get(serviceConfig);
+        if (Objects.nonNull(service)) {
+            return service;
+        }
+        if (Objects.isNull(proxyFactory)) {
+            proxyFactory = new JDKProxyFactory();
+        }
+        StarlightClient client = CLIENT_CACHE.get(serviceConfig);
+        if (Objects.isNull(client)) {
+            BrpcParamExtInfo brpcParamExtInfo = GsonUtils.getInstance().fromJson(metaData.getRpcExt(), BrpcParamExtInfo.class);
+            TransportConfig transportConfig = new TransportConfig();
+            transportConfig.setBizThreadPoolName(Constants.SHARED_BIZTHREADPOOLNAME);
+            client = new SingleStarlightClient(brpcParamExtInfo.getHost(), brpcParamExtInfo.getPort(), transportConfig);
+            client.init();
+            CLIENT_CACHE.put(serviceConfig, client);
+        }
+        service = proxyFactory.getProxy(AsyncGenericService.class, serviceConfig, client);
+        PROXY_CACHE.put(serviceConfig, service);
+        return service;
+    }
+    
+    /**
+     * init service.
+     *
+     * @param metaData the meta data
+     * @return service config
+     */
+    public ServiceConfig initRef(final MetaData metaData) {
         try {
-            AsyncGenericService service = cache.get(metaData.getPath());
-            if (Objects.nonNull(service)) {
-                return service;
+            ServiceConfig serviceConfig = cache.get(metaData.getPath());
+            if (StringUtils.isNotBlank(serviceConfig.getServiceId())) {
+                return serviceConfig;
             }
         } catch (Exception e) {
             LOG.warn("init brpc ref ex:{}", e.getMessage());
@@ -98,24 +144,18 @@ public final class ApplicationConfigCache {
      * @param brpcRegisterConfig the config of brpc
      */
     public void init(final BrpcRegisterConfig brpcRegisterConfig) {
-        if (Objects.isNull(clientConfig)) {
-            TransportConfig config = new TransportConfig();
-            clientConfig = new SingleStarlightClient(brpcRegisterConfig.getAddress(), brpcRegisterConfig.getPort(), config);
-            clientConfig.init();
+        if (Objects.isNull(proxyFactory)) {
             proxyFactory = new JDKProxyFactory();
         }
     }
 
     /**
-     * Build service.
+     * Build service config.
      *
      * @param metaData the meta data
-     * @return service
+     * @return service config
      */
-    public AsyncGenericService build(final MetaData metaData) {
-        if (Objects.isNull(clientConfig)) {
-            throw new UnsupportedOperationException("unsupport!!");
-        }
+    public ServiceConfig build(final MetaData metaData) {
         ServiceConfig serviceConfig = new ServiceConfig();
         serviceConfig.setProtocol(BRPC_PROTOCOL);
         serviceConfig.setServiceId(metaData.getServiceName());
@@ -139,18 +179,16 @@ public final class ApplicationConfigCache {
                 }
             }
         });
-        AsyncGenericService service = proxyFactory.getProxy(AsyncGenericService.class, serviceConfig, clientConfig);
-        cache.put(metaData.getPath(), service);
-        return service;
+        return serviceConfig;
     }
 
     /**
-     * Get service.
+     * Get service config.
      *
      * @param path path
-     * @return the service
+     * @return the service config
      */
-    public AsyncGenericService get(final String path) {
+    public ServiceConfig get(final String path) {
         try {
             return cache.get(path);
         } catch (ExecutionException e) {
@@ -183,15 +221,6 @@ public final class ApplicationConfigCache {
      */
     public static String getClassMethodKey(final String className, final String methodName) {
         return String.join("_", className, methodName);
-    }
-
-    /**
-     * Gets the client config.
-     *
-     * @return the client config
-     */
-    public StarlightClient getClientConfig() {
-        return clientConfig;
     }
 
     /**
@@ -254,7 +283,6 @@ public final class ApplicationConfigCache {
             this.methodName = methodName;
         }
 
-
         /**
          * Gets paramTypes.
          *
@@ -280,6 +308,10 @@ public final class ApplicationConfigCache {
     public static class BrpcParamExtInfo {
 
         private List<MethodInfo> methodInfo;
+    
+        private String host;
+    
+        private Integer port;
 
         /**
          * Gets method info.
@@ -297,6 +329,42 @@ public final class ApplicationConfigCache {
          */
         public void setMethodInfo(final List<MethodInfo> methodInfo) {
             this.methodInfo = methodInfo;
+        }
+    
+        /**
+         * get port.
+         *
+         * @return port
+         */
+        public Integer getPort() {
+            return port;
+        }
+    
+        /**
+         * set port.
+         *
+         * @param port port
+         */
+        public void setPort(final Integer port) {
+            this.port = port;
+        }
+    
+        /**
+         * get host.
+         *
+         * @return host
+         */
+        public String getHost() {
+            return host;
+        }
+    
+        /**
+         * set host.
+         *
+         * @param host host
+         */
+        public void setHost(final String host) {
+            this.host = host;
         }
     }
 
