@@ -147,8 +147,6 @@ public class PolarisCacheHandler {
         String config = null;
         try {
             ConfigFile configFile = configFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, dataId);
-            System.out.println(dataId);
-            System.out.println(listener.toString());
             configFile.addChangeListener(listener);
             config = configFile.getContent();
 
@@ -164,11 +162,7 @@ public class PolarisCacheHandler {
     protected void watcherData(final String dataId, final OnChange oc) {
 
         ConfigFileChangeListener listener = configFileChangeEvent -> {
-            System.out.println("========================");
-            System.out.println(configFileChangeEvent.toString());
-            System.out.println(configFileChangeEvent.getChangeType());
-            System.out.println(configFileChangeEvent.getOldValue());
-            System.out.println(configFileChangeEvent.getNewValue());
+            oc.change(configFileChangeEvent.getNewValue());
         };
 
         oc.change(getConfigAndSignListener(dataId, listener));
