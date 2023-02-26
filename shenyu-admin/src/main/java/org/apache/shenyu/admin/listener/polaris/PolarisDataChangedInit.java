@@ -29,7 +29,6 @@ import java.util.stream.Stream;
 
 /**
  * The type Polaris data changed init.
- *
  */
 public class PolarisDataChangedInit extends AbstractDataChangedInit {
 
@@ -42,7 +41,7 @@ public class PolarisDataChangedInit extends AbstractDataChangedInit {
      *
      * @param configFileService the configFileService
      */
-    public PolarisDataChangedInit(ConfigFileService configFileService) {
+    public PolarisDataChangedInit(final ConfigFileService configFileService) {
         this.configFileService = configFileService;
     }
 
@@ -53,7 +52,7 @@ public class PolarisDataChangedInit extends AbstractDataChangedInit {
     }
 
     private boolean dataIdNotExist(final String pluginDataId) {
-        try{
+        try {
             return !configFileService.getConfigFile(
                     PolarisPathConstants.NAMESPACE,
                     PolarisPathConstants.FILE_GROUP,

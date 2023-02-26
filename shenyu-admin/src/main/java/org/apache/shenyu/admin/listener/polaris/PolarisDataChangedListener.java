@@ -29,25 +29,25 @@ import org.slf4j.LoggerFactory;
 /**
  * Use polaris to push data changes.
  */
-public class PolarisDataChangedListener extends AbstractListDataChangedListener{
+public class PolarisDataChangedListener extends AbstractListDataChangedListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(PolarisDataChangedListener.class);
 
     private final ConfigFileService configFileService;
 
-    public PolarisDataChangedListener(ConfigFileService configFileService) {
+    public PolarisDataChangedListener(final ConfigFileService configFileService) {
         super(new ChangeData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, PolarisPathConstants.SELECTOR_DATA_FILE_NAME,
                 PolarisPathConstants.RULE_DATA_FILE_NAME, PolarisPathConstants.AUTH_DATA_ID_FILE_NAME, PolarisPathConstants.META_DATA_FILE_NAME));
         this.configFileService = configFileService;
     }
 
     @Override
-    public void publishConfig(String dataId, Object data) {
+    public void publishConfig(final String dataId, final Object data) {
         LOG.warn("Config upload not support yet, please upload it in polaris first");
     }
 
     @Override
-    public String getConfig(String dataId) {
+    public String getConfig(final String dataId) {
         try {
             ConfigFile configFile = configFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, dataId);
             return configFile.hasContent() ? configFile.getContent() : PolarisPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
