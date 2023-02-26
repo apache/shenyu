@@ -62,7 +62,6 @@ public class PolarisCacheHandler {
 
     private final List<AuthDataSubscriber> authDataSubscribers;
 
-
     public PolarisCacheHandler(final ConfigFileService configFileService, final PluginDataSubscriber pluginDataSubscriber,
                                final List<MetaDataSubscriber> metaDataSubscribers,
                                final List<AuthDataSubscriber> authDataSubscribers) {
@@ -73,7 +72,7 @@ public class PolarisCacheHandler {
     }
 
     /**
-     * get configFileService
+     * get configFileService.
      *
      * @return configFileService
      */
