@@ -21,12 +21,14 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
 import com.tencent.polaris.api.exception.PolarisException;
 import com.tencent.polaris.configuration.api.core.ConfigFile;
-import com.tencent.polaris.configuration.api.core.ConfigFileChangeEvent;
 import com.tencent.polaris.configuration.api.core.ConfigFileChangeListener;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
-import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
-import org.apache.shenyu.common.dto.*;
+import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -35,8 +37,12 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.Executor;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -46,9 +52,6 @@ public class PolarisCacheHandler {
 
     protected static final Map<String, List<ConfigFileChangeListener>> LISTENERS = Maps.newConcurrentMap();
 
-    /**
-     * logger
-     */
     private static final Logger LOG = LoggerFactory.getLogger(PolarisCacheHandler.class);
 
     private final ConfigFileService configFileService;
@@ -144,6 +147,8 @@ public class PolarisCacheHandler {
         String config = null;
         try {
             ConfigFile configFile = configFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, dataId);
+            System.out.println(dataId);
+            System.out.println(listener.toString());
             configFile.addChangeListener(listener);
             config = configFile.getContent();
 
@@ -158,11 +163,12 @@ public class PolarisCacheHandler {
 
     protected void watcherData(final String dataId, final OnChange oc) {
 
-        ConfigFileChangeListener listener = new ConfigFileChangeListener() {
-            @Override
-            public void onChange(ConfigFileChangeEvent event) {
-                System.out.println(event);
-            }
+        ConfigFileChangeListener listener = configFileChangeEvent -> {
+            System.out.println("========================");
+            System.out.println(configFileChangeEvent.toString());
+            System.out.println(configFileChangeEvent.getChangeType());
+            System.out.println(configFileChangeEvent.getOldValue());
+            System.out.println(configFileChangeEvent.getNewValue());
         };
 
         oc.change(getConfigAndSignListener(dataId, listener));
@@ -172,6 +178,5 @@ public class PolarisCacheHandler {
     protected interface OnChange {
         void change(String changeData);
     }
-
 
 }

@@ -44,11 +44,11 @@ public class PolarisSyncDataService extends PolarisCacheHandler implements SyncD
      * Start.
      */
     public void start() {
-        watcherData(NacosPathConstants.PLUGIN_DATA_ID, this::updatePluginMap);
-        watcherData(NacosPathConstants.SELECTOR_DATA_ID, this::updateSelectorMap);
-        watcherData(NacosPathConstants.RULE_DATA_ID, this::updateRuleMap);
-        watcherData(NacosPathConstants.META_DATA_ID, this::updateMetaDataMap);
-        watcherData(NacosPathConstants.AUTH_DATA_ID, this::updateAuthMap);
+        watcherData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, this::updatePluginMap);
+        watcherData(PolarisPathConstants.SELECTOR_DATA_FILE_NAME, this::updateSelectorMap);
+        watcherData(PolarisPathConstants.RULE_DATA_FILE_NAME, this::updateRuleMap);
+        watcherData(PolarisPathConstants.META_DATA_FILE_NAME, this::updateMetaDataMap);
+        watcherData(PolarisPathConstants.AUTH_DATA_ID_FILE_NAME, this::updateAuthMap);
     }
 
     @Override

@@ -195,9 +195,9 @@ shenyu:
 #      url: http://localhost:9095
 #      username:
 #      password:
-    nacos:
-      url: localhost:8848
-      namespace: 609f6a25-3d1a-4616-9521-5e10faab5c1f
+#    nacos:
+#      url: localhost:8848
+#      namespace: 609f6a25-3d1a-4616-9521-5e10faab5c1f
 #      username:
 #      password:
 #      acm:
@@ -206,6 +206,9 @@ shenyu:
 #        namespace:
 #        accessKey:
 #        secretKey:
+    polaris:
+      address: grpc://127.0.0.1:8080
+      namespace: default # 设置配置中心命名空间
 #    etcd:
 #      url: http://localhost:2379
 #    consul:
