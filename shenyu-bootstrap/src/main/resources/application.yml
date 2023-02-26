@@ -184,9 +184,9 @@ shenyu:
     enabled: true
     maxSize : 10
   sync:
-    websocket:
-      urls: ws://localhost:9095/websocket
-      allowOrigin: ws://localhost:9195
+#    websocket:
+#      urls: ws://localhost:9095/websocket
+#      allowOrigin: ws://localhost:9195
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000
@@ -195,9 +195,9 @@ shenyu:
 #      url: http://localhost:9095
 #      username:
 #      password:
-#    nacos:
-#      url: localhost:8848
-#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+    nacos:
+      url: localhost:8848
+      namespace: 609f6a25-3d1a-4616-9521-5e10faab5c1f
 #      username:
 #      password:
 #      acm:
