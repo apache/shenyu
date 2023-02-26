@@ -19,28 +19,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-spring-boot-starter</artifactId>
+        <artifactId>shenyu-sync-data-center</artifactId>
         <version>2.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-spring-boot-starter-sync-data-center</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>shenyu-sync-data-polaris</artifactId>
 
-    <modules>
-        <module>shenyu-spring-boot-starter-sync-data-zookeeper</module>
-        <module>shenyu-spring-boot-starter-sync-data-websocket</module>
-        <module>shenyu-spring-boot-starter-sync-data-http</module>
-        <module>shenyu-spring-boot-starter-sync-data-nacos</module>
-        <module>shenyu-spring-boot-starter-sync-data-etcd</module>
-        <module>shenyu-spring-boot-starter-sync-data-consul</module>
-        <module>shenyu-spring-boot-starter-sync-data-polaris</module>
-    </modules>
-    
     <dependencies>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <scope>test</scope>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-sync-data-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.tencent.polaris</groupId>
+            <artifactId>polaris-all</artifactId>
+            <version>1.10.1</version>
         </dependency>
     </dependencies>
 </project>
