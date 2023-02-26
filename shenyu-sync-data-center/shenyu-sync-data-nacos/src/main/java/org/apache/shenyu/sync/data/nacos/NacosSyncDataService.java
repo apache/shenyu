@@ -51,11 +51,11 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
      * Start.
      */
     public void start() {
-        watcherData(NacosPathConstants.AUTH_DATA_ID, this::updateAuthMap);
-        watcherData(NacosPathConstants.RULE_DATA_ID, this::updateRuleMap);
-        watcherData(NacosPathConstants.META_DATA_ID, this::updateMetaDataMap);
         watcherData(NacosPathConstants.PLUGIN_DATA_ID, this::updatePluginMap);
         watcherData(NacosPathConstants.SELECTOR_DATA_ID, this::updateSelectorMap);
+        watcherData(NacosPathConstants.RULE_DATA_ID, this::updateRuleMap);
+        watcherData(NacosPathConstants.META_DATA_ID, this::updateMetaDataMap);
+        watcherData(NacosPathConstants.AUTH_DATA_ID, this::updateAuthMap);
     }
 
     @Override

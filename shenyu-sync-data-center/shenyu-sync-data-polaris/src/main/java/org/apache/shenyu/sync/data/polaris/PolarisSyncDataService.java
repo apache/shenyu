@@ -18,7 +18,6 @@
 package org.apache.shenyu.sync.data.polaris;
 
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
-import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -44,18 +43,18 @@ public class PolarisSyncDataService extends PolarisCacheHandler implements SyncD
      * Start.
      */
     public void start() {
-        watcherData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, this::updatePluginMap);
-        watcherData(PolarisPathConstants.SELECTOR_DATA_FILE_NAME, this::updateSelectorMap);
         watcherData(PolarisPathConstants.RULE_DATA_FILE_NAME, this::updateRuleMap);
-        watcherData(PolarisPathConstants.META_DATA_FILE_NAME, this::updateMetaDataMap);
         watcherData(PolarisPathConstants.AUTH_DATA_ID_FILE_NAME, this::updateAuthMap);
+        watcherData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, this::updatePluginMap);
+        watcherData(PolarisPathConstants.META_DATA_FILE_NAME, this::updateMetaDataMap);
+        watcherData(PolarisPathConstants.SELECTOR_DATA_FILE_NAME, this::updateSelectorMap);
     }
 
     @Override
     public void close() {
         LISTENERS.forEach((dataId, lss) -> {
-            lss.forEach(listener -> getConfigFileService().
-                    getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, dataId)
+            lss.forEach(listener -> getConfigFileService()
+                    .getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, dataId)
                     .removeChangeListener(listener));
             lss.clear();
         });
