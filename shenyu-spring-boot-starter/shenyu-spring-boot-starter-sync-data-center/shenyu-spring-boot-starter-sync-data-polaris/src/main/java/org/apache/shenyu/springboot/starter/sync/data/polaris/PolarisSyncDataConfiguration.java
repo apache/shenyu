@@ -46,13 +46,13 @@ public class PolarisSyncDataConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(PolarisSyncDataConfiguration.class);
 
     /**
-     * Polaris sync data service
+     * Polaris sync data service.
      *
      * @param configFileServices the config service
      * @param pluginSubscriber  the plugin subscriber
      * @param metaSubscribers  the meta subscribers
      * @param authSubscribers  the auth subscribers
-     * @return
+     * @return the sync data service
      */
     @Bean
     public SyncDataService polarisSyncDataService(final ObjectProvider<ConfigFileService> configFileServices, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
