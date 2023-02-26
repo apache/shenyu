@@ -37,7 +37,7 @@ management:
         include:
           - 'health'
           - 'prometheus'
-    enabled-by-default: true
+    enabled-by-default: false
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
