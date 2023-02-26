@@ -133,4 +133,4 @@ shenyu:
     org.apache.ibatis: info
     org.apache.shenyu.bonuspoint: info
     org.apache.shenyu.lottery: info
-    org.apache.shenyu: info
+    org.apache.shenyu: debug

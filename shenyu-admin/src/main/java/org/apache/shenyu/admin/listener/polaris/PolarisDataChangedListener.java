@@ -18,46 +18,39 @@
 package org.apache.shenyu.admin.listener.polaris;
 
 import com.tencent.polaris.api.exception.PolarisException;
+import com.tencent.polaris.configuration.api.core.ConfigFile;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
-import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
+import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.stream.Stream;
-
 /**
- * The type Polaris data changed init.
- *
+ * Use polaris to push data changes.
  */
-public class PolarisDataChangedInit extends AbstractDataChangedInit {
+public class PolarisDataChangedListener extends AbstractListDataChangedListener{
 
-    private static final Logger LOG = LoggerFactory.getLogger(PolarisDataChangedInit.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PolarisDataChangedListener.class);
 
     private final ConfigFileService configFileService;
 
-    /**
-     * Instantiates a new Polaris data changed init.
-     *
-     * @param configFileService the configFileService
-     */
-    public PolarisDataChangedInit(ConfigFileService configFileService) {
+    public PolarisDataChangedListener(ConfigFileService configFileService) {
+        super(new ChangeData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, PolarisPathConstants.SELECTOR_DATA_FILE_NAME,
+                PolarisPathConstants.RULE_DATA_FILE_NAME, PolarisPathConstants.AUTH_DATA_ID_FILE_NAME, PolarisPathConstants.META_DATA_FILE_NAME));
         this.configFileService = configFileService;
     }
 
     @Override
-    protected boolean notExist() {
-        return Stream.of(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, PolarisPathConstants.AUTH_DATA_ID_FILE_NAME, PolarisPathConstants.META_DATA_FILE_NAME).allMatch(
-                this::dataIdNotExist);
+    public void publishConfig(String dataId, Object data) {
+        LOG.warn("Config upload not support yet, please upload it in polaris first");
     }
 
-    private boolean dataIdNotExist(final String pluginDataId) {
-        try{
-            return !configFileService.getConfigFile(
-                    PolarisPathConstants.NAMESPACE,
-                    PolarisPathConstants.FILE_GROUP,
-                    pluginDataId).hasContent();
+    @Override
+    public String getConfig(String dataId) {
+        try {
+            ConfigFile configFile = configFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, dataId);
+            return configFile.hasContent() ? configFile.getContent() : PolarisPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
         } catch (PolarisException e) {
             LOG.error("Get data from polaris error.", e);
             throw new ShenyuException(e.getMessage());

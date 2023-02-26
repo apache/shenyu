@@ -42,6 +42,7 @@ import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedInit;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
 import org.apache.shenyu.admin.listener.polaris.PolarisDataChangedInit;
+import org.apache.shenyu.admin.listener.polaris.PolarisDataChangedListener;
 import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
@@ -213,6 +214,18 @@ public class DataSyncConfiguration {
         @ConditionalOnMissingBean(ConfigFileService.class)
         public ConfigFileService polarisConfigService() {
             return ConfigFileServiceFactory.createConfigFileService();
+        }
+
+        /**
+         * Data changed listener data changed listener.
+         *
+         * @param configFileService the config service
+         * @return the data changed listener
+         */
+        @Bean
+        @ConditionalOnMissingBean(PolarisDataChangedListener.class)
+        public DataChangedListener polarisDataChangedListener(final ConfigFileService configFileService) {
+            return new PolarisDataChangedListener(configFileService);
         }
 
         /**
