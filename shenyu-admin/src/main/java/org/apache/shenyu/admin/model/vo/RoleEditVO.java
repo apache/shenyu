@@ -215,8 +215,7 @@ public class RoleEditVO implements Serializable {
              * @return build object.
              */
             public PermissionInfo build() {
-                PermissionInfo permissionInfo = new PermissionInfo(treeList, permissionIds);
-                return permissionInfo;
+                return new PermissionInfo(treeList, permissionIds);
             }
         }
     }
@@ -520,8 +519,7 @@ public class RoleEditVO implements Serializable {
              * @return build object.
              */
             public ResourceInfo build() {
-                ResourceInfo resourceInfo = new ResourceInfo(id, title, name, children, isLeaf, parentId);
-                return resourceInfo;
+                return new ResourceInfo(id, title, name, children, isLeaf, parentId);
             }
         }
     }
