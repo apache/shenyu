@@ -24,11 +24,13 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.TrieMatchModeEvent;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class ShenyuTrie {
@@ -108,14 +110,13 @@ public class ShenyuTrie {
                 }
                 List<RuleData> ruleDataList = getVal(node.getPathRuleCache(), ruleData.getSelectorId());
                 if (CollectionUtils.isNotEmpty(ruleDataList)) {
-                    // synchronized list
-                    synchronized (lock) {
-                        ruleDataList.add(ruleData);
-                        final List<RuleData> collect = ruleDataList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
-                        node.getPathRuleCache().put(ruleData.getSelectorId(), collect);
-                    }
+                    ruleDataList.add(ruleData);
+                    ruleDataList.sort(Comparator.comparing(RuleData::getSort));
+                    node.getPathRuleCache().put(ruleData.getSelectorId(), ruleDataList);
                 } else {
-                    node.getPathRuleCache().put(ruleData.getSelectorId(), Lists.newArrayList(ruleData));
+                    final CopyOnWriteArrayList<RuleData> list = Lists.newCopyOnWriteArrayList();
+                    list.add(ruleData);
+                    node.getPathRuleCache().put(ruleData.getSelectorId(), list);
                 }
             }
         }
@@ -155,7 +156,7 @@ public class ShenyuTrie {
             }
         }
         // dynamic route
-        if (segment.startsWith("{") && segment.endsWith("}")) {
+        if (isPathVariable(segment)) {
             ShenyuTrieNode childNode;
             // contains key, get current pathVariable node
             if (containsKey(shenyuTrieNode.getPathVariablesSet(), segment)) {
@@ -223,12 +224,7 @@ public class ShenyuTrie {
                             continue;
                         }
                         // include path variable node, general node, wildcard node
-                        if (endPath && checkPathRuleNotNull(currentNode)
-                                && CollectionUtils.isNotEmpty(getVal(currentNode.getPathRuleCache(), selectorId))) {
-                            return currentNode;
-                        }
-                        // path is end and the match str is **, means match all
-                        if (isMatchAll(currentNode.getMatchStr()) && currentNode.getEndOfPath()
+                        if ((endPath || (isMatchAll(currentNode.getMatchStr()) && currentNode.getEndOfPath()))
                                 && checkPathRuleNotNull(currentNode)
                                 && CollectionUtils.isNotEmpty(getVal(currentNode.getPathRuleCache(), selectorId))) {
                             return currentNode;
@@ -303,9 +299,7 @@ public class ShenyuTrie {
                     // remove plugin mapping
                     List<RuleData> delRuleData = getVal(currentNode.getPathRuleCache(), selectorId);
                     if (CollectionUtils.isNotEmpty(delRuleData)) {
-                        synchronized (lock) {
-                            delRuleData.removeIf(rule -> rule.getId().equals(ruleId));
-                        }
+                        delRuleData.removeIf(rule -> rule.getId().equals(ruleId));
                     }
                 }
             }
@@ -327,9 +321,8 @@ public class ShenyuTrie {
             } else {
                 return null;
             }
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -432,9 +425,8 @@ public class ShenyuTrie {
     private static <V> V getVal(final Cache<String, V> cache, final String key) {
         if (Objects.nonNull(cache)) {
             return cache.getIfPresent(key);
-        } else {
-            return null;
         }
+        return null;
     }
     
     private static <V> void cleanup(final Cache<String, V> cache) {

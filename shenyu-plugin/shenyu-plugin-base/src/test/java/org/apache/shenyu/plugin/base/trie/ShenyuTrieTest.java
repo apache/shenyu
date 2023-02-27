@@ -23,7 +23,9 @@ import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.TrieMatchModeEvent;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -34,27 +36,30 @@ import static org.mockito.Mockito.when;
 
 class ShenyuTrieTest {
     
-    @Test
-    public void clear() {
-        this.mockAntPathShenyuTrie();
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).clear();
-        Assertions.assertTrue(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).isEmpty());
+    private ShenyuTrie shenyuTrie;
+
+    @BeforeEach
+    public void mockAntPathShenyuTrie() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuTrie.class)).thenReturn(new ShenyuTrie(100L, 100L, 100L, TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode()));
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        shenyuTrie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
     }
     
-    @Test
-    public void isEmpty() {
-        this.mockAntPathShenyuTrie();
-        Assertions.assertTrue(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).isEmpty());
+    @AfterEach
+    public void clear() {
+        shenyuTrie.clear();
+        Assertions.assertTrue(shenyuTrie.isEmpty());
     }
     
     @Test
     public void putNode() {
-        this.mockAntPathShenyuTrie();
+        final String uri = "/a/b/c/**";
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamName("/");
-        conditionData.setParamValue("/a/b/c/**");
+        conditionData.setParamValue(uri);
         RuleData ruleData = RuleData.builder()
                 .id("1")
                 .pluginName("test")
@@ -63,13 +68,12 @@ class ShenyuTrieTest {
                 .enabled(true)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/a/b/c/**", ruleData, null);
-        Assertions.assertNotNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class));
+        shenyuTrie.putNode(uri, ruleData, null);
+        Assertions.assertNotNull(shenyuTrie.getNode(uri));
     }
     
     @Test
     public void match() {
-        this.mockAntPathShenyuTrie();
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
@@ -83,8 +87,8 @@ class ShenyuTrieTest {
                 .enabled(true)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/a/b/c/**", ruleData, null);
-        Assertions.assertNotNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match("/a/b/c/d/e/f", "1"));
+        shenyuTrie.putNode("/a/b/c/**", ruleData, null);
+        Assertions.assertNotNull(shenyuTrie.match("/a/b/c/d/e/f", "1"));
     
         RuleData ruleData2 = RuleData.builder()
                 .id("2")
@@ -94,22 +98,21 @@ class ShenyuTrieTest {
                 .enabled(true)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/a/*/b/c", ruleData2, null);
-        Assertions.assertNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match("/a/m/b/c", "1"));
-        Assertions.assertNotNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match("/a/m/b/c", "2"));
+        shenyuTrie.putNode("/a/*/b/c", ruleData2, null);
+        Assertions.assertNull(shenyuTrie.match("/a/m/b/c", "1"));
+        Assertions.assertNotNull(shenyuTrie.match("/a/m/b/c", "2"));
         
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/path1/{name}/{age}", ruleData, null);
-        Assertions.assertNotNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match("/path1/111/222", "1"));
-        Assertions.assertNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match("/path1/111/222/333", "1"));
+        shenyuTrie.putNode("/path1/{name}/{age}", ruleData, null);
+        Assertions.assertNotNull(shenyuTrie.match("/path1/111/222", "1").getFullPath(), "/path1/{name}/{age}");
+        Assertions.assertNull(shenyuTrie.match("/path1/111/222/333", "1"));
         
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("path1/name/age", ruleData, null);
-        Assertions.assertNotNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match("path1/name/age", "1"));
-        Assertions.assertEquals(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match("path1/name/age", "1").getFullPath(), "path1/name/age");
+        shenyuTrie.putNode("path1/name/age", ruleData, null);
+        Assertions.assertNotNull(shenyuTrie.match("path1/name/age", "1"));
+        Assertions.assertEquals(shenyuTrie.match("path1/name/age", "1").getFullPath(), "path1/name/age");
     }
     
     @Test
     public void remove() {
-        this.mockAntPathShenyuTrie();
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
@@ -133,10 +136,10 @@ class ShenyuTrieTest {
                 .sort(2)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/a/b/c/**", ruleData, null);
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/a/b/c/**", ruleData2, null);
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove("/a/b/c/**", "2", "2");
-        Assertions.assertNotNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).getNode("/a/b/c/**"));
+        shenyuTrie.putNode("/a/b/c/**", ruleData, null);
+        shenyuTrie.putNode("/a/b/c/**", ruleData2, null);
+        shenyuTrie.remove("/a/b/c/**", "2", "2");
+        Assertions.assertNotNull(shenyuTrie.getNode("/a/b/c/**"));
     
         RuleData ruleData3 = RuleData.builder()
                 .id("3")
@@ -147,14 +150,13 @@ class ShenyuTrieTest {
                 .sort(2)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/path1/path2", ruleData3, null);
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove("/path1/path2", "3", "3");
-        Assertions.assertNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).getNode("/path1/path2"));
+        shenyuTrie.putNode("/path1/path2", ruleData3, null);
+        shenyuTrie.remove("/path1/path2", "3", "3");
+        Assertions.assertNull(shenyuTrie.getNode("/path1/path2"));
     }
     
     @Test
     public void getNode() {
-        this.mockAntPathShenyuTrie();
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
@@ -178,20 +180,15 @@ class ShenyuTrieTest {
                 .sort(2)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/a/b/c/**", ruleData, null);
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/a/b/c/**", ruleData2, null);
-        Assertions.assertNotNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).getNode("/a/b/c/**"));
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/path1/{age}/{name}", ruleData2, null);
-        Assertions.assertNotNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).getNode("/path1/{age}/{name}"));
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/aaa/bbb/ccc", ruleData2, null);
-        Assertions.assertNotNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).getNode("/aaa/bbb/ccc"));
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).putNode("/aa/*/cc", ruleData2, null);
-        Assertions.assertNotNull(SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).getNode("/aa/*/cc"));
+        shenyuTrie.putNode("/a/b/c/**", ruleData, null);
+        shenyuTrie.putNode("/a/b/c/**", ruleData2, null);
+        Assertions.assertNotNull(shenyuTrie.getNode("/a/b/c/**"));
+        shenyuTrie.putNode("/path1/{age}/{name}", ruleData2, null);
+        Assertions.assertNotNull(shenyuTrie.getNode("/path1/{age}/{name}"));
+        shenyuTrie.putNode("/aaa/bbb/ccc", ruleData2, null);
+        Assertions.assertNotNull(shenyuTrie.getNode("/aaa/bbb/ccc"));
+        shenyuTrie.putNode("/aa/*/cc", ruleData2, null);
+        Assertions.assertNotNull(shenyuTrie.getNode("/aa/*/cc"));
     }
     
-    private void mockAntPathShenyuTrie() {
-        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        when(context.getBean(ShenyuTrie.class)).thenReturn(new ShenyuTrie(100L, 100L, 100L, TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode()));
-        SpringBeanUtils.getInstance().setApplicationContext(context);
-    }
 }
