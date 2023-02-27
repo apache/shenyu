@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.MapUtils;
 
