@@ -32,5 +32,6 @@
         <module>shenyu-register-client-server-etcd</module>
         <module>shenyu-register-client-server-consul</module>
         <module>shenyu-register-client-server-nacos</module>
+        <module>shenyu-register-client-server-polaris</module>
     </modules>
 </project>

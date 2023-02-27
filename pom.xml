@@ -137,6 +137,7 @@
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>1.10.17</eureka.version>
         <javatuples.version>1.2</javatuples.version>
+        <polaris-dependencies.version>1.10.5</polaris-dependencies.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
