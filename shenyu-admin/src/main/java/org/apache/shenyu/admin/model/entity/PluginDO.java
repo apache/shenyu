@@ -19,9 +19,12 @@ package org.apache.shenyu.admin.model.entity;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
+import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -58,15 +61,36 @@ public final class PluginDO extends BaseDO {
      */
     private Integer sort;
 
+    private byte[] pluginClass;
+
     public PluginDO() {
     }
 
-    public PluginDO(final String name, final String config, final Boolean enabled, final String role, final Integer sort) {
+    public PluginDO(final String name, final String config, final Boolean enabled, final String role, final Integer sort, final byte[] pluginClass) {
         this.name = name;
         this.config = config;
         this.enabled = enabled;
         this.role = role;
         this.sort = sort;
+        this.pluginClass = pluginClass;
+    }
+
+    /**
+     * Gets the value of pluginClass.
+     *
+     * @return the value of pluginClass
+     */
+    public byte[] getPluginClass() {
+        return pluginClass;
+    }
+
+    /**
+     * Sets the pluginClass.
+     *
+     * @param pluginClass pluginClass
+     */
+    public void setPluginClass(final byte[] pluginClass) {
+        this.pluginClass = pluginClass;
     }
 
     /**
@@ -164,8 +188,8 @@ public final class PluginDO extends BaseDO {
      *
      * @return builder object.
      */
-    public static PluginDO.PluginDOBuilder builder() {
-        return new PluginDO.PluginDOBuilder();
+    public static PluginDOBuilder builder() {
+        return new PluginDOBuilder();
     }
 
     /**
@@ -177,19 +201,29 @@ public final class PluginDO extends BaseDO {
     public static PluginDO buildPluginDO(final PluginDTO pluginDTO) {
         return Optional.ofNullable(pluginDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            PluginDO pluginDO = PluginDO.builder()
-                    .name(item.getName())
-                    .config(item.getConfig())
-                    .enabled(item.getEnabled())
-                    .role(item.getRole())
-                    .sort(item.getSort())
-                    .dateUpdated(currentTime)
-                    .build();
+            PluginDO pluginDO = null;
+            pluginDO = PluginDO.builder()
+                        .name(item.getName())
+                        .config(item.getConfig())
+                        .enabled(item.getEnabled())
+                        .role(item.getRole())
+                        .sort(item.getSort())
+                        .dateUpdated(currentTime)
+                        .build();
+
             if (StringUtils.isEmpty(item.getId())) {
                 pluginDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 pluginDO.setDateCreated(currentTime);
             } else {
                 pluginDO.setId(item.getId());
+            }
+            if (Objects.nonNull(item.getFile())) {
+                try {
+                    pluginDO.setPluginClass(item.getFile().getBytes());
+                } catch (IOException e) {
+                    throw new ShenyuException(e);
+                }
+
             }
             return pluginDO;
         }).orElse(null);
@@ -211,7 +245,8 @@ public final class PluginDO extends BaseDO {
                 && Objects.equals(config, pluginDO.config)
                 && Objects.equals(enabled, pluginDO.enabled)
                 && Objects.equals(role, pluginDO.role)
-                && Objects.equals(sort, pluginDO.sort);
+                && Objects.equals(sort, pluginDO.sort)
+                && Arrays.equals(pluginClass, pluginDO.pluginClass);
     }
 
     @Override
@@ -236,6 +271,8 @@ public final class PluginDO extends BaseDO {
         private String role;
 
         private Integer sort;
+
+        private byte[] pluginClass;
 
         private PluginDOBuilder() {
         }
@@ -329,6 +366,19 @@ public final class PluginDO extends BaseDO {
         }
 
         /**
+         * pluginClass.
+         *
+         * @param pluginClass  the  pluginClass.
+         * @return PluginDOBuilder.
+         */
+        public PluginDOBuilder pluginClass(final byte[] pluginClass) {
+            this.pluginClass = pluginClass;
+            return this;
+        }
+
+
+
+        /**
          * build method.
          *
          * @return build object.
@@ -343,6 +393,7 @@ public final class PluginDO extends BaseDO {
             pluginDO.setEnabled(enabled);
             pluginDO.setRole(role);
             pluginDO.setSort(sort);
+            pluginDO.setPluginClass(pluginClass);
             return pluginDO;
         }
     }

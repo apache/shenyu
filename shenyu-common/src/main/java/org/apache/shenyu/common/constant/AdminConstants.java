@@ -264,4 +264,5 @@ public final class AdminConstants {
 
     public static final String TAG_ROOT_PARENT_ID = "0";
 
+    public static final String PLUGIN_JAR_IS_NOT_RIGHT = "The plugin jar is not right!";
 }

@@ -51,6 +51,12 @@
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-register-client-server-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>

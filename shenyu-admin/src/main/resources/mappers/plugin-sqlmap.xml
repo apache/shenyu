@@ -234,7 +234,8 @@
                     config,
                     role,
                     sort,
-                    enabled)
+                    enabled,
+                    plugin_class)
              VALUES (#{id, jdbcType=VARCHAR},
                     #{dateCreated, jdbcType=TIMESTAMP},
                     #{dateUpdated, jdbcType=TIMESTAMP},
@@ -242,7 +243,8 @@
                     #{config, jdbcType=VARCHAR},
                     #{role, jdbcType=VARCHAR},
                     #{sort, jdbcType=INTEGER},
-                    #{enabled, jdbcType=TINYINT})
+                    #{enabled, jdbcType=TINYINT},
+                    #{pluginClass, jdbcType=BLOB})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
@@ -270,6 +272,9 @@
             <if test="enabled != null">
                 enabled,
             </if>
+            <if test="pluginClass != null">
+                plugin_class,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id, jdbcType=VARCHAR},
@@ -293,6 +298,9 @@
             </if>
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="pluginClass != null">
+                #{pluginClass, jdbcType=BLOB},
             </if>
         </trim>
     </insert>
