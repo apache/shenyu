@@ -305,7 +305,7 @@ public class ShenyuTrie {
      * @param selectorId selectorId
      * @param ruleId ruleId
      */
-    void remove(final String path, final String selectorId, final String ruleId) {
+    public void remove(final String path, final String selectorId, final String ruleId) {
         if (StringUtils.isNotBlank(path)) {
             String strippedPath = StringUtils.strip(path, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
