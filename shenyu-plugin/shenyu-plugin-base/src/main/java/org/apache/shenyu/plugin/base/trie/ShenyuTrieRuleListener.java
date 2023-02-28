@@ -48,8 +48,6 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
             List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
             final ShenyuTrie shenyuTrie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
             switch (eventEnum) {
-                default:
-                    throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
                 case UPDATE:
                     final List<ConditionData> beforeConditionDataList = ruleData.getBeforeConditionDataList();
                     List<String> beforeUriPaths = beforeConditionDataList.stream()
@@ -62,6 +60,9 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
                 case INSERT:
                 case REMOVE:
                     shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
             }
         }
     }
