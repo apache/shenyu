@@ -48,6 +48,9 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
             List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
             final ShenyuTrie shenyuTrie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
             switch (eventEnum) {
+                case INSERT:
+                    shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
+                    break;
                 case UPDATE:
                     final List<ConditionData> beforeConditionDataList = ruleData.getBeforeConditionDataList();
                     List<String> beforeUriPaths = beforeConditionDataList.stream()
@@ -57,7 +60,8 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
 
                     // old condition remove
                     shenyuTrie.remove(beforeUriPaths, ruleData.getSelectorId(), ruleData.getId());
-                case INSERT:
+                    shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
+                    break;
                 case REMOVE:
                     shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
                     break;
