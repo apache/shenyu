@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ShenyuTrie {
 
@@ -85,6 +84,19 @@ public class ShenyuTrie {
     /**
      * put node to trie.
      *
+     * @param uriPaths uri path
+     * @param ruleData rule data
+     * @param bizInfo biz info
+     */
+    public void putNode(final List<String> uriPaths, final RuleData ruleData, final Object bizInfo) {
+        if (CollectionUtils.isNotEmpty(uriPaths)) {
+            uriPaths.forEach(path -> putNode(path, ruleData, bizInfo));
+        }
+    }
+
+    /**
+     * put node to trie.
+     *
      * @param uriPath uri path
      * @param ruleData rule data
      * @param bizInfo biz info
@@ -108,13 +120,14 @@ public class ShenyuTrie {
                 }
                 List<RuleData> ruleDataList = getVal(node.getPathRuleCache(), ruleData.getSelectorId());
                 if (CollectionUtils.isNotEmpty(ruleDataList)) {
-                    ruleDataList.add(ruleData);
-                    ruleDataList.sort(Comparator.comparing(RuleData::getSort));
-                    node.getPathRuleCache().put(ruleData.getSelectorId(), ruleDataList);
+                    // synchronized list
+                    synchronized (ruleData.getSelectorId()) {
+                        ruleDataList.add(ruleData);
+                        ruleDataList.sort(Comparator.comparing(RuleData::getSort));
+                        node.getPathRuleCache().put(ruleData.getSelectorId(), ruleDataList);
+                    }
                 } else {
-                    final CopyOnWriteArrayList<RuleData> list = Lists.newCopyOnWriteArrayList();
-                    list.add(ruleData);
-                    node.getPathRuleCache().put(ruleData.getSelectorId(), list);
+                    node.getPathRuleCache().put(ruleData.getSelectorId(), Lists.newArrayList(ruleData));
                 }
             }
         }
@@ -271,11 +284,28 @@ public class ShenyuTrie {
      * if the plug-in rules have only on mapping, remove the node from parent.
      * if current node exists multi mappings, remove the mapping.
      *
+     * @param paths paths
+     * @param selectorId selectorId
+     * @param ruleId ruleId
+     */
+    public void remove(final List<String> paths, final String selectorId, final String ruleId) {
+        if (CollectionUtils.isNotEmpty(paths)) {
+            paths.forEach(path -> remove(path, selectorId, ruleId));
+        }
+    }
+
+    /**
+     * remove trie node.
+     * remove rules: query node of the current path, if the node exists,
+     * checks whether the current node is mapped to multiple plug-in rules.
+     * if the plug-in rules have only on mapping, remove the node from parent.
+     * if current node exists multi mappings, remove the mapping.
+     *
      * @param path path
      * @param selectorId selectorId
      * @param ruleId ruleId
      */
-    public void remove(final String path, final String selectorId, final String ruleId) {
+    void remove(final String path, final String selectorId, final String ruleId) {
         if (StringUtils.isNotBlank(path)) {
             String strippedPath = StringUtils.strip(path, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
@@ -297,7 +327,9 @@ public class ShenyuTrie {
                     // remove plugin mapping
                     List<RuleData> delRuleData = getVal(currentNode.getPathRuleCache(), selectorId);
                     if (CollectionUtils.isNotEmpty(delRuleData)) {
-                        delRuleData.removeIf(rule -> rule.getId().equals(ruleId));
+                        synchronized (selectorId) {
+                            delRuleData.removeIf(rule -> rule.getId().equals(ruleId));
+                        }
                     }
                 }
             }
