@@ -76,7 +76,7 @@ public class PluginData {
      * @param sort sort
      */
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
-                      final Integer sort,final byte[] pluginClass) {
+                      final Integer sort, final byte[] pluginClass) {
         this.id = id;
         this.name = name;
         this.config = config;
@@ -203,7 +203,7 @@ public class PluginData {
      * set pluginClass.
      * @param pluginClass pluginClass
      */
-    public void setPluginClass(byte[] pluginClass) {
+    public void setPluginClass(final byte[] pluginClass) {
         this.pluginClass = pluginClass;
     }
 
@@ -255,15 +255,15 @@ public class PluginData {
 
     @Override
     public String toString() {
-        return "PluginData{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", config='" + config + '\'' +
-                ", role='" + role + '\'' +
-                ", enabled=" + enabled +
-                ", sort=" + sort +
-                ", pluginClass=" + Arrays.toString(pluginClass) +
-                '}';
+        return "PluginData{"
+                + "id='" + id + '\''
+                + ", name='" + name + '\''
+                + ", config='" + config + '\''
+                + ", role='" + role + '\''
+                + ", enabled=" + enabled
+                + ", sort=" + sort
+                + ", pluginClass=" + Arrays.toString(pluginClass)
+                + '}';
     }
 
     /**
