@@ -29,6 +29,17 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  jackson:
+    time-zone: GMT+8 # GMT , Asia/Shanghai
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - 'health'
+          - 'prometheus'
+    enabled-by-default: true
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
@@ -92,6 +103,7 @@ shenyu:
       - /websocket
       - /error
       - /actuator/health
+      - /actuator/prometheus
       - /swagger-ui.html
       - /webjars/**
       - /swagger-resources/**
