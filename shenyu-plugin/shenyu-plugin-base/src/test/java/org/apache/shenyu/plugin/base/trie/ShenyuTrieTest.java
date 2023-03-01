@@ -114,23 +114,33 @@ class ShenyuTrieTest {
 
     @Test
     public void matchSpec() {
+        String uriPath = "/a/b/c/**";
+        String uriPath1 = "/a/*/c/**";
+        String uriPath2 = "/a/*/*/{d}";
+        String uriPath3 = "/a/*/{c}/{d}";
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamName("/");
-        conditionData.setParamValue("/a/b/c/**");
+        conditionData.setParamValue(uriPath);
         
         ConditionData conditionData1 = new ConditionData();
         conditionData1.setParamType(ParamTypeEnum.URI.getName());
         conditionData1.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData1.setParamName("/");
-        conditionData1.setParamValue("/a/*/c/**");
+        conditionData1.setParamValue(uriPath1);
 
         ConditionData conditionData2 = new ConditionData();
         conditionData2.setParamType(ParamTypeEnum.URI.getName());
         conditionData2.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData2.setParamName("/");
-        conditionData2.setParamValue("/a/*/*/{d}");
+        conditionData2.setParamValue(uriPath2);
+
+        ConditionData conditionData3 = new ConditionData();
+        conditionData3.setParamType(ParamTypeEnum.URI.getName());
+        conditionData3.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData3.setParamName("/");
+        conditionData3.setParamValue(uriPath3);
 
         RuleData ruleData = RuleData.builder()
                 .id("1")
@@ -138,18 +148,15 @@ class ShenyuTrieTest {
                 .selectorId("1")
                 .name("test-plugin-rule")
                 .enabled(true)
-                .conditionDataList(Arrays.asList(conditionData, conditionData1, conditionData2))
+                .conditionDataList(Arrays.asList(conditionData, conditionData1, conditionData2, conditionData3))
                 .build();
-        shenyuTrie.putNode(Arrays.asList(conditionData.getParamValue(), 
-                    conditionData1.getParamValue(), 
-                    conditionData2.getParamValue()),
-                ruleData, 
-                null);
+        shenyuTrie.putNode(Arrays.asList(uriPath, uriPath1, uriPath2, uriPath3), ruleData, null);
         
-        Assertions.assertNotNull(shenyuTrie.match("/a/b/c/d/e/f", "1"));
-        Assertions.assertNotNull(shenyuTrie.match("/a/g/c/e", "1"));
-        Assertions.assertNotNull(shenyuTrie.match("/a/g/hi/def", "1"));
-        Assertions.assertNotNull(shenyuTrie.match("/a/gh/ij/klm", "1"));
+        Assertions.assertEquals(shenyuTrie.match("/a/b/c/d/e/f", "1").getFullPath(), uriPath);
+        Assertions.assertEquals(shenyuTrie.match("/a/g/c/e/ef/hi", "1").getFullPath(), uriPath1);
+        Assertions.assertEquals(shenyuTrie.match("/a/g/hi/def", "1").getFullPath(), uriPath2);
+        Assertions.assertEquals(shenyuTrie.match("/a/gh/ij/klm", "1").getFullPath(), uriPath2);
+        Assertions.assertNotEquals(shenyuTrie.match("/a/egh/fij/klm", "1").getFullPath(), uriPath3);
     }
     
     @Test
