@@ -19,22 +19,40 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-register-center</artifactId>
+        <artifactId>shenyu-register-instance</artifactId>
         <version>2.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-register-instance</artifactId>
-    <packaging>pom</packaging>
-    
-    <modules>
-        <module>shenyu-register-instance-api</module>
-        <module>shenyu-register-instance-core</module>
-        <module>shenyu-register-instance-zookeeper</module>
-        <module>shenyu-register-instance-etcd</module>
-        <module>shenyu-register-instance-consul</module>
-        <module>shenyu-register-instance-nacos</module>
-        <module>shenyu-register-instance-eureka</module>
-        <module>shenyu-register-instance-polaris</module>
-    </modules>
-    
+    <artifactId>shenyu-register-instance-polaris</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-register-instance-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tencent.polaris</groupId>
+            <artifactId>polaris-all</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.tencent.polaris</groupId>
+                <artifactId>polaris-dependencies</artifactId>
+                <version>${polaris-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 </project>
