@@ -101,6 +101,7 @@ public class LocalPluginController {
         for (String selectorId : selectorIds) {
             BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
         }
+        MatchDataCache.getInstance().removeRuleData(name);
         selectorIds.forEach(item -> {
             List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(item);
             if (CollectionUtils.isNotEmpty(ruleDataList)) {
