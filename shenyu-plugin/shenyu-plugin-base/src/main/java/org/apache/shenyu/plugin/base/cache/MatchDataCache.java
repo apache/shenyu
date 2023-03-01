@@ -40,7 +40,7 @@ public final class MatchDataCache {
      * pluginName -> LRUMap.
      */
     private static final ConcurrentMap<String, Map<String, SelectorData>> SELECTOR_DATA_MAP = Maps.newConcurrentMap();
-
+    
     /**
      * plugin name -> LRU Map.
      * LRU Map: path -> rule data.

@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class ShenyuTrie {
 
@@ -44,8 +43,6 @@ public class ShenyuTrie {
     private final Long pathRuleCacheSize;
     
     private final Long pathVariableSize;
-    
-    private final Object lock = new Object();
 
     /**
      * the mode includes antPathMatch and pathPattern, please see {@linkplain TrieMatchModeEvent}.
@@ -85,6 +82,19 @@ public class ShenyuTrie {
     /**
      * put node to trie.
      *
+     * @param uriPaths uri path
+     * @param ruleData rule data
+     * @param bizInfo biz info
+     */
+    public void putNode(final List<String> uriPaths, final RuleData ruleData, final Object bizInfo) {
+        if (CollectionUtils.isNotEmpty(uriPaths)) {
+            uriPaths.forEach(path -> putNode(path, ruleData, bizInfo));
+        }
+    }
+
+    /**
+     * put node to trie.
+     *
      * @param uriPath uri path
      * @param ruleData rule data
      * @param bizInfo biz info
@@ -109,10 +119,10 @@ public class ShenyuTrie {
                 List<RuleData> ruleDataList = getVal(node.getPathRuleCache(), ruleData.getSelectorId());
                 if (CollectionUtils.isNotEmpty(ruleDataList)) {
                     // synchronized list
-                    synchronized (lock) {
+                    synchronized (ruleData.getSelectorId()) {
                         ruleDataList.add(ruleData);
-                        final List<RuleData> collect = ruleDataList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
-                        node.getPathRuleCache().put(ruleData.getSelectorId(), collect);
+                        ruleDataList.sort(Comparator.comparing(RuleData::getSort));
+                        node.getPathRuleCache().put(ruleData.getSelectorId(), ruleDataList);
                     }
                 } else {
                     node.getPathRuleCache().put(ruleData.getSelectorId(), Lists.newArrayList(ruleData));
@@ -155,7 +165,7 @@ public class ShenyuTrie {
             }
         }
         // dynamic route
-        if (segment.startsWith("{") && segment.endsWith("}")) {
+        if (isPathVariable(segment)) {
             ShenyuTrieNode childNode;
             // contains key, get current pathVariable node
             if (containsKey(shenyuTrieNode.getPathVariablesSet(), segment)) {
@@ -223,12 +233,7 @@ public class ShenyuTrie {
                             continue;
                         }
                         // include path variable node, general node, wildcard node
-                        if (endPath && checkPathRuleNotNull(currentNode)
-                                && CollectionUtils.isNotEmpty(getVal(currentNode.getPathRuleCache(), selectorId))) {
-                            return currentNode;
-                        }
-                        // path is end and the match str is **, means match all
-                        if (isMatchAll(currentNode.getMatchStr()) && currentNode.getEndOfPath()
+                        if ((endPath || (isMatchAll(currentNode.getMatchStr()) && currentNode.getEndOfPath()))
                                 && checkPathRuleNotNull(currentNode)
                                 && CollectionUtils.isNotEmpty(getVal(currentNode.getPathRuleCache(), selectorId))) {
                             return currentNode;
@@ -253,14 +258,16 @@ public class ShenyuTrie {
     private ShenyuTrieNode matchNode(final String segment, final ShenyuTrieNode node) {
         if (Objects.nonNull(node)) {
             // node exist in children,first find path, avoid A plug have /http/**, B plug have /http/order/**
-            if (checkChildrenNotNull(node) && containsKey(node.getChildren(), segment)) {
-                return getVal(node.getChildren(), segment);
-            }
-            if (checkChildrenNotNull(node) && containsKey(node.getChildren(), WILDCARD)) {
-                return getVal(node.getChildren(), WILDCARD);
-            }
-            if (checkChildrenNotNull(node) && containsKey(node.getChildren(), MATCH_ALL)) {
-                return getVal(node.getChildren(), MATCH_ALL);
+            if (checkChildrenNotNull(node)) {
+                if (containsKey(node.getChildren(), segment)) {
+                    return getVal(node.getChildren(), segment);
+                }
+                if (containsKey(node.getChildren(), WILDCARD)) {
+                    return getVal(node.getChildren(), WILDCARD);
+                }
+                if (containsKey(node.getChildren(), MATCH_ALL)) {
+                    return getVal(node.getChildren(), MATCH_ALL);
+                }
             }
             // if node is path variable node
             if (Objects.nonNull(node.getPathVariableNode())) {
@@ -268,6 +275,23 @@ public class ShenyuTrie {
             }
         }
         return null;
+    }
+
+    /**
+     * remove trie node.
+     * remove rules: query node of the current path, if the node exists,
+     * checks whether the current node is mapped to multiple plug-in rules.
+     * if the plug-in rules have only on mapping, remove the node from parent.
+     * if current node exists multi mappings, remove the mapping.
+     *
+     * @param paths paths
+     * @param selectorId selectorId
+     * @param ruleId ruleId
+     */
+    public void remove(final List<String> paths, final String selectorId, final String ruleId) {
+        if (CollectionUtils.isNotEmpty(paths)) {
+            paths.forEach(path -> remove(path, selectorId, ruleId));
+        }
     }
 
     /**
@@ -303,7 +327,7 @@ public class ShenyuTrie {
                     // remove plugin mapping
                     List<RuleData> delRuleData = getVal(currentNode.getPathRuleCache(), selectorId);
                     if (CollectionUtils.isNotEmpty(delRuleData)) {
-                        synchronized (lock) {
+                        synchronized (selectorId) {
                             delRuleData.removeIf(rule -> rule.getId().equals(ruleId));
                         }
                     }
@@ -327,9 +351,8 @@ public class ShenyuTrie {
             } else {
                 return null;
             }
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -432,9 +455,8 @@ public class ShenyuTrie {
     private static <V> V getVal(final Cache<String, V> cache, final String key) {
         if (Objects.nonNull(cache)) {
             return cache.getIfPresent(key);
-        } else {
-            return null;
         }
+        return null;
     }
     
     private static <V> void cleanup(final Cache<String, V> cache) {
