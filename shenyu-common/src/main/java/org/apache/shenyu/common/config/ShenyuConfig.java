@@ -532,9 +532,9 @@ public class ShenyuConfig {
      */
     public static class MatchCache {
         
-        private SelectorCacheConfig selector;
+        private SelectorCacheConfig selector = new SelectorCacheConfig();
         
-        private RuleCacheConfig rule;
+        private RuleCacheConfig rule = new RuleCacheConfig();
     
         /**
          * get selector cache config.
