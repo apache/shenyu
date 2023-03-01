@@ -1070,13 +1070,13 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330591', '24', 'field
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330592', '24', 'decryptKey', 'decryptKey', 2, 2, 3, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330593', '24', 'encryptKey', 'encryptKey', 2, 2, 3, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330594', '24', 'way', 'way', 3, 2, 3, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1630760188111376384', '24', 'mapType', 'mapType', 3, 2, 3, '{"required":"0","defaultValue":"all","rule":""}', '2023-03-01 10:41:41', '2023-03-01 10:42:21');
+INSERT INTO "public"."plugin_handle" VALUES ('1630760188111376384', '24', 'mapType', 'mapType', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}', '2023-03-01 10:41:41', '2023-03-01 10:42:21');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330595', '25', 'strategyName', 'strategyName', 3, 2, 2, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330596', '25', 'decryptKey', 'decryptKey', 2, 2, 3, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330597', '25', 'encryptKey', 'encryptKey', 2, 2, 3, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330598', '25', 'fieldNames', 'fieldNames', 2, 2, 4, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330599', '25', 'way', 'way', 3, 2, 3, NULL, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
-INSERT INTO "public"."plugin_handle" VALUES ('1630768384280514560', '25', 'mapType', 'mapType', 3, 2, 3, '{"required":"0","defaultValue":"all","rule":""}', '2023-03-01 11:14:15', '2023-03-01 11:15:14');
+INSERT INTO "public"."plugin_handle" VALUES ('1630768384280514560', '25', 'mapType', 'mapType', 3, 2, 4, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}', '2023-03-01 11:14:15', '2023-03-01 11:15:14');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330600', '6', 'gray', 'gray', 3, 1, 9, '{"required":"0","defaultValue":"false","placeholder":"gray","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330601', '6', 'group', 'group', 2, 1, 3, '{"required":"0","placeholder":"group","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 INSERT INTO "public"."plugin_handle" VALUES ('1529403902779330602', '6', 'loadbalance', 'loadbalance', 3, 2, 0, '{"required":"0","placeholder":"loadbalance","rule":""}', '2022-05-25 18:08:01', '2022-05-25 18:08:01');

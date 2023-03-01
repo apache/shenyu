@@ -71,7 +71,7 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         request.addProperty("data", RSA_STRATEGY.encrypt(RSA_PUBLIC_KEY, jsonObject.toString()));
         UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
         byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserName());
-        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
+        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(jsonObject.toString()));
         assertThat(actualUser.getUserId(), is(TEST_USER_ID));
 
         cleanCryptorRequest();
