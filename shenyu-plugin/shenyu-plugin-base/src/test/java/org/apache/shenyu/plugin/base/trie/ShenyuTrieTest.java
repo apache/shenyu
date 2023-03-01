@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.mockito.Mockito.mock;
@@ -109,6 +110,46 @@ class ShenyuTrieTest {
         shenyuTrie.putNode("path1/name/age", ruleData, null);
         Assertions.assertNotNull(shenyuTrie.match("path1/name/age", "1"));
         Assertions.assertEquals(shenyuTrie.match("path1/name/age", "1").getFullPath(), "path1/name/age");
+    }
+
+    @Test
+    public void matchSpec() {
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setParamName("/");
+        conditionData.setParamValue("/a/b/c/**");
+        
+        ConditionData conditionData1 = new ConditionData();
+        conditionData1.setParamType(ParamTypeEnum.URI.getName());
+        conditionData1.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData1.setParamName("/");
+        conditionData1.setParamValue("/a/*/c/**");
+
+        ConditionData conditionData2 = new ConditionData();
+        conditionData2.setParamType(ParamTypeEnum.URI.getName());
+        conditionData2.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData2.setParamName("/");
+        conditionData2.setParamValue("/a/*/*/{d}");
+
+        RuleData ruleData = RuleData.builder()
+                .id("1")
+                .pluginName("test")
+                .selectorId("1")
+                .name("test-plugin-rule")
+                .enabled(true)
+                .conditionDataList(Arrays.asList(conditionData, conditionData1, conditionData2))
+                .build();
+        shenyuTrie.putNode(Arrays.asList(conditionData.getParamValue(), 
+                    conditionData1.getParamValue(), 
+                    conditionData2.getParamValue()),
+                ruleData, 
+                null);
+        
+        Assertions.assertNotNull(shenyuTrie.match("/a/b/c/d/e/f", "1"));
+        Assertions.assertNotNull(shenyuTrie.match("/a/g/c/e", "1"));
+        Assertions.assertNotNull(shenyuTrie.match("/a/g/hi/def", "1"));
+        Assertions.assertNotNull(shenyuTrie.match("/a/gh/ij/klm", "1"));
     }
     
     @Test

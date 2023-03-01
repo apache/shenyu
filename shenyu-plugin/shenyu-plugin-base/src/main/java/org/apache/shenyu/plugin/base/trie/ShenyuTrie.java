@@ -43,8 +43,6 @@ public class ShenyuTrie {
     private final Long pathRuleCacheSize;
     
     private final Long pathVariableSize;
-    
-    private final Object lock = new Object();
 
     /**
      * the mode includes antPathMatch and pathPattern, please see {@linkplain TrieMatchModeEvent}.
@@ -260,14 +258,16 @@ public class ShenyuTrie {
     private ShenyuTrieNode matchNode(final String segment, final ShenyuTrieNode node) {
         if (Objects.nonNull(node)) {
             // node exist in children,first find path, avoid A plug have /http/**, B plug have /http/order/**
-            if (checkChildrenNotNull(node) && containsKey(node.getChildren(), segment)) {
-                return getVal(node.getChildren(), segment);
-            }
-            if (checkChildrenNotNull(node) && containsKey(node.getChildren(), WILDCARD)) {
-                return getVal(node.getChildren(), WILDCARD);
-            }
-            if (checkChildrenNotNull(node) && containsKey(node.getChildren(), MATCH_ALL)) {
-                return getVal(node.getChildren(), MATCH_ALL);
+            if (checkChildrenNotNull(node)) {
+                if (containsKey(node.getChildren(), segment)) {
+                    return getVal(node.getChildren(), segment);
+                }
+                if (containsKey(node.getChildren(), WILDCARD)) {
+                    return getVal(node.getChildren(), WILDCARD);
+                }
+                if (containsKey(node.getChildren(), MATCH_ALL)) {
+                    return getVal(node.getChildren(), MATCH_ALL);
+                }
             }
             // if node is path variable node
             if (Objects.nonNull(node.getPathVariableNode())) {
