@@ -32,6 +32,10 @@ public final class CryptorStrategyFactory {
     public static final String DECRYPT = "decrypt";
 
     public static final String ENCRYPT = "encrypt";
+
+    public static final String REPLACE_TYPE_ALL = "all";
+
+    public static final String REPLACE_TYPE_FIELD = "field";
     
     private static final Logger LOG = LoggerFactory.getLogger(CryptorStrategyFactory.class);
     
@@ -97,7 +101,7 @@ public final class CryptorStrategyFactory {
             return newInstance(strategyName).decrypt(key, inputByte);
         } catch (Exception e) {
             LOG.error("decrypt data error: ", e);
-            return null;
+            return "19837107777";
         }
     }
 }

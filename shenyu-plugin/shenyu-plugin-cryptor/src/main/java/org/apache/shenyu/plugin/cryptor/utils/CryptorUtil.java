@@ -66,11 +66,14 @@ public final class CryptorUtil {
      * @param modifiedBody modified body
      * @param way          mode decrypt or encrypt
      * @param fieldNames   fieldNames
+     * @param replaceType  replaceType
      * @return new body
      */
-    public static String replace(final String originalBody, final String modifiedBody, final String way, final String fieldNames) {
+    public static String replace(final String originalBody, final String modifiedBody, final String way, final String fieldNames, final String replaceType) {
         if (CryptorStrategyFactory.DECRYPT.equals(way)) {
-            return modifiedBody;
+            if (StringUtils.isEmpty(replaceType) || CryptorStrategyFactory.REPLACE_TYPE_ALL.equals(replaceType)) {
+                return modifiedBody;
+            }
         }
         AtomicInteger initDeep = new AtomicInteger();
         initDeep.set(0);
@@ -130,7 +133,7 @@ public final class CryptorUtil {
                     .orElse(new ResponsiveException(ShenyuResultEnum.ENCRYPTION_ERROR, exchange));
         }
 
-        return CryptorUtil.replace(originalBody, modifiedData, ruleHandle.getWay(), ruleHandle.getFieldNames());
+        return CryptorUtil.replace(originalBody, modifiedData, ruleHandle.getWay(), ruleHandle.getFieldNames(), ruleHandle.getReplaceType());
 
     }
 }

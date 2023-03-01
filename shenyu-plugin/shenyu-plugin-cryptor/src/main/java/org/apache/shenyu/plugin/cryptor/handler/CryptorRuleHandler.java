@@ -33,6 +33,8 @@ public class CryptorRuleHandler implements RuleHandle {
 
     private String fieldNames;
 
+    private String replaceType;
+
     private String way;
 
     /**
@@ -97,6 +99,22 @@ public class CryptorRuleHandler implements RuleHandle {
      */
     public void setFieldNames(final String fieldNames) {
         this.fieldNames = fieldNames;
+    }
+
+    /**
+     * get replaceType.
+     * @return replaceType
+     */
+    public String getReplaceType() {
+        return replaceType;
+    }
+
+    /**
+     * set replaceType.
+     * @param replaceType replaceType
+     */
+    public void setReplaceType(final String replaceType) {
+        this.replaceType = replaceType;
     }
 
     /**
