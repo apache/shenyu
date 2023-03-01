@@ -234,9 +234,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         Pair<Boolean, RuleData> genericMatchRule = this.matchRule(exchange, rules);
         if (genericMatchRule.getLeft()) {
             return genericMatchRule.getRight();
-        } else {
-            return null;
         }
+        return null;
     }
 
     private Pair<Boolean, RuleData> matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
