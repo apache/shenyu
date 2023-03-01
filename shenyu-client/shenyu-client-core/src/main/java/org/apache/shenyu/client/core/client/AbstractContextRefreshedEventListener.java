@@ -17,16 +17,27 @@
 
 package org.apache.shenyu.client.core.client;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
+import org.apache.shenyu.common.enums.ApiSourceEnum;
+import org.apache.shenyu.common.enums.ApiStateEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
+import org.javatuples.Sextet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -40,11 +51,15 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 /**
  * The type abstract context refreshed event listener.
@@ -95,7 +110,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         this.port = props.getProperty(ShenyuClientConstants.PORT);
         publisher.start(shenyuClientRegisterRepository);
     }
-    
+
     @Override
     public void onApplicationEvent(@NonNull final ContextRefreshedEvent event) {
         final ApplicationContext context = event.getApplicationContext();
@@ -108,7 +123,79 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
         beans.forEach(this::handle);
+        Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
+        apiModules.forEach((k, v) -> {
+            handleApiDoc(v, beans);
+        });
     }
+
+    private void handleApiDoc(final Object bean, final Map<String, T> beans) {
+        Class<?> apiModuleClass = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
+        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(apiModuleClass);
+        for (Method method : methods) {
+            if (method.isAnnotationPresent(ApiDoc.class)) {
+                List<ApiDocRegisterDTO> apis = buildApiDocDTO(bean, method, beans);
+                for (ApiDocRegisterDTO apiDocRegisterDTO : apis) {
+                    publisher.publishEvent(apiDocRegisterDTO);
+                }
+            }
+        }
+    }
+
+    private List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method, final Map<String, T> beans) {
+        Pair<String, List<String>> pairs = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
+            ApiDoc apiDoc = (ApiDoc) item;
+            String[] tags = apiDoc.tags();
+            List<String> tagsList = new ArrayList<>();
+            if (tags.length > 0 && StringUtils.isNotBlank(tags[0])) {
+                tagsList = Arrays.asList(tags);
+            }
+            return Pair.of(apiDoc.desc(), tagsList);
+        }).orElse(Pair.of("", new ArrayList<>()));
+        Class<?> clazz = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
+        String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
+        if (superPath.indexOf("*") > 0) {
+            superPath = superPath.substring(0, superPath.lastIndexOf("/"));
+        }
+        Annotation annotation = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
+        if (Objects.isNull(annotation)) {
+            return Lists.newArrayList();
+        }
+        Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> sextet = buildApiDocSextet(method, annotation, beans);
+        if (Objects.isNull(sextet)) {
+            return Lists.newArrayList();
+        }
+        String contextPath = getContextPath();
+        String[] value0 = sextet.getValue0();
+        List<ApiDocRegisterDTO> list = Lists.newArrayList();
+        for (String value : value0) {
+            String apiPath = contextPath + superPath + value;
+            ApiHttpMethodEnum[] value3 = sextet.getValue3();
+            for (ApiHttpMethodEnum apiHttpMethodEnum : value3) {
+                ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
+                        .consume(sextet.getValue1())
+                        .produce(sextet.getValue2())
+                        .httpMethod(apiHttpMethodEnum.getValue())
+                        .contextPath(contextPath)
+                        .ext("{}")
+                        .document("{}")
+                        .rpcType(sextet.getValue4().getName())
+                        .version(sextet.getValue5())
+                        .apiDesc(pairs.getLeft())
+                        .tags(pairs.getRight())
+                        .apiPath(apiPath)
+                        .apiSource(ApiSourceEnum.ANNOTATION_GENERATION.getValue())
+                        .state(ApiStateEnum.PUBLISHED.getState())
+                        .apiOwner("admin")
+                        .eventType(EventType.REGISTER)
+                        .build();
+                list.add(build);
+            }
+        }
+        return list;
+    }
+
+    protected abstract Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(Method method, Annotation annotation, Map<String, T> beans);
     
     protected abstract Map<String, T> getBeans(ApplicationContext context);
     

@@ -83,16 +83,13 @@ public class ApiServiceImpl implements ApiService {
         final int updateRows = apiMapper.updateByPrimaryKeySelective(apiDO);
         if (CollectionUtils.isNotEmpty(apiDTO.getTagIds()) && updateRows > 0) {
             List<String> tagIds = apiDTO.getTagIds();
-            List<TagRelationDO> tags = Lists.newArrayList();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            for (String tagId : tagIds) {
-                tags.add(TagRelationDO.builder()
-                        .id(UUIDUtils.getInstance().generateShortUuid())
-                        .apiId(apiDO.getId())
-                        .tagId(tagId)
-                        .dateUpdated(currentTime)
-                        .build());
-            }
+            List<TagRelationDO> tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .apiId(apiDO.getId())
+                .tagId(tagId)
+                .dateUpdated(currentTime)
+                .build()).collect(Collectors.toList());
             tagRelationMapper.deleteByApiId(apiDO.getId());
             tagRelationMapper.batchInsert(tags);
         }
@@ -110,17 +107,14 @@ public class ApiServiceImpl implements ApiService {
         final int insertRows = apiMapper.insertSelective(apiDO);
         if (CollectionUtils.isNotEmpty(apiDTO.getTagIds()) && insertRows > 0) {
             List<String> tagIds = apiDTO.getTagIds();
-            List<TagRelationDO> tags = Lists.newArrayList();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            for (String tagId : tagIds) {
-                tags.add(TagRelationDO.builder()
-                        .id(UUIDUtils.getInstance().generateShortUuid())
-                        .apiId(apiDO.getId())
-                        .tagId(tagId)
-                        .dateCreated(currentTime)
-                        .dateUpdated(currentTime)
-                        .build());
-            }
+            List<TagRelationDO> tags = tagIds.stream().map(tagId -> TagRelationDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .apiId(apiDO.getId())
+                .tagId(tagId)
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build()).collect(Collectors.toList());
             tagRelationMapper.batchInsert(tags);
         }
         return ShenyuResultMessage.CREATE_SUCCESS;
@@ -151,9 +145,7 @@ public class ApiServiceImpl implements ApiService {
             List<TagVO> tagVOS = Lists.newArrayList();
             if (CollectionUtils.isNotEmpty(tagIds)) {
                 List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
-                for (TagDO tagDO : tagDOS) {
-                    tagVOS.add(TagVO.buildTagVO(tagDO));
-                }
+                tagVOS = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
             }
             return ApiVO.buildApiVO(item, tagVOS);
         }).orElse(null);
@@ -168,11 +160,30 @@ public class ApiServiceImpl implements ApiService {
                     List<TagVO> tagVOS = Lists.newArrayList();
                     if (CollectionUtils.isNotEmpty(tagIds)) {
                         List<TagDO> tagDOS = tagMapper.selectByIds(tagIds);
-                        for (TagDO tagDO : tagDOS) {
-                            tagVOS.add(TagVO.buildTagVO(tagDO));
-                        }
+                        tagVOS = tagDOS.stream().map(TagVO::buildTagVO).collect(Collectors.toList());
                     }
                     return ApiVO.buildApiVO(item, tagVOS);
                 }).collect(Collectors.toList()));
+    }
+
+    @Override
+    public int deleteByApiPathHttpMethodRpcType(final String apiPath, final Integer httpMethod, final String rpcType) {
+        List<ApiDO> apiDOs = apiMapper.selectByApiPathHttpMethodRpcType(apiPath, httpMethod, rpcType);
+        // delete apis.
+        if (CollectionUtils.isNotEmpty(apiDOs)) {
+            final List<String> apiIds = ListUtil.map(apiDOs, ApiDO::getId);
+            final int deleteRows = this.apiMapper.deleteByIds(apiIds);
+            if (deleteRows > 0) {
+                tagRelationMapper.deleteByApiIds(apiIds);
+            }
+            return deleteRows;
+        }
+        return 0;
+    }
+
+    @Override
+    public String offlineByContextPath(final String contextPath) {
+        apiMapper.updateOfflineByContextPath(contextPath);
+        return ShenyuResultMessage.SUCCESS;
     }
 }

@@ -318,4 +318,20 @@
     </foreach>
   </delete>
 
+  <select id="selectByApiPathHttpMethodRpcType" resultMap="BaseResultMap">
+    SELECT
+        <include refid="Base_Column_List"/>
+    FROM api
+    WHERE api_path = #{apiPath,jdbcType=VARCHAR}
+    AND http_method = #{httpMethod,jdbcType=INTEGER}
+    AND rpc_type = #{rpcType,jdbcType=VARCHAR}
+  </select>
+
+  <update id="updateOfflineByContextPath">
+    UPDATE
+        api
+    SET state = 2
+    WHERE context_path = #{contextPath,jdbcType=VARCHAR}
+  </update>
+
 </mapper>

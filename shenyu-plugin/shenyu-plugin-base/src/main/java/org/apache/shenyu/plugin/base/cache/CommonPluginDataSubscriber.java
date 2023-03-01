@@ -23,7 +23,12 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.common.enums.RuleTrieEventEnum;
+import org.apache.shenyu.common.utils.MapUtils;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.event.RuleTrieEvent;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +84,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         }
         for (PluginDataHandler handler : handlers) {
             String pluginNamed = handler.pluginNamed();
-            handlerMap.computeIfAbsent(pluginNamed, name -> {
+            MapUtils.computeIfAbsent(handlerMap, pluginNamed, name -> {
                 LOG.info("shenyu auto add extends plugin data handler name is :{}", pluginNamed);
                 return handler;
             });
@@ -146,7 +151,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     @Override
     public void refreshRuleDataAll() {
         BaseDataCache.getInstance().cleanRuleData();
-        MatchDataCache.getInstance().cleanRuleData();
+        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).clear();
     }
     
     @Override
@@ -198,10 +203,14 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
             BaseDataCache.getInstance().cacheRuleData(ruleData);
-            MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName());
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.handlerRule(ruleData));
-            
+            if (CollectionUtils.isEmpty(ruleData.getBeforeConditionDataList())) {
+                eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.INSERT, ruleData));
+            } else {
+                // if has before condition, use upodate
+                eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.UPDATE, ruleData));
+            }
         }
     }
 
@@ -244,10 +253,9 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
             BaseDataCache.getInstance().removeRuleData(ruleData);
-            MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName());
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.removeRule(ruleData));
-            
+            eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.REMOVE, ruleData));
         }
     }
 }

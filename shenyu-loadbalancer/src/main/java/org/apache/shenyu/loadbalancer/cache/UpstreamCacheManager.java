@@ -23,6 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.config.ShenyuConfig.UpstreamCheck;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
@@ -50,6 +51,8 @@ public final class UpstreamCacheManager {
      */
     private Boolean checkEnable;
 
+    private int poolSize;
+
     private int checkTimeout;
 
     private int checkInterval;
@@ -73,6 +76,7 @@ public final class UpstreamCacheManager {
         ShenyuConfig shenyuConfig = Optional.ofNullable(Singleton.INST.get(ShenyuConfig.class)).orElse(new ShenyuConfig());
         UpstreamCheck upstreamCheck = shenyuConfig.getUpstreamCheck();
         checkEnable = upstreamCheck.getEnabled();
+        poolSize = upstreamCheck.getPoolSize();
         checkTimeout = upstreamCheck.getTimeout();
         healthyThreshold = upstreamCheck.getHealthyThreshold();
         unhealthyThreshold = upstreamCheck.getUnhealthyThreshold();
@@ -85,6 +89,7 @@ public final class UpstreamCacheManager {
 
     private void createTask() {
         task = new UpstreamCheckTask(checkInterval);
+        task.setPoolSize(poolSize);
         task.setCheckTimeout(checkTimeout);
         task.setHealthyThreshold(healthyThreshold);
         task.setUnhealthyThreshold(unhealthyThreshold);
@@ -132,15 +137,15 @@ public final class UpstreamCacheManager {
     }
 
     /**
-     * Submit.
+     * Submit .
      *
      * @param selectorId the selector id
      * @param upstreamList the upstream list
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
-        List<Upstream> validUpstreamList = upstreamList.stream().filter(upstream -> upstream.isStatus()).collect(Collectors.toList());
+        List<Upstream> validUpstreamList = upstreamList.stream().filter(Upstream::isStatus).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(validUpstreamList)) {
-            List<Upstream> existUpstream = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> Lists.newArrayList());
+            List<Upstream> existUpstream = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
             existUpstream.stream().filter(upstream -> !validUpstreamList.contains(upstream))
                     .forEach(upstream -> task.triggerRemoveOne(selectorId, upstream));
             validUpstreamList.stream().filter(upstream -> !existUpstream.contains(upstream))

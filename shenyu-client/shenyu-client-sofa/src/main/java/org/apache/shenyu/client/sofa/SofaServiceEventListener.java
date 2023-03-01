@@ -21,8 +21,10 @@ import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.client.sofa.common.dto.SofaRpcExt;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -30,6 +32,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.javatuples.Sextet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -39,6 +42,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -149,6 +153,21 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
         for (Map.Entry<String, ServiceFactoryBean> entry : serviceBean.entrySet()) {
             handler(entry.getValue());
         }
+    }
+
+    @Override
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation,
+                                                                                                           final Map<String, ServiceFactoryBean> beans) {
+        ShenyuSofaClient shenyuSofaClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuSofaClient.class);
+        if (Objects.isNull(shenyuSofaClient)) {
+            return null;
+        }
+        String produce = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+        String consume = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+        String[] values = new String[]{shenyuSofaClient.value()};
+        ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
+        String version = "v0.01";
+        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.SOFA, version);
     }
 
     private void handler(final ServiceFactoryBean serviceBean) {

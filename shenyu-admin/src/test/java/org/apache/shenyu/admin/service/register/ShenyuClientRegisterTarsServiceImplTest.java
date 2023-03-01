@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.converter.TarsSelectorHandleConverter;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -114,12 +115,11 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
         when(selectorDO.getHandle()).thenReturn(returnStr);
         doReturn(false).when(shenyuClientRegisterTarsService).doSubmit(any(), any());
         String actual = shenyuClientRegisterTarsService.buildHandle(list, selectorDO);
-        JsonParser parser = new JsonParser();
-        assertEquals(parser.parse(expected.replaceAll("\\d{13}", "0")), parser.parse(actual.replaceAll("\\d{13}", "0")));
+        assertEquals(JsonParser.parseString(expected.replaceAll("\\d{13}", "0")), JsonParser.parseString(actual.replaceAll("\\d{13}", "0")));
         List<TarsUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 2);
         assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
-                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> r.isStatus()), true);
+                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(CommonUpstream::isStatus), true);
         assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
                 .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
 
@@ -132,7 +132,7 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
         resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 3);
         assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
-                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> r.isStatus()), true);
+                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(CommonUpstream::isStatus), true);
         assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
                 .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
 
@@ -145,7 +145,7 @@ public final class ShenyuClientRegisterTarsServiceImplTest {
         resultList = GsonUtils.getInstance().fromCurrentList(actual, TarsUpstream.class);
         assertEquals(resultList.size(), 1);
         assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
-                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> r.isStatus()), true);
+                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(CommonUpstream::isStatus), true);
 
         list.clear();
         doReturn(false).when(shenyuClientRegisterTarsService).doSubmit(any(), any());

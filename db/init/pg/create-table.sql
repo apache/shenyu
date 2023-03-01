@@ -951,6 +951,7 @@ INSERT INTO "public"."plugin" VALUES ('36', 'loggingTencentCls', '{"endpoint": "
 INSERT INTO "public"."plugin" VALUES ('38', 'loggingClickHouse', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 'Logging', 195, 0, '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO "public"."plugin" VALUES ('39', 'casdoor', '{"endpoint":"http://localhost:8000"}', 'Authentication', 40, 0, '2022-09-11 12:00:00', '2022-09-11 12:00:00');
 INSERT INTO "public"."plugin" VALUES ('40', 'keyAuth', NULL, 'Authentication', 150, 0, '2022-07-24 19:00:00', '2022-07-24 19:00:00');
+INSERT INTO "public"."plugin" VALUES ('41', 'brpc', '{"address":"127.0.0.1","port":"8005","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}', 'Proxy', 310, 0, '2023-01-10 10:08:01', '2023-01-10 10:08:01');
 
 -- ----------------------------
 -- Table structure for plugin_handle
@@ -1240,7 +1241,14 @@ INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172825', '36', 'maskT
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172826', '36', 'maskStatus', 'maskStatus', 3, 2, 2, '{"required":"0","defaultValue":"false","rule":""}', '2022-09-22 00:17:21.150', '2022-09-22 00:17:21.150');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172827', '38', 'keyword', 'keyword', 2, 2, 0, '{"required":"0","placeholder":"please use ‘;’ to split keyword","rule":""}', '2022-09-22 00:15:56.158', '2022-09-22 00:23:36.169');
 INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172829', '38', 'maskType', 'maskType', 3, 2, 1, '{"required":"0","defaultValue":"dataMaskByMD5","rule":""}', '2022-09-22 00:16:27.342', '2022-09-22 00:16:27.342');
-INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172830', '38', 'maskStatus', 'maskStatus', 3, 2, 2, '{"required":"0","defaultValue":"false","rule":""}', '2022-09-22 00:17:21.150', '2022-09-22 00:17:21.150');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172830', '38', 'host', 'host', 2, 3, 3, '{"required":"1","defaultValue":"127.0.0.1"}', '2023-01-02 00:17:21.150', '2023-01-02 00:17:21.150');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172831', '38', 'port', 'port', 2, 3, 4, '{"required":"1","defaultValue":"8123"}', '2023-01-02 00:17:21.150', '2023-01-02 00:17:21.150');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172832', '38', 'database', 'database', 2, 3, 5, '{"required":"0","defaultValue":"shenyu-gateway"}', '2023-01-02 00:17:21.150', '2023-01-02 00:17:21.150');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172833', '38', 'username', 'username', 2, 3, 6, '{"required":"1","defaultValue":""}', '2023-01-02 00:17:21.150', '2023-01-02 00:17:21.150');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172834', '38', 'password', 'password', 2, 3, 7, '{"required":"1","defaultValue":""}', '2023-01-02 00:17:21.150', '2023-01-02 00:17:21.150');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172835', '38', 'engine', 'engine', 3, 3, 8, '{"required":"0","defaultValue":"MergeTree"}', '2023-01-02 00:17:21.150', '2023-01-02 00:17:21.150');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172836', '38', 'clusterName', 'clusterName', 3, 3, 9, '{"required":"1","defaultValue":"cluster"}', '2023-01-02 00:17:21.150', '2023-01-02 00:17:21.150');
+
 
 INSERT INTO "public"."plugin_handle" VALUES ('1570590990341775360', '39', 'endpoint', 'casdoor endpoint', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
 INSERT INTO "public"."plugin_handle" VALUES ('1570591047635968000', '39', 'client_id', 'client_id', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
@@ -1248,6 +1256,13 @@ INSERT INTO "public"."plugin_handle" VALUES ('1570591109623586816', '39', 'clien
 INSERT INTO "public"."plugin_handle" VALUES ('1570591165374275584', '39', 'certificate', 'certificate', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
 INSERT INTO "public"."plugin_handle" VALUES ('1570591215131303936', '39', 'organization-name', 'organization-name', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
 INSERT INTO "public"."plugin_handle" VALUES ('1570591265492312064', '39', 'application-name', 'application-name', 2, 3, 0, '{"required":"1","rule":""}', '2022-09-16 09:50:46', '2022-09-16 09:50:46');
+
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172957', '41', 'address', 'address', 2, 3, 0, '{"required":"1","defaultValue":"127.0.0.1","placeholder":"address","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172958', '41', 'port', 'port', 2, 3, 0, '{"required":"1","defaultValue":"8005","placeholder":"port","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172959', '41', 'corethreads', 'corethreads', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"corethreads","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172960', '41', 'threads', 'threads', 1, 3, 0, '{"required":"0","defaultValue":"2147483647","placeholder":"threads","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172961', '41', 'queues', 'queues', 1, 3, 0, '{"required":"0","defaultValue":"0","placeholder":"queues","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
+INSERT INTO "public"."plugin_handle" VALUES ('1529402613204172962', '41', 'threadpool', 'threadpool', 3, 3, 0, '{"required":"0","defaultValue":"shared","placeholder":"threadpool","rule":""}', '2023-01-10 10:08:01', '2023-01-10 10:08:01');
 -- ----------------------------
 -- Table structure for resource
 -- ----------------------------
@@ -1979,6 +1994,9 @@ INSERT INTO "public"."shenyu_dict" VALUES ('1572621497251454976', 'maskType', 'M
 INSERT INTO "public"."shenyu_dict" VALUES ('1572621587282190336', 'maskType', 'MASKTYPE_REPLACE', 'replace', 'dataMaskByCharReplace', '', 0, 1, '2022-09-22 00:19:39.060', '2022-09-22 00:19:39.060');
 INSERT INTO "public"."shenyu_dict" VALUES ('1572621912915369984', 'maskStatus', 'MASK_STATUS_FALSE', 'notmask', 'false', '', 0, 1, '2022-09-22 00:20:56.693', '2022-09-22 00:20:56.693');
 INSERT INTO "public"."shenyu_dict" VALUES ('1572621976689762304', 'maskStatus', 'MASK_STATUS_TRUE', 'mask', 'true', '', 0, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
+INSERT INTO "public"."shenyu_dict" VALUES ('1572621976689762305', 'engine', 'engine', 'ReplacingMergeTree', 'ReplacingMergeTree', '', 0, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
+INSERT INTO "public"."shenyu_dict" VALUES ('1572621976689762306', 'engine', 'engine', 'MergeTree', 'MergeTree', '', 1, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
+INSERT INTO "public"."shenyu_dict" VALUES ('1572621976689762307', 'loadBalance', 'LOAD_BALANCE', 'leastActive', 'leastActive', 'leastActive', 3, 1, '2023-01-17 18:02:52.924', '2023-01-17 18:02:52.924');
 
 
 -- ----------------------------

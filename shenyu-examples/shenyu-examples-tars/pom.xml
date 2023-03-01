@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-examples</artifactId>
-        <version>2.5.1-SNAPSHOT</version>
+        <version>2.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-examples-tars</artifactId>
@@ -84,19 +84,19 @@
                 <version>1.7.2</version>
                 <configuration>
                     <tars2JavaConfig>
-                        <!-- tars文件位置 -->
+                        <!-- tars file location -->
                         <tarsFiles>
                             <tarsFile>${basedir}/src/main/resources/test.tars</tarsFile>
                         </tarsFiles>
-                        <!-- 源文件编码 -->
+                        <!-- source file encoding -->
                         <tarsFileCharset>UTF-8</tarsFileCharset>
-                        <!-- 生成服务端代码 -->
+                        <!-- whether to generate server code -->
                         <servant>true</servant>
-                        <!-- 生成源代码编码 -->
+                        <!-- generated source code encoding -->
                         <charset>UTF-8</charset>
-                        <!-- 生成的源代码目录 -->
+                        <!-- generated source code directory -->
                         <srcPath>${basedir}/src/main/java</srcPath>
-                        <!-- 生成源代码包前缀 -->
+                        <!-- generated source code package prefix -->
                         <packagePrefixName>org.apache.shenyu.examples.tars.servant.</packagePrefixName>
                     </tars2JavaConfig>
                 </configuration>

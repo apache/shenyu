@@ -22,34 +22,24 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.exception.ResponsiveException;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.support.BodyInserterContext;
-import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.base.utils.ResponseUtils;
-import org.apache.shenyu.plugin.cryptor.decorator.CryptorRequestDecorator;
+import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
-import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
 import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
 import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
-import org.springframework.web.reactive.function.BodyInserter;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * Cryptor request plugin.
@@ -70,33 +60,29 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         CryptorRuleHandler ruleHandle = CryptorRequestPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(ruleHandle)) {
             LOG.error("Cryptor request rule configuration is null :{}", rule.getId());
             return chain.execute(exchange);
         }
-        Pair<Boolean, String> pair = JsonUtil.checkParam(ruleHandle);
+
+        Pair<Boolean, String> pair = CryptorUtil.checkParam(ruleHandle);
         if (Boolean.TRUE.equals(pair.getLeft())) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
-                    ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg()
-                    + "[" + pair.getRight() + "]", null);
-            return WebFluxResultUtils.result(exchange, error);
+            ShenyuResultEnum resultEnum = ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION;
+            return WebFluxResultUtils.failedResult(resultEnum.getCode(),
+                    resultEnum.getMsg() + "[" + pair.getRight() + "]", exchange);
         }
 
-        ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
-        Mono<String> mono = serverRequest.bodyToMono(String.class)
-                .switchIfEmpty(Mono.defer(() -> Mono.just("")))
-                .flatMap(originalBody -> strategyMatch(ruleHandle, originalBody, exchange));
-
-        BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(mono, String.class);
-        CachedBodyOutputMessage outputMessage = ResponseUtils.newCachedBodyOutputMessage(exchange);
-        return bodyInserter.insert(outputMessage, new BodyInserterContext())
-                .then(Mono.defer(() -> {
-                    ServerHttpRequestDecorator decorator = new CryptorRequestDecorator(exchange, outputMessage);
-                    return chain.execute(exchange.mutate().request(decorator).build());
-                })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
+        return ServerWebExchangeUtils.rewriteRequestBody(exchange, messageReaders, originalBody ->
+                Mono.just(convert(ruleHandle, originalBody, exchange))
+        ).flatMap(chain::execute)
+                .onErrorResume(error -> {
+                    if (error instanceof ResponsiveException) {
+                        return WebFluxResultUtils.failedResult((ResponsiveException) error);
+                    }
+                    return Mono.error(error);
+                });
     }
 
     @Override
@@ -108,19 +94,12 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
     public String named() {
         return PluginEnum.CRYPTOR_REQUEST.getName();
     }
-    
-    @SuppressWarnings("rawtypes")
-    private Mono strategyMatch(final CryptorRuleHandler ruleHandle, final String originalBody, final ServerWebExchange exchange) {
+
+    private String convert(final CryptorRuleHandler ruleHandle, final String originalBody, final ServerWebExchange exchange) {
         String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
         if (Objects.isNull(parseBody)) {
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(),
-                    ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg() + "[fieldNames]", null);
-            return WebFluxResultUtils.result(exchange, error);
+            throw new ResponsiveException(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(), ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg() + "[fieldNames]", exchange);
         }
-        String modifiedBody = CryptorStrategyFactory.match(ruleHandle, parseBody);
-        if (Objects.isNull(modifiedBody)) {
-            return CryptorUtil.fail(ruleHandle.getWay(), exchange);
-        }
-        return CryptorUtil.success(originalBody, modifiedBody, ruleHandle.getWay(), ruleHandle.getFieldNames());
+        return CryptorUtil.crypt(ruleHandle, parseBody, originalBody, exchange);
     }
 }

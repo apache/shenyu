@@ -22,10 +22,12 @@ import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
 import org.apache.shenyu.client.motan.common.dto.MotanRpcExt;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -33,11 +35,13 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.javatuples.Sextet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,6 +69,20 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     public MotanServiceEventListener(final PropertiesConfig clientConfig,
                                      final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         super(clientConfig, shenyuClientRegisterRepository);
+    }
+
+    @Override
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, Object> beans) {
+        ShenyuMotanClient shenyuMotanClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuMotanClient.class);
+        if (Objects.isNull(shenyuMotanClient)) {
+            return null;
+        }
+        String produce = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+        String consume = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+        String[] values = new String[]{shenyuMotanClient.value()};
+        ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
+        String version = "v0.01";
+        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.MOTAN, version);
     }
 
     @Override

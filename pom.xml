@@ -25,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.5.1-SNAPSHOT</version>
+    <version>2.6.0-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -136,6 +136,7 @@
         <kafka-clients.version>3.2.0</kafka-clients.version>
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>1.10.17</eureka.version>
+        <javatuples.version>1.2</javatuples.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -581,6 +582,7 @@
                 <configuration>
                     <sourcepath>src/main/java</sourcepath>
                     <detectJavaApiLink>false</detectJavaApiLink>
+                    <detectOfflineLinks>false</detectOfflineLinks>
                 </configuration>
                 <executions>
                     <execution>
@@ -600,6 +602,9 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>

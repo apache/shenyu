@@ -69,7 +69,7 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
      *
      * @param changeData changeData
      */
-    public AbstractListDataChangedListener(final ChangeData changeData) {
+    protected AbstractListDataChangedListener(final ChangeData changeData) {
         this.changeData = changeData;
     }
 

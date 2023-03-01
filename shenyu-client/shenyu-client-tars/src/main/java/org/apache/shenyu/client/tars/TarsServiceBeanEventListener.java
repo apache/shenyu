@@ -26,6 +26,7 @@ import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentExcept
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
@@ -33,6 +34,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.javatuples.Sextet;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -41,6 +43,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +77,20 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
         this.contextPath = contextPath;
         this.ipAndPort = this.getHost() + ":" + port;
         publisher.start(shenyuClientRegisterRepository);
+    }
+
+    @Override
+    protected Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(final Method method, final Annotation annotation, final Map<String, Object> beans) {
+        ShenyuTarsClient shenyuTarsClient = AnnotatedElementUtils.findMergedAnnotation(method, ShenyuTarsClient.class);
+        if (Objects.isNull(shenyuTarsClient)) {
+            return null;
+        }
+        String produce = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+        String consume = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+        String[] values = new String[]{shenyuTarsClient.value()};
+        ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
+        String version = "v0.01";
+        return Sextet.with(values, consume, produce, apiHttpMethodEnums, RpcTypeEnum.TARS, version);
     }
 
     @Override

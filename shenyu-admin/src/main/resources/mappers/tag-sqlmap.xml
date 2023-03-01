@@ -38,6 +38,13 @@
         ext
     </sql>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT TRUE
+        FROM tag
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
     <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>

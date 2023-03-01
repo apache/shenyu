@@ -18,6 +18,8 @@
 package org.apache.shenyu.examples.tars.servant.testapp.impl;
 
 import com.qq.tars.spring.annotation.TarsServant;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
 import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.examples.common.aop.Log;
@@ -25,10 +27,12 @@ import org.apache.shenyu.examples.tars.servant.testapp.HelloServant;
 
 @TarsServant("HelloObj")
 @ShenyuTarsService(serviceName = "ShenyuExampleServer.ShenyuExampleApp.HelloObj")
+@ApiModule(value = "HelloObj")
 public class HelloServantImpl implements HelloServant {
 
     @Override
     @ShenyuTarsClient("/hello")
+    @ApiDoc(desc = "hello")
     public String hello(final int no, final String name) {
         return String.format("hello no=%s, name=%s, time=%s", no, name, System.currentTimeMillis());
     }
@@ -36,6 +40,7 @@ public class HelloServantImpl implements HelloServant {
     @Log
     @Override
     @ShenyuTarsClient("/helloInt")
+    @ApiDoc(desc = "helloInt")
     public int helloInt(final int no, final String name) {
         return 1;
     }
