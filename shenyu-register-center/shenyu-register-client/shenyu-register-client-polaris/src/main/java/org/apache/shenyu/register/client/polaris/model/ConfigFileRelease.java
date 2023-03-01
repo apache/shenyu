@@ -25,215 +25,367 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-
 public class ConfigFileRelease {
 
-	@JsonProperty("id")
-	private long id;
+    @JsonProperty("id")
+    private long id;
 
-	@JsonProperty("name")
-	private String name;
+    @JsonProperty("name")
+    private String name;
 
-	@JsonProperty("namespace")
-	private String namespace;
+    @JsonProperty("namespace")
+    private String namespace;
 
-	@JsonProperty("group")
-	private String group;
+    @JsonProperty("group")
+    private String group;
 
-	@JsonProperty("file_name")
-	private String fileName;
+    @JsonProperty("file_name")
+    private String fileName;
 
-	@JsonProperty("content")
-	private String content;
+    @JsonProperty("content")
+    private String content;
 
-	@JsonProperty("md5")
-	private String md5;
+    @JsonProperty("md5")
+    private String md5;
 
-	@JsonProperty("version")
-	private long version;
+    @JsonProperty("version")
+    private long version;
 
-	@JsonProperty("modify_time")
-	private Date modifyTime;
+    @JsonProperty("modify_time")
+    private Date modifyTime;
 
-	@JsonIgnore
-	private Map<String, String> labels = new HashMap<>();
+    @JsonIgnore
+    private Map<String, String> labels = new HashMap<>();
 
-	@JsonIgnore
-	private boolean valid = true;
+    @JsonIgnore
+    private boolean valid = true;
 
-	public long getId() {
-		return id;
-	}
+    /**
+     * get id.
+     *
+     * @return Long
+     */
+    public Long getId() {
+        return id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    /**
+     * get name.
+     *
+     * @return String
+     */
+    public String getName() {
+        return name;
+    }
 
-	public String getNamespace() {
-		return namespace;
-	}
+    /**
+     * get namespace.
+     *
+     * @return String
+     */
+    public String getNamespace() {
+        return namespace;
+    }
 
-	public String getGroup() {
-		return group;
-	}
+    /**
+     * get group.
+     *
+     * @return String
+     */
+    public String getGroup() {
+        return group;
+    }
 
-	public String getFileName() {
-		return fileName;
-	}
+    /**
+     * get fileName.
+     *
+     * @return String
+     */
+    public String getFileName() {
+        return fileName;
+    }
 
-	public String getContent() {
-		return content;
-	}
+    /**
+     * get content.
+     *
+     * @return String
+     */
+    public String getContent() {
+        return content;
+    }
 
-	public String getMd5() {
-		return md5;
-	}
+    /**
+     * get md5.
+     *
+     * @return String
+     */
+    public String getMd5() {
+        return md5;
+    }
 
-	public long getVersion() {
-		return version;
-	}
+    /**
+     * get version.
+     *
+     * @return Long
+     */
+    public Long getVersion() {
+        return version;
+    }
 
-	public Date getModifyTime() {
-		return modifyTime;
-	}
+    /**
+     * get modifyTime.
+     *
+     * @return Date
+     */
+    public Date getModifyTime() {
+        return modifyTime;
+    }
 
-	public Map<String, String> getLabels() {
-		return labels;
-	}
+    /**
+     * get labels.
+     *
+     * @return Map
+     */
+    public Map<String, String> getLabels() {
+        return labels;
+    }
 
-	public void setLabels(Map<String, String> labels) {
-		this.labels = labels;
-	}
+    /**
+     * set labels.
+     *
+     * @param labels labels
+     */
+    public void setLabels(final Map<String, String> labels) {
+        this.labels = labels;
+    }
 
+    /**
+     * get keyInfo.
+     *
+     * @return String
+     */
+    public String keyInfo() {
+        return String.format("%s@@%s@@%s", namespace, group, fileName);
+    }
 
-	public String keyInfo() {
-		return String.format("%s@@%s@@%s", namespace, group, fileName);
-	}
+    /**
+     * is valid.
+     *
+     * @return Boolean
+     */
+    public Boolean isValid() {
+        return valid;
+    }
 
+    /**
+     * equals.
+     *
+     * @param o o
+     * @return boolean
+     */
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ConfigFileRelease)) {
+            return false;
+        }
+        ConfigFileRelease that = (ConfigFileRelease) o;
+        return id == that.id && version == that.version && Objects.equals(namespace, that.namespace)
+                && Objects.equals(group, that.group) && Objects.equals(fileName, that.fileName);
+    }
 
-	public boolean isValid() {
-		return valid;
-	}
+    /**
+     * hashCode.
+     *
+     * @return int
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, namespace, group, fileName, version);
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof ConfigFileRelease)) return false;
-		ConfigFileRelease that = (ConfigFileRelease) o;
-		return id == that.id && version == that.version && Objects.equals(namespace, that.namespace)
-				&& Objects.equals(group, that.group) && Objects.equals(fileName, that.fileName);
-	}
+    @Override
+    public String toString() {
+        return "ConfigFileRelease{"
+                + "id=" + id
+                + ", name='" + name + '\''
+                + ", namespace='" + namespace + '\''
+                + ", group='" + group + '\''
+                + ", fileName='" + fileName + '\''
+                + ", content='" + content + '\''
+                + ", md5='" + md5 + '\''
+                + ", version=" + version
+                + ", modifyTime=" + modifyTime
+                + ", valid=" + valid
+                + '}';
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id, namespace, group, fileName, version);
-	}
+    /**
+     * builder api.
+     *
+     * @return ConfigFileRelease.Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
 
-	@Override
-	public String toString() {
-		return "ConfigFileRelease{" +
-				"id=" + id +
-				", name='" + name + '\'' +
-				", namespace='" + namespace + '\'' +
-				", group='" + group + '\'' +
-				", fileName='" + fileName + '\'' +
-				", content='" + content + '\'' +
-				", md5='" + md5 + '\'' +
-				", version=" + version +
-				", modifyTime=" + modifyTime +
-				", valid=" + valid +
-				'}';
-	}
+    public static final class Builder {
+        
+        private long id;
+        
+        private String name;
+        
+        private String namespace;
+        
+        private String group;
+        
+        private String fileName;
+        
+        private String content;
+        
+        private String md5;
+        
+        private long version;
+        
+        private Date modifyTime;
+        
+        private Map<String, String> labels;
+        
+        private boolean valid;
 
-	public static Builder builder() {
-		return new Builder();
-	}
+        private Builder() {
+        }
 
-	public static final class Builder {
-		private long id;
-		private String name;
-		private String namespace;
-		private String group;
-		private String fileName;
-		private String content;
-		private String md5;
-		private long version;
-		private Date modifyTime;
-		private Map<String, String> labels;
-		private boolean valid;
+        /**
+         * id.
+         * @param id id
+         * @return Builder
+         */
+        public Builder id(final Long id) {
+            this.id = id;
+            return this;
+        }
 
-		private Builder() {
-		}
+        /**
+         * name.
+         * @param name name
+         * @return Builder
+         */
+        public Builder name(final String name) {
+            this.name = name;
+            return this;
+        }
 
-		public Builder id(long id) {
-			this.id = id;
-			return this;
-		}
+        /**
+         * namespace.
+         * @param namespace namespace
+         * @return Builder
+         */
+        public Builder namespace(final String namespace) {
+            this.namespace = namespace;
+            return this;
+        }
 
-		public Builder name(String name) {
-			this.name = name;
-			return this;
-		}
+        /**
+         * group.
+         * @param group group
+         * @return Builder
+         */
+        public Builder group(final String group) {
+            this.group = group;
+            return this;
+        }
 
-		public Builder namespace(String namespace) {
-			this.namespace = namespace;
-			return this;
-		}
+        /**
+         * fileName.
+         * @param fileName fileName
+         * @return Builder
+         */
+        public Builder fileName(final String fileName) {
+            this.fileName = fileName;
+            return this;
+        }
 
-		public Builder group(String group) {
-			this.group = group;
-			return this;
-		}
+        /**
+         * content.
+         * @param content content
+         * @return Builder
+         */
+        public Builder content(final String content) {
+            this.content = content;
+            return this;
+        }
 
-		public Builder fileName(String fileName) {
-			this.fileName = fileName;
-			return this;
-		}
+        /**
+         * md5.
+         * @param md5 md5
+         * @return Builder
+         */
+        public Builder md5(final String md5) {
+            this.md5 = md5;
+            return this;
+        }
 
-		public Builder content(String content) {
-			this.content = content;
-			return this;
-		}
+        /**
+         * version.
+         * @param version version
+         * @return Builder
+         */
+        public Builder version(final Long version) {
+            this.version = version;
+            return this;
+        }
 
-		public Builder md5(String md5) {
-			this.md5 = md5;
-			return this;
-		}
+        /**
+         * modifyTime.
+         * @param modifyTime modifyTime
+         * @return Builder
+         */
+        public Builder modifyTime(final Date modifyTime) {
+            this.modifyTime = modifyTime;
+            return this;
+        }
 
-		public Builder version(long version) {
-			this.version = version;
-			return this;
-		}
+        /**
+         * labels.
+         * @param labels labels
+         * @return Builder
+         */
+        public Builder labels(final Map<String, String> labels) {
+            this.labels = labels;
+            return this;
+        }
 
-		public Builder modifyTime(Date modifyTime) {
-			this.modifyTime = modifyTime;
-			return this;
-		}
+        /**
+         * valid.
+         * @param valid valid
+         * @return Builder
+         */
+        public Builder valid(final Boolean valid) {
+            this.valid = valid;
+            return this;
+        }
 
-		public Builder labels(Map<String, String> labels) {
-			this.labels = labels;
-			return this;
-		}
-
-		public Builder valid(boolean valid) {
-			this.valid = valid;
-			return this;
-		}
-
-		public ConfigFileRelease build() {
-			ConfigFileRelease configFileRelease = new ConfigFileRelease();
-			configFileRelease.id = this.id;
-			configFileRelease.labels = this.labels;
-			configFileRelease.content = this.content;
-			configFileRelease.valid = this.valid;
-			configFileRelease.name = this.name;
-			configFileRelease.group = this.group;
-			configFileRelease.namespace = this.namespace;
-			configFileRelease.version = this.version;
-			configFileRelease.modifyTime = this.modifyTime;
-			configFileRelease.fileName = this.fileName;
-			configFileRelease.md5 = this.md5;
-			return configFileRelease;
-		}
-	}
+        /**
+         * build.
+         * @return ConfigFileRelease
+         */
+        public ConfigFileRelease build() {
+            ConfigFileRelease configFileRelease = new ConfigFileRelease();
+            configFileRelease.id = this.id;
+            configFileRelease.labels = this.labels;
+            configFileRelease.content = this.content;
+            configFileRelease.valid = this.valid;
+            configFileRelease.name = this.name;
+            configFileRelease.group = this.group;
+            configFileRelease.namespace = this.namespace;
+            configFileRelease.version = this.version;
+            configFileRelease.modifyTime = this.modifyTime;
+            configFileRelease.fileName = this.fileName;
+            configFileRelease.md5 = this.md5;
+            return configFileRelease;
+        }
+    }
 }

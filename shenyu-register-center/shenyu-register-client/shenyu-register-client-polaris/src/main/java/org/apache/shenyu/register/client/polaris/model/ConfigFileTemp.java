@@ -23,206 +23,345 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
+ * ConfigFileTemp.
  */
 public class ConfigFileTemp {
 
-	@JsonProperty("namespace")
-	private String namespace;
+    @JsonProperty("namespace")
+    private String namespace;
 
-	@JsonProperty("group")
-	private String group;
+    @JsonProperty("group")
+    private String group;
 
-	@JsonProperty("name")
-	private String fileName;
+    @JsonProperty("name")
+    private String fileName;
 
-	@JsonProperty("content")
-	private String content;
+    @JsonProperty("content")
+    private String content;
 
-	@JsonProperty("comment")
-	private String comment;
+    @JsonProperty("comment")
+    private String comment;
 
-	@JsonProperty("tags")
-	private List<Tag> tags;
+    @JsonProperty("tags")
+    private List<Tag> tags;
 
-	@JsonProperty("format")
-	private String format;
+    @JsonProperty("format")
+    private String format;
 
-	public String getNamespace() {
-		return namespace;
-	}
+    /**
+     * get namespace.
+     *
+     * @return String
+     */
+    public String getNamespace() {
+        return namespace;
+    }
 
-	public void setNamespace(String namespace) {
-		this.namespace = namespace;
-	}
+    /**
+     * set namespace.
+     *
+     * @param namespace namespace
+     */
+    public void setNamespace(final String namespace) {
+        this.namespace = namespace;
+    }
 
-	public String getGroup() {
-		return group;
-	}
+    /**
+     * get group.
+     *
+     * @return String
+     */
+    public String getGroup() {
+        return group;
+    }
 
-	public void setGroup(String group) {
-		this.group = group;
-	}
+    /**
+     * set group.
+     *
+     * @param group group
+     */
+    public void setGroup(final String group) {
+        this.group = group;
+    }
 
-	public String getFileName() {
-		return fileName;
-	}
+    /**
+     * get fileName.
+     *
+     * @return String
+     */
+    public String getFileName() {
+        return fileName;
+    }
 
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
-	}
+    /**
+     * set fileName.
+     *
+     * @param fileName fileName
+     */
+    public void setFileName(final String fileName) {
+        this.fileName = fileName;
+    }
 
-	public String getContent() {
-		return content;
-	}
+    /**
+     * get content.
+     *
+     * @return String
+     */
+    public String getContent() {
+        return content;
+    }
 
-	public void setContent(String content) {
-		this.content = content;
-	}
+    /**
+     * set content.
+     *
+     * @param content content
+     */
+    public void setContent(final String content) {
+        this.content = content;
+    }
 
-	public String getComment() {
-		return comment;
-	}
+    /**
+     * get comment.
+     *
+     * @return String
+     */
+    public String getComment() {
+        return comment;
+    }
 
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
+    /**
+     * set comment.
+     *
+     * @param comment comment
+     */
+    public void setComment(final String comment) {
+        this.comment = comment;
+    }
 
-	public List<Tag> getTags() {
-		return tags;
-	}
+    /**
+     * get tags.
+     *
+     * @return List
+     */
+    public List<Tag> getTags() {
+        return tags;
+    }
 
-	public void setTags(List<Tag> tags) {
-		this.tags = tags;
-	}
+    /**
+     * set tags.
+     *
+     * @param tags tags
+     */
+    public void setTags(final List<Tag> tags) {
+        this.tags = tags;
+    }
 
-	public String getFormat() {
-		return format;
-	}
+    /**
+     * get format.
+     *
+     * @return String
+     */
+    public String getFormat() {
+        return format;
+    }
 
-	public void setFormat(String format) {
-		this.format = format;
-	}
+    /**
+     * set format.
+     *
+     * @param format format
+     */
+    public void setFormat(final String format) {
+        this.format = format;
+    }
+    
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ConfigFileTemp)) {
+            return false;
+        }
+        ConfigFileTemp that = (ConfigFileTemp) o;
+        return Objects.equals(getNamespace(), that.getNamespace()) && Objects.equals(getGroup(), that.getGroup())
+                && Objects.equals(getFileName(), that.getFileName()) && Objects.equals(getContent(), that.getContent())
+                && Objects.equals(getFormat(), that.getFormat());
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(getNamespace(), getGroup(), getFileName(), getContent(), getFormat());
+    }
 
+    @Override
+    public String toString() {
+        return "ConfigFileTemp{"
+                + "namespace='" + namespace + '\''
+                + ", group='" + group + '\''
+                + ", fileName='" + fileName + '\''
+                + ", content='" + content + '\''
+                + ", comment='" + comment + '\''
+                + ", tags=" + tags
+                + ", format='" + format + '\''
+                + '}';
+    }
 
-	public static class Tag {
-		private String key;
+    /**
+     * builder.
+     * @return ConfigFileTempBuilder
+     */
+    public static ConfigFileTempBuilder builder() {
+        return new ConfigFileTempBuilder();
+    }
 
-		private String value;
+    public static class Tag {
+        private String key;
 
-		public Tag(String key, String value) {
-			this.key = key;
-			this.value = value;
-		}
+        private String value;
 
-		public String getKey() {
-			return key;
-		}
+        public Tag(final String key, final String value) {
+            this.key = key;
+            this.value = value;
+        }
 
-		public void setKey(String key) {
-			this.key = key;
-		}
+        /**
+         * get key.
+         * @return String
+         */
+        public String getKey() {
+            return key;
+        }
 
-		public String getValue() {
-			return value;
-		}
+        /**
+         * set key.
+         * @param key key
+         */
+        public void setKey(final String key) {
+            this.key = key;
+        }
 
-		public void setValue(String value) {
-			this.value = value;
-		}
-	}
+        /**
+         * get key.
+         * @return String
+         */
+        public String getValue() {
+            return value;
+        }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof ConfigFileTemp)) return false;
-		ConfigFileTemp that = (ConfigFileTemp) o;
-		return Objects.equals(getNamespace(), that.getNamespace()) && Objects.equals(getGroup(), that.getGroup())
-				&& Objects.equals(getFileName(), that.getFileName()) && Objects.equals(getContent(), that.getContent())
-				&& Objects.equals(getFormat(), that.getFormat());
-	}
+        /**
+         * set value.
+         * @param value value
+         */
+        public void setValue(final String value) {
+            this.value = value;
+        }
+        
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(getNamespace(), getGroup(), getFileName(), getContent(), getFormat());
-	}
+    public static final class ConfigFileTempBuilder {
+        
+        private String namespace;
+        
+        private String group;
+        
+        private String fileName;
+        
+        private String content;
+        
+        private String comment;
+        
+        private List<Tag> tags;
+        
+        private String format;
 
-	@Override
-	public String toString() {
-		return "ConfigFileTemp{" +
-				"namespace='" + namespace + '\'' +
-				", group='" + group + '\'' +
-				", fileName='" + fileName + '\'' +
-				", content='" + content + '\'' +
-				", comment='" + comment + '\'' +
-				", tags=" + tags +
-				", format='" + format + '\'' +
-				'}';
-	}
+        private ConfigFileTempBuilder() {
+        }
 
-	public static ConfigFileTempBuilder builder() {
-		return new ConfigFileTempBuilder();
-	}
+        /**
+         * namespace.
+         * @param namespace namespace
+         * @return ConfigFileTempBuilder
+         */
+        public ConfigFileTempBuilder namespace(final String namespace) {
+            this.namespace = namespace;
+            return this;
+        }
 
-	public static final class ConfigFileTempBuilder {
-		private String namespace;
-		private String group;
-		private String fileName;
-		private String content;
-		private String comment;
-		private List<Tag> tags;
-		private String format;
+        /**
+         * group.
+         * @param group group
+         * @return ConfigFileTempBuilder
+         */
+        public ConfigFileTempBuilder group(final String group) {
+            this.group = group;
+            return this;
+        }
 
-		private ConfigFileTempBuilder() {
-		}
+        /**
+         * fileName.
+         * @param fileName fileName
+         * @return ConfigFileTempBuilder
+         */
+        public ConfigFileTempBuilder fileName(final String fileName) {
+            this.fileName = fileName;
+            return this;
+        }
 
+        /**
+         * content.
+         * @param content content
+         * @return ConfigFileTempBuilder
+         */
+        public ConfigFileTempBuilder content(final String content) {
+            this.content = content;
+            return this;
+        }
 
-		public ConfigFileTempBuilder namespace(String namespace) {
-			this.namespace = namespace;
-			return this;
-		}
+        /**
+         * comment.
+         * @param comment comment
+         * @return ConfigFileTempBuilder
+         */
+        public ConfigFileTempBuilder comment(final String comment) {
+            this.comment = comment;
+            return this;
+        }
 
-		public ConfigFileTempBuilder group(String group) {
-			this.group = group;
-			return this;
-		}
+        /**
+         * tags.
+         * @param tags tags
+         * @return ConfigFileTempBuilder
+         */
+        public ConfigFileTempBuilder tags(final List<Tag> tags) {
+            this.tags = tags;
+            return this;
+        }
 
-		public ConfigFileTempBuilder fileName(String fileName) {
-			this.fileName = fileName;
-			return this;
-		}
+        /**
+         * format.
+         * @param format format
+         * @return ConfigFileTempBuilder
+         */
+        public ConfigFileTempBuilder format(final String format) {
+            this.format = format;
+            return this;
+        }
 
-		public ConfigFileTempBuilder content(String content) {
-			this.content = content;
-			return this;
-		}
-
-		public ConfigFileTempBuilder comment(String comment) {
-			this.comment = comment;
-			return this;
-		}
-
-		public ConfigFileTempBuilder tags(List<Tag> tags) {
-			this.tags = tags;
-			return this;
-		}
-
-		public ConfigFileTempBuilder format(String format) {
-			this.format = format;
-			return this;
-		}
-
-		public ConfigFileTemp build() {
-			ConfigFileTemp configFileTemp = new ConfigFileTemp();
-			configFileTemp.setNamespace(namespace);
-			configFileTemp.setGroup(group);
-			configFileTemp.setFileName(fileName);
-			configFileTemp.setContent(content);
-			configFileTemp.setComment(comment);
-			configFileTemp.setTags(tags);
-			configFileTemp.setFormat(format);
-			return configFileTemp;
-		}
-	}
+        /**
+         * build.
+         * @return ConfigFileTemp
+         */
+        public ConfigFileTemp build() {
+            ConfigFileTemp configFileTemp = new ConfigFileTemp();
+            configFileTemp.setNamespace(namespace);
+            configFileTemp.setGroup(group);
+            configFileTemp.setFileName(fileName);
+            configFileTemp.setContent(content);
+            configFileTemp.setComment(comment);
+            configFileTemp.setTags(tags);
+            configFileTemp.setFormat(format);
+            return configFileTemp;
+        }
+    }
+    
 }

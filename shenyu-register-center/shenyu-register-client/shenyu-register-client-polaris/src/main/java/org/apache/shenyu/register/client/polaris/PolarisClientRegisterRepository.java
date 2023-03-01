@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.register.client.polaris;
 
-
 import com.tencent.polaris.api.config.Configuration;
 import com.tencent.polaris.api.core.ProviderAPI;
 import com.tencent.polaris.api.rpc.InstanceRegisterRequest;
@@ -61,7 +60,7 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
     private ProviderAPI providerAPI;
 
     @Override
-    public void init(ShenyuRegisterCenterConfig config) {
+    public void init(final ShenyuRegisterCenterConfig config) {
         Configuration configuration = buildConfiguration(config);
         SDKContext sdkContext = SDKContext.initContextByConfig(configuration);
         this.providerAPI = DiscoveryAPIFactory.createProviderAPIByContext(sdkContext);
@@ -69,14 +68,14 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
     }
 
     /**
-     * build polaris configuration
-     * @param config
-     * @return
+     * build polaris configuration.
+     *
+     * @param config config
+     * @return Configuration
      */
-    private Configuration buildConfiguration(ShenyuRegisterCenterConfig config){
+    private Configuration buildConfiguration(final ShenyuRegisterCenterConfig config) {
         String serverLists = config.getServerLists();
-        Configuration configuration = ConfigAPIFactory.createConfigurationByAddress(serverLists);
-        return configuration;
+        return ConfigAPIFactory.createConfigurationByAddress(serverLists);
     }
 
     @Override
@@ -115,8 +114,7 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
         LOGGER.info("polaris client register uri success: {}", registerDTO);
     }
 
-
-    private void registerMetaData(final MetaDataRegisterDTO metadata){
+    private void registerMetaData(final MetaDataRegisterDTO metadata) {
         String name = RegisterPathConstants.buildServiceConfigPath(metadata.getRpcType(), metadata.getContextPath());
         String group = "shenyu";
         String defaultNamespace = PolarisDefaultConfigConstant.DEFAULT_NAMESPACE;
@@ -136,23 +134,21 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
         ConfigFilesResponse configFilesResponse;
         try {
             ConfigFilesResponse configFile = polarisConfigClient.getConfigFile(configFileRelease);
-            if (OpenAPIStatusCode.NOT_FOUND_RESOURCE == configFile.getCode()){
+            if (OpenAPIStatusCode.NOT_FOUND_RESOURCE == configFile.getCode()) {
                 configFilesResponse = polarisConfigClient.createConfigFile(configFileTemp);
-            }else {
+            } else {
                 configFilesResponse = polarisConfigClient.updateConfigFile(configFileTemp);
             }
-            if (OpenAPIStatusCode.OK == configFilesResponse.getCode()){
+            if (OpenAPIStatusCode.OK == configFilesResponse.getCode()) {
                 configFilesResponse = polarisConfigClient.releaseConfigFile(configFileRelease);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        System.out.println(configFilesResponse.getCode());
     }
 
     /**
-     * close  providerAPI
+     * close  providerAPI.
      */
     @Override
     public void close() {

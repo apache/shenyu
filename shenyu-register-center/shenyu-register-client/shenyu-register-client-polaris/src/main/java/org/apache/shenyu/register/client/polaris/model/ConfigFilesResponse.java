@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.shenyu.register.client.polaris.model;
 
@@ -7,95 +23,152 @@ import com.tencent.polaris.plugins.circuitbreaker.common.ConfigGroup;
 import java.util.Collection;
 
 /**
- * @author <a href="mailto:liaochuntao@live.com">liaochuntao</a>
+ * ConfigFilesResponse.
  */
 public class ConfigFilesResponse {
 
-	private ConfigFilesResponse parent;
+    private ConfigFilesResponse parent;
 
-	private int code;
+    private int code;
 
-	private String info;
+    private String info;
 
-	private ConfigGroup group;
+    private ConfigGroup group;
 
-	private Collection<ConfigFile> files;
+    private Collection<ConfigFile> files;
 
-	public ConfigGroup getGroup() {
-		return group;
-	}
+    /**
+     * get group.
+     * @return ConfigGroup
+     */
+    public ConfigGroup getGroup() {
+        return group;
+    }
 
-	public int getCode() {
-		return code;
-	}
+    /**
+     * get code.
+     * @return int
+     */
+    public int getCode() {
+        return code;
+    }
 
-	public String getInfo() {
-		return info;
-	}
+    /**
+     * get info.
+     * @return String
+     */
+    public String getInfo() {
+        return info;
+    }
 
-	public Collection<ConfigFile> getFiles() {
-		return files;
-	}
+    /**
+     * get files.
+     * @return Collection
+     */
+    public Collection<ConfigFile> getFiles() {
+        return files;
+    }
 
-	public ConfigFilesResponse getParent() {
-		return parent;
-	}
+    /**
+     * get parent.
+     * @return ConfigFilesResponse
+     */
+    public ConfigFilesResponse getParent() {
+        return parent;
+    }
 
-	public void setParent(ConfigFilesResponse parent) {
-		this.parent = parent;
-	}
+    /**
+     * set parent.
+     * @param parent parent
+     */
+    public void setParent(final ConfigFilesResponse parent) {
+        this.parent = parent;
+    }
 
-	public static Builder builder() {
-		return new Builder();
-	}
+    /**
+     * builder.
+     * @return ConfigFilesResponse.Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
 
-	public static final class Builder {
-		private int code;
-		private String info;
-		private ConfigGroup group;
-		private Collection<ConfigFile> files;
+    @Override
+    public String toString() {
+        return "ConfigFilesResponse{" 
+                + "parent=" + parent
+                + ", code=" + code
+                + ", info='" + info + '\''
+                + ", group=" + group
+                + ", files=" + files
+                + '}';
+    }
 
-		private Builder() {
-		}
+    public static final class Builder {
+        
+        private int code;
+        
+        private String info;
+        
+        private ConfigGroup group;
+        
+        private Collection<ConfigFile> files;
 
-		public Builder code(int code) {
-			this.code = code;
-			return this;
-		}
+        private Builder() {
+        }
 
-		public Builder info(String info) {
-			this.info = info;
-			return this;
-		}
+        /**
+         * code.
+         * @param code code
+         * @return Builder
+         */
+        public Builder code(final int code) {
+            this.code = code;
+            return this;
+        }
 
-		public Builder group(ConfigGroup group) {
-			this.group = group;
-			return this;
-		}
+        /**
+         * info.
+         * @param info info
+         * @return Builder
+         */
+        public Builder info(final String info) {
+            this.info = info;
+            return this;
+        }
 
-		public Builder files(Collection<ConfigFile> files) {
-			this.files = files;
-			return this;
-		}
+        /**
+         * group.
+         * @param group group
+         * @return Builder
+         */
+        public Builder group(final ConfigGroup group) {
+            this.group = group;
+            return this;
+        }
 
-		public ConfigFilesResponse build() {
-			ConfigFilesResponse configFilesResponse = new ConfigFilesResponse();
-			configFilesResponse.code = this.code;
-			configFilesResponse.files = this.files;
-			configFilesResponse.info = this.info;
-			configFilesResponse.group = this.group;
-			return configFilesResponse;
-		}
-	}
+        /**
+         * files.
+         * @param files files
+         * @return Builder
+         */
+        public Builder files(final Collection<ConfigFile> files) {
+            this.files = files;
+            return this;
+        }
 
-	@Override
-	public String toString() {
-		return "ConfigFilesResponse{" +
-				"parent=" + parent +
-				", code=" + code +
-				", info='" + info + '\'' +
-				", group=" + group +
-				", files=" + files +
-				'}';
-	}
+        /**
+         * build.
+         * @return ConfigFilesResponse
+         */
+        public ConfigFilesResponse build() {
+            ConfigFilesResponse configFilesResponse = new ConfigFilesResponse();
+            configFilesResponse.code = this.code;
+            configFilesResponse.files = this.files;
+            configFilesResponse.info = this.info;
+            configFilesResponse.group = this.group;
+            return configFilesResponse;
+        }
+    }
+    
 }
