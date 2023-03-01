@@ -114,10 +114,10 @@ class ShenyuTrieTest {
 
     @Test
     public void matchSpec() {
-        String uriPath = "/a/b/c/**";
-        String uriPath1 = "/a/*/c/**";
-        String uriPath2 = "/a/*/*/{d}";
-        String uriPath3 = "/a/*/{c}/{d}";
+        final String uriPath = "/a/b/c/**";
+        final String uriPath1 = "/a/*/c/**";
+        final String uriPath2 = "/a/*/*/{d}";
+        final String uriPath3 = "/a/*/{c}/{d}";
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
