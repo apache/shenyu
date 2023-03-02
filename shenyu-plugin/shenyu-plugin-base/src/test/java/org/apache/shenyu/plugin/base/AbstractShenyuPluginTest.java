@@ -67,18 +67,26 @@ public final class AbstractShenyuPluginTest {
     @BeforeEach
     public void setUp() {
         mockShenyuConfig();
-        this.ruleData = RuleData.builder().id("1")
-                .selectorId("1").enabled(true)
-                .loged(true).sort(1).build();
+        this.ruleData = RuleData.builder()
+                .id("1")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(true)
+                .loged(true)
+                .sort(1).build();
         this.conditionData = new ConditionData();
         this.conditionData.setOperator("match");
         this.conditionData.setParamName("/");
         this.conditionData.setParamType("uri");
         this.conditionData.setParamValue("/http/**");
         this.shenyuPluginChain = mock(ShenyuPluginChain.class);
-        this.pluginData = PluginData.builder().name("SHENYU").enabled(true).build();
-        this.selectorData = SelectorData.builder().id("1").pluginName("SHENYU")
-                .enabled(true).type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
+        this.pluginData = PluginData.builder()
+                .name("SHENYU")
+                .enabled(true).build();
+        this.selectorData = SelectorData.builder()
+                .id("1").pluginName("SHENYU")
+                .enabled(true)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
         this.testShenyuPlugin = spy(new TestShenyuPlugin());
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SHENYU/SHENYU")
                 .build());
