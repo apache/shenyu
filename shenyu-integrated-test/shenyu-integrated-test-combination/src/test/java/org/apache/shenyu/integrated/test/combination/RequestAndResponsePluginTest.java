@@ -62,17 +62,15 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testDecryptRequestAndEncryptResponse() throws Exception {
-        setupCryptorRequest("data", "decrypt", MapTypeEnum.ALL.getMapType());
-        setupCryptorResponse("data.userName", "encrypt", MapTypeEnum.ALL.getMapType());
+        setupCryptorRequest("data", "decrypt", MapTypeEnum.FIELD.getMapType());
+        setupCryptorResponse("userName", "encrypt", MapTypeEnum.ALL.getMapType());
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("userId", TEST_USER_ID);
         jsonObject.addProperty("userName", TEST_USER_NAME);
         JsonObject request = new JsonObject();
         request.addProperty("data", RSA_STRATEGY.encrypt(RSA_PUBLIC_KEY, jsonObject.toString()));
-        JsonObject json = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, JsonObject.class);
-        final JsonObject data = json.getAsJsonObject("data");
-        final UserDTO actualUser = JsonUtils.jsonToObject(data.getAsString(), UserDTO.class);
+        final UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
         byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserName());
         assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
         assertThat(actualUser.getUserId(), is(TEST_USER_ID));
@@ -117,8 +115,8 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testEncryptRequestAndDecryptResponseField() throws Exception {
-        setupCryptorRequest("data", "encrypt", MapTypeEnum.ALL.getMapType());
-        setupCryptorResponse("data", "decrypt", MapTypeEnum.FIELD.getMapType());
+        setupCryptorRequest("userName", "encrypt", MapTypeEnum.ALL.getMapType());
+        setupCryptorResponse("userName", "decrypt", MapTypeEnum.FIELD.getMapType());
 
         JsonObject request = new JsonObject();
         request.addProperty("userId", TEST_USER_ID);
