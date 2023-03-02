@@ -531,14 +531,60 @@ public class ShenyuConfig {
      * the match cache.
      */
     public static class MatchCache {
-
+        
+        private SelectorCacheConfig selector = new SelectorCacheConfig();
+        
+        private RuleCacheConfig rule = new RuleCacheConfig();
+    
+        /**
+         * get selector cache config.
+         *
+         * @return {@linkplain SelectorCacheConfig}
+         */
+        public SelectorCacheConfig getSelector() {
+            return selector;
+        }
+    
+        /**
+         * set selector cache config.
+         *
+         * @param selector SelectorCacheConfig
+         */
+        public void setSelector(final SelectorCacheConfig selector) {
+            this.selector = selector;
+        }
+    
+        /**
+         * get rule cache Config.
+         *
+         * @return rule cache config
+         */
+        public RuleCacheConfig getRule() {
+            return rule;
+        }
+    
+        /**
+         * set rule cache config.
+         *
+         * @param rule rule cache
+         */
+        public void setRule(final RuleCacheConfig rule) {
+            this.rule = rule;
+        }
+    }
+    
+    /**
+     * selector cache.
+     */
+    public static class SelectorCacheConfig {
+        
         private boolean selectorEnabled;
-
+    
         /**
          * Max free memory, unit mb.
          */
         private Integer maxSelectorFreeMemory = 256;
-
+    
         /**
          * Get selector cache enabled.
          *
@@ -547,7 +593,7 @@ public class ShenyuConfig {
         public boolean getSelectorEnabled() {
             return selectorEnabled;
         }
-
+    
         /**
          * Set selector enabled.
          *
@@ -556,8 +602,7 @@ public class ShenyuConfig {
         public void setSelectorEnabled(final boolean selectorEnabled) {
             this.selectorEnabled = selectorEnabled;
         }
-
-
+        
         /**
          * Gets maxFreeMemory.
          *
@@ -566,7 +611,7 @@ public class ShenyuConfig {
         public Integer getMaxSelectorFreeMemory() {
             return maxSelectorFreeMemory;
         }
-
+    
         /**
          * Sets maxFreeMemory.
          *
@@ -574,6 +619,52 @@ public class ShenyuConfig {
          */
         public void setMaxSelectorFreeMemory(final Integer maxSelectorFreeMemory) {
             this.maxSelectorFreeMemory = maxSelectorFreeMemory;
+        }
+    }
+    
+    /**
+     * rule cache config.
+     */
+    public static class RuleCacheConfig {
+
+        private int initialCapacity = 10000;
+        
+        private long maximumSize = 10000L;
+    
+        /**
+         * get initial capacity.
+         *
+         * @return initial capacity
+         */
+        public int getInitialCapacity() {
+            return initialCapacity;
+        }
+        
+        /**
+         * set initial capacity.
+         *
+         * @param initialCapacity initialCapacity
+         */
+        public void setInitialCapacity(final int initialCapacity) {
+            this.initialCapacity = initialCapacity;
+        }
+    
+        /**
+         * get maximum size.
+         *
+         * @return rule cache maximumSize
+         */
+        public long getMaximumSize() {
+            return maximumSize;
+        }
+    
+        /**
+         * set rule cache maximumSize.
+         *
+         * @param maximumSize rule cache maximumSize
+         */
+        public void setMaximumSize(final long maximumSize) {
+            this.maximumSize = maximumSize;
         }
     }
     
