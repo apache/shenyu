@@ -17,15 +17,18 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.spi.Join;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.SortedMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.IntStream;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
-import org.apache.shenyu.spi.Join;
 
 /**
  * hash algorithm impl.
@@ -39,6 +42,11 @@ public class HashLoadBalancer extends AbstractLoadBalancer {
     private static final int VIRTUAL_NODE_NUM = 5;
 
     /**
+     * selector for storing ip and service providers.
+     */
+    private final ConcurrentMap<String, ConsistentHashSelector> selectors = new ConcurrentHashMap<>();
+
+    /**
      * consistent hash with virtual node to select upstream.
      *
      * @param upstreamList the upstream list
@@ -47,17 +55,13 @@ public class HashLoadBalancer extends AbstractLoadBalancer {
      */
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
-        final ConcurrentSkipListMap<Long, Upstream> treeMap = new ConcurrentSkipListMap<>();
-        upstreamList.forEach(upstream -> IntStream.range(0, VIRTUAL_NODE_NUM).forEach(i -> {
-            long addressHash = hash("SHENYU-" + upstream.getUrl() + "-HASH-" + i);
-            treeMap.put(addressHash, upstream);
-        }));
-        long hash = hash(ip);
-        SortedMap<Long, Upstream> lastRing = treeMap.tailMap(hash);
-        if (!lastRing.isEmpty()) {
-            return lastRing.get(lastRing.firstKey());
+        int invokersHashCode = upstreamList.hashCode();
+        ConsistentHashSelector selector = selectors.get(ip);
+        if (selector == null || selector.identityHashCode != invokersHashCode) {
+            selectors.put(ip, new ConsistentHashSelector(upstreamList, invokersHashCode));
+            selector = selectors.get(ip);
         }
-        return treeMap.firstEntry().getValue();
+        return selector.select(ip);
     }
 
     private static long hash(final String key) {
@@ -79,5 +83,29 @@ public class HashLoadBalancer extends AbstractLoadBalancer {
                 | ((long) (digest[1] & 0xFF) << 8)
                 | (digest[0] & 0xFF);
         return hashCode & 0xffffffffL;
+    }
+
+    private static final class ConsistentHashSelector {
+
+        private final ConcurrentSkipListMap<Long, Upstream> virtualInvokers;
+
+        private final int identityHashCode;
+
+        ConsistentHashSelector(final List<Upstream> upstreamList, final int identityHashCode) {
+            this.virtualInvokers = new ConcurrentSkipListMap<>();
+            this.identityHashCode = identityHashCode;
+            upstreamList.forEach(upstream -> IntStream.range(0, VIRTUAL_NODE_NUM).forEach(i -> {
+                long addressHash = hash("SHENYU-" + upstream.getUrl() + "-HASH-" + i);
+                virtualInvokers.put(addressHash, upstream);
+            }));
+        }
+
+        public Upstream select(final String ip) {
+            Map.Entry<Long, Upstream> entry = virtualInvokers.ceilingEntry(hash(ip));
+            if (entry == null) {
+                entry = virtualInvokers.firstEntry();
+            }
+            return entry.getValue();
+        }
     }
 }
