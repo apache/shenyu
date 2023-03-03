@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cryptor.request;
+package org.apache.shenyu.plugin.cryptor.plugin;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
+import org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum;
 import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
 import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -237,6 +238,34 @@ public class CryptorRequestPluginTest {
         CryptorRuleHandler ruleHandle = CryptorRequestPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
         String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
         assertEquals(CryptorUtil.crypt(ruleHandle, parseBody, originalBody, exchange), "{\"inputToken\":{\"test\":\"{\\\"nickName\\\":\\\"openApi\\\"}\"}}");
+    }
+
+    @Test
+    public void mapTypeDecryptMultFieldsTest() {
+        this.ruleData.setHandle("{\"strategyName\":\"rsa\","
+                + "\"fieldNames\":\"inputToken.one,inputToken.two\","
+                + "\"decryptKey\":\"MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAtrfolGUtLhZVSpd5L/oAXbGW9Rn54mD96Ny"
+                + "uWsxp/KCscDoeFScN7uSc3LwKk14wrC4X0+fSDxm0kMPTvgNBywIDAQABAkBFPvt4ycNOlQ4r364A3akn2PbR2s9V2NZBW"
+                + "ukE5jVAlOvgCn6L/+tsVDSQgeVtOPd6rwM2a24iASDsNEbnVrwBAiEA34DwAmsa1phE5aGKM1bPHJiGgM8yolIYDWBaBCu"
+                + "PTgECIQDRSOWA8rLJWP+Vijm/QB8C41Gw1V7WXC2Kuj07Jv5nywIgTDKCIODw8m5RNtRe8GfNDlu1p158TbidOJo7tiY/og"
+                + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
+                + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
+                + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
+                + "\"way\":\"decrypt\","
+                + "\"mapType\":\"all\""
+                + "}\n");
+        final String originalBody = "{\"inputToken\": "
+                + "{\"one\":\"kYPZgOAR2pEipskl5WURW/r3CMxNQJwbs4jbTAOfZNV39L4WkaTOqAeolV+rlKCKiXKvhfHWaxQOTMm9hQBxLA==\"," 
+                + "\"two\":\"kYPZgOAR2pEipskl5WURW/r3CMxNQJwbs4jbTAOfZNV39L4WkaTOqAeolV+rlKCKiXKvhfHWaxQOTMm9hQBxLA==\"}"
+                + "}";
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.POST, "/test")
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body(originalBody));
+        cryptorRequestPluginDataHandler.handlerRule(ruleData);
+        CryptorRuleHandler ruleHandle = CryptorRequestPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        String parseBody = MapTypeEnum.mapType(ruleHandle.getMapType()).convert(originalBody, ruleHandle, exchange);
+        assertEquals(parseBody, "{\"inputToken\":{\"one\":\"{\\\"nickName\\\":\\\"openApi\\\"}\",\"two\":\"{\\\"nickName\\\":\\\"openApi\\\"}\"}}");
     }
     
 }

@@ -15,23 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.cryptor.request;
+package org.apache.shenyu.plugin.cryptor.plugin;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.exception.ResponsiveException;
-import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
-import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
-import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
-import org.apache.shenyu.plugin.cryptor.utils.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.codec.HttpMessageReader;
@@ -39,12 +32,11 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Cryptor request plugin.
  */
-public class CryptorRequestPlugin extends AbstractShenyuPlugin {
+public class CryptorRequestPlugin extends AbstractCryptorPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(CryptorRequestPlugin.class);
 
@@ -60,23 +52,11 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        CryptorRuleHandler ruleHandle = CryptorRequestPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (Objects.isNull(ruleHandle)) {
-            LOG.error("Cryptor request rule configuration is null :{}", rule.getId());
-            return chain.execute(exchange);
-        }
-
-        Pair<Boolean, String> pair = CryptorUtil.checkParam(ruleHandle);
-        if (Boolean.TRUE.equals(pair.getLeft())) {
-            ShenyuResultEnum resultEnum = ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION;
-            return WebFluxResultUtils.failedResult(resultEnum.getCode(),
-                    resultEnum.getMsg() + "[" + pair.getRight() + "]", exchange);
-        }
-
+    protected Mono<Void> doExecute0(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                    final SelectorData selector, final RuleData rule, final CryptorRuleHandler ruleHandle) {
         return ServerWebExchangeUtils.rewriteRequestBody(exchange, messageReaders, originalBody ->
-                Mono.just(convert(ruleHandle, originalBody, exchange))
-        ).flatMap(chain::execute)
+                        Mono.just(convert(originalBody, ruleHandle, exchange))
+                ).flatMap(chain::execute)
                 .onErrorResume(error -> {
                     if (error instanceof ResponsiveException) {
                         return WebFluxResultUtils.failedResult((ResponsiveException) error);
@@ -95,11 +75,4 @@ public class CryptorRequestPlugin extends AbstractShenyuPlugin {
         return PluginEnum.CRYPTOR_REQUEST.getName();
     }
 
-    private String convert(final CryptorRuleHandler ruleHandle, final String originalBody, final ServerWebExchange exchange) {
-        String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
-        if (Objects.isNull(parseBody)) {
-            throw new ResponsiveException(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(), ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg() + "[fieldNames]", exchange);
-        }
-        return CryptorUtil.crypt(ruleHandle, parseBody, originalBody, exchange);
-    }
 }
