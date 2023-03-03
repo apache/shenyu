@@ -462,7 +462,7 @@ public final class RuleDTO implements Serializable {
          * match restful.
          *
          * @param matchRestful matchRestful
-         * @return
+         * @return RuleDTOBuilder
          */
         public RuleDTOBuilder matchRestful(final Boolean matchRestful) {
             this.matchRestful = matchRestful;
