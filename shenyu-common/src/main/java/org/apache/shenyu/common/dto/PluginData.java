@@ -36,10 +36,10 @@ public class PluginData {
     private String role;
 
     private Boolean enabled;
-    
+
     private Integer sort;
 
-    private byte[] pluginClass;
+    private byte[] pluginJar;
 
     /**
      * no args constructor.
@@ -56,18 +56,18 @@ public class PluginData {
      * @param role    role
      * @param enabled enabled
      */
-    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled, final byte[] pluginClass) {
+    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled, final byte[] pluginJar) {
         this.id = id;
         this.name = name;
         this.config = config;
         this.role = role;
         this.enabled = enabled;
-        this.pluginClass = pluginClass;
+        this.pluginJar = pluginJar;
     }
-    
+
     /**
      * all args constructor.
-     * 
+     *
      * @param id id
      * @param name name
      * @param config config
@@ -76,14 +76,14 @@ public class PluginData {
      * @param sort sort
      */
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
-                      final Integer sort, final byte[] pluginClass) {
+                      final Integer sort, final byte[] pluginJar) {
         this.id = id;
         this.name = name;
         this.config = config;
         this.role = role;
         this.enabled = enabled;
         this.sort = sort;
-        this.pluginClass = pluginClass;
+        this.pluginJar = pluginJar;
     }
 
     /**
@@ -98,7 +98,7 @@ public class PluginData {
         this.role = builder.role;
         this.enabled = builder.enabled;
         this.sort = builder.sort;
-        this.pluginClass = builder.pluginClass;
+        this.pluginJar = builder.pluginJar;
     }
 
     /**
@@ -192,19 +192,19 @@ public class PluginData {
     }
 
     /**
-     * get pluginClass.
-     * @return pluginClass
+     * get pluginJar.
+     * @return pluginJar
      */
-    public byte[] getPluginClass() {
-        return pluginClass;
+    public byte[] getPluginJar() {
+        return pluginJar;
     }
 
     /**
-     * set pluginClass.
-     * @param pluginClass pluginClass
+     * set pluginJar.
+     * @param pluginJar pluginJar
      */
-    public void setPluginClass(final byte[] pluginClass) {
-        this.pluginClass = pluginClass;
+    public void setPluginJar(final byte[] pluginJar) {
+        this.pluginJar = pluginJar;
     }
 
     /**
@@ -219,7 +219,7 @@ public class PluginData {
 
     /**
      * set sort.
-     * 
+     *
      * @param sort sort value
      */
     public void setSort(final Integer sort) {
@@ -262,7 +262,7 @@ public class PluginData {
                 + ", role='" + role + '\''
                 + ", enabled=" + enabled
                 + ", sort=" + sort
-                + ", pluginClass=" + Arrays.toString(pluginClass)
+                + ", pluginJar=" + Arrays.toString(pluginJar)
                 + '}';
     }
 
@@ -304,7 +304,7 @@ public class PluginData {
         /**
          * sort.
          */
-        private byte[] pluginClass;
+        private byte[] pluginJar;
 
 
         /**
@@ -390,13 +390,13 @@ public class PluginData {
 
 
         /**
-         * build pluginClass.
+         * build pluginJar.
          *
-         * @param  pluginClass pluginClass
+         * @param  pluginJar pluginJar
          * @return this
          */
-        public Builder pluginClass(final byte[] pluginClass) {
-            this.pluginClass = pluginClass;
+        public Builder pluginJar(final byte[] pluginJar) {
+            this.pluginJar = pluginJar;
             return this;
         }
     }

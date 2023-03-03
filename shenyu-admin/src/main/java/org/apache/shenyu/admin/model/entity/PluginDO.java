@@ -61,36 +61,36 @@ public final class PluginDO extends BaseDO {
      */
     private Integer sort;
 
-    private byte[] pluginClass;
+    private byte[] pluginJar;
 
     public PluginDO() {
     }
 
-    public PluginDO(final String name, final String config, final Boolean enabled, final String role, final Integer sort, final byte[] pluginClass) {
+    public PluginDO(final String name, final String config, final Boolean enabled, final String role, final Integer sort, final byte[] pluginJar) {
         this.name = name;
         this.config = config;
         this.enabled = enabled;
         this.role = role;
         this.sort = sort;
-        this.pluginClass = pluginClass;
+        this.pluginJar = pluginJar;
     }
 
     /**
-     * Gets the value of pluginClass.
+     * Gets the value of pluginJar.
      *
-     * @return the value of pluginClass
+     * @return the value of pluginJar
      */
-    public byte[] getPluginClass() {
-        return pluginClass;
+    public byte[] getPluginJar() {
+        return pluginJar;
     }
 
     /**
-     * Sets the pluginClass.
+     * Sets the pluginJar.
      *
-     * @param pluginClass pluginClass
+     * @param pluginJar pluginJar
      */
-    public void setPluginClass(final byte[] pluginClass) {
-        this.pluginClass = pluginClass;
+    public void setPluginJar(final byte[] pluginJar) {
+        this.pluginJar = pluginJar;
     }
 
     /**
@@ -203,13 +203,13 @@ public final class PluginDO extends BaseDO {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             PluginDO pluginDO = null;
             pluginDO = PluginDO.builder()
-                        .name(item.getName())
-                        .config(item.getConfig())
-                        .enabled(item.getEnabled())
-                        .role(item.getRole())
-                        .sort(item.getSort())
-                        .dateUpdated(currentTime)
-                        .build();
+                    .name(item.getName())
+                    .config(item.getConfig())
+                    .enabled(item.getEnabled())
+                    .role(item.getRole())
+                    .sort(item.getSort())
+                    .dateUpdated(currentTime)
+                    .build();
 
             if (StringUtils.isEmpty(item.getId())) {
                 pluginDO.setId(UUIDUtils.getInstance().generateShortUuid());
@@ -219,7 +219,7 @@ public final class PluginDO extends BaseDO {
             }
             if (Objects.nonNull(item.getFile())) {
                 try {
-                    pluginDO.setPluginClass(item.getFile().getBytes());
+                    pluginDO.setPluginJar(item.getFile().getBytes());
                 } catch (IOException e) {
                     throw new ShenyuException(e);
                 }
@@ -246,7 +246,7 @@ public final class PluginDO extends BaseDO {
                 && Objects.equals(enabled, pluginDO.enabled)
                 && Objects.equals(role, pluginDO.role)
                 && Objects.equals(sort, pluginDO.sort)
-                && Arrays.equals(pluginClass, pluginDO.pluginClass);
+                && Arrays.equals(pluginJar, pluginDO.pluginJar);
     }
 
     @Override
@@ -272,7 +272,7 @@ public final class PluginDO extends BaseDO {
 
         private Integer sort;
 
-        private byte[] pluginClass;
+        private byte[] pluginJar;
 
         private PluginDOBuilder() {
         }
@@ -366,13 +366,13 @@ public final class PluginDO extends BaseDO {
         }
 
         /**
-         * pluginClass.
+         * pluginJar.
          *
-         * @param pluginClass  the  pluginClass.
+         * @param pluginJar  the  pluginJar.
          * @return PluginDOBuilder.
          */
-        public PluginDOBuilder pluginClass(final byte[] pluginClass) {
-            this.pluginClass = pluginClass;
+        public PluginDOBuilder pluginJar(final byte[] pluginJar) {
+            this.pluginJar = pluginJar;
             return this;
         }
 
@@ -393,7 +393,7 @@ public final class PluginDO extends BaseDO {
             pluginDO.setEnabled(enabled);
             pluginDO.setRole(role);
             pluginDO.setSort(sort);
-            pluginDO.setPluginClass(pluginClass);
+            pluginDO.setPluginJar(pluginJar);
             return pluginDO;
         }
     }
