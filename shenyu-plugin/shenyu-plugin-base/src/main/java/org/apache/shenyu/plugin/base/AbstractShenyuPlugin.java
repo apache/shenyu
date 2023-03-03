@@ -169,7 +169,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.isNull(selectorData)) {
             return;
         }
-        if (!selectorData.getMatchRestful()) {
+        if (Objects.isNull(selectorData.getMatchRestful())
+                || (Objects.nonNull(selectorData.getMatchRestful()) && !selectorData.getMatchRestful())) {
             return;
         }
         if (StringUtils.isBlank(selectorData.getId())) {
@@ -286,7 +287,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.isNull(ruleData)) {
             return;
         }
-        if (!ruleData.getMatchRestful()) {
+        if (Objects.isNull(ruleData.getMatchRestful())
+                || (Objects.nonNull(ruleData.getMatchRestful()) && !ruleData.getMatchRestful())) {
             return;
         }
         int initialCapacity = matchCacheConfig.getRule().getInitialCapacity();
