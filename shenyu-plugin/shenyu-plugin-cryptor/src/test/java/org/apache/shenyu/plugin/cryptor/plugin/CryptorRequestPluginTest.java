@@ -84,7 +84,8 @@ public class CryptorRequestPluginTest {
                 + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
                 + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
                 + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
-                + "\"way\":\"decrypt\""
+                + "\"way\":\"decrypt\","
+                + "\"mapType\":\"all\""
                 + "}\n");
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
@@ -109,7 +110,8 @@ public class CryptorRequestPluginTest {
                 + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
                 + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
                 + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
-                + "\"way\":\"encrypt\""
+                + "\"way\":\"encrypt\","
+                + "\"mapType\":\"all\""
                 + "}\n");
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
@@ -134,7 +136,8 @@ public class CryptorRequestPluginTest {
                 + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
                 + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
                 + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
-                + "\"way\":\"encrypt\""
+                + "\"way\":\"encrypt\","
+                + "\"mapType\":\"all\""
                 + "}\n");
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")

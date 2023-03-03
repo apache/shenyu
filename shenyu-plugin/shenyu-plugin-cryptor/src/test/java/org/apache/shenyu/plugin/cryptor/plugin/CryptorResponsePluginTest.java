@@ -22,7 +22,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.base.support.ResponseDecorator;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorResponsePluginDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,12 +93,9 @@ public class CryptorResponsePluginTest {
                 + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
                 + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
                 + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
-                + "\"way\":\"encrypt\""
+                + "\"way\":\"encrypt\",\"mapType\":\"all\""
                 + "}\n");
         ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
-        when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any(ResponseDecorator.class))).thenReturn(builder);
-        when(builder.build()).thenReturn(exchange);
         when(chain.execute(any())).thenReturn(Mono.empty());
         cryptorResponsePluginDataHandler.handlerRule(ruleData);
         ServerWebExchange exchangeNormal = generateServerWebExchange();
@@ -125,12 +121,9 @@ public class CryptorResponsePluginTest {
                 + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
                 + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
                 + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
-                + "\"way\":\"decrypt\""
+                + "\"way\":\"decrypt\",\"mapType\":\"all\""
                 + "}\n");
         ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
-        when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any(ResponseDecorator.class))).thenReturn(builder);
-        when(builder.build()).thenReturn(exchange);
         when(chain.execute(any())).thenReturn(Mono.empty());
         cryptorResponsePluginDataHandler.handlerRule(ruleData);
         ServerWebExchange exchangeNormal = generateServerWebExchange();
@@ -155,12 +148,9 @@ public class CryptorResponsePluginTest {
                 + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
                 + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
                 + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
-                + "\"way\":\"encrypt\""
+                + "\"way\":\"encrypt\",\"mapType\":\"all\""
                 + "}\n");
         ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
-        when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any(ResponseDecorator.class))).thenReturn(builder);
-        when(builder.build()).thenReturn(exchange);
         when(chain.execute(any())).thenReturn(Mono.empty());
         cryptorResponsePluginDataHandler.handlerRule(ruleData);
         ServerWebExchange exchangeNormal = generateServerWebExchange();
@@ -186,16 +176,11 @@ public class CryptorResponsePluginTest {
                 + "ECIQCaj0tvP83qBWA8AClFpQVCDL936RxxEwJPQduWo+WeoQIhAN7HKEW0E97il2RvCsgeArdt83WjZh7OhMhW6MLPrMjs\","
                 + "\"encryptKey\":\"MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALa36JRlLS4WVUqXeS/6AF2xlvUZ+eJg/ejcrlrMafygrHA6Hh"
                 + "UnDe7knNy8CpNeMKwuF9Pn0g8ZtJDD074DQcsCAwEAAQ\\u003d\\u003d\","
-                + "\"way\":\"decrypt\""
+                + "\"way\":\"decrypt\",\"mapType\":\"all\""
                 + "}\n");
         ServerWebExchange.Builder builder = mock(ServerWebExchange.Builder.class);
-        when(exchange.mutate()).thenReturn(builder);
-        when(builder.response(any(ResponseDecorator.class))).thenReturn(builder);
-        when(builder.build()).thenReturn(exchange);
         when(chain.execute(any())).thenReturn(Mono.empty());
-        cryptorResponsePluginDataHandler.handlerRule(ruleData);
-        ServerWebExchange exchangeNormal = generateServerWebExchange();
-        Mono<Void> result = cryptorResponsePlugin.doExecute(exchangeNormal, chain, selectorData, ruleData);
+        Mono<Void> result = cryptorResponsePlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 

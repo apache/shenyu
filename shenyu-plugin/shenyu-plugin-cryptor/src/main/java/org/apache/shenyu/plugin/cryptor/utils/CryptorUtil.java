@@ -84,7 +84,7 @@ public final class CryptorUtil {
 
         String mapType;
         if (StringUtils.isEmpty(mapType = ruleHandle.getMapType())) {
-            return Pair.of(true, "mapType");
+            ruleHandle.setMapType(ALL.getMapType());
         }
 
         if (ruleHandle.getWay().equals(CryptorStrategyFactory.DECRYPT) && StringUtils.isEmpty(ruleHandle.getDecryptKey())) {
