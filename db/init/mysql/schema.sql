@@ -773,7 +773,7 @@ CREATE TABLE `plugin`  (
   `enabled` tinyint(0) NOT NULL DEFAULT 0 COMMENT 'whether to open (0, not open, 1 open)',
   `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
   `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
-  `plugin_class` mediumblob  DEFAULT NULL COMMENT 'plugin jar class',
+  `plugin_jar` mediumblob  DEFAULT NULL COMMENT 'plugin jar',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -1703,7 +1703,7 @@ INSERT INTO `shenyu_dict` VALUES ('1529402613195784192', 'algorithmName', 'ALGOR
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784193', 'loadBalance', 'LOAD_BALANCE', 'roundRobin', 'roundRobin', 'roundRobin', 2, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784194', 'loadBalance', 'LOAD_BALANCE', 'random', 'random', 'random', 1, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784195', 'loadBalance', 'LOAD_BALANCE', 'hash', 'hash', 'hash', 0, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
-INSERT INTO `shenyu_dict` VALUES ('1572621976689762307', 'loadBalance', 'LOAD_BALANCE', 'leastActive', 'leastActive', 'leastActive', 0, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
+INSERT INTO `shenyu_dict` VALUES ('1572621976689762307', 'loadBalance', 'LOAD_BALANCE', 'leastActive', 'leastActive', 'leastActive', 3, 1, '2023-01-17 18:02:52', '2023-01-17 18:02:52');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784196', 'status', 'DIVIDE_STATUS', 'close', 'false', 'close', 1, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784197', 'status', 'DIVIDE_STATUS', 'open', 'true', 'open', 0, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784198', 'multiRuleHandle', 'MULTI_RULE_HANDLE', 'multiple rule', '1', 'multiple rule', 1, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');

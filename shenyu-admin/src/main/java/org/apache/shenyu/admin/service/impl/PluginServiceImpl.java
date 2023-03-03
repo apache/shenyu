@@ -40,16 +40,12 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
@@ -225,7 +221,7 @@ public class PluginServiceImpl implements PluginService {
     private String create(final PluginDTO pluginDTO) {
         Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST);
         if (!Objects.isNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkJar(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
+            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
         }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.insertSelective(pluginDO) > 0) {
@@ -237,16 +233,65 @@ public class PluginServiceImpl implements PluginService {
 
 
     /**
-     * Verify jar package.
-     * @param file jarFile
-     * @return boolean true:success false:fail
+     * update plugin.<br>
+     *
+     * @param pluginDTO plugin
+     * @return success is empty
      */
-    private boolean checkJar(final MultipartFile file) {
-        File fileJar = null;
-       //check jar file
-        try {
+    private String update(final PluginDTO pluginDTO) {
+        Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        if (!Objects.isNull(pluginDTO.getFile())) {
+            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
+        }
+        final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        if (pluginMapper.updateSelective(pluginDO) > 0) {
+            // publish update event.
+            pluginEventPublisher.onUpdated(pluginDO, before);
+        }
+        return ShenyuResultMessage.UPDATE_SUCCESS;
+    }
 
-            fileJar = convert(file);
+    /**
+     * check jar.
+     * @param file file
+     * @return true is right
+     */
+    private boolean checkFile(final MultipartFile file) {
+        try {
+            return checkJar(file.getBytes());
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    /**
+     * convert byte to File.
+     * @param fileByte fileByte
+     * @return File
+     */
+    private File convert(final byte[] fileByte) {
+        try {
+            //byte to file
+            File file = File.createTempFile("temp", ".tmp");
+            try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                outputStream.write(fileByte);
+            }
+            return file;
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+
+    /**
+     * check jar is plugin.
+     * @param fileByte fileByte
+     * @return boolean
+     */
+    private boolean checkJar(final byte[] fileByte) {
+        File fileJar = null;
+        try {
+            fileJar = convert(fileByte);
             JarFile jarFile = new JarFile(fileJar);
             URL url = fileJar.toURI().toURL();
             URLClassLoader classLoader = URLClassLoader.newInstance(new URL[]{url});
@@ -256,23 +301,18 @@ public class PluginServiceImpl implements PluginService {
                 if (jarEntry.getName().endsWith(".class")) {
                     String className = jarEntry.getName().substring(0, jarEntry.getName().length() - 6).replace("/", ".");
                     Class<?> clazz = classLoader.loadClass(className);
-                    if (Objects.isNull(clazz.getSuperclass())) {
-                        return false;
-                    } else {
-                        //get the superclass
-                        Class<?> superclass = clazz.getSuperclass();
-                        Class<?>[] interfaces = clazz.getInterfaces();
+                    Class<?> superclass = clazz.getSuperclass();
+                    Class<?>[] interfaces = clazz.getInterfaces();
 
-                        if (superclass.getName().equals(AbstractShenyuPlugin.class.getName())) {
+                    if (!Objects.isNull(superclass) && superclass.getName().equals(AdminConstants.PLUGIN_ABSTRACR_PATH)) {
+                        return true;
+                    }
+
+                    //get the interfaces
+                    for (Class<?> anInterface : interfaces) {
+                        String name = anInterface.getName();
+                        if (name.equals(AdminConstants.PLUGIN_INTERFACE_PATH)) {
                             return true;
-                        }
-
-                        //get the interfaces
-                        for (Class<?> anInterface : interfaces) {
-                            String name = anInterface.getName();
-                            if (name.equals(ShenyuPlugin.class.getName())) {
-                                return true;
-                            }
                         }
 
                     }
@@ -281,50 +321,11 @@ public class PluginServiceImpl implements PluginService {
             }
             return false;
         } catch (Exception e) {
-            throw new ShenyuException(e.getMessage());
+            throw new ShenyuException(e);
         } finally {
             if (fileJar != null) {
                 fileJar.delete();
             }
         }
-    }
-
-    /**
-     * convert MultipartFile to File.
-     * @param multipartFile multipartFile
-     * @return File
-     * @throws IOException IOException
-     */
-    public static File convert(final MultipartFile multipartFile) throws IOException {
-        File file = File.createTempFile(Objects.requireNonNull(multipartFile.getOriginalFilename()), ".tmp");
-        try (InputStream inputStream = multipartFile.getInputStream();
-             FileOutputStream outputStream = new FileOutputStream(file)) {
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-        }
-        return file;
-    }
-
-    /**
-     * update plugin.<br>
-     *
-     * @param pluginDTO plugin
-     * @return success is empty
-     */
-    private String update(final PluginDTO pluginDTO) {
-        Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
-        if (!Objects.isNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkJar(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
-        }
-        final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
-        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
-        if (pluginMapper.updateSelective(pluginDO) > 0) {
-            // publish update event.
-            pluginEventPublisher.onUpdated(pluginDO, before);
-        }
-        return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 }
