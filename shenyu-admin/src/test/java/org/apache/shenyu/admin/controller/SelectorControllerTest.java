@@ -118,6 +118,7 @@ public final class SelectorControllerTest {
                 .type(1)
                 .loged(true)
                 .enabled(true)
+                .matchRestful(false)
                 .pluginId("2")
                 .sort(1)
                 .build();
@@ -144,6 +145,7 @@ public final class SelectorControllerTest {
                 .type(1)
                 .loged(true)
                 .enabled(true)
+                .matchRestful(false)
                 .pluginId("2")
                 .sort(1)
                 .build();
