@@ -122,7 +122,7 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
     private void registerMetaData(final MetaDataRegisterDTO metadata) {
         String name = RegisterPathConstants.buildMetaDataParentPath(metadata.getRpcType(), metadata.getContextPath());
         final String namespace = props.getProperty(NAMESPACE, SHENYU_NAME_SPACE);
-        final String group = props.getProperty(NAMESPACE, "shenyu");
+        final String group = props.getProperty("group", "shenyuGroup");
 
         ConfigFileRelease configFileRelease = ConfigFileRelease.builder()
                 .fileName(name)

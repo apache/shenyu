@@ -27,6 +27,7 @@ import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
 import com.tencent.polaris.factory.ConfigAPIFactory;
 import com.tencent.polaris.factory.api.DiscoveryAPIFactory;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
@@ -42,6 +43,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+
+import static org.apache.shenyu.common.constant.Constants.NAMESPACE;
 
 /**
  * Polaris register server.
@@ -57,6 +61,8 @@ public class PolarisClientServerRegisterRepository implements ShenyuClientServer
 
     private ShenyuClientServerRegisterPublisher publisher;
 
+    private Properties props;
+
     @Override
     public void init(final ShenyuClientServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
         Configuration configuration = buildConfiguration(config);
@@ -65,6 +71,7 @@ public class PolarisClientServerRegisterRepository implements ShenyuClientServer
         this.consumerAPI = DiscoveryAPIFactory.createConsumerAPIByContext(sdkContext);
         this.publisher = publisher;
         this.configFileService = ConfigFileServiceFactory.createConfigFileService(sdkContext);
+        this.props = config.getProps();
         subscribe();
     }
 
@@ -74,26 +81,33 @@ public class PolarisClientServerRegisterRepository implements ShenyuClientServer
     }
 
     private void subscribe() {
+        RpcTypeEnum.acquireSupportMetadatas().forEach(this::subscribe);
+    }
+    
+    private void subscribe(final RpcTypeEnum rpcTypeEnum) {
+        final String namespace = props.getProperty(NAMESPACE, "shenyuNameSpace");
+        final String serviceName = RegisterPathConstants.buildServiceInstancePath(rpcTypeEnum.getName());
+        final String group = props.getProperty("group", "shenyuGroup");
         WatchServiceRequest watchServiceRequest = WatchServiceRequest.builder()
-                .namespace("default")
-                .service("shenyu-client-demo")
+                .namespace(namespace)
+                .service(serviceName)
                 .listeners(Collections.singletonList(event -> {
-                    LOGGER.info("t");
                     List<Instance> allInstances = event.getAllInstances();
                     for (Instance instance : allInstances) {
-                        if (instance.isHealthy()) {
-                            Map<String, String> metaMap = instance.getMetadata();
-                            URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(metaMap), URIRegisterDTO.class);
-                            uriRegisterDTO.setPort(instance.getPort());
-                            uriRegisterDTO.setEventType(EventType.REGISTER);
-                            publisher.publish(uriRegisterDTO);
+                        if (!instance.isHealthy()) {
+                            continue;
+                        }
+                        Map<String, String> metaMap = instance.getMetadata();
+                        URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(metaMap), URIRegisterDTO.class);
+                        uriRegisterDTO.setPort(instance.getPort());
+                        uriRegisterDTO.setEventType(EventType.REGISTER);
+                        publisher.publish(uriRegisterDTO);
 
-                            String fileName = RegisterPathConstants.buildServiceConfigPath(uriRegisterDTO.getRpcType(), uriRegisterDTO.getContextPath());
-                            ConfigFile configFile = configFileService.getConfigFile("default", "shenyu", fileName);
-                            List<MetaDataRegisterDTO> registerMetadataList = GsonUtils.getInstance().fromList(configFile.getContent(), MetaDataRegisterDTO.class);
-                            for (MetaDataRegisterDTO metaDataDto : registerMetadataList) {
-                                publisher.publish(metaDataDto);
-                            }
+                        String fileName = RegisterPathConstants.buildServiceConfigPath(uriRegisterDTO.getRpcType(), uriRegisterDTO.getContextPath());
+                        ConfigFile configFile = configFileService.getConfigFile(namespace, group, fileName);
+                        List<MetaDataRegisterDTO> registerMetadataList = GsonUtils.getInstance().fromList(configFile.getContent(), MetaDataRegisterDTO.class);
+                        for (MetaDataRegisterDTO metaDataDto : registerMetadataList) {
+                            publisher.publish(metaDataDto);
                         }
                     }
                 })).build();
@@ -103,5 +117,6 @@ public class PolarisClientServerRegisterRepository implements ShenyuClientServer
     @Override
     public void close() {
         this.consumerAPI.close();
+        this.publisher.close();
     }
 }
