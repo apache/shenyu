@@ -356,6 +356,9 @@ public class LocalPluginController {
         if (Objects.isNull(selectorData.getLogged())) {
             selectorData.setLogged(false);
         }
+        if (Objects.isNull(selectorData.getMatchRestful())) {
+            selectorData.setMatchRestful(false);
+        }
         return selectorData;
     }
 
@@ -377,6 +380,9 @@ public class LocalPluginController {
         }
         if (Objects.isNull(ruleData.getLoged())) {
             ruleData.setLoged(false);
+        }
+        if (Objects.isNull(ruleData.getMatchRestful())) {
+            ruleData.setMatchRestful(false);
         }
         return ruleData;
     }
