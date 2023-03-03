@@ -929,11 +929,13 @@ INSERT INTO `plugin_handle` VALUES ('1529402613199978578', '24', 'fieldNames', '
 INSERT INTO `plugin_handle` VALUES ('1529402613199978579', '24', 'decryptKey', 'decryptKey', 2, 2, 3, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172800', '24', 'encryptKey', 'encryptKey', 2, 2, 3, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172801', '24', 'way', 'way', 3, 2, 3, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1630760188111376384', '24', 'mapType', 'mapType', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}', '2023-03-01 10:41:41', '2023-03-01 10:42:21');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172802', '25', 'strategyName', 'strategyName', 3, 2, 2, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172803', '25', 'decryptKey', 'decryptKey', 2, 2, 3, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172804', '25', 'encryptKey', 'encryptKey', 2, 2, 3, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172805', '25', 'fieldNames', 'fieldNames', 2, 2, 4, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172806', '25', 'way', 'way', 3, 2, 3, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1630768384280514560', '25', 'mapType', 'mapType', 3, 2, 4, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}', '2023-03-01 11:14:15', '2023-03-01 11:15:14');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172807', '6', 'gray', 'gray', 3, 1, 9, '{\"required\":\"0\",\"defaultValue\":\"false\",\"placeholder\":\"gray\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172808', '6', 'group', 'group', 2, 1, 3, '{\"required\":\"0\",\"placeholder\":\"group\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172809', '6', 'loadbalance', 'loadbalance', 3, 2, 0, '{\"required\":\"0\",\"placeholder\":\"loadbalance\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
@@ -1779,6 +1781,8 @@ INSERT INTO `shenyu_dict` VALUES ('1572621912915369984', 'maskStatus', 'MASK_STA
 INSERT INTO `shenyu_dict` VALUES ('1572621976689762304', 'maskStatus', 'MASK_STATUS_TRUE', 'mask', 'true', '', 0, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
 INSERT INTO `shenyu_dict` VALUES ('1572621976689762305', 'engine', 'engine', 'ReplacingMergeTree', 'ReplacingMergeTree', '', 0, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
 INSERT INTO `shenyu_dict` VALUES ('1572621976689762306', 'engine', 'engine', 'MergeTree', 'MergeTree', '', 1, 1, '2022-09-22 00:21:11.924', '2022-09-22 00:21:11.924');
+INSERT INTO `shenyu_dict` VALUES ('1630761573833920512', 'mapType', 'mapType', 'all', 'all', '', 1, 1, '2023-03-01 10:47:11', '2023-03-01 10:47:11');
+INSERT INTO `shenyu_dict` VALUES ('1630761984393367552', 'mapType', 'mapType', 'field', 'field', '', 1, 1, '2023-03-01 10:48:49', '2023-03-01 10:48:49');
 
 -- ----------------------------
 -- Table structure for user_role
