@@ -73,6 +73,7 @@ public final class AbstractShenyuPluginTest {
                 .selectorId("1")
                 .enabled(true)
                 .loged(true)
+                .matchRestful(false)
                 .sort(1).build();
         this.conditionData = new ConditionData();
         this.conditionData.setOperator("match");
@@ -86,6 +87,7 @@ public final class AbstractShenyuPluginTest {
         this.selectorData = SelectorData.builder()
                 .id("1").pluginName("SHENYU")
                 .enabled(true)
+                .matchRestful(false)
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
         this.testShenyuPlugin = spy(new TestShenyuPlugin());
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SHENYU/SHENYU")
@@ -132,6 +134,7 @@ public final class AbstractShenyuPluginTest {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.selectorData.setMatchMode(0);
         this.selectorData.setLogged(true);
+        this.selectorData.setMatchRestful(false);
         this.selectorData.setConditionList(conditionDataList);
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
@@ -147,7 +150,9 @@ public final class AbstractShenyuPluginTest {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.ruleData.setConditionDataList(conditionDataList);
         this.ruleData.setMatchMode(0);
+        this.ruleData.setMatchRestful(false);
         this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
         this.selectorData.setLogged(true);
         this.selectorData.setConditionList(conditionDataList);
         BaseDataCache.getInstance().cachePluginData(pluginData);
@@ -165,7 +170,9 @@ public final class AbstractShenyuPluginTest {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.ruleData.setConditionDataList(conditionDataList);
         this.ruleData.setMatchMode(1);
+        this.ruleData.setMatchRestful(false);
         this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
         this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
         this.selectorData.setLogged(true);
         this.selectorData.setConditionList(conditionDataList);
