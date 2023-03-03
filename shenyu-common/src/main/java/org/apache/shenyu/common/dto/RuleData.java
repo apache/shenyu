@@ -562,7 +562,7 @@ public class RuleData {
          * build match restful.
          *
          * @param matchRestful matchRestful
-         * @return
+         * @return this
          */
         public Builder matchRestful(final Boolean matchRestful) {
             this.matchRestful = matchRestful;
