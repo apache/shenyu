@@ -20,6 +20,8 @@ package org.apache.shenyu.register.client.polaris.common;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.tencent.polaris.api.exception.ErrorCode;
 import com.tencent.polaris.api.exception.PolarisException;
 import org.apache.commons.lang3.StringUtils;
@@ -30,12 +32,12 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.client.polaris.constant.ParameterKeyConstant;
 import org.apache.shenyu.register.client.polaris.enums.OpenApiURIEnum;
 import org.apache.shenyu.register.client.polaris.model.ConfigFileRelease;
 import org.apache.shenyu.register.client.polaris.model.ConfigFileTemp;
 import org.apache.shenyu.register.client.polaris.model.ConfigFilesResponse;
 import org.apache.shenyu.register.client.polaris.model.ResponseResult;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +45,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+import java.util.Optional;
 
 public class PolarisConfigClient {
 
@@ -57,14 +59,15 @@ public class PolarisConfigClient {
 
     private final HttpOperator httpOperator = new HttpOperator();
 
-    public PolarisConfigClient(final Properties properties) {
-        String addresses = properties.getProperty(ParameterKeyConstant.OPEN_API_ADDRESSES_KEY);
-        if (StringUtils.isBlank(addresses)) {
+    public PolarisConfigClient(final ShenyuRegisterCenterConfig config) {
+        final List<String> addressList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
+        final Optional<String> opt = addressList.stream().findAny();
+        if (!opt.isPresent() || StringUtils.isBlank(opt.get())) {
             LOGGER.error("The address of the Polaris configuration center openapi is missing");
             throw new PolarisException(ErrorCode.INVALID_CONFIG, "The address of the Polaris configuration center openapi is missing");
         }
-        this.addresses = addresses.endsWith("/") ? addresses.substring(0, addresses.length() - 2) : addresses;
-        this.token = properties.getProperty(ParameterKeyConstant.OPEN_API_TOKEN_KEY);
+        this.addresses = opt.get();
+        this.token = config.getProps().getProperty("token");
     }
 
     /**

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.register.client.polaris;
 
+import com.google.gson.reflect.TypeToken;
 import com.tencent.polaris.api.config.Configuration;
 import com.tencent.polaris.api.core.ProviderAPI;
 import com.tencent.polaris.api.rpc.InstanceRegisterRequest;
@@ -28,7 +29,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.polaris.common.PolarisConfigClient;
 import org.apache.shenyu.register.client.polaris.constant.OpenAPIStatusCode;
-import org.apache.shenyu.register.client.polaris.constant.PolarisDefaultConfigConstant;
 import org.apache.shenyu.register.client.polaris.model.ConfigFileRelease;
 import org.apache.shenyu.register.client.polaris.model.ConfigFileTemp;
 import org.apache.shenyu.register.client.polaris.model.ConfigFilesResponse;
@@ -42,8 +42,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.stream.Collectors;
+
+import static org.apache.shenyu.common.constant.Constants.NAMESPACE;
 
 /**
  * Polaris register center client.
@@ -52,19 +54,24 @@ import java.util.stream.Collectors;
 public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PolarisClientRegisterRepository.class);
+    
+    private static final String SHENYU_NAME_SPACE = "shenyuNameSpace";
 
-    private ConcurrentLinkedDeque<MetaDataRegisterDTO> metaDataRegisterDTOList = new ConcurrentLinkedDeque<>();
+    private final ConcurrentLinkedDeque<MetaDataRegisterDTO> metaDataRegisterDTOList = new ConcurrentLinkedDeque<>();
 
     private PolarisConfigClient polarisConfigClient;
 
     private ProviderAPI providerAPI;
+    
+    private Properties props;
 
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
         Configuration configuration = buildConfiguration(config);
         SDKContext sdkContext = SDKContext.initContextByConfig(configuration);
         this.providerAPI = DiscoveryAPIFactory.createProviderAPIByContext(sdkContext);
-        this.polarisConfigClient = new PolarisConfigClient(config.getProps());
+        this.polarisConfigClient = new PolarisConfigClient(config);
+        this.props = config.getProps();
     }
 
     /**
@@ -89,20 +96,18 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
     }
 
     private void registerUri(final URIRegisterDTO registerDTO) {
+        final String namespace = props.getProperty(NAMESPACE, SHENYU_NAME_SPACE);
         // build register info
         InstanceRegisterRequest registerRequest = new InstanceRegisterRequest();
-        registerRequest.setTtl(PolarisDefaultConfigConstant.DEFAULT_TTL);
-        registerRequest.setNamespace(PolarisDefaultConfigConstant.DEFAULT_NAMESPACE);
-
+        registerRequest.setNamespace(namespace);
         registerRequest.setService(registerDTO.getAppName());
         registerRequest.setHost(registerDTO.getHost());
         registerRequest.setPort(registerDTO.getPort());
         registerRequest.setProtocol(registerDTO.getProtocol());
 
-        String metaDataJsonStr = GsonUtils.getInstance().toJson(registerDTO);
-        Map<String, String> metaDataMap = GsonUtils.getInstance().toObjectMap(metaDataJsonStr).entrySet().stream()
-                .filter(e -> e.getValue() instanceof String)
-                .collect(Collectors.toMap(k -> k.getKey(), v -> (String) v.getValue()));
+        String metaDataJson = GsonUtils.getInstance().toJson(registerDTO);
+        Map<String, String> metaDataMap = GsonUtils.getGson()
+                .fromJson(metaDataJson, new TypeToken<Map<String, String>>() { }.getType());
         registerRequest.setMetadata(metaDataMap);
 
         // register service
@@ -115,19 +120,19 @@ public class PolarisClientRegisterRepository implements ShenyuClientRegisterRepo
     }
 
     private void registerMetaData(final MetaDataRegisterDTO metadata) {
-        String name = RegisterPathConstants.buildServiceConfigPath(metadata.getRpcType(), metadata.getContextPath());
-        String group = "shenyu";
-        String defaultNamespace = PolarisDefaultConfigConstant.DEFAULT_NAMESPACE;
+        String name = RegisterPathConstants.buildMetaDataParentPath(metadata.getRpcType(), metadata.getContextPath());
+        final String namespace = props.getProperty(NAMESPACE, SHENYU_NAME_SPACE);
+        final String group = props.getProperty(NAMESPACE, "shenyu");
 
         ConfigFileRelease configFileRelease = ConfigFileRelease.builder()
                 .fileName(name)
                 .name(name)
-                .namespace(defaultNamespace)
+                .namespace(namespace)
                 .group(group).build();
 
         metaDataRegisterDTOList.add(metadata);
         ConfigFileTemp configFileTemp = ConfigFileTemp.builder().fileName(name)
-                .namespace(defaultNamespace)
+                .namespace(namespace)
                 .group(group)
                 .content(GsonUtils.getInstance().toJson(metaDataRegisterDTOList)).build();
 
