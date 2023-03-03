@@ -169,6 +169,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.isNull(selectorData)) {
             return;
         }
+        if (!selectorData.getMatchRestful()) {
+            return;
+        }
         if (StringUtils.isBlank(selectorData.getId())) {
             MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getSelectorMaxFreeMemory());
             return;
@@ -281,6 +284,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     
     private void cacheRuleData(final String path, final RuleData ruleData) {
         if (Objects.isNull(ruleData)) {
+            return;
+        }
+        if (!ruleData.getMatchRestful()) {
             return;
         }
         int initialCapacity = matchCacheConfig.getRule().getInitialCapacity();
