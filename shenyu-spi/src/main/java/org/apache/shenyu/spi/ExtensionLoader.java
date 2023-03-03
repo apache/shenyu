@@ -272,6 +272,7 @@ public final class ExtensionLoader<T> {
         } catch (IOException t) {
             LOG.error("load extension class error {}", fileName, t);
         }
+
     }
     
     private void loadResources(final Map<String, ClassEntity> classes, final URL url) throws IOException {
