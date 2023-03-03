@@ -133,13 +133,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
     @ParameterizedTest(name = "return failed message when {0} failed")
     @ValueSource(strings = {"decrypt", "encrypt"})
     public void testWhenDecryptionOrEncryptionIsFailed(final String way) throws Exception {
-
-        CryptorRuleHandler handler = buildRuleHandler("rsa", 
-                way, 
-                "wrong_encrypt_key", 
-                "wrong_decrypt_key", 
-                "data", 
-                ALL.getMapType());
+        CryptorRuleHandler handler = buildRuleHandler("rsa", way, "wrong_encrypt_key", "wrong_decrypt_key", "data", ALL.getMapType());
         RuleLocalData ruleLocalData = ruleLocalData(handler, SINGLETON_CONDITION_LIST);
 
         initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(), "", SINGLETON_CONDITION_LIST, Lists.newArrayList(ruleLocalData));
@@ -158,12 +152,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
     @ValueSource(strings = {"decrypt", "encrypt"})
     public void testWhenKeyIsNull(final String way) throws Exception {
 
-        CryptorRuleHandler handler = buildRuleHandler("rsa", 
-                way, 
-                null, 
-                null, 
-                "data",
-                FIELD.getMapType());
+        CryptorRuleHandler handler = buildRuleHandler("rsa", way, null, null, "data", FIELD.getMapType());
 
         initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(),
                 "", SINGLETON_CONDITION_LIST, singletonRuleLocalDataList(handler, SINGLETON_CONDITION_LIST));
@@ -195,12 +184,8 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
         return singletonRuleLocalDataList(cryptorRuleHandler, SINGLETON_CONDITION_LIST);
     }
 
-    private CryptorRuleHandler buildRuleHandler(final String strategyName, 
-                                                final String way, 
-                                                final String encryptKey, 
-                                                final String decryptKey, 
-                                                final String fieldNames,
-                                                final String mapType) {
+    private CryptorRuleHandler buildRuleHandler(final String strategyName, final String way, final String encryptKey,
+                                                final String decryptKey, final String fieldNames, final String mapType) {
         CryptorRuleHandler cryptorRuleHandler = new CryptorRuleHandler();
         cryptorRuleHandler.setDecryptKey(decryptKey);
         cryptorRuleHandler.setEncryptKey(encryptKey);
