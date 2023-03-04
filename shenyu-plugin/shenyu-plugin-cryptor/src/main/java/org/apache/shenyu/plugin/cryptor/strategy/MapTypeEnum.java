@@ -55,7 +55,7 @@ public enum MapTypeEnum {
                             .split(","))
                     .collect(Collectors.toSet()));
             if (CollectionUtils.isEmpty(pairs)) {
-                return originalBody;
+                return null;
             }
             return CryptorUtil.crypt(ruleHandle, pairs, originalBody, exchange);
         }
@@ -74,7 +74,7 @@ public enum MapTypeEnum {
             }
             String parseBody = JsonUtil.parser(originalBody, ruleHandle.getFieldNames());
             if (Objects.isNull(parseBody)) {
-                return originalBody;
+                return null;
             }
             return CryptorUtil.crypt(ruleHandle, parseBody, originalBody, exchange);
         }

@@ -21,6 +21,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.exception.ResponsiveException;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
@@ -66,7 +67,11 @@ public abstract class AbstractCryptorPlugin extends AbstractShenyuPlugin {
     protected abstract ShenyuResultEnum errorEnum();
     
     protected String convert(final String originalBody, final CryptorRuleHandler ruleHandle, final ServerWebExchange exchange) {
-        return MapTypeEnum.mapType(ruleHandle.getMapType()).convert(originalBody, ruleHandle, exchange);
+        String converted = MapTypeEnum.mapType(ruleHandle.getMapType()).convert(originalBody, ruleHandle, exchange);
+        if (Objects.isNull(converted)) {
+            throw new ResponsiveException(errorEnum().getCode(), errorEnum().getMsg() + "[fieldNames]", exchange);
+        }
+        return converted;
     }
 
 }
