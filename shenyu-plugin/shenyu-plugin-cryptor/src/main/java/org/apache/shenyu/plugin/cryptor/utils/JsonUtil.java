@@ -77,6 +77,7 @@ public final class JsonUtil {
         }
         return fieldNames.stream().filter(StringUtils::isNoneBlank)
                 .map(field -> Pair.of(field, parser(json, field)))
+                .filter(pair -> StringUtils.isNoneBlank(pair.getRight()))
                 .collect(Collectors.toList());
     }
 
