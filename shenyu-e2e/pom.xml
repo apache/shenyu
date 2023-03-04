@@ -233,6 +233,9 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <compilerArgs>
+                        <arg>-Djps.track.ap.dependencies=false</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
 
