@@ -55,7 +55,7 @@ public enum MapTypeEnum {
                             .split(","))
                     .collect(Collectors.toSet()));
             if (CollectionUtils.isEmpty(pairs)) {
-                return null;
+                return originalBody;
             }
             return CryptorUtil.crypt(ruleHandle, pairs, originalBody, exchange);
         }
