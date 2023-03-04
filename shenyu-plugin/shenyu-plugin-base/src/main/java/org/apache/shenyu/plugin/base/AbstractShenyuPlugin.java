@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -144,6 +145,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                     Pair<Boolean, RuleData> matchRuleData = matchRule(exchange, rules);
                     ruleData = matchRuleData.getRight();
                     if (matchRuleData.getLeft()) {
+                        ruleData = Optional.ofNullable(ruleData).orElse(RuleData.builder().pluginName(pluginName).build());
                         cacheRuleData(path, ruleData);
                     }
                 }
@@ -170,7 +172,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return;
         }
         if (Objects.isNull(selectorData.getMatchRestful())
-                || (Objects.nonNull(selectorData.getMatchRestful()) && !selectorData.getMatchRestful())) {
+                || (Objects.nonNull(selectorData.getMatchRestful()) && selectorData.getMatchRestful())) {
             return;
         }
         if (StringUtils.isBlank(selectorData.getId())) {
@@ -287,8 +289,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.isNull(ruleData)) {
             return;
         }
+        // if the field of matchRestful is true, not cache rule data. the field is false, cache rule data.
         if (Objects.isNull(ruleData.getMatchRestful())
-                || (Objects.nonNull(ruleData.getMatchRestful()) && !ruleData.getMatchRestful())) {
+                || (Objects.nonNull(ruleData.getMatchRestful()) && ruleData.getMatchRestful())) {
             return;
         }
         int initialCapacity = matchCacheConfig.getRule().getInitialCapacity();

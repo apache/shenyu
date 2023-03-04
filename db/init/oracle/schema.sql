@@ -145,7 +145,7 @@ comment on column SELECTOR.loged
 comment on column SELECTOR.continued
   is 'whether to continue execution';
 comment on column SELECTOR.match_restful
-  is 'whether to match restful uri';
+  is 'whether to match restful(0 cache, 1 not cache)';
 comment on column SELECTOR.date_created
   is 'create time';
 comment on column SELECTOR.date_updated
@@ -209,7 +209,7 @@ comment on column RULE.enabled
 comment on column RULE.loged
   is 'whether to log or not (0 not print, 1 print)';
 comment on column RULE.match_restful
-  is 'whether to match restful uri (0 not match, 1 match)';
+  is 'whether to match restful(0 cache, 1 not cache)';
 comment on column RULE.sort
   is 'sort';
 comment on column RULE.handle

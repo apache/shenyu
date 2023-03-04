@@ -338,7 +338,7 @@ public final class RuleDO extends BaseDO {
                 && Objects.equals(loged, ruleDO.loged)
                 && Objects.equals(sort, ruleDO.sort)
                 && Objects.equals(handle, ruleDO.handle)
-                && Objects.equals(matchRestful, matchRestful);
+                && Objects.equals(matchRestful, ruleDO.matchRestful);
     }
 
     @Override
