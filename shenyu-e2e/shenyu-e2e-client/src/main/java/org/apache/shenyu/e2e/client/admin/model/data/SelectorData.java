@@ -24,8 +24,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.Strings;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.shenyu.e2e.client.admin.model.MatchMode;
 import org.apache.shenyu.e2e.client.admin.model.Plugin;
 import org.apache.shenyu.e2e.client.admin.model.SelectorType;
@@ -36,6 +38,8 @@ import java.util.List;
 
 @Data
 @Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class SelectorData implements ResourceData {
     
     private String id;

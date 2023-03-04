@@ -19,8 +19,10 @@ package org.apache.shenyu.e2e.client.admin.model.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.shenyu.e2e.client.admin.model.MatchMode;
 import org.apache.shenyu.e2e.client.admin.model.handle.RuleHandle;
 
@@ -28,6 +30,8 @@ import java.util.List;
 
 @Data
 @Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class RuleData implements ResourceData {
     
     private String id;
