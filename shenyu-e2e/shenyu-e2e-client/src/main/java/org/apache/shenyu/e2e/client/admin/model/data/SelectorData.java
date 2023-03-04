@@ -64,6 +64,8 @@ public class SelectorData implements ResourceData {
     
     private boolean matchRestful;
     
+    
+    
     static class PluginHandleSerializer extends JsonSerializer<PluginHandle> {
         private static final ObjectMapper mapper = new ObjectMapper();
         
@@ -72,6 +74,22 @@ public class SelectorData implements ResourceData {
             String content = mapper.writer().writeValueAsString(pluginHandle);
             jsonGenerator.writeString(Strings.nullToEmpty(content));
         }
+    }
+    
+    
+    SelectorData(String id, String name, Plugin plugin, SelectorType type, MatchMode matchMode, boolean enabled, boolean logged, boolean continued, PluginHandle handle, List<Condition> conditionList, int sort, boolean matchRestful) {
+        this.id = id;
+        this.name = name;
+        this.plugin = plugin;
+        this.type = type;
+        this.matchMode = matchMode;
+        this.enabled = enabled;
+        this.logged = logged;
+        this.continued = continued;
+        this.handle = handle;
+        this.conditionList = conditionList;
+        this.sort = sort;
+        this.matchRestful = matchRestful;
     }
     
     public static SelectorDataBuilder builder() {
