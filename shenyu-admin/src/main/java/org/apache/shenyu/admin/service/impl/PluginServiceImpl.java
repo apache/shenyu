@@ -285,7 +285,6 @@ public class PluginServiceImpl implements PluginService {
 
     /**
      * check jar is plugin.
-     *
      * @param fileByte fileByte
      * @return boolean
      */
