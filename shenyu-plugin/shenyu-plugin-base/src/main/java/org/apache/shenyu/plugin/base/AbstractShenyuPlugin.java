@@ -150,9 +150,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                     }
                 }
             }
-            if (Objects.isNull(ruleData)) {
-                return handleRuleIfNull(pluginName, exchange, chain);
-            }
+        }
+        if (Objects.isNull(ruleData) || Objects.isNull(ruleData.getId())) {
+            return handleRuleIfNull(pluginName, exchange, chain);
         }
         printLog(ruleData, pluginName);
         return doExecute(exchange, chain, selectorData, ruleData);
