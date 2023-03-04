@@ -22,11 +22,10 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.exception.ResponsiveException;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -37,8 +36,6 @@ import java.util.List;
  * Cryptor request plugin.
  */
 public class CryptorRequestPlugin extends AbstractCryptorPlugin {
-
-    private static final Logger LOG = LoggerFactory.getLogger(CryptorRequestPlugin.class);
 
     private final List<HttpMessageReader<?>> messageReaders;
 
@@ -63,6 +60,11 @@ public class CryptorRequestPlugin extends AbstractCryptorPlugin {
                     }
                     return Mono.error(error);
                 });
+    }
+
+    @Override
+    protected ShenyuResultEnum errorEnum() {
+        return ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION;
     }
 
     @Override

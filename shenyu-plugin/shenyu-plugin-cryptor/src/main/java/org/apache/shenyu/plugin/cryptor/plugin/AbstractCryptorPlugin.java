@@ -53,7 +53,7 @@ public abstract class AbstractCryptorPlugin extends AbstractShenyuPlugin {
 
         Pair<Boolean, String> pair = CryptorUtil.checkParam(ruleHandle);
         if (Boolean.TRUE.equals(pair.getLeft())) {
-            ShenyuResultEnum resultEnum = ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION;
+            ShenyuResultEnum resultEnum = errorEnum();
             return WebFluxResultUtils.failedResult(resultEnum.getCode(),
                     resultEnum.getMsg() + "[" + pair.getRight() + "]", exchange);
         }
@@ -62,6 +62,8 @@ public abstract class AbstractCryptorPlugin extends AbstractShenyuPlugin {
 
     protected abstract Mono<Void> doExecute0(ServerWebExchange exchange, ShenyuPluginChain chain,
                                              SelectorData selector, RuleData rule, CryptorRuleHandler ruleHandle);
+    
+    protected abstract ShenyuResultEnum errorEnum();
     
     protected String convert(final String originalBody, final CryptorRuleHandler ruleHandle, final ServerWebExchange exchange) {
         return MapTypeEnum.mapType(ruleHandle.getMapType()).convert(originalBody, ruleHandle, exchange);
