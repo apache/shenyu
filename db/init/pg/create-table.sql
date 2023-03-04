@@ -898,9 +898,9 @@ CREATE TABLE "public"."plugin" (
   "role" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
   "sort" int4,
   "enabled" int2 NOT NULL,
-  "plugin_jar" bytea,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "plugin_jar" bytea
 );
 COMMENT ON COLUMN "public"."plugin"."id" IS 'primary key id';
 COMMENT ON COLUMN "public"."plugin"."name" IS 'plugin name';

@@ -50,9 +50,9 @@ create table plugin
     role         VARCHAR2(64) not null,
     sort         NUMBER(10),
     enabled      NUMBER(3) default '0' not null,
-    plugin_jar   BLOB,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null,
+    plugin_jar   BLOB
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
