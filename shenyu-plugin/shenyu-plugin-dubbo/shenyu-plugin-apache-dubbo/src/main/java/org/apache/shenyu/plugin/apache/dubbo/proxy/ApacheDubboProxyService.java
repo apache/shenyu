@@ -67,8 +67,8 @@ public class ApacheDubboProxyService {
         String namespace = "";
         if (CollectionUtils.isNotEmpty(exchange.getRequest().getHeaders().get(Constants.NAMESPACE))) {
             namespace = exchange.getRequest().getHeaders().get(Constants.NAMESPACE).get(0);
-            referenceKey = namespace + ":" + referenceKey;
         }
+        referenceKey = namespace + ":" + referenceKey;
         ReferenceConfig<GenericService> reference = ApacheDubboConfigCache.getInstance().get(referenceKey);
         if (StringUtils.isEmpty(reference.getInterface())) {
             ApacheDubboConfigCache.getInstance().invalidate(metaData.getPath());

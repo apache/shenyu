@@ -50,6 +50,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class ApacheDubboProxyServiceTest {
+
+    private static final String NAMESPACE = "";
+
     private static final String PATH = "/duubo/findAll";
 
     private static final String METHOD_NAME = "findAll";
@@ -93,7 +96,7 @@ public final class ApacheDubboProxyServiceTest {
         ApacheDubboConfigCache apacheDubboConfigCache = ApacheDubboConfigCache.getInstance();
         Field field = ApacheDubboConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
-        ((LoadingCache<String, ReferenceConfig<GenericService>>) field.get(apacheDubboConfigCache)).put(PATH, referenceConfig);
+        ((LoadingCache<String, ReferenceConfig<GenericService>>) field.get(apacheDubboConfigCache)).put(NAMESPACE + ":" + PATH, referenceConfig);
         ApacheDubboProxyService apacheDubboProxyService = new ApacheDubboProxyService(new BodyParamResolveServiceImpl());
         apacheDubboProxyService.genericInvoker("", metaData, exchange);
         future.complete("success");
