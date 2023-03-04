@@ -18,17 +18,12 @@
 package org.apache.shenyu.e2e.client.admin.model.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.shenyu.e2e.client.admin.model.MatchMode;
 import org.apache.shenyu.e2e.client.admin.model.handle.RuleHandle;
-import org.apache.shenyu.e2e.common.IdManagers.Selectors;
 
-import java.io.IOException;
 import java.util.List;
 
 @Data
@@ -55,5 +50,7 @@ public class RuleData implements ResourceData {
     private List<Condition> conditionList;
     
     private boolean enabled;
+    
+    private Boolean matchRestful;
     
 }
