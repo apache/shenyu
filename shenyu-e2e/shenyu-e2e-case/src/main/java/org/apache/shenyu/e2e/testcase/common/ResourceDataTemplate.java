@@ -64,6 +64,7 @@ public class ResourceDataTemplate {
                 .enabled(true)
                 .logged(true)
                 .matchRestful(false)
+                .matchRestful(false)
                 .sort(1);
     }
     
