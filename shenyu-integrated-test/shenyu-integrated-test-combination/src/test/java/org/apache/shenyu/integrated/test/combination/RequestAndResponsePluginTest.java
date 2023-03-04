@@ -27,6 +27,7 @@ import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
+import org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController;
 import org.junit.jupiter.api.Test;
@@ -61,15 +62,15 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
 
     @Test
     public void testDecryptRequestAndEncryptResponse() throws Exception {
-        setupCryptorRequest("data", "decrypt");
-        setupCryptorResponse("userName", "encrypt");
+        setupCryptorRequest("data", "decrypt", MapTypeEnum.FIELD.getMapType());
+        setupCryptorResponse("userName", "encrypt", MapTypeEnum.ALL.getMapType());
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("userId", TEST_USER_ID);
         jsonObject.addProperty("userName", TEST_USER_NAME);
         JsonObject request = new JsonObject();
         request.addProperty("data", RSA_STRATEGY.encrypt(RSA_PUBLIC_KEY, jsonObject.toString()));
-        UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
+        final UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
         byte[] inputByte = Base64.getMimeDecoder().decode(actualUser.getUserName());
         assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
         assertThat(actualUser.getUserId(), is(TEST_USER_ID));
@@ -79,9 +80,43 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
     }
 
     @Test
+    public void testDecryptRequestAndEncryptResponseField() throws Exception {
+        setupCryptorRequest("data", "decrypt", MapTypeEnum.FIELD.getMapType());
+        setupCryptorResponse("userName", "encrypt", MapTypeEnum.FIELD.getMapType());
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("userId", TEST_USER_ID);
+        jsonObject.addProperty("userName", TEST_USER_NAME);
+        JsonObject request = new JsonObject();
+        request.addProperty("data", RSA_STRATEGY.encrypt(RSA_PUBLIC_KEY, jsonObject.toString()));
+        String userName = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, String.class);
+        byte[] inputByte = Base64.getMimeDecoder().decode(userName);
+        assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
+
+        cleanCryptorRequest();
+        cleanCryptorResponse();
+    }
+
+    @Test
     public void testEncryptRequestAndDecryptResponse() throws Exception {
-        setupCryptorRequest("userName", "encrypt");
-        setupCryptorResponse("userName", "decrypt");
+        setupCryptorRequest("userName", "encrypt", MapTypeEnum.ALL.getMapType());
+        setupCryptorResponse("userName", "decrypt", MapTypeEnum.ALL.getMapType());
+
+        JsonObject request = new JsonObject();
+        request.addProperty("userId", TEST_USER_ID);
+        request.addProperty("userName", TEST_USER_NAME);
+        UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, UserDTO.class);
+        assertThat(actualUser.getUserName(), is(TEST_USER_NAME));
+        assertThat(actualUser.getUserId(), is(TEST_USER_ID));
+
+        cleanCryptorRequest();
+        cleanCryptorResponse();
+    }
+
+    @Test
+    public void testEncryptRequestAndDecryptResponseField() throws Exception {
+        setupCryptorRequest("userName", "encrypt", MapTypeEnum.ALL.getMapType());
+        setupCryptorResponse("userName", "decrypt", MapTypeEnum.FIELD.getMapType());
 
         JsonObject request = new JsonObject();
         request.addProperty("userId", TEST_USER_ID);
@@ -93,13 +128,15 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         cleanCryptorResponse();
     }
 
-    private List<LocalPluginController.RuleLocalData> buildRuleLocalDataList(final String fieldNames, final String way) {
+    private List<LocalPluginController.RuleLocalData> buildRuleLocalDataList(final String fieldNames, 
+                                                                             final String way,
+                                                                             final String mapType) {
         List<LocalPluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
-        ruleLocalDataList.add(buildRuleLocalData(fieldNames, way));
+        ruleLocalDataList.add(buildRuleLocalData(fieldNames, way, mapType));
         return ruleLocalDataList;
     }
 
-    private LocalPluginController.RuleLocalData buildRuleLocalData(final String fieldNames, final String way) {
+    private LocalPluginController.RuleLocalData buildRuleLocalData(final String fieldNames, final String way, final String mapType) {
         final LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
 
         CryptorRuleHandler cryptorRuleHandler = new CryptorRuleHandler();
@@ -108,6 +145,7 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         cryptorRuleHandler.setStrategyName("rsa");
         cryptorRuleHandler.setFieldNames(fieldNames);
         cryptorRuleHandler.setWay(way);
+        cryptorRuleHandler.setMapType(mapType);
 
         ruleLocalData.setRuleHandler(JsonUtils.toJson(cryptorRuleHandler));
         ConditionData conditionData = new ConditionData();
@@ -126,19 +164,19 @@ public final class RequestAndResponsePluginTest extends AbstractPluginDataInit {
         return Collections.singletonList(conditionData);
     }
 
-    private void setupCryptorRequest(final String fieldNames, final String way) throws IOException {
+    private void setupCryptorRequest(final String fieldNames, final String way, final String mapType) throws IOException {
         String requestPluginResult = initPlugin(PluginEnum.CRYPTOR_REQUEST.getName(), null);
         assertThat(requestPluginResult, is("success"));
         String initSelectorAndRules = initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(),
-                "", buildSelectorConditionList(), buildRuleLocalDataList(fieldNames, way));
+                "", buildSelectorConditionList(), buildRuleLocalDataList(fieldNames, way, mapType));
         assertThat(initSelectorAndRules, is("success"));
     }
 
-    private void setupCryptorResponse(final String fieldNames, final String way) throws IOException {
+    private void setupCryptorResponse(final String fieldNames, final String way, final String mapType) throws IOException {
         String responsePluginResult = initPlugin(PluginEnum.CRYPTOR_RESPONSE.getName(), null);
         assertThat(responsePluginResult, is("success"));
         String cryptorResponseResult = initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
-                "", buildSelectorConditionList(), buildRuleLocalDataList(fieldNames, way));
+                "", buildSelectorConditionList(), buildRuleLocalDataList(fieldNames, way, mapType));
         assertThat(cryptorResponseResult, is("success"));
     }
 
