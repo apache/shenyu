@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.Strings;
+import lombok.Builder;
 import lombok.Data;
 import org.apache.shenyu.e2e.client.admin.model.MatchMode;
 import org.apache.shenyu.e2e.client.admin.model.Plugin;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.util.List;
 
 @Data
+@Builder(toBuilder = true)
 public class SelectorData implements ResourceData {
     
     private String id;
@@ -63,9 +65,6 @@ public class SelectorData implements ResourceData {
     private int sort;
     
     private boolean matchRestful;
-    
-    
-    
     static class PluginHandleSerializer extends JsonSerializer<PluginHandle> {
         private static final ObjectMapper mapper = new ObjectMapper();
         
@@ -76,136 +75,4 @@ public class SelectorData implements ResourceData {
         }
     }
     
-    
-    SelectorData(String id, String name, Plugin plugin, SelectorType type, MatchMode matchMode, boolean enabled, boolean logged, boolean continued, PluginHandle handle, List<Condition> conditionList, int sort, boolean matchRestful) {
-        this.id = id;
-        this.name = name;
-        this.plugin = plugin;
-        this.type = type;
-        this.matchMode = matchMode;
-        this.enabled = enabled;
-        this.logged = logged;
-        this.continued = continued;
-        this.handle = handle;
-        this.conditionList = conditionList;
-        this.sort = sort;
-        this.matchRestful = matchRestful;
-    }
-    
-    public static SelectorDataBuilder builder() {
-        return new SelectorDataBuilder();
-    }
-    
-    public SelectorDataBuilder toBuilder() {
-        return (new SelectorDataBuilder()).id(this.id).name(this.name).plugin(this.plugin).type(this.type).matchMode(this.matchMode).enabled(this.enabled).logged(this.logged).continued(this.continued).handle(this.handle).conditionList(this.conditionList).sort(this.sort).matchRestful(this.matchRestful);
-    }
-    
-    /**
-     * selector construct.
-     *
-     * @param builder builder
-     */
-    private SelectorData(final SelectorDataBuilder builder) {
-        setId(builder.id);
-        setName(builder.name);
-        setPlugin(builder.plugin);
-        setType(builder.type);
-        setMatchMode(builder.matchMode);
-        setEnabled(builder.enabled);
-        setLogged(builder.logged);
-        setContinued(builder.continued);
-        setHandle(builder.handle);
-        setConditionList(builder.conditionList);
-        setSort(builder.sort);
-        setMatchRestful(builder.matchRestful);
-    }
-    
-    public static class SelectorDataBuilder {
-        private String id;
-        private String name;
-        private Plugin plugin;
-        private SelectorType type;
-        private MatchMode matchMode;
-        private boolean enabled;
-        private boolean logged;
-        private boolean continued;
-        private PluginHandle handle;
-        private List<Condition> conditionList;
-        private int sort;
-        private boolean matchRestful;
-        
-        SelectorDataBuilder() {
-        }
-        
-        public SelectorDataBuilder id(String id) {
-            this.id = id;
-            return this;
-        }
-        
-        public SelectorDataBuilder name(String name) {
-            this.name = name;
-            return this;
-        }
-        
-        @JsonProperty("pluginId")
-        public SelectorDataBuilder plugin(Plugin plugin) {
-            this.plugin = plugin;
-            return this;
-        }
-        
-        public SelectorDataBuilder type(SelectorType type) {
-            this.type = type;
-            return this;
-        }
-        
-        public SelectorDataBuilder matchMode(MatchMode matchMode) {
-            this.matchMode = matchMode;
-            return this;
-        }
-        
-        public SelectorDataBuilder enabled(boolean enabled) {
-            this.enabled = enabled;
-            return this;
-        }
-        
-        @JsonProperty("loged")
-        public SelectorDataBuilder logged(boolean logged) {
-            this.logged = logged;
-            return this;
-        }
-        
-        public SelectorDataBuilder continued(boolean continued) {
-            this.continued = continued;
-            return this;
-        }
-        
-        public SelectorDataBuilder handle(PluginHandle handle) {
-            this.handle = handle;
-            return this;
-        }
-        
-        @JsonProperty("selectorConditions")
-        public SelectorDataBuilder conditionList(List<Condition> conditionList) {
-            this.conditionList = conditionList;
-            return this;
-        }
-        
-        public SelectorDataBuilder sort(int sort) {
-            this.sort = sort;
-            return this;
-        }
-        
-        public SelectorDataBuilder matchRestful(boolean matchRestful) {
-            this.matchRestful = matchRestful;
-            return this;
-        }
-        
-        public SelectorData build() {
-            return new SelectorData(this.id, this.name, this.plugin, this.type, this.matchMode, this.enabled, this.logged, this.continued, this.handle, this.conditionList, this.sort, this.matchRestful);
-        }
-        
-        public String toString() {
-            return "SelectorData.SelectorDataBuilder(id=" + this.id + ", name=" + this.name + ", plugin=" + this.plugin + ", type=" + this.type + ", matchMode=" + this.matchMode + ", enabled=" + this.enabled + ", logged=" + this.logged + ", continued=" + this.continued + ", handle=" + this.handle + ", conditionList=" + this.conditionList + ", sort=" + this.sort + ", matchRestful=" + this.matchRestful + ")";
-        }
-    }
 }
