@@ -63,8 +63,13 @@ public class CryptorRequestPlugin extends AbstractCryptorPlugin {
     }
 
     @Override
-    protected ShenyuResultEnum errorEnum() {
+    protected ShenyuResultEnum checkErrorEnum() {
         return ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION;
+    }
+
+    @Override
+    protected String fieldErrorParse(final String originalBody, final ServerWebExchange exchange) {
+        throw new ResponsiveException(ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getCode(), ShenyuResultEnum.CRYPTOR_REQUEST_ERROR_CONFIGURATION.getMsg() + "[fieldNames]", exchange);
     }
 
     @Override

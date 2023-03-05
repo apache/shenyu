@@ -25,7 +25,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.cryptor.handler.CryptorRequestPluginDataHandler;
+import org.apache.shenyu.plugin.cryptor.handler.AbstractCryptorPluginDataHandler;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum;
 import org.apache.shenyu.plugin.cryptor.utils.CryptorUtil;
@@ -45,7 +45,7 @@ public abstract class AbstractCryptorPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final CryptorRuleHandler ruleHandle = CryptorRequestPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        final CryptorRuleHandler ruleHandle = AbstractCryptorPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(ruleHandle)) {
             LOG.error("{} rule configuration is null :{}", named(), rule.getId());
             return chain.execute(exchange);
@@ -53,7 +53,7 @@ public abstract class AbstractCryptorPlugin extends AbstractShenyuPlugin {
 
         Pair<Boolean, String> pair = CryptorUtil.checkParam(ruleHandle);
         if (Boolean.TRUE.equals(pair.getLeft())) {
-            ShenyuResultEnum resultEnum = errorEnum();
+            ShenyuResultEnum resultEnum = checkErrorEnum();
             return WebFluxResultUtils.failedResult(resultEnum.getCode(),
                     resultEnum.getMsg() + "[" + pair.getRight() + "]", exchange);
         }
@@ -63,12 +63,21 @@ public abstract class AbstractCryptorPlugin extends AbstractShenyuPlugin {
     protected abstract Mono<Void> doExecute0(ServerWebExchange exchange, ShenyuPluginChain chain,
                                              SelectorData selector, RuleData rule, CryptorRuleHandler ruleHandle);
     
-    protected abstract ShenyuResultEnum errorEnum();
+    protected abstract ShenyuResultEnum checkErrorEnum();
+
+    /**
+     * field parse error diff handler.
+     *
+     * @param originalBody originalBody
+     * @param exchange exchange
+     * @return String
+     */
+    protected abstract String fieldErrorParse(String originalBody, ServerWebExchange exchange);
     
     protected String convert(final String originalBody, final CryptorRuleHandler ruleHandle, final ServerWebExchange exchange) {
         String converted = MapTypeEnum.mapType(ruleHandle.getMapType()).convert(originalBody, ruleHandle, exchange);
         if (Objects.isNull(converted)) {
-            return originalBody;
+            return fieldErrorParse(originalBody, exchange);
         }
         return converted;
     }
