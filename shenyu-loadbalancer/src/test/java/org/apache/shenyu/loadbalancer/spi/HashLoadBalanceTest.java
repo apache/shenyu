@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.common.utils.ShenyuClock;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -119,22 +120,22 @@ public final class HashLoadBalanceTest {
         Assertions.assertNotNull(hashLoadBalance.select(onlyOneList, ip));
         Assertions.assertEquals(hashLoadBalance.getWeight(Upstream.builder().status(false).build()), 0);
         Assertions.assertEquals(hashLoadBalance.getWeight(Upstream.builder()
-                .timestamp(System.currentTimeMillis() - 3L)
+                .timestamp(ShenyuClock.now() - 3L)
                 .warmup(4)
                 .weight(1)
                 .build()), 1);
         Assertions.assertEquals(hashLoadBalance.getWeight(Upstream.builder()
-                .timestamp(System.currentTimeMillis() + 3L)
+                .timestamp(ShenyuClock.now() + 3L)
                 .warmup(4)
                 .weight(1)
                 .build()), 1);
         Assertions.assertEquals(hashLoadBalance.getWeight(Upstream.builder()
-                .timestamp(System.currentTimeMillis() - 3000L)
+                .timestamp(ShenyuClock.now() - 3000L)
                 .warmup(4000)
                 .weight(4)
                 .build()), 3);
         Assertions.assertEquals(hashLoadBalance.getWeight(Upstream.builder()
-                .timestamp(System.currentTimeMillis() - 3L)
+                .timestamp(ShenyuClock.now() - 3L)
                 .warmup(1)
                 .weight(1)
                 .build()), 1);
