@@ -68,7 +68,7 @@ public class ServiceDocManagerImpl implements ServiceDocManager {
         }
         String url = getSwaggerRequestUrl(instance);
         try {
-            String body = HTTP_UTILS.get(url, Collections.emptyMap());
+            String body = HTTP_UTILS.get(url, Collections.EMPTY_MAP);
             docManager.addDocInfo(
                 clusterName,
                 body,
