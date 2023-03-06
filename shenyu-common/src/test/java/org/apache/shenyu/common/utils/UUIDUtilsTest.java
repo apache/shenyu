@@ -27,9 +27,9 @@ import java.lang.reflect.Method;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test cases for UUIDUtils.
@@ -74,7 +74,7 @@ public final class UUIDUtilsTest {
         Class<?>[] p = {long.class};
         Method method = uUIDUtilsClass.getDeclaredMethod("tilNextMillis", p);
         method.setAccessible(true);
-        long lastTimestamp = System.currentTimeMillis();
+        long lastTimestamp = ShenyuClock.now();
         long result = (long) method.invoke(UUIDUtils.getInstance(), lastTimestamp);
         assertThat(result, greaterThan(lastTimestamp));
     }
@@ -102,7 +102,7 @@ public final class UUIDUtilsTest {
         Class<?> uUIDUtilsClass = uuidUtils.getClass();
         Field field = uUIDUtilsClass.getDeclaredField("lastTimestamp");
         field.setAccessible(true);
-        field.set(uuidUtils, System.currentTimeMillis());
+        field.set(uuidUtils, ShenyuClock.now());
 
         Method method = uUIDUtilsClass.getDeclaredMethod("nextId");
         method.setAccessible(true);
