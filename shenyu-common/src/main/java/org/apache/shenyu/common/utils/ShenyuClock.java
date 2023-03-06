@@ -23,37 +23,26 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Shenyu System clock.<br>
- * Refer to cn.hutool.core.date.SystemClock<br>
+ * Refer to cn.hutool.core.date.SystemClock.<br>
  */
-public class ShenyuClock {
+public final class ShenyuClock {
 
     /**
-     * Period
-     */
-    private final int period;
-
-    /**
-     * Now
-     */
-    private final AtomicLong now;
-
-    /**
-     * Thread name
+     * Thread name.
      */
     private static final String THREAD_NAME = "shenyu-clock-schedule";
 
     /**
-     * Instance holder.
+     * Period.
      */
-    private static class InstanceHolder {
+    private final int period;
 
-        /**
-         * System clock instance
-         */
-        private static final ShenyuClock INSTANCE = new ShenyuClock(1);
-    }
+    /**
+     * Now.
+     */
+    private final AtomicLong now;
 
-    private ShenyuClock(int period) {
+    private ShenyuClock(final int period) {
         this.period = period;
         this.now = new AtomicLong(System.currentTimeMillis());
         scheduleClockUpdating();
@@ -97,4 +86,16 @@ public class ShenyuClock {
     public static long now() {
         return instance().currentTimeMillis();
     }
+
+    /**
+     * Instance holder.
+     */
+    private static class InstanceHolder {
+
+        /**
+         * System clock instance.
+         */
+        private static final ShenyuClock INSTANCE = new ShenyuClock(1);
+    }
+
 }
