@@ -24,3 +24,7 @@ INSERT INTO "public"."plugin_handle" VALUES ('1630768384280514560', '25', 'mapTy
 /* insert plugin_handle data for plugin_handle mapType */
 INSERT INTO "public"."shenyu_dict" VALUES ('1630761573833920512', 'mapType', 'mapType', 'all', 'all', '', 0, 1, '2023-03-01 10:47:11', '2023-03-01 10:47:11');
 INSERT INTO "public"."shenyu_dict" VALUES ('1630761984393367552', 'mapType', 'mapType', 'field', 'field', '', 1, 1, '2023-03-01 10:48:49', '2023-03-01 10:48:49');
+
+/* add column into plugin table */
+ALTER TABLE "public"."plugin" ADD COLUMN plugin_jar bytea NULL;
+COMMENT ON COLUMN "public"."plugin".plugin_jar IS 'plugin jar';
