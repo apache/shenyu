@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -61,11 +63,7 @@ public final class ShenyuClock {
      * Schedule clock updating.
      */
     private void scheduleClockUpdating() {
-        ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1, runnable -> {
-            Thread thread = new Thread(runnable, THREAD_NAME);
-            thread.setDaemon(true);
-            return thread;
-        });
+        ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create(THREAD_NAME, true));
         scheduler.scheduleAtFixedRate(() -> now.set(System.currentTimeMillis()), period, period, TimeUnit.MILLISECONDS);
     }
 
