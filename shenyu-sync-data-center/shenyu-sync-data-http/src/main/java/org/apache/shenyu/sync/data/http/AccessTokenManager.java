@@ -23,7 +23,6 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.ShenyuClock;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,12 +87,12 @@ public class AccessTokenManager {
      * @param servers server list.
      */
     public void login(final List<String> servers) {
-        if ((ShenyuClock.now() - lastRefreshTime) < (tokenExpiredTime - tokenRefreshWindow)) {
+        if ((System.currentTimeMillis() - lastRefreshTime) < (tokenExpiredTime - tokenRefreshWindow)) {
             return;
         }
         for (String server : servers) {
             if (this.doLogin(server)) {
-                this.lastRefreshTime = ShenyuClock.now();
+                this.lastRefreshTime = System.currentTimeMillis();
                 return;
             }
         }

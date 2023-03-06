@@ -48,7 +48,6 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.MapUtils;
-import org.apache.shenyu.common.utils.ShenyuClock;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.slf4j.Logger;
@@ -293,7 +292,7 @@ public class UpstreamCheckService {
         CommonUpstream commonUpstream = zombieUpstream.getCommonUpstream();
         final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
         if (pass) {
-            commonUpstream.setTimestamp(ShenyuClock.now());
+            commonUpstream.setTimestamp(System.currentTimeMillis());
             commonUpstream.setStatus(true);
             LOG.info("UpstreamCacheManager check zombie upstream success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
             List<CommonUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorId, Collections.emptyList()));
@@ -315,7 +314,7 @@ public class UpstreamCheckService {
                 final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
                 if (pass) {
                     if (!commonUpstream.isStatus()) {
-                        commonUpstream.setTimestamp(ShenyuClock.now());
+                        commonUpstream.setTimestamp(System.currentTimeMillis());
                         commonUpstream.setStatus(true);
                         LOG.info("UpstreamCacheManager check success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
                     }
@@ -393,7 +392,7 @@ public class UpstreamCheckService {
         Map<String, String> pluginMap = pluginDOList.stream().filter(Objects::nonNull)
                 .collect(Collectors.toMap(PluginDO::getId, PluginDO::getName, (value1, value2) -> value1));
         final List<SelectorDO> selectorDOList = selectorMapper.findByPluginIds(new ArrayList<>(pluginMap.keySet()));
-        long currentTimeMillis = ShenyuClock.now();
+        long currentTimeMillis = System.currentTimeMillis();
         Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).stream()
                 .filter(selectorDO -> Objects.nonNull(selectorDO) && StringUtils.isNotEmpty(selectorDO.getHandle()))
                 .forEach(selectorDO -> {

@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.aspect;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.ShenyuClock;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -74,7 +73,7 @@ public class PrintApiLogAspect {
     private void postLog(final ProceedingJoinPoint point, final long start) {
         if (Boolean.TRUE.equals(properties.getEnablePrintApiLog())) {
             LOG.info("{} exec: method [{}.{}] over, time cost: {}", SessionUtil.visitorName(),
-                    point.getTarget().getClass().getSimpleName(), point.getSignature().getName(), ShenyuClock.now() - start);
+                    point.getTarget().getClass().getSimpleName(), point.getSignature().getName(), System.currentTimeMillis() - start);
         }
     }
     

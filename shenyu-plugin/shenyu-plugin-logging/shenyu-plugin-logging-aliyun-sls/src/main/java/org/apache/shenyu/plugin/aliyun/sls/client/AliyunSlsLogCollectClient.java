@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.ShenyuClock;
 import org.apache.shenyu.plugin.aliyun.sls.config.AliyunLogCollectConfig;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
@@ -127,7 +126,7 @@ public class AliyunSlsLogCollectClient extends AbstractLogConsumeClient<AliyunLo
      */
     private void sendLog(final ShenyuRequestLog log) {
         final List<LogItem> logGroup = new ArrayList<>();
-        LogItem logItem = new LogItem((int) (ShenyuClock.now() / 1000));
+        LogItem logItem = new LogItem((int) (System.currentTimeMillis() / 1000));
         logItem.PushBack("level", "info");
         logItem.PushBack("name", log.getRequestUri());
         logItem.PushBack("message", GsonUtils.getGson().toJson(log));
