@@ -111,7 +111,7 @@ public final class UUIDUtils {
     }
 
     private long timeGen() {
-        return System.currentTimeMillis();
+        return ShenyuClock.now();
     }
 
     /**

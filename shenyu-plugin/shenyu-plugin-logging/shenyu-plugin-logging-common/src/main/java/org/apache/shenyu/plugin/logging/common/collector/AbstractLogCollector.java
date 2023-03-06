@@ -22,6 +22,7 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.ShenyuClock;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
@@ -101,7 +102,7 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
             try {
                 List<L> logs = new ArrayList<>();
                 int size = bufferQueue.size();
-                long time = System.currentTimeMillis();
+                long time = ShenyuClock.now();
                 long timeDiffMs = time - lastPushTime;
                 int batchSize = 100;
                 if (size >= batchSize || timeDiffMs > diffTimeMSForPush) {

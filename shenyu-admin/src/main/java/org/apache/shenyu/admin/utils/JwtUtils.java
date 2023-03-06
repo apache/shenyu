@@ -24,6 +24,7 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.common.utils.ShenyuClock;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.util.StringUtils;
 import org.slf4j.Logger;
@@ -87,7 +88,7 @@ public final class JwtUtils {
         try {
             return JWT.create()
                     .withClaim("userName", userName)
-                    .withExpiresAt(new Date(System.currentTimeMillis() + Optional.ofNullable(expireSeconds).orElse(TOKEN_EXPIRE_SECONDS)))
+                    .withExpiresAt(new Date(ShenyuClock.now() + Optional.ofNullable(expireSeconds).orElse(TOKEN_EXPIRE_SECONDS)))
                     .sign(Algorithm.HMAC256(key));
         } catch (IllegalArgumentException | JWTCreationException e) {
             LOG.error("JWTToken generate fail ", e);

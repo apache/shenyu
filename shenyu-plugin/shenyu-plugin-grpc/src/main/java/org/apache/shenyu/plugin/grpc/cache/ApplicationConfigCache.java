@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.ShenyuClock;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
 import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstanceLists;
 import org.springframework.lang.NonNull;
@@ -90,7 +91,7 @@ public final class ApplicationConfigCache {
             instances.addAll(upstreamList.stream().map(this::build).collect(Collectors.toList()));
             Consumer<Object> consumer = listener.get(selectorData.getName());
             if (Objects.nonNull(consumer)) {
-                consumer.accept(System.currentTimeMillis());
+                consumer.accept(ShenyuClock.now());
             }
         } catch (ExecutionException e) {
             throw new ShenyuException(e.getCause());
