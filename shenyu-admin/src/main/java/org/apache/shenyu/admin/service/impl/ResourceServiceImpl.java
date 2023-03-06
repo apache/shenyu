@@ -222,6 +222,7 @@ public class ResourceServiceImpl implements ResourceService {
      *
      * @param event event
      */
+    @Transactional(rollbackFor = Exception.class)
     @EventListener(value = BatchPluginDeletedEvent.class)
     public void onPluginDeleted(final BatchPluginDeletedEvent event) {
         // 5. delete resource & permission.
