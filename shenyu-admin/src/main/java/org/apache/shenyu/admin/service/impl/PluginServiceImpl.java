@@ -41,6 +41,8 @@ import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JarDependencyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,6 +58,11 @@ import java.util.stream.Collectors;
  */
 @Service
 public class PluginServiceImpl implements PluginService {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(PluginServiceImpl.class);
     
     private final PluginMapper pluginMapper;
     
@@ -257,6 +264,7 @@ public class PluginServiceImpl implements PluginService {
             Set<String> dependencyTree = JarDependencyUtils.getDependencyTree(file.getBytes());
             return dependencyTree.contains(AdminConstants.PLUGIN_ABSTRACR_PATH) || dependencyTree.contains(AdminConstants.PLUGIN_INTERFACE_PATH);
         } catch (Exception e) {
+            LOG.error("check plugin jar error:{}", e.getMessage());
             throw new ShenyuException(e);
         }
     }

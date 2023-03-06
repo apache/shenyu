@@ -24,6 +24,8 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -36,6 +38,11 @@ import java.util.zip.ZipInputStream;
  * Jar package dependency tools.
  */
 public class JarDependencyUtils {
+
+    /**
+     * logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(JarDependencyUtils.class);
 
     /**
      * Obtain the dependency tree of the jar package file at compile time.
@@ -71,6 +78,7 @@ public class JarDependencyUtils {
             return dependencies;
 
         } catch (Exception e) {
+            LOG.error("get dependency tree error", e);
             throw new ShenyuException(e);
         }
     }
