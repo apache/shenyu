@@ -148,7 +148,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             return initRef(metaData);
         }
         try {
-            ReferenceConfig<GenericService> referenceConfig = cache.get(metaData.getPath());
+            ReferenceConfig<GenericService> referenceConfig = cache.get(namespace + ":" + metaData.getPath());
             if (StringUtils.isNoneBlank(referenceConfig.getInterface())) {
                 return referenceConfig;
             }
