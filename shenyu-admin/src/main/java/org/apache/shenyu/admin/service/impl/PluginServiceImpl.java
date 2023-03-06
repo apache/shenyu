@@ -40,20 +40,15 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.JarDependencyUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -259,73 +254,10 @@ public class PluginServiceImpl implements PluginService {
      */
     private boolean checkFile(final MultipartFile file) {
         try {
-            return checkJar(file.getBytes());
+            Set<String> dependencyTree = JarDependencyUtils.getDependencyTree(file.getBytes());
+            return dependencyTree.contains(AdminConstants.PLUGIN_ABSTRACR_PATH) || dependencyTree.contains(AdminConstants.PLUGIN_INTERFACE_PATH);
         } catch (Exception e) {
             throw new ShenyuException(e);
-        }
-    }
-
-    /**
-     * convert byte to File.
-     * @param fileByte fileByte
-     * @return File
-     */
-    private File convert(final byte[] fileByte) {
-        try {
-            //byte to file
-            File file = File.createTempFile("temp", ".tmp");
-            try (FileOutputStream outputStream = new FileOutputStream(file)) {
-                outputStream.write(fileByte);
-            }
-            return file;
-        } catch (Exception e) {
-            throw new ShenyuException(e);
-        }
-    }
-
-    /**
-     * check jar is plugin.
-     * @param fileByte fileByte
-     * @return boolean
-     */
-    private boolean checkJar(final byte[] fileByte) {
-        File fileJar = null;
-        try {
-            fileJar = convert(fileByte);
-            JarFile jarFile = new JarFile(fileJar);
-            URL url = fileJar.toURI().toURL();
-            URLClassLoader classLoader = URLClassLoader.newInstance(new URL[]{url});
-            Enumeration<JarEntry> jarEntryEnumeration = jarFile.entries();
-            while (jarEntryEnumeration.hasMoreElements()) {
-                JarEntry jarEntry = jarEntryEnumeration.nextElement();
-                if (jarEntry.getName().endsWith(".class")) {
-                    String className = jarEntry.getName().substring(0, jarEntry.getName().length() - 6).replace("/", ".");
-                    Class<?> clazz = classLoader.loadClass(className);
-                    Class<?> superclass = clazz.getSuperclass();
-                    Class<?>[] interfaces = clazz.getInterfaces();
-
-                    if (!Objects.isNull(superclass) && superclass.getName().equals(AdminConstants.PLUGIN_ABSTRACR_PATH)) {
-                        return true;
-                    }
-
-                    //get the interfaces
-                    for (Class<?> anInterface : interfaces) {
-                        String name = anInterface.getName();
-                        if (name.equals(AdminConstants.PLUGIN_INTERFACE_PATH)) {
-                            return true;
-                        }
-
-                    }
-
-                }
-            }
-            return false;
-        } catch (Exception e) {
-            throw new ShenyuException(e);
-        } finally {
-            if (fileJar != null) {
-                fileJar.delete();
-            }
         }
     }
 }
