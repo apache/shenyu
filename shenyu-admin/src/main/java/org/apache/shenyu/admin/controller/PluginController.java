@@ -140,7 +140,6 @@ public class PluginController implements PagedController<PluginQueryCondition, P
                                           @Valid @ModelAttribute final PluginDTO pluginDTO) {
         pluginDTO.setId(id);
         return createPlugin(pluginDTO);
-
     }
 
     /**
