@@ -244,7 +244,7 @@
                     #{role, jdbcType=VARCHAR},
                     #{sort, jdbcType=INTEGER},
                     #{enabled, jdbcType=TINYINT},
-                    #{pluginJar, jdbcType=BLOB}))
+                    #{pluginJar, jdbcType=BLOB})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">

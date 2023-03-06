@@ -35,9 +35,9 @@ CREATE TABLE IF NOT EXISTS `plugin` (
   `role` varchar(64) NOT NULL COMMENT 'plug-in role',
   `sort` int(4)  NULL COMMENT 'sort',
   `enabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'whether to open (0, not open, 1 open)',
-  `plugin_jar` mediumblob  DEFAULT NULL COMMENT 'plugin jar',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+  `plugin_jar` mediumblob  DEFAULT NULL COMMENT 'plugin jar',
   PRIMARY KEY (`id`)
 );
 
