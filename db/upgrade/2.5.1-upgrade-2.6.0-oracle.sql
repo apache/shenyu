@@ -28,3 +28,7 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) *
 values ('1630761573833920512', 'mapType', 'mapType', 'all', 'all', '', 0, 1);
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
 values ('1630761984393367552', 'mapType', 'mapType', 'field', 'field', '', 1, 1);
+
+/* add column into plugin table */
+ALTER TABLE plugin ADD plugin_jar BLOB NULL;
+COMMENT ON COLUMN plugin.plugin_jar IS 'plugin jar';
