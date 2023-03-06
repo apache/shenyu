@@ -34,6 +34,7 @@ import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +45,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -136,17 +138,23 @@ public final class PluginControllerTest {
     
     @Test
     public void testCreatePlugin() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.jar", MediaType.TEXT_PLAIN_VALUE, "This is a test file.".getBytes());
         PluginDTO pluginDTO = new PluginDTO();
-        pluginDTO.setName("test");
+        pluginDTO.setName("test1");
         pluginDTO.setEnabled(true);
         pluginDTO.setRole("1");
         pluginDTO.setSort(100);
+        pluginDTO.setFile(file);
         when(SpringBeanUtils.getInstance().getBean(PluginMapper.class)).thenReturn(pluginMapper);
-        
+        when(pluginMapper.existed(pluginDTO.getId())).thenReturn(false);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(pluginDTO)))
+
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin")
+                        .file(file)
+                        .param("name", pluginDTO.getName())
+                        .param("enabled", pluginDTO.getEnabled() + "")
+                        .param("role", pluginDTO.getRole())
+                        .param("sort", pluginDTO.getSort() + ""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
@@ -154,21 +162,29 @@ public final class PluginControllerTest {
         pluginDTO.setId("123");
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(pluginDTO)))
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin")
+                        .file(file)
+                        .param("id", pluginDTO.getId())
+                        .param("name", pluginDTO.getName())
+                        .param("enabled", pluginDTO.getEnabled() + "")
+                        .param("role", pluginDTO.getRole())
+                        .param("sort", pluginDTO.getSort() + ""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
+
         // update fail
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(false);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(pluginDTO)))
+        this.mockMvc.perform(MockMvcRequestBuilders.multipart("/plugin")
+                        .file(file)
+                        .param("id", pluginDTO.getId())
+                        .param("name", pluginDTO.getName())
+                        .param("enabled", pluginDTO.getEnabled() + "")
+                        .param("role", pluginDTO.getRole())
+                        .param("sort", pluginDTO.getSort() + ""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is("Request error! invalid argument [id: the plugin is not exited]")))
+                .andExpect(jsonPath("$.message", Matchers.containsString("The system is busy, please try again later")))
                 .andReturn();
-        
     }
     
     @Test
@@ -183,23 +199,31 @@ public final class PluginControllerTest {
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", pluginDTO.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(pluginDTO)))
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("name", pluginDTO.getName())
+                        .param("enabled", String.valueOf(pluginDTO.getEnabled()))
+                        .param("role", pluginDTO.getRole())
+                        .param("sort", String.valueOf(pluginDTO.getSort())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(null);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", pluginDTO.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(pluginDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is("Request error! invalid argument [id: the plugin is not exited]")))
+                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
+                        .param("name", pluginDTO.getName())
+                        .param("enabled", String.valueOf(pluginDTO.getEnabled()))
+                        .param("role", pluginDTO.getRole())
+                        .param("sort", String.valueOf(pluginDTO.getSort())))
+                .andExpect(jsonPath("$.message", is("The system is busy, please try again later")))
                 .andReturn();
         when(pluginMapper.existed(pluginDTO.getId())).thenReturn(true);
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", pluginDTO.getId())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(pluginDTO)))
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                        .param("name", pluginDTO.getName())
+                        .param("enabled", String.valueOf(pluginDTO.getEnabled()))
+                        .param("role", pluginDTO.getRole())
+                        .param("sort", String.valueOf(pluginDTO.getSort())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
