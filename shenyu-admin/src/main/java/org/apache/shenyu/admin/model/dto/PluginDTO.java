@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.dto;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -61,13 +62,36 @@ public class PluginDTO implements Serializable {
      */
     @NotNull
     private Integer sort;
-    
+
     /**
      * whether enabled.
      */
     @NotNull
     private Boolean enabled;
-    
+
+    /**
+     * plugin jar.
+     */
+    private MultipartFile file;
+
+    /**
+     * Gets the value of file.
+     *
+     * @return the value of file
+     */
+    public MultipartFile getFile() {
+        return file;
+    }
+
+    /**
+     * Sets the file.
+     *
+     * @param file file
+     */
+    public void setFile(final MultipartFile file) {
+        this.file = file;
+    }
+
     /**
      * Gets the value of id.
      *
@@ -193,11 +217,12 @@ public class PluginDTO implements Serializable {
                 && Objects.equals(config, pluginDTO.config)
                 && Objects.equals(role, pluginDTO.role)
                 && Objects.equals(sort, pluginDTO.sort)
-                && Objects.equals(enabled, pluginDTO.enabled);
+                && Objects.equals(enabled, pluginDTO.enabled)
+                && Objects.equals(file, pluginDTO.file);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, config, role, sort, enabled);
+        return Objects.hash(id, name, config, role, sort, enabled, file);
     }
 }
