@@ -71,7 +71,7 @@ public class ApacheDubboProxyService {
         }
         ReferenceConfig<GenericService> reference = ApacheDubboConfigCache.getInstance().get(referenceKey);
         if (StringUtils.isEmpty(reference.getInterface())) {
-            ApacheDubboConfigCache.getInstance().invalidate(metaData.getPath());
+            ApacheDubboConfigCache.getInstance().invalidate(referenceKey);
             reference = ApacheDubboConfigCache.getInstance().initRefN(metaData, namespace);
         }
         GenericService genericService = reference.get();

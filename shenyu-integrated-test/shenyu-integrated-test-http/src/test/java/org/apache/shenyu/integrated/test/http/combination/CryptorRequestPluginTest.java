@@ -123,7 +123,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
         initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(),
                 "", SINGLETON_CONDITION_LIST, buildRuleLocalDataList("data", "decrypt", ALL.getMapType()));
 
-        AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, new JsonObject(), AdminResponse.class);
+        AdminResponse<String> response = HttpHelper.INSTANCE.<AdminResponse<String>, JsonObject>postGateway(TEST_PATH, new JsonObject(), AdminResponse.class);
 
         assertThat(response.getCode(), is(-114));
         assertThat(response.getMessage(), is("Please check Cryptor request plugin's [fieldNames]"));
@@ -133,13 +133,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
     @ParameterizedTest(name = "return failed message when {0} failed")
     @ValueSource(strings = {"decrypt", "encrypt"})
     public void testWhenDecryptionOrEncryptionIsFailed(final String way) throws Exception {
-
-        CryptorRuleHandler handler = buildRuleHandler("rsa", 
-                way, 
-                "wrong_encrypt_key", 
-                "wrong_decrypt_key", 
-                "data", 
-                ALL.getMapType());
+        CryptorRuleHandler handler = buildRuleHandler("rsa", way, "wrong_encrypt_key", "wrong_decrypt_key", "data", ALL.getMapType());
         RuleLocalData ruleLocalData = ruleLocalData(handler, SINGLETON_CONDITION_LIST);
 
         initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(), "", SINGLETON_CONDITION_LIST, Lists.newArrayList(ruleLocalData));
@@ -147,7 +141,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
         JsonObject request = new JsonObject();
         request.addProperty("data", "random_data");
 
-        AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, AdminResponse.class);
+        AdminResponse<String> response = HttpHelper.INSTANCE.<AdminResponse<String>, JsonObject>postGateway(TEST_PATH, request, AdminResponse.class);
         ShenyuResultEnum resultEnum = "decrypt".equals(way) ? DECRYPTION_ERROR : ENCRYPTION_ERROR;
         assertThat(response.getCode(), is(resultEnum.getCode()));
         assertThat(response.getMessage(), is(resultEnum.getMsg()));
@@ -158,18 +152,13 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
     @ValueSource(strings = {"decrypt", "encrypt"})
     public void testWhenKeyIsNull(final String way) throws Exception {
 
-        CryptorRuleHandler handler = buildRuleHandler("rsa", 
-                way, 
-                null, 
-                null, 
-                "data",
-                FIELD.getMapType());
+        CryptorRuleHandler handler = buildRuleHandler("rsa", way, null, null, "data", FIELD.getMapType());
 
         initSelectorAndRules(PluginEnum.CRYPTOR_REQUEST.getName(),
                 "", SINGLETON_CONDITION_LIST, singletonRuleLocalDataList(handler, SINGLETON_CONDITION_LIST));
 
         JsonObject request = new JsonObject();
-        AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, AdminResponse.class);
+        AdminResponse<String> response = HttpHelper.INSTANCE.<AdminResponse<String>, JsonObject>postGateway(TEST_PATH, request, AdminResponse.class);
 
         String keyName = "decrypt".equals(way) ? "decryptKey" : "encryptKey";
         assertThat(response.getMessage(), is(String.format("Please check Cryptor request plugin's [%s]", keyName)));
@@ -185,7 +174,7 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
                 singletonRuleLocalDataList(handler, SINGLETON_CONDITION_LIST));
 
         JsonObject request = new JsonObject();
-        AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, AdminResponse.class);
+        AdminResponse<String> response = HttpHelper.INSTANCE.<AdminResponse<String>, JsonObject>postGateway(TEST_PATH, request, AdminResponse.class);
 
         assertThat(response.getMessage(), is(String.format("Please check Cryptor request plugin's [%s]", "fieldNames")));
     }
@@ -195,12 +184,8 @@ public final class CryptorRequestPluginTest extends AbstractPluginDataInit {
         return singletonRuleLocalDataList(cryptorRuleHandler, SINGLETON_CONDITION_LIST);
     }
 
-    private CryptorRuleHandler buildRuleHandler(final String strategyName, 
-                                                final String way, 
-                                                final String encryptKey, 
-                                                final String decryptKey, 
-                                                final String fieldNames,
-                                                final String mapType) {
+    private CryptorRuleHandler buildRuleHandler(final String strategyName, final String way, final String encryptKey,
+                                                final String decryptKey, final String fieldNames, final String mapType) {
         CryptorRuleHandler cryptorRuleHandler = new CryptorRuleHandler();
         cryptorRuleHandler.setDecryptKey(decryptKey);
         cryptorRuleHandler.setEncryptKey(encryptKey);
