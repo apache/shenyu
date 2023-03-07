@@ -148,7 +148,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             return initRef(metaData);
         }
         try {
-            ReferenceConfig<GenericService> referenceConfig = cache.get(metaData.getPath());
+            ReferenceConfig<GenericService> referenceConfig = cache.get(namespace + ":" + metaData.getPath());
             if (StringUtils.isNoneBlank(referenceConfig.getInterface())) {
                 return referenceConfig;
             }
@@ -175,7 +175,7 @@ public final class ApacheDubboConfigCache extends DubboConfigCache {
             Object obj = reference.get();
             if (Objects.nonNull(obj)) {
                 LOG.info("buildN init apache dubbo reference success there meteData is :{}", metaData);
-                cache.put(namespace + ":" + metaData.getPath(), reference);
+                cache.put(StringUtils.isNotBlank(namespace) ? namespace + ":" + metaData.getPath() : metaData.getPath(), reference);
             }
         } catch (Exception e) {
             LOG.error("buildN init apache dubbo reference exception", e);
