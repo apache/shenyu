@@ -20,6 +20,7 @@ package org.apache.shenyu.loadbalancer.entity;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * this is upstream.
@@ -80,6 +81,26 @@ public final class Upstream {
      * version.
      */
     private String version;
+
+    /**
+     * ewma value.
+     */
+    private long lag;
+
+    /**
+     * response stamp.
+     */
+    private long responseStamp;
+
+    /**
+     * Last selected timestamp.
+     */
+    private long lastPicked;
+
+    /**
+     * Total number of requests being processed.
+     */
+    private AtomicLong inflight = new AtomicLong(1);
 
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;
@@ -252,6 +273,80 @@ public final class Upstream {
      */
     public void setVersion(final String version) {
         this.version = version;
+    }
+
+    /**
+     * Gets lag.
+     *
+     * @return the lag
+     */
+    public long getLag() {
+        return lag;
+    }
+
+    /**
+     * Sets lag.
+     * @param lag the lag
+     */
+    public void setLag(final long lag) {
+        this.lag = lag;
+    }
+
+    /**
+     * Gets inflight.
+     *
+     * @return the inflight
+     */
+
+    /**
+     * Gets responseStamp.
+     *
+     * @return the responseStamp
+     */
+    public long getResponseStamp() {
+        return responseStamp;
+    }
+
+    /**
+     * Sets responseStamp.
+     * @param responseStamp the responseStamp
+     */
+    public void setResponseStamp(final long responseStamp) {
+        this.responseStamp = responseStamp;
+    }
+
+    /**
+     * Gets lastPickedStamp.
+     *
+     * @return the lastPickedStamp
+     */
+    public long getLastPicked() {
+        return lastPicked;
+    }
+
+    /**
+     * Sets lastPickedStamp.
+     * @param lastPicked the lastPickedStamp
+     */
+    public void setLastPicked(final long lastPicked) {
+        this.lastPicked = lastPicked;
+    }
+
+    /**
+     * Gets inflight.
+     *
+     * @return the inflight
+     */
+    public AtomicLong getInflight() {
+        return inflight;
+    }
+
+    /**
+     * Sets inflight.
+     * @param inflight the inflight
+     */
+    public void setInflight(final AtomicLong inflight) {
+        this.inflight = inflight;
     }
 
     /**
