@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.dto;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -38,7 +39,7 @@ public class PluginData {
 
     private Integer sort;
 
-    private String jarResources;
+    private byte[] pluginJar;
 
     /**
      * no args constructor.
@@ -55,12 +56,13 @@ public class PluginData {
      * @param role    role
      * @param enabled enabled
      */
-    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled) {
+    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled, final byte[] pluginJar) {
         this.id = id;
         this.name = name;
         this.config = config;
         this.role = role;
         this.enabled = enabled;
+        this.pluginJar = pluginJar;
     }
 
     /**
@@ -74,24 +76,14 @@ public class PluginData {
      * @param sort sort
      */
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
-                      final Integer sort) {
+                      final Integer sort, final byte[] pluginJar) {
         this.id = id;
         this.name = name;
         this.config = config;
         this.role = role;
         this.enabled = enabled;
         this.sort = sort;
-    }
-
-    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
-                      final Integer sort, final String jarResources) {
-        this.id = id;
-        this.name = name;
-        this.config = config;
-        this.role = role;
-        this.enabled = enabled;
-        this.sort = sort;
-        this.jarResources = jarResources;
+        this.pluginJar = pluginJar;
     }
 
     /**
@@ -106,7 +98,7 @@ public class PluginData {
         this.role = builder.role;
         this.enabled = builder.enabled;
         this.sort = builder.sort;
-        this.jarResources = builder.jarResources;
+        this.pluginJar = builder.pluginJar;
     }
 
     /**
@@ -200,6 +192,22 @@ public class PluginData {
     }
 
     /**
+     * get pluginJar.
+     * @return pluginJar
+     */
+    public byte[] getPluginJar() {
+        return pluginJar;
+    }
+
+    /**
+     * set pluginJar.
+     * @param pluginJar pluginJar
+     */
+    public void setPluginJar(final byte[] pluginJar) {
+        this.pluginJar = pluginJar;
+    }
+
+    /**
      * get sort.
      *
      * @return enabled
@@ -227,24 +235,6 @@ public class PluginData {
         this.enabled = enabled;
     }
 
-
-    /**
-     *  get plugin jar resources byte array.
-     * @return byte[]
-     */
-    public String getJarResources() {
-        return jarResources;
-    }
-
-    /**
-     * set plugin jar resources byte array.
-     *
-     * @param jarResources String
-     */
-    public void setJarResources(final String jarResources) {
-        this.jarResources = jarResources;
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -255,33 +245,24 @@ public class PluginData {
         }
         PluginData that = (PluginData) o;
         return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(config, that.config)
-                && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled) && Objects.equals(jarResources, that.jarResources);
+                && Objects.equals(role, that.role) && Objects.equals(enabled, that.enabled);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, config, role, enabled, jarResources);
+        return Objects.hash(id, name, config, role, enabled);
     }
 
     @Override
     public String toString() {
         return "PluginData{"
-                + "id='"
-                + id
-                + '\''
-                + ", name='"
-                + name
-                + '\''
-                + ", config='"
-                + config
-                + '\''
-                + ", role='"
-                + role
-                + '\''
-                + ", enabled="
-                + enabled
-                + ", jarResources="
-                + jarResources
+                + "id='" + id + '\''
+                + ", name='" + name + '\''
+                + ", config='" + config + '\''
+                + ", role='" + role + '\''
+                + ", enabled=" + enabled
+                + ", sort=" + sort
+                + ", pluginJar=" + Arrays.toString(pluginJar)
                 + '}';
     }
 
@@ -321,9 +302,10 @@ public class PluginData {
         private Integer sort;
 
         /**
-         * jarResources.
+         * sort.
          */
-        private String jarResources;
+        private byte[] pluginJar;
+
 
         /**
          * no args constructor.
@@ -406,14 +388,15 @@ public class PluginData {
             return this;
         }
 
+
         /**
-         * build jarResources.
+         * build pluginJar.
          *
-         * @param jarResources jarResources
+         * @param  pluginJar pluginJar
          * @return this
          */
-        public Builder jarResources(final String jarResources) {
-            this.jarResources = jarResources;
+        public Builder pluginJar(final byte[] pluginJar) {
+            this.pluginJar = pluginJar;
             return this;
         }
     }

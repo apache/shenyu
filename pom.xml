@@ -166,6 +166,7 @@
         <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
+        <asm.version>9.2</asm.version>
     </properties>
 
     <dependencyManagement>
@@ -177,6 +178,12 @@
                 <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-tree</artifactId>
+                <version>${asm.version}</version>
             </dependency>
 
             <dependency>
@@ -602,6 +609,9 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>

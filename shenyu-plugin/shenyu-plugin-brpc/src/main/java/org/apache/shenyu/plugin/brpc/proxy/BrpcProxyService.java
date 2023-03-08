@@ -83,7 +83,6 @@ public class BrpcProxyService {
             }
         }
         initThreadPool();
-        //todo use com.baidu.cloud.starlight.api.rpc.threadpool.ThreadPoolFactory impl it
         CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> getValue(metaData, params), threadPool);
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
