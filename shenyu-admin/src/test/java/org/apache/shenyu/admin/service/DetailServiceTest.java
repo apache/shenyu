@@ -61,21 +61,20 @@ public final class DetailServiceTest {
     }
 
     @Test
-    void testCreateOrUpdate() {
+    public void testCreateOrUpdate() {
         testCreate();
         testUpdate("123");
     }
 
     @Test
-    void testDelete() {
+    public void testDelete() {
         testCreate();
         when(detailMapper.deleteByPrimaryKey("123")).thenReturn(1);
         assertEquals(1, detailService.delete("123"));
     }
 
     @Test
-    void testFindById() {
-        // 模拟 DetailMapper.selectByPrimaryKey 方法的返回值
+    public void testFindById() {
         DetailDO detailDO = new DetailDO();
         detailDO.setId("1");
         detailDO.setExample(Boolean.TRUE);
@@ -85,13 +84,10 @@ public final class DetailServiceTest {
 
         when(detailMapper.selectByPrimaryKey("1")).thenReturn(detailDO);
 
-        // 创建 DetailService 实例
         DetailService detailService = new DetailServiceImpl(detailMapper);
 
-        // 调用 findById 方法
         DetailVO detailVO = detailService.findById("1");
 
-        // 断言返回值的属性值是否正确
         assertEquals(detailDO.getId(), detailVO.getId());
         assertEquals(detailDO.getExample(), detailVO.getExample());
         assertEquals(detailDO.getValueDesc(), detailVO.getValueDesc());
@@ -100,7 +96,6 @@ public final class DetailServiceTest {
         assertEquals(detailDO.getDateUpdated(), detailVO.getDateUpdated());
         assertEquals(detailDO.getDateCreated(), detailVO.getDateCreated());
 
-        // 验证 DetailMapper.selectByPrimaryKey 方法是否被调用了一次
         verify(detailMapper, times(1)).selectByPrimaryKey("1");
     }
 
