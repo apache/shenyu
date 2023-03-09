@@ -101,7 +101,7 @@ public final class JwtUtils {
             verifier.verify(token);
             return true;
         } catch (JWTVerificationException e) {
-            LOG.info("jwt decode fail, token: {} ", token, e);
+            LOG.error("jwt decode fail, token: {} ", token, e);
         }
         return false;
     }
