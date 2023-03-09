@@ -59,11 +59,11 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
                             .collect(Collectors.toList());
 
                     // old condition remove
-                    shenyuTrie.remove(beforeUriPaths, ruleData.getSelectorId(), ruleData.getId());
+                    shenyuTrie.remove(beforeUriPaths, ruleData);
                     shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
                     break;
                 case REMOVE:
-                    shenyuTrie.remove(uriPaths, ruleData.getSelectorId(), ruleData.getId());
+                    shenyuTrie.remove(uriPaths, ruleData);
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());

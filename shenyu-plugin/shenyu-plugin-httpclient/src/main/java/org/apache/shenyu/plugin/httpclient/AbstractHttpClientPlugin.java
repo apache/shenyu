@@ -176,6 +176,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             acceptEncoding.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
             headers.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
         }
+        headers.remove(HttpHeaders.HOST);
         return headers;
     }
 

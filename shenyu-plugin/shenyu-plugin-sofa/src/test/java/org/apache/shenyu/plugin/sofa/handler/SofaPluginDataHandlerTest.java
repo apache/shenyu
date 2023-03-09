@@ -49,14 +49,14 @@ public final class SofaPluginDataHandlerTest {
 
     @Test
     public void testPluginEnable() {
-        PluginData pluginData = new PluginData("", "", registryConfig, "1", true);
+        PluginData pluginData = new PluginData("", "", registryConfig, "1", true, null);
         sofaPluginDataHandler.handlerPlugin(pluginData);
         assertEquals("127.0.0.1:2181", Singleton.INST.get(SofaRegisterConfig.class).getRegister());
     }
 
     @Test
     public void testPluginDisable() {
-        PluginData pluginData = new PluginData("", "", registryConfig, "1", false);
+        PluginData pluginData = new PluginData("", "", registryConfig, "1", false, null);
         sofaPluginDataHandler.handlerPlugin(pluginData);
         assertNull(Singleton.INST.get(SofaRegisterConfig.class));
     }
