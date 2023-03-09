@@ -68,29 +68,18 @@ X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiw
 ### create
 POST http://localhost:9095/plugin
 Accept: application/json
-Content-Type: application/json
+Content-Type: application/x-www-form-urlencoded
 X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MjUzNzg2fQ.37fddsUZRFVNc2pTlACHEI9oZSj9gnE5hhpK5Yaf-6s
 
-{
-
-  "name": "test-create-plugin",
-  "role": "test-create-plugin",
-  "enabled": true,
-  "sort": 100
-}
+name=test-create-plugin&role=test-create-plugin&enabled=true&sort=100
 
 ### update
 PUT http://localhost:9095/plugin/1503021118890123264
 Accept: application/json
-Content-Type: application/json
+Content-Type: application/x-www-form-urlencoded
 X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ3MjUzNzg2fQ.37fddsUZRFVNc2pTlACHEI9oZSj9gnE5hhpK5Yaf-6s
 
-{
-  "name": "test-create-plugin",
-  "role": "test-create-plugin",
-  "enabled": true,
-  "sort": 100
-}
+name=test-create-plugin&role=test-create-plugin&enabled=true&sort=100
 
 ### delete
 DELETE http://localhost:9095/plugin/batch

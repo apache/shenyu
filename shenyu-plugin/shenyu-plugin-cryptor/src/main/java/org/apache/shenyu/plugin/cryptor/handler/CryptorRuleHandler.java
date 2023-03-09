@@ -22,7 +22,6 @@ import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 /**
  * Cryptor response rule handle.
  */
-@SuppressWarnings("unused")
 public class CryptorRuleHandler implements RuleHandle {
 
     private String strategyName;
@@ -32,6 +31,8 @@ public class CryptorRuleHandler implements RuleHandle {
     private String encryptKey;
 
     private String fieldNames;
+
+    private String mapType;
 
     private String way;
 
@@ -97,6 +98,22 @@ public class CryptorRuleHandler implements RuleHandle {
      */
     public void setFieldNames(final String fieldNames) {
         this.fieldNames = fieldNames;
+    }
+
+    /**
+     * get mapType.
+     * @return mapType
+     */
+    public String getMapType() {
+        return mapType;
+    }
+
+    /**
+     * set mapType.
+     * @param mapType mapType
+     */
+    public void setMapType(final String mapType) {
+        this.mapType = mapType;
     }
 
     /**

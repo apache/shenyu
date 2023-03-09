@@ -87,7 +87,7 @@ public class CasdoorPluginTest {
 
     @Test
     void doExecute() {
-        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"organization-name\":\"test\",\"application-name\":\"app-test\",\"endpoint\":\"http://localhost:8000\",\"client_secrect\":\"a4209d412a33a842b7a9c05a3446e623cbb7262d\",\"client_id\":\"6e3a84154e73d1fb156a\",\"certificate\":\"-----BEGIN CERTIFICATE-----\\n\"}", "0", false);
+        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"organization-name\":\"test\",\"application-name\":\"app-test\",\"endpoint\":\"http://localhost:8000\",\"client_secrect\":\"a4209d412a33a842b7a9c05a3446e623cbb7262d\",\"client_id\":\"6e3a84154e73d1fb156a\",\"certificate\":\"-----BEGIN CERTIFICATE-----\\n\"}", "0", false, null);
         casdoorPluginDateHandlerTest.handlerPlugin(pluginData);
         try {
             CasdoorAuthService casdoorAuthService = Singleton.INST.get(CasdoorAuthService.class);

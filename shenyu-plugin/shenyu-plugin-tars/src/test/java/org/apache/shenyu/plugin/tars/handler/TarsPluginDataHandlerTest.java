@@ -45,7 +45,7 @@ public final class TarsPluginDataHandlerTest {
     
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("id", "name", "{\"threadpool\":\"cached\",\"corethreads\":1,\"threads\":2,\"queues\":3}", "0", true);
+        final PluginData pluginData = new PluginData("id", "name", "{\"threadpool\":\"cached\",\"corethreads\":1,\"threads\":2,\"queues\":3}", "0", true, null);
         tarsPluginDataHandlerUnderTest.handlerPlugin(pluginData);
         assertTrue(pluginData.getName().endsWith("name"));
         TarsRegisterConfig config = Singleton.INST.get(TarsRegisterConfig.class);
