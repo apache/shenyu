@@ -156,6 +156,7 @@ public class SpringMvcClientEventListenerTest {
         // hit `!registered.compareAndSet(false, true)`
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
         portUtilsMockedStatic.close();
+        registerUtilsMockedStatic.close();
     }
     
     @Test
