@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.cryptor.utils;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.plugin.api.exception.ResponsiveException;
@@ -27,13 +25,12 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
+import org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * cryptor util.
@@ -56,30 +53,6 @@ public final class CryptorUtil {
                 .map(mod -> ShenyuResultWrap.error(exchange, ShenyuResultEnum.DECRYPTION_ERROR))
                 .orElse(ShenyuResultWrap.error(exchange, ShenyuResultEnum.ENCRYPTION_ERROR));
         return WebFluxResultUtils.result(exchange, error);
-    }
-
-    /**
-     * If it is decrypt mode, replace the original requestBody,
-     * if it is encrypt mode, it will replace the content of the fieldName configuration.
-     *
-     * @param originalBody original Body of data.
-     * @param modifiedBody modified body
-     * @param way          mode decrypt or encrypt
-     * @param fieldNames   fieldNames
-     * @return new body
-     */
-    public static String replace(final String originalBody, final String modifiedBody, final String way, final String fieldNames) {
-        if (CryptorStrategyFactory.DECRYPT.equals(way)) {
-            return modifiedBody;
-        }
-        AtomicInteger initDeep = new AtomicInteger();
-        initDeep.set(0);
-        JsonElement je = JsonParser.parseString(originalBody);
-        JsonElement resultJe = JsonUtil.replaceJsonNode(je,
-                initDeep,
-                modifiedBody,
-                Arrays.asList(fieldNames.split("\\.")));
-        return resultJe.toString();
     }
 
     /**
@@ -130,7 +103,7 @@ public final class CryptorUtil {
                     .orElse(new ResponsiveException(ShenyuResultEnum.ENCRYPTION_ERROR, exchange));
         }
 
-        return CryptorUtil.replace(originalBody, modifiedData, ruleHandle.getWay(), ruleHandle.getFieldNames());
+        return MapTypeEnum.mapType(ruleHandle.getMapType()).map(originalBody, modifiedData, ruleHandle.getFieldNames());
 
     }
 }
