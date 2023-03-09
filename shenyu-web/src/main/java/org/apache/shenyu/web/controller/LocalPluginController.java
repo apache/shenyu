@@ -205,6 +205,7 @@ public class LocalPluginController {
         subscriber.onSelectorSubscribe(result);
         RuleData ruleData = RuleData.builder()
                 .selectorId(result.getId())
+                .matchRestful(Boolean.FALSE)
                 .pluginName(selectorRuleData.getPluginName())
                 .handle(selectorRuleData.getRuleHandler())
                 .conditionDataList(selectorRuleData.getConditionDataList())

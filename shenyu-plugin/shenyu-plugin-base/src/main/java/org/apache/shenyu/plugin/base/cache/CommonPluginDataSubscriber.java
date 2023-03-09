@@ -206,7 +206,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             BaseDataCache.getInstance().cacheRuleData(ruleData);
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.handlerRule(ruleData));
-            MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName());
+            //MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName());
+            MatchDataCache.getInstance().removeMatchedRuleData(ruleData);
             if (CollectionUtils.isEmpty(ruleData.getBeforeConditionDataList())) {
                 eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.INSERT, ruleData));
             } else {
@@ -257,7 +258,8 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             BaseDataCache.getInstance().removeRuleData(ruleData);
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.removeRule(ruleData));
-            MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName());
+            MatchDataCache.getInstance().removeRuleData(ruleData);
+            //MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName());
             eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.REMOVE, ruleData));
         }
     }

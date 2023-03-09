@@ -145,7 +145,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                     Pair<Boolean, RuleData> matchRuleData = matchRule(exchange, rules);
                     ruleData = matchRuleData.getRight();
                     if (matchRuleData.getLeft()) {
-                        ruleData = Optional.ofNullable(ruleData).orElse(RuleData.builder().pluginName(pluginName).build());
+                        ruleData = Optional.ofNullable(ruleData)
+                                .orElse(RuleData.builder().pluginName(pluginName).matchRestful(false).build());
                         cacheRuleData(path, ruleData);
                     }
                 }

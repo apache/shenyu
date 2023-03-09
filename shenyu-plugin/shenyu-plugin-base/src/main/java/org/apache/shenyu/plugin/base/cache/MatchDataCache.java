@@ -18,15 +18,20 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
+import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.MapUtils;
+import org.apache.shenyu.plugin.base.condition.judge.PredicateJudgeFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 
 /**
@@ -136,5 +141,52 @@ public final class MatchDataCache {
     public RuleData obtainRuleData(final String pluginName, final String path) {
         final Map<String, RuleData> lruMap = RULE_DATA_MAP.get(pluginName);
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
+    }
+    
+    /**
+     * remove rule Data.
+     *
+     * @param pluginName pluginName
+     * @param ruleDataMap ruleDataMappings
+     */
+    public void cacheRuleData(final String pluginName, final Map<String, RuleData> ruleDataMap) {
+        RULE_DATA_MAP.remove(pluginName);
+        RULE_DATA_MAP.put(pluginName, ruleDataMap);
+    }
+    
+    /**
+     * remove rule data from cache.
+     *
+     * @param ruleData ruleData
+     */
+    public void removeRuleData(final RuleData ruleData) {
+        Map<String, RuleData> ruleDataMapping = RULE_DATA_MAP.get(ruleData.getPluginName());
+        if (ruleDataMapping != null && ruleDataMapping.size() != 0) {
+            ruleDataMapping.values().removeIf(rule -> ruleData.getId().equals(rule.getId()));
+            MatchDataCache.getInstance().cacheRuleData(ruleData.getPluginName(), ruleDataMapping);
+        }
+    }
+    
+    /**
+     * remove matched rule data.
+     *
+     * @param ruleData rule data
+     */
+    public void removeMatchedRuleData(final RuleData ruleData) {
+        Map<String, RuleData> ruleDataMapping = RULE_DATA_MAP.get(ruleData.getPluginName());
+        List<ConditionData> conditionData = ruleData.getConditionDataList();
+        // if the created rule data can match path, remove the path from cache.
+        if (ruleDataMapping != null && ruleDataMapping.size() != 0) {
+            List<String> filterPath = ruleDataMapping.keySet().stream().filter(path -> {
+                List<ConditionData> filterCondition = conditionData.stream().filter(condition -> PredicateJudgeFactory.judge(condition, path)).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(filterCondition)) {
+                    return Boolean.TRUE;
+                } else {
+                    return Boolean.FALSE;
+                }
+            }).collect(Collectors.toList());
+            filterPath.forEach(ruleDataMapping::remove);
+            MatchDataCache.getInstance().cacheRuleData(ruleData.getPluginName(), ruleDataMapping);
+        }
     }
 }
