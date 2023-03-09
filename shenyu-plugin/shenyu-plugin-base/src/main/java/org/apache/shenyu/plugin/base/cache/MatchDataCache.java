@@ -116,12 +116,36 @@ public final class MatchDataCache {
     }
     
     /**
+     * remove rule Data.
+     *
+     * @param pluginName pluginName
+     * @param ruleDataMap ruleDataMappings
+     */
+    public void cacheRuleData(final String pluginName, final Map<String, RuleData> ruleDataMap) {
+        RULE_DATA_MAP.remove(pluginName);
+        RULE_DATA_MAP.put(pluginName, ruleDataMap);
+    }
+    
+    /**
      * remove rule data.
      *
      * @param pluginName pluginName
      */
     public void removeRuleData(final String pluginName) {
         RULE_DATA_MAP.remove(pluginName);
+    }
+    
+    /**
+     * remove rule data from cache.
+     *
+     * @param ruleData ruleData
+     */
+    public void removeRuleData(final RuleData ruleData) {
+        Map<String, RuleData> ruleDataMapping = RULE_DATA_MAP.get(ruleData.getPluginName());
+        if (ruleDataMapping != null && ruleDataMapping.size() != 0) {
+            ruleDataMapping.values().removeIf(rule -> ruleData.getId().equals(rule.getId()));
+            this.cacheRuleData(ruleData.getPluginName(), ruleDataMapping);
+        }
     }
     
     /**
@@ -143,29 +167,6 @@ public final class MatchDataCache {
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
     
-    /**
-     * remove rule Data.
-     *
-     * @param pluginName pluginName
-     * @param ruleDataMap ruleDataMappings
-     */
-    public void cacheRuleData(final String pluginName, final Map<String, RuleData> ruleDataMap) {
-        RULE_DATA_MAP.remove(pluginName);
-        RULE_DATA_MAP.put(pluginName, ruleDataMap);
-    }
-    
-    /**
-     * remove rule data from cache.
-     *
-     * @param ruleData ruleData
-     */
-    public void removeRuleData(final RuleData ruleData) {
-        Map<String, RuleData> ruleDataMapping = RULE_DATA_MAP.get(ruleData.getPluginName());
-        if (ruleDataMapping != null && ruleDataMapping.size() != 0) {
-            ruleDataMapping.values().removeIf(rule -> ruleData.getId().equals(rule.getId()));
-            MatchDataCache.getInstance().cacheRuleData(ruleData.getPluginName(), ruleDataMapping);
-        }
-    }
     
     /**
      * remove matched rule data.
@@ -186,7 +187,7 @@ public final class MatchDataCache {
                 }
             }).collect(Collectors.toList());
             filterPath.forEach(ruleDataMapping::remove);
-            MatchDataCache.getInstance().cacheRuleData(ruleData.getPluginName(), ruleDataMapping);
+            this.cacheRuleData(ruleData.getPluginName(), ruleDataMapping);
         }
     }
 }
