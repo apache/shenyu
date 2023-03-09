@@ -45,7 +45,7 @@ public class ShenyuDictH2Trigger implements Trigger {
                         + " VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)")) {
             BaseTrigger.sqlExecute(newRow, statement);
         } catch (ShenyuException e) {
-            LOG.error("ShenyuDictH2Trigger Error:" + e);
+            LOG.error("ShenyuDictH2Trigger Error: ", e);
         }
     }
 
