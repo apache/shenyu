@@ -144,7 +144,6 @@ public final class MatchDataCache {
         Map<String, RuleData> ruleDataMapping = RULE_DATA_MAP.get(ruleData.getPluginName());
         if (ruleDataMapping != null && ruleDataMapping.size() != 0) {
             ruleDataMapping.values().removeIf(rule -> ruleData.getId().equals(rule.getId()));
-            this.cacheRuleData(ruleData.getPluginName(), ruleDataMapping);
         }
     }
     
@@ -186,7 +185,6 @@ public final class MatchDataCache {
                 }
             }).collect(Collectors.toList());
             filterPath.forEach(ruleDataMapping::remove);
-            this.cacheRuleData(ruleData.getPluginName(), ruleDataMapping);
         }
     }
 }
