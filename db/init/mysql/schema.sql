@@ -1706,6 +1706,7 @@ INSERT INTO `shenyu_dict` VALUES ('1529402613195784193', 'loadBalance', 'LOAD_BA
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784194', 'loadBalance', 'LOAD_BALANCE', 'random', 'random', 'random', 1, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784195', 'loadBalance', 'LOAD_BALANCE', 'hash', 'hash', 'hash', 0, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
 INSERT INTO `shenyu_dict` VALUES ('1572621976689762307', 'loadBalance', 'LOAD_BALANCE', 'leastActive', 'leastActive', 'leastActive', 3, 1, '2023-01-17 18:02:52', '2023-01-17 18:02:52');
+INSERT INTO `shenyu_dict` VALUES ('1572621976689762308', 'loadBalance', 'LOAD_BALANCE', 'p2c', 'p2c', 'p2c', 4, 1, '2023-03-07 22:12:12', '2023-03-07 22:12:12');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784196', 'status', 'DIVIDE_STATUS', 'close', 'false', 'close', 1, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784197', 'status', 'DIVIDE_STATUS', 'open', 'true', 'open', 0, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
 INSERT INTO `shenyu_dict` VALUES ('1529402613195784198', 'multiRuleHandle', 'MULTI_RULE_HANDLE', 'multiple rule', '1', 'multiple rule', 1, 1, '2022-05-25 18:02:52', '2022-05-25 18:02:52');

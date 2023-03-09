@@ -27,6 +27,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -50,17 +51,20 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -204,6 +208,18 @@ public final class DividePluginTest {
     @Test
     public void getOrderTest() {
         assertEquals(PluginEnum.DIVIDE.getCode(), dividePlugin.getOrder());
+    }
+
+    @Test
+    public void responseTriggerTest() throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        Upstream upstream = Upstream.builder()
+                .url("upstream")
+                .build();
+        assertEquals(0, upstream.getLag());
+        Method method = DividePlugin.class.getDeclaredMethod("responseTrigger", Upstream.class);
+        method.setAccessible(true);
+        method.invoke(DividePlugin.class.newInstance(), upstream);
+        assertNotEquals(0, upstream.getLag());
     }
 
     /**
