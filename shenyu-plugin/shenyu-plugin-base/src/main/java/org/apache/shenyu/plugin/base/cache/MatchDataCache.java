@@ -167,7 +167,6 @@ public final class MatchDataCache {
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
     
-    
     /**
      * remove matched rule data.
      *
