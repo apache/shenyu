@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class ShenyuTrie {
 
@@ -44,8 +43,6 @@ public class ShenyuTrie {
     private final Long pathRuleCacheSize;
     
     private final Long pathVariableSize;
-    
-    private final Object lock = new Object();
 
     /**
      * the mode includes antPathMatch and pathPattern, please see {@linkplain TrieMatchModeEvent}.
@@ -85,6 +82,19 @@ public class ShenyuTrie {
     /**
      * put node to trie.
      *
+     * @param uriPaths uri path
+     * @param ruleData rule data
+     * @param bizInfo biz info
+     */
+    public void putNode(final List<String> uriPaths, final RuleData ruleData, final Object bizInfo) {
+        if (CollectionUtils.isNotEmpty(uriPaths)) {
+            uriPaths.forEach(path -> putNode(path, ruleData, bizInfo));
+        }
+    }
+
+    /**
+     * put node to trie.
+     *
      * @param uriPath uri path
      * @param ruleData rule data
      * @param bizInfo biz info
@@ -109,10 +119,10 @@ public class ShenyuTrie {
                 List<RuleData> ruleDataList = getVal(node.getPathRuleCache(), ruleData.getSelectorId());
                 if (CollectionUtils.isNotEmpty(ruleDataList)) {
                     // synchronized list
-                    synchronized (lock) {
+                    synchronized (ruleData.getSelectorId()) {
                         ruleDataList.add(ruleData);
-                        final List<RuleData> collect = ruleDataList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
-                        node.getPathRuleCache().put(ruleData.getSelectorId(), collect);
+                        ruleDataList.sort(Comparator.comparing(RuleData::getSort));
+                        node.getPathRuleCache().put(ruleData.getSelectorId(), ruleDataList);
                     }
                 } else {
                     node.getPathRuleCache().put(ruleData.getSelectorId(), Lists.newArrayList(ruleData));
@@ -155,7 +165,7 @@ public class ShenyuTrie {
             }
         }
         // dynamic route
-        if (segment.startsWith("{") && segment.endsWith("}")) {
+        if (isPathVariable(segment)) {
             ShenyuTrieNode childNode;
             // contains key, get current pathVariable node
             if (containsKey(shenyuTrieNode.getPathVariablesSet(), segment)) {
@@ -223,12 +233,7 @@ public class ShenyuTrie {
                             continue;
                         }
                         // include path variable node, general node, wildcard node
-                        if (endPath && checkPathRuleNotNull(currentNode)
-                                && CollectionUtils.isNotEmpty(getVal(currentNode.getPathRuleCache(), selectorId))) {
-                            return currentNode;
-                        }
-                        // path is end and the match str is **, means match all
-                        if (isMatchAll(currentNode.getMatchStr()) && currentNode.getEndOfPath()
+                        if ((endPath || (isMatchAll(currentNode.getMatchStr()) && currentNode.getEndOfPath()))
                                 && checkPathRuleNotNull(currentNode)
                                 && CollectionUtils.isNotEmpty(getVal(currentNode.getPathRuleCache(), selectorId))) {
                             return currentNode;
@@ -253,14 +258,16 @@ public class ShenyuTrie {
     private ShenyuTrieNode matchNode(final String segment, final ShenyuTrieNode node) {
         if (Objects.nonNull(node)) {
             // node exist in children,first find path, avoid A plug have /http/**, B plug have /http/order/**
-            if (checkChildrenNotNull(node) && containsKey(node.getChildren(), segment)) {
-                return getVal(node.getChildren(), segment);
-            }
-            if (checkChildrenNotNull(node) && containsKey(node.getChildren(), WILDCARD)) {
-                return getVal(node.getChildren(), WILDCARD);
-            }
-            if (checkChildrenNotNull(node) && containsKey(node.getChildren(), MATCH_ALL)) {
-                return getVal(node.getChildren(), MATCH_ALL);
+            if (checkChildrenNotNull(node)) {
+                if (containsKey(node.getChildren(), segment)) {
+                    return getVal(node.getChildren(), segment);
+                }
+                if (containsKey(node.getChildren(), WILDCARD)) {
+                    return getVal(node.getChildren(), WILDCARD);
+                }
+                if (containsKey(node.getChildren(), MATCH_ALL)) {
+                    return getVal(node.getChildren(), MATCH_ALL);
+                }
             }
             // if node is path variable node
             if (Objects.nonNull(node.getPathVariableNode())) {
@@ -277,11 +284,26 @@ public class ShenyuTrie {
      * if the plug-in rules have only on mapping, remove the node from parent.
      * if current node exists multi mappings, remove the mapping.
      *
-     * @param path path
-     * @param selectorId selectorId
-     * @param ruleId ruleId
+     * @param paths paths
+     * @param ruleData ruleData
      */
-    public void remove(final String path, final String selectorId, final String ruleId) {
+    public void remove(final List<String> paths, final RuleData ruleData) {
+        if (CollectionUtils.isNotEmpty(paths)) {
+            paths.forEach(path -> remove(path, ruleData));
+        }
+    }
+
+    /**
+     * remove trie node.
+     * remove rules: query node of the current path, if the node exists,
+     * checks whether the current node is mapped to multiple plug-in rules.
+     * if the plug-in rules have only on mapping, remove the node from parent.
+     * if current node exists multi mappings, remove the mapping.
+     *
+     * @param path path
+     * @param ruleData ruleData
+     */
+    public void remove(final String path, final RuleData ruleData) {
         if (StringUtils.isNotBlank(path)) {
             String strippedPath = StringUtils.strip(path, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
@@ -291,7 +313,7 @@ public class ShenyuTrie {
             if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPathRuleCache())) {
                 // check current mapping
                 currentNode.getPathRuleCache().cleanUp();
-                List<RuleData> ruleDataList = getVal(currentNode.getPathRuleCache(), selectorId);
+                List<RuleData> ruleDataList = getVal(currentNode.getPathRuleCache(), ruleData.getSelectorId());
                 if (CollectionUtils.isNotEmpty(ruleDataList) && ruleDataList.size() == 1 && Objects.isNull(currentNode.getChildren())) {
                     // remove current node from parent node
                     String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
@@ -301,10 +323,10 @@ public class ShenyuTrie {
                     parentNode.getChildren().cleanUp();
                 } else {
                     // remove plugin mapping
-                    List<RuleData> delRuleData = getVal(currentNode.getPathRuleCache(), selectorId);
+                    List<RuleData> delRuleData = getVal(currentNode.getPathRuleCache(), ruleData.getSelectorId());
                     if (CollectionUtils.isNotEmpty(delRuleData)) {
-                        synchronized (lock) {
-                            delRuleData.removeIf(rule -> rule.getId().equals(ruleId));
+                        synchronized (ruleData.getSelectorId()) {
+                            delRuleData.removeIf(rule -> rule.getId().equals(ruleData.getSelectorId()));
                         }
                     }
                 }
@@ -324,12 +346,9 @@ public class ShenyuTrie {
             String[] pathParts = StringUtils.split(strippedPath, "/");
             if (pathParts.length > 0) {
                 return getNode0(root, pathParts);
-            } else {
-                return null;
             }
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -345,19 +364,18 @@ public class ShenyuTrie {
         String[] slice = Arrays.copyOfRange(pathParts, 1, pathParts.length);
         // if exist one path
         if (slice.length == 0) {
-            if (isPathVariable(key)) {
-                if (Objects.isNull(node.getPathVariableNode()) || !node.getPathVariableNode().getEndOfPath()) {
-                    return null;
-                }
-                return node.getPathVariableNode();
-            } else if (isMatchAllOrWildcard(key)) {
+            if (isMatchAllOrWildcard(key)) {
                 return getVal(node.getChildren(), key);
+            } else if (isPathVariable(key)) {
+                if (Objects.nonNull(node) && node.getPathVariableNode().getEndOfPath()) {
+                    return node.getPathVariableNode();
+                }
             } else {
-                if (Objects.isNull(node) || !checkChildrenNotNull(node)) {
-                    return null;
+                if (Objects.nonNull(node) && checkChildrenNotNull(node)) {
+                    return getVal(node.getChildren(), key);
                 }
-                return getVal(node.getChildren(), key);
             }
+            return null;
         } else {
             if (isPathVariable(key)) {
                 if (Objects.isNull(node.getPathVariableNode())) {
@@ -432,9 +450,8 @@ public class ShenyuTrie {
     private static <V> V getVal(final Cache<String, V> cache, final String key) {
         if (Objects.nonNull(cache)) {
             return cache.getIfPresent(key);
-        } else {
-            return null;
         }
+        return null;
     }
     
     private static <V> void cleanup(final Cache<String, V> cache) {

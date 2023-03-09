@@ -49,22 +49,21 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
             final ShenyuTrie shenyuTrie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
             switch (eventEnum) {
                 case INSERT:
-                    uriPaths.forEach(path -> shenyuTrie.putNode(path, ruleData, null));
+                    shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
                     break;
                 case UPDATE:
                     final List<ConditionData> beforeConditionDataList = ruleData.getBeforeConditionDataList();
-                    List<ConditionData> beforeFilterConditions = beforeConditionDataList.stream()
+                    List<String> beforeUriPaths = beforeConditionDataList.stream()
                             .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                            .map(ConditionData::getParamValue)
                             .collect(Collectors.toList());
-                    List<String> beforeUriPaths = beforeFilterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
 
                     // old condition remove
-                    beforeUriPaths.forEach(path -> shenyuTrie.remove(path, ruleData.getSelectorId(), ruleData.getId()));
-                    // new condition insert
-                    uriPaths.forEach(path -> shenyuTrie.putNode(path, ruleData, null));
+                    shenyuTrie.remove(beforeUriPaths, ruleData);
+                    shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
                     break;
                 case REMOVE:
-                    uriPaths.forEach(path -> shenyuTrie.remove(path, ruleData.getSelectorId(), ruleData.getId()));
+                    shenyuTrie.remove(uriPaths, ruleData);
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
