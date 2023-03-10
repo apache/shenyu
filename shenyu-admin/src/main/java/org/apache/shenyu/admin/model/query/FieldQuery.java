@@ -34,11 +34,13 @@ public class FieldQuery {
     private String fieldDesc;
 
 
-
     /**
      * page parameter.
      */
     private PageParameter pageParameter;
+
+    public FieldQuery() {
+    }
 
     public FieldQuery(final String name, final String fieldDesc, final PageParameter pageParameter) {
         this.name = name;
@@ -81,7 +83,6 @@ public class FieldQuery {
     public void setFieldDesc(final String fieldDesc) {
         this.fieldDesc = fieldDesc;
     }
-
 
 
     /**
