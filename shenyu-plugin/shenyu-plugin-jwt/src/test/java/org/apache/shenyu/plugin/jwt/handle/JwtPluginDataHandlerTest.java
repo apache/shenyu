@@ -45,7 +45,7 @@ public final class JwtPluginDataHandlerTest {
 
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu\"}", "0", false);
+        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu\"}", "0", false, null);
         jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData);
         JwtConfig jwtConfig = Singleton.INST.get(JwtConfig.class);
         Map<String, String> map = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);

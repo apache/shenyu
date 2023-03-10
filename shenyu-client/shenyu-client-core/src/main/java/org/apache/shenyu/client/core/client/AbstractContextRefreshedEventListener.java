@@ -124,9 +124,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         publisher.publishEvent(buildURIRegisterDTO(context, beans));
         beans.forEach(this::handle);
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
-        apiModules.forEach((k, v) -> {
-            handleApiDoc(v, beans);
-        });
+        apiModules.forEach((k, v) -> handleApiDoc(v, beans));
     }
 
     private void handleApiDoc(final Object bean, final Map<String, T> beans) {
@@ -143,7 +141,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     }
 
     private List<ApiDocRegisterDTO> buildApiDocDTO(final Object bean, final Method method, final Map<String, T> beans) {
-        Pair<String, List<String>> pairs = Stream.of(method.getDeclaredAnnotations()).filter(item -> item instanceof ApiDoc).findAny().map(item -> {
+        Pair<String, List<String>> pairs = Stream.of(method.getDeclaredAnnotations()).filter(ApiDoc.class::isInstance).findAny().map(item -> {
             ApiDoc apiDoc = (ApiDoc) item;
             String[] tags = apiDoc.tags();
             List<String> tagsList = new ArrayList<>();
@@ -154,7 +152,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }).orElse(Pair.of("", new ArrayList<>()));
         Class<?> clazz = AopUtils.isAopProxy(bean) ? AopUtils.getTargetClass(bean) : bean.getClass();
         String superPath = buildApiSuperPath(clazz, AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType()));
-        if (superPath.indexOf("*") > 0) {
+        if (superPath.contains("*")) {
             superPath = superPath.substring(0, superPath.lastIndexOf("/"));
         }
         Annotation annotation = AnnotatedElementUtils.findMergedAnnotation(clazz, getAnnotationType());
