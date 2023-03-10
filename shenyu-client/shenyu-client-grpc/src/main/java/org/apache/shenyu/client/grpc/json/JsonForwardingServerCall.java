@@ -23,9 +23,9 @@ import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.Attributes;
 import io.grpc.Metadata;
+import io.grpc.MethodDescriptor;
 import io.grpc.ServerCall;
 import io.grpc.Status;
-import io.grpc.MethodDescriptor;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +66,6 @@ public class JsonForwardingServerCall<R, P> extends ServerCall<R, P> {
             LOG.debug("begin send json response");
             delegate().sendMessage((P) respMessage);
         } catch (InvalidProtocolBufferException e) {
-            LOG.error("handle json message is error", e);
             throw Status.INTERNAL.withDescription(e.getMessage()).asRuntimeException();
         }
     }
