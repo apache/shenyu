@@ -33,7 +33,6 @@ public class FieldQuery {
      */
     private String fieldDesc;
 
-
     /**
      * page parameter.
      */
