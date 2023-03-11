@@ -116,35 +116,12 @@ public final class MatchDataCache {
     }
     
     /**
-     * remove rule Data.
-     *
-     * @param pluginName pluginName
-     * @param ruleDataMap ruleDataMappings
-     */
-    public void cacheRuleData(final String pluginName, final Map<String, RuleData> ruleDataMap) {
-        RULE_DATA_MAP.remove(pluginName);
-        RULE_DATA_MAP.put(pluginName, ruleDataMap);
-    }
-    
-    /**
      * remove rule data.
      *
      * @param pluginName pluginName
      */
     public void removeRuleData(final String pluginName) {
         RULE_DATA_MAP.remove(pluginName);
-    }
-    
-    /**
-     * remove rule data from cache.
-     *
-     * @param ruleData ruleData
-     */
-    public void removeRuleData(final RuleData ruleData) {
-        Map<String, RuleData> ruleDataMapping = RULE_DATA_MAP.get(ruleData.getPluginName());
-        if (ruleDataMapping != null && ruleDataMapping.size() != 0) {
-            ruleDataMapping.values().removeIf(rule -> ruleData.getId().equals(rule.getId()));
-        }
     }
     
     /**
@@ -166,25 +143,4 @@ public final class MatchDataCache {
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
     
-    /**
-     * remove matched rule data.
-     *
-     * @param ruleData rule data
-     */
-    public void removeMatchedRuleData(final RuleData ruleData) {
-        Map<String, RuleData> ruleDataMapping = RULE_DATA_MAP.get(ruleData.getPluginName());
-        List<ConditionData> conditionData = ruleData.getConditionDataList();
-        // if the created rule data can match path, remove the path from cache.
-        if (ruleDataMapping != null && ruleDataMapping.size() != 0) {
-            List<String> filterPath = ruleDataMapping.keySet().stream().filter(path -> {
-                List<ConditionData> filterCondition = conditionData.stream().filter(condition -> PredicateJudgeFactory.judge(condition, path)).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(filterCondition)) {
-                    return Boolean.TRUE;
-                } else {
-                    return Boolean.FALSE;
-                }
-            }).collect(Collectors.toList());
-            filterPath.forEach(ruleDataMapping::remove);
-        }
-    }
 }
