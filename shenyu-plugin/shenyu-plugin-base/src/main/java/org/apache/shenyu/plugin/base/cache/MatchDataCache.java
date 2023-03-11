@@ -18,20 +18,15 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
-import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.MapUtils;
-import org.apache.shenyu.plugin.base.condition.judge.PredicateJudgeFactory;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
 
 
 /**
