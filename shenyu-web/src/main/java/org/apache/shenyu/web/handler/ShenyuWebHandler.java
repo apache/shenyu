@@ -18,7 +18,7 @@
 package org.apache.shenyu.web.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Base64;
 import java.util.stream.Collectors;
 
 /**
@@ -175,9 +176,10 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     private synchronized void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
-        if (StringUtils.isNoneBlank(pluginData.getJarResources())) {
+        if (ArrayUtils.isNotEmpty(pluginData.getPluginJar())) {
             LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
-            shenyuLoaderService.loadUploadedJarPlugins(Collections.singletonList(pluginData.getJarResources()));
+            String jarStar = Base64.getEncoder().encodeToString(pluginData.getPluginJar());
+            shenyuLoaderService.loadUploadedJarPlugins(Collections.singletonList(jarStar));
         }
         final List<ShenyuPlugin> enabledPlugins = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
                 && pluginData.getEnabled()).collect(Collectors.toList());

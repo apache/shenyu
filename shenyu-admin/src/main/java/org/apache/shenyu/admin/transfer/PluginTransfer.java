@@ -48,6 +48,7 @@ public enum PluginTransfer {
                         .role(v.getRole())
                         .enabled(v.getEnabled())
                         .sort(v.getSort())
+                        .pluginJar(v.getPluginJar())
                         .build())
                 .orElse(null);
     }
