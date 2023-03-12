@@ -191,6 +191,7 @@ public final class AbstractShenyuPluginTest {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.ruleData.setConditionDataList(conditionDataList);
         this.ruleData.setMatchMode(0);
+        this.ruleData.setMatchRestful(false);
         this.selectorData.setMatchMode(0);
         this.selectorData.setLogged(true);
         this.selectorData.setConditionList(conditionDataList);
@@ -204,6 +205,7 @@ public final class AbstractShenyuPluginTest {
                 .enabled(true)
                 .loged(true)
                 .matchMode(0)
+                .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .sort(1).build());
 
@@ -214,8 +216,9 @@ public final class AbstractShenyuPluginTest {
                 .enabled(true)
                 .loged(true)
                 .matchMode(0)
+                .matchRestful(false)
                 .conditionDataList(Collections.singletonList(conditionData))
-                .sort(1).build());
+                .sort(2).build());
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
