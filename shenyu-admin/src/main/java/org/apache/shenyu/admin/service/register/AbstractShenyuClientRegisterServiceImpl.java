@@ -299,6 +299,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
                 .matchMode(MatchModeEnum.AND.getCode())
                 .enabled(Boolean.TRUE)
                 .loged(Boolean.TRUE)
+                .matchRestful(Boolean.FALSE)
                 .sort(1)
                 .handle(ruleHandler)
                 .build();

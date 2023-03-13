@@ -81,6 +81,11 @@ public final class SelectorDO extends BaseDO {
      * handle.
      */
     private String handle;
+    
+    /**
+     * match restful.
+     */
+    private Boolean matchRestful;
 
     public SelectorDO() {
     }
@@ -93,7 +98,8 @@ public final class SelectorDO extends BaseDO {
                       final Boolean enabled,
                       final Boolean loged,
                       final Boolean continued,
-                      final String handle) {
+                      final String handle,
+                      final Boolean matchRestful) {
         this.pluginId = pluginId;
         this.name = name;
         this.matchMode = matchMode;
@@ -103,6 +109,7 @@ public final class SelectorDO extends BaseDO {
         this.loged = loged;
         this.continued = continued;
         this.handle = handle;
+        this.matchRestful = matchRestful;
     }
 
     /**
@@ -266,7 +273,25 @@ public final class SelectorDO extends BaseDO {
     public void setHandle(final String handle) {
         this.handle = handle;
     }
-
+    
+    /**
+     * get match restful.
+     *
+     * @return match restful
+     */
+    public Boolean getMatchRestful() {
+        return matchRestful;
+    }
+    
+    /**
+     * set match restful.
+     *
+     * @param matchRestful matchRestful
+     */
+    public void setMatchRestful(final Boolean matchRestful) {
+        this.matchRestful = matchRestful;
+    }
+    
     /**
      * builder method.
      *
@@ -296,12 +321,13 @@ public final class SelectorDO extends BaseDO {
                 && Objects.equals(enabled, that.enabled)
                 && Objects.equals(loged, that.loged)
                 && Objects.equals(continued, that.continued)
-                && Objects.equals(handle, that.handle);
+                && Objects.equals(handle, that.handle)
+                && Objects.equals(matchRestful, that.matchRestful);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), pluginId, name, matchMode, type, sort, enabled, loged, continued, handle);
+        return Objects.hash(super.hashCode(), pluginId, name, matchMode, type, sort, enabled, loged, continued, handle, matchRestful);
     }
 
     /**
@@ -323,6 +349,7 @@ public final class SelectorDO extends BaseDO {
                     .handle(item.getHandle())
                     .pluginId(item.getPluginId())
                     .name(item.getName())
+                    .matchRestful(item.getMatchRestful())
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
                 selectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
@@ -361,6 +388,7 @@ public final class SelectorDO extends BaseDO {
                 .continued(selectorDO.getContinued())
                 .handle(selectorDO.getHandle())
                 .conditionList(conditionDataList)
+                .matchRestful(selectorDO.getMatchRestful())
                 .build();
     }
 
@@ -389,6 +417,8 @@ public final class SelectorDO extends BaseDO {
         private Boolean continued;
 
         private String handle;
+        
+        private Boolean matchRestful;
 
         private SelectorDOBuilder() {
         }
@@ -524,6 +554,17 @@ public final class SelectorDO extends BaseDO {
             this.handle = handle;
             return this;
         }
+    
+        /**
+         * match restful.
+         *
+         * @param matchRestful matchRestful
+         * @return SelectorDOBuilder
+         */
+        public SelectorDOBuilder matchRestful(final Boolean matchRestful) {
+            this.matchRestful = matchRestful;
+            return this;
+        }
 
         /**
          * build method.
@@ -544,6 +585,7 @@ public final class SelectorDO extends BaseDO {
             selectorDO.setLoged(loged);
             selectorDO.setContinued(continued);
             selectorDO.setHandle(handle);
+            selectorDO.setMatchRestful(matchRestful);
             return selectorDO;
         }
     }
