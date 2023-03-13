@@ -86,6 +86,11 @@ public class SelectorVO implements Serializable {
      * whether continued.
      */
     private Boolean continued;
+    
+    /**
+     * match restful.
+     */
+    private Boolean matchRestful;
 
     private String handle;
 
@@ -118,6 +123,7 @@ public class SelectorVO implements Serializable {
                       final Boolean enabled,
                       final Boolean loged,
                       final Boolean continued,
+                      final Boolean matchRestful,
                       final String handle,
                       final List<SelectorConditionVO> selectorConditions,
                       final String dateCreated,
@@ -133,6 +139,7 @@ public class SelectorVO implements Serializable {
         this.enabled = enabled;
         this.loged = loged;
         this.continued = continued;
+        this.matchRestful = matchRestful;
         this.handle = handle;
         this.selectorConditions = selectorConditions;
         this.dateCreated = dateCreated;
@@ -336,7 +343,25 @@ public class SelectorVO implements Serializable {
     public void setContinued(final Boolean continued) {
         this.continued = continued;
     }
-
+    
+    /**
+     * get match restful value.
+     *
+     * @return matchRestful
+     */
+    public Boolean getMatchRestful() {
+        return matchRestful;
+    }
+    
+    /**
+     * set matchr restful value.
+     *
+     * @param matchRestful matchRestful
+     */
+    public void setMatchRestful(final Boolean matchRestful) {
+        this.matchRestful = matchRestful;
+    }
+    
     /**
      * Gets the value of handle.
      *
@@ -427,9 +452,11 @@ public class SelectorVO implements Serializable {
      * @return {@linkplain SelectorVO}
      */
     public static SelectorVO buildSelectorVO(final SelectorDO selectorDO, final List<SelectorConditionVO> selectorConditions) {
-        return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()),
-                selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getSort(),
-                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), selectorDO.getHandle(), selectorConditions,
+        return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(),
+                MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()), selectorDO.getType(),
+                SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getSort(),
+                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(),
+                selectorDO.getMatchRestful(), selectorDO.getHandle(), selectorConditions,
                 DateUtils.localDateTimeToString(selectorDO.getDateCreated().toLocalDateTime()),
                 DateUtils.localDateTimeToString(selectorDO.getDateUpdated().toLocalDateTime()));
     }

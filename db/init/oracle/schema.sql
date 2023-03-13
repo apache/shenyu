@@ -123,6 +123,7 @@ create table selector
     enabled      NUMBER(3) not null,
     loged        NUMBER(3) not null,
     continued    NUMBER(3) not null,
+    match_restful NUMBER(3) not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
 );
@@ -147,6 +148,8 @@ comment on column SELECTOR.loged
   is 'whether to print the log (0 not print, 1 print)';
 comment on column SELECTOR.continued
   is 'whether to continue execution';
+comment on column SELECTOR.match_restful
+  is 'whether to match restful(0 cache, 1 not cache)';
 comment on column SELECTOR.date_created
   is 'create time';
 comment on column SELECTOR.date_updated
@@ -184,16 +187,17 @@ comment on column SELECTOR_CONDITION.date_updated
 
 create table rule
 (
-    id           VARCHAR2(128) not null PRIMARY KEY,
-    selector_id  VARCHAR2(128) not null,
-    match_mode   NUMBER(10) not null,
-    name         VARCHAR2(128) not null,
-    enabled      NUMBER(3) not null,
-    loged        NUMBER(3) not null,
-    sort         NUMBER(10) not null,
-    handle       VARCHAR2(1024),
-    date_created timestamp(3) default SYSDATE not null,
-    date_updated timestamp(3) default SYSDATE not null
+    id            VARCHAR2(128) not null PRIMARY KEY,
+    selector_id   VARCHAR2(128) not null,
+    match_mode    NUMBER(10) not null,
+    name          VARCHAR2(128) not null,
+    enabled       NUMBER(3) not null,
+    loged         NUMBER(3) not null,
+    match_restful NUMBER(3) not null,
+    sort          NUMBER(10) not null,
+    handle        VARCHAR2(1024),
+    date_created  timestamp(3) default SYSDATE not null,
+    date_updated  timestamp(3) default SYSDATE not null
 );
 -- Add comments to the columns
 comment on column RULE.id
@@ -208,6 +212,8 @@ comment on column RULE.enabled
   is 'whether to open (0 not open, 1 open)';
 comment on column RULE.loged
   is 'whether to log or not (0 not print, 1 print)';
+comment on column RULE.match_restful
+  is 'whether to match restful(0 cache, 1 not cache)';
 comment on column RULE.sort
   is 'sort';
 comment on column RULE.handle
