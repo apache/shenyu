@@ -312,7 +312,6 @@ public class ShenyuTrie {
             // node is not null, judge exist many plugin mapping
             if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPathRuleCache())) {
                 // check current mapping
-                currentNode.getPathRuleCache().cleanUp();
                 List<RuleData> ruleDataList = getVal(currentNode.getPathRuleCache(), ruleData.getSelectorId());
                 if (CollectionUtils.isNotEmpty(ruleDataList) && ruleDataList.size() == 1 && Objects.isNull(currentNode.getChildren())) {
                     // remove current node from parent node
@@ -327,6 +326,7 @@ public class ShenyuTrie {
                     if (CollectionUtils.isNotEmpty(delRuleData)) {
                         synchronized (ruleData.getSelectorId()) {
                             delRuleData.removeIf(rule -> rule.getId().equals(ruleData.getSelectorId()));
+                            currentNode.getPathRuleCache().put(ruleData.getSelectorId(), delRuleData);
                         }
                     }
                 }

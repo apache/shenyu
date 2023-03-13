@@ -64,6 +64,7 @@ public class SelectorData implements ResourceData {
     
     private int sort;
     
+    private boolean matchRestful;
     static class PluginHandleSerializer extends JsonSerializer<PluginHandle> {
         private static final ObjectMapper mapper = new ObjectMapper();
         

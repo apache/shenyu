@@ -16,6 +16,14 @@
 
 -- this file works for MySQL.
 
+ALTER TABLE selector ADD COLUMN match_restful TINYINT(0) NOT NULL
+COMMENT 'whether to match restful(0 cache, 1 not cache)';
+COMMIT;
+
+ALTER TABLE rule ADD COLUMN match_restful TINYINT(0) NOT NULL
+COMMENT 'whether to match restful(0 cache, 1 not cache)';
+COMMIT;
+
 /* insert plugin_handle data for plugin CryptorRequest */
 INSERT INTO `plugin_handle` VALUES ('1630760188111376384', '24', 'mapType', 'mapType', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}', '2023-03-01 10:41:41', '2023-03-01 10:42:21');
 /* insert plugin_handle data for plugin cryptorResponse */
