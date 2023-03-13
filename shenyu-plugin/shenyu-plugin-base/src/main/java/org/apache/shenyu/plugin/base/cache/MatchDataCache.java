@@ -137,4 +137,5 @@ public final class MatchDataCache {
         final Map<String, RuleData> lruMap = RULE_DATA_MAP.get(pluginName);
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
+    
 }

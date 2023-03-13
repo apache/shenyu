@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS `selector` (
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
   `loged` tinyint(4) NOT NULL COMMENT 'whether to print the log',
   `continued` tinyint(4) NOT NULL COMMENT 'whether to continue execution',
+  `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time'
 );
@@ -92,6 +93,7 @@ CREATE TABLE IF NOT EXISTS `rule` (
   `name` varchar(128) NOT NULL COMMENT 'rule name',
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
   `loged` tinyint(4) NOT NULL COMMENT 'whether to log or not',
+  `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `sort` int(4) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',

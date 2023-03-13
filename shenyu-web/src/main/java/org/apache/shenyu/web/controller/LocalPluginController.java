@@ -205,6 +205,7 @@ public class LocalPluginController {
         subscriber.onSelectorSubscribe(result);
         RuleData ruleData = RuleData.builder()
                 .selectorId(result.getId())
+                .matchRestful(Boolean.FALSE)
                 .pluginName(selectorRuleData.getPluginName())
                 .handle(selectorRuleData.getRuleHandler())
                 .conditionDataList(selectorRuleData.getConditionDataList())
@@ -356,6 +357,9 @@ public class LocalPluginController {
         if (Objects.isNull(selectorData.getLogged())) {
             selectorData.setLogged(false);
         }
+        if (Objects.isNull(selectorData.getMatchRestful())) {
+            selectorData.setMatchRestful(false);
+        }
         return selectorData;
     }
 
@@ -377,6 +381,9 @@ public class LocalPluginController {
         }
         if (Objects.isNull(ruleData.getLoged())) {
             ruleData.setLoged(false);
+        }
+        if (Objects.isNull(ruleData.getMatchRestful())) {
+            ruleData.setMatchRestful(false);
         }
         return ruleData;
     }
