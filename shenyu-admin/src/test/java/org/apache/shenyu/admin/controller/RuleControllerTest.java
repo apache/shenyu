@@ -87,7 +87,7 @@ public final class RuleControllerTest {
 
     private final List<RuleConditionVO> rcList = new ArrayList<>(Collections.singletonList(rCondition1));
 
-    private final RuleVO ruleVO = new RuleVO("666", "168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}",
+    private final RuleVO ruleVO = new RuleVO("666", "168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}", false,
             rcList, DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
     
     private final CommonPager<RuleVO> commonPager = new CommonPager<>(new PageParameter(), Collections.singletonList(ruleVO));
@@ -147,6 +147,7 @@ public final class RuleControllerTest {
                 .name("/http/order/save")
                 .enabled(true)
                 .loged(true)
+                .matchRestful(false)
                 .sort(1)
                 .handle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}")
                 .ruleConditions(conList)
@@ -186,6 +187,7 @@ public final class RuleControllerTest {
                 .name("/http/order/update")
                 .enabled(true)
                 .loged(true)
+                .matchRestful(false)
                 .sort(1)
                 .handle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}")
                 .ruleConditions(conList)
