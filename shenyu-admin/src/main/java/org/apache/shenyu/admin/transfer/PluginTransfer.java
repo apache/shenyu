@@ -22,7 +22,6 @@ import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
 import org.springframework.util.Base64Utils;
 
-import java.util.Base64;
 import java.util.Optional;
 
 /**
