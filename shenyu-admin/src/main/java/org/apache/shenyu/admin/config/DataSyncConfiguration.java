@@ -23,14 +23,11 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.ecwid.consul.v1.ConsulClient;
 import io.etcd.jetcd.Client;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.config.properties.ConsulProperties;
-import org.apache.shenyu.admin.config.properties.EtcdProperties;
-import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
-import org.apache.shenyu.admin.config.properties.NacosProperties;
-import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
-import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
+import org.apache.shenyu.admin.config.properties.*;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.listener.apollo.ApolloDataChangedInit;
+import org.apache.shenyu.admin.listener.apollo.ApolloDataChangedListener2;
 import org.apache.shenyu.admin.listener.consul.ConsulDataChangedInit;
 import org.apache.shenyu.admin.listener.consul.ConsulDataChangedListener;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
@@ -43,6 +40,8 @@ import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.apache.shenyu.register.client.server.apollo.ApolloClient;
+import org.apache.shenyu.register.client.server.apollo.ApolloConfig;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -324,6 +323,37 @@ public class DataSyncConfiguration {
         public DataChangedInit consulDataChangedInit(final ConsulClient consulClient) {
             return new ConsulDataChangedInit(consulClient);
         }
+    }
+
+    @Configuration
+    @ConditionalOnProperty(prefix = "shenyu.sync.apollo", name = "meta")
+    @EnableConfigurationProperties(ApolloProperties.class)
+    static class ApolloListener {
+
+        @Bean
+        public ApolloClient apolloClient(final ApolloProperties apolloProperties) {
+            ApolloConfig apolloConfig = new ApolloConfig();
+            apolloConfig.setPortalUrl(apolloProperties.getPortalUrl());
+            apolloConfig.setAppId(apolloProperties.getAppId());
+            apolloConfig.setEnv(apolloProperties.getEnv());
+            apolloConfig.setClusterName(apolloProperties.getClusterName());
+            apolloConfig.setNamespace(apolloProperties.getNamespace());
+            apolloConfig.setToken(apolloProperties.getToken());
+            return new ApolloClient(apolloConfig);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(ApolloDataChangedListener2.class)
+        public DataChangedListener apolloDataChangeListener(final ApolloClient apolloClient) {
+            return new ApolloDataChangedListener2(apolloClient);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(ApolloDataChangedInit.class)
+        public DataChangedInit apolloDataChangeInit(final ApolloClient apolloClient) {
+            return new ApolloDataChangedInit(apolloClient);
+        }
+
     }
 }
 
