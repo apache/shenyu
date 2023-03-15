@@ -28,6 +28,10 @@ public class ApolloClientServerRegisterRepository implements ShenyuClientServerR
         System.setProperties(apolloProperties);
     }
 
+    private void initSubscribe() {
+
+    }
+
     @Override
     public void close() {
         this.publisher.close();

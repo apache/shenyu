@@ -37,7 +37,7 @@ public class ApolloClient {
         if (openItemDTO == null) {
             return null;
         }
-        // todo handle timeout
+        // todo handle timeout exception
         if ("timeout".equals(openItemDTO.getKey())) {
             return null;
         }
@@ -45,11 +45,11 @@ public class ApolloClient {
         return openItemDTO.getValue();
     }
 
-    public void createItem(String key, Object value, String comment) {
-        this.createItem(key, GsonUtils.getInstance().toJson(value), comment);
+    public void createOrUpdateItem(String key, Object value, String comment) {
+        this.createOrUpdateItem(key, GsonUtils.getInstance().toJson(value), comment);
     }
 
-    public void createItem(String key, String value, String comment) {
+    public void createOrUpdateItem(String key, String value, String comment) {
         OpenItemDTO openItemDTO = new OpenItemDTO();
         openItemDTO.setKey(key);
         openItemDTO.setValue(value);
@@ -60,12 +60,23 @@ public class ApolloClient {
         openItemDTO.setDataChangeCreatedTime(now);
         openItemDTO.setDataChangeLastModifiedTime(now);
 
-        this.apolloOpenApiClient.createItem(
+        this.apolloOpenApiClient.createOrUpdateItem(
                 apolloConfig.getAppId(),
                 apolloConfig.getEnv(),
                 apolloConfig.getClusterName(),
                 apolloConfig.getNamespace(),
                 openItemDTO
+        );
+    }
+
+    public void removeItem(String key) {
+        this.apolloOpenApiClient.removeItem(
+                apolloConfig.getAppId(),
+                apolloConfig.getEnv(),
+                apolloConfig.getClusterName(),
+                apolloConfig.getNamespace(),
+                key,
+                DEFAULT_USER
         );
     }
 

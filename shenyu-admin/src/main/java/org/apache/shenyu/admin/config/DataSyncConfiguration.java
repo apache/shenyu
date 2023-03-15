@@ -27,7 +27,7 @@ import org.apache.shenyu.admin.config.properties.*;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.admin.listener.apollo.ApolloDataChangedInit;
-import org.apache.shenyu.admin.listener.apollo.ApolloDataChangedListener2;
+import org.apache.shenyu.admin.listener.apollo.ApolloDataChangedListener;
 import org.apache.shenyu.admin.listener.consul.ConsulDataChangedInit;
 import org.apache.shenyu.admin.listener.consul.ConsulDataChangedListener;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
@@ -343,9 +343,9 @@ public class DataSyncConfiguration {
         }
 
         @Bean
-        @ConditionalOnMissingBean(ApolloDataChangedListener2.class)
+        @ConditionalOnMissingBean(ApolloDataChangedListener.class)
         public DataChangedListener apolloDataChangeListener(final ApolloClient apolloClient) {
-            return new ApolloDataChangedListener2(apolloClient);
+            return new ApolloDataChangedListener(apolloClient);
         }
 
         @Bean
