@@ -26,7 +26,9 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.event.RuleTrieEvent;
 import org.springframework.context.ApplicationListener;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -40,8 +42,8 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
         RuleData ruleData = (RuleData) event.getSource();
         // new condition
         List<ConditionData> conditionDataList = ruleData.getConditionDataList();
-        List<ConditionData> filterConditions = conditionDataList.stream()
-                .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+        List<ConditionData> filterConditions = Optional.ofNullable(conditionDataList).orElse(Collections.emptyList())
+                .stream().filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
                 .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(filterConditions)) {
@@ -49,22 +51,21 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
             final ShenyuTrie shenyuTrie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
             switch (eventEnum) {
                 case INSERT:
-                    uriPaths.forEach(path -> shenyuTrie.putNode(path, ruleData, null));
+                    shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
                     break;
                 case UPDATE:
                     final List<ConditionData> beforeConditionDataList = ruleData.getBeforeConditionDataList();
-                    List<ConditionData> beforeFilterConditions = beforeConditionDataList.stream()
+                    List<String> beforeUriPaths = beforeConditionDataList.stream()
                             .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                            .map(ConditionData::getParamValue)
                             .collect(Collectors.toList());
-                    List<String> beforeUriPaths = beforeFilterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
 
                     // old condition remove
-                    beforeUriPaths.forEach(path -> shenyuTrie.remove(path, ruleData.getSelectorId(), ruleData.getId()));
-                    // new condition insert
-                    uriPaths.forEach(path -> shenyuTrie.putNode(path, ruleData, null));
+                    shenyuTrie.remove(beforeUriPaths, ruleData);
+                    shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
                     break;
                 case REMOVE:
-                    uriPaths.forEach(path -> shenyuTrie.remove(path, ruleData.getSelectorId(), ruleData.getId()));
+                    shenyuTrie.remove(uriPaths, ruleData);
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());

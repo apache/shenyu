@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,6 +58,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private static final String URI_CONDITION_TYPE = "uri";
 
     private ShenyuConfig.MatchCache matchCacheConfig;
+    
+    private ShenyuTrie trie;
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -79,7 +82,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
      */
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        initMatchCacheConfig();
+        initCacheConfig();
         final String pluginName = named();
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         // early exit
@@ -100,14 +103,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             Pair<Boolean, SelectorData> matchSelectorData = matchSelector(exchange, selectors);
             selectorData = matchSelectorData.getRight();
             if (Objects.isNull(selectorData)) {
-                if (matchCacheConfig.getSelectorEnabled() && matchSelectorData.getLeft()) {
+                if (matchCacheConfig.getSelector().getSelectorEnabled() && matchSelectorData.getLeft()) {
                     selectorData = new SelectorData();
                     selectorData.setPluginName(pluginName);
                     cacheSelectorData(path, selectorData);
                 }
                 return handleSelectorIfNull(pluginName, exchange, chain);
             } else {
-                if (matchCacheConfig.getSelectorEnabled() && matchSelectorData.getLeft()) {
+                if (matchCacheConfig.getSelector().getSelectorEnabled() && matchSelectorData.getLeft()) {
                     cacheSelectorData(path, selectorData);
                 }
             }
@@ -121,40 +124,58 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (CollectionUtils.isEmpty(rules)) {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
-        RuleData ruleData;
+        RuleData ruleData = obtainRuleDataCache(path);
+        if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
+            return handleRuleIfNull(pluginName, exchange, chain);
+        }
         if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
             //get last
             RuleData rule = rules.get(rules.size() - 1);
             printLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         } else {
-            // match path with rule uri condition
-            ShenyuTrieNode matchTrieNode = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).match(path, selectorData.getId());
-            if (Objects.nonNull(matchTrieNode)) {
-                List<RuleData> ruleDataList = matchTrieNode.getPathRuleCache().getIfPresent(selectorData.getId());
-                if (CollectionUtils.isNotEmpty(ruleDataList)) {
-                    ruleData = genericMatchRule(exchange, ruleDataList);
-                } else {
-                    ruleData = genericMatchRule(exchange, rules);
-                }
-            } else {
-                ruleData = genericMatchRule(exchange, rules);
-            }
+            // lru map as L1 cache,the cache is enabled by default.
+            // if the L1 cache fails to hit, using L2 cache based on trie cache.
+            // if the L2 cache fails to hit, execute default strategy.
             if (Objects.isNull(ruleData)) {
-                return handleRuleIfNull(pluginName, exchange, chain);
+                // L1 cache not exist data, try to get data through trie cache
+                ruleData = trieMatchRule(exchange, selectorData, path);
+                // trie cache fails to hit, execute default strategy
+                if (Objects.isNull(ruleData)) {
+                    Pair<Boolean, RuleData> matchRuleData = matchRule(exchange, rules);
+                    ruleData = matchRuleData.getRight();
+                    if (matchRuleData.getLeft()) {
+                        ruleData = Optional.ofNullable(ruleData)
+                                .orElse(RuleData.builder().pluginName(pluginName).matchRestful(false).build());
+                        cacheRuleData(path, ruleData);
+                    }
+                }
             }
+        }
+        if (Objects.isNull(ruleData) || Objects.isNull(ruleData.getId())) {
+            return handleRuleIfNull(pluginName, exchange, chain);
         }
         printLog(ruleData, pluginName);
         return doExecute(exchange, chain, selectorData, ruleData);
     }
 
-    private void initMatchCacheConfig() {
+    private void initCacheConfig() {
         if (Objects.isNull(matchCacheConfig)) {
             matchCacheConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getMatchCache();
+        }
+        if (Objects.isNull(trie)) {
+            trie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
         }
     }
 
     private void cacheSelectorData(final String path, final SelectorData selectorData) {
+        if (Objects.isNull(selectorData)) {
+            return;
+        }
+        if (Objects.isNull(selectorData.getMatchRestful())
+                || (Objects.nonNull(selectorData.getMatchRestful()) && selectorData.getMatchRestful())) {
+            return;
+        }
         if (StringUtils.isBlank(selectorData.getId())) {
             MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getSelectorMaxFreeMemory());
             return;
@@ -169,11 +190,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Integer getSelectorMaxFreeMemory() {
-        return matchCacheConfig.getMaxSelectorFreeMemory() * 1024 * 1024;
+        return matchCacheConfig.getSelector().getMaxSelectorFreeMemory() * 1024 * 1024;
     }
 
     private SelectorData obtainSelectorDataCacheIfEnabled(final String path) {
-        return matchCacheConfig.getSelectorEnabled() ? MatchDataCache.getInstance().obtainSelectorData(named(), path) : null;
+        return matchCacheConfig.getSelector().getSelectorEnabled() ? MatchDataCache.getInstance().obtainSelectorData(named(), path) : null;
     }
 
     protected RuleData defaultRuleData(final SelectorData selectorData) {
@@ -230,22 +251,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return true;
     }
 
-    private RuleData genericMatchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
-        Pair<Boolean, RuleData> genericMatchRule = this.matchRule(exchange, rules);
-        if (genericMatchRule.getLeft()) {
-            return genericMatchRule.getRight();
-        } else {
-            return null;
-        }
-    }
-
     private Pair<Boolean, RuleData> matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
         List<RuleData> filterRuleData = rules.stream()
                 .filter(rule -> filterRule(rule, exchange))
                 .distinct()
                 .collect(Collectors.toList());
         if (filterRuleData.size() > 1) {
-            return Pair.of(Boolean.TRUE, manyMatchRule(filterRuleData));
+            return Pair.of(Boolean.FALSE, manyMatchRule(filterRuleData));
         } else {
             return Pair.of(Boolean.TRUE, filterRuleData.stream().findFirst().orElse(null));
         }
@@ -268,6 +280,51 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {
         return ruleData.getEnabled() && MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
+    }
+    
+    private RuleData obtainRuleDataCache(final String path) {
+        return MatchDataCache.getInstance().obtainRuleData(named(), path);
+    }
+    
+    private void cacheRuleData(final String path, final RuleData ruleData) {
+        if (Objects.isNull(ruleData)) {
+            return;
+        }
+        // if the field of matchRestful is true, not cache rule data. the field is false, cache rule data.
+        if (Objects.isNull(ruleData.getMatchRestful())
+                || (Objects.nonNull(ruleData.getMatchRestful()) && ruleData.getMatchRestful())) {
+            return;
+        }
+        int initialCapacity = matchCacheConfig.getRule().getInitialCapacity();
+        long maximumSize = matchCacheConfig.getRule().getMaximumSize();
+        if (StringUtils.isBlank(ruleData.getId())) {
+            MatchDataCache.getInstance().cacheRuleData(path, ruleData, initialCapacity, maximumSize);
+            return;
+        }
+        List<ConditionData> conditionList = ruleData.getConditionDataList();
+        if (CollectionUtils.isNotEmpty(conditionList)) {
+            boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
+            if (isUriCondition) {
+                MatchDataCache.getInstance().cacheRuleData(path, ruleData, initialCapacity, maximumSize);
+            }
+        }
+    }
+    
+    private RuleData trieMatchRule(final ServerWebExchange exchange, final SelectorData selectorData, final String path) {
+        RuleData ruleData = null;
+        ShenyuTrieNode shenyuTrieNode = trie.match(path, selectorData.getId());
+        if (Objects.nonNull(shenyuTrieNode)) {
+            List<RuleData> ruleDataList = shenyuTrieNode.getPathRuleCache().getIfPresent(selectorData.getId());
+            if (CollectionUtils.isNotEmpty(ruleDataList)) {
+                Pair<Boolean, RuleData> ruleDataPair = matchRule(exchange, ruleDataList);
+                ruleData = ruleDataPair.getRight();
+                if (ruleDataPair.getLeft()) {
+                    // exist only one rule data, cache rule
+                    cacheRuleData(path, ruleData);
+                }
+            }
+        }
+        return ruleData;
     }
 
     private void printLog(final Object data, final String pluginName) {

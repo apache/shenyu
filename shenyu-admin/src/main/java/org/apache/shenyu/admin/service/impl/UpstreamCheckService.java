@@ -316,6 +316,7 @@ public class UpstreamCheckService {
                     if (!commonUpstream.isStatus()) {
                         commonUpstream.setTimestamp(System.currentTimeMillis());
                         commonUpstream.setStatus(true);
+                        PENDING_SYNC.add(commonUpstream.hashCode());
                         LOG.info("UpstreamCacheManager check success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
                     }
                     return commonUpstream;

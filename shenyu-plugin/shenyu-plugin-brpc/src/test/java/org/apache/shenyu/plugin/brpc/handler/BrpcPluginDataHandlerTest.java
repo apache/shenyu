@@ -39,7 +39,7 @@ public final class BrpcPluginDataHandlerTest {
     
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("id", "name", "config", "0", false);
+        final PluginData pluginData = new PluginData("id", "name", "config", "0", false, null);
         brpcPluginDataHandlerUnderTest.handlerPlugin(pluginData);
         assertTrue(pluginData.getName().endsWith("name"));
     }

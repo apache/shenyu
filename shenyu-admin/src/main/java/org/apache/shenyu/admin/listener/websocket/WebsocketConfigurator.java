@@ -68,7 +68,7 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
                     return true;
                 }
             }
-            LOG.error("originHeaderValue is forbidden: " + originHeaderValue);
+            LOG.error("originHeaderValue is forbidden: {}", originHeaderValue);
             return false;
         }
         return super.checkOrigin(originHeaderValue);
