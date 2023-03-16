@@ -96,6 +96,7 @@ public class AdminClientTest {
                 .logged(true)
                 .enabled(true)
                 .continued(true)
+                .matchRestful(false)
                 .handle(Upstreams.builder().add(Upstream.builder().upstreamUrl("httpbin.org:80").build()).build())
                 .conditionList(
                         Lists.newArrayList(Condition.builder().paramType(ParamType.URI).operator(Operator.MATCH).paramName("/").paramValue("/**").build())
@@ -108,6 +109,7 @@ public class AdminClientTest {
                 .name("test-create-rule")
                 .enabled(true)
                 .logged(true)
+                .matchRestful(false)
                 .handle(DivideRuleHandle.builder()
                         .loadBalance("hash")
                         .retryStrategy("current")
@@ -139,6 +141,7 @@ public class AdminClientTest {
                 .logged(true)
                 .enabled(true)
                 .continued(true)
+                .matchRestful(false)
                 .handle(Upstreams.builder().add(Upstream.builder().upstreamUrl("httpbin.org:80").build()).build())
                 .conditionList(
                         Lists.newArrayList(Condition.builder().paramType(ParamType.URI).operator(Operator.MATCH).paramName("/").paramValue("/**").build())
@@ -169,6 +172,7 @@ public class AdminClientTest {
                         .requestMaxSize(10240)
                         .build())
                 .sort(1)
+                .matchRestful(false)
                 .matchMode(MatchMode.AND)
                 .selectorId(selector.getId())
                 .conditionList(Lists.newArrayList(Condition.builder()
@@ -194,6 +198,7 @@ public class AdminClientTest {
                     .logged(true)
                     .enabled(true)
                     .continued(true)
+                    .matchRestful(false)
                     .handle(Upstreams.builder().add(Upstream.builder().upstreamUrl("httpbin.org:80").build()).build())
                     .conditionList(
                             Lists.newArrayList(Condition.builder().paramType(ParamType.URI).operator(Operator.MATCH).paramName("/").paramValue("/**").build())

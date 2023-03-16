@@ -54,6 +54,11 @@ public class RuleData {
     private List<ConditionData> conditionDataList;
 
     private List<ConditionData> beforeConditionDataList;
+    
+    /**
+     * match restful.
+     */
+    private Boolean matchRestful;
 
     /**
      * no args constructor.
@@ -78,6 +83,7 @@ public class RuleData {
         this.handle = builder.handle;
         this.conditionDataList = builder.conditionDataList;
         this.beforeConditionDataList = builder.beforeConditionDataList;
+        this.matchRestful = builder.matchRestful;
     }
 
     /**
@@ -306,7 +312,25 @@ public class RuleData {
     public void setBeforeConditionDataList(final List<ConditionData> beforeConditionDataList) {
         this.beforeConditionDataList = beforeConditionDataList;
     }
-
+    
+    /**
+     * get match restful.
+     *
+     * @return matchRestful
+     */
+    public Boolean getMatchRestful() {
+        return matchRestful;
+    }
+    
+    /**
+     * set match restful.
+     *
+     * @param matchRestful matchRestful
+     */
+    public void setMatchRestful(final Boolean matchRestful) {
+        this.matchRestful = matchRestful;
+    }
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -326,12 +350,14 @@ public class RuleData {
                 && Objects.equals(loged, ruleData.loged)
                 && Objects.equals(handle, ruleData.handle)
                 && Objects.equals(conditionDataList, ruleData.conditionDataList)
-                && Objects.equals(beforeConditionDataList, ruleData.beforeConditionDataList);
+                && Objects.equals(beforeConditionDataList, ruleData.beforeConditionDataList)
+                && Objects.equals(matchRestful, ruleData.matchRestful);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, pluginName, selectorId, matchMode, sort, enabled, loged, handle, conditionDataList, beforeConditionDataList);
+        return Objects.hash(id, name, pluginName, selectorId, matchMode, sort, enabled, loged, handle, conditionDataList,
+                beforeConditionDataList, matchRestful);
     }
 
     @Override
@@ -362,6 +388,8 @@ public class RuleData {
                 + '\''
                 + ", conditionDataList="
                 + conditionDataList
+                + ", matchRestful="
+                + matchRestful
                 + '}';
     }
 
@@ -391,7 +419,8 @@ public class RuleData {
         private List<ConditionData> conditionDataList;
 
         private List<ConditionData> beforeConditionDataList;
-
+        
+        private Boolean matchRestful;
 
         /**
          * no args constructor.
@@ -526,6 +555,17 @@ public class RuleData {
          */
         public Builder beforeConditionDataList(final List<ConditionData> beforeConditionDataList) {
             this.beforeConditionDataList = beforeConditionDataList;
+            return this;
+        }
+    
+        /**
+         * build match restful.
+         *
+         * @param matchRestful matchRestful
+         * @return this
+         */
+        public Builder matchRestful(final Boolean matchRestful) {
+            this.matchRestful = matchRestful;
             return this;
         }
     }
