@@ -33,19 +33,37 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
     
     private final Cache<K, V> cache;
     
-    public WindowTinyLFUMap(final int initialCapacity, final long maximumSize) {
-        this.cache = Caffeine.newBuilder()
-                .initialCapacity(initialCapacity)
-                .maximumSize(maximumSize)
-                .build();
+    public WindowTinyLFUMap(final int initialCapacity, final long maximumSize, final Boolean weakKey) {
+        if (Boolean.TRUE.equals(weakKey)) {
+            this.cache = Caffeine.newBuilder()
+                    .weakKeys()
+                    .initialCapacity(initialCapacity)
+                    .maximumSize(maximumSize)
+                    .build();
+        } else {
+            this.cache = Caffeine.newBuilder()
+                    .initialCapacity(initialCapacity)
+                    .maximumSize(maximumSize)
+                    .build();
+        }
     }
     
-    public WindowTinyLFUMap(final int initialSize, final long expireAfterWrite, final long maximumSize) {
-        this.cache = Caffeine.newBuilder()
-                .initialCapacity(initialSize)
-                .expireAfterWrite(expireAfterWrite, TimeUnit.MILLISECONDS)
-                .maximumSize(maximumSize)
-                .build();
+    public WindowTinyLFUMap(final int initialSize, final long expireAfterWrite, final long maximumSize, final Boolean weakKey) {
+        if (Boolean.TRUE.equals(weakKey)) {
+            this.cache = Caffeine.newBuilder()
+                    .weakKeys()
+                    .initialCapacity(initialSize)
+                    .expireAfterWrite(expireAfterWrite, TimeUnit.MILLISECONDS)
+                    .maximumSize(maximumSize)
+                    .build();
+        } else {
+            this.cache = Caffeine.newBuilder()
+                    .initialCapacity(initialSize)
+                    .expireAfterWrite(expireAfterWrite, TimeUnit.MILLISECONDS)
+                    .maximumSize(maximumSize)
+                    .build();
+        }
+        
     }
     
     @Override

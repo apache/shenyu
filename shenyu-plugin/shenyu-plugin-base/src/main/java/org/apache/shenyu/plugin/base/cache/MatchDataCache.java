@@ -107,7 +107,7 @@ public final class MatchDataCache {
      * @param maximumSize maximum size
      */
     public void cacheRuleData(final String path, final RuleData ruleData, final int initialCapacity, final long maximumSize) {
-        MapUtils.computeIfAbsent(RULE_DATA_MAP, ruleData.getPluginName(), map -> new WindowTinyLFUMap<>(initialCapacity, maximumSize)).put(path, ruleData);
+        MapUtils.computeIfAbsent(RULE_DATA_MAP, ruleData.getPluginName(), map -> new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.TRUE)).put(path, ruleData);
     }
     
     /**
