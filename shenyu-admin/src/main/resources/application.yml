@@ -62,27 +62,35 @@ shenyu:
       enabled: true
       messageMaxSize: 10240
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
-#      zookeeper:
-#        url: localhost:2181
-#        sessionTimeout: 5000
-#        connectionTimeout: 2000
-#      http:
-#        enabled: true
-#      nacos:
-#        url: localhost:8848
-#        namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-#        username:
-#        password:
-#        acm:
-#          enabled: false
-#          endpoint: acm.aliyun.com
-#          namespace:
-#          accessKey:
-#          secretKey:
-#    etcd:
-#      url: http://localhost:2379
-#    consul:
-#      url: http://localhost:8500
+#    zookeeper:
+#      url: localhost:2181
+#      sessionTimeout: 5000
+#      connectionTimeout: 2000
+#    http:
+#      enabled: true
+#    nacos:
+#      url: localhost:8848
+#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#      username:
+#      password:
+#      acm:
+#        enabled: false
+#        endpoint: acm.aliyun.com
+#        namespace:
+#        accessKey:
+#        secretKey:
+#  etcd:
+#    url: http://localhost:2379
+#  consul:
+#    url: http://localhost:8500
+#    apollo:
+#      appId: shenyu
+#      meta: http://localhost:8080
+#      portalUrl: http://localhost:8070
+#      env: DEV
+#      clusterName: default
+#      namespace: application2
+#      token: bf5e03fb015668f911f436602ae576d7484c315569216169ff33719c7e026783
   ldap:
     enabled: false
     url: ldap://xxxx:xxx

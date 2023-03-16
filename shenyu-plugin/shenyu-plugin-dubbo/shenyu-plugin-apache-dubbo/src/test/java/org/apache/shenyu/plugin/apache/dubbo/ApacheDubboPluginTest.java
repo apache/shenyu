@@ -152,6 +152,6 @@ public final class ApacheDubboPluginTest {
         Map<String, String> stringStringMap = Maps.newHashMapWithExpectedSize(1);
         stringStringMap.put("test", "test");
         apacheDubboPlugin.transmitRpcContext(stringStringMap);
-        assertEquals(RpcContext.getContext().getAttachment("test"), "test");
+        assertEquals(RpcContext.getClientAttachment().getAttachment("test"), "test");
     }
 }
