@@ -41,7 +41,7 @@ public final class MatchDataCacheTest {
     @Test
     public void testCacheSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
-        MatchDataCache.getInstance().cacheSelectorData(path1, firstCachedSelectorData, 5 * 1024);
+        MatchDataCache.getInstance().cacheSelectorData(path1, firstCachedSelectorData, 100, 100);
         ConcurrentHashMap<String, MemorySafeWindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
         assertEquals(firstCachedSelectorData, selectorMap.get(mockPluginName1).get(path1));
         selectorMap.clear();
@@ -61,7 +61,7 @@ public final class MatchDataCacheTest {
     @Test
     public void testRemoveSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
-        MatchDataCache.getInstance().cacheSelectorData(path1, firstCachedSelectorData, 5 * 1024);
+        MatchDataCache.getInstance().cacheSelectorData(path1, firstCachedSelectorData, 100, 100);
         MatchDataCache.getInstance().removeSelectorData(firstCachedSelectorData.getPluginName());
         ConcurrentHashMap<String, MemorySafeWindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
         assertNull(selectorMap.get(mockPluginName1));

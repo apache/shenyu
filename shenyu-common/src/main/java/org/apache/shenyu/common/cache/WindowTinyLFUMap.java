@@ -22,6 +22,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.AbstractMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +34,15 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
     
     private final Cache<K, V> cache;
     
+    /**
+     * initial caffeine cache.
+     * when weakKey is true, create weakKeys cache, please refer to: {@linkplain WeakReference},
+     * weak reference make cache be memory-safe. however, the weakKey is false, caffeine eject cache by strategy.
+     *
+     * @param initialCapacity initial capacity
+     * @param maximumSize maximum size
+     * @param weakKey weak key
+     */
     public WindowTinyLFUMap(final int initialCapacity, final long maximumSize, final Boolean weakKey) {
         if (Boolean.TRUE.equals(weakKey)) {
             this.cache = Caffeine.newBuilder()
