@@ -27,11 +27,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serializable;
 import java.util.AbstractMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Collections;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +49,8 @@ public class MemorySafeWindowTinyLFUMap<K, V> extends AbstractMap<K, V> implemen
     
     private static final AtomicBoolean GLOBAL = new AtomicBoolean(false);
     
-    private static final Set<MemorySafeWindowTinyLFUMap<?, ?>> ALL = new LinkedHashSet<>();
+    private static final Set<MemorySafeWindowTinyLFUMap<?, ?>> ALL = Collections.newSetFromMap(
+            Caffeine.newBuilder().weakKeys().<MemorySafeWindowTinyLFUMap<?, ?>, Boolean>build().asMap());
     
     private final int maxFreeMemory;
     
