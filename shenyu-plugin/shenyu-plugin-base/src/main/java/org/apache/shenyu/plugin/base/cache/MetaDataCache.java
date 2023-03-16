@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.base.cache;
 
-import com.google.common.collect.Interner;
 import com.google.common.collect.Maps;
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.MetaData;
