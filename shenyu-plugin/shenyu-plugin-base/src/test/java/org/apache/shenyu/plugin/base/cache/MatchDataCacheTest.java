@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.plugin.base.cache;
 
-import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
+import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +42,7 @@ public final class MatchDataCacheTest {
     public void testCacheSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
         MatchDataCache.getInstance().cacheSelectorData(path1, firstCachedSelectorData, 100, 100);
-        ConcurrentHashMap<String, MemorySafeWindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
+        ConcurrentHashMap<String, WindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
         assertEquals(firstCachedSelectorData, selectorMap.get(mockPluginName1).get(path1));
         selectorMap.clear();
     }
@@ -50,8 +50,8 @@ public final class MatchDataCacheTest {
     @Test
     public void testObtainSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
-        ConcurrentHashMap<String, MemorySafeWindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
-        selectorMap.put(mockPluginName1, new MemorySafeWindowTinyLFUMap<>(5 * 1024, 16));
+        ConcurrentHashMap<String, WindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
+        selectorMap.put(mockPluginName1, new WindowTinyLFUMap<>(100, 100, Boolean.FALSE));
         selectorMap.get(mockPluginName1).put(path1, firstSelectorData);
         SelectorData firstSelectorDataCache = MatchDataCache.getInstance().obtainSelectorData(mockPluginName1, path1);
         assertEquals(firstSelectorData, firstSelectorDataCache);
@@ -63,7 +63,7 @@ public final class MatchDataCacheTest {
         SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
         MatchDataCache.getInstance().cacheSelectorData(path1, firstCachedSelectorData, 100, 100);
         MatchDataCache.getInstance().removeSelectorData(firstCachedSelectorData.getPluginName());
-        ConcurrentHashMap<String, MemorySafeWindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
+        ConcurrentHashMap<String, WindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
         assertNull(selectorMap.get(mockPluginName1));
         selectorMap.clear();
     }
