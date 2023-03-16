@@ -25,17 +25,17 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import java.util.Date;
 
 /**
- * apollo open-api client
+ * apollo open-api client.
  */
 public class ApolloClient {
+
+    private static final String DEFAULT_USER = "apollo";
 
     private final ApolloConfig apolloConfig;
 
     private final ApolloOpenApiClient apolloOpenApiClient;
 
-    private static final String DEFAULT_USER = "apollo";
-
-    public ApolloClient(ApolloConfig apolloConfig) {
+    public ApolloClient(final ApolloConfig apolloConfig) {
         this.apolloConfig = apolloConfig;
 
         this.apolloOpenApiClient = ApolloOpenApiClient
@@ -46,11 +46,11 @@ public class ApolloClient {
     }
 
     /**
-     * get item value
+     * get item value.
      * @param key item key
      * @return item value
      */
-    public String getItemValue(String key) {
+    public String getItemValue(final String key) {
         OpenItemDTO openItemDTO = this.apolloOpenApiClient.getItem(
                 apolloConfig.getAppId(),
                 apolloConfig.getEnv(),
@@ -71,22 +71,22 @@ public class ApolloClient {
     }
 
     /**
-     * create or update item into namespace
+     * create or update item into namespace.
      * @param key item key
      * @param value item value
      * @param comment item comment
      */
-    public void createOrUpdateItem(String key, Object value, String comment) {
+    public void createOrUpdateItem(final String key, final Object value, final String comment) {
         this.createOrUpdateItem(key, GsonUtils.getInstance().toJson(value), comment);
     }
 
     /**
-     * create or update item into namespace
+     * create or update item into namespace.
      * @param key item key
      * @param value item value
      * @param comment item comment
      */
-    public void createOrUpdateItem(String key, String value, String comment) {
+    public void createOrUpdateItem(final String key, final String value, final String comment) {
         OpenItemDTO openItemDTO = new OpenItemDTO();
         openItemDTO.setKey(key);
         openItemDTO.setValue(value);
@@ -107,10 +107,10 @@ public class ApolloClient {
     }
 
     /**
-     * remove item from namespace
+     * remove item from namespace.
      * @param key item key
      */
-    public void removeItem(String key) {
+    public void removeItem(final String key) {
         this.apolloOpenApiClient.removeItem(
                 apolloConfig.getAppId(),
                 apolloConfig.getEnv(),
@@ -122,11 +122,11 @@ public class ApolloClient {
     }
 
     /**
-     * publish item list in namespace
+     * publish item list in namespace.
      * @param releaseTitle publish release title
      * @param releaseComment publish release comment
      */
-    public void publishNamespace(String releaseTitle, String releaseComment) {
+    public void publishNamespace(final String releaseTitle, final String releaseComment) {
         NamespaceReleaseDTO namespaceReleaseDTO = new NamespaceReleaseDTO();
         namespaceReleaseDTO.setReleaseTitle(releaseTitle);
         namespaceReleaseDTO.setReleaseComment(releaseComment);

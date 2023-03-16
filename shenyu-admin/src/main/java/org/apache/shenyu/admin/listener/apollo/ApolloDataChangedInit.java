@@ -25,7 +25,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * the type apollo data change init
+ * the type apollo data change init.
  *
  * @since 2.6.0
  */
@@ -37,7 +37,7 @@ public class ApolloDataChangedInit extends AbstractDataChangedInit {
      *
      * @param apolloClient the apollo client
      */
-    public ApolloDataChangedInit(ApolloClient apolloClient) {
+    public ApolloDataChangedInit(final ApolloClient apolloClient) {
         this.apolloClient = apolloClient;
     }
 

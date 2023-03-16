@@ -13,7 +13,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.apache.shenyu.register.client.server.apollo;
@@ -21,39 +20,39 @@ package org.apache.shenyu.register.client.server.apollo;
 public class ApolloConfig {
 
     /**
-     * appId
+     * appId.
      */
     private String appId;
 
     /**
-     * portal url
+     * portal url.
      * e.g. localhost:8080
      */
     private String portalUrl;
 
     /**
-     * env
+     * env.
      * e.g. ENV
      */
     private String env;
 
     /**
-     * cluster name
+     * cluster name.
      */
     private String clusterName;
 
     /**
-     * namespace name
+     * namespace name.
      */
     private String namespace;
 
     /**
-     * open api use token
+     * open api use token.
      */
     private String token;
 
     /**
-     * get appId
+     * get appId.
      * @return appId
      */
     public String getAppId() {
@@ -61,7 +60,7 @@ public class ApolloConfig {
     }
 
     /**
-     * set app id
+     * set app id.
      * @param appId app id
      */
     public void setAppId(final String appId) {
@@ -69,7 +68,7 @@ public class ApolloConfig {
     }
 
     /**
-     * get portal url
+     * get portal url.
      * @return portal url
      */
     public String getPortalUrl() {
@@ -77,7 +76,7 @@ public class ApolloConfig {
     }
 
     /**
-     * set portal url
+     * set portal url.
      * @param portalUrl portal url
      */
     public void setPortalUrl(final String portalUrl) {
@@ -85,7 +84,7 @@ public class ApolloConfig {
     }
 
     /**
-     * get env
+     * get env.
      * @return env
      */
     public String getEnv() {
@@ -93,7 +92,7 @@ public class ApolloConfig {
     }
 
     /**
-     * set env
+     * set env.
      * @param env env
      */
     public void setEnv(final String env) {
@@ -101,7 +100,7 @@ public class ApolloConfig {
     }
 
     /**
-     * get cluster name
+     * get cluster name.
      * @return cluster name
      */
     public String getClusterName() {
@@ -109,7 +108,7 @@ public class ApolloConfig {
     }
 
     /**
-     * set cluster name
+     * set cluster name.
      * @param clusterName cluster name
      */
     public void setClusterName(final String clusterName) {
@@ -117,7 +116,7 @@ public class ApolloConfig {
     }
 
     /**
-     * get namespace name
+     * get namespace name.
      * @return namespace name
      */
     public String getNamespace() {
@@ -125,7 +124,7 @@ public class ApolloConfig {
     }
 
     /**
-     * set namespace name
+     * set namespace name.
      * @param namespace namespace name
      */
     public void setNamespace(final String namespace) {
@@ -133,7 +132,7 @@ public class ApolloConfig {
     }
 
     /**
-     * get token
+     * get token.
      * @return token
      */
     public String getToken() {
@@ -141,7 +140,7 @@ public class ApolloConfig {
     }
 
     /**
-     * set token
+     * set token.
      * @param token token
      */
     public void setToken(final String token) {

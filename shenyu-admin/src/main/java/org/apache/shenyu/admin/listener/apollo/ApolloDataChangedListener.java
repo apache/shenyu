@@ -21,7 +21,7 @@ import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
 import org.apache.shenyu.register.client.server.apollo.ApolloClient;
 
 /**
- * use apollo to push data changes
+ * use apollo to push data changes.
  *
  * @since 2.6.0
  */
@@ -33,23 +33,23 @@ public class ApolloDataChangedListener extends AbstractNodeDataChangedListener {
      *
      * @param apolloClient the apollo client
      */
-    public ApolloDataChangedListener(ApolloClient apolloClient) {
+    public ApolloDataChangedListener(final ApolloClient apolloClient) {
         this.apolloClient = apolloClient;
     }
 
     @Override
-    public void createOrUpdate(String pluginPath, Object data) {
+    public void createOrUpdate(final String pluginPath, final Object data) {
         this.apolloClient.createOrUpdateItem(pluginPath, data, "");
         this.apolloClient.publishNamespace("create or update node data", "");
     }
 
     @Override
-    public void deleteNode(String pluginPath) {
+    public void deleteNode(final String pluginPath) {
         this.apolloClient.removeItem(pluginPath);
     }
 
     @Override
-    public void deletePathRecursive(String selectorParentPath) {
+    public void deletePathRecursive(final String selectorParentPath) {
         this.apolloClient.removeItem(selectorParentPath);
     }
 }
