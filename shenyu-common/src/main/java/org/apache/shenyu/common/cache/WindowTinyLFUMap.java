@@ -27,6 +27,13 @@ import java.util.AbstractMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * this cache is provided by caffeine, the cache has two implements including weak-key cache and regular cache.
+ * the weak-key cache applies to scenarios where objects can be collected. when memory lock causes full gc, the weakKey will collect by gc.
+ * the regular cache applies to immutable cache object data, and the user determines the cache size.
+ * about the weak-key cache and regular cache, please refer to:
+ * <a href="https://github.com/ben-manes/caffeine/issues/776">caffeine cache ISSUES #776</a>
+ */
 @ThreadSafe
 public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Serializable {
     
