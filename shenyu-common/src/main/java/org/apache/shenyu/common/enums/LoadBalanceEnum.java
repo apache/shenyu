@@ -45,7 +45,12 @@ public enum LoadBalanceEnum {
     /**
      * pick of 2 choices load balance enum.
      */
-    P2C(5, "p2c", true);
+    P2C(5, "p2c", true),
+
+    /**
+     * shortest response load balance enum.
+     */
+    SHORTEST_RESPONSE(6, "shortestResponse", true);
 
     private final int code;
 
