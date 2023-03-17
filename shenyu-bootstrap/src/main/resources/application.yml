@@ -69,7 +69,8 @@ shenyu:
   matchCache:
     selector:
       selectorEnabled: false
-      maxSelectorFreeMemory: 256 # 256MB
+      initialCapacity: 10000 # initial capacity in cache
+      maximumSize: 10000 # max size in cache
     rule:
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 10000 # max size in cache
