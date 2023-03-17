@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {
 
     @Override
-    protected Upstream doSelect(List<Upstream> upstreamList, String ip) {
+    protected Upstream doSelect(final List<Upstream> upstreamList, final String ip) {
         int length = upstreamList.size();
         long shortestResponse = Long.MAX_VALUE;
         int shortestCount = 0;

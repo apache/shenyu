@@ -45,15 +45,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -223,6 +221,21 @@ public final class DividePluginTest {
         method.setAccessible(true);
         method.invoke(DividePlugin.class.newInstance(), upstream);
         assertNotEquals(0, upstream.getLag());
+    }
+
+    @Test
+    public void successResponseTriggerTest() throws Exception {
+        dividePlugin = DividePlugin.class.newInstance();
+        Field field = DividePlugin.class.getDeclaredField("beginTime");
+        field.setAccessible(true);
+        field.set(dividePlugin, 0L);
+        Method method = DividePlugin.class.getDeclaredMethod("successResponseTrigger", Upstream.class);
+        method.setAccessible(true);
+        Upstream upstream = Upstream.builder()
+                .url("upstream")
+                .build();
+        method.invoke(dividePlugin, upstream);
+        assertEquals(1, upstream.getSucceeded().get());
     }
 
     /**
