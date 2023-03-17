@@ -181,7 +181,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
 
     /**
-     *  parserJar.
+     * parserJar.
      *
      * @param jarBytes jarBytes
      */
