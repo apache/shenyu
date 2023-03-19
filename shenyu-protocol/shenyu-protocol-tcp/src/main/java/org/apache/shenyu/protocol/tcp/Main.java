@@ -1,39 +1,25 @@
 package org.apache.shenyu.protocol.tcp;
+import reactor.core.publisher.Flux;
+import reactor.netty.Connection;
+import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.tcp.TcpClient;
 
-import io.netty.channel.ChannelOption;
-import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import reactor.netty.DisposableServer;
-import reactor.netty.tcp.TcpServer;
-import reactor.netty.tcp.TcpServerConfig;
+import java.time.Duration;
 
-import java.net.InetSocketAddress;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class Main {
-
-
-    public static void main(String[] args) throws Exception{
-
-        DisposableServer server =
-                TcpServer.create()
-                        .doOnConnection(conn ->
-                                conn.addHandlerFirst(new ReadTimeoutHandler(10, TimeUnit.SECONDS)))
-                        .doOnChannelInit((observer, channel, remoteAddress) ->
-                                channel.pipeline()
-                                        .addFirst(new LoggingHandler("org.apache.shenyu.protocol.tcp")))
-                        .bindNow();
-
-
-
-        server.onDispose()
+    public static void main(String[] args) {
+        ConnectionProvider provider = ConnectionProvider.create("myPool");
+        Connection connection =
+                TcpClient.create(provider)
+                        .host("127.0.0.1")
+                        .port(9123)
+                        .handle((inbound, outbound) ->{
+                            Flux<String> map = Flux.interval(Duration.ofSeconds(1)).map(i -> "hello");
+                            inbound.receive().asString().doOnNext(System.out::println).subscribe();
+                            return  outbound.sendString(map);
+                        }).connectNow();
+        connection.onDispose()
                 .block();
-
-
-
-
     }
 }
