@@ -24,6 +24,11 @@
             <artifactId>shenyu-plugin-base</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <artifactId>shenyu-protocol-tcp</artifactId>
+            <groupId>org.apache.shenyu</groupId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
