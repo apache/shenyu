@@ -188,9 +188,15 @@ shenyu:
     enabled: true
     maxSize : 10
   sync:
-    websocket:
-      urls: ws://localhost:9095/websocket
-      allowOrigin: ws://localhost:9195
+    apollo:
+      meta: http://192.168.6.102:8080
+      appId: shenyu
+      env: dev
+      clusterName: test
+      namespace: application
+#    websocket:
+#      urls: ws://localhost:9095/websocket
+#      allowOrigin: ws://localhost:9195
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000
@@ -216,6 +222,7 @@ shenyu:
 #      url: http://localhost:8500
 #      waitTime: 1000
 #      watchDelay: 1000
+
   exclude:
     enabled: false
     paths:
