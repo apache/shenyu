@@ -44,6 +44,8 @@
         <module>shenyu-dist</module>
         <module>shenyu-alert</module>
         <module>shenyu-sdk</module>
+        <module>shenyu-plugin/shenyu-plugin-tcp</module>
+        <module>shenyu-protocol/shenyu-protocol-tcp</module>
     </modules>
 
     <licenses>
