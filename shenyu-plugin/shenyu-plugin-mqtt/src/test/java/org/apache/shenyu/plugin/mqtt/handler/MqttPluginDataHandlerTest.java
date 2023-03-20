@@ -53,7 +53,7 @@ public class MqttPluginDataHandlerTest {
                 + "  \"isEncryptPassword\": false,"
                 + "  \"encryptMode\": \"\","
                 + "  \"leakDetectorLevel\": \"DISABLED\""
-                + "}", "0", true);
+                + "}", "0", true, null);
         mqttPluginDataHandlerUnderTest.handlerPlugin(enablePluginData);
         assertTrue(isPortUsing());
         final PluginData disablePluginData = new PluginData("pluginId", "pluginName", "{\n"
@@ -66,7 +66,7 @@ public class MqttPluginDataHandlerTest {
                 + "  \"isEncryptPassword\": false,"
                 + "  \"encryptMode\": \"\","
                 + "  \"leakDetectorLevel\": \"DISABLED\""
-                + "}", "0", false);
+                + "}", "0", false, null);
         mqttPluginDataHandlerUnderTest.handlerPlugin(disablePluginData);
 
         Awaitility.await()
