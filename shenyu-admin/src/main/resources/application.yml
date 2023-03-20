@@ -37,6 +37,7 @@ management:
     web:
       exposure:
         include:
+          - 'health'
           - 'prometheus'
     enabled-by-default: true
 
