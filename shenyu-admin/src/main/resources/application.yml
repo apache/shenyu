@@ -37,9 +37,8 @@ management:
     web:
       exposure:
         include:
-          - 'health'
           - 'prometheus'
-    enabled-by-default: false
+    enabled-by-default: true
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
