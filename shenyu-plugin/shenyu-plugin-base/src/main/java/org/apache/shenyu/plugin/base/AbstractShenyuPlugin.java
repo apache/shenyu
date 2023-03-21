@@ -176,21 +176,19 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 || (Objects.nonNull(selectorData.getMatchRestful()) && selectorData.getMatchRestful())) {
             return;
         }
+        int initialCapacity = matchCacheConfig.getSelector().getInitialCapacity();
+        long maximumSize = matchCacheConfig.getSelector().getMaximumSize();
         if (StringUtils.isBlank(selectorData.getId())) {
-            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getSelectorMaxFreeMemory());
+            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, initialCapacity, maximumSize);
             return;
         }
         List<ConditionData> conditionList = selectorData.getConditionList();
         if (CollectionUtils.isNotEmpty(conditionList)) {
             boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
             if (isUriCondition) {
-                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getSelectorMaxFreeMemory());
+                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, initialCapacity, maximumSize);
             }
         }
-    }
-
-    private Integer getSelectorMaxFreeMemory() {
-        return matchCacheConfig.getSelector().getMaxSelectorFreeMemory() * 1024 * 1024;
     }
 
     private SelectorData obtainSelectorDataCacheIfEnabled(final String path) {

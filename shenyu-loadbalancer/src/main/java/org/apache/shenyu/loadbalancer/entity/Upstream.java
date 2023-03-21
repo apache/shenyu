@@ -102,6 +102,10 @@ public final class Upstream {
      */
     private AtomicLong inflight = new AtomicLong(1);
 
+    private AtomicLong succeeded = new AtomicLong(0);
+
+    private AtomicLong succeededElapsed = new AtomicLong(0);
+
     private Upstream(final Builder builder) {
         this.protocol = builder.protocol;
         this.url = builder.url;
@@ -293,12 +297,6 @@ public final class Upstream {
     }
 
     /**
-     * Gets inflight.
-     *
-     * @return the inflight
-     */
-
-    /**
      * Gets responseStamp.
      *
      * @return the responseStamp
@@ -347,6 +345,34 @@ public final class Upstream {
      */
     public void setInflight(final AtomicLong inflight) {
         this.inflight = inflight;
+    }
+
+    /**
+     * Gets succeeded.
+     * @return the succeeded
+     */
+    public AtomicLong getSucceeded() {
+        return succeeded;
+    }
+
+    /**
+     * Gets succeededElapsed.
+     * @return the succeededElapsed
+     */
+    public AtomicLong getSucceededElapsed() {
+        return succeededElapsed;
+    }
+
+    /**
+     * Gets succeededAverageElapsed.
+     * @return the succeededAverageElapsed.
+     */
+    public long getSucceededAverageElapsed() {
+        long succeeded = getSucceeded().get();
+        if (succeeded == 0) {
+            return 0;
+        }
+        return getSucceededElapsed().get() / succeeded;
     }
 
     /**
