@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Nacos sync data configuration for spring boot.
+ * Apollo sync data configuration for spring boot.
  */
 @Configuration
 @ConditionalOnClass(ApolloSyncDataConfiguration.class)
@@ -79,8 +79,7 @@ public class ApolloSyncDataConfiguration {
         Optional.ofNullable(apolloConfig.getMeta()).ifPresent(meta -> System.setProperty(PROP_APOLLO_META, meta));
         Optional.ofNullable(apolloConfig.getClusterName()).ifPresent(cluster -> System.setProperty(APOLLO_CLUSTER, cluster));
         Optional.ofNullable(apolloConfig.getNamespace()).ifPresent(namespace -> System.setProperty(APOLLO_NAMESPACE, namespace));
-//        Optional.ofNullable(apolloConfig.getAccessKey()).ifPresent(accessKey -> System.setProperty(PROP_APOLLO_SECRET, accessKey));
-
+        Optional.ofNullable(apolloConfig.getAccessKey()).ifPresent(accessKey -> System.setProperty(PROP_APOLLO_SECRET, accessKey));
         return ConfigService.getAppConfig();
 
 

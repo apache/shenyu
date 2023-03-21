@@ -29,12 +29,6 @@ public class ApolloConfig {
     private String meta;
 
     /**
-     * portal url.
-     * e.g. localhost:8080
-     */
-    private String portalUrl;
-
-    /**
      * env.
      * e.g. ENV
      */
@@ -50,6 +44,15 @@ public class ApolloConfig {
      */
     private String namespace;
 
+    private String accessKey;
+
+    public String getAccessKey() {
+        return accessKey;
+    }
+
+    public void setAccessKey(String accessKey) {
+        this.accessKey = accessKey;
+    }
 
     public String getAppId() {
         return appId;
@@ -65,14 +68,6 @@ public class ApolloConfig {
 
     public void setMeta(String meta) {
         this.meta = meta;
-    }
-
-    public String getPortalUrl() {
-        return portalUrl;
-    }
-
-    public void setPortalUrl(String portalUrl) {
-        this.portalUrl = portalUrl;
     }
 
     public String getEnv() {
@@ -102,12 +97,4 @@ public class ApolloConfig {
     public ApolloConfig() {
     }
 
-    public ApolloConfig(String appId, String meta, String portalUrl, String env, String clusterName, String namespace) {
-        this.appId = appId;
-        this.meta = meta;
-        this.portalUrl = portalUrl;
-        this.env = env;
-        this.clusterName = clusterName;
-        this.namespace = namespace;
-    }
 }

@@ -189,8 +189,8 @@ shenyu:
     maxSize : 10
   sync:
     apollo:
-      meta: http://192.168.6.102:8080
       appId: shenyu
+      meta: http://192.168.6.102:8080
       env: dev
       clusterName: test
       namespace: application
