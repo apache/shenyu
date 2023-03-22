@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.listener.apollo;
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.register.client.server.apollo.ApolloClient;
+import org.springframework.util.StringUtils;
 
 /**
  * use apollo to push data changes.
@@ -40,15 +41,15 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
         this.apolloClient = apolloClient;
     }
 
-
     @Override
-    public void publishConfig(String dataId, Object data) {
+    public void publishConfig(final String dataId, final Object data) {
         this.apolloClient.createOrUpdateItem(dataId, data, "create config data");
         this.apolloClient.publishNamespace("publish config data", "");
     }
 
     @Override
-    public String getConfig(String dataId) {
-        return this.apolloClient.getItemValue(dataId);
+    public String getConfig(final String dataId) {
+        String config = this.apolloClient.getItemValue(dataId);
+        return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
     }
 }

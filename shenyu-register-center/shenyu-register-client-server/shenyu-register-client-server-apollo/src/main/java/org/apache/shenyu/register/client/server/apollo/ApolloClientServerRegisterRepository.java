@@ -23,21 +23,21 @@ import com.ctrip.framework.apollo.core.ConfigConsts;
 import com.ctrip.framework.apollo.model.ConfigChange;
 import com.ctrip.framework.apollo.spring.config.PropertySourcesConstants;
 import com.google.common.collect.Lists;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.spi.Join;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+/**
+ * apollo register center.
+ */
 @Join
 public class ApolloClientServerRegisterRepository implements ShenyuClientServerRegisterRepository {
 
@@ -51,46 +51,39 @@ public class ApolloClientServerRegisterRepository implements ShenyuClientServerR
         this.publisher = publisher;
 
         Properties properties = config.getProps();
-        Properties apolloProperties = new Properties();
-        apolloProperties.setProperty("app.id", properties.getProperty("appId"));
-        apolloProperties.setProperty(ConfigConsts.APOLLO_META_KEY, properties.getProperty("meta"));
-        apolloProperties.setProperty(ConfigConsts.APOLLO_CLUSTER_KEY, properties.getProperty("cluster", ConfigConsts.CLUSTER_NAME_DEFAULT));
-        apolloProperties.setProperty(PropertySourcesConstants.APOLLO_BOOTSTRAP_NAMESPACES, properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION));
-        System.setProperties(apolloProperties);
+        System.setProperty("app.id", properties.getProperty("appId"));
+        System.setProperty(ConfigConsts.APOLLO_META_KEY, properties.getProperty("meta"));
+        System.setProperty("apollo.config-server", properties.getProperty("meta"));
+        System.setProperty(ConfigConsts.APOLLO_CLUSTER_KEY, properties.getProperty("cluster", ConfigConsts.CLUSTER_NAME_DEFAULT));
+        System.setProperty(PropertySourcesConstants.APOLLO_BOOTSTRAP_NAMESPACES, properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION));
 
-        this.config = ConfigService.getConfig(properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION));
+        this.config = ConfigService.getAppConfig();
         this.initSubscribe();
     }
 
     private void initSubscribe() {
-        List<RpcTypeEnum> rpcTypeEnums = RpcTypeEnum.acquireSupportMetadatas();
-        List<String> rpcTypeMetaDataPaths = rpcTypeEnums.stream()
-                .map(rpcType -> RegisterPathConstants.buildMetaDataContextPathParent(rpcType.getName()))
-                .collect(Collectors.toList());
-        List<String> rpcTypeUriPaths = rpcTypeEnums.stream()
-                .map(rpcType -> RegisterPathConstants.buildURIContextPathParent(rpcType.getName()))
-                .collect(Collectors.toList());
         this.config.addChangeListener(changeEvent -> {
             for (String changedKey : changeEvent.changedKeys()) {
-                if (rpcTypeMetaDataPaths.contains(changedKey)) {
-                    ConfigChange configChange = changeEvent.getChange(changedKey);
+                ConfigChange configChange = changeEvent.getChange(changedKey);
+                if (changedKey.startsWith("shenyu.register.metadata")) {
                     this.publishMetadata(configChange.getNewValue());
-                } else if (rpcTypeUriPaths.contains(changedKey)) {
-                    // todo
-                    ConfigChange configChange = changeEvent.getChange(changedKey);
-                    List<URIRegisterDTO> registerDTOList = new ArrayList<>();
-                    registerDTOList.add(GsonUtils.getInstance().fromJson(configChange.getNewValue(), URIRegisterDTO.class));
-                    this.publishRegisterURI(registerDTOList);
+                } else if (changedKey.startsWith("shenyu.register.uri")) {
+                    this.publishRegisterURI(configChange.getNewValue());
                 }
             }
         });
     }
 
-    private void publishMetadata(final String data) {
-        publisher.publish(Lists.newArrayList(GsonUtils.getInstance().fromJson(data, MetaDataRegisterDTO.class)));
+    private void publishMetadata(final String metadata) {
+        publisher.publish(Lists.newArrayList(GsonUtils.getInstance().fromJson(metadata, MetaDataRegisterDTO.class)));
     }
 
-    private void publishRegisterURI(final List<URIRegisterDTO> registerDTOList) {
+    @SuppressWarnings("unchecked")
+    private void publishRegisterURI(final String uriMetadata) {
+        List<String> metadataList = GsonUtils.getInstance().fromJson(uriMetadata, List.class);
+        List<URIRegisterDTO> registerDTOList = metadataList.stream()
+                .map(metadata -> GsonUtils.getInstance().fromJson(metadata, URIRegisterDTO.class))
+                .collect(Collectors.toList());
         publisher.publish(registerDTOList);
     }
 
