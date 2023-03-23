@@ -17,15 +17,17 @@
 
 package org.apache.shenyu.admin.listener.apollo;
 
-import org.apache.shenyu.admin.listener.AbstractNodeDataChangedListener;
+import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
+import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.register.client.server.apollo.ApolloClient;
+import org.springframework.util.StringUtils;
 
 /**
  * use apollo to push data changes.
  *
  * @since 2.6.0
  */
-public class ApolloDataChangedListener extends AbstractNodeDataChangedListener {
+public class ApolloDataChangedListener extends AbstractListDataChangedListener {
     private final ApolloClient apolloClient;
 
     /**
@@ -34,22 +36,20 @@ public class ApolloDataChangedListener extends AbstractNodeDataChangedListener {
      * @param apolloClient the apollo client
      */
     public ApolloDataChangedListener(final ApolloClient apolloClient) {
+        super(new ChangeData(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.SELECTOR_DATA_ID,
+                NacosPathConstants.RULE_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID));
         this.apolloClient = apolloClient;
     }
 
     @Override
-    public void createOrUpdate(final String pluginPath, final Object data) {
-        this.apolloClient.createOrUpdateItem(pluginPath, data, "");
-        this.apolloClient.publishNamespace("create or update node data", "");
+    public void publishConfig(final String dataId, final Object data) {
+        this.apolloClient.createOrUpdateItem(dataId, data, "create config data");
+        this.apolloClient.publishNamespace("publish config data", "");
     }
 
     @Override
-    public void deleteNode(final String pluginPath) {
-        this.apolloClient.removeItem(pluginPath);
-    }
-
-    @Override
-    public void deletePathRecursive(final String selectorParentPath) {
-        this.apolloClient.removeItem(selectorParentPath);
+    public String getConfig(final String dataId) {
+        String config = this.apolloClient.getItemValue(dataId);
+        return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
     }
 }
