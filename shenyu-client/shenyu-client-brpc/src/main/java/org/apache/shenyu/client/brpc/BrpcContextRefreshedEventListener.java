@@ -56,8 +56,6 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
-    private ApplicationContext applicationContext;
-
     /**
      * Instantiates a new Brpc context refreshed event listener.
      *
@@ -85,7 +83,6 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
 
     @Override
     protected Map<String, Object> getBeans(final ApplicationContext context) {
-        applicationContext = context;
         return context.getBeansWithAnnotation(ShenyuBrpcClient.class);
     }
 

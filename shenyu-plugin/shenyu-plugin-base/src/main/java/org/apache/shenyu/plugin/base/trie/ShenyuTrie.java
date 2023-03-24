@@ -285,12 +285,11 @@ public class ShenyuTrie {
      * if current node exists multi mappings, remove the mapping.
      *
      * @param paths paths
-     * @param selectorId selectorId
-     * @param ruleId ruleId
+     * @param ruleData ruleData
      */
-    public void remove(final List<String> paths, final String selectorId, final String ruleId) {
+    public void remove(final List<String> paths, final RuleData ruleData) {
         if (CollectionUtils.isNotEmpty(paths)) {
-            paths.forEach(path -> remove(path, selectorId, ruleId));
+            paths.forEach(path -> remove(path, ruleData));
         }
     }
 
@@ -302,10 +301,9 @@ public class ShenyuTrie {
      * if current node exists multi mappings, remove the mapping.
      *
      * @param path path
-     * @param selectorId selectorId
-     * @param ruleId ruleId
+     * @param ruleData ruleData
      */
-    public void remove(final String path, final String selectorId, final String ruleId) {
+    public void remove(final String path, final RuleData ruleData) {
         if (StringUtils.isNotBlank(path)) {
             String strippedPath = StringUtils.strip(path, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
@@ -314,8 +312,7 @@ public class ShenyuTrie {
             // node is not null, judge exist many plugin mapping
             if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPathRuleCache())) {
                 // check current mapping
-                currentNode.getPathRuleCache().cleanUp();
-                List<RuleData> ruleDataList = getVal(currentNode.getPathRuleCache(), selectorId);
+                List<RuleData> ruleDataList = getVal(currentNode.getPathRuleCache(), ruleData.getSelectorId());
                 if (CollectionUtils.isNotEmpty(ruleDataList) && ruleDataList.size() == 1 && Objects.isNull(currentNode.getChildren())) {
                     // remove current node from parent node
                     String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
@@ -325,10 +322,11 @@ public class ShenyuTrie {
                     parentNode.getChildren().cleanUp();
                 } else {
                     // remove plugin mapping
-                    List<RuleData> delRuleData = getVal(currentNode.getPathRuleCache(), selectorId);
+                    List<RuleData> delRuleData = getVal(currentNode.getPathRuleCache(), ruleData.getSelectorId());
                     if (CollectionUtils.isNotEmpty(delRuleData)) {
-                        synchronized (selectorId) {
-                            delRuleData.removeIf(rule -> rule.getId().equals(ruleId));
+                        synchronized (ruleData.getSelectorId()) {
+                            delRuleData.removeIf(rule -> rule.getId().equals(ruleData.getSelectorId()));
+                            currentNode.getPathRuleCache().put(ruleData.getSelectorId(), delRuleData);
                         }
                     }
                 }
@@ -348,8 +346,6 @@ public class ShenyuTrie {
             String[] pathParts = StringUtils.split(strippedPath, "/");
             if (pathParts.length > 0) {
                 return getNode0(root, pathParts);
-            } else {
-                return null;
             }
         }
         return null;
@@ -368,19 +364,18 @@ public class ShenyuTrie {
         String[] slice = Arrays.copyOfRange(pathParts, 1, pathParts.length);
         // if exist one path
         if (slice.length == 0) {
-            if (isPathVariable(key)) {
-                if (Objects.isNull(node.getPathVariableNode()) || !node.getPathVariableNode().getEndOfPath()) {
-                    return null;
-                }
-                return node.getPathVariableNode();
-            } else if (isMatchAllOrWildcard(key)) {
+            if (isMatchAllOrWildcard(key)) {
                 return getVal(node.getChildren(), key);
+            } else if (isPathVariable(key)) {
+                if (Objects.nonNull(node) && node.getPathVariableNode().getEndOfPath()) {
+                    return node.getPathVariableNode();
+                }
             } else {
-                if (Objects.isNull(node) || !checkChildrenNotNull(node)) {
-                    return null;
+                if (Objects.nonNull(node) && checkChildrenNotNull(node)) {
+                    return getVal(node.getChildren(), key);
                 }
-                return getVal(node.getChildren(), key);
             }
+            return null;
         } else {
             if (isPathVariable(key)) {
                 if (Objects.isNull(node.getPathVariableNode())) {

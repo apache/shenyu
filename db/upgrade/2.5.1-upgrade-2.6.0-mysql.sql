@@ -16,6 +16,14 @@
 
 -- this file works for MySQL.
 
+ALTER TABLE selector ADD COLUMN match_restful TINYINT(0) NOT NULL
+COMMENT 'whether to match restful(0 cache, 1 not cache)';
+COMMIT;
+
+ALTER TABLE rule ADD COLUMN match_restful TINYINT(0) NOT NULL
+COMMENT 'whether to match restful(0 cache, 1 not cache)';
+COMMIT;
+
 /* insert plugin_handle data for plugin CryptorRequest */
 INSERT INTO `plugin_handle` VALUES ('1630760188111376384', '24', 'mapType', 'mapType', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}', '2023-03-01 10:41:41', '2023-03-01 10:42:21');
 /* insert plugin_handle data for plugin cryptorResponse */
@@ -24,3 +32,8 @@ INSERT INTO `plugin_handle` VALUES ('1630768384280514560', '25', 'mapType', 'map
 /* insert plugin_handle data for plugin_handle mapType */
 INSERT INTO `shenyu_dict` VALUES ('1630761573833920512', 'mapType', 'mapType', 'all', 'all', '', 0, 1, '2023-03-01 10:47:11', '2023-03-01 10:47:11');
 INSERT INTO `shenyu_dict` VALUES ('1630761984393367552', 'mapType', 'mapType', 'field', 'field', '', 1, 1, '2023-03-01 10:48:49', '2023-03-01 10:48:49');
+INSERT INTO `shenyu_dict` VALUES ('1572621976689762308', 'loadBalance', 'LOAD_BALANCE', 'p2c', 'p2c', 'p2c', 4, 1, '2023-03-07 22:12:12', '2023-03-07 22:12:12');
+INSERT INTO `shenyu_dict` VALUES ('1572621976689762309', 'loadBalance', 'LOAD_BALANCE', 'shortestResponse', 'shortestResponse', 'shortestResponse', 5, 1, '2023-03-17 10:12:12', '2023-03-17 10:12:12');
+
+/* add column into plugin table */
+ALTER TABLE `plugin` ADD COLUMN `plugin_jar` mediumblob NULL COMMENT 'plugin jar';

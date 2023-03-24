@@ -26,7 +26,9 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.event.RuleTrieEvent;
 import org.springframework.context.ApplicationListener;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -40,8 +42,8 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
         RuleData ruleData = (RuleData) event.getSource();
         // new condition
         List<ConditionData> conditionDataList = ruleData.getConditionDataList();
-        List<ConditionData> filterConditions = conditionDataList.stream()
-                .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+        List<ConditionData> filterConditions = Optional.ofNullable(conditionDataList).orElse(Collections.emptyList())
+                .stream().filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
                 .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(filterConditions)) {
@@ -59,11 +61,11 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
                             .collect(Collectors.toList());
 
                     // old condition remove
-                    shenyuTrie.remove(beforeUriPaths, ruleData.getSelectorId(), ruleData.getId());
+                    shenyuTrie.remove(beforeUriPaths, ruleData);
                     shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
                     break;
                 case REMOVE:
-                    shenyuTrie.remove(uriPaths, ruleData.getSelectorId(), ruleData.getId());
+                    shenyuTrie.remove(uriPaths, ruleData);
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());

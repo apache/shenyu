@@ -139,7 +139,7 @@ public final class JwtPluginTest {
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setApplicationContext(context);
-        PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu-test-shenyu-test-shenyu-test\"}", "0", false);
+        PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu-test-shenyu-test-shenyu-test\"}", "0", false, null);
         JwtPluginDataHandler jwtPluginDataHandler = new JwtPluginDataHandler();
         jwtPluginDataHandler.handlerPlugin(pluginData);
     }

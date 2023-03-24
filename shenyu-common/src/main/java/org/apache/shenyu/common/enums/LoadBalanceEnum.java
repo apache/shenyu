@@ -40,7 +40,17 @@ public enum LoadBalanceEnum {
     /**
      * least activity load balance enum.
      */
-    LEAST_ACTIVITY(4, "leastActive", true);
+    LEAST_ACTIVITY(4, "leastActive", true),
+
+    /**
+     * pick of 2 choices load balance enum.
+     */
+    P2C(5, "p2c", true),
+
+    /**
+     * shortest response load balance enum.
+     */
+    SHORTEST_RESPONSE(6, "shortestResponse", true);
 
     private final int code;
 
