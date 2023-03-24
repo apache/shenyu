@@ -581,9 +581,14 @@ public class ShenyuConfig {
         private boolean selectorEnabled;
     
         /**
-         * Max free memory, unit mb.
+         * initialCapacity.
          */
-        private Integer maxSelectorFreeMemory = 256;
+        private int initialCapacity = 10000;
+    
+        /**
+         * maximumSize.
+         */
+        private long maximumSize = 10000L;
     
         /**
          * Get selector cache enabled.
@@ -602,23 +607,41 @@ public class ShenyuConfig {
         public void setSelectorEnabled(final boolean selectorEnabled) {
             this.selectorEnabled = selectorEnabled;
         }
-        
+    
         /**
-         * Gets maxFreeMemory.
+         * get initialCapacity.
          *
-         * @return the maxFreeMemory
+         * @return initialCapacity
          */
-        public Integer getMaxSelectorFreeMemory() {
-            return maxSelectorFreeMemory;
+        public int getInitialCapacity() {
+            return initialCapacity;
         }
     
         /**
-         * Sets maxFreeMemory.
+         * set initialCapacity.
          *
-         * @param maxSelectorFreeMemory the maxFreeMemory
+         * @param initialCapacity initialCapacity
          */
-        public void setMaxSelectorFreeMemory(final Integer maxSelectorFreeMemory) {
-            this.maxSelectorFreeMemory = maxSelectorFreeMemory;
+        public void setInitialCapacity(final int initialCapacity) {
+            this.initialCapacity = initialCapacity;
+        }
+    
+        /**
+         * get maximumSize.
+         *
+         * @return maximumSize
+         */
+        public long getMaximumSize() {
+            return maximumSize;
+        }
+    
+        /**
+         * set maximumSize.
+         *
+         * @param maximumSize maximumSize
+         */
+        public void setMaximumSize(final long maximumSize) {
+            this.maximumSize = maximumSize;
         }
     }
     
