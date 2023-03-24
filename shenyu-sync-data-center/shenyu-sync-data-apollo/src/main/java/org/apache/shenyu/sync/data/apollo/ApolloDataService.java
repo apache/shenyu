@@ -3,6 +3,7 @@ package org.apache.shenyu.sync.data.apollo;
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigChangeListener;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.*;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -12,10 +13,9 @@ import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class ApolloDataService implements SyncDataService {
     /**
@@ -58,11 +58,12 @@ public class ApolloDataService implements SyncDataService {
     private void watchPluginData() {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(DefaultPathConstants.PLUGIN_PARENT)) {
-                    String value = configService.getProperty(key, "");
-                    PluginData pluginData = GsonUtils.getInstance().fromJson(value, PluginData.class);
-                    System.out.println("watchPluginData----->"+pluginData);
-                    pluginDataSubscriber.onSubscribe(GsonUtils.getInstance().fromJson(value, PluginData.class));
+                if (key.contains(NacosPathConstants.PLUGIN_DATA_ID)) {
+                    List<PluginData> pluginDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), PluginData.class).values());
+                    pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+                        subscriber.unSubscribe(pluginData);
+                        subscriber.onSubscribe(pluginData);
+                    }));
                 }
 
             });
@@ -78,12 +79,12 @@ public class ApolloDataService implements SyncDataService {
     private void watchSelectorData() {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(DefaultPathConstants.SELECTOR_PARENT)) {
-                    String value = configService.getProperty(key, "");
-                    final SelectorData selectorData = GsonUtils.getInstance().fromJson(value, SelectorData.class);
-                    System.out.println("watchSelectorData----->"+selectorData);
-                    Optional.ofNullable(selectorData)
-                            .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(data)));
+                if (key.contains(NacosPathConstants.SELECTOR_DATA_ID)) {
+                    List<SelectorData> selectorDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(key, ""), SelectorData.class).values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+                    selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+                        subscriber.unSelectorSubscribe(selectorData);
+                        subscriber.onSelectorSubscribe(selectorData);
+                    }));
                 }
 
             });
@@ -98,12 +99,14 @@ public class ApolloDataService implements SyncDataService {
     private void watchRuleData() {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(DefaultPathConstants.RULE_PARENT)) {
-                    String value = configService.getProperty(key, "");
-                    final RuleData ruleData = GsonUtils.getInstance().fromJson(value, RuleData.class);
-                    System.out.println("watchRuleData----->"+ruleData);
-                    Optional.ofNullable(ruleData)
-                            .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onRuleSubscribe(data)));
+                if (key.contains(NacosPathConstants.RULE_DATA_ID)) {
+                    List<RuleData> ruleDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(key, ""), RuleData.class).values()
+                            .stream().flatMap(Collection::stream)
+                            .collect(Collectors.toList());
+                    ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+                        subscriber.unRuleSubscribe(ruleData);
+                        subscriber.onRuleSubscribe(ruleData);
+                    }));
                 }
 
             });
@@ -119,10 +122,11 @@ public class ApolloDataService implements SyncDataService {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
                 if (key.contains(DefaultPathConstants.META_DATA)) {
-                    String value = configService.getProperty(key, "");
-                    final MetaData metaData = GsonUtils.getInstance().fromJson(value, MetaData.class);
-                    Optional.ofNullable(metaData)
-                            .ifPresent(data -> metaDataSubscribers.forEach(e -> e.onSubscribe(metaData)));
+                    List<MetaData> metaDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), MetaData.class).values());
+                    metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {
+                        subscriber.unSubscribe(metaData);
+                        subscriber.onSubscribe(metaData);
+                    }));
                 }
 
             });
@@ -138,10 +142,11 @@ public class ApolloDataService implements SyncDataService {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
                 if (key.contains(DefaultPathConstants.APP_AUTH_PARENT)) {
-                    String value = configService.getProperty(key, "");
-                    final AppAuthData appAuthData = GsonUtils.getInstance().fromJson(value, AppAuthData.class);
-                    Optional.ofNullable(appAuthData)
-                            .ifPresent(data -> authDataSubscribers.forEach(e -> e.onSubscribe(data)));
+                    List<AppAuthData> appAuthDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), AppAuthData.class).values());
+                    appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {
+                        subscriber.unSubscribe(appAuthData);
+                        subscriber.onSubscribe(appAuthData);
+                    }));
                 }
 
             });
