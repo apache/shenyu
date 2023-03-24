@@ -22,6 +22,7 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -31,8 +32,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import static org.junit.Assert.assertEquals;
 
 public class UploadControllerTest extends AbstractPluginDataInit {
 
@@ -59,7 +58,7 @@ public class UploadControllerTest extends AbstractPluginDataInit {
                 .addFormDataPart("file", FILE_PATH, fileBodyOne)
                 .build();
         final String response = HttpHelper.INSTANCE.postGateway("/ws-native/ws/upload", requestBody, String.class);
-        assertEquals(response, "ok");
+        Assertions.assertEquals(response, "ok");
     }
 
 }

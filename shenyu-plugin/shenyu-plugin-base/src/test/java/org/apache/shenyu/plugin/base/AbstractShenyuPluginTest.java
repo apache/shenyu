@@ -67,18 +67,28 @@ public final class AbstractShenyuPluginTest {
     @BeforeEach
     public void setUp() {
         mockShenyuConfig();
-        this.ruleData = RuleData.builder().id("1")
-                .selectorId("1").enabled(true)
-                .loged(true).sort(1).build();
+        this.ruleData = RuleData.builder()
+                .id("1")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(true)
+                .loged(true)
+                .matchRestful(false)
+                .sort(1).build();
         this.conditionData = new ConditionData();
         this.conditionData.setOperator("match");
         this.conditionData.setParamName("/");
         this.conditionData.setParamType("uri");
         this.conditionData.setParamValue("/http/**");
         this.shenyuPluginChain = mock(ShenyuPluginChain.class);
-        this.pluginData = PluginData.builder().name("SHENYU").enabled(true).build();
-        this.selectorData = SelectorData.builder().id("1").pluginName("SHENYU")
-                .enabled(true).type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
+        this.pluginData = PluginData.builder()
+                .name("SHENYU")
+                .enabled(true).build();
+        this.selectorData = SelectorData.builder()
+                .id("1").pluginName("SHENYU")
+                .enabled(true)
+                .matchRestful(false)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
         this.testShenyuPlugin = spy(new TestShenyuPlugin());
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SHENYU/SHENYU")
                 .build());
@@ -124,6 +134,7 @@ public final class AbstractShenyuPluginTest {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.selectorData.setMatchMode(0);
         this.selectorData.setLogged(true);
+        this.selectorData.setMatchRestful(false);
         this.selectorData.setConditionList(conditionDataList);
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
@@ -139,12 +150,75 @@ public final class AbstractShenyuPluginTest {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.ruleData.setConditionDataList(conditionDataList);
         this.ruleData.setMatchMode(0);
+        this.ruleData.setMatchRestful(false);
         this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
         this.selectorData.setLogged(true);
         this.selectorData.setConditionList(conditionDataList);
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         BaseDataCache.getInstance().cacheRuleData(ruleData);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeSelectorManyMatch() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.selectorData.setSort(1);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        BaseDataCache.getInstance().cacheSelectData(SelectorData.builder()
+                .id("2").pluginName("SHENYU")
+                .enabled(true)
+                .matchMode(0)
+                .logged(true)
+                .sort(2)
+                .conditionList(conditionDataList)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build());
+        BaseDataCache.getInstance().cacheRuleData(ruleData);
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
+    public void executeRuleManyMatch() {
+        List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
+        this.ruleData.setConditionDataList(conditionDataList);
+        this.ruleData.setMatchMode(0);
+        this.ruleData.setMatchRestful(false);
+        this.selectorData.setMatchMode(0);
+        this.selectorData.setLogged(true);
+        this.selectorData.setConditionList(conditionDataList);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+
+        BaseDataCache.getInstance().cacheRuleData(RuleData.builder()
+                .id("1")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(true)
+                .loged(true)
+                .matchMode(0)
+                .matchRestful(false)
+                .conditionDataList(Collections.singletonList(conditionData))
+                .sort(1).build());
+
+        BaseDataCache.getInstance().cacheRuleData(RuleData.builder()
+                .id("2")
+                .pluginName("SHENYU")
+                .selectorId("1")
+                .enabled(true)
+                .loged(true)
+                .matchMode(0)
+                .matchRestful(false)
+                .conditionDataList(Collections.singletonList(conditionData))
+                .sort(2).build());
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
         verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
     }
@@ -157,7 +231,9 @@ public final class AbstractShenyuPluginTest {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.ruleData.setConditionDataList(conditionDataList);
         this.ruleData.setMatchMode(1);
+        this.ruleData.setMatchRestful(false);
         this.selectorData.setMatchMode(0);
+        this.selectorData.setMatchRestful(false);
         this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
         this.selectorData.setLogged(true);
         this.selectorData.setConditionList(conditionDataList);

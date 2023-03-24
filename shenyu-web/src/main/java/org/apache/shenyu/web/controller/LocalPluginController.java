@@ -98,11 +98,10 @@ public class LocalPluginController {
         final List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
         MatchDataCache.getInstance().removeSelectorData(name);
+        MatchDataCache.getInstance().removeRuleData(name);
         for (String selectorId : selectorIds) {
             BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
-        }
-        selectorIds.forEach(item -> {
-            List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(item);
+            List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(selectorId);
             if (CollectionUtils.isNotEmpty(ruleDataList)) {
                 ruleDataList.forEach(rule -> {
                     List<ConditionData> conditionDataList = rule.getConditionDataList();
@@ -111,11 +110,11 @@ public class LocalPluginController {
                             .collect(Collectors.toList());
                     if (CollectionUtils.isNotEmpty(filterConditions)) {
                         List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
-                        uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, item, rule.getId()));
+                        uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, rule));
                     }
                 });
             }
-        });
+        }
         return Mono.just(Constants.SUCCESS);
     }
 
@@ -206,6 +205,7 @@ public class LocalPluginController {
         subscriber.onSelectorSubscribe(result);
         RuleData ruleData = RuleData.builder()
                 .selectorId(result.getId())
+                .matchRestful(Boolean.FALSE)
                 .pluginName(selectorRuleData.getPluginName())
                 .handle(selectorRuleData.getRuleHandler())
                 .conditionDataList(selectorRuleData.getConditionDataList())
@@ -357,6 +357,9 @@ public class LocalPluginController {
         if (Objects.isNull(selectorData.getLogged())) {
             selectorData.setLogged(false);
         }
+        if (Objects.isNull(selectorData.getMatchRestful())) {
+            selectorData.setMatchRestful(false);
+        }
         return selectorData;
     }
 
@@ -378,6 +381,9 @@ public class LocalPluginController {
         }
         if (Objects.isNull(ruleData.getLoged())) {
             ruleData.setLoged(false);
+        }
+        if (Objects.isNull(ruleData.getMatchRestful())) {
+            ruleData.setMatchRestful(false);
         }
         return ruleData;
     }

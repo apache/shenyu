@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
-import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
+import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.MapUtils;
@@ -39,7 +39,7 @@ public final class MatchDataCache {
      * pluginName -> LRUMap.
      */
     private static final ConcurrentMap<String, Map<String, SelectorData>> SELECTOR_DATA_MAP = Maps.newConcurrentMap();
-
+    
     /**
      * plugin name -> LRU Map.
      * LRU Map: path -> rule data.
@@ -79,10 +79,12 @@ public final class MatchDataCache {
      *
      * @param path         the path
      * @param selectorData the selector data
-     * @param maxMemory    the max memory
+     * @param initialCapacity initialCapacity
+     * @param maximumSize maximumSize
      */
-    public void cacheSelectorData(final String path, final SelectorData selectorData, final Integer maxMemory) {
-        MapUtils.computeIfAbsent(SELECTOR_DATA_MAP, selectorData.getPluginName(), map -> new MemorySafeWindowTinyLFUMap<>(maxMemory, 1 << 16)).put(path, selectorData);
+    public void cacheSelectorData(final String path, final SelectorData selectorData, final int initialCapacity, final long maximumSize) {
+        MapUtils.computeIfAbsent(SELECTOR_DATA_MAP, selectorData.getPluginName(), map ->
+                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.TRUE)).put(path, selectorData);
     }
 
     /**
@@ -96,4 +98,46 @@ public final class MatchDataCache {
         final Map<String, SelectorData> lruMap = SELECTOR_DATA_MAP.get(pluginName);
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
+    
+    /**
+     * cache rule data.
+     *
+     * @param path path
+     * @param ruleData rule data
+     * @param initialCapacity initial capacity
+     * @param maximumSize maximum size
+     */
+    public void cacheRuleData(final String path, final RuleData ruleData, final int initialCapacity, final long maximumSize) {
+        MapUtils.computeIfAbsent(RULE_DATA_MAP, ruleData.getPluginName(), map ->
+                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.TRUE)).put(path, ruleData);
+    }
+    
+    /**
+     * remove rule data.
+     *
+     * @param pluginName pluginName
+     */
+    public void removeRuleData(final String pluginName) {
+        RULE_DATA_MAP.remove(pluginName);
+    }
+    
+    /**
+     * clear the cache.
+     */
+    public void cleanRuleDataData() {
+        RULE_DATA_MAP.clear();
+    }
+    
+    /**
+     * get rule data.
+     *
+     * @param pluginName pluginName
+     * @param path path
+     * @return ruleData
+     */
+    public RuleData obtainRuleData(final String pluginName, final String path) {
+        final Map<String, RuleData> lruMap = RULE_DATA_MAP.get(pluginName);
+        return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
+    }
+    
 }
