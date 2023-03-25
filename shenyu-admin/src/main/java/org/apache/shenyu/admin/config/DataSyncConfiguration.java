@@ -60,6 +60,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -218,7 +219,8 @@ public class DataSyncConfiguration {
         @Bean
         @ConditionalOnMissingBean(ConfigFileService.class)
         public ConfigFileService polarisConfigFileService(final PolarisProperties polarisProperties) {
-            com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.createConfigurationByAddress(polarisProperties.getUrl());
+            com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.defaultConfig();
+            configuration.getConfigFile().getServerConnector().setAddresses(Arrays.asList(polarisProperties.getUrl()));
             configuration.getConfigFile().getServerConnector().setToken(polarisProperties.getToken());
             return ConfigFileServiceFactory.createConfigFileService(configuration);
         }
@@ -231,7 +233,8 @@ public class DataSyncConfiguration {
         @Bean
         @ConditionalOnMissingBean(ConfigFilePublishService.class)
         public ConfigFilePublishService polarisConfigFilePublishService(final PolarisProperties polarisProperties) {
-            com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.createConfigurationByAddress(polarisProperties.getUrl());
+            com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.defaultConfig();
+            configuration.getConfigFile().getServerConnector().setAddresses(Arrays.asList(polarisProperties.getUrl()));
             configuration.getConfigFile().getServerConnector().setToken(polarisProperties.getToken());
             return ConfigFileServicePublishFactory.createConfigFilePublishService(configuration);
         }

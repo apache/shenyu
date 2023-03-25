@@ -55,6 +55,7 @@ public class PolarisDataChangedListener extends AbstractListDataChangedListener 
                     PolarisPathConstants.FILE_GROUP,
                     dataId);
             configFilePublishService.createConfigFile(metadata, GsonUtils.getInstance().toJson(data));
+            configFilePublishService.releaseConfigFile(metadata);
         } catch (PolarisException e) {
             LOG.error("Publish data to polaris error.", e);
             throw new ShenyuException(e.getMessage());
