@@ -19,8 +19,6 @@ package org.apache.shenyu.admin.config.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.List;
-
 /**
  * The type Polaris config.
  */
@@ -33,26 +31,56 @@ public class PolarisProperties {
 
     private String namespace;
 
+    /**
+     * Gets the value of url.
+     *
+     * @return the value of url
+     */
     public String getUrl() {
         return url;
     }
 
+    /**
+     * Sets the url.
+     *
+     * @param url url
+     */
     public void setUrl(String url) {
         this.url = url;
     }
 
+    /**
+     * Gets the value of token.
+     *
+     * @return the value of token
+     */
     public String getToken() {
         return token;
     }
 
+    /**
+     * Sets the token.
+     *
+     * @param token token
+     */
     public void setToken(String token) {
         this.token = token;
     }
 
+    /**
+     * Gets the value of namespace.
+     *
+     * @return the value of namespace
+     */
     public String getNamespace() {
         return namespace;
     }
 
+    /**
+     * Sets the namespace.
+     *
+     * @param namespace namespace
+     */
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
