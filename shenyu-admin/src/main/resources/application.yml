@@ -68,9 +68,9 @@ shenyu:
 #        connectionTimeout: 2000
 #      http:
 #        enabled: true
-      nacos:
-        url: localhost:8848
-        namespace: 609f6a25-3d1a-4616-9521-5e10faab5c1f
+#      nacos:
+#        url: localhost:8848
+#        namespace: 609f6a25-3d1a-4616-9521-5e10faab5c1f
 #        username:
 #        password:
 #        acm:
@@ -79,9 +79,10 @@ shenyu:
 #          namespace:
 #          accessKey:
 #          secretKey:
-#    polaris:
-#      address: grpc://127.0.0.1:8080
-#      namespace: default # 设置配置中心命名空间
+    polaris:
+      url: 192.168.1.107:8080
+      namespace: default # 设置配置中心命名空间
+      token: nu/0WRA4EqSR1FagrjRj0fZwPXuGlMpX+zCuWu4uMqy8xr1vRjisSbA25aAC3mtU8MeeRsKhQiDAynUR09I= # 设置配置中心token
 #    etcd:
 #      url: http://localhost:2379
 #    consul:

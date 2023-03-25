@@ -19,10 +19,13 @@ package org.apache.shenyu.admin.listener.polaris;
 
 import com.tencent.polaris.api.exception.PolarisException;
 import com.tencent.polaris.configuration.api.core.ConfigFile;
+import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
+import com.tencent.polaris.configuration.client.internal.DefaultConfigFileMetadata;
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,15 +38,27 @@ public class PolarisDataChangedListener extends AbstractListDataChangedListener 
 
     private final ConfigFileService configFileService;
 
-    public PolarisDataChangedListener(final ConfigFileService configFileService) {
+    private final ConfigFilePublishService configFilePublishService;
+
+    public PolarisDataChangedListener(final ConfigFileService configFileService, final ConfigFilePublishService configFilePublishService) {
         super(new ChangeData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, PolarisPathConstants.SELECTOR_DATA_FILE_NAME,
                 PolarisPathConstants.RULE_DATA_FILE_NAME, PolarisPathConstants.AUTH_DATA_ID_FILE_NAME, PolarisPathConstants.META_DATA_FILE_NAME));
         this.configFileService = configFileService;
+        this.configFilePublishService = configFilePublishService;
     }
 
     @Override
     public void publishConfig(final String dataId, final Object data) {
-        LOG.warn("Config upload not support yet, please upload it in polaris first");
+        try {
+            DefaultConfigFileMetadata metadata = new DefaultConfigFileMetadata(
+                    PolarisPathConstants.NAMESPACE,
+                    PolarisPathConstants.FILE_GROUP,
+                    dataId);
+            configFilePublishService.createConfigFile(metadata, GsonUtils.getInstance().toJson(data));
+        } catch (PolarisException e) {
+            LOG.error("Publish data to polaris error.", e);
+            throw new ShenyuException(e.getMessage());
+        }
     }
 
     @Override

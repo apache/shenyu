@@ -21,14 +21,18 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.ecwid.consul.v1.ConsulClient;
+import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
+import com.tencent.polaris.configuration.factory.ConfigFileServicePublishFactory;
+import com.tencent.polaris.factory.ConfigAPIFactory;
 import io.etcd.jetcd.Client;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ConsulProperties;
 import org.apache.shenyu.admin.config.properties.EtcdProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.config.properties.NacosProperties;
+import org.apache.shenyu.admin.config.properties.PolarisProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.listener.DataChangedInit;
@@ -122,7 +126,7 @@ public class DataSyncConfiguration {
         /**
          * Zookeeper data init zookeeper data init.
          *
-         * @param zkClient        the zk client
+         * @param zkClient the zk client
          * @return the zookeeper data init
          */
         @Bean
@@ -202,7 +206,8 @@ public class DataSyncConfiguration {
      * The type Polaris listener.
      */
     @Configuration
-    @ConditionalOnProperty(prefix = "shenyu.sync.polaris", name = "address")
+    @ConditionalOnProperty(prefix = "shenyu.sync.polaris", name = "url")
+    @EnableConfigurationProperties(PolarisProperties.class)
     static class PolarisListener {
 
         /**
@@ -212,8 +217,23 @@ public class DataSyncConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean(ConfigFileService.class)
-        public ConfigFileService polarisConfigService() {
-            return ConfigFileServiceFactory.createConfigFileService();
+        public ConfigFileService polarisConfigFileService(final PolarisProperties polarisProperties) {
+            com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.createConfigurationByAddress(polarisProperties.getUrl());
+            configuration.getConfigFile().getServerConnector().setToken(polarisProperties.getToken());
+            return ConfigFileServiceFactory.createConfigFileService(configuration);
+        }
+
+        /**
+         * register configFilePublishService in spring ioc.
+         *
+         * @return ConfigFilePublishService {@linkplain ConfigFilePublishService}
+         */
+        @Bean
+        @ConditionalOnMissingBean(ConfigFilePublishService.class)
+        public ConfigFilePublishService polarisConfigFilePublishService(final PolarisProperties polarisProperties) {
+            com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.createConfigurationByAddress(polarisProperties.getUrl());
+            configuration.getConfigFile().getServerConnector().setToken(polarisProperties.getToken());
+            return ConfigFileServicePublishFactory.createConfigFilePublishService(configuration);
         }
 
         /**
@@ -224,8 +244,8 @@ public class DataSyncConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean(PolarisDataChangedListener.class)
-        public DataChangedListener polarisDataChangedListener(final ConfigFileService configFileService) {
-            return new PolarisDataChangedListener(configFileService);
+        public DataChangedListener polarisDataChangedListener(final ConfigFileService configFileService, final ConfigFilePublishService configFilePublishService) {
+            return new PolarisDataChangedListener(configFileService, configFilePublishService);
         }
 
         /**
@@ -321,7 +341,7 @@ public class DataSyncConfiguration {
         /**
          * data init.
          *
-         * @param etcdClient        the etcd client
+         * @param etcdClient the etcd client
          * @return the etcd data init
          */
         @Bean
@@ -341,6 +361,7 @@ public class DataSyncConfiguration {
 
         /**
          * init Consul client.
+         *
          * @param consulProperties the consul properties
          * @return Consul client
          */
