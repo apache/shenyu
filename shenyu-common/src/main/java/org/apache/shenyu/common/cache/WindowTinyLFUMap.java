@@ -55,7 +55,7 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
      * initial caffeine cache include WeakReference cache and StrongReference cache.
      *
      * <p>when the weakKey is true that means using weakKeys cache, gc will collect the weak key, please refer to:
-     * {@link com.github.benmanes.caffeine.cache.References.WeakKeyReference }</p>
+     * com.github.benmanes.caffeine.cache.References.WeakKeyReference</p>
      *
      * <p>when the weakKey is false, use strong reference, jvm maybe throw oom-error.</p>
      *
