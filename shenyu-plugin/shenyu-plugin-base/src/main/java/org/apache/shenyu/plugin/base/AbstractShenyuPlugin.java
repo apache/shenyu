@@ -312,7 +312,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         RuleData ruleData = null;
         ShenyuTrieNode shenyuTrieNode = trie.match(path, selectorData.getId());
         if (Objects.nonNull(shenyuTrieNode)) {
-            List<RuleData> ruleDataList = shenyuTrieNode.getPathRuleCache().getIfPresent(selectorData.getId());
+            List<RuleData> ruleDataList = shenyuTrieNode.getPathRuleCache().get(selectorData.getId());
             if (CollectionUtils.isNotEmpty(ruleDataList)) {
                 Pair<Boolean, RuleData> ruleDataPair = matchRule(exchange, ruleDataList);
                 ruleData = ruleDataPair.getRight();
