@@ -28,8 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * this cache is provided by caffeine, the cache has two implements including weak-key cache and strong-key cache.<br>
- * <p>the weak-key cache applies to scenarios where objects can be collected. when memory lock causes full gc, the weakKey will collect by gc.<br>
- * <p>the strong-key cache applies to immutable cache object data, and the user determines the cache size.<br>
+ * <p>the weak-key cache applies to scenarios where objects can be collected. when memory lock causes full gc, the weakKey will collect by gc.</p>
+ * <p>the strong-key cache applies to immutable cache object data, and the user determines the cache size.</p>
  * <p>about the weak-key cache and strong-key cache, please refer to:
  * <a href="https://github.com/ben-manes/caffeine/issues/776">caffeine cache ISSUES #776</a></p>
  */
@@ -55,9 +55,9 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
      * initial caffeine cache include WeakReference cache and StrongReference cache.
      *
      * <p>when the weakKey is true that means using weakKeys cache, gc will collect the weak key, please refer to:
-     * {@link com.github.benmanes.caffeine.cache.References.WeakKeyReference }
+     * {@link com.github.benmanes.caffeine.cache.References.WeakKeyReference }</p>
      *
-     * <p>when the weakKey is false, use strong reference, jvm maybe throw oom-error.
+     * <p>when the weakKey is false, use strong reference, jvm maybe throw oom-error.</p>
      *
      * <pre>{@code Map<String, Object> strongMap = new WindowTinyLFUMap<>(100, 100, Boolean.FALSE);
      * strongMap.put(new String("abc"), 1);
