@@ -316,7 +316,12 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             LOG.info("{} rule match path from shenyu trie", named());
             List<RuleData> ruleDataList = shenyuTrieNode.getPathRuleCache().get(selectorData.getId());
             if (CollectionUtils.isNotEmpty(ruleDataList)) {
-                Pair<Boolean, RuleData> ruleDataPair = matchRule(exchange, ruleDataList);
+                Pair<Boolean, RuleData> ruleDataPair;
+                if (ruleDataList.size() > 1) {
+                    ruleDataPair = matchRule(exchange, ruleDataList);
+                } else {
+                    ruleDataPair = Pair.of(Boolean.TRUE, ruleDataList.stream().findFirst().orElse(null));
+                }
                 ruleData = ruleDataPair.getRight();
                 if (ruleDataPair.getLeft()) {
                     // exist only one rule data, cache rule
