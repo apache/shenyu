@@ -49,5 +49,4 @@ public class WindowTinyLFUMapTest {
         Assert.assertEquals(map.get(key1), map.get(key2));
         Assert.assertEquals(1, map.size());
     }
-    
 }
