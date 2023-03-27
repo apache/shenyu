@@ -228,9 +228,9 @@ public class ShenyuTrie {
                 ShenyuTrieNode currentNode = root;
                 for (int i = 0; i < pathParts.length; i++) {
                     String path = pathParts[i];
-                    currentNode = matchNode(path, currentNode, selectorId);
+                    boolean endPath = judgeEqual(i, pathParts.length - 1);
+                    currentNode = matchNode(path, currentNode, selectorId, endPath, pathParts[pathParts.length - 1]);
                     if (Objects.nonNull(currentNode)) {
-                        boolean endPath = judgeEqual(i, pathParts.length - 1);
                         // path is not end, continue to execute
                         if (checkChildrenNotNull(currentNode) && !currentNode.getEndOfPath()) {
                             continue;
@@ -264,11 +264,12 @@ public class ShenyuTrie {
      * @param selectorId selectorId
      * @return {@linkplain ShenyuTrieNode}
      */
-    private ShenyuTrieNode matchNode(final String segment, final ShenyuTrieNode node, final String selectorId) {
+    private ShenyuTrieNode matchNode(final String segment, final ShenyuTrieNode node, final String selectorId,
+                                     final Boolean endOfPath, final String lastSegment) {
         if (Objects.nonNull(node)) {
             // node exist in children,first find path, avoid A plug have /http/**, B plug have /http/order/**
             if (checkChildrenNotNull(node)) {
-                Pair<Boolean, ShenyuTrieNode> pair = filterTrieNode(node, selectorId);
+                Pair<Boolean, ShenyuTrieNode> pair = filterTrieNode(node, selectorId, endOfPath, lastSegment);
                 if (pair.getLeft()) {
                     return pair.getRight();
                 }
@@ -363,10 +364,12 @@ public class ShenyuTrie {
         return null;
     }
     
-    private Pair<Boolean, ShenyuTrieNode> filterTrieNode(final ShenyuTrieNode node, final String selectorId) {
+    private Pair<Boolean, ShenyuTrieNode> filterTrieNode(final ShenyuTrieNode node, final String selectorId,
+                                                         final boolean endOfPath, final String lastSegment) {
         Map<String, ShenyuTrieNode> currentMap = node.getChildren();
         List<ShenyuTrieNode> filterTrieNodes = currentMap.values().stream()
-                .filter(currentNode -> currentNode.getEndOfPath() && selectorId.equals(currentNode.getSelectorId()))
+                .filter(currentNode -> currentNode.getEndOfPath() && selectorId.equals(currentNode.getSelectorId())
+                        && (isMatchAllOrWildcard(currentNode.getMatchStr()) || (endOfPath && lastSegment.equals(currentNode.getMatchStr()))))
                 .collect(Collectors.toList());
         if (filterTrieNodes.size() != 1) {
             return Pair.of(Boolean.FALSE, null);
