@@ -36,7 +36,6 @@
             <artifactId>shenyu-register-client-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.ctrip.framework.apollo</groupId>
             <artifactId>apollo-client</artifactId>
