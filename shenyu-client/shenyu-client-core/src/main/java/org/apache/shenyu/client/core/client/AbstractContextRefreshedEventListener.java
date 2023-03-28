@@ -18,6 +18,8 @@
 package org.apache.shenyu.client.core.client;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.gson.JsonObject;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -30,6 +32,7 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.ApiSourceEnum;
 import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
@@ -53,6 +56,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -170,13 +174,14 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             String apiPath = contextPath + superPath + value;
             ApiHttpMethodEnum[] value3 = sextet.getValue3();
             for (ApiHttpMethodEnum apiHttpMethodEnum : value3) {
+                String documentJson = buildDocumentJson(pairs.getRight(),apiPath);
                 ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                         .consume(sextet.getValue1())
                         .produce(sextet.getValue2())
                         .httpMethod(apiHttpMethodEnum.getValue())
                         .contextPath(contextPath)
                         .ext("{}")
-                        .document("{}")
+                        .document(documentJson)
                         .rpcType(sextet.getValue4().getName())
                         .version(sextet.getValue5())
                         .apiDesc(pairs.getLeft())
@@ -191,6 +196,23 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             }
         }
         return list;
+    }
+
+    /**
+     * TODO 记录document
+     * parameters？
+     * responses？
+     * @param tags
+     * @param operationId
+     * @return
+     */
+    private String buildDocumentJson(List<String> tags,String operationId) {
+        Map documentMap = Maps.newHashMap();
+        documentMap.put("tags",tags);
+        documentMap.put("operationId",operationId);
+        documentMap.put("parameters",operationId);
+        documentMap.put("responses",operationId);
+        return GsonUtils.getInstance().toJson(documentMap);
     }
 
     protected abstract Sextet<String[], String, String, ApiHttpMethodEnum[], RpcTypeEnum, String> buildApiDocSextet(Method method, Annotation annotation, Map<String, T> beans);
