@@ -17,24 +17,36 @@
 
 package org.apache.shenyu.plugin.xss;
 
+import com.sun.xml.internal.ws.api.model.wsdl.editable.EditableWSDLMessage;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
+import org.apache.shenyu.common.dto.convert.rule.XssHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.xss.config.XssConfig;
+import org.apache.shenyu.plugin.xss.handler.XssPluginDataHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.HtmlUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * XSS plugin avoids common XSS attacks.
@@ -48,7 +60,35 @@ public class XssPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         LOG.info("Xss plugin doExecute start.");
 
-        // Http only 过滤
+        final XssConfig xssConfig = Singleton.INST.get(XssConfig.class);
+        XssHandle xssHandle = XssPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+
+        // Parameter attack
+        if (Objects.isNull(xssHandle)) {
+            LOG.error("xss handler can not configuration：{}", xssHandle);
+            return chain.execute(exchange);
+        }
+        ServerHttpRequest request = exchange.getRequest();
+        ServerWebExchange modifiedExchange = exchange.mutate()
+                .request(originalRequest -> originalRequest.uri(
+                                UriComponentsBuilder.fromUri(exchange.getRequest()
+                                                .getURI())
+                                        .replaceQueryParams(parameterToHtml(request, xssHandle))
+                                        .build()
+                                        .encode()
+                                        .toUri()
+                        )
+                ).build();
+
+        // Parameter attack
+
+
+        // CSP https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+        exchange.getResponse().getHeaders().add("Content-Security-Policy", "script-src 'self'");
+        // CSP
+
+
+        // Cookie Http only
         ServerHttpResponse response = exchange.getResponse();
         HttpHeaders headers = response.getHeaders();
         List<String> cookies = headers.get(HttpHeaders.SET_COOKIE);
@@ -63,11 +103,24 @@ public class XssPlugin extends AbstractShenyuPlugin {
             }
             headers.put(HttpHeaders.SET_COOKIE, newCookies);
         }
-        // Http only 过滤
+        // Cookie Http only
 
 
         LOG.info("Xss plugin doExecute end.");
-        return chain.execute(exchange);
+        return chain.execute(modifiedExchange);
+    }
+
+    private MultiValueMap<String, String> parameterToHtml(final ServerHttpRequest request, final XssHandle xssHandle) {
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.getQueryParams());
+
+        queryParams.forEach((k, v) -> {
+            final List<String> newValues = new ArrayList<>();
+            for (final String value : v) {
+                newValues.add(HtmlUtils.htmlEscape(value));
+            }
+            queryParams.replace(k, newValues);
+        });
+        return queryParams;
     }
 
 
@@ -80,4 +133,5 @@ public class XssPlugin extends AbstractShenyuPlugin {
     public String named() {
         return PluginEnum.XSS.getName();
     }
+
 }

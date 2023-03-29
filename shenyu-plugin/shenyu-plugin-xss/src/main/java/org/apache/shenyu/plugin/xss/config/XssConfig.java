@@ -26,27 +26,12 @@ public class XssConfig implements Serializable {
 
     private static final long serialVersionUID = 96834909685183123L;
 
-    /**
-     * black or mixed.
-     * default is black; mixed .
-     */
-    private String model;
+    private String request;
 
-    /**
-     * Gets model.
-     *
-     * @return the model
-     */
-    public String getModel() {
-        return model;
-    }
+    private String response;
 
-    /**
-     * Sets model.
-     *
-     * @param model the model
-     */
-    public void setModel(final String model) {
-        this.model = model;
-    }
+    private String csp;
+
+    private String cookie;
+
 }
