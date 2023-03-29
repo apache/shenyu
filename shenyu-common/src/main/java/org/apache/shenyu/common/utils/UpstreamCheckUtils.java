@@ -63,7 +63,7 @@ public class UpstreamCheckUtils {
             return false;
         }
         String[] hostPort;
-        if (url.startsWith(HTTP)) {
+        if (url.startsWith(HTTP) || url.startsWith(HTTPS)) {
             final String[] http = StringUtils.split(url, "\\/\\/");
             hostPort = StringUtils.split(http[1], Constants.COLONS);
         } else {
