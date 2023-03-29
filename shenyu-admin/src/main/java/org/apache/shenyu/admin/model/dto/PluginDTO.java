@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -61,6 +62,7 @@ public class PluginDTO implements Serializable {
      * plugin sort.
      */
     @NotNull
+    @Min(0)
     private Integer sort;
 
     /**

@@ -53,6 +53,7 @@ public class MemorySafeWindowTinyLFUMapTest {
         Assert.assertEquals(1, cache.size());
         cache.put(2, 2);
         cache.put(3, 3);
+        cache.invalidate();
         cache.cleanUp();
         Assert.assertEquals(1, cache.size());
         final Map.Entry<Integer, Integer> entry = cache.entrySet().iterator().next();
