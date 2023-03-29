@@ -22,6 +22,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
 import org.apache.shenyu.plugin.base.support.CachedBodyOutputMessage;
+import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -44,6 +45,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * The type File size filter.
@@ -87,7 +89,8 @@ public class FileSizeFilter implements WebFilter {
                                 .then(Mono.defer(() -> {
                                     ServerHttpRequest decorator = decorate(exchange, outputMessage);
                                     return chain.filter(exchange.mutate().request(decorator).build());
-                                })).doFinally(signalType -> DataBufferUtils.release(dataBuffer));
+                                })).doFinally(signalType -> DataBufferUtils.release(dataBuffer))
+                                .onErrorResume((Function<Throwable, Mono<Void>>) throwable -> ResponseUtils.release(outputMessage, throwable));
                     });
         }
         return chain.filter(exchange);
