@@ -87,8 +87,10 @@ public class FileSizeFilter implements WebFilter {
                                 .then(Mono.defer(() -> {
                                     ServerHttpRequest decorator = decorate(exchange, outputMessage);
                                     return chain.filter(exchange.mutate().request(decorator).build());
-                                }));
-                    }).doOnDiscard(DataBuffer.class, DataBufferUtils::release);
+                                })).doFinally(signalType -> {
+                                    DataBufferUtils.release(dataBuffer);
+                                });
+                    });
         }
         return chain.filter(exchange);
 
