@@ -30,9 +30,9 @@ import java.net.Socket;
  */
 public class UpstreamCheckUtils {
 
-    private static final String HTTP = "http";
+    private static final String HTTP = "http://";
 
-    private static final String HTTPS = "https";
+    private static final String HTTPS = "https://";
 
     private static final int DEFAULT_TIMEOUT = 3000;
 
