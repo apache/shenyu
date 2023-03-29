@@ -142,6 +142,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 ruleData = trieMatchRule(exchange, selectorData, path);
                 // trie cache fails to hit, execute default strategy
                 if (Objects.isNull(ruleData)) {
+                    LOG.info("{} rule match path from default strategy", named());
                     Pair<Boolean, RuleData> matchRuleData = matchRule(exchange, rules);
                     ruleData = matchRuleData.getRight();
                     if (matchRuleData.getLeft()) {
@@ -312,9 +313,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         RuleData ruleData = null;
         ShenyuTrieNode shenyuTrieNode = trie.match(path, selectorData.getId());
         if (Objects.nonNull(shenyuTrieNode)) {
-            List<RuleData> ruleDataList = shenyuTrieNode.getPathRuleCache().getIfPresent(selectorData.getId());
+            LOG.info("{} rule match path from shenyu trie", named());
+            List<RuleData> ruleDataList = shenyuTrieNode.getPathRuleCache().get(selectorData.getId());
             if (CollectionUtils.isNotEmpty(ruleDataList)) {
-                Pair<Boolean, RuleData> ruleDataPair = matchRule(exchange, ruleDataList);
+                Pair<Boolean, RuleData> ruleDataPair;
+                if (ruleDataList.size() > 1) {
+                    ruleDataPair = matchRule(exchange, ruleDataList);
+                } else {
+                    ruleDataPair = Pair.of(Boolean.TRUE, ruleDataList.stream().findFirst().orElse(null));
+                }
                 ruleData = ruleDataPair.getRight();
                 if (ruleDataPair.getLeft()) {
                     // exist only one rule data, cache rule
