@@ -184,7 +184,7 @@ public final class CommonPluginDataSubscriberTest {
     public void testOnRuleSubscribe() {
         baseDataCache.cleanRuleData();
 
-        RuleData ruleData = RuleData.builder().id("1").selectorId(mockSelectorId1).pluginName(mockPluginName1).sort(1).build();
+        RuleData ruleData = RuleData.builder().id("1").selectorId(mockSelectorId1).enabled(true).pluginName(mockPluginName1).sort(1).build();
         commonPluginDataSubscriber.onRuleSubscribe(ruleData);
         assertNotNull(baseDataCache.obtainRuleData(ruleData.getSelectorId()));
         assertEquals(Lists.newArrayList(ruleData), baseDataCache.obtainRuleData(ruleData.getSelectorId()));
