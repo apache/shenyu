@@ -295,13 +295,9 @@ public class ShenyuTrie {
 
     /**
      * remove trie node.
-     * remove rules: query node of the current path, if the node exists,
-     * checks whether the current node is mapped to multiple plug-in rules.
-     * if the plug-in rules have only on mapping, remove the node from parent.
-     * if current node exists multi mappings, remove the mapping.
      *
-     * @param paths paths
-     * @param ruleData ruleData
+     * @param paths path list
+     * @param ruleData rule data
      */
     public void remove(final List<String> paths, final RuleData ruleData) {
         if (CollectionUtils.isNotEmpty(paths)) {
@@ -311,10 +307,9 @@ public class ShenyuTrie {
 
     /**
      * remove trie node.
-     * remove rules: query node of the current path, if the node exists,
-     * checks whether the current node is mapped to multiple plug-in rules.
-     * if the plug-in rules have only on mapping, remove the node from parent.
-     * if current node exists multi mappings, remove the mapping.
+     * <p> query node of the current path, if the node exists and the node exist the value of pathRuleCache,
+     * delete a rule with the same ruleId from pathRuleCache.</p>
+     * <p> if current rule data list is empty, children and pathVariablesSet is null,remove concurrent node from parent node.</p>
      *
      * @param path path
      * @param ruleData ruleData
@@ -334,7 +329,8 @@ public class ShenyuTrie {
                 synchronized (ruleData.getSelectorId()) {
                     ruleDataList.removeIf(rule -> ruleData.getId().equals(rule.getId()));
                 }
-                if (CollectionUtils.isEmpty(ruleDataList) && Objects.isNull(currentNode.getChildren())) {
+                if (CollectionUtils.isEmpty(ruleDataList) && Objects.isNull(currentNode.getChildren())
+                        && Objects.isNull(currentNode.getPathVariablesSet())) {
                     // remove current node from parent node
                     String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
                     String parentPath = String.join("/", parentPathArray);
