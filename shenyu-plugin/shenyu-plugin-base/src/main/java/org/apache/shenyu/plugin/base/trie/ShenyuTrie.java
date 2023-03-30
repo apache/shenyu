@@ -26,10 +26,12 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.TrieMatchModeEvent;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ShenyuTrie {
@@ -318,6 +320,7 @@ public class ShenyuTrie {
      * @param ruleData ruleData
      */
     public void remove(final String path, final RuleData ruleData) {
+        Objects.requireNonNull(ruleData.getId(), "rule id cannot be empty");
         if (StringUtils.isNotBlank(path)) {
             String strippedPath = StringUtils.strip(path, "/");
             String[] pathParts = StringUtils.split(strippedPath, "/");
@@ -327,21 +330,16 @@ public class ShenyuTrie {
             if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPathRuleCache())) {
                 // check current mapping
                 List<RuleData> ruleDataList = getVal(currentNode.getPathRuleCache(), ruleData.getSelectorId());
-                if (CollectionUtils.isNotEmpty(ruleDataList) && ruleDataList.size() == 1 && Objects.isNull(currentNode.getChildren())) {
+                ruleDataList = Optional.ofNullable(ruleDataList).orElse(Collections.emptyList());
+                synchronized (ruleData.getSelectorId()) {
+                    ruleDataList.removeIf(rule -> rule.getId().equals(ruleData.getId()));
+                }
+                if (CollectionUtils.isEmpty(ruleDataList) && Objects.isNull(currentNode.getChildren())) {
                     // remove current node from parent node
                     String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
                     String parentPath = String.join("/", parentPathArray);
                     ShenyuTrieNode parentNode = this.getNode(parentPath);
                     parentNode.getChildren().remove(key);
-                } else {
-                    // remove plugin mapping
-                    List<RuleData> delRuleData = getVal(currentNode.getPathRuleCache(), ruleData.getSelectorId());
-                    if (CollectionUtils.isNotEmpty(delRuleData)) {
-                        synchronized (ruleData.getSelectorId()) {
-                            delRuleData.removeIf(rule -> rule.getId().equals(ruleData.getSelectorId()));
-                            currentNode.getPathRuleCache().put(ruleData.getSelectorId(), delRuleData);
-                        }
-                    }
                 }
             }
         }
