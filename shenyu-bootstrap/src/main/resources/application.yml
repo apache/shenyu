@@ -156,10 +156,16 @@ shenyu:
 #      workerCount: 8
 #      daemon: true
   register:
-    enabled: false
-    registerType: zookeeper #etcd #consul
-    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    registerType: nacos #http #zookeeper #etcd #nacos #consul
+    serverLists: 192.168.1.220:8848 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
+      sessionTimeout: 5000
+      connectionTimeout: 2000
+      checked: true
+      zombieCheckThreads: 10
+      zombieCheckTimes: 5
+      scheduledTime: 10
+      nacosNameSpace: cab5cbe-d9d4-4a65-81f0-89d7511fdc7c
   cross:
     enabled: true
     allowedHeaders:
@@ -188,12 +194,12 @@ shenyu:
     enabled: true
     maxSize : 10
   sync:
-    apollo:
-      appId: shenyu
-      meta: http://192.168.6.102:8080
-      env: dev
-      clusterName: test
-      namespace: application
+#    apollo:
+#      appId: shenyu
+#      meta: http://192.168.6.102:8080
+#      env: dev
+#      clusterName: test
+#      namespace: application
 #    websocket:
 #      urls: ws://localhost:9095/websocket
 #      allowOrigin: ws://localhost:9195
@@ -205,17 +211,17 @@ shenyu:
 #      url: http://localhost:9095
 #      username:
 #      password:
-#    nacos:
-#      url: localhost:8848
-#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-#      username:
-#      password:
-#      acm:
-#        enabled: false
-#        endpoint: acm.aliyun.com
-#        namespace:
-#        accessKey:
-#        secretKey:
+    nacos:
+      url: 192.168.1.220
+      namespace: 7cab5cbe-d9d4-4a65-81f0-89d7511fdc7c
+      username:
+      password:
+      acm:
+        enabled: false
+        endpoint: acm.aliyun.com
+        namespace:
+        accessKey:
+        secretKey:
 #    etcd:
 #      url: http://localhost:2379
 #    consul:

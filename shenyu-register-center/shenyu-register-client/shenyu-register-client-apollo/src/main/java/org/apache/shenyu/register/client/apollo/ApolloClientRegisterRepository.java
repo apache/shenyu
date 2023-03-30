@@ -18,10 +18,11 @@
 package org.apache.shenyu.register.client.apollo;
 
 import com.ctrip.framework.apollo.core.ConfigConsts;
-import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -31,13 +32,9 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-
-import static org.apache.shenyu.common.constant.Constants.PATH_SEPARATOR;
 
 /**
  * apollo register center client.
@@ -55,7 +52,7 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
     public void init(final ShenyuRegisterCenterConfig config) {
         Properties properties = config.getProps();
         String appId = properties.getProperty("appId");
-        String portalUrl = properties.getProperty("portalUrl");
+        String portalUrl = config.getServerLists();
         String token = properties.getProperty("token");
         String env = properties.getProperty("env", "DEV");
         String clusterName = properties.getProperty("clusterName", ConfigConsts.CLUSTER_NAME_DEFAULT);
@@ -76,52 +73,45 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
         String contextPath = ContextPathUtils.buildRealNode(metadata.getContextPath(), metadata.getAppName());
-        this.registerMetadata(rpcType, contextPath, metadata);
+        registerConfig(rpcType, contextPath, metadata);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void persistURI(final URIRegisterDTO registerDTO) {
         String rpcType = registerDTO.getRpcType();
         String contextPath = ContextPathUtils.buildRealNode(registerDTO.getContextPath(), registerDTO.getAppName());
+        registerURI(rpcType, contextPath, registerDTO);
+        LogUtils.info(LOGGER, "{} apollo client register uri success: {}", rpcType, registerDTO);
+    }
+
+    private void registerURI(final String rpcType,
+                             final String contextPath,
+                             final URIRegisterDTO registerDTO) {
+        String uriNodeName = buildURINodeName(registerDTO);
         String uriPath = RegisterPathConstants.buildURIParentKey(rpcType, contextPath);
-        String urlMetadata = this.apolloClient.getItemValue(uriPath);
-        List<String> urlMetadataList = GsonUtils.getInstance().fromJson(urlMetadata, List.class);
-        urlMetadataList = urlMetadataList == null ? new ArrayList<>() : urlMetadataList;
-        urlMetadataList.add(GsonUtils.getInstance().toJson(registerDTO));
-        this.apolloClient.createOrUpdateItem(uriPath, urlMetadataList, "register uri");
-        this.apolloClient.publishNamespace("publish register uri", "");
+        String realNode = RegisterPathConstants.buildNodeName(uriPath, uriNodeName);
+        apolloClient.createOrUpdateItem(realNode, GsonUtils.getInstance().toJson(registerDTO), "register uri");
+        apolloClient.publishNamespace("publish config", "");
+        LOGGER.info("register uri data success: {}", realNode);
     }
 
-    private void registerMetadata(final String rpcType,
-                                  final String contextPath,
-                                  final MetaDataRegisterDTO metadata) {
-        String metadataNodeName = buildMetadataNodeName(metadata);
-        String metaDataPath = RegisterPathConstants.buildMetadataParentKey(rpcType, contextPath);
-        String realNode = RegisterPathConstants.buildNodeName(metaDataPath, metadataNodeName);
-        // avoid dup registration for metadata
-        synchronized (metadataSet) {
-            if (metadataSet.contains(realNode)) {
-                return;
-            }
-            metadataSet.add(realNode);
-        }
-        this.apolloClient.createOrUpdateItem(realNode, metadata, "register metadata");
-        this.apolloClient.publishNamespace("publish metadata", "");
-        LOGGER.info("{} zookeeper client register metadata success: {}", rpcType, metadata);
+    private String buildURINodeName(final URIRegisterDTO registerDTO) {
+        String host = registerDTO.getHost();
+        int port = registerDTO.getPort();
+        return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
-    private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
-        String nodeName;
-        String rpcType = metadata.getRpcType();
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType)
-                || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
-            nodeName = String.join(DefaultPathConstants.SELECTOR_JOIN_RULE,
-                    metadata.getContextPath(),
-                    metadata.getRuleName().replace(PATH_SEPARATOR, DefaultPathConstants.SELECTOR_JOIN_RULE));
-        } else {
-            nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
+
+    private synchronized void registerConfig(final String rpcType,
+                                             final String contextPath,
+                                             final MetaDataRegisterDTO metadata) {
+        metadataSet.add(GsonUtils.getInstance().toJson(metadata));
+        String configName = RegisterPathConstants.buildServiceConfigPath(rpcType, contextPath);
+        try {
+            this.apolloClient.createOrUpdateItem(configName, GsonUtils.getInstance().toJson(metadataSet), "register config");
+            this.apolloClient.publishNamespace("publish config", "");
+        } catch (Exception e) {
+            throw new ShenyuException(e);
         }
-        return nodeName.startsWith(PATH_SEPARATOR) ? nodeName.substring(1) : nodeName;
     }
 }

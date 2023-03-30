@@ -56,17 +56,7 @@ public class ApolloClient {
                 apolloConfig.getEnv(),
                 apolloConfig.getClusterName(),
                 apolloConfig.getNamespace(),
-                key
-        );
-        // no such key
-        if (openItemDTO == null) {
-            return null;
-        }
-        // todo handle timeout exception
-        if ("timeout".equals(openItemDTO.getKey())) {
-            return null;
-        }
-
+                key);
         return openItemDTO.getValue();
     }
 

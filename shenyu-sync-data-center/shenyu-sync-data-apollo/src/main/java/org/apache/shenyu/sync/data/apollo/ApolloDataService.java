@@ -2,6 +2,7 @@ package org.apache.shenyu.sync.data.apollo;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigChangeListener;
+import org.apache.commons.logging.Log;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.*;
@@ -61,6 +62,7 @@ public class ApolloDataService implements SyncDataService {
                 if (key.contains(NacosPathConstants.PLUGIN_DATA_ID)) {
                     List<PluginData> pluginDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), PluginData.class).values());
                     pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+                        LOG.info("apollo listener pluginData: {}", pluginDataList);
                         subscriber.unSubscribe(pluginData);
                         subscriber.onSubscribe(pluginData);
                     }));
@@ -82,6 +84,7 @@ public class ApolloDataService implements SyncDataService {
                 if (key.contains(NacosPathConstants.SELECTOR_DATA_ID)) {
                     List<SelectorData> selectorDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(key, ""), SelectorData.class).values().stream().flatMap(Collection::stream).collect(Collectors.toList());
                     selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+                        LOG.info("apollo listener selectorData: {}", selectorDataList);
                         subscriber.unSelectorSubscribe(selectorData);
                         subscriber.onSelectorSubscribe(selectorData);
                     }));
@@ -104,6 +107,7 @@ public class ApolloDataService implements SyncDataService {
                             .stream().flatMap(Collection::stream)
                             .collect(Collectors.toList());
                     ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+                        LOG.info("apollo listener ruleData: {}", ruleDataList);
                         subscriber.unRuleSubscribe(ruleData);
                         subscriber.onRuleSubscribe(ruleData);
                     }));
@@ -111,7 +115,7 @@ public class ApolloDataService implements SyncDataService {
 
             });
         };
-        cache.put(DefaultPathConstants.RULE_PARENT, configChangeListener);
+        cache.put(NacosPathConstants.RULE_DATA_ID, configChangeListener);
         configService.addChangeListener(configChangeListener);
     }
 
@@ -121,9 +125,10 @@ public class ApolloDataService implements SyncDataService {
     private void watchMetaData() {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(DefaultPathConstants.META_DATA)) {
+                if (key.contains(NacosPathConstants.META_DATA_ID)) {
                     List<MetaData> metaDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), MetaData.class).values());
                     metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {
+                        LOG.info("apollo listener metaData: {}", metaDataList);
                         subscriber.unSubscribe(metaData);
                         subscriber.onSubscribe(metaData);
                     }));
@@ -131,7 +136,7 @@ public class ApolloDataService implements SyncDataService {
 
             });
         };
-        cache.put(DefaultPathConstants.META_DATA, configChangeListener);
+        cache.put(NacosPathConstants.META_DATA_ID, configChangeListener);
         configService.addChangeListener(configChangeListener);
     }
 
@@ -141,9 +146,10 @@ public class ApolloDataService implements SyncDataService {
     private void watchAuthData() {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(DefaultPathConstants.APP_AUTH_PARENT)) {
+                if (key.contains(NacosPathConstants.AUTH_DATA_ID)) {
                     List<AppAuthData> appAuthDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), AppAuthData.class).values());
                     appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {
+                        LOG.info("apollo listener appAuthData: {}", appAuthDataList);
                         subscriber.unSubscribe(appAuthData);
                         subscriber.onSubscribe(appAuthData);
                     }));
@@ -151,18 +157,18 @@ public class ApolloDataService implements SyncDataService {
 
             });
         };
-        cache.put(DefaultPathConstants.APP_AUTH_PARENT, configChangeListener);
+        cache.put(NacosPathConstants.AUTH_DATA_ID, configChangeListener);
         configService.addChangeListener(configChangeListener);
     }
 
 
     @Override
     public void close() {
-        configService.removeChangeListener(cache.get(DefaultPathConstants.PLUGIN_PARENT));
-        configService.removeChangeListener(cache.get(DefaultPathConstants.SELECTOR_PARENT));
-        configService.removeChangeListener(cache.get(DefaultPathConstants.RULE_PARENT));
-        configService.removeChangeListener(cache.get(DefaultPathConstants.META_DATA));
-        configService.removeChangeListener(cache.get(DefaultPathConstants.APP_AUTH_PARENT));
+        configService.removeChangeListener(cache.get(NacosPathConstants.PLUGIN_DATA_ID));
+        configService.removeChangeListener(cache.get(NacosPathConstants.SELECTOR_DATA_ID));
+        configService.removeChangeListener(cache.get(NacosPathConstants.RULE_DATA_ID));
+        configService.removeChangeListener(cache.get(NacosPathConstants.AUTH_DATA_ID));
+        configService.removeChangeListener(cache.get(NacosPathConstants.META_DATA_ID));
         cache.clear();
     }
 }

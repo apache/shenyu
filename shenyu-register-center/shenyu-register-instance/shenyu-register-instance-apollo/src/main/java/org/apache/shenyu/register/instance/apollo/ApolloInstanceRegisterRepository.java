@@ -16,7 +16,10 @@ package org.apache.shenyu.register.instance.apollo;/*
  */
 
 
+import com.ctrip.framework.apollo.ConfigChangeListener;
+import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.core.ConfigConsts;
+import com.google.common.collect.Maps;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
@@ -28,9 +31,7 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,8 +43,9 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApolloInstanceRegisterRepository.class);
 
-
     private ApolloClient apolloClient;
+
+    private final Map<String, ConfigChangeListener> configChangeListenerMap = Maps.newConcurrentMap();
 
     private String namespace;
 
@@ -56,7 +58,6 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
         String env = properties.getProperty("env", "DEV");
         String clusterName = properties.getProperty("clusterName", ConfigConsts.CLUSTER_NAME_DEFAULT);
         String namespace = properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION);
-
         ApolloConfig apolloConfig = new ApolloConfig();
         apolloConfig.setAppId(appId);
         apolloConfig.setPortalUrl(portalUrl);
@@ -66,8 +67,6 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
         apolloConfig.setNamespace(namespace);
         this.namespace = namespace;
         this.apolloClient = new ApolloClient(apolloConfig);
-
-
     }
 
     @Override
@@ -77,7 +76,7 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
         String realNode = InstancePathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         apolloClient.createOrUpdateItem(realNode, nodeData, "register instance");
-        LOGGER.info("apollo client register success: {}", nodeData);
+        LOGGER.info("apollo instance register success: {}", nodeData);
     }
 
     @Override
@@ -85,15 +84,38 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
         final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
         final Function<Map<String, String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList ->
                 childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceEntity.class)).collect(Collectors.toList());
-
-//        apolloClient.watchKey watcherListener.listener(watchKey, getInstanceRegisterFun);
-//        return getInstanceRegisterFun.apply(serverNodes);
-        return null;
+        Map<String, String> childrenList = new HashMap<>();
+        ConfigChangeListener configChangeListener = changeEvent -> {
+            Set<String> keys = changeEvent.changedKeys();
+            keys.forEach(key -> {
+                if (key.startsWith(watchKey)) {
+                    switch (changeEvent.getChange(key).getChangeType()) {
+                        case ADDED:
+                            childrenList.put(key, changeEvent.getChange(key).getNewValue());
+                            LOGGER.info("apollo instance register success: {}", changeEvent.getChange(key).getNewValue());
+                        case MODIFIED:
+                            childrenList.put(key, changeEvent.getChange(key).getNewValue());
+                            LOGGER.info("apollo instance register success: {}", changeEvent.getChange(key).getNewValue());
+                            break;
+                        case DELETED:
+                            childrenList.remove(key);
+                            LOGGER.info("apollo instance register delete success: {}", changeEvent.getChange(key).getOldValue());
+                            break;
+                        default:
+                            break;
+                    }
+                    watcherListener.listener(getInstanceRegisterFun.apply(childrenList));
+                }
+            });
+        };
+        ConfigService.getConfig(namespace).addChangeListener(configChangeListener);
+        configChangeListenerMap.put(watchKey, configChangeListener);
+        return getInstanceRegisterFun.apply(childrenList);
     }
 
     @Override
     public void close() {
-        ShenyuInstanceRegisterRepository.super.close();
+        configChangeListenerMap.forEach((key, value) -> ConfigService.getConfig(namespace).removeChangeListener(value));
     }
 
     private String buildInstanceNodeName(final InstanceEntity instance) {
