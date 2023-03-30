@@ -332,7 +332,7 @@ public class ShenyuTrie {
                 List<RuleData> ruleDataList = getVal(currentNode.getPathRuleCache(), ruleData.getSelectorId());
                 ruleDataList = Optional.ofNullable(ruleDataList).orElse(Collections.emptyList());
                 synchronized (ruleData.getSelectorId()) {
-                    ruleDataList.removeIf(rule -> rule.getId().equals(ruleData.getId()));
+                    ruleDataList.removeIf(rule -> ruleData.getId().equals(rule.getId()));
                 }
                 if (CollectionUtils.isEmpty(ruleDataList) && Objects.isNull(currentNode.getChildren())) {
                     // remove current node from parent node
