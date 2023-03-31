@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.bootstrap.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -33,6 +34,11 @@ import java.net.URI;
 public class CollapseSlashesConfiguration {
 
     @Bean
+    @ConditionalOnProperty(
+            value = "shenyu.switchConfig.collapseSlashes",
+            havingValue = "true",
+            matchIfMissing = true
+    )
     public WebFilter collapseSlashesFilter() {
         return (ServerWebExchange exchange, WebFilterChain chain) -> {
             ServerHttpRequest request = exchange.getRequest();
