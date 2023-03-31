@@ -17,12 +17,8 @@
 
 package org.apache.shenyu.plugin.xss;
 
-import com.sun.xml.internal.ws.api.model.wsdl.editable.EditableWSDLMessage;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.rule.RequestHandle;
 import org.apache.shenyu.common.dto.convert.rule.XssHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.Singleton;
@@ -45,7 +41,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -65,49 +60,57 @@ public class XssPlugin extends AbstractShenyuPlugin {
 
         // Parameter attack
         if (Objects.isNull(xssHandle)) {
-            LOG.error("xss handler can not configuration：{}", xssHandle);
+            LOG.error("xss handler can not configuration,skip.");
             return chain.execute(exchange);
         }
-        ServerHttpRequest request = exchange.getRequest();
-        ServerWebExchange modifiedExchange = exchange.mutate()
-                .request(originalRequest -> originalRequest.uri(
-                                UriComponentsBuilder.fromUri(exchange.getRequest()
-                                                .getURI())
-                                        .replaceQueryParams(parameterToHtml(request, xssHandle))
-                                        .build()
-                                        .encode()
-                                        .toUri()
-                        )
-                ).build();
+        final HttpHeaders headers = exchange.getResponse().getHeaders();
+
+
+//        ServerHttpRequest request = exchange.getRequest();
+//        ServerWebExchange modifiedExchange = exchange.mutate()
+//                .request(originalRequest -> originalRequest.uri(
+//                                UriComponentsBuilder.fromUri(exchange.getRequest()
+//                                                .getURI())
+//                                        .replaceQueryParams(parameterToHtml(request, xssHandle))
+//                                        .build()
+//                                        .encode()
+//                                        .toUri()
+//                        )
+//                ).build();
 
         // Parameter attack
 
 
         // CSP https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
-        exchange.getResponse().getHeaders().add("Content-Security-Policy", "script-src 'self'");
+        if (!headers.containsKey("Content-Security-Policy")) {
+            headers.add("Content-Security-Policy", "script-src 'self'");
+        }
         // CSP
 
 
         // Cookie Http only
         ServerHttpResponse response = exchange.getResponse();
-        HttpHeaders headers = response.getHeaders();
         List<String> cookies = headers.get(HttpHeaders.SET_COOKIE);
+
         if (cookies != null) {
-            List<String> newCookies = new ArrayList<>(cookies.size());
-            for (String cookie : cookies) {
-                if (cookie.contains("JSESSIONID")) {
-                    newCookies.add(cookie + "; HttpOnly");
-                } else {
-                    newCookies.add(cookie);
+            final String cookieStr = String.join(",", cookies);
+            if (!cookieStr.contains("HttpOnly")) {
+                List<String> newCookies = new ArrayList<>(cookies.size());
+                for (String cookie : cookies) {
+                    if (cookie.contains("JSESSIONID")) {
+                        newCookies.add(cookie + "; HttpOnly");
+                    } else {
+                        newCookies.add(cookie);
+                    }
                 }
+                headers.put(HttpHeaders.SET_COOKIE, newCookies);
             }
-            headers.put(HttpHeaders.SET_COOKIE, newCookies);
         }
         // Cookie Http only
 
 
         LOG.info("Xss plugin doExecute end.");
-        return chain.execute(modifiedExchange);
+        return chain.execute(exchange);
     }
 
     private MultiValueMap<String, String> parameterToHtml(final ServerHttpRequest request, final XssHandle xssHandle) {

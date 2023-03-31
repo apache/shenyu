@@ -32,6 +32,83 @@ public class XssConfig implements Serializable {
 
     private String csp;
 
-    private String cookie;
+    private String httpOnly;
 
+
+    /**
+     * get request.
+     *
+     * @return request
+     */
+    public String getRequest() {
+        return request;
+    }
+
+    /**
+     * set request.
+     *
+     * @param request request
+     */
+    public void setRequest(final String request) {
+        this.request = request;
+    }
+
+    /**
+     * get response.
+     *
+     * @return response
+     */
+    public String getResponse() {
+        return response;
+    }
+
+    /**
+     * set response.
+     *
+     * @param response response
+     */
+    public void setResponse(final String response) {
+        this.response = response;
+    }
+
+    /**
+     * get csp.
+     *
+     * @return csp
+     */
+    public String getCsp() {
+        return csp;
+    }
+
+    /**
+     * set csp.
+     *
+     * @param csp csp
+     */
+    public void setCsp(final String csp) {
+        this.csp = csp;
+    }
+
+    /**
+     * get httpOnly.
+     *
+     * @return httpOnly
+     */
+    public String getHttpOnly() {
+        return httpOnly;
+    }
+
+    /**
+     * set httpOnly.
+     *
+     * @param httpOnly httpOnly
+     */
+    public void setHttpOnly(final String httpOnly) {
+        this.httpOnly = httpOnly;
+    }
+
+//
+//    public Boolean enableHttpOnly() {
+//
+//    }
 }
