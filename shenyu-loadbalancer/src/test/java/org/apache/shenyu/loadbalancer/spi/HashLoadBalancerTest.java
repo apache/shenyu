@@ -15,34 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.shiro.bean;
+package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-    
+
 /**
- * Test cases for {@link StatelessToken}.
+ * HashLoadBalancer unit test.
  */
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
-public final class StatelessTokenTest {
-    
-    private static final String TOKEN = "token";
-    
-    private final StatelessToken statelessToken = new StatelessToken(TOKEN);
-    
+class HashLoadBalancerTest {
+
     @Test
-    public void testGetPrincipal() {
-        assertEquals(TOKEN, statelessToken.getPrincipal());
+    void doSelectWithSuccess() {
+        final HashLoadBalancer hashLoadBalancer = new HashLoadBalancer();
+        final List<Upstream> upstreamList = new ArrayList<>();
+        upstreamList.add(Upstream.builder().url("http://1.1.1.1/api").build());
+        upstreamList.add(Upstream.builder().url("http://2.2.2.2/api").build());
+        upstreamList.add(Upstream.builder().url("http://3.3.3.3/api").build());
+
+        final Upstream upstream = hashLoadBalancer.doSelect(upstreamList, "127.0.0.1");
+        assertEquals(upstreamList.get(2).getUrl(), upstream.getUrl());
     }
-    
-    @Test
-    public void testGetCredentials() {
-        assertEquals(TOKEN, statelessToken.getCredentials());
-    }
+
 }

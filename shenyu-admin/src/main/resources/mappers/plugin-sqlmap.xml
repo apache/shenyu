@@ -26,6 +26,7 @@
         <result column="config" jdbcType="VARCHAR" property="config"/>
         <result column="role" jdbcType="VARCHAR" property="role"/>
         <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="plugin_jar" property="pluginJar"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
@@ -37,6 +38,7 @@
         config,
         role,
         sort,
+        plugin_jar,
         enabled
     </sql>
 

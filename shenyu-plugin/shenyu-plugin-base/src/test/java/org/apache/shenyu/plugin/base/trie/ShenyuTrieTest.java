@@ -186,7 +186,7 @@ class ShenyuTrieTest {
                 .build();
         shenyuTrie.putNode("/a/b/c/**", ruleData, null);
         shenyuTrie.putNode("/a/b/c/**", ruleData2, null);
-        shenyuTrie.remove("/a/b/c/**", "2", "2");
+        shenyuTrie.remove("/a/b/c/**", ruleData2);
         Assertions.assertNotNull(shenyuTrie.getNode("/a/b/c/**"));
     
         RuleData ruleData3 = RuleData.builder()
@@ -199,7 +199,7 @@ class ShenyuTrieTest {
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
         shenyuTrie.putNode("/path1/path2", ruleData3, null);
-        shenyuTrie.remove("/path1/path2", "3", "3");
+        shenyuTrie.remove("/path1/path2", ruleData3);
         Assertions.assertNull(shenyuTrie.getNode("/path1/path2"));
     }
     

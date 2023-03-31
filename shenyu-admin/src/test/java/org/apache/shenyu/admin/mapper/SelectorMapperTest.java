@@ -234,6 +234,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
                 .sort(1)
                 .enabled(Boolean.TRUE)
                 .loged(Boolean.TRUE)
+                .matchRestful(false)
                 .continued(Boolean.TRUE)
                 .handle("handle")
                 .build();

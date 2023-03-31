@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.dto;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -39,7 +38,7 @@ public class PluginData {
 
     private Integer sort;
 
-    private byte[] pluginJar;
+    private String pluginJar;
 
     /**
      * no args constructor.
@@ -56,7 +55,7 @@ public class PluginData {
      * @param role    role
      * @param enabled enabled
      */
-    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled, final byte[] pluginJar) {
+    public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled, final String pluginJar) {
         this.id = id;
         this.name = name;
         this.config = config;
@@ -76,7 +75,7 @@ public class PluginData {
      * @param sort sort
      */
     public PluginData(final String id, final String name, final String config, final String role, final Boolean enabled,
-                      final Integer sort, final byte[] pluginJar) {
+                      final Integer sort, final String pluginJar) {
         this.id = id;
         this.name = name;
         this.config = config;
@@ -195,7 +194,7 @@ public class PluginData {
      * get pluginJar.
      * @return pluginJar
      */
-    public byte[] getPluginJar() {
+    public String getPluginJar() {
         return pluginJar;
     }
 
@@ -203,7 +202,7 @@ public class PluginData {
      * set pluginJar.
      * @param pluginJar pluginJar
      */
-    public void setPluginJar(final byte[] pluginJar) {
+    public void setPluginJar(final String pluginJar) {
         this.pluginJar = pluginJar;
     }
 
@@ -262,7 +261,7 @@ public class PluginData {
                 + ", role='" + role + '\''
                 + ", enabled=" + enabled
                 + ", sort=" + sort
-                + ", pluginJar=" + Arrays.toString(pluginJar)
+                + ", pluginJar=" + pluginJar
                 + '}';
     }
 
@@ -304,7 +303,7 @@ public class PluginData {
         /**
          * sort.
          */
-        private byte[] pluginJar;
+        private String pluginJar;
 
 
         /**
@@ -395,7 +394,7 @@ public class PluginData {
          * @param  pluginJar pluginJar
          * @return this
          */
-        public Builder pluginJar(final byte[] pluginJar) {
+        public Builder pluginJar(final String pluginJar) {
             this.pluginJar = pluginJar;
             return this;
         }
