@@ -106,8 +106,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
         Map<String, Object> endpointBeans = context.getBeansWithAnnotation(ShenyuServerEndpoint.class);
         registerEndpointsBeans(context, endpointBeans);
 
-        Map<String, Object> clientBeans = context.getBeansWithAnnotation(ShenyuSpringWebSocketClient.class);
-        return clientBeans;
+        return context.getBeansWithAnnotation(ShenyuSpringWebSocketClient.class);
     }
 
     @Override
@@ -146,7 +145,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     }
 
     @Override
-    protected String buildApiSuperPath(final Class<?> clazz, @NonNull final ShenyuSpringWebSocketClient webSocketClient) {
+    protected String buildApiSuperPath(final Class<?> clazz, final ShenyuSpringWebSocketClient webSocketClient) {
         if (Objects.nonNull(webSocketClient) && StringUtils.isNotBlank(webSocketClient.path())) {
             return webSocketClient.path();
         }
@@ -183,7 +182,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     }
 
     @Override
-    protected String buildApiPath(final Method method, final String superPath, @NonNull final ShenyuSpringWebSocketClient methodShenyuClient) {
+    protected String buildApiPath(final Method method, final String superPath, final ShenyuSpringWebSocketClient methodShenyuClient) {
         if (Objects.nonNull(methodShenyuClient) && StringUtils.isNotBlank(methodShenyuClient.path())) {
             return pathJoin(getContextPath(), superPath, methodShenyuClient.path());
         }

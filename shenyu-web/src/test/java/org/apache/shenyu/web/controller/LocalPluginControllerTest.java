@@ -426,6 +426,7 @@ public final class LocalPluginControllerTest {
                 .selectorId(testSelectorId)
                 .pluginName("testPluginName")
                 .id(testId)
+                .enabled(true)
                 .build();
     }
 

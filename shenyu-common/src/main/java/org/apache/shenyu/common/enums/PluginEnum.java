@@ -26,17 +26,16 @@ import java.util.stream.Collectors;
  * PluginEnum.
  */
 public enum PluginEnum {
-    
+
+    /**
+     * Global plugin enum.
+     */
+    GLOBAL(-1, 0, "global"),
     /**
      * Mqtt plugin enum.
      */
     MQTT(0, 0, "mqtt"),
-    
-    /**
-     * Global plugin enum.
-     */
-    GLOBAL(5, 0, "global"),
-    
+
     /**
      * the mock plugin enum.
      */
@@ -116,6 +115,8 @@ public enum PluginEnum {
      * Request plugin enum.
      */
     REQUEST(120, 0, "request"),
+
+
     
     /**
      * GeneralContext plugin enum.

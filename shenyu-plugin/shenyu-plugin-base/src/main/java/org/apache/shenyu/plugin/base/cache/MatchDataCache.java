@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Maps;
-import org.apache.shenyu.common.cache.MemorySafeWindowTinyLFUMap;
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -80,10 +79,12 @@ public final class MatchDataCache {
      *
      * @param path         the path
      * @param selectorData the selector data
-     * @param maxMemory    the max memory
+     * @param initialCapacity initialCapacity
+     * @param maximumSize maximumSize
      */
-    public void cacheSelectorData(final String path, final SelectorData selectorData, final Integer maxMemory) {
-        MapUtils.computeIfAbsent(SELECTOR_DATA_MAP, selectorData.getPluginName(), map -> new MemorySafeWindowTinyLFUMap<>(maxMemory, 1 << 16)).put(path, selectorData);
+    public void cacheSelectorData(final String path, final SelectorData selectorData, final int initialCapacity, final long maximumSize) {
+        MapUtils.computeIfAbsent(SELECTOR_DATA_MAP, selectorData.getPluginName(), map ->
+                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.FALSE)).put(path, selectorData);
     }
 
     /**
@@ -107,7 +108,8 @@ public final class MatchDataCache {
      * @param maximumSize maximum size
      */
     public void cacheRuleData(final String path, final RuleData ruleData, final int initialCapacity, final long maximumSize) {
-        MapUtils.computeIfAbsent(RULE_DATA_MAP, ruleData.getPluginName(), map -> new WindowTinyLFUMap<>(initialCapacity, maximumSize)).put(path, ruleData);
+        MapUtils.computeIfAbsent(RULE_DATA_MAP, ruleData.getPluginName(), map ->
+                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.FALSE)).put(path, ruleData);
     }
     
     /**
@@ -137,4 +139,5 @@ public final class MatchDataCache {
         final Map<String, RuleData> lruMap = RULE_DATA_MAP.get(pluginName);
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
+    
 }
