@@ -75,6 +75,7 @@ shenyu:
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 10000 # max size in cache
   trie:
+    enabled: true
     childrenSize: 10000
     pathVariableSize: 1000
     pathRuleCacheSize: 1000

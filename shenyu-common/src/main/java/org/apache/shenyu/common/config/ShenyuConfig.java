@@ -1827,6 +1827,9 @@ public class ShenyuConfig {
      * shenyu trie config.
      */
     public static class ShenyuTrieConfig {
+        
+        private Boolean enabled = Boolean.TRUE;
+        
         private Long childrenSize = 10000L;
 
         private Long pathRuleCacheSize = 1000L;
@@ -1838,7 +1841,25 @@ public class ShenyuConfig {
          * @see TrieMatchModeEvent
          */
         private String matchMode = TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode();
-
+    
+        /**
+         * get match enabled.
+         *
+         * @return Boolean
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * set match enabled.
+         *
+         * @param enabled enabled
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+    
         /**
          * get trie children size.
          *
