@@ -119,7 +119,7 @@ public class MemorySafeWindowTinyLFUMap<K, V> extends AbstractMap<K, V> implemen
                 return;
             }
             Optional.ofNullable(coldest.entrySet().iterator().next())
-                    .ifPresent(entry -> remove(entry.getKey()));
+                    .ifPresent(entry -> cache.invalidate(entry.getKey()));
         });
     }
 
