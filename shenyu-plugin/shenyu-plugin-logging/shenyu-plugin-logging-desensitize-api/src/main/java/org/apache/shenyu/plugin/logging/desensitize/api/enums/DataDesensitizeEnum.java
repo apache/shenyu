@@ -15,34 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.collector;
-
-import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+package org.apache.shenyu.plugin.logging.desensitize.api.enums;
 
 /**
- * Collect logs and put into buffer queue.
+ * data desensitize enums.
  */
-public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable {
+public enum DataDesensitizeEnum {
+
+    CHARACTER_REPLACE("dataMaskByCharReplace"),
+
+    MD5_ENCRYPT("dataMaskByMD5");
+
+    private final String dataDesensitizeAlg;
+
+    DataDesensitizeEnum(final String dataDesensitizeAlg) {
+        this.dataDesensitizeAlg = dataDesensitizeAlg;
+    }
 
     /**
-     * start log collector.
-     */
-    void start();
-
-    /**
-     * desensitize log.
+     * get data desensitize algorithm.
      *
-     * @param log log
-     * @param keyWordMatch keyWordMatch
-     * @param desensitizeAlg data desensitize algorithm
+     * @return desensitize algorithm
      */
-    void desensitize(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);
-
-    /**
-     * collect log.
-     *
-     * @param log access log
-     */
-    void collect(L log);
+    public String getDataDesensitizeAlg() {
+        return dataDesensitizeAlg;
+    }
 }

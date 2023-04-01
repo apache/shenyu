@@ -23,24 +23,19 @@
         <version>2.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
-    <artifactId>shenyu-plugin-logging-common</artifactId>
+    <artifactId>shenyu-plugin-logging-desensitize-api</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-plugin-logging-desensitize-api</artifactId>
+            <artifactId>shenyu-spi</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-test</artifactId>
-            <scope>test</scope>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-base</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
