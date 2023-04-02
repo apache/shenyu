@@ -26,6 +26,13 @@ import java.util.AbstractMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * this cache is provided by caffeine, the cache has two implements including weak-key cache and strong-key cache.<br>
+ * <p>the weak-key cache applies to scenarios where objects can be collected. when memory lock causes full gc, the weakKey will collect by gc.</p>
+ * <p>the strong-key cache applies to immutable cache object data, and the user determines the cache size.</p>
+ * <p>about the weak-key cache and strong-key cache, please refer to:
+ * <a href="https://github.com/ben-manes/caffeine/issues/776">caffeine cache ISSUES #776</a></p>
+ */
 @ThreadSafe
 public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Serializable {
     
@@ -33,24 +40,76 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
     
     private final Cache<K, V> cache;
     
-    public WindowTinyLFUMap(final int initialCapacity, final long maximumSize) {
+    /**
+     * build caffeine cache.
+     *
+     * @param maximumSize maximumSize
+     */
+    public WindowTinyLFUMap(final long maximumSize) {
         this.cache = Caffeine.newBuilder()
-                .initialCapacity(initialCapacity)
                 .maximumSize(maximumSize)
                 .build();
     }
     
-    public WindowTinyLFUMap(final int initialSize, final long expireAfterWrite, final long maximumSize) {
-        this.cache = Caffeine.newBuilder()
-                .initialCapacity(initialSize)
-                .expireAfterWrite(expireAfterWrite, TimeUnit.MILLISECONDS)
-                .maximumSize(maximumSize)
-                .build();
+    /**
+     * initial caffeine cache include WeakReference cache and StrongReference cache.
+     *
+     * <p>when the weakKey is true that means using weakKeys cache, gc will collect the weak key, please refer to:
+     * com.github.benmanes.caffeine.cache.References.WeakKeyReference</p>
+     *
+     * <p>when the weakKey is false, use strong reference, jvm maybe throw oom-error.</p>
+     *
+     * <pre>{@code Map<String, Object> strongMap = new WindowTinyLFUMap<>(100, 100, Boolean.FALSE);
+     * strongMap.put(new String("abc"), 1);
+     * strongMap.put(new String("abc"), 1);
+     * assert strongMap.get("abc") != null;
+     *
+     * Map<String, Object> strongMap = new WindowTinyLFUMap<>(100, 100, Boolean.TRUE);
+     * strongMap.put(new String("abc"), 1);
+     * strongMap.put(new String("abc"), 1);
+     * assert strongMap.get("abc") == null;
+     * }</pre>
+     *
+     * @param initialCapacity initial capacity
+     * @param maximumSize maximum size
+     * @param weakKey weak key
+     */
+    public WindowTinyLFUMap(final int initialCapacity, final long maximumSize, final Boolean weakKey) {
+        if (Boolean.TRUE.equals(weakKey)) {
+            this.cache = Caffeine.newBuilder()
+                    .weakKeys()
+                    .initialCapacity(initialCapacity)
+                    .maximumSize(maximumSize)
+                    .build();
+        } else {
+            this.cache = Caffeine.newBuilder()
+                    .initialCapacity(initialCapacity)
+                    .maximumSize(maximumSize)
+                    .build();
+        }
+    }
+    
+    public WindowTinyLFUMap(final int initialSize, final long expireAfterWrite, final long maximumSize, final Boolean weakKey) {
+        if (Boolean.TRUE.equals(weakKey)) {
+            this.cache = Caffeine.newBuilder()
+                    .weakKeys()
+                    .initialCapacity(initialSize)
+                    .expireAfterWrite(expireAfterWrite, TimeUnit.MILLISECONDS)
+                    .maximumSize(maximumSize)
+                    .build();
+        } else {
+            this.cache = Caffeine.newBuilder()
+                    .initialCapacity(initialSize)
+                    .expireAfterWrite(expireAfterWrite, TimeUnit.MILLISECONDS)
+                    .maximumSize(maximumSize)
+                    .build();
+        }
+        
     }
     
     @Override
     public V put(final K key, final V value) {
-        V v = cache.getIfPresent(value);
+        V v = cache.getIfPresent(key);
         cache.put(key, value);
         return v;
     }
@@ -66,6 +125,17 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
         cache.invalidate(key);
         cache.cleanUp();
         return value;
+    }
+    
+    @Override
+    public void clear() {
+        this.cache.invalidateAll();
+        this.cache.cleanUp();
+    }
+    
+    @Override
+    public int size() {
+        return this.cache.asMap().entrySet().size();
     }
     
     @Override

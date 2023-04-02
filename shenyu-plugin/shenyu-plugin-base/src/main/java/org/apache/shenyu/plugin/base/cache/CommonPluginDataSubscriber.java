@@ -207,11 +207,15 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.handlerRule(ruleData));
             MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName());
-            if (CollectionUtils.isEmpty(ruleData.getBeforeConditionDataList())) {
-                eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.INSERT, ruleData));
+            if (ruleData.getEnabled()) {
+                if (CollectionUtils.isEmpty(ruleData.getBeforeConditionDataList())) {
+                    eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.INSERT, ruleData));
+                } else {
+                    // if rule data has before condition, update trie
+                    eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.UPDATE, ruleData));
+                }
             } else {
-                // if rule data has before condition, update trie
-                eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.UPDATE, ruleData));
+                eventPublisher.publishEvent(new RuleTrieEvent(RuleTrieEventEnum.REMOVE, ruleData));
             }
         }
     }

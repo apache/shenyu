@@ -56,6 +56,10 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(DividePlugin.class);
 
     private static final String P2C = "p2c";
+
+    private static final String SHORTEST_RESPONSE = "shortestResponse";
+
+    private Long beginTime;
     
     private final DivideRuleHandle defaultRuleHandle = new DivideRuleHandle();
 
@@ -110,8 +114,15 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultString(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultString(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
-        return ruleHandle.getLoadBalance().equals(P2C) ? chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
-        )).doOnError(throwable -> responseTrigger(upstream)) : chain.execute(exchange);
+        if (ruleHandle.getLoadBalance().equals(P2C)) {
+            return chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
+            )).doOnError(throwable -> responseTrigger(upstream));
+        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
+            beginTime = System.currentTimeMillis();
+            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream
+            ));
+        }
+        return chain.execute(exchange);
     }
 
     @Override
@@ -168,5 +179,10 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         lag = (int) ((double) oldLag * w + (double) lag * (1.0 - w));
         upstream.setLag(lag);
+    }
+
+    private void successResponseTrigger(final Upstream upstream) {
+        upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
+        upstream.getSucceeded().incrementAndGet();
     }
 }

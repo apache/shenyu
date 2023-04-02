@@ -64,19 +64,43 @@ public class ShenyuLoaderService {
             executor.scheduleAtFixedRate(this::loaderExtPlugins, config.getScheduleDelay(), config.getScheduleTime(), TimeUnit.SECONDS);
         }
     }
-    
+
     private void loaderExtPlugins() {
         try {
-            List<ShenyuLoaderResult> results = ShenyuPluginLoader.getInstance().loadExtendPlugins(shenyuConfig.getExtPlugin().getPath());
-            if (CollectionUtils.isEmpty(results)) {
-                return;
-            }
-            List<ShenyuPlugin> shenyuExtendPlugins = results.stream().map(ShenyuLoaderResult::getShenyuPlugin).filter(Objects::nonNull).collect(Collectors.toList());
-            webHandler.putExtPlugins(shenyuExtendPlugins);
-            List<PluginDataHandler> handlers = results.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
-            subscriber.putExtendPluginDataHandler(handlers);
+            List<ShenyuLoaderResult> extendPlugins = ShenyuPluginLoader.getInstance().loadExtendPlugins(shenyuConfig.getExtPlugin().getPath());
+            loaderPlugins(extendPlugins);
         } catch (Exception e) {
             LOG.error("shenyu ext plugins load has error ", e);
         }
     }
+
+    /**
+     * loadUploadedJarPlugins.
+     *
+     * @param uploadedJarResources uploadedJarResources
+     */
+    public void loadUploadedJarPlugins(final List<String> uploadedJarResources) {
+        try {
+            List<ShenyuLoaderResult> extendPlugins = ShenyuPluginLoader.getInstance().loadUploadedJarPlugins(uploadedJarResources);
+            loaderPlugins(extendPlugins);
+        } catch (Exception e) {
+            LOG.error("shenyu ext plugins load has error ", e);
+        }
+    }
+
+    /**
+     * loaderPlugins.
+     *
+     * @param results results
+     */
+    private void loaderPlugins(final List<ShenyuLoaderResult> results) {
+        if (CollectionUtils.isEmpty(results)) {
+            return;
+        }
+        List<ShenyuPlugin> shenyuExtendPlugins = results.stream().map(ShenyuLoaderResult::getShenyuPlugin).filter(Objects::nonNull).collect(Collectors.toList());
+        webHandler.putExtPlugins(shenyuExtendPlugins);
+        List<PluginDataHandler> handlers = results.stream().map(ShenyuLoaderResult::getPluginDataHandler).filter(Objects::nonNull).collect(Collectors.toList());
+        subscriber.putExtendPluginDataHandler(handlers);
+    }
+
 }
