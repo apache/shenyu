@@ -47,9 +47,14 @@ public class MemorySafeWindowTinyLFUMapTest {
             private static final long serialVersionUID = 8897028073615563875L;
 
             @Override
-            public boolean isFull() {
+            public synchronized boolean isFull() {
                 //just for test
                 return size() > 1;
+            }
+
+            @Override
+            public synchronized void cleanUp() {
+                super.cleanUp();
             }
         };
         cache.put(1, 1);
