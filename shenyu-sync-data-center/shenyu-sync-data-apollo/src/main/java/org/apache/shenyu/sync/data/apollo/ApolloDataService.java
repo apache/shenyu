@@ -2,7 +2,6 @@ package org.apache.shenyu.sync.data.apollo;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigChangeListener;
-import org.apache.commons.logging.Log;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.*;

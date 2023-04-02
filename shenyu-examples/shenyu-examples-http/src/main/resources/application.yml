@@ -41,10 +41,10 @@ shenyu:
 #      clusterName: test
 #      namespace: application
 #      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
-  register:
-    registerType: etcd #http #zookeeper #etcd #nacos #consul
-    serverLists: http://localhost:2379 #http://localhost:2379 #localhost:8848
-    props:
+#  register:
+#    registerType: etcd #http #zookeeper #etcd #nacos #consul
+#    serverLists: http://localhost:2379 #http://localhost:2379 #localhost:8848
+#    props:
 #      meta: http://192.168.1.220:8080
 #      appId: shenyu
 #      env: dev

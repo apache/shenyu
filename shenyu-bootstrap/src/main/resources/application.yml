@@ -156,16 +156,25 @@ shenyu:
 #      workerCount: 8
 #      daemon: true
   register:
-    registerType: nacos #http #zookeeper #etcd #nacos #consul
-    serverLists: 192.168.1.220:8848 #localhost:2181 #http://localhost:2379 #localhost:8848
+    registerType: apollo #http #zookeeper #etcd #nacos #consul
+    serverLists: http://192.168.1.220:8070 #http://localhost:2379 #localhost:8848
     props:
-      sessionTimeout: 5000
-      connectionTimeout: 2000
-      checked: true
-      zombieCheckThreads: 10
-      zombieCheckTimes: 5
-      scheduledTime: 10
-      nacosNameSpace: cab5cbe-d9d4-4a65-81f0-89d7511fdc7c
+      meta: http://192.168.1.220:8080
+      appId: shenyu
+      env: dev
+      clusterName: test
+      namespace: application
+      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
+#    registerType: apollo #http #zookeeper #etcd #nacos #consul
+#    serverLists: 192.168.1.220:8848 #localhost:2181 #http://localhost:2379 #localhost:8848
+#    props:
+#      sessionTimeout: 5000
+#      connectionTimeout: 2000
+#      checked: true
+#      zombieCheckThreads: 10
+#      zombieCheckTimes: 5
+#      scheduledTime: 10
+#      nacosNameSpace: cab5cbe-d9d4-4a65-81f0-89d7511fdc7c
   cross:
     enabled: true
     allowedHeaders:
@@ -200,9 +209,9 @@ shenyu:
 #      env: dev
 #      clusterName: test
 #      namespace: application
-#    websocket:
-#      urls: ws://localhost:9095/websocket
-#      allowOrigin: ws://localhost:9195
+    websocket:
+      urls: ws://localhost:9095/websocket
+      allowOrigin: ws://localhost:9195
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000
@@ -211,17 +220,17 @@ shenyu:
 #      url: http://localhost:9095
 #      username:
 #      password:
-    nacos:
-      url: 192.168.1.220
-      namespace: 7cab5cbe-d9d4-4a65-81f0-89d7511fdc7c
-      username:
-      password:
-      acm:
-        enabled: false
-        endpoint: acm.aliyun.com
-        namespace:
-        accessKey:
-        secretKey:
+#    nacos:
+#      url: 192.168.1.220
+#      namespace: 7cab5cbe-d9d4-4a65-81f0-89d7511fdc7c
+#      username:
+#      password:
+#      acm:
+#        enabled: false
+#        endpoint: acm.aliyun.com
+#        namespace:
+#        accessKey:
+#        secretKey:
 #    etcd:
 #      url: http://localhost:2379
 #    consul:
