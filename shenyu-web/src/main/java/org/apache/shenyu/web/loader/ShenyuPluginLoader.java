@@ -141,10 +141,12 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
         names.forEach(className -> {
             Object instance;
             try {
-                instance = getOrCreateSpringBean(className);
-                if (Objects.nonNull(instance)) {
-                    results.add(buildResult(instance));
-                    LOG.info("The class successfully loaded into a ext-plugin {} is registered as a spring bean", className);
+                if (!uploadedJarClassByteArrayCache.containsKey(className)) {
+                    instance = getOrCreateSpringBean(className);
+                    if (Objects.nonNull(instance)) {
+                        results.add(buildResult(instance));
+                        LOG.info("The class successfully loaded into a ext-plugin {} is registered as a spring bean", className);
+                    }
                 }
             } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
                 LOG.warn("Registering ext-plugins succeeds spring bean fails:{}", className);
