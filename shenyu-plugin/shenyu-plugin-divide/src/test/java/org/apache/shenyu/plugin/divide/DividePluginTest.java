@@ -51,6 +51,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -220,6 +221,21 @@ public final class DividePluginTest {
         method.setAccessible(true);
         method.invoke(DividePlugin.class.newInstance(), upstream);
         assertNotEquals(0, upstream.getLag());
+    }
+
+    @Test
+    public void successResponseTriggerTest() throws Exception {
+        dividePlugin = DividePlugin.class.newInstance();
+        Field field = DividePlugin.class.getDeclaredField("beginTime");
+        field.setAccessible(true);
+        field.set(dividePlugin, 0L);
+        Method method = DividePlugin.class.getDeclaredMethod("successResponseTrigger", Upstream.class);
+        method.setAccessible(true);
+        Upstream upstream = Upstream.builder()
+                .url("upstream")
+                .build();
+        method.invoke(dividePlugin, upstream);
+        assertEquals(1, upstream.getSucceeded().get());
     }
 
     /**

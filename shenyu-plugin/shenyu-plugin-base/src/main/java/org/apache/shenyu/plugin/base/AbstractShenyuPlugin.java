@@ -60,6 +60,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private ShenyuConfig.MatchCache matchCacheConfig;
     
     private ShenyuTrie trie;
+    
+    private ShenyuConfig.ShenyuTrieConfig trieConfig;
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -142,6 +144,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 ruleData = trieMatchRule(exchange, selectorData, path);
                 // trie cache fails to hit, execute default strategy
                 if (Objects.isNull(ruleData)) {
+                    LOG.info("{} rule match path from default strategy", named());
                     Pair<Boolean, RuleData> matchRuleData = matchRule(exchange, rules);
                     ruleData = matchRuleData.getRight();
                     if (matchRuleData.getLeft()) {
@@ -166,6 +169,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.isNull(trie)) {
             trie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
         }
+        if (Objects.isNull(trieConfig)) {
+            trieConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getTrie();
+        }
     }
 
     private void cacheSelectorData(final String path, final SelectorData selectorData) {
@@ -176,21 +182,19 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 || (Objects.nonNull(selectorData.getMatchRestful()) && selectorData.getMatchRestful())) {
             return;
         }
+        int initialCapacity = matchCacheConfig.getSelector().getInitialCapacity();
+        long maximumSize = matchCacheConfig.getSelector().getMaximumSize();
         if (StringUtils.isBlank(selectorData.getId())) {
-            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getSelectorMaxFreeMemory());
+            MatchDataCache.getInstance().cacheSelectorData(path, selectorData, initialCapacity, maximumSize);
             return;
         }
         List<ConditionData> conditionList = selectorData.getConditionList();
         if (CollectionUtils.isNotEmpty(conditionList)) {
             boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
             if (isUriCondition) {
-                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, getSelectorMaxFreeMemory());
+                MatchDataCache.getInstance().cacheSelectorData(path, selectorData, initialCapacity, maximumSize);
             }
         }
-    }
-
-    private Integer getSelectorMaxFreeMemory() {
-        return matchCacheConfig.getSelector().getMaxSelectorFreeMemory() * 1024 * 1024;
     }
 
     private SelectorData obtainSelectorDataCacheIfEnabled(final String path) {
@@ -311,12 +315,21 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
     
     private RuleData trieMatchRule(final ServerWebExchange exchange, final SelectorData selectorData, final String path) {
+        if (!trieConfig.getEnabled()) {
+            return null;
+        }
         RuleData ruleData = null;
         ShenyuTrieNode shenyuTrieNode = trie.match(path, selectorData.getId());
         if (Objects.nonNull(shenyuTrieNode)) {
-            List<RuleData> ruleDataList = shenyuTrieNode.getPathRuleCache().getIfPresent(selectorData.getId());
+            LOG.info("{} rule match path from shenyu trie", named());
+            List<RuleData> ruleDataList = shenyuTrieNode.getPathRuleCache().get(selectorData.getId());
             if (CollectionUtils.isNotEmpty(ruleDataList)) {
-                Pair<Boolean, RuleData> ruleDataPair = matchRule(exchange, ruleDataList);
+                Pair<Boolean, RuleData> ruleDataPair;
+                if (ruleDataList.size() > 1) {
+                    ruleDataPair = matchRule(exchange, ruleDataList);
+                } else {
+                    ruleDataPair = Pair.of(Boolean.TRUE, ruleDataList.stream().findFirst().orElse(null));
+                }
                 ruleData = ruleDataPair.getRight();
                 if (ruleDataPair.getLeft()) {
                     // exist only one rule data, cache rule

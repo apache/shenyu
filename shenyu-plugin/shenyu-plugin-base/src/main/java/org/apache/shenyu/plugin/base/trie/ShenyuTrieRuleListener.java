@@ -51,7 +51,11 @@ public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent
             final ShenyuTrie shenyuTrie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
             switch (eventEnum) {
                 case INSERT:
-                    shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
+                    synchronized (ruleData.getId()) {
+                        // insert rule data must remove original rule, and the operation must atomic
+                        shenyuTrie.remove(uriPaths, ruleData);
+                        shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
+                    }
                     break;
                 case UPDATE:
                     final List<ConditionData> beforeConditionDataList = ruleData.getBeforeConditionDataList();
