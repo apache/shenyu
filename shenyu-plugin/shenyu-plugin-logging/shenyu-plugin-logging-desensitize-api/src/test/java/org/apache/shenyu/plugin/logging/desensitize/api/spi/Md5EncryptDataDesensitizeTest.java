@@ -27,7 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class Md5EncryptDataDesensitizeTest {
 
     @Test
-    public void doDesensitize() {
+    public void doDesensitizeTest() {
         Md5EncryptDataDesensitize md5EncryptDataMask = new Md5EncryptDataDesensitize();
         Assertions.assertEquals(DigestUtils.md5Hex("test"), md5EncryptDataMask.doDesensitize("test"));
     }

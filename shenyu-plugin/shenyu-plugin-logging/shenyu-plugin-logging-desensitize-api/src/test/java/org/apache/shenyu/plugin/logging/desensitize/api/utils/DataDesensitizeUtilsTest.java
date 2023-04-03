@@ -49,7 +49,7 @@ public class DataDesensitizeUtilsTest {
     }
 
     @Test
-    public void desensitizeSingleKeyword() {
+    public void desensitizeSingleKeywordTest() {
         String noDesensitizedData = DataDesensitizeUtils.desensitizeSingleKeyword(false, "name", JSON_TEXT, keyWordMatch,
                 DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg());
         Assertions.assertEquals(JSON_TEXT, noDesensitizedData);
@@ -60,7 +60,7 @@ public class DataDesensitizeUtilsTest {
     }
 
     @Test
-    public void desensitizeBody() {
+    public void desensitizeBodyTest() {
         String noDesensitizedData = DataDesensitizeUtils.desensitizeBody(false, JSON_TEXT, keyWordMatch, DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg());
         Assertions.assertEquals(JSON_TEXT, noDesensitizedData);
 
@@ -73,7 +73,7 @@ public class DataDesensitizeUtilsTest {
     }
 
     @Test
-    public void desensitizeList() {
+    public void desensitizeListTest() {
         List<String> list = Arrays.asList("name", "test");
         DataDesensitizeUtils.desensitizeList(false, "name", list, keyWordMatch, DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg());
         Assertions.assertTrue(CollectionUtils.isEqualCollection(list, list));

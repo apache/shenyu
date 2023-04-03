@@ -28,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class DataDesensitizeFactoryTest {
 
     @Test
-    public void selectDesensitize() {
+    public void selectDesensitizeTest() {
         // EMPTY_STRING
         String emptyStr = DataDesensitizeFactory.selectDesensitize("", DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg());
         Assertions.assertEquals("", emptyStr);

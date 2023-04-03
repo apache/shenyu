@@ -28,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class CharacterReplaceDataDesensitizeTest {
 
     @Test
-    void doDesensitize() {
+    void doDesensitizeTest() {
         CharacterReplaceDataDesensitize characterReplaceDataMask = new CharacterReplaceDataDesensitize();
         String ret = characterReplaceDataMask.doDesensitize("1");
         Assertions.assertEquals("*", ret);
