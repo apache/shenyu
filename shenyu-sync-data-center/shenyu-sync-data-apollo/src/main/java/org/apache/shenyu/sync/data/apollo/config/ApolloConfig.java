@@ -1,4 +1,4 @@
-package org.apache.shenyu.sync.data.apollo.config;/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -15,6 +15,7 @@ package org.apache.shenyu.sync.data.apollo.config;/*
  * limitations under the License.
  */
 
+package org.apache.shenyu.sync.data.apollo.config;
 
 public class ApolloConfig {
 
@@ -44,57 +45,111 @@ public class ApolloConfig {
      */
     private String namespace;
 
+    /**
+     * accessKey.
+     */
     private String accessKey;
 
+    /**
+     * constructor.
+     */
+    public ApolloConfig() {
+    }
+
+    /**
+     * getSecretKey.
+     * @return secretKey
+     */
     public String getAccessKey() {
         return accessKey;
     }
 
-    public void setAccessKey(String accessKey) {
+    /**
+     * set secretKey.
+     * @param accessKey accessKey
+     */
+    public void setAccessKey(final String accessKey) {
         this.accessKey = accessKey;
     }
 
+    /**
+     * get appId.
+     * @return appId
+     */
     public String getAppId() {
         return appId;
     }
 
-    public void setAppId(String appId) {
+    /**
+     * set appId.
+     * @param appId appId
+     */
+    public void setAppId(final String appId) {
         this.appId = appId;
     }
 
+    /**
+     * get meta.
+     * @return meta
+     */
     public String getMeta() {
         return meta;
     }
 
-    public void setMeta(String meta) {
+    /**
+     * set meta.
+     * @param meta meta
+     */
+    public void setMeta(final String meta) {
         this.meta = meta;
     }
 
+    /**
+     * get env.
+     * @return env
+     */
     public String getEnv() {
         return env;
     }
 
-    public void setEnv(String env) {
+    /**
+     * set env.
+     * @param env env
+     */
+    public void setEnv(final String env) {
         this.env = env;
     }
 
+    /**
+     * get clusterName.
+     * @return clusterName
+     */
     public String getClusterName() {
         return clusterName;
     }
 
-    public void setClusterName(String clusterName) {
+    /**
+     * set clusterName.
+     * @param clusterName clusterName
+     */
+    public void setClusterName(final String clusterName) {
         this.clusterName = clusterName;
     }
 
+    /**
+     * get namespace.
+     * @return namespace
+     */
     public String getNamespace() {
         return namespace;
     }
 
-    public void setNamespace(String namespace) {
+    /**
+     * set namespace.
+     * @param namespace namespace
+     */
+    public void setNamespace(final String namespace) {
         this.namespace = namespace;
-    }
-
-    public ApolloConfig() {
     }
 
 }

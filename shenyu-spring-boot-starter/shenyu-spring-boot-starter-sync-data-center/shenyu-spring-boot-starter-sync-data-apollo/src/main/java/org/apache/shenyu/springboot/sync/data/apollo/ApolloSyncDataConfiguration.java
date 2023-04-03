@@ -47,22 +47,23 @@ public class ApolloSyncDataConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApolloSyncDataConfiguration.class);
 
-
     private static final String APOLLO_CLUSTER = "apollo.cluster";
+
     private static final String PROP_APP_ID = "app.id";
+
     private static final String PROP_APOLLO_META = "apollo.meta";
 
     private static final String PROP_APOLLO_SECRET = "apollo.access-key";
+
     private static final String APOLLO_NAMESPACE = "apollo.bootstrap.namespace";
 
     /**
-     * Apollo sync data service.
-     * <p>
-     * \     * @param pluginSubscriber the plugin subscriber
-     *
+     * Apollo config apollo config.
+     * @param configService the config service
+     * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers the meta subscribers
      * @param authSubscribers the auth subscribers
-     * @return the sync data service
+     * @return the apollo config
      */
     @Bean
     public ApolloDataService apolloSyncDataService(final ObjectProvider<Config> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
@@ -72,7 +73,12 @@ public class ApolloSyncDataConfiguration {
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
 
-
+    /**
+     * Apollo config config.
+     *
+     * @param apolloConfig the apollo config
+     * @return the config
+     */
     @Bean
     public Config apolloConfigService(final ApolloConfig apolloConfig) {
         Optional.ofNullable(apolloConfig.getAppId()).ifPresent(appId -> System.setProperty(PROP_APP_ID, appId));
@@ -81,8 +87,6 @@ public class ApolloSyncDataConfiguration {
         Optional.ofNullable(apolloConfig.getNamespace()).ifPresent(namespace -> System.setProperty(APOLLO_NAMESPACE, namespace));
         Optional.ofNullable(apolloConfig.getAccessKey()).ifPresent(accessKey -> System.setProperty(PROP_APOLLO_SECRET, accessKey));
         return ConfigService.getAppConfig();
-
-
     }
 
     /**
@@ -96,3 +100,4 @@ public class ApolloSyncDataConfiguration {
         return new ApolloConfig();
     }
 }
+

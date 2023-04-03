@@ -1,4 +1,4 @@
-package org.apache.shenyu.register.instance.apollo;/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -15,6 +15,7 @@ package org.apache.shenyu.register.instance.apollo;/*
  * limitations under the License.
  */
 
+package org.apache.shenyu.register.instance.apollo;
 
 import com.ctrip.framework.apollo.ConfigChangeListener;
 import com.ctrip.framework.apollo.ConfigService;
@@ -31,12 +32,16 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.HashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * The type Etcd instance register repository.
+ * The type apollo instance register repository.
  */
 @Join
 public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
@@ -50,7 +55,7 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
     private String namespace;
 
     @Override
-    public void init(RegisterConfig config) {
+    public void init(final RegisterConfig config) {
         Properties properties = config.getProps();
         String portalUrl = config.getServerLists();
         String appId = properties.getProperty("appId");
@@ -70,7 +75,7 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     @Override
-    public void persistInstance(InstanceEntity instance) {
+    public void persistInstance(final InstanceEntity instance) {
         String instanceNodeName = buildInstanceNodeName(instance);
         String instancePath = InstancePathConstants.buildInstanceParentPath(instance.getAppName());
         String realNode = InstancePathConstants.buildRealNode(instancePath, instanceNodeName);
@@ -80,7 +85,7 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     @Override
-    public List<InstanceEntity> selectInstancesAndWatcher(String selectKey, WatcherListener watcherListener) {
+    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
         final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
         final Function<Map<String, String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList ->
                 childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceEntity.class)).collect(Collectors.toList());
@@ -91,9 +96,6 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 if (key.startsWith(watchKey)) {
                     switch (changeEvent.getChange(key).getChangeType()) {
                         case ADDED:
-                            childrenList.put(key, changeEvent.getChange(key).getNewValue());
-                            LOGGER.info("apollo instance register success: {}", changeEvent.getChange(key).getNewValue());
-                        case MODIFIED:
                             childrenList.put(key, changeEvent.getChange(key).getNewValue());
                             LOGGER.info("apollo instance register success: {}", changeEvent.getChange(key).getNewValue());
                             break;

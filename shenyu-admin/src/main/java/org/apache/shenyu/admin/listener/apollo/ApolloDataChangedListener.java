@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.listener.apollo;
 
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
-import org.apache.shenyu.common.constant.NacosPathConstants;
+import org.apache.shenyu.common.constant.ApolloPathConstants;
 import org.apache.shenyu.register.client.server.apollo.ApolloClient;
 import org.springframework.util.StringUtils;
 
@@ -36,8 +36,8 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
      * @param apolloClient the apollo client
      */
     public ApolloDataChangedListener(final ApolloClient apolloClient) {
-        super(new ChangeData(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.SELECTOR_DATA_ID,
-                NacosPathConstants.RULE_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID));
+        super(new ChangeData(ApolloPathConstants.PLUGIN_DATA_ID, ApolloPathConstants.SELECTOR_DATA_ID,
+                ApolloPathConstants.RULE_DATA_ID, ApolloPathConstants.AUTH_DATA_ID, ApolloPathConstants.META_DATA_ID));
         this.apolloClient = apolloClient;
     }
 
@@ -50,6 +50,6 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
     @Override
     public String getConfig(final String dataId) {
         String config = this.apolloClient.getItemValue(dataId);
-        return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+        return StringUtils.hasLength(config) ? config : ApolloPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
     }
 }

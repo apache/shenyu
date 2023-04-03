@@ -19,7 +19,7 @@ server:
 
 spring:
   profiles:
-    active: mysql
+    active: h2
   thymeleaf:
     cache: true
     encoding: utf-8
@@ -47,29 +47,29 @@ mybatis:
 
 shenyu:
   register:
-    registerType: apollo #http #zookeeper #etcd #nacos #consul
-    serverLists: http://192.168.1.220:8070 #http://localhost:2379 #localhost:8848
+    registerType: http #http #zookeeper #etcd #nacos #consul
+    serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
-      meta: http://192.168.1.220:8080
-      appId: shenyu
-      env: dev
-      clusterName: test
-      namespace: application
-      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
+      sessionTimeout: 5000
+      connectionTimeout: 2000
+      checked: true
+      zombieCheckThreads: 10
+      zombieCheckTimes: 5
+      scheduledTime: 10
+      nacosNameSpace: ShenyuRegisterCenter
   sync:
-#    apollo:
-#      meta: http://192.168.1.220:8080
-#      appId: shenyu
-#      portalUrl: http://192.168.1.220:8070
-#      env: dev
-#      clusterName: test
-#      namespace: application
-#      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
     websocket:
       enabled: true
       messageMaxSize: 10240
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
-
+  #    apollo:
+  #      meta: http://localhost:8080
+  #      appId: shenyu
+  #      portalUrl: http://localshost:8070
+  #      env: dev
+  #      clusterName: test
+  #      namespace: application
+  #      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
   #      zookeeper:
   #        url: localhost:2181
   #        sessionTimeout: 5000

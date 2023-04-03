@@ -69,11 +69,13 @@ shenyu:
   matchCache:
     selector:
       selectorEnabled: false
-      maxSelectorFreeMemory: 256 # 256MB
+      initialCapacity: 10000 # initial capacity in cache
+      maximumSize: 10000 # max size in cache
     rule:
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 10000 # max size in cache
   trie:
+    enabled: true
     childrenSize: 10000
     pathVariableSize: 1000
     pathRuleCacheSize: 1000
@@ -114,85 +116,70 @@ shenyu:
         allocType: "pooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
-#  httpclient:
-#    strategy: webClient
-#    connectTimeout: 45000
-#    responseTimeout: 3000
-#    readerIdleTime: 3000
-#    writerIdleTime: 3000
-#    allIdleTime: 3000
-#    readTimeout: 3000
-#    writeTimeout: 3000
-#    wiretap: false
-#    keepAlive: false
-#    maxInMemorySize: 1 #1mb
-#    pool:
-#      type: ELASTIC
-#      name: proxy
-#      maxConnections: 16
-#      acquireTimeout: 45000
-#      maxIdleTime: 3000
-#    proxy:
-#      host:
-#      port:
-#      username:
-#      password:
-#      nonProxyHostsPattern:
-#    ssl:
-#      useInsecureTrustManager: true
-#      keyStoreType: PKCS12
-#      keyStorePath: classpath:keystore.p12
-#      keyStorePassword: 123456
-#      keyStoreProvider:
-#      keyPassword: 123456
-#      trustedX509Certificates:
-#      handshakeTimeout:
-#      closeNotifyFlushTimeout:
-#      closeNotifyReadTimeout:
-#      defaultConfigurationType:
-#    threadPool:
-#      prefix: shenyu
-#      selectCount: 1
-#      workerCount: 8
-#      daemon: true
+  #  httpclient:
+  #    strategy: webClient
+  #    connectTimeout: 45000
+  #    responseTimeout: 3000
+  #    readerIdleTime: 3000
+  #    writerIdleTime: 3000
+  #    allIdleTime: 3000
+  #    readTimeout: 3000
+  #    writeTimeout: 3000
+  #    wiretap: false
+  #    keepAlive: false
+  #    maxInMemorySize: 1 #1mb
+  #    pool:
+  #      type: ELASTIC
+  #      name: proxy
+  #      maxConnections: 16
+  #      acquireTimeout: 45000
+  #      maxIdleTime: 3000
+  #    proxy:
+  #      host:
+  #      port:
+  #      username:
+  #      password:
+  #      nonProxyHostsPattern:
+  #    ssl:
+  #      useInsecureTrustManager: true
+  #      keyStoreType: PKCS12
+  #      keyStorePath: classpath:keystore.p12
+  #      keyStorePassword: 123456
+  #      keyStoreProvider:
+  #      keyPassword: 123456
+  #      trustedX509Certificates:
+  #      handshakeTimeout:
+  #      closeNotifyFlushTimeout:
+  #      closeNotifyReadTimeout:
+  #      defaultConfigurationType:
+  #    threadPool:
+  #      prefix: shenyu
+  #      selectCount: 1
+  #      workerCount: 8
+  #      daemon: true
   register:
-    registerType: apollo #http #zookeeper #etcd #nacos #consul
-    serverLists: http://192.168.1.220:8070 #http://localhost:2379 #localhost:8848
+    enabled: false
+    registerType: zookeeper #etcd #consul
+    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
     props:
-      meta: http://192.168.1.220:8080
-      appId: shenyu
-      env: dev
-      clusterName: test
-      namespace: application
-      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
-#    registerType: apollo #http #zookeeper #etcd #nacos #consul
-#    serverLists: 192.168.1.220:8848 #localhost:2181 #http://localhost:2379 #localhost:8848
-#    props:
-#      sessionTimeout: 5000
-#      connectionTimeout: 2000
-#      checked: true
-#      zombieCheckThreads: 10
-#      zombieCheckTimes: 5
-#      scheduledTime: 10
-#      nacosNameSpace: cab5cbe-d9d4-4a65-81f0-89d7511fdc7c
   cross:
     enabled: true
     allowedHeaders:
     allowedMethods: "*"
     allowedAnyOrigin: true # the same of Access-Control-Allow-Origin: "*"
-#    allowedOrigin:
+      #    allowedOrigin:
       # format : schema://prefix spacer domain
-      # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
-#      spacer: "."
-#      domain: apache.org
-#      prefixes:
-#        - a # a.apache.org
-#        - b # b.apache.org
-#      origins:
-#        - c.apache.org
-#        - d.apache.org
-#        - http://e.apache.org
-#      originRegex: ^http(|s)://(.*\.|)abc.com$
+    # Access-Control-Allow-Origin: "http://a.apache.org,http://b.apache.org"
+    #      spacer: "."
+    #      domain: apache.org
+    #      prefixes:
+    #        - a # a.apache.org
+    #        - b # b.apache.org
+    #      origins:
+    #        - c.apache.org
+    #        - d.apache.org
+    #        - http://e.apache.org
+    #      originRegex: ^http(|s)://(.*\.|)abc.com$
     allowedExpose: ""
     maxAge: "18000"
     allowCredentials: true
@@ -203,41 +190,40 @@ shenyu:
     enabled: true
     maxSize : 10
   sync:
-#    apollo:
-#      appId: shenyu
-#      meta: http://192.168.6.102:8080
-#      env: dev
-#      clusterName: test
-#      namespace: application
     websocket:
       urls: ws://localhost:9095/websocket
       allowOrigin: ws://localhost:9195
-#    zookeeper:
-#      url: localhost:2181
-#      sessionTimeout: 5000
-#      connectionTimeout: 2000
-#    http:
-#      url: http://localhost:9095
-#      username:
-#      password:
-#    nacos:
-#      url: 192.168.1.220
-#      namespace: 7cab5cbe-d9d4-4a65-81f0-89d7511fdc7c
-#      username:
-#      password:
-#      acm:
-#        enabled: false
-#        endpoint: acm.aliyun.com
-#        namespace:
-#        accessKey:
-#        secretKey:
-#    etcd:
-#      url: http://localhost:2379
-#    consul:
-#      url: http://localhost:8500
-#      waitTime: 1000
-#      watchDelay: 1000
-
+  #    apollo:
+  #      appId: shenyu
+  #      meta: http://localhost:8080
+  #      env: dev
+  #      clusterName: test
+  #      namespace: application
+  #    zookeeper:
+  #      url: localhost:2181
+  #      sessionTimeout: 5000
+  #      connectionTimeout: 2000
+  #    http:
+  #      url: http://localhost:9095
+  #      username:
+  #      password:
+  #    nacos:
+  #      url: localhost:8848
+  #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+  #      username:
+  #      password:
+  #      acm:
+  #        enabled: false
+  #        endpoint: acm.aliyun.com
+  #        namespace:
+  #        accessKey:
+  #        secretKey:
+  #    etcd:
+  #      url: http://localhost:2379
+  #    consul:
+  #      url: http://localhost:8500
+  #      waitTime: 1000
+  #      watchDelay: 1000
   exclude:
     enabled: false
     paths:
@@ -281,8 +267,8 @@ shenyu:
     jmxConfig:
     props:
       jvm_enabled: true
-#  plugins:
-#    rate-limiter.enabled: false
+  #  plugins:
+  #    rate-limiter.enabled: false
   local:
     enabled: false
     sha512Key: "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548BAEAE6956DF346EC8C17F5EA10F35EE3CBC514797ED7DDD3145464E2A0BAB413"

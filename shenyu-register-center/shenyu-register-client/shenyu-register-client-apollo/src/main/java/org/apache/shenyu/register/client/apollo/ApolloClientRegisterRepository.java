@@ -101,7 +101,6 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
         return String.join(Constants.COLONS, host, Integer.toString(port));
     }
 
-
     private synchronized void registerConfig(final String rpcType,
                                              final String contextPath,
                                              final MetaDataRegisterDTO metadata) {

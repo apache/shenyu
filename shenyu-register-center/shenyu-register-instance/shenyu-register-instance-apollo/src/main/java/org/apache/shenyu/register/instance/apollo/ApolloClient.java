@@ -1,4 +1,4 @@
-package org.apache.shenyu.register.instance.apollo;/*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -15,6 +15,7 @@ package org.apache.shenyu.register.instance.apollo;/*
  * limitations under the License.
  */
 
+package org.apache.shenyu.register.instance.apollo;
 
 import com.ctrip.framework.apollo.openapi.client.ApolloOpenApiClient;
 import com.ctrip.framework.apollo.openapi.dto.NamespaceReleaseDTO;
@@ -57,15 +58,6 @@ public class ApolloClient {
                 apolloConfig.getNamespace(),
                 key
         );
-        // no such key
-        if (openItemDTO == null) {
-            return null;
-        }
-        // todo handle timeout exception
-        if ("timeout".equals(openItemDTO.getKey())) {
-            return null;
-        }
-
         return openItemDTO.getValue();
     }
 
