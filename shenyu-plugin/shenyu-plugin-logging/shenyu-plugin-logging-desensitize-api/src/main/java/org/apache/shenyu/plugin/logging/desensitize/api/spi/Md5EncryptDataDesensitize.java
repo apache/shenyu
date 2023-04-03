@@ -15,34 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.collector;
+package org.apache.shenyu.plugin.logging.desensitize.api.spi;
 
-import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+import org.apache.shenyu.common.utils.DigestUtils;
+import org.apache.shenyu.spi.Join;
 
 /**
- * Collect logs and put into buffer queue.
+ * md5 encrypt data desensitize.
  */
-public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable {
-
-    /**
-     * start log collector.
-     */
-    void start();
-
-    /**
-     * desensitize log.
-     *
-     * @param log log
-     * @param keyWordMatch keyWordMatch
-     * @param desensitizeAlg data desensitize algorithm
-     */
-    void desensitize(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);
-
-    /**
-     * collect log.
-     *
-     * @param log access log
-     */
-    void collect(L log);
+@Join
+public class Md5EncryptDataDesensitize extends AbstractShenyuDataDesensitize {
+    @Override
+    protected String doDesensitize(final String source) {
+        return DigestUtils.md5Hex(source);
+    }
 }
