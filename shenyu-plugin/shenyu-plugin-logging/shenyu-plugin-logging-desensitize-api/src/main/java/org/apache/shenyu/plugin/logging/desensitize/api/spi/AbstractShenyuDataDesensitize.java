@@ -15,34 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.collector;
+package org.apache.shenyu.plugin.logging.desensitize.api.spi;
 
-import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * Collect logs and put into buffer queue.
+ * AbstractShenyuDataDesensitize.
  */
-public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable {
+public abstract class AbstractShenyuDataDesensitize implements ShenyuDataDesensitize {
+    @Override
+    public String desensitize(final String source) {
+        if (StringUtils.isBlank(source)) {
+            return "";
+        }
+        return doDesensitize(source);
+    }
 
     /**
-     * start log collector.
-     */
-    void start();
-
-    /**
-     * desensitize log.
+     * do desensitized data.
      *
-     * @param log log
-     * @param keyWordMatch keyWordMatch
-     * @param desensitizeAlg data desensitize algorithm
+     * @param source source
+     * @return desensitized data
      */
-    void desensitize(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);
+    protected abstract String doDesensitize(String source);
 
-    /**
-     * collect log.
-     *
-     * @param log access log
-     */
-    void collect(L log);
 }

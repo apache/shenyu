@@ -15,34 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.logging.common.collector;
+package org.apache.shenyu.plugin.logging.desensitize.api.spi;
 
-import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+import org.apache.shenyu.common.utils.DigestUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Collect logs and put into buffer queue.
- */
-public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable {
+@ExtendWith(MockitoExtension.class)
+public class Md5EncryptDataDesensitizeTest {
 
-    /**
-     * start log collector.
-     */
-    void start();
-
-    /**
-     * desensitize log.
-     *
-     * @param log log
-     * @param keyWordMatch keyWordMatch
-     * @param desensitizeAlg data desensitize algorithm
-     */
-    void desensitize(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);
-
-    /**
-     * collect log.
-     *
-     * @param log access log
-     */
-    void collect(L log);
+    @Test
+    public void doDesensitizeTest() {
+        Md5EncryptDataDesensitize md5EncryptDataMask = new Md5EncryptDataDesensitize();
+        Assertions.assertEquals(DigestUtils.md5Hex("test"), md5EncryptDataMask.doDesensitize("test"));
+    }
 }
