@@ -63,9 +63,9 @@ public class ApacheDubboPlugin extends AbstractDubboPlugin {
                                         final RuleData rule,
                                         final MetaData metaData,
                                         final String param) {
-        RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_SELECTOR_ID, selector.getId());
-        RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_RULE_ID, rule.getId());
-        RpcContext.getClientAttachment().setAttachment(Constants.DUBBO_REMOTE_ADDRESS, Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
+        RpcContext.getContext().setAttachment(Constants.DUBBO_SELECTOR_ID, selector.getId());
+        RpcContext.getContext().setAttachment(Constants.DUBBO_RULE_ID, rule.getId());
+        RpcContext.getContext().setAttachment(Constants.DUBBO_REMOTE_ADDRESS, Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
         final Mono<Object> result = dubboProxyService.genericInvoker(param, metaData, exchange);
         return result.then(chain.execute(exchange));
     }

@@ -20,42 +20,17 @@ server:
     max-http-form-post-size: 100MB
 
 shenyu:
-#  register:
-#    registerType: nacos #http #zookeeper #etcd #nacos #consul
-#    serverLists: 192.168.1.220:8848 #localhost:2181 #http://localhost:2379 #localhost:8848
-#    props:
-#      sessionTimeout: 5000
-#      connectionTimeout: 2000
-#      checked: true
-#      zombieCheckThreads: 10
-#      zombieCheckTimes: 5
-#      scheduledTime: 10
-#      nacosNameSpace: cab5cbe-d9d4-4a65-81f0-89d7511fdc7c
   register:
-    registerType: apollo #http #zookeeper #etcd #nacos #consul
-    serverLists: http://192.168.1.220:8070 #http://localhost:2379 #localhost:8848
+    registerType: http #zookeeper #etcd #nacos #consul
+    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
-      meta: http://192.168.1.220:8080
-      appId: shenyu
-      env: dev
-      clusterName: test
-      namespace: application
-      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
-#  register:
-#    registerType: etcd #http #zookeeper #etcd #nacos #consul
-#    serverLists: http://localhost:2379 #http://localhost:2379 #localhost:8848
-#    props:
-#      meta: http://192.168.1.220:8080
-#      appId: shenyu
-#      env: dev
-#      clusterName: test
-#      namespace: application
-#      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
+      username: admin
+      password: 123456
   client:
-      http:
-        props:
-          contextPath: /http
-          appName: http
+    http:
+      props:
+        contextPath: /http
+        appName: http
 #          port: 8189
 
 spring:
@@ -72,4 +47,3 @@ logging:
     org.apache.shenyu.test.bonuspoint: info
     org.apache.shenyu.test.lottery: debug
     org.apache.shenyu.test: debug
-
