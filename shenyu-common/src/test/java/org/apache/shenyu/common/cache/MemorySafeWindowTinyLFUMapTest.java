@@ -17,16 +17,19 @@
 
 package org.apache.shenyu.common.cache;
 
+import org.apache.shenyu.common.utils.ReflectUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.ref.WeakReference;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Test cases for MemorySafeWindowTinyLFUMap.
  */
 public class MemorySafeWindowTinyLFUMapTest {
-    
+
     @Test
     public void testPut() {
         MemorySafeWindowTinyLFUMap<String, String> lru = new MemorySafeWindowTinyLFUMap<>(1 << 10, 16);
@@ -44,15 +47,21 @@ public class MemorySafeWindowTinyLFUMapTest {
             private static final long serialVersionUID = 8897028073615563875L;
 
             @Override
-            public boolean isFull() {
+            public synchronized boolean isFull() {
                 //just for test
                 return size() > 1;
+            }
+
+            @Override
+            public synchronized void cleanUp() {
+                super.cleanUp();
             }
         };
         cache.put(1, 1);
         Assert.assertEquals(1, cache.size());
         cache.put(2, 2);
         cache.put(3, 3);
+        cache.invalidate();
         cache.cleanUp();
         Assert.assertEquals(1, cache.size());
         final Map.Entry<Integer, Integer> entry = cache.entrySet().iterator().next();
@@ -60,5 +69,17 @@ public class MemorySafeWindowTinyLFUMapTest {
         final Integer value = entry.getValue();
         Assert.assertEquals(3, (int) key);
         Assert.assertEquals(3, (int) value);
+    }
+
+    @Test
+    public void testWindowTinyLFUOutOufMemoryException() {
+        final int mb = 1 * 1024 * 1024;
+        for (int i = 0; i < 1000; i++) {
+            MemorySafeWindowTinyLFUMap<String, Byte[]> instance = new MemorySafeWindowTinyLFUMap<>(1, 1024);
+            instance.put(String.valueOf(1), new Byte[mb]);
+        }
+        Set<WeakReference<MemorySafeWindowTinyLFUMap<?, ?>>> all =
+                (Set<WeakReference<MemorySafeWindowTinyLFUMap<?, ?>>>) ReflectUtils.getFieldValue(new MemorySafeWindowTinyLFUMap(1, 1024), "ALL");
+        Assert.assertNotEquals(1000, all.size());
     }
 }

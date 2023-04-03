@@ -84,7 +84,7 @@ public final class MatchDataCache {
      */
     public void cacheSelectorData(final String path, final SelectorData selectorData, final int initialCapacity, final long maximumSize) {
         MapUtils.computeIfAbsent(SELECTOR_DATA_MAP, selectorData.getPluginName(), map ->
-                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.TRUE)).put(path, selectorData);
+                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.FALSE)).put(path, selectorData);
     }
 
     /**
@@ -109,7 +109,7 @@ public final class MatchDataCache {
      */
     public void cacheRuleData(final String path, final RuleData ruleData, final int initialCapacity, final long maximumSize) {
         MapUtils.computeIfAbsent(RULE_DATA_MAP, ruleData.getPluginName(), map ->
-                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.TRUE)).put(path, ruleData);
+                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.FALSE)).put(path, ruleData);
     }
     
     /**
