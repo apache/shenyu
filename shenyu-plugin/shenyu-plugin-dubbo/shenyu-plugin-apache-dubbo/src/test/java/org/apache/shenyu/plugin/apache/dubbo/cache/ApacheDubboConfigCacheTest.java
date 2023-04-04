@@ -100,7 +100,7 @@ public final class ApacheDubboConfigCacheTest {
         metaData.setPath("/test");
         ApacheDubboConfigCache apacheDubboConfigCacheMock = mock(ApacheDubboConfigCache.class);
         when(apacheDubboConfigCacheMock.initRef(metaData))
-                .thenReturn(new ReferenceConfig<>());
+                .thenReturn(new org.apache.dubbo.config.ReferenceConfig<>());
         assertNotNull(apacheDubboConfigCacheMock.initRef(metaData));
     }
 
