@@ -112,7 +112,7 @@ public class ShenyuTrie {
                 for (int i = 0; i < pathParts.length; i++) {
                     boolean endOfPath = isMatchAllOrWildcard(pathParts[i]) && judgeEqual(i, pathParts.length - 1);
                     node = putNode0(pathParts[i], node, matchMode, endOfPath);
-                    if(Objects.isNull(node)){
+                    if (Objects.isNull(node)) {
                         return;
                     }
                 }
