@@ -27,10 +27,10 @@ shenyu:
       username: admin
       password: 123456
   client:
-    http:
-      props:
-        contextPath: /http
-        appName: http
+      http:
+        props:
+          contextPath: /http
+          appName: http
 #          port: 8189
 
 spring:
@@ -47,3 +47,4 @@ logging:
     org.apache.shenyu.test.bonuspoint: info
     org.apache.shenyu.test.lottery: debug
     org.apache.shenyu.test: debug
+

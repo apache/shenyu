@@ -90,7 +90,7 @@ public class ApacheDubboProxyService {
             return ret;
         })).onErrorMap(exception -> exception instanceof GenericException ? new ShenyuException(((GenericException) exception).getExceptionMessage()) : new ShenyuException(exception));
     }
-
+    
     @SuppressWarnings("unchecked")
     private CompletableFuture<Object> invokeAsync(final GenericService genericService, final String method, final String[] parameterTypes, final Object[] args) throws GenericException {
         //Compatible with asynchronous calls of lower Dubbo versions

@@ -72,6 +72,6 @@ public class ApacheDubboPlugin extends AbstractDubboPlugin {
 
     @Override
     protected void transmitRpcContext(final Map<String, String> rpcContext) {
-        RpcContext.getClientAttachment().setAttachments(rpcContext);
+        RpcContext.getContext().setAttachments(rpcContext);
     }
 }
