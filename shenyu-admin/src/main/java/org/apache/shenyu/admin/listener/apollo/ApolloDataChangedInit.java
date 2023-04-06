@@ -46,6 +46,12 @@ public class ApolloDataChangedInit extends AbstractDataChangedInit {
             this::dataIdNotExist);
     }
 
+    /**
+     * Data id not exist boolean.
+     *
+     * @param pluginDataId the plugin data id
+     * @return the boolean
+     */
     private boolean dataIdNotExist(final String pluginDataId) {
         return Objects.isNull(apolloClient.getItemValue(pluginDataId));
     }
