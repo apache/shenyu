@@ -3,11 +3,9 @@ package org.apache.shenyu.protocol.tcp;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
-import reactor.netty.NettyOutbound;
 import reactor.netty.resources.ConnectionProvider;
 
 import java.time.Duration;
-import java.util.Collections;
 
 
 public class TcpClient {

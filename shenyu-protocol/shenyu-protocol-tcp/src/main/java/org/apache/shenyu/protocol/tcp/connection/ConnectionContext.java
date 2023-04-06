@@ -22,7 +22,7 @@ public class ConnectionContext {
                 .maxConnections(10)
                 .maxIdleTime(Duration.ofMinutes(5))
                 .build();
-        mappingTable.put("127.0.0.1:9901", new InetSocketAddress("127.0.0.1", 9124));
+        mappingTable.put("127.0.0.1:9124", new InetSocketAddress("127.0.0.1", 9124));
     }
 
     public static Connection getTcpClientConnection(String clientIp, Integer clientPort) {
