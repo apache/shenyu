@@ -58,7 +58,7 @@ public class RegisterPathConstants {
     public static String buildMetaDataContextPathParent(final String rpcType) {
         return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType);
     }
-    
+
     /**
      * build child path of "/shenyu/register/metadata/{rpcType}/{contextPath}/".
      *
@@ -69,7 +69,7 @@ public class RegisterPathConstants {
     public static String buildMetaDataParentPath(final String rpcType, final String contextPath) {
         return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType, contextPath);
     }
-    
+
     /**
      * Build uri path string.
      * build child path of "/shenyu/register/uri/{rpcType}/".
@@ -80,7 +80,7 @@ public class RegisterPathConstants {
     public static String buildURIContextPathParent(final String rpcType) {
         return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType);
     }
-    
+
     /**
      * Build uri path string.
      * build child path of "/shenyu/register/uri/{rpcType}/{contextPath}/".
@@ -92,7 +92,7 @@ public class RegisterPathConstants {
     public static String buildURIParentPath(final String rpcType, final String contextPath) {
         return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType, contextPath);
     }
-    
+
     /**
      * Build instance parent path string.
      * build child path of "/shenyu/register/instance/
@@ -113,7 +113,7 @@ public class RegisterPathConstants {
     public static String buildInstanceParentPath(final String registerServiceName) {
         return String.join(SEPARATOR, ROOT_PATH, registerServiceName);
     }
-    
+
     /**
      * Build real node string.
      *
@@ -124,7 +124,7 @@ public class RegisterPathConstants {
     public static String buildRealNode(final String nodePath, final String nodeName) {
         return String.join(SEPARATOR, nodePath, nodeName);
     }
-    
+
     /**
      * Build nacos instance service path string.
      * build child path of "shenyu.register.service.{rpcType}".
@@ -136,7 +136,7 @@ public class RegisterPathConstants {
         return String.join(SEPARATOR, ROOT_PATH, "service", rpcType)
                 .replace("/", DOT_SEPARATOR).substring(1);
     }
-    
+
     /**
      * Build nacos config service path string.
      * build child path of "shenyu.register.service.{rpcType}.{contextPath}".
@@ -154,7 +154,7 @@ public class RegisterPathConstants {
         }
         return serviceConfigPathAfterSubstring;
     }
-    
+
     /**
      * Build node name by DOT_SEPARATOR.
      *
@@ -164,30 +164,5 @@ public class RegisterPathConstants {
      */
     public static String buildNodeName(final String serviceName, final String methodName) {
         return String.join(DOT_SEPARATOR, serviceName, methodName);
-    }
-
-    /**
-     * Build apollo config uri parent path string.
-     * build child path of "shenyu.register.uri.{rpcType}.{contextPath}".
-     *
-     * @param rpcType the rpc type
-     * @param contextPath the context path
-     * @return the string
-     */
-    public static String buildURIParentKey(final String rpcType, final String contextPath) {
-        return String.join(DOT_SEPARATOR, "shenyu.register", "uri", rpcType, contextPath);
-    }
-
-
-    /**
-     * Build apollo config metadata parent path string.
-     * build child path of "shenyu.register.metadata.{rpcType}.{contextPath}".
-     *
-     * @param rpcType the rpc type
-     * @param contextPath the context path
-     * @return the string
-     */
-    public static String buildMetadataParentKey(final String rpcType, final String contextPath) {
-        return String.join(DOT_SEPARATOR, "shenyu.register", "metadata", rpcType, contextPath);
     }
 }
