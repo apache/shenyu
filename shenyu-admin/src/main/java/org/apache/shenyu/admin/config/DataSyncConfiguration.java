@@ -32,6 +32,7 @@ import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.config.properties.ApolloProperties;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.listener.apollo.ApolloClient;
 import org.apache.shenyu.admin.listener.apollo.ApolloDataChangedInit;
 import org.apache.shenyu.admin.listener.apollo.ApolloDataChangedListener;
 import org.apache.shenyu.admin.listener.consul.ConsulDataChangedInit;
@@ -46,8 +47,6 @@ import org.apache.shenyu.admin.listener.websocket.WebsocketCollector;
 import org.apache.shenyu.admin.listener.websocket.WebsocketDataChangedListener;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedInit;
 import org.apache.shenyu.admin.listener.zookeeper.ZookeeperDataChangedListener;
-import org.apache.shenyu.register.client.server.apollo.ApolloClient;
-import org.apache.shenyu.register.client.server.apollo.ApolloConfig;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperClient;
 import org.apache.shenyu.register.client.server.zookeeper.ZookeeperConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -347,14 +346,7 @@ public class DataSyncConfiguration {
          */
         @Bean
         public ApolloClient apolloClient(final ApolloProperties apolloProperties) {
-            ApolloConfig apolloConfig = new ApolloConfig();
-            apolloConfig.setPortalUrl(apolloProperties.getPortalUrl());
-            apolloConfig.setAppId(apolloProperties.getAppId());
-            apolloConfig.setEnv(apolloProperties.getEnv());
-            apolloConfig.setClusterName(apolloProperties.getClusterName());
-            apolloConfig.setNamespace(apolloProperties.getNamespace());
-            apolloConfig.setToken(apolloProperties.getToken());
-            return new ApolloClient(apolloConfig);
+            return new ApolloClient(apolloProperties);
         }
 
         /**

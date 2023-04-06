@@ -33,7 +33,6 @@
         <module>shenyu-register-instance-etcd</module>
         <module>shenyu-register-instance-consul</module>
         <module>shenyu-register-instance-nacos</module>
-        <module>shenyu-register-instance-apollo</module>
         <module>shenyu-register-instance-eureka</module>
     </modules>
     

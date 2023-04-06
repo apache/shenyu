@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.apollo;
+package org.apache.shenyu.admin.listener.apollo;
 
 import com.ctrip.framework.apollo.openapi.client.ApolloOpenApiClient;
 import com.ctrip.framework.apollo.openapi.dto.NamespaceReleaseDTO;
 import com.ctrip.framework.apollo.openapi.dto.OpenItemDTO;
+import org.apache.shenyu.admin.config.properties.ApolloProperties;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.Date;
@@ -31,11 +32,11 @@ public class ApolloClient {
 
     private static final String DEFAULT_USER = "apollo";
 
-    private final ApolloConfig apolloConfig;
+    private final ApolloProperties apolloConfig;
 
     private final ApolloOpenApiClient apolloOpenApiClient;
 
-    public ApolloClient(final ApolloConfig apolloConfig) {
+    public ApolloClient(final ApolloProperties apolloConfig) {
         this.apolloConfig = apolloConfig;
 
         this.apolloOpenApiClient = ApolloOpenApiClient
@@ -57,6 +58,9 @@ public class ApolloClient {
                 apolloConfig.getClusterName(),
                 apolloConfig.getNamespace(),
                 key);
+        if (openItemDTO == null) {
+            return null;
+        }
         return openItemDTO.getValue();
     }
 

@@ -62,6 +62,14 @@ shenyu:
       enabled: true
       messageMaxSize: 10240
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
+#    apollo:
+#      meta: http://localhost:8080
+#      appId: shenyu
+#      portalUrl: http://localhost:8070
+#      env: dev
+#      clusterName: test
+#      namespace: application
+#      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
 #      zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000
@@ -73,7 +81,7 @@ shenyu:
 #        namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
 #        username:
 #        password:
-#        acm:
+#        acm:==
 #          enabled: false
 #          endpoint: acm.aliyun.com
 #          namespace:

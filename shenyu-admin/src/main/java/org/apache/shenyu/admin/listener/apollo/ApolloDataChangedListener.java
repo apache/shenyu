@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.listener.apollo;
 
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
-import org.apache.shenyu.register.client.server.apollo.ApolloClient;
 import org.springframework.util.StringUtils;
 
 /**
@@ -43,6 +42,7 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
 
     @Override
     public void publishConfig(final String dataId, final Object data) {
+        this.apolloClient.createOrUpdateItem(dataId, "", "clean config data");
         this.apolloClient.createOrUpdateItem(dataId, data, "create config data");
         this.apolloClient.publishNamespace("publish config data", "");
     }

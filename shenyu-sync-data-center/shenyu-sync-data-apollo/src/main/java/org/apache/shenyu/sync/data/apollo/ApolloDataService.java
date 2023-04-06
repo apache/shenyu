@@ -19,13 +19,13 @@ package org.apache.shenyu.sync.data.apollo;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigChangeListener;
-import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
+import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -34,9 +34,9 @@ import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,8 +74,20 @@ public class ApolloDataService implements SyncDataService {
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
+        subAllData();
         watch();
 
+    }
+
+    /**
+     * sub all data.
+     */
+    public void subAllData() {
+        subscriberAuthData();
+        subscriberMetaData();
+        subscriberPluginData();
+        subscriberRuleData();
+        subscriberSelectorData();
     }
 
     /**
@@ -91,17 +103,82 @@ public class ApolloDataService implements SyncDataService {
 
     /**
      * watch plugin data.
+     * @return plugin data list
+     */
+    public List<PluginData> subscriberPluginData() {
+        List<PluginData> pluginDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.PLUGIN_DATA_ID, "{}"), PluginData.class).values());
+        pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+            subscriber.unSubscribe(pluginData);
+            subscriber.onSubscribe(pluginData);
+        }));
+        return pluginDataList;
+    }
+
+    /**
+     * subscriber selector data.
+     * @return selector data list
+     */
+    public List<SelectorData> subscriberSelectorData() {
+        List<SelectorData> selectorDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(ApolloPathConstants.SELECTOR_DATA_ID, "{}"), SelectorData.class).values()
+                .stream().flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+            subscriber.unSelectorSubscribe(selectorData);
+            subscriber.onSelectorSubscribe(selectorData);
+        }));
+        return selectorDataList;
+    }
+
+    /**
+     * subscriber rule data.
+     * @return rule data list
+     */
+    public List<RuleData> subscriberRuleData() {
+        List<RuleData> ruleDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(ApolloPathConstants.RULE_DATA_ID, "{}"), RuleData.class).values()
+                .stream().flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+            subscriber.unRuleSubscribe(ruleData);
+            subscriber.onRuleSubscribe(ruleData);
+        }));
+        return ruleDataList;
+    }
+
+    /**
+     * subscriber meta data.
+     * @return meta data list
+     */
+    public List<MetaData> subscriberMetaData() {
+        List<MetaData> metaDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.META_DATA_ID, "{}"), MetaData.class).values());
+        metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {
+            subscriber.unSubscribe(metaData);
+            subscriber.onSubscribe(metaData);
+        }));
+        return metaDataList;
+    }
+
+    /**
+     * subscriber auth data.
+     * @return auth data list
+     */
+    public List<AppAuthData> subscriberAuthData() {
+        List<AppAuthData> appAuthDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.AUTH_DATA_ID, "{}"), AppAuthData.class).values());
+        appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {
+            subscriber.unSubscribe(appAuthData);
+            subscriber.onSubscribe(appAuthData);
+        }));
+        return appAuthDataList;
+    }
+
+    /**
+     * watch plugin data.
      */
     private void watchPluginData() {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
                 if (key.contains(ApolloPathConstants.PLUGIN_DATA_ID)) {
-                    List<PluginData> pluginDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), PluginData.class).values());
-                    pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
-                        LOG.info("apollo listener pluginData: {}", pluginDataList);
-                        subscriber.unSubscribe(pluginData);
-                        subscriber.onSubscribe(pluginData);
-                    }));
+                    List<PluginData> pluginData = subscriberPluginData();
+                    LOG.info("apollo listener pluginData: {}", pluginData);
                 }
 
             });
@@ -117,13 +194,8 @@ public class ApolloDataService implements SyncDataService {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
                 if (key.contains(ApolloPathConstants.SELECTOR_DATA_ID)) {
-                    List<SelectorData> selectorDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(key, ""), SelectorData.class)
-                            .values().stream().flatMap(Collection::stream).collect(Collectors.toList());
-                    selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
-                        LOG.info("apollo listener selectorData: {}", selectorDataList);
-                        subscriber.unSelectorSubscribe(selectorData);
-                        subscriber.onSelectorSubscribe(selectorData);
-                    }));
+                    List<SelectorData> selectorDataList = subscriberSelectorData();
+                    LOG.info("apollo listener selectorData: {}", selectorDataList);
                 }
 
             });
@@ -139,14 +211,8 @@ public class ApolloDataService implements SyncDataService {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
                 if (key.contains(ApolloPathConstants.RULE_DATA_ID)) {
-                    List<RuleData> ruleDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(key, ""), RuleData.class).values()
-                            .stream().flatMap(Collection::stream)
-                            .collect(Collectors.toList());
-                    ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
-                        LOG.info("apollo listener ruleData: {}", ruleDataList);
-                        subscriber.unRuleSubscribe(ruleData);
-                        subscriber.onRuleSubscribe(ruleData);
-                    }));
+                    List<RuleData> ruleDataList = subscriberRuleData();
+                    LOG.info("apollo listener ruleData: {}", ruleDataList);
                 }
 
             });
@@ -162,12 +228,8 @@ public class ApolloDataService implements SyncDataService {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
                 if (key.contains(ApolloPathConstants.META_DATA_ID)) {
-                    List<MetaData> metaDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), MetaData.class).values());
-                    metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {
-                        LOG.info("apollo listener metaData: {}", metaDataList);
-                        subscriber.unSubscribe(metaData);
-                        subscriber.onSubscribe(metaData);
-                    }));
+                    List<MetaData> metaDataList = subscriberMetaData();
+                    LOG.info("apollo listener metaData: {}", metaDataList);
                 }
 
             });
@@ -183,12 +245,8 @@ public class ApolloDataService implements SyncDataService {
         ConfigChangeListener configChangeListener = changeEvent -> {
             changeEvent.changedKeys().forEach(key -> {
                 if (key.contains(ApolloPathConstants.AUTH_DATA_ID)) {
-                    List<AppAuthData> appAuthDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), AppAuthData.class).values());
-                    appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {
-                        LOG.info("apollo listener appAuthData: {}", appAuthDataList);
-                        subscriber.unSubscribe(appAuthData);
-                        subscriber.onSubscribe(appAuthData);
-                    }));
+                    List<AppAuthData> authDataList = subscriberAuthData();
+                    LOG.info("apollo listener authData: {}", authDataList);
                 }
 
             });
