@@ -224,7 +224,9 @@ public class ZookeeperSyncDataService implements SyncDataService {
             if (!path.contains(DefaultPathConstants.SELECTOR_PARENT)) {
                 return;
             }
-
+            if (!zkClient.getChildren(path).isEmpty()) {
+                return;
+            }
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheSelectorData(path);
                 return;
@@ -291,7 +293,9 @@ public class ZookeeperSyncDataService implements SyncDataService {
             if (!path.contains(DefaultPathConstants.RULE_PARENT)) {
                 return;
             }
-
+            if (!zkClient.getChildren(path).isEmpty()) {
+                return;
+            }
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheRuleData(path);
                 return;

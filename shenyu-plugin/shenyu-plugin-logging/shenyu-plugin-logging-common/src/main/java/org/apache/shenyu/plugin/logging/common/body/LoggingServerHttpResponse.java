@@ -29,7 +29,7 @@ import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectUtils;
-import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,9 +67,9 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
 
     private final LogCollector<L> logCollector;
 
-    private final boolean maskFlag;
+    private final boolean desensitized;
 
-    private final String dataMaskAlg;
+    private final String dataDesensitizeAlg;
 
     private final KeyWordMatch keyWordMatch;
 
@@ -79,18 +79,18 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
      * @param delegate delegate ServerHttpResponse
      * @param logInfo access log
      * @param logCollector LogCollector instance
-     * @param maskFlag mask flag
+     * @param desensitized desensitize flag
      * @param keyWordSet user keyWord set
-     * @param dataMaskAlg mask function
+     * @param dataDesensitizeAlg desensitize function
      */
     public LoggingServerHttpResponse(final ServerHttpResponse delegate, final L logInfo,
-                                     final LogCollector<L> logCollector, final boolean maskFlag,
-                                     final Set<String> keyWordSet, final String dataMaskAlg) {
+                                     final LogCollector<L> logCollector, final boolean desensitized,
+                                     final Set<String> keyWordSet, final String dataDesensitizeAlg) {
         super(delegate);
         this.logInfo = logInfo;
         this.logCollector = logCollector;
-        this.maskFlag = maskFlag;
-        this.dataMaskAlg = dataMaskAlg;
+        this.desensitized = desensitized;
+        this.dataDesensitizeAlg = dataDesensitizeAlg;
         this.keyWordMatch = new KeyWordMatch(keyWordSet);
     }
 
@@ -167,9 +167,9 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         }
         // collect log
         if (Objects.nonNull(logCollector)) {
-            // mask log
-            if (maskFlag) {
-                logCollector.mask(logInfo, keyWordMatch, dataMaskAlg);
+            // desensitize log
+            if (desensitized) {
+                logCollector.desensitize(logInfo, keyWordMatch, dataDesensitizeAlg);
             }
             logCollector.collect(logInfo);
         }
@@ -253,9 +253,9 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         }
         // collect log
         if (Objects.nonNull(logCollector)) {
-            // mask log
-            if (maskFlag) {
-                logCollector.mask(logInfo, keyWordMatch, dataMaskAlg);
+            // desensitize log
+            if (desensitized) {
+                logCollector.desensitize(logInfo, keyWordMatch, dataDesensitizeAlg);
             }
             logCollector.collect(logInfo);
         }
