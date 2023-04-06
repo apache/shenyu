@@ -186,6 +186,7 @@ shenyu:
 
   switchConfig:
     local: true
+    collapseSlashes: false
   file:
     enabled: true
     maxSize : 10
