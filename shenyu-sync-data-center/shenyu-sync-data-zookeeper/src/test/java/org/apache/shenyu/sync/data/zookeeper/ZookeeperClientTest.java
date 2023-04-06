@@ -144,7 +144,7 @@ class ZookeeperClientTest {
 
     @Test
     void getChildren() throws Exception {
-        assertThrows(ShenyuException.class, () -> client.getChildren("/test"));
+        assertTrue(client.getChildren("/test").isEmpty());
         GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
         when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
         when(getChildrenBuilder.forPath(anyString())).thenReturn(new ArrayList<>());

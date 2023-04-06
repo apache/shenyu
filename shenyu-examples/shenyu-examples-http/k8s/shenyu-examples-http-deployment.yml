@@ -40,7 +40,7 @@ spec:
           livenessProbe:
             exec:
               command:
-                - wget -q -O - http://localhost:8011/actuator/health | grep UP || exit 1
+                - wget -q -O - http://localhost:8189/actuator/health | grep UP || exit 1
             initialDelaySeconds: 10
             failureThreshold: 3
             timeoutSeconds: 2

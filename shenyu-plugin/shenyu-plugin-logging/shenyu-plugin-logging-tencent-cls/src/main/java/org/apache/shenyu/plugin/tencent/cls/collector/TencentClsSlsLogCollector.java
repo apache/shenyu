@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.tencent.cls.collector;
 import org.apache.shenyu.plugin.logging.common.collector.AbstractLogCollector;
 import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
-import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.apache.shenyu.plugin.tencent.cls.client.TencentClsLogCollectClient;
 import org.apache.shenyu.plugin.tencent.cls.handler.LoggingTencentClsPluginDataHandler;
 
@@ -46,6 +46,6 @@ public class TencentClsSlsLogCollector extends AbstractLogCollector<TencentClsLo
     }
 
     @Override
-    protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
+    protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
     }
 }

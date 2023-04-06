@@ -60,6 +60,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private ShenyuConfig.MatchCache matchCacheConfig;
     
     private ShenyuTrie trie;
+    
+    private ShenyuConfig.ShenyuTrieConfig trieConfig;
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -166,6 +168,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
         if (Objects.isNull(trie)) {
             trie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
+        }
+        if (Objects.isNull(trieConfig)) {
+            trieConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getTrie();
         }
     }
 
@@ -310,6 +315,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
     
     private RuleData trieMatchRule(final ServerWebExchange exchange, final SelectorData selectorData, final String path) {
+        if (!trieConfig.getEnabled()) {
+            return null;
+        }
         RuleData ruleData = null;
         ShenyuTrieNode shenyuTrieNode = trie.match(path, selectorData.getId());
         if (Objects.nonNull(shenyuTrieNode)) {
