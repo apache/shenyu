@@ -20,12 +20,11 @@ package org.apache.shenyu.sync.data.apollo;
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigChangeListener;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
-import org.apache.shenyu.common.constant.DefaultPathConstants;
+import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -34,11 +33,11 @@ import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.Optional;
-import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -75,7 +74,7 @@ public class ApolloDataService implements SyncDataService {
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
         subAllData();
-        watch();
+        watchData();
 
     }
 
@@ -88,17 +87,6 @@ public class ApolloDataService implements SyncDataService {
         subscriberPluginData();
         subscriberRuleData();
         subscriberSelectorData();
-    }
-
-    /**
-     * watch data.
-     */
-    public void watch() {
-        watchPluginData();
-        watchSelectorData();
-        watchRuleData();
-        watchAuthData();
-        watchMetaData();
     }
 
     /**
@@ -173,95 +161,39 @@ public class ApolloDataService implements SyncDataService {
     /**
      * watch plugin data.
      */
-    private void watchPluginData() {
-        ConfigChangeListener configChangeListener = changeEvent -> {
-            changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(ApolloPathConstants.PLUGIN_DATA_ID)) {
+    private void watchData() {
+        ConfigChangeListener configChangeListener = changeEvent -> changeEvent.changedKeys().forEach(key -> {
+            switch (key) {
+                case ApolloPathConstants.PLUGIN_DATA_ID:
                     List<PluginData> pluginData = subscriberPluginData();
                     LOG.info("apollo listener pluginData: {}", pluginData);
-                }
-
-            });
-        };
-        cache.put(DefaultPathConstants.PLUGIN_PARENT, configChangeListener);
-        configService.addChangeListener(configChangeListener);
-    }
-
-    /**
-     * watch selector data.
-     */
-    private void watchSelectorData() {
-        ConfigChangeListener configChangeListener = changeEvent -> {
-            changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(ApolloPathConstants.SELECTOR_DATA_ID)) {
+                    break;
+                case ApolloPathConstants.SELECTOR_DATA_ID:
                     List<SelectorData> selectorDataList = subscriberSelectorData();
                     LOG.info("apollo listener selectorData: {}", selectorDataList);
-                }
-
-            });
-        };
-        cache.put(DefaultPathConstants.SELECTOR_PARENT, configChangeListener);
-        configService.addChangeListener(configChangeListener);
-    }
-
-    /**
-     * watch rule data.
-     */
-    private void watchRuleData() {
-        ConfigChangeListener configChangeListener = changeEvent -> {
-            changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(ApolloPathConstants.RULE_DATA_ID)) {
+                    break;
+                case ApolloPathConstants.RULE_DATA_ID:
                     List<RuleData> ruleDataList = subscriberRuleData();
                     LOG.info("apollo listener ruleData: {}", ruleDataList);
-                }
-
-            });
-        };
-        cache.put(ApolloPathConstants.RULE_DATA_ID, configChangeListener);
-        configService.addChangeListener(configChangeListener);
-    }
-
-    /**
-     * watch meta data.
-     */
-    private void watchMetaData() {
-        ConfigChangeListener configChangeListener = changeEvent -> {
-            changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(ApolloPathConstants.META_DATA_ID)) {
+                    break;
+                case ApolloPathConstants.META_DATA_ID:
                     List<MetaData> metaDataList = subscriberMetaData();
                     LOG.info("apollo listener metaData: {}", metaDataList);
-                }
-
-            });
-        };
-        cache.put(ApolloPathConstants.META_DATA_ID, configChangeListener);
-        configService.addChangeListener(configChangeListener);
-    }
-
-    /**
-     * watch auth data.
-     */
-    private void watchAuthData() {
-        ConfigChangeListener configChangeListener = changeEvent -> {
-            changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(ApolloPathConstants.AUTH_DATA_ID)) {
-                    List<AppAuthData> authDataList = subscriberAuthData();
-                    LOG.info("apollo listener authData: {}", authDataList);
-                }
-
-            });
-        };
-        cache.put(ApolloPathConstants.AUTH_DATA_ID, configChangeListener);
-        configService.addChangeListener(configChangeListener);
+                    break;
+                case ApolloPathConstants.AUTH_DATA_ID:
+                    List<AppAuthData> appAuthDataList = subscriberAuthData();
+                    LOG.info("apollo listener authData: {}", appAuthDataList);
+                    break;
+                default:
+                    break;
+            }
+        });
+        cache.put(ApolloPathConstants.pathKeySet().toString(), configChangeListener);
+        configService.addChangeListener(configChangeListener, ApolloPathConstants.pathKeySet());
     }
 
     @Override
     public void close() {
-        configService.removeChangeListener(cache.get(ApolloPathConstants.PLUGIN_DATA_ID));
-        configService.removeChangeListener(cache.get(ApolloPathConstants.SELECTOR_DATA_ID));
-        configService.removeChangeListener(cache.get(ApolloPathConstants.RULE_DATA_ID));
-        configService.removeChangeListener(cache.get(ApolloPathConstants.AUTH_DATA_ID));
-        configService.removeChangeListener(cache.get(ApolloPathConstants.META_DATA_ID));
-        cache.clear();
+        cache.forEach((key, value) -> configService.removeChangeListener(value));
     }
 }
