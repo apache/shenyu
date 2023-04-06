@@ -42,7 +42,6 @@ public class ApolloDataChangedListener extends AbstractListDataChangedListener {
 
     @Override
     public void publishConfig(final String dataId, final Object data) {
-        this.apolloClient.createOrUpdateItem(dataId, "", "clean config data");
         this.apolloClient.createOrUpdateItem(dataId, data, "create config data");
         this.apolloClient.publishNamespace("publish config data", "");
     }
