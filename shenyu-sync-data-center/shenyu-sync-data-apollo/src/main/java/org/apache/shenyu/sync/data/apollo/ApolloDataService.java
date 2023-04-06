@@ -192,6 +192,9 @@ public class ApolloDataService implements SyncDataService {
         configService.addChangeListener(configChangeListener, ApolloPathConstants.pathKeySet());
     }
 
+    /**
+     * close.
+     */
     @Override
     public void close() {
         cache.forEach((key, value) -> configService.removeChangeListener(value));
