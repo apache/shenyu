@@ -33,11 +33,14 @@ import java.net.URI;
 @Configuration
 public class CollapseSlashesConfiguration {
 
+    /**
+     * declaration collapseSlashesFilter.
+     * @return collapseSlashesFilter
+     */
     @Bean
     @ConditionalOnProperty(
             value = "shenyu.switchConfig.collapseSlashes",
-            havingValue = "true",
-            matchIfMissing = true
+            havingValue = "true"
     )
     public WebFilter collapseSlashesFilter() {
         return (ServerWebExchange exchange, WebFilterChain chain) -> {
