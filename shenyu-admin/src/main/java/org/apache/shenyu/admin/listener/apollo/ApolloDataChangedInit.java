@@ -40,6 +40,10 @@ public class ApolloDataChangedInit extends AbstractDataChangedInit {
         this.apolloClient = apolloClient;
     }
 
+    /**
+     * not exist.
+     * @return true if not exist
+     */
     @Override
     protected boolean notExist() {
         return Stream.of(ApolloPathConstants.PLUGIN_DATA_ID, ApolloPathConstants.AUTH_DATA_ID, ApolloPathConstants.META_DATA_ID).allMatch(
