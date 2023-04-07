@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-dist</artifactId>
-        <version>2.5.1-SNAPSHOT</version>
+        <version>2.6.0-SNAPSHOT</version>
     </parent>
     <artifactId>shenyu-docker-compose-dist</artifactId>
     <packaging>pom</packaging>
@@ -38,6 +38,7 @@
                 <plugins>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
+                        <version>${maven-assembly-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>src</id>

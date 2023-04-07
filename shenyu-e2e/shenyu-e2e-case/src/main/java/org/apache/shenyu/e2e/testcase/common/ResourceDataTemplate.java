@@ -48,6 +48,7 @@ public class ResourceDataTemplate {
                 .continued(true)
                 .logged(true)
                 .enabled(true)
+                .matchRestful(false)
                 .sort(1);
     }
     
@@ -62,6 +63,7 @@ public class ResourceDataTemplate {
                 .selectorId(selectorId)
                 .enabled(true)
                 .logged(true)
+                .matchRestful(false)
                 .sort(1);
     }
     

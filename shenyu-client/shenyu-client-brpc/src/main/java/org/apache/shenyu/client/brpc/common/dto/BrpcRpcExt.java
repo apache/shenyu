@@ -31,6 +31,10 @@ public class BrpcRpcExt {
      * we can't change the type of this field.
      */
     private List<RpcExt> methodInfo;
+    
+    private String host;
+    
+    private Integer port;
 
     /**
      * constructor without params.
@@ -42,11 +46,51 @@ public class BrpcRpcExt {
      * constructor with all params.
      *
      * @param methodInfo methodInfo
+     * @param host host
+     * @param port port
      */
-    public BrpcRpcExt(final List<RpcExt> methodInfo) {
+    public BrpcRpcExt(final List<RpcExt> methodInfo, final String host, final Integer port) {
         this.methodInfo = methodInfo;
+        this.host = host;
+        this.port = port;
     }
-
+    
+    /**
+     * get port.
+     *
+     * @return port
+     */
+    public Integer getPort() {
+        return port;
+    }
+    
+    /**
+     * set port.
+     *
+     * @param port port
+     */
+    public void setPort(final Integer port) {
+        this.port = port;
+    }
+    
+    /**
+     * get host.
+     *
+     * @return host
+     */
+    public String getHost() {
+        return host;
+    }
+    
+    /**
+     * set host.
+     *
+     * @param host host
+     */
+    public void setHost(final String host) {
+        this.host = host;
+    }
+    
     /**
      * get methodInfo.
      *
@@ -89,7 +133,6 @@ public class BrpcRpcExt {
 
         /**
          * constructor with params.
-         *
          * @param methodName methodName
          * @param paramTypes params
          */

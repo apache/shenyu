@@ -13,7 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 random=org.apache.shenyu.loadbalancer.spi.RandomLoadBalancer
 roundRobin=org.apache.shenyu.loadbalancer.spi.RoundRobinLoadBalancer
 hash=org.apache.shenyu.loadbalancer.spi.HashLoadBalancer
+leastActive=org.apache.shenyu.loadbalancer.spi.LeastActiveLoadBalance
+p2c=org.apache.shenyu.loadbalancer.spi.P2cLoadBalancer
+shortestResponse=org.apache.shenyu.loadbalancer.spi.ShortestResponseLoadBalancer

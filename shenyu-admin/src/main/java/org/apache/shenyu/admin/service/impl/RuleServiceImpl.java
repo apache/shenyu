@@ -54,6 +54,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -152,11 +153,35 @@ public class RuleServiceImpl implements RuleService {
         Assert.notNull(before, "the updated rule is not found");
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
+
+        // need old data for cleaning
+        List<RuleConditionDO> beforeRuleCondition = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
+        List<RuleConditionDTO> beforRuleCondition = beforeRuleCondition.stream().map(ruleConditionDO ->
+                RuleConditionDTO.builder()
+                        .ruleId(ruleConditionDO.getRuleId())
+                        .operator(ruleConditionDO.getOperator())
+                        .paramName(ruleConditionDO.getParamName())
+                        .paramType(ruleConditionDO.getParamType())
+                        .paramValue(ruleConditionDO.getParamValue())
+                        .build()).collect(Collectors.toList());
+        List<RuleConditionDTO> currentRuleCondition = ruleDTO.getRuleConditions().stream().map(ruleConditionDTO ->
+                RuleConditionDTO.builder()
+                        .ruleId(ruleConditionDTO.getRuleId())
+                        .operator(ruleConditionDTO.getOperator())
+                        .paramName(ruleConditionDTO.getParamName())
+                        .paramType(ruleConditionDTO.getParamType())
+                        .paramValue(ruleConditionDTO.getParamValue())
+                        .build()).collect(Collectors.toList());
+        if (CollectionUtils.isEqualCollection(beforRuleCondition, currentRuleCondition)) {
+            beforeRuleCondition = Collections.emptyList();
+        }
         //delete rule condition then add
         ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
+
+        // insert new condition
         addCondition(ruleDO, ruleDTO.getRuleConditions());
         if (ruleCount > 0) {
-            ruleEventPublisher.onUpdated(ruleDO, before, ruleDTO.getRuleConditions());
+            ruleEventPublisher.onUpdated(ruleDO, before, ruleDTO.getRuleConditions(), beforeRuleCondition);
         }
         return ruleCount;
     }

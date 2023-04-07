@@ -531,14 +531,65 @@ public class ShenyuConfig {
      * the match cache.
      */
     public static class MatchCache {
-
-        private boolean selectorEnabled;
-
+        
+        private SelectorCacheConfig selector = new SelectorCacheConfig();
+        
+        private RuleCacheConfig rule = new RuleCacheConfig();
+    
         /**
-         * Max free memory, unit mb.
+         * get selector cache config.
+         *
+         * @return {@linkplain SelectorCacheConfig}
          */
-        private Integer maxSelectorFreeMemory = 256;
-
+        public SelectorCacheConfig getSelector() {
+            return selector;
+        }
+    
+        /**
+         * set selector cache config.
+         *
+         * @param selector SelectorCacheConfig
+         */
+        public void setSelector(final SelectorCacheConfig selector) {
+            this.selector = selector;
+        }
+    
+        /**
+         * get rule cache Config.
+         *
+         * @return rule cache config
+         */
+        public RuleCacheConfig getRule() {
+            return rule;
+        }
+    
+        /**
+         * set rule cache config.
+         *
+         * @param rule rule cache
+         */
+        public void setRule(final RuleCacheConfig rule) {
+            this.rule = rule;
+        }
+    }
+    
+    /**
+     * selector cache.
+     */
+    public static class SelectorCacheConfig {
+        
+        private boolean selectorEnabled;
+    
+        /**
+         * initialCapacity.
+         */
+        private int initialCapacity = 10000;
+    
+        /**
+         * maximumSize.
+         */
+        private long maximumSize = 10000L;
+    
         /**
          * Get selector cache enabled.
          *
@@ -547,7 +598,7 @@ public class ShenyuConfig {
         public boolean getSelectorEnabled() {
             return selectorEnabled;
         }
-
+    
         /**
          * Set selector enabled.
          *
@@ -556,24 +607,87 @@ public class ShenyuConfig {
         public void setSelectorEnabled(final boolean selectorEnabled) {
             this.selectorEnabled = selectorEnabled;
         }
-
-
+    
         /**
-         * Gets maxFreeMemory.
+         * get initialCapacity.
          *
-         * @return the maxFreeMemory
+         * @return initialCapacity
          */
-        public Integer getMaxSelectorFreeMemory() {
-            return maxSelectorFreeMemory;
+        public int getInitialCapacity() {
+            return initialCapacity;
         }
-
+    
         /**
-         * Sets maxFreeMemory.
+         * set initialCapacity.
          *
-         * @param maxSelectorFreeMemory the maxFreeMemory
+         * @param initialCapacity initialCapacity
          */
-        public void setMaxSelectorFreeMemory(final Integer maxSelectorFreeMemory) {
-            this.maxSelectorFreeMemory = maxSelectorFreeMemory;
+        public void setInitialCapacity(final int initialCapacity) {
+            this.initialCapacity = initialCapacity;
+        }
+    
+        /**
+         * get maximumSize.
+         *
+         * @return maximumSize
+         */
+        public long getMaximumSize() {
+            return maximumSize;
+        }
+    
+        /**
+         * set maximumSize.
+         *
+         * @param maximumSize maximumSize
+         */
+        public void setMaximumSize(final long maximumSize) {
+            this.maximumSize = maximumSize;
+        }
+    }
+    
+    /**
+     * rule cache config.
+     */
+    public static class RuleCacheConfig {
+
+        private int initialCapacity = 10000;
+        
+        private long maximumSize = 10000L;
+    
+        /**
+         * get initial capacity.
+         *
+         * @return initial capacity
+         */
+        public int getInitialCapacity() {
+            return initialCapacity;
+        }
+        
+        /**
+         * set initial capacity.
+         *
+         * @param initialCapacity initialCapacity
+         */
+        public void setInitialCapacity(final int initialCapacity) {
+            this.initialCapacity = initialCapacity;
+        }
+    
+        /**
+         * get maximum size.
+         *
+         * @return rule cache maximumSize
+         */
+        public long getMaximumSize() {
+            return maximumSize;
+        }
+    
+        /**
+         * set rule cache maximumSize.
+         *
+         * @param maximumSize rule cache maximumSize
+         */
+        public void setMaximumSize(final long maximumSize) {
+            this.maximumSize = maximumSize;
         }
     }
     
@@ -767,6 +881,8 @@ public class ShenyuConfig {
     public static class SwitchConfig {
         
         private boolean local = true;
+
+        private boolean collapseSlashes = true;
     
         /**
          * Gets local.
@@ -785,7 +901,24 @@ public class ShenyuConfig {
         public void setLocal(final boolean local) {
             this.local = local;
         }
-        
+
+        /**
+         * get collapseSlashes.
+         *
+         * @return collapseSlashes
+         */
+        public boolean getCollapseSlashes() {
+            return collapseSlashes;
+        }
+
+        /**
+         * set collapseSlashes.
+         *
+         * @param collapseSlashes collapseSlashes
+         */
+        public void setCollapseSlashes(final boolean collapseSlashes) {
+            this.collapseSlashes = collapseSlashes;
+        }
     }
     
     /**
@@ -794,6 +927,8 @@ public class ShenyuConfig {
     public static class UpstreamCheck {
     
         private boolean enabled;
+
+        private Integer poolSize = 10;
         
         private Integer timeout = 3000;
         
@@ -824,7 +959,25 @@ public class ShenyuConfig {
         public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
-    
+
+        /**
+         * get checkThreadPoolSize.
+         *
+         * @return checkThreadPoolSize
+         */
+        public Integer getPoolSize() {
+            return poolSize;
+        }
+
+        /**
+         * set checkThreadPoolSize.
+         *
+         * @param poolSize checkThreadPoolSize
+         */
+        public void setPoolSize(final Integer poolSize) {
+            this.poolSize = poolSize;
+        }
+
         /**
          * Gets timeout.
          *
@@ -1693,6 +1846,9 @@ public class ShenyuConfig {
      * shenyu trie config.
      */
     public static class ShenyuTrieConfig {
+        
+        private Boolean enabled = Boolean.TRUE;
+        
         private Long childrenSize = 10000L;
 
         private Long pathRuleCacheSize = 1000L;
@@ -1704,7 +1860,25 @@ public class ShenyuConfig {
          * @see TrieMatchModeEvent
          */
         private String matchMode = TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode();
-
+    
+        /**
+         * get match enabled.
+         *
+         * @return Boolean
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * set match enabled.
+         *
+         * @param enabled enabled
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+    
         /**
          * get trie children size.
          *

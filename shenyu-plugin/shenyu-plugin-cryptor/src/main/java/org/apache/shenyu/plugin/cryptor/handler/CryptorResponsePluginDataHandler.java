@@ -17,36 +17,12 @@
 
 package org.apache.shenyu.plugin.cryptor.handler;
 
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.base.utils.BeanHolder;
-import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-
-import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * The type cryptor response plugin data subscriber.
  */
-public class CryptorResponsePluginDataHandler implements PluginDataHandler {
-
-    public static final Supplier<CommonHandleCache<String, CryptorRuleHandler>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
-
-    @Override
-    public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            CryptorRuleHandler cryptorRuleHandler = GsonUtils.getInstance().fromJson(s, CryptorRuleHandler.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), cryptorRuleHandler);
-        });
-    }
-
-    @Override
-    public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
-    }
+public class CryptorResponsePluginDataHandler extends AbstractCryptorPluginDataHandler {
 
     @Override
     public String pluginNamed() {

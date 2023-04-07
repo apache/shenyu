@@ -106,12 +106,7 @@ public final class ListUtil {
         if (CollectionUtils.isEmpty(list)) {
             return null;
         }
-        for (R r : list) {
-            if (Boolean.TRUE.equals(function.apply(r))) {
-                return r;
-            }
-        }
-        return null;
+        return list.stream().filter(r -> Boolean.TRUE.equals(function.apply(r))).findFirst().orElse(null);
     }
     
     /**

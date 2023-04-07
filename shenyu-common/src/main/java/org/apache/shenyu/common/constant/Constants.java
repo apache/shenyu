@@ -198,6 +198,11 @@ public interface Constants {
     String SIGN_PARAMS_ERROR = "sign parameters are incomplete!";
 
     /**
+     * The constant SIGN_VERSION_ERROR.
+     */
+    String SIGN_VERSION_ERROR = "sign version does not exist or is wrong!";
+
+    /**
      * The constant SIGN_APP_KEY_IS_NOT_EXIST.
      */
     String SIGN_APP_KEY_IS_NOT_EXIST = "sign appKey does not exist.";
@@ -433,6 +438,16 @@ public interface Constants {
     String DEFAULT_CHECK_VALUE = "false";
 
     /**
+     * zombie check threads.
+     */
+    String ZOMBIE_CHECK_THREADS = "zombieCheckThreads";
+
+    /**
+     * default zombie check threads value.
+     */
+    String ZOMBIE_CHECK_THREADS_VALUE = "10";
+
+    /**
      * zombie check times.
      */
     String ZOMBIE_CHECK_TIMES = "zombieCheckTimes";
@@ -651,12 +666,12 @@ public interface Constants {
      * user can use the specify-domian to replace of upstream url of the divide plugin.
      */
     String SPECIFY_DOMAIN = "specify-domain";
-
+    
     /**
      * The maximum free memory reserved by the blocking queue for the JVM.
      */
     int THE_256_MB = 256 * 1024 * 1024;
-    
+
     /**
      * The default cluster of dubbo client.
      */
@@ -671,6 +686,11 @@ public interface Constants {
      * namespace,sush as nacos .
      */
     String NAMESPACE = "namespace";
+
+    /**
+     * brpc  spi bizThreadPoolName.
+     */
+    String SHARED_BIZTHREADPOOLNAME = "shared";
 
     /**
      * String q.

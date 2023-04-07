@@ -130,7 +130,6 @@ public class ZombieUpstream {
         }
         ZombieUpstream that = (ZombieUpstream) o;
         return new EqualsBuilder()
-                .append(zombieCheckTimes, that.zombieCheckTimes)
                 .append(commonUpstream, that.commonUpstream)
                 .append(selectorId, that.selectorId)
                 .isEquals();
@@ -140,7 +139,6 @@ public class ZombieUpstream {
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
                 .append(commonUpstream)
-                .append(zombieCheckTimes)
                 .append(selectorId)
                 .toHashCode();
     }

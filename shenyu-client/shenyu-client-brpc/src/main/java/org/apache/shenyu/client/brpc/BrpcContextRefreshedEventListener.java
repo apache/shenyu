@@ -56,8 +56,6 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
 
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
-    private ApplicationContext applicationContext;
-
     /**
      * Instantiates a new Brpc context refreshed event listener.
      *
@@ -85,7 +83,6 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
 
     @Override
     protected Map<String, Object> getBeans(final ApplicationContext context) {
-        applicationContext = context;
         return context.getBeansWithAnnotation(ShenyuBrpcClient.class);
     }
 
@@ -153,15 +150,15 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
                 .ruleName(ruleName)
                 .parameterTypes(parameterTypes)
                 .rpcType(RpcTypeEnum.BRPC.getName())
-                .rpcExt(buildRpcExt(method))
+                .rpcExt(buildRpcExt(method, host, port))
                 .enabled(shenyuBrpcClient.enabled())
                 .build();
     }
 
-    private String buildRpcExt(final Method method) {
+    private String buildRpcExt(final Method method, final String host, final int port) {
         List<BrpcRpcExt.RpcExt> list = new ArrayList<>();
         list.add(build(method));
-        BrpcRpcExt buildList = new BrpcRpcExt(list);
+        BrpcRpcExt buildList = new BrpcRpcExt(list, host, port);
         return GsonUtils.getInstance().toJson(buildList);
     }
 

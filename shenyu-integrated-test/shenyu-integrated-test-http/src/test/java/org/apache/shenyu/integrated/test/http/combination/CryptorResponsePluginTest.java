@@ -45,6 +45,8 @@ import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonR
 import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonURIEqConditionList;
 import static org.apache.shenyu.plugin.api.result.ShenyuResultEnum.DECRYPTION_ERROR;
 import static org.apache.shenyu.plugin.api.result.ShenyuResultEnum.ENCRYPTION_ERROR;
+import static org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum.ALL;
+import static org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum.FIELD;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -80,7 +82,7 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
                 "",
                 SINGLETON_CONDITION_LIST,
-                buildRuleLocalDataList("userId", "decrypt"));
+                buildRuleLocalDataList("userId", "decrypt", FIELD.getMapType()));
 
         JsonObject request = new JsonObject();
         request.addProperty("userId", RSA_STRATEGY.encrypt(RSA_PUBLIC_KEY, TEST_USER_ID));
@@ -93,7 +95,7 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     @DisplayName("encrypt")
     public void testEncryptResponse() throws Exception {
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
-                "", SINGLETON_CONDITION_LIST, buildRuleLocalDataList("userName", "encrypt"));
+                "", SINGLETON_CONDITION_LIST, buildRuleLocalDataList("userName", "encrypt", ALL.getMapType()));
 
         JsonObject request = new JsonObject();
         request.addProperty("userId", TEST_USER_ID);
@@ -120,7 +122,7 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     @DisplayName("return original message when request doesnt exist filed")
     public void testWhenDoesntExistFiled() throws Exception {
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
-                "", SINGLETON_CONDITION_LIST, buildRuleLocalDataList("data", "decrypt"));
+                "", SINGLETON_CONDITION_LIST, buildRuleLocalDataList("data", "decrypt", FIELD.getMapType()));
 
         UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, originalBody, UserDTO.class);
 
@@ -134,7 +136,12 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     @ValueSource(strings = {"decrypt", "encrypt"})
     public void testWhenDecryptionOrEncryptionIsFailed(final String way) throws Exception {
 
-        CryptorRuleHandler handler = buildRuleHandler("ras", way, "wrong_encrypt_key", "wrong_decrypt_key", "userId");
+        CryptorRuleHandler handler = buildRuleHandler("rsa", 
+                way, 
+                "wrong_encrypt_key", 
+                "wrong_decrypt_key", 
+                "userId", 
+                ALL.getMapType());
         RuleLocalData ruleLocalData = ruleLocalData(handler, SINGLETON_CONDITION_LIST);
 
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(), "", SINGLETON_CONDITION_LIST, Lists.newArrayList(ruleLocalData));
@@ -150,7 +157,12 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     @ValueSource(strings = {"decrypt", "encrypt"})
     public void testWhenKeyIsNull(final String way) throws Exception {
 
-        CryptorRuleHandler handler = buildRuleHandler("ras", way, null, null, "data");
+        CryptorRuleHandler handler = buildRuleHandler("rsa", 
+                way, 
+                null, 
+                null, 
+                "data", 
+                ALL.getMapType());
 
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
                 "", SINGLETON_CONDITION_LIST, singletonRuleLocalDataList(handler, SINGLETON_CONDITION_LIST));
@@ -166,7 +178,12 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     @Test
     public void testWhenFieldNamesIsNull() throws Exception {
 
-        CryptorRuleHandler handler = buildRuleHandler("ras", "decrypt", RSA_PUBLIC_KEY, RSA_PRIVATE_KEY, null);
+        CryptorRuleHandler handler = buildRuleHandler("rsa", 
+                "decrypt", 
+                RSA_PUBLIC_KEY, 
+                RSA_PRIVATE_KEY, 
+                null, 
+                ALL.getMapType());
 
         initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(), "", SINGLETON_CONDITION_LIST,
                 singletonRuleLocalDataList(handler, SINGLETON_CONDITION_LIST));
@@ -177,18 +194,24 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
         assertThat(response.getMessage(), is(String.format("Please check Cryptor response plugin's [%s]", "fieldNames")));
     }
 
-    private List<RuleLocalData> buildRuleLocalDataList(final String fieldNames, final String way) {
-        CryptorRuleHandler cryptorRuleHandler = buildRuleHandler("rsa", way, RSA_PUBLIC_KEY, RSA_PRIVATE_KEY, fieldNames);
+    private List<RuleLocalData> buildRuleLocalDataList(final String fieldNames, final String way, final String mapType) {
+        CryptorRuleHandler cryptorRuleHandler = buildRuleHandler("rsa", way, RSA_PUBLIC_KEY, RSA_PRIVATE_KEY, fieldNames, mapType);
         return singletonRuleLocalDataList(cryptorRuleHandler, SINGLETON_CONDITION_LIST);
     }
 
-    private CryptorRuleHandler buildRuleHandler(final String strategyName, final String way, final String encryptKey, final String decryptKey, final String fieldNames) {
+    private CryptorRuleHandler buildRuleHandler(final String strategyName, 
+                                                final String way, 
+                                                final String encryptKey, 
+                                                final String decryptKey, 
+                                                final String fieldNames,
+                                                final String mapType) {
         CryptorRuleHandler cryptorRuleHandler = new CryptorRuleHandler();
         cryptorRuleHandler.setDecryptKey(decryptKey);
         cryptorRuleHandler.setEncryptKey(encryptKey);
         cryptorRuleHandler.setStrategyName(strategyName);
         cryptorRuleHandler.setFieldNames(fieldNames);
         cryptorRuleHandler.setWay(way);
+        cryptorRuleHandler.setMapType(mapType);
         return cryptorRuleHandler;
     }
 

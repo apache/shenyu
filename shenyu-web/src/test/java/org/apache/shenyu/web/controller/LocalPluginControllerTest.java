@@ -167,7 +167,7 @@ public final class LocalPluginControllerTest {
     public void testDeleteAll() throws Exception {
         final String[] testPluginName = {"testDeleteAllPluginName", "testDeleteAllPluginName2"};
         Arrays.stream(testPluginName).map(s ->
-                new PluginData("id", s, null, null, null))
+                new PluginData("id", s, null, null, null, null))
                 .forEach(subscriber::onSubscribe);
         Arrays.stream(testPluginName)
                 .forEach(s -> assertThat(baseDataCache.obtainPluginData(s)).isNotNull());
@@ -426,6 +426,7 @@ public final class LocalPluginControllerTest {
                 .selectorId(testSelectorId)
                 .pluginName("testPluginName")
                 .id(testId)
+                .enabled(true)
                 .build();
     }
 

@@ -206,6 +206,7 @@ public class ZookeeperSyncDataService implements SyncDataService {
                 final PluginData pluginData = new PluginData();
                 pluginData.setName(pluginName);
                 Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData));
+                return;
             }
 
             // create or update
@@ -223,9 +224,12 @@ public class ZookeeperSyncDataService implements SyncDataService {
             if (!path.contains(DefaultPathConstants.SELECTOR_PARENT)) {
                 return;
             }
-
+            if (!zkClient.getChildren(path).isEmpty()) {
+                return;
+            }
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheSelectorData(path);
+                return;
             }
 
             // create or update
@@ -252,6 +256,7 @@ public class ZookeeperSyncDataService implements SyncDataService {
                     throw new ShenyuException(e);
                 }
                 unCacheMetaData(metaData);
+                return;
             }
 
             // create or update
@@ -271,6 +276,7 @@ public class ZookeeperSyncDataService implements SyncDataService {
 
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheAuthData(path);
+                return;
             }
 
             // create or update
@@ -287,9 +293,12 @@ public class ZookeeperSyncDataService implements SyncDataService {
             if (!path.contains(DefaultPathConstants.RULE_PARENT)) {
                 return;
             }
-
+            if (!zkClient.getChildren(path).isEmpty()) {
+                return;
+            }
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheRuleData(path);
+                return;
             }
 
             // create or update

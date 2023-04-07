@@ -66,14 +66,20 @@ management:
       enabled: false
 
 shenyu:
+  matchCache:
+    selector:
+      selectorEnabled: false
+      initialCapacity: 10000 # initial capacity in cache
+      maximumSize: 10000 # max size in cache
+    rule:
+      initialCapacity: 10000 # initial capacity in cache
+      maximumSize: 10000 # max size in cache
   trie:
+    enabled: true
     childrenSize: 10000
     pathVariableSize: 1000
     pathRuleCacheSize: 1000
     matchMode: antPathMatch
-  matchCache:
-    selectorEnabled: false
-    maxSelectorFreeMemory: 256 # 256MB
   netty:
     http:
       # set to false, user can custom the netty tcp server config.
@@ -180,6 +186,7 @@ shenyu:
 
   switchConfig:
     local: true
+    collapseSlashes: false
   file:
     enabled: true
     maxSize : 10
@@ -238,6 +245,7 @@ shenyu:
     threads: 16
   upstreamCheck:
     enabled: false
+    poolSize: 10
     timeout: 3000
     healthyThreshold: 1
     unhealthyThreshold: 1
