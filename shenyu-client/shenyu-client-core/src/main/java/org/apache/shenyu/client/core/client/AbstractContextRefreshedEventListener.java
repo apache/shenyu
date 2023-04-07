@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.core.client;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonObject;
@@ -28,6 +29,7 @@ import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
+import org.apache.shenyu.client.core.utils.OpenApiUtils;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.ApiSourceEnum;
 import org.apache.shenyu.common.enums.ApiStateEnum;
@@ -198,20 +200,12 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         return list;
     }
 
-    /**
-     * TODO 记录document
-     * parameters？
-     * responses？
-     * @param tags
-     * @param operationId
-     * @return
-     */
-    private String buildDocumentJson(List<String> tags,String operationId) {
-        Map documentMap = Maps.newHashMap();
-        documentMap.put("tags",tags);
-        documentMap.put("operationId",operationId);
-        documentMap.put("parameters",operationId);
-        documentMap.put("responses",operationId);
+    private String buildDocumentJson(List<String> tags, String path) {
+        Map<String, Object> documentMap = ImmutableMap.<String, Object>builder()
+                .put("tags", tags)
+                .put("operationId", path)
+                .put("parameters", OpenApiUtils.generateDocumentParameters(path))
+                .put("responses", OpenApiUtils.generateDocumentResponse(path)).build();
         return GsonUtils.getInstance().toJson(documentMap);
     }
 
