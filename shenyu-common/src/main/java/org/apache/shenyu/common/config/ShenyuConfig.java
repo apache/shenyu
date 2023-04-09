@@ -881,6 +881,8 @@ public class ShenyuConfig {
     public static class SwitchConfig {
         
         private boolean local = true;
+
+        private boolean collapseSlashes = true;
     
         /**
          * Gets local.
@@ -899,7 +901,24 @@ public class ShenyuConfig {
         public void setLocal(final boolean local) {
             this.local = local;
         }
-        
+
+        /**
+         * get collapseSlashes.
+         *
+         * @return collapseSlashes
+         */
+        public boolean getCollapseSlashes() {
+            return collapseSlashes;
+        }
+
+        /**
+         * set collapseSlashes.
+         *
+         * @param collapseSlashes collapseSlashes
+         */
+        public void setCollapseSlashes(final boolean collapseSlashes) {
+            this.collapseSlashes = collapseSlashes;
+        }
     }
     
     /**

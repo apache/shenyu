@@ -129,6 +129,10 @@ public class ShenyuTrie {
             for (int i = 0; i < pathParts.length; i++) {
                 boolean pathEnd = judgeEqual(i, pathParts.length - 1);
                 node = putNode0(pathParts[i], node, pathEnd);
+                if (Objects.isNull(node)) {
+                    remove(StringUtils.join(pathParts, "/", 0, i), ruleData);
+                    return;
+                }
             }
             // after insert node, set full path and end of path
             node.setFullPath(uriPath);
