@@ -295,10 +295,4 @@ public class ShenyuTrieTest {
         Assertions.assertNotNull(shenyuAntPathTrie.getNode("/a/x/{name}/{age}/b"));
     }
     
-    public static void main(String[] args) {
-        PathPattern pattern = PathPatternParser.defaultInstance.parse("/aa/bb/cc/*/*/ee");
-        //PathPattern pattern = PathPatternParser.defaultInstance.parse("/aa/bb/cc/*/{name}/ee");
-        System.out.println(pattern.matches(PathContainer.parsePath("/aa/bb/cc/dd/dds/ee")));;
-    }
-    
 }
