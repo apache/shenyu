@@ -19,21 +19,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu</artifactId>
+        <artifactId>shenyu-sync-data-center</artifactId>
         <version>2.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-sync-data-center</artifactId>
-    <packaging>pom</packaging>
-    
-    <modules>
-        <module>shenyu-sync-data-api</module>
-        <module>shenyu-sync-data-zookeeper</module>
-        <module>shenyu-sync-data-websocket</module>
-        <module>shenyu-sync-data-http</module>
-        <module>shenyu-sync-data-nacos</module>
-        <module>shenyu-sync-data-etcd</module>
-        <module>shenyu-sync-data-consul</module>
-        <module>shenyu-sync-data-apollo</module>
-    </modules>
+    <artifactId>shenyu-sync-data-apollo</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-sync-data-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+          <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-client</artifactId>
+          </dependency>
+    </dependencies>
+
 </project>
