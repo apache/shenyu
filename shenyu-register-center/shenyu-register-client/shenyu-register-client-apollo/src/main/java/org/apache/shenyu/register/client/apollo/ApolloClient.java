@@ -1,4 +1,4 @@
-/*
+package org.apache.shenyu.register.client.apollo;/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.client.apollo;
 
 import com.ctrip.framework.apollo.openapi.client.ApolloOpenApiClient;
 import com.ctrip.framework.apollo.openapi.dto.NamespaceReleaseDTO;
 import com.ctrip.framework.apollo.openapi.dto.OpenItemDTO;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
@@ -28,6 +29,8 @@ import java.util.Date;
  * apollo open-api client.
  */
 public class ApolloClient {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ApolloClient.class);
 
     private static final String DEFAULT_USER = "apollo";
 
@@ -57,6 +60,12 @@ public class ApolloClient {
                 apolloConfig.getClusterName(),
                 apolloConfig.getNamespace(),
                 key);
+        if (openItemDTO == null) {
+            return null;
+        }
+        if (openItemDTO.getKey().equals("timeout")) {
+            LOG.error("apollo client getItemValue time out");
+        }
         return openItemDTO.getValue();
     }
 

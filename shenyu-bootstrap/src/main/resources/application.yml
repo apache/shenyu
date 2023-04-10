@@ -158,10 +158,14 @@ shenyu:
 #      workerCount: 8
 #      daemon: true
   register:
-    enabled: false
-    registerType: zookeeper #etcd #consul
-    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    enabled: true
+    registerType: apollo #etcd #consul
+    serverLists: http://192.168.6.102:8070 #http://localhost:2379 #localhost:8848
     props:
+      appId: shenyu
+      env: dev
+      clusterName: test
+      namespace: application
   cross:
     enabled: true
     allowedHeaders:
@@ -191,15 +195,15 @@ shenyu:
     enabled: true
     maxSize : 10
   sync:
-    websocket:
-      urls: ws://localhost:9095/websocket
-      allowOrigin: ws://localhost:9195
-#    apollo:
-#      appId: shenyu
-#      meta: http://localhost:8080
-#      env: dev
-#      clusterName: test
-#      namespace: application
+#    websocket:
+#      urls: ws://localhost:9095/websocket
+#      allowOrigin: ws://localhost:9195
+    apollo:
+      appId: shenyu
+      meta: http://192.168.6.102:8080
+      env: dev
+      clusterName: test
+      namespace: application
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000
