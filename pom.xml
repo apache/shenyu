@@ -111,6 +111,7 @@
         <wiremock.version>2.18.0</wiremock.version>
         <zookeeper.version>3.5.7</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
+        <apollo.version>2.1.0</apollo.version>
         <shiro.version>1.8.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
         <motan.version>1.2.0</motan.version>
@@ -371,6 +372,18 @@
                     </exclusion>
                 </exclusions>
                 <version>${zookeeper.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-client</artifactId>
+                <version>${apollo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-openapi</artifactId>
+                <version>${apollo.version}</version>
             </dependency>
 
             <dependency>

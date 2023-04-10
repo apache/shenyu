@@ -19,7 +19,7 @@ package org.apache.shenyu.common.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
-import org.apache.shenyu.common.enums.TrieMatchModeEvent;
+import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -881,6 +881,8 @@ public class ShenyuConfig {
     public static class SwitchConfig {
         
         private boolean local = true;
+
+        private boolean collapseSlashes = true;
     
         /**
          * Gets local.
@@ -899,7 +901,24 @@ public class ShenyuConfig {
         public void setLocal(final boolean local) {
             this.local = local;
         }
-        
+
+        /**
+         * get collapseSlashes.
+         *
+         * @return collapseSlashes
+         */
+        public boolean getCollapseSlashes() {
+            return collapseSlashes;
+        }
+
+        /**
+         * set collapseSlashes.
+         *
+         * @param collapseSlashes collapseSlashes
+         */
+        public void setCollapseSlashes(final boolean collapseSlashes) {
+            this.collapseSlashes = collapseSlashes;
+        }
     }
     
     /**
@@ -1838,9 +1857,9 @@ public class ShenyuConfig {
 
         /**
          * match mode.
-         * @see TrieMatchModeEvent
+         * @see TrieMatchModeEnum
          */
-        private String matchMode = TrieMatchModeEvent.ANT_PATH_MATCH.getMatchMode();
+        private String matchMode = TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode();
     
         /**
          * get match enabled.
