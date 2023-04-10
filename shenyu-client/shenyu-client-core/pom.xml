@@ -81,5 +81,10 @@
             <artifactId>shenyu-client-api-docs-annotations</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>${hutool.version}</version>
+        </dependency>
     </dependencies>
 </project>

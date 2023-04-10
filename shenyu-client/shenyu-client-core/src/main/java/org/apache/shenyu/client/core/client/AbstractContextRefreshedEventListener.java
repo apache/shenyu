@@ -19,8 +19,6 @@ package org.apache.shenyu.client.core.client;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.gson.JsonObject;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -58,7 +56,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -176,7 +173,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             String apiPath = pathJoin(contextPath, superPath, value);
             ApiHttpMethodEnum[] value3 = sextet.getValue3();
             for (ApiHttpMethodEnum apiHttpMethodEnum : value3) {
-                String documentJson = buildDocumentJson(pairs.getRight(),apiPath);
+                String documentJson = buildDocumentJson(pairs.getRight(), apiPath);
                 ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                         .consume(sextet.getValue1())
                         .produce(sextet.getValue2())
@@ -200,7 +197,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         return list;
     }
 
-    private String buildDocumentJson(List<String> tags, String path) {
+    private String buildDocumentJson(final List<String> tags, final String path) {
         Map<String, Object> documentMap = ImmutableMap.<String, Object>builder()
                 .put("tags", tags)
                 .put("operationId", path)
