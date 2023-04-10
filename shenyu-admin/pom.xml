@@ -166,6 +166,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.ctrip.framework.apollo</groupId>
+            <artifactId>apollo-openapi</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.ecwid.consul</groupId>
             <artifactId>consul-api</artifactId>
             <version>${consul.api.version}</version>
