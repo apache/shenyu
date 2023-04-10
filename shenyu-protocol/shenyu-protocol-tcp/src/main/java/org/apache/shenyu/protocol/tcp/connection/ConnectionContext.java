@@ -1,41 +1,43 @@
 package org.apache.shenyu.protocol.tcp.connection;
 
+import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.TcpClient;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Properties;
 
+/**
+ *
+ */
 public class ConnectionContext {
+    private final ClientConnectionConfigProvider connectionConfigProvider;
+    private ConnectionProvider connectionProvider;
 
-    static ConnectionProvider connectionProvider;
-
-    static Map<String, Connection> cache = new ConcurrentHashMap<>();
-
-    static Map<String, InetSocketAddress> mappingTable = new ConcurrentHashMap<>();
-
-    static {
-        connectionProvider = ConnectionProvider.builder("my-pool-client")
-                .maxConnections(10)
-                .maxIdleTime(Duration.ofMinutes(5))
-                .build();
-        mappingTable.put("127.0.0.1:9124", new InetSocketAddress("127.0.0.1", 9124));
+    public ConnectionContext(final ClientConnectionConfigProvider connectionConfigProvider) {
+        this.connectionConfigProvider = connectionConfigProvider;
     }
 
-    public static Connection getTcpClientConnection(String clientIp, Integer clientPort) {
-        String key = clientIp + ":" + clientPort;
-        if (cache.containsKey(key)) {
-            return cache.get(key);
-        }
-        InetSocketAddress inetSocketAddress = mappingTable.get(key);
-        Connection connection = TcpClient.create(connectionProvider)
-                .host(inetSocketAddress.getHostString()).port(inetSocketAddress.getPort())
-                .connect().block();
-        cache.put(key, connection);
-        return connection;
+    public void init(Properties props) {
+        final String maxTotal = props.getProperty("tcpProxy.maxConnections", "800");
+        final String maxIdleTimeMs = props.getProperty("tcpProxy.maxIdleTimeMs", "100");
+        final String tcpProxyClientName = props.getProperty("tcpProxy.Name", "shenyu-tcp-connection-pool-client");
+        final String disposeTimeoutMs = props.getProperty("tcpProxy.disposeTimeoutMs", "2000");
+        connectionProvider = ConnectionProvider.builder(tcpProxyClientName)
+                .maxConnections(Integer.parseInt(maxTotal))
+                .maxIdleTime(Duration.ofMillis(Integer.parseInt(maxIdleTimeMs)))
+                .disposeTimeout(Duration.ofMillis(Integer.parseInt(disposeTimeoutMs)))
+                .build();
+    }
+
+    public Mono<Connection> getTcpClientConnection() {
+        InetSocketAddress proxiedService = connectionConfigProvider.getProxiedService();
+        return (Mono<Connection>) TcpClient.create(connectionProvider)
+                .host(proxiedService.getHostName())
+                .port(proxiedService.getPort())
+                .connect();
     }
 
 

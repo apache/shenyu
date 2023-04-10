@@ -2,55 +2,65 @@ package org.apache.shenyu.protocol.tcp;
 
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import org.apache.shenyu.protocol.tcp.connection.ConnectionContext;
-import org.apache.shenyu.protocol.tcp.handler.TestHandler;
-import org.apache.shenyu.protocol.tcp.handler.TestOutHandler;
-import reactor.core.publisher.Flux;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.protocol.tcp.connection.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.netty.DisposableServer;
-import reactor.netty.channel.ChannelOperations;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.TcpServer;
 
-import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 
 
 public class BootstrapServer {
 
-    public static void start() {
+    private static final Logger LOG = LoggerFactory.getLogger(BootstrapServer.class);
+    public static final Linked TCP_LINKED = new TcpConnectionLinked();
+
+    private ConnectionContext connectionContext;
+
+
+    public void init(Properties properties) {
+        try {
+            ClientConnectionConfigProviderFactory factory = ClientConnectionConfigProviderFactory.getInstance();
+            ClientConnectionConfigProvider provider = factory.getClientConnectionConfigProviderByType(SyancType.HTTP);
+            connectionContext = new ConnectionContext(provider);
+            connectionContext.init(properties);
+        } catch (Exception ex) {
+            throw new ShenyuException(ex);
+        }
+    }
+
+    public void start() {
         ShenyuTcpConfig shenyuTcpConfig = new ShenyuTcpConfig();
         shenyuTcpConfig.setBossThreads(1);
         shenyuTcpConfig.setWorkerThreads(10);
         LoopResources loopResources = LoopResources.create("my-elg", shenyuTcpConfig.getBossThreads(), shenyuTcpConfig.getWorkerThreads(), true);
-        Connection conn = ConnectionContext.getTcpClientConnection("127.0.0.1", 9124);
         TcpServer tcpServer = TcpServer.create()
                 .doOnChannelInit((connectionObserver, channel, remoteAddress) -> {
                     channel.pipeline().addFirst(new LoggingHandler(LogLevel.DEBUG));
-                    channel.pipeline().addFirst(new TestHandler());
-                    channel.pipeline().addFirst(new TestOutHandler());
                 })
+                .wiretap(true)
+                .doOnConnection(this::bridgeConnections)
                 .port(9123)
-                .handle((inbound, outbound) -> {
-                    ChannelOperations inOp  = (ChannelOperations)inbound;
-                    Flux<String> proxyFlux = inOp.receive().asString(StandardCharsets.UTF_8).map(s -> {
-                        System.out.println("handle " + s);
-                        return s;
-                    });
-                    conn.outbound().sendString(proxyFlux).then().subscribe();
-                    Flux<String> proxyRemoteFlux = conn.inbound().receive().asString().map(s -> {
-                        System.out.println(s);
-                        return "boot|" + s;
-                    });
-                    return outbound.sendString(proxyRemoteFlux);
-                }).runOn(loopResources);
+                .runOn(loopResources);
         DisposableServer server = tcpServer.bindNow();
         server.onDispose().block();
     }
 
-    public static void main(String[] args) {
-        start();
+    private void bridgeConnections(final Connection serverConn) {
+        LOG.debug("Starting proxy client");
+        Mono<Connection> client = connectionContext.getTcpClientConnection();
+        // Connect to client, and react when connection becomes available
+        client
+                .subscribe((clientConn) -> {
+                    LOG.debug("Bridging connection with {}", TCP_LINKED);
+                    TCP_LINKED.link(serverConn, clientConn);
+                });
     }
-
 
 
 }
