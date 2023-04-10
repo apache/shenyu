@@ -6,16 +6,11 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Test Cases for RuleTrieEventEnum.
- */
-public final class RuleTrieEventEnumTest {
+public class RuleTrieEventEnumTest {
 
     @Test
-    public void testEvent(){
-
+    public void testEvent() {
         Arrays.stream(RuleTrieEventEnum.values())
                 .forEach(ruleTrieEventEnum -> assertEquals(ruleTrieEventEnum, RuleTrieEventEnum.valueOf(ruleTrieEventEnum.name())));
     }
-
 }

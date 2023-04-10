@@ -5,23 +5,19 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * Test Cases for ApiHttpMethodEnum.
- */
-public final class ApiHttpMethodEnumTest {
+public class ApiHttpMethodEnumTest {
 
     @Test
-    public void testGetName(){
-
+    public void testGetName() {
         Arrays.stream(ApiHttpMethodEnum.values())
                 .forEach(apiHttpMethodEnum -> assertEquals(apiHttpMethodEnum.toString(), ApiHttpMethodEnum.valueOf(apiHttpMethodEnum.name()).getName()));
     }
 
     @Test
-    public void testGetValue(){
-
+    public void testGetValue() {
         assertEquals(0, ApiHttpMethodEnum.GET.getValue());
         assertEquals(1, ApiHttpMethodEnum.HEAD.getValue());
         assertEquals(2, ApiHttpMethodEnum.POST.getValue());
@@ -34,8 +30,7 @@ public final class ApiHttpMethodEnumTest {
     }
 
     @Test
-    public void testGetValueByName(){
-
+    public void testGetValueByName() {
         assertEquals(0, ApiHttpMethodEnum.getValueByName("GET"));
         assertEquals(1, ApiHttpMethodEnum.getValueByName("HEAD"));
         assertEquals(2, ApiHttpMethodEnum.getValueByName("POST"));
@@ -48,24 +43,18 @@ public final class ApiHttpMethodEnumTest {
     }
 
     @Test
-    public void testGetValueByNameException(){
-
+    public void testGetValueByNameException() {
         assertThrows(ShenyuException.class, () -> ApiHttpMethodEnum.getValueByName("abc"));
     }
 
     @Test
-    public void testOf(){
-
+    public void testOf() {
         Arrays.stream(ApiHttpMethodEnum.values())
                 .forEach(apiHttpMethodEnum -> assertEquals(apiHttpMethodEnum, ApiHttpMethodEnum.of(apiHttpMethodEnum.name())));
     }
 
     @Test
-    public void testOfException(){
-
+    public void testOfException() {
         assertThrows(ShenyuException.class, () -> ApiHttpMethodEnum.of("abc"));
     }
-
-
-
 }

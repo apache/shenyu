@@ -4,14 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Test Cases for ApiSourceEnum.
- */
-public final class ApiSourceEnumTest {
+public class ApiSourceEnumTest {
 
     @Test
-    public void testGetName(){
-
+    public void testGetName() {
         assertEquals("swagger", ApiSourceEnum.SWAGGER.getName());
         assertEquals("annotation_generation", ApiSourceEnum.ANNOTATION_GENERATION.getName());
         assertEquals("create_manually", ApiSourceEnum.CREATE_MANUALLY.getName());
@@ -20,13 +16,11 @@ public final class ApiSourceEnumTest {
     }
 
     @Test
-    public void testGetValue(){
-
+    public void testGetValue() {
         assertEquals(0, ApiSourceEnum.SWAGGER.getValue());
         assertEquals(1, ApiSourceEnum.ANNOTATION_GENERATION.getValue());
         assertEquals(2, ApiSourceEnum.CREATE_MANUALLY.getValue());
         assertEquals(3, ApiSourceEnum.IMPORT_SWAGGER.getValue());
         assertEquals(4, ApiSourceEnum.IMPORT_YAPI.getValue());
     }
-
 }
