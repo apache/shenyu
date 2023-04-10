@@ -19,13 +19,12 @@ package org.apache.shenyu.sync.data.apollo;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigChangeListener;
-import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -35,10 +34,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -74,136 +73,130 @@ public class ApolloDataService implements SyncDataService {
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
-        watch();
+        subAllData();
+        watchData();
 
     }
 
     /**
-     * watch data.
+     * sub all data.
      */
-    public void watch() {
-        watchPluginData();
-        watchSelectorData();
-        watchRuleData();
-        watchAuthData();
-        watchMetaData();
+    public void subAllData() {
+        subscriberAuthData();
+        subscriberMetaData();
+        subscriberPluginData();
+        subscriberRuleData();
+        subscriberSelectorData();
+    }
+
+    /**
+     * watch plugin data.
+     * @return plugin data list
+     */
+    public List<PluginData> subscriberPluginData() {
+        List<PluginData> pluginDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.PLUGIN_DATA_ID, "{}"), PluginData.class).values());
+        pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+            subscriber.unSubscribe(pluginData);
+            subscriber.onSubscribe(pluginData);
+        }));
+        return pluginDataList;
+    }
+
+    /**
+     * subscriber selector data.
+     * @return selector data list
+     */
+    public List<SelectorData> subscriberSelectorData() {
+        List<SelectorData> selectorDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(ApolloPathConstants.SELECTOR_DATA_ID, "{}"), SelectorData.class).values()
+                .stream().flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+            subscriber.unSelectorSubscribe(selectorData);
+            subscriber.onSelectorSubscribe(selectorData);
+        }));
+        return selectorDataList;
+    }
+
+    /**
+     * subscriber rule data.
+     * @return rule data list
+     */
+    public List<RuleData> subscriberRuleData() {
+        List<RuleData> ruleDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(ApolloPathConstants.RULE_DATA_ID, "{}"), RuleData.class).values()
+                .stream().flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+            subscriber.unRuleSubscribe(ruleData);
+            subscriber.onRuleSubscribe(ruleData);
+        }));
+        return ruleDataList;
+    }
+
+    /**
+     * subscriber meta data.
+     * @return meta data list
+     */
+    public List<MetaData> subscriberMetaData() {
+        List<MetaData> metaDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.META_DATA_ID, "{}"), MetaData.class).values());
+        metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {
+            subscriber.unSubscribe(metaData);
+            subscriber.onSubscribe(metaData);
+        }));
+        return metaDataList;
+    }
+
+    /**
+     * subscriber auth data.
+     * @return auth data list
+     */
+    public List<AppAuthData> subscriberAuthData() {
+        List<AppAuthData> appAuthDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.AUTH_DATA_ID, "{}"), AppAuthData.class).values());
+        appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {
+            subscriber.unSubscribe(appAuthData);
+            subscriber.onSubscribe(appAuthData);
+        }));
+        return appAuthDataList;
     }
 
     /**
      * watch plugin data.
      */
-    private void watchPluginData() {
-        ConfigChangeListener configChangeListener = changeEvent -> {
-            changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(ApolloPathConstants.PLUGIN_DATA_ID)) {
-                    List<PluginData> pluginDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), PluginData.class).values());
-                    pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
-                        LOG.info("apollo listener pluginData: {}", pluginDataList);
-                        subscriber.unSubscribe(pluginData);
-                        subscriber.onSubscribe(pluginData);
-                    }));
-                }
-
-            });
-        };
-        cache.put(DefaultPathConstants.PLUGIN_PARENT, configChangeListener);
-        configService.addChangeListener(configChangeListener);
+    private void watchData() {
+        ConfigChangeListener configChangeListener = changeEvent -> changeEvent.changedKeys().forEach(key -> {
+            switch (key) {
+                case ApolloPathConstants.PLUGIN_DATA_ID:
+                    List<PluginData> pluginData = subscriberPluginData();
+                    LOG.info("apollo listener pluginData: {}", pluginData);
+                    break;
+                case ApolloPathConstants.SELECTOR_DATA_ID:
+                    List<SelectorData> selectorDataList = subscriberSelectorData();
+                    LOG.info("apollo listener selectorData: {}", selectorDataList);
+                    break;
+                case ApolloPathConstants.RULE_DATA_ID:
+                    List<RuleData> ruleDataList = subscriberRuleData();
+                    LOG.info("apollo listener ruleData: {}", ruleDataList);
+                    break;
+                case ApolloPathConstants.META_DATA_ID:
+                    List<MetaData> metaDataList = subscriberMetaData();
+                    LOG.info("apollo listener metaData: {}", metaDataList);
+                    break;
+                case ApolloPathConstants.AUTH_DATA_ID:
+                    List<AppAuthData> appAuthDataList = subscriberAuthData();
+                    LOG.info("apollo listener authData: {}", appAuthDataList);
+                    break;
+                default:
+                    break;
+            }
+        });
+        cache.put(ApolloPathConstants.pathKeySet().toString(), configChangeListener);
+        configService.addChangeListener(configChangeListener, ApolloPathConstants.pathKeySet());
     }
 
     /**
-     * watch selector data.
+     * close.
      */
-    private void watchSelectorData() {
-        ConfigChangeListener configChangeListener = changeEvent -> {
-            changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(ApolloPathConstants.SELECTOR_DATA_ID)) {
-                    List<SelectorData> selectorDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(key, ""), SelectorData.class)
-                            .values().stream().flatMap(Collection::stream).collect(Collectors.toList());
-                    selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
-                        LOG.info("apollo listener selectorData: {}", selectorDataList);
-                        subscriber.unSelectorSubscribe(selectorData);
-                        subscriber.onSelectorSubscribe(selectorData);
-                    }));
-                }
-
-            });
-        };
-        cache.put(DefaultPathConstants.SELECTOR_PARENT, configChangeListener);
-        configService.addChangeListener(configChangeListener);
-    }
-
-    /**
-     * watch rule data.
-     */
-    private void watchRuleData() {
-        ConfigChangeListener configChangeListener = changeEvent -> {
-            changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(ApolloPathConstants.RULE_DATA_ID)) {
-                    List<RuleData> ruleDataList = GsonUtils.getInstance().toObjectMapList(configService.getProperty(key, ""), RuleData.class).values()
-                            .stream().flatMap(Collection::stream)
-                            .collect(Collectors.toList());
-                    ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
-                        LOG.info("apollo listener ruleData: {}", ruleDataList);
-                        subscriber.unRuleSubscribe(ruleData);
-                        subscriber.onRuleSubscribe(ruleData);
-                    }));
-                }
-
-            });
-        };
-        cache.put(ApolloPathConstants.RULE_DATA_ID, configChangeListener);
-        configService.addChangeListener(configChangeListener);
-    }
-
-    /**
-     * watch meta data.
-     */
-    private void watchMetaData() {
-        ConfigChangeListener configChangeListener = changeEvent -> {
-            changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(ApolloPathConstants.META_DATA_ID)) {
-                    List<MetaData> metaDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), MetaData.class).values());
-                    metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {
-                        LOG.info("apollo listener metaData: {}", metaDataList);
-                        subscriber.unSubscribe(metaData);
-                        subscriber.onSubscribe(metaData);
-                    }));
-                }
-
-            });
-        };
-        cache.put(ApolloPathConstants.META_DATA_ID, configChangeListener);
-        configService.addChangeListener(configChangeListener);
-    }
-
-    /**
-     * watch auth data.
-     */
-    private void watchAuthData() {
-        ConfigChangeListener configChangeListener = changeEvent -> {
-            changeEvent.changedKeys().forEach(key -> {
-                if (key.contains(ApolloPathConstants.AUTH_DATA_ID)) {
-                    List<AppAuthData> appAuthDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(key, ""), AppAuthData.class).values());
-                    appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {
-                        LOG.info("apollo listener appAuthData: {}", appAuthDataList);
-                        subscriber.unSubscribe(appAuthData);
-                        subscriber.onSubscribe(appAuthData);
-                    }));
-                }
-
-            });
-        };
-        cache.put(ApolloPathConstants.AUTH_DATA_ID, configChangeListener);
-        configService.addChangeListener(configChangeListener);
-    }
-
     @Override
     public void close() {
-        configService.removeChangeListener(cache.get(ApolloPathConstants.PLUGIN_DATA_ID));
-        configService.removeChangeListener(cache.get(ApolloPathConstants.SELECTOR_DATA_ID));
-        configService.removeChangeListener(cache.get(ApolloPathConstants.RULE_DATA_ID));
-        configService.removeChangeListener(cache.get(ApolloPathConstants.AUTH_DATA_ID));
-        configService.removeChangeListener(cache.get(ApolloPathConstants.META_DATA_ID));
-        cache.clear();
+        cache.forEach((key, value) -> configService.removeChangeListener(value));
     }
 }

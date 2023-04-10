@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.listener.apollo;
 
 import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
 import org.apache.shenyu.common.constant.ApolloPathConstants;
-import org.apache.shenyu.register.client.server.apollo.ApolloClient;
 
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -41,12 +40,22 @@ public class ApolloDataChangedInit extends AbstractDataChangedInit {
         this.apolloClient = apolloClient;
     }
 
+    /**
+     * not exist.
+     * @return true if not exist
+     */
     @Override
     protected boolean notExist() {
         return Stream.of(ApolloPathConstants.PLUGIN_DATA_ID, ApolloPathConstants.AUTH_DATA_ID, ApolloPathConstants.META_DATA_ID).allMatch(
             this::dataIdNotExist);
     }
 
+    /**
+     * Data id not exist boolean.
+     *
+     * @param pluginDataId the plugin data id
+     * @return the boolean
+     */
     private boolean dataIdNotExist(final String pluginDataId) {
         return Objects.isNull(apolloClient.getItemValue(pluginDataId));
     }

@@ -186,6 +186,7 @@ shenyu:
 
   switchConfig:
     local: true
+    collapseSlashes: false
   file:
     enabled: true
     maxSize : 10
@@ -193,6 +194,12 @@ shenyu:
     websocket:
       urls: ws://localhost:9095/websocket
       allowOrigin: ws://localhost:9195
+#    apollo:
+#      appId: shenyu
+#      meta: http://localhost:8080
+#      env: dev
+#      clusterName: test
+#      namespace: application
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000

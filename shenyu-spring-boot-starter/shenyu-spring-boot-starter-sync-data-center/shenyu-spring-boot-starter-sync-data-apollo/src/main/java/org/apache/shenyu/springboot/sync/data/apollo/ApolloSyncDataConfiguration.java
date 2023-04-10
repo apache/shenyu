@@ -90,9 +90,9 @@ public class ApolloSyncDataConfiguration {
     }
 
     /**
-     * Http config.
+     * apollo config.
      *
-     * @return the http config
+     * @return the apollo config
      */
     @Bean
     @ConfigurationProperties(prefix = "shenyu.sync.apollo")
