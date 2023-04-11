@@ -36,10 +36,7 @@ public class TcpConnectionLinked implements Linked {
         final Flux<byte[]> wapperFlux;
         flux = inbound.receive().asByteArray();
         wapperFlux = decorator.apply(flux);
-        return wapperFlux
-                // Redirect
-                .concatMap(next -> outbound.sendByteArray(Mono.just(next)))
-                .subscribe();
+        return wapperFlux.concatMap(next -> outbound.sendByteArray(Mono.just(next))).subscribe();
     }
 
     private final Flux<byte[]> logToRequest(final Flux<byte[]> flux) {

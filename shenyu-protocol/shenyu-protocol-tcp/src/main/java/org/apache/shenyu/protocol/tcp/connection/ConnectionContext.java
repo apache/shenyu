@@ -32,12 +32,20 @@ public class ConnectionContext {
                 .build();
     }
 
+    //todo 不重新获取
     public Mono<Connection> getTcpClientConnection() {
         InetSocketAddress proxiedService = connectionConfigProvider.getProxiedService();
         return (Mono<Connection>) TcpClient.create(connectionProvider)
                 .host(proxiedService.getHostName())
                 .port(proxiedService.getPort())
                 .connect();
+    }
+
+
+
+
+    public String getClientConnectionKey(){
+        return "TEST_CLIENT";
     }
 
 
