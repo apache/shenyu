@@ -12,11 +12,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+
 /**
  * HTTP request tool test {@link HttpUtils}
- *
- * @author: hdd
- * @create: 2023/04/11
  */
 public class HttpUtilsTest {
 
@@ -31,7 +29,6 @@ public class HttpUtilsTest {
         formMap.put("param-1", "123");
         formMap.put("param-2", 456);
     }
-
 
     @Test
     public void buildRequestBuilderForGETTest() {
@@ -95,10 +92,9 @@ public class HttpUtilsTest {
         Assertions.assertDoesNotThrow(() -> HttpUtils.FileUtils.toBytes(file));
     }
 
-
     @Test
     public void fileUtilsToBytesByFileNotExistsTest() {
         File file = new File("");
-        Assertions.assertThrows(IOException.class, () ->HttpUtils.FileUtils.toBytes(file));
+        Assertions.assertThrows(IOException.class, () -> HttpUtils.FileUtils.toBytes(file));
     }
 }
