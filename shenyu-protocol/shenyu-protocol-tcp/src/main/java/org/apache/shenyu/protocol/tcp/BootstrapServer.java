@@ -14,13 +14,11 @@ import reactor.netty.tcp.TcpServer;
 
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 
 public class BootstrapServer {
     private static final Logger LOG = LoggerFactory.getLogger(BootstrapServer.class);
-    public Linked link;
+    public Bridge bridge;
     private ConnectionContext connectionContext;
 
     private ConnectionHolder holder;
@@ -28,9 +26,10 @@ public class BootstrapServer {
     public void init(Properties properties) {
         try {
             ClientConnectionConfigProviderFactory factory = ClientConnectionConfigProviderFactory.getInstance();
-            this.link = new TcpConnectionLinked();
+            this.bridge = new TcpConnectionBridge();
             this.holder = new ConnectionHolder();
             ClientConnectionConfigProvider provider = factory.getClientConnectionConfigProviderByType(SyancType.HTTP);
+            provider.init(properties);
             connectionContext = new ConnectionContext(provider);
             connectionContext.init(properties);
         } catch (Exception ex) {
@@ -39,10 +38,11 @@ public class BootstrapServer {
     }
 
     public void start() {
-        ShenyuTcpConfig shenyuTcpConfig = new ShenyuTcpConfig();
-        shenyuTcpConfig.setBossThreads(1);
-        shenyuTcpConfig.setWorkerThreads(10);
-        LoopResources loopResources = LoopResources.create("my-elg", shenyuTcpConfig.getBossThreads(), shenyuTcpConfig.getWorkerThreads(), true);
+        TcpServerConfiguration tcpServerConfiguration = new TcpServerConfiguration();
+        tcpServerConfiguration.setBossGroupThreadCount(1);
+        tcpServerConfiguration.setWorkerGroupThreadCount(10);
+        LoopResources loopResources = LoopResources.create("shenyu-tcp-bootstrap-server", tcpServerConfiguration.getBossGroupThreadCount(),
+                tcpServerConfiguration.getWorkerGroupThreadCount(), true);
         TcpServer tcpServer = TcpServer.create()
                 .doOnChannelInit((connectionObserver, channel, remoteAddress) -> {
                     channel.pipeline().addFirst(new LoggingHandler(LogLevel.DEBUG));
@@ -61,30 +61,35 @@ public class BootstrapServer {
         Mono<Connection> client = connectionContext.getTcpClientConnection();
         String clientConnectionKey = connectionContext.getClientConnectionKey();
         holder.put(clientConnectionKey, serverConn);
-        // Connect to client, and react when connection becomes available
         client.subscribe((clientConn) -> {
-            LOG.debug("Bridging connection with {}", link);
-            link.link(serverConn, clientConn);
+            LOG.debug("Bridging connection with {}", bridge);
+            bridge.bridge(serverConn, clientConn);
         });
     }
 
 
     public void triggerJob() {
-        ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
-       Runnable runnable =  ()->{
-           try{
-               LOG.info("job trigger start");
-               ArrayList<Connection> testClient1 = new ArrayList<>(holder.getConnectionList("TEST_CLIENT"));
-               for (Connection serverCon : testClient1) {
-                   serverCon.disposeNow();
-                   bridgeConnections(serverCon);
-               }
-               LOG.info("job trigger end");
-           }catch (Throwable tx){
-               LOG.error("error",tx);
-           }
+        Runnable runnable = () -> {
+            while (true) {
+                try {
+                    LOG.info("job trigger start");
+                    ArrayList<Connection> testClient1 = new ArrayList<>(holder.getConnectionList("TEST_CLIENT"));
+                    for (Connection serverCon : testClient1) {
+                        serverCon.disposeNow();
+                        bridgeConnections(serverCon);
+                    }
+                    LOG.info("job trigger end");
+                } catch (Throwable tx) {
+                    LOG.error("error", tx);
+                }
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         };
-        scheduledThreadPoolExecutor.schedule(runnable ,20, TimeUnit.SECONDS );
+        new Thread(runnable).start();
     }
 
     public static void main(String[] args) {

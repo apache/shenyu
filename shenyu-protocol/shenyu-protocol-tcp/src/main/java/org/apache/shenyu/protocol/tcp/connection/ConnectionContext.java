@@ -5,7 +5,6 @@ import reactor.netty.Connection;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.TcpClient;
 
-import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.Properties;
 
@@ -32,19 +31,18 @@ public class ConnectionContext {
                 .build();
     }
 
-    //todo 不重新获取
     public Mono<Connection> getTcpClientConnection() {
-        InetSocketAddress proxiedService = connectionConfigProvider.getProxiedService();
-        return (Mono<Connection>) TcpClient.create(connectionProvider)
-                .host(proxiedService.getHostName())
-                .port(proxiedService.getPort())
-                .connect();
+        return Mono.just(connectionConfigProvider.getProxiedService())
+                .flatMap(inetSocketAddress ->
+                        TcpClient.create(connectionProvider)
+                                .host(inetSocketAddress.getHostName())
+                                .port(inetSocketAddress.getPort())
+                                .connect()
+                );
     }
 
 
-
-
-    public String getClientConnectionKey(){
+    public String getClientConnectionKey() {
         return "TEST_CLIENT";
     }
 

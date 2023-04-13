@@ -15,13 +15,13 @@ import java.util.function.UnaryOperator;
 /**
  *
  */
-public class TcpConnectionLinked implements Linked {
+public class TcpConnectionBridge implements Bridge {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TcpConnectionLinked.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TcpConnectionBridge.class);
 
 
     @Override
-    public void link(Connection server, Connection client) {
+    public void bridge(Connection server, Connection client) {
         LOG.info("start server#inbound -> client#outbound");
         Disposable requestDisposable = bridge(server.inbound(), client.outbound(), this::logToRequest);
         LOG.info("start client#inbound -> server#outbound");

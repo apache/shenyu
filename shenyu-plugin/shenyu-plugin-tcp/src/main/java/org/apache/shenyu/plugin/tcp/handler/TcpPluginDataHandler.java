@@ -21,20 +21,33 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
 
-public class TcoPluginDataHandler implements PluginDataHandler {
+public class TcpPluginDataHandler implements PluginDataHandler {
 
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         //start s
+        TcpServerConfiguration tcpServerConfiguration = GsonUtils.getInstance().fromJson(pluginData.getConfig(), TcpServerConfiguration.class);
+        if (pluginData.getEnabled()) {
+            // 启用 plugin
+
+
+
+        } else {
+
+
+
+
+        }
+
 
     }
 
     @Override
     public String pluginNamed() {
-        //todo add TCP
-        return PluginEnum.MQTT.getName();
+        return PluginEnum.TCP.getName();
     }
 
 }
