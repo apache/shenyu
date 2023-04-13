@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.protocol.tcp;
 
+import java.util.Properties;
+
 /**
  * tcp server configuration.
  */
@@ -31,6 +33,8 @@ public class TcpServerConfiguration {
     private int workerGroupThreadCount = 12;
 
     private String leakDetectorLevel = "DISABLED";
+
+    private Properties props;
 
     /**
      * get port.
@@ -120,5 +124,13 @@ public class TcpServerConfiguration {
      */
     public void setLeakDetectorLevel(final String leakDetectorLevel) {
         this.leakDetectorLevel = leakDetectorLevel;
+    }
+
+    public Properties getProps() {
+        return props;
+    }
+
+    public void setProps(Properties props) {
+        this.props = props;
     }
 }

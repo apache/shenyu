@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+/**
+ * ClientConnectionConfigProviderFactory.
+ */
 public class ClientConnectionConfigProviderFactory {
     private static final Logger LOG = LoggerFactory.getLogger(ClientConnectionConfigProviderFactory.class);
     public static final Random random = new Random();

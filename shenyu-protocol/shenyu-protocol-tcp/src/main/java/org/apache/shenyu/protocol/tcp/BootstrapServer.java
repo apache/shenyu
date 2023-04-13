@@ -16,14 +16,18 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 
+/**
+ * BootstrapServer.
+ */
 public class BootstrapServer {
     private static final Logger LOG = LoggerFactory.getLogger(BootstrapServer.class);
-    public Bridge bridge;
+    private Bridge bridge;
     private ConnectionContext connectionContext;
-
     private ConnectionHolder holder;
 
-    public void init(Properties properties) {
+    private DisposableServer server;
+
+    private void init(Properties properties) {
         try {
             ClientConnectionConfigProviderFactory factory = ClientConnectionConfigProviderFactory.getInstance();
             this.bridge = new TcpConnectionBridge();
@@ -37,10 +41,8 @@ public class BootstrapServer {
         }
     }
 
-    public void start() {
-        TcpServerConfiguration tcpServerConfiguration = new TcpServerConfiguration();
-        tcpServerConfiguration.setBossGroupThreadCount(1);
-        tcpServerConfiguration.setWorkerGroupThreadCount(10);
+    public void start(TcpServerConfiguration tcpServerConfiguration) {
+        init(tcpServerConfiguration.getProps());
         LoopResources loopResources = LoopResources.create("shenyu-tcp-bootstrap-server", tcpServerConfiguration.getBossGroupThreadCount(),
                 tcpServerConfiguration.getWorkerGroupThreadCount(), true);
         TcpServer tcpServer = TcpServer.create()
@@ -51,7 +53,7 @@ public class BootstrapServer {
                 .doOnConnection(this::bridgeConnections)
                 .port(9123)
                 .runOn(loopResources);
-        DisposableServer server = tcpServer.bindNow();
+        server = tcpServer.bindNow();
         triggerJob();
         server.onDispose().block();
     }
@@ -67,8 +69,7 @@ public class BootstrapServer {
         });
     }
 
-
-    public void triggerJob() {
+    private void triggerJob() {
         Runnable runnable = () -> {
             while (true) {
                 try {
@@ -92,12 +93,12 @@ public class BootstrapServer {
         new Thread(runnable).start();
     }
 
-    public static void main(String[] args) {
-        BootstrapServer bootstrapServer = new BootstrapServer();
-        bootstrapServer.init(new Properties());
-        bootstrapServer.start();
 
+    /**
+     * shutdown.
+     */
+    public void shutdown() {
+        server.disposeNow();
     }
-
 
 }

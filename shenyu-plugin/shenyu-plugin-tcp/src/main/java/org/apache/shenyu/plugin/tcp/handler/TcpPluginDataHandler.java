@@ -21,28 +21,27 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.protocol.tcp.BootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TcpPluginDataHandler implements PluginDataHandler {
 
+    private static final Logger LOG = LoggerFactory.getLogger(TcpPluginDataHandler.class);
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         //start s
         TcpServerConfiguration tcpServerConfiguration = GsonUtils.getInstance().fromJson(pluginData.getConfig(), TcpServerConfiguration.class);
+        BootstrapServer bootstrapServer = new BootstrapServer();
         if (pluginData.getEnabled()) {
-            // 启用 plugin
-
-
-
+            LOG.info("shenyu TcpPluginDataHandler start TcpProxy");
+            bootstrapServer.start(tcpServerConfiguration);
         } else {
-
-
-
-
+            LOG.info("shenyu TcpPluginDataHandler shutdown TcpProxy");
+            bootstrapServer.shutdown();
         }
-
-
     }
 
     @Override
