@@ -50,14 +50,14 @@ jobs:
         with:
           filters: '.github/filters.yml'
           list-files: json
-#      - name: Cache Maven Repos
-#        if: steps.filter.outputs.changed == 'true'
-#        uses: actions/cache@v2
-#        with:
-#          path: ~/.m2/repository
-#          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: |
-#            ${{ runner.os }}-maven-
+      - name: Cache Maven Repos
+        if: steps.filter.outputs.changed == 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - uses: actions/setup-java@v1
         if: steps.filter.outputs.changed == 'true'
         with:
