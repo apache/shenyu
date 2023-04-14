@@ -55,7 +55,7 @@
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-core</artifactId>
-            <version>1.28.1</version>
+            <version>${grpc-core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
