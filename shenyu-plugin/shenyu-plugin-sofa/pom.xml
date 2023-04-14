@@ -40,7 +40,8 @@
                 <exclusion>
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-core</artifactId>
-                </exclusion></exclusions>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
