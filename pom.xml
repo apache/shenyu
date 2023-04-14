@@ -169,7 +169,6 @@
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
         <asm.version>9.2</asm.version>
-        <grpc-core.version>1.28.1</grpc-core.version>
     </properties>
 
     <dependencyManagement>
@@ -503,12 +502,6 @@
                 <groupId>com.netflix.eureka</groupId>
                 <artifactId>eureka-client</artifactId>
                 <version>${eureka.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.grpc</groupId>
-                <artifactId>grpc-core</artifactId>
-                <version>${grpc-core.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -26,7 +26,8 @@
     <artifactId>shenyu-client-sofa</artifactId>
 
     <properties>
-       <runtime-sofa-boot-starter.version>3.1.4</runtime-sofa-boot-starter.version> 
+        <runtime-sofa-boot-starter.version>3.1.4</runtime-sofa-boot-starter.version>
+        <grpc-core.version>1.28.1</grpc-core.version>
     </properties>
     
     <dependencies>
