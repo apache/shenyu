@@ -31,6 +31,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -60,10 +61,58 @@ public class ShenyuTrieTest {
         Assertions.assertTrue(shenyuAntPathTrie.isEmpty());
         Assertions.assertTrue(shenyuPathPatternTrie.isEmpty());
     }
+
+    @Test
+    public void testPathPattern() {
+        final String matchAllEndUri = "/a/b/c/**";
+        final String matchAllNotEndUri = "/a/b/**/c";
+
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setParamName("/");
+        conditionData.setParamValue(matchAllEndUri);
+
+        ConditionData conditionData1 = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setParamName("/");
+        conditionData.setParamValue(matchAllNotEndUri);
+
+        RuleData ruleData = RuleData.builder()
+                .id("1")
+                .pluginName("test")
+                .selectorId("1")
+                .name("test-plugin-rule")
+                .enabled(true)
+                .conditionDataList(Collections.singletonList(conditionData))
+                .build();
+
+        RuleData ruleData1 = RuleData.builder()
+                .id("2")
+                .pluginName("test")
+                .selectorId("2")
+                .name("test-plugin-rule")
+                .enabled(true)
+                .conditionDataList(Collections.singletonList(conditionData1))
+                .build();
+
+        Assertions.assertThrows(ShenyuException.class, () -> shenyuPathPatternTrie.putNode(matchAllNotEndUri, ruleData1, null));
+        Assertions.assertDoesNotThrow(() -> shenyuAntPathTrie.putNode(matchAllNotEndUri, ruleData1, null));
+
+        Assertions.assertNull(shenyuPathPatternTrie.getNode(matchAllEndUri));
+        shenyuPathPatternTrie.putNode(matchAllEndUri, ruleData, null);
+        Assertions.assertNotNull(shenyuPathPatternTrie.getNode(matchAllEndUri));
+
+        Assertions.assertNull(shenyuAntPathTrie.getNode(matchAllEndUri));
+        shenyuAntPathTrie.putNode(matchAllEndUri, ruleData, null);
+        Assertions.assertNotNull(shenyuAntPathTrie.getNode(matchAllEndUri));
+
+    }
     
     @Test
     public void putNode() {
-        final String uri = "/a/b/c/**/*/cc";
+        final String uri = "/a/b/c/**/*/{name}/cc";
         ConditionData conditionData = new ConditionData();
         conditionData.setParamType(ParamTypeEnum.URI.getName());
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
@@ -77,13 +126,84 @@ public class ShenyuTrieTest {
                 .enabled(true)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
+
+        Assertions.assertNull(shenyuAntPathTrie.getNode(uri));
         shenyuAntPathTrie.putNode(uri, ruleData, null);
         Assertions.assertNotNull(shenyuAntPathTrie.getNode(uri));
-        Assertions.assertThrows(ShenyuException.class, () -> shenyuPathPatternTrie.putNode("/aa/bb/**/cc", ruleData, null));
-        shenyuPathPatternTrie.putNode("/aa/bb/cc/*/*/ee", ruleData, null);
-        Assertions.assertNotNull(shenyuPathPatternTrie.getNode("/aa/bb/cc/*/*/ee"));
     }
-    
+
+    @Test
+    public void putNodeSameSelectorId() {
+        final String normalUri = "/a/b/c";
+
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setParamName("/");
+        conditionData.setParamValue(normalUri);
+
+        RuleData ruleData = RuleData.builder()
+                .id("1")
+                .pluginName("test")
+                .selectorId("1")
+                .name("test-plugin-rule")
+                .enabled(true)
+                .sort(2)
+                .conditionDataList(Collections.singletonList(conditionData))
+                .build();
+
+        RuleData ruleData1 = RuleData.builder()
+                .id("2")
+                .pluginName("test2")
+                .selectorId("1")
+                .name("test-plugin-rule")
+                .enabled(true)
+                .sort(1)
+                .conditionDataList(Collections.singletonList(conditionData))
+                .build();
+
+        shenyuAntPathTrie.putNode(normalUri, ruleData, null);
+        shenyuAntPathTrie.putNode(normalUri, ruleData1, null);
+        List<RuleData> ruleDataList = shenyuAntPathTrie.getNode(normalUri).getPathRuleCache().get("1");
+        Assertions.assertEquals(ruleDataList.get(0).getId(), "2");
+        Assertions.assertEquals(ruleDataList.get(1).getId(), "1");
+    }
+
+    @Test
+    public void putNodeDifferentSelectorId() {
+        final String normalUri = "/a/b/c";
+
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setParamName("/");
+        conditionData.setParamValue(normalUri);
+
+        RuleData ruleData = RuleData.builder()
+                .id("1")
+                .pluginName("test")
+                .selectorId("1")
+                .name("test-plugin-rule")
+                .enabled(true)
+                .sort(2)
+                .conditionDataList(Collections.singletonList(conditionData))
+                .build();
+
+        RuleData ruleData1 = RuleData.builder()
+                .id("2")
+                .pluginName("test2")
+                .selectorId("2")
+                .name("test-plugin-rule")
+                .enabled(true)
+                .sort(1)
+                .conditionDataList(Collections.singletonList(conditionData))
+                .build();
+
+        shenyuAntPathTrie.putNode(normalUri, ruleData, null);
+        shenyuAntPathTrie.putNode(normalUri, ruleData1, null);
+        Assertions.assertEquals(shenyuAntPathTrie.getNode(normalUri).getPathRuleCache().size(), 2);
+    }
+
     @Test
     public void pathPatternMatch() {
         ConditionData conditionData = new ConditionData();
@@ -91,6 +211,7 @@ public class ShenyuTrieTest {
         conditionData.setOperator(OperatorEnum.MATCH.getAlias());
         conditionData.setParamName("/");
         conditionData.setParamValue("/a/b/c/**");
+
         RuleData ruleData = RuleData.builder()
                 .id("1")
                 .pluginName("test")
