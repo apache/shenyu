@@ -282,7 +282,7 @@ public class ShenyuTrieTest {
     }
 
     @Test
-    public void matchSameSelectorId(){
+    public void matchSameSelectorId() {
         final String normalUri = "/a/b/c";
 
         ConditionData conditionData = new ConditionData();
@@ -313,7 +313,7 @@ public class ShenyuTrieTest {
 
         shenyuAntPathTrie.putNode(normalUri, ruleData, null);
         shenyuAntPathTrie.putNode(normalUri, ruleData1, null);
-        Assertions.assertEquals(shenyuAntPathTrie.match("/a/b/c","1").getPathRuleCache().get("1").size(),2);
+        Assertions.assertEquals(shenyuAntPathTrie.match("/a/b/c", "1").getPathRuleCache().get("1").size(), 2);
     }
 
     @Test
