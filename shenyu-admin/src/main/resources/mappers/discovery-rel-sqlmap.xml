@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.DiscoveryRelMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="discovery_id" jdbcType="VARCHAR" property="discoveryId"/>
+        <result column="selector_id" jdbcType="VARCHAR" property="selectorId"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id,
+        date_created,
+        date_updated,
+        discovery_id,
+        selector_id
+    </sql>
+    
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery_rel
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+    
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
+        INSERT INTO discovery_rel
+        (id,
+        date_created,
+        date_updated,
+        discovery_id,
+        selector_id)
+        VALUES
+        (#{id, jdbcType=VARCHAR},
+        #{dateCreated, jdbcType=TIMESTAMP},
+        #{dateUpdated, jdbcType=TIMESTAMP},
+        #{discoveryId, jdbcType=VARCHAR},
+        #{selectorId, jdbcType=VARCHAR})
+    </insert>
+    
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
+        INSERT INTO discovery_rel
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+            <if test="discoveryId != null">
+                discovery_id,
+            </if>
+            <if test="selectorId != null">
+                selector_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id, jdbcType=VARCHAR},
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="discoveryId != null">
+                #{discoveryId, jdbcType=VARCHAR},
+            </if>
+            <if test="selectorId != null">
+                #{selectorId, jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
+        UPDATE discovery_rel
+        SET date_created = #{dateCreated, jdbcType=TIMESTAMP},
+        date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+        discovery_id = #{discoveryId, jdbcType=VARCHAR},
+        selector_id = #{selectorId, jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+    
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
+        UPDATE discovery_rel
+        <set>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="type != null">
+                discovery_id = #{discoveryId, jdbcType=VARCHAR},
+            </if>
+            <if test="serviceList != null">
+                selector_id = #{selectorId, jdbcType=VARCHAR},
+            </if>
+        </set>
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+    
+    <delete id="delete" parameterType="java.lang.String">
+        DELETE
+        FROM discovery_rel
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+</mapper>
