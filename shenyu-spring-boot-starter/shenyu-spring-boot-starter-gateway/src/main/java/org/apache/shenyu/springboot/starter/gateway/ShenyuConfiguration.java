@@ -121,12 +121,15 @@ public class ShenyuConfiguration {
      *
      * @param pluginDataHandlerList the plugin data handler list
      * @param eventPublisher event publisher
+     * @param shenyuConfig shenyu config
      * @return the plugin data subscriber
      */
     @Bean
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList,
-                                                     final ObjectProvider<ApplicationEventPublisher> eventPublisher) {
-        return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList), eventPublisher.getIfAvailable());
+                                                     final ObjectProvider<ApplicationEventPublisher> eventPublisher,
+                                                     final ShenyuConfig shenyuConfig) {
+        return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList),
+                eventPublisher.getIfAvailable(), shenyuConfig.getTrie());
     }
 
     /**

@@ -17,10 +17,12 @@
 
 package org.apache.shenyu.common.enums;
 
+import java.util.Arrays;
+
 /**
  * Shenyu match mode event.
  */
-public enum TrieMatchModeEvent {
+public enum TrieMatchModeEnum {
     /**
      * ant path match.
      */
@@ -33,7 +35,7 @@ public enum TrieMatchModeEvent {
 
     private final String matchMode;
 
-    TrieMatchModeEvent(final String matchMode) {
+    TrieMatchModeEnum(final String matchMode) {
         this.matchMode = matchMode;
     }
 
@@ -44,5 +46,18 @@ public enum TrieMatchModeEvent {
      */
     public String getMatchMode() {
         return matchMode;
+    }
+    
+    /**
+     * get {@linkplain TrieMatchModeEnum} by match mode.
+     *
+     * @param matchMode match mode
+     * @return {@linkplain TrieMatchModeEnum}
+     */
+    public static TrieMatchModeEnum acquireTrieMatch(final String matchMode) {
+        return Arrays.stream(TrieMatchModeEnum.values())
+                .filter(e -> e.getMatchMode().equals(matchMode))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Shenyu trie match mode is error, match mode:" + matchMode));
     }
 }
