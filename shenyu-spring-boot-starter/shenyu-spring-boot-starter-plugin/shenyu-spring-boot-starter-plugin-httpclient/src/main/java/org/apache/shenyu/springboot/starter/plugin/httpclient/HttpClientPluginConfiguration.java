@@ -197,6 +197,7 @@ public class HttpClientPluginConfiguration {
             throw new IllegalArgumentException("Acquire Timeout value must be positive");
         }
         return ConnectionProvider.builder(poolName)
+                .fifo()
                 .maxConnections(maxConnections)
                 .pendingAcquireTimeout(Duration.ofMillis(acquireTimeout))
                 .maxIdleTime(maxIdleTime)
@@ -213,6 +214,7 @@ public class HttpClientPluginConfiguration {
     public ConnectionProvider buildElasticConnectionPool(final String poolName, final Duration maxIdleTime) {
         // about the args, please see https://projectreactor.io/docs/netty/release/reference/index.html#_connection_pool_2
         return ConnectionProvider.builder(poolName)
+                .fifo()
                 .maxConnections(Integer.MAX_VALUE)
                 .pendingAcquireTimeout(Duration.ofMillis(0))
                 .pendingAcquireMaxCount(-1)
