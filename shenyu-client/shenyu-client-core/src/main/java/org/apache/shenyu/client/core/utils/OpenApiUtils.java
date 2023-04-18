@@ -78,28 +78,29 @@ public class OpenApiUtils {
                 list.add(parameter);
             }
         } else {
-            Parameter parameter = new Parameter();
-            parameter.setIn("path");
-            parameter.setName(getPathName(path));
-            parameter.setRequired(true);
-            parameter.setSchema(new Schema("string", null));
-            list.add(parameter);
+            UrlPath urlPath = UrlPath.of(path, Charset.defaultCharset());
+            List<String> segments = urlPath.getSegments();
+            for (String segment : segments) {
+                if (EVERY_PATH.equals(segment)) {
+                    Parameter parameter = new Parameter();
+                    parameter.setIn("path");
+                    parameter.setName(segment);
+                    parameter.setRequired(true);
+                    parameter.setSchema(new Schema("string", null));
+                    list.add(parameter);
+                }
+                if (segment.startsWith(LEFT_ANGLE_BRACKETS) && segment.endsWith(RIGHT_ANGLE_BRACKETS)) {
+                    String name = segment.substring(1, segment.length() - 1);
+                    Parameter parameter = new Parameter();
+                    parameter.setIn("path");
+                    parameter.setName(name);
+                    parameter.setRequired(true);
+                    parameter.setSchema(new Schema("string", null));
+                    list.add(parameter);
+                }
+            }
         }
         return list;
-    }
-
-    private static String getPathName(final String path) {
-        UrlPath urlPath = UrlPath.of(path, Charset.defaultCharset());
-        List<String> segments = urlPath.getSegments();
-        for (String segment : segments) {
-            if (EVERY_PATH.equals(segment)) {
-                return segment;
-            }
-            if (segment.startsWith(LEFT_ANGLE_BRACKETS) && segment.endsWith(RIGHT_ANGLE_BRACKETS)) {
-                return segment.substring(1, segment.length() - 1);
-            }
-        }
-        return path;
     }
 
     private static Pair<Boolean, Annotation[]> isQuery(final Method method) {
