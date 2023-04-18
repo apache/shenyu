@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.register.instance.apollo;
 
+import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigChangeListener;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.core.ConfigConsts;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Optional;
 import java.util.HashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -54,15 +56,42 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private String namespace;
 
+    private Config configService;
+
+    private static final String APOLLO_CLUSTER = "apollo.cluster";
+
+    private static final String PROP_APP_ID = "app.id";
+
+    private static final String PROP_APOLLO_META = "apollo.meta";
+
+    private static final String APOLLO_NAMESPACE = "apollo.bootstrap.namespace";
+
     @Override
     public void init(final RegisterConfig config) {
         Properties properties = config.getProps();
-        String portalUrl = config.getServerLists();
+        String meta = config.getServerLists();
+        String appId = properties.getProperty("appId","shenyu");
+        String clusterName = properties.getProperty("clusterName", ConfigConsts.CLUSTER_NAME_DEFAULT);
+        String namespace = properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION);
+        Optional.ofNullable(appId).ifPresent(x -> System.setProperty(PROP_APP_ID, x));
+        Optional.ofNullable(meta).ifPresent(x -> System.setProperty(PROP_APOLLO_META, x));
+        Optional.ofNullable(clusterName).ifPresent(x -> System.setProperty(APOLLO_CLUSTER, x));
+        Optional.ofNullable(namespace).ifPresent(x -> System.setProperty(APOLLO_NAMESPACE, x));
+        Optional.ofNullable(namespace).ifPresent(x -> System.setProperty(APOLLO_NAMESPACE, x));
+        this.namespace = namespace;
+        this.configService = ConfigService.getAppConfig();
+        buildClient(config);
+    }
+
+    private void buildClient(final RegisterConfig config) {
+        // init apollo client
+        Properties properties = config.getProps();
         String appId = properties.getProperty("appId");
         String token = properties.getProperty("token");
         String env = properties.getProperty("env", "DEV");
         String clusterName = properties.getProperty("clusterName", ConfigConsts.CLUSTER_NAME_DEFAULT);
         String namespace = properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION);
+        String portalUrl = properties.getProperty("portalUrl", "http://localhost:8070");
         ApolloConfig apolloConfig = new ApolloConfig();
         apolloConfig.setAppId(appId);
         apolloConfig.setPortalUrl(portalUrl);
@@ -70,8 +99,7 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
         apolloConfig.setEnv(env);
         apolloConfig.setClusterName(clusterName);
         apolloConfig.setNamespace(namespace);
-        this.namespace = namespace;
-        this.apolloClient = new ApolloClient(apolloConfig);
+        this.apolloClient=  new ApolloClient(apolloConfig);
     }
 
     @Override
@@ -81,15 +109,23 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
         String realNode = InstancePathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         apolloClient.createOrUpdateItem(realNode, nodeData, "register instance");
+        apolloClient.publishNamespace(namespace,"publish instance");
         LOGGER.info("apollo instance register success: {}", nodeData);
     }
 
     @Override
     public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
         final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
+
         final Function<Map<String, String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList ->
                 childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceEntity.class)).collect(Collectors.toList());
         Map<String, String> childrenList = new HashMap<>();
+        configService.getPropertyNames().forEach(key -> {
+            if (key.startsWith(watchKey)) {
+                String itemValue = apolloClient.getItemValue(key);
+                childrenList.put(key, itemValue);
+            }
+        });
         ConfigChangeListener configChangeListener = changeEvent -> {
             Set<String> keys = changeEvent.changedKeys();
             keys.forEach(key -> {
@@ -110,19 +146,19 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
                 }
             });
         };
-        ConfigService.getConfig(namespace).addChangeListener(configChangeListener);
+        configService.addChangeListener(configChangeListener);
         configChangeListenerMap.put(watchKey, configChangeListener);
         return getInstanceRegisterFun.apply(childrenList);
-    }
-
-    @Override
-    public void close() {
-        configChangeListenerMap.forEach((key, value) -> ConfigService.getConfig(namespace).removeChangeListener(value));
     }
 
     private String buildInstanceNodeName(final InstanceEntity instance) {
         String host = instance.getHost();
         int port = instance.getPort();
         return String.join(Constants.COLONS, host, Integer.toString(port));
+    }
+
+    @Override
+    public void close() {
+        configChangeListenerMap.forEach((key, value) -> configService.removeChangeListener(value));
     }
 }

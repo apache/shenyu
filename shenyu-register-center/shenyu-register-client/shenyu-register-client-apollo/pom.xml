@@ -28,7 +28,7 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-common</artifactId>
+            <artifactId>shenyu-register-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

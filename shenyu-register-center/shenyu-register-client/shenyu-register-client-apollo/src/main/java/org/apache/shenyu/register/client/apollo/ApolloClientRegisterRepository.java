@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * apollo register center client.
@@ -44,7 +45,7 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApolloClientRegisterRepository.class);
 
-    private final Set<String> metadataSet = new HashSet<>();
+    private final ConcurrentLinkedQueue<String> metadataCache = new ConcurrentLinkedQueue<>();
 
     private ApolloClient apolloClient;
 
@@ -52,11 +53,11 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
     public void init(final ShenyuRegisterCenterConfig config) {
         Properties properties = config.getProps();
         String appId = properties.getProperty("appId");
-        String portalUrl = config.getServerLists();
         String token = properties.getProperty("token");
         String env = properties.getProperty("env", "DEV");
         String clusterName = properties.getProperty("clusterName", ConfigConsts.CLUSTER_NAME_DEFAULT);
         String namespace = properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION);
+        String portalUrl= properties.getProperty("portalUrl");
 
         ApolloConfig apolloConfig = new ApolloConfig();
         apolloConfig.setAppId(appId);
@@ -104,10 +105,10 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
     private synchronized void registerConfig(final String rpcType,
                                              final String contextPath,
                                              final MetaDataRegisterDTO metadata) {
-        metadataSet.add(GsonUtils.getInstance().toJson(metadata));
+        metadataCache.add(GsonUtils.getInstance().toJson(metadata));
         String configName = RegisterPathConstants.buildServiceConfigPath(rpcType, contextPath);
         try {
-            this.apolloClient.createOrUpdateItem(configName, GsonUtils.getInstance().toJson(metadataSet), "register config");
+            this.apolloClient.createOrUpdateItem(configName, GsonUtils.getInstance().toJson(metadataCache), "register config");
             this.apolloClient.publishNamespace("publish config", "");
         } catch (Exception e) {
             throw new ShenyuException(e);

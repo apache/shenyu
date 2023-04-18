@@ -21,8 +21,8 @@ import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.core.ConfigConsts;
 import com.ctrip.framework.apollo.model.ConfigChange;
-import com.ctrip.framework.apollo.spring.config.PropertySourcesConstants;
 import com.google.common.collect.Lists;
+import org.apache.shenyu.common.constant.ApolloPathConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterRepository;
@@ -32,6 +32,7 @@ import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.spi.Join;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -45,18 +46,27 @@ public class ApolloClientServerRegisterRepository implements ShenyuClientServerR
 
     private Config config;
 
+    private static final String APOLLO_CLUSTER = "apollo.cluster";
+
+    private static final String PROP_APP_ID = "app.id";
+
+    private static final String PROP_APOLLO_META = "apollo.meta";
+
+    private static final String APOLLO_NAMESPACE = "apollo.bootstrap.namespace";
+
     @Override
     public void init(final ShenyuClientServerRegisterPublisher publisher,
                      final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
-
         Properties properties = config.getProps();
-        System.setProperty("app.id", properties.getProperty("appId"));
-        System.setProperty(ConfigConsts.APOLLO_META_KEY, properties.getProperty("meta"));
-        System.setProperty("apollo.config-server", properties.getProperty("meta"));
-        System.setProperty(ConfigConsts.APOLLO_CLUSTER_KEY, properties.getProperty("cluster", ConfigConsts.CLUSTER_NAME_DEFAULT));
-        System.setProperty(PropertySourcesConstants.APOLLO_BOOTSTRAP_NAMESPACES, properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION));
-
+        String meta = config.getServerLists();
+        String appId = properties.getProperty("appId");
+        String clusterName = properties.getProperty("clusterName", ConfigConsts.CLUSTER_NAME_DEFAULT);
+        String namespace = properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION);
+        Optional.ofNullable(appId).ifPresent(x -> System.setProperty(PROP_APP_ID, x));
+        Optional.ofNullable(meta).ifPresent(x -> System.setProperty(PROP_APOLLO_META, x));
+        Optional.ofNullable(clusterName).ifPresent(x -> System.setProperty(APOLLO_CLUSTER, x));
+        Optional.ofNullable(namespace).ifPresent(x -> System.setProperty(APOLLO_NAMESPACE, x));
         this.config = ConfigService.getAppConfig();
         this.initSubscribe();
     }
@@ -65,9 +75,10 @@ public class ApolloClientServerRegisterRepository implements ShenyuClientServerR
         this.config.addChangeListener(changeEvent -> {
             for (String changedKey : changeEvent.changedKeys()) {
                 ConfigChange configChange = changeEvent.getChange(changedKey);
-                if (changedKey.startsWith("shenyu.register.metadata")) {
+                if (changedKey.startsWith(ApolloPathConstants.REGISTER_METADATA_ID)) {
                     this.publishMetadata(configChange.getNewValue());
-                } else if (changedKey.startsWith("shenyu.register.uri")) {
+
+                } else if (changedKey.startsWith(ApolloPathConstants.REGISTER_URI_ID)) {
                     this.publishRegisterURI(configChange.getNewValue());
                 }
             }
