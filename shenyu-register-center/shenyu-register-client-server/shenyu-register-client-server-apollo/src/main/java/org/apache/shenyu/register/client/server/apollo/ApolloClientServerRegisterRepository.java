@@ -42,10 +42,6 @@ import java.util.stream.Collectors;
 @Join
 public class ApolloClientServerRegisterRepository implements ShenyuClientServerRegisterRepository {
 
-    private ShenyuClientServerRegisterPublisher publisher;
-
-    private Config config;
-
     private static final String APOLLO_CLUSTER = "apollo.cluster";
 
     private static final String PROP_APP_ID = "app.id";
@@ -53,6 +49,10 @@ public class ApolloClientServerRegisterRepository implements ShenyuClientServerR
     private static final String PROP_APOLLO_META = "apollo.meta";
 
     private static final String APOLLO_NAMESPACE = "apollo.bootstrap.namespace";
+
+    private ShenyuClientServerRegisterPublisher publisher;
+
+    private Config config;
 
     @Override
     public void init(final ShenyuClientServerRegisterPublisher publisher,
