@@ -186,7 +186,8 @@ public class ShenyuTrie {
                 if (!endPath && Objects.nonNull(currentNode) && !currentNode.getEndOfPath()) {
                     continue;
                 }
-            } else if (hasWildcardNode(currentNode.getChildren(), pathPart) && wildcard[startIndex] == 0 && Objects.nonNull(wildcardMathNode = checkAccess(wildcard, currentNode, startIndex, WILDCARD, pathPart))) {
+            } else if (hasWildcardNode(currentNode.getChildren(), pathPart) && wildcard[startIndex] == 0
+                    && Objects.nonNull(wildcardMathNode = checkAccess(wildcard, currentNode, startIndex, WILDCARD, pathPart))) {
                 currentNode = wildcardMathNode;
                 startIndex++;
                 if (Objects.nonNull(currentNode) && !endPath && !currentNode.getEndOfPath()) {
