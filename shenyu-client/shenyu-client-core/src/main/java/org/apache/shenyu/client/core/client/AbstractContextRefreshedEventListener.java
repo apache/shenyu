@@ -173,7 +173,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             String apiPath = pathJoin(contextPath, superPath, value);
             ApiHttpMethodEnum[] value3 = sextet.getValue3();
             for (ApiHttpMethodEnum apiHttpMethodEnum : value3) {
-                String documentJson = buildDocumentJson(pairs.getRight(), apiPath);
+                String documentJson = buildDocumentJson(pairs.getRight(), apiPath, method);
                 ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                         .consume(sextet.getValue1())
                         .produce(sextet.getValue2())
@@ -197,11 +197,11 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         return list;
     }
 
-    private String buildDocumentJson(final List<String> tags, final String path) {
+    private String buildDocumentJson(final List<String> tags, final String path, final Method method) {
         Map<String, Object> documentMap = ImmutableMap.<String, Object>builder()
                 .put("tags", tags)
                 .put("operationId", path)
-                .put("parameters", OpenApiUtils.generateDocumentParameters(path))
+                .put("parameters", OpenApiUtils.generateDocumentParameters(path, method))
                 .put("responses", OpenApiUtils.generateDocumentResponse(path)).build();
         return GsonUtils.getInstance().toJson(documentMap);
     }

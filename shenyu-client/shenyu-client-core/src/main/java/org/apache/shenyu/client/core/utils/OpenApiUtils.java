@@ -20,9 +20,13 @@ package org.apache.shenyu.client.core.utils;
 import cn.hutool.core.net.url.UrlPath;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import cn.hutool.core.net.url.UrlQuery;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,27 +43,40 @@ public class OpenApiUtils {
 
     private static final String RIGHT_ANGLE_BRACKETS = "}";
 
-    private static final String QUESTION_MARK = "?";
+    private static final String[] QUERY_CLASSES = new String[]{"org.springframework.web.bind.annotation.RequestParam", "org.springframework.web.bind.annotation.RequestPart"};
+
 
     /**
      * generateDocumentParameters.
      *
-     * @param path the api path
+     * @param path   the api path
+     * @param method the method
      * @return documentParameters
      */
-    public static List<Parameter> generateDocumentParameters(final String path) {
+    public static List<Parameter> generateDocumentParameters(final String path, final Method method) {
         ArrayList<Parameter> list = new ArrayList<>();
-        if (isQuery(path)) {
-            UrlQuery of = UrlQuery.of(path, Charset.defaultCharset());
-            Map<CharSequence, CharSequence> queryMap = of.getQueryMap();
-            queryMap.forEach((k, v) -> {
+        Pair<Boolean, Annotation[]> query = isQuery(method);
+        if (query.getLeft()) {
+            for (Annotation annotation : query.getRight()) {
+                String name = "";
+                boolean required = false;
+                if (StringUtils.equals(QUERY_CLASSES[0], annotation.annotationType().getName())) {
+                    RequestParam requestParam = (RequestParam) annotation;
+                    name = requestParam.value();
+                    required = requestParam.required();
+                }
+                if (StringUtils.equals(QUERY_CLASSES[1], annotation.annotationType().getName())) {
+                    RequestPart requestPart = (RequestPart) annotation;
+                    name = requestPart.value();
+                    required = requestPart.required();
+                }
                 Parameter parameter = new Parameter();
                 parameter.setIn("query");
-                parameter.setRequired(false);
-                parameter.setName(String.valueOf(k));
+                parameter.setRequired(required);
+                parameter.setName(name);
                 parameter.setSchema(new Schema("string", null));
                 list.add(parameter);
-            });
+            }
         } else {
             Parameter parameter = new Parameter();
             parameter.setIn("path");
@@ -85,11 +102,20 @@ public class OpenApiUtils {
         return path;
     }
 
-    private static boolean isQuery(final String path) {
-        if (StringUtils.contains(path, QUESTION_MARK)) {
-            return true;
+    private static Pair<Boolean, Annotation[]> isQuery(final Method method) {
+        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+        for (Annotation[] parameterAnnotation : parameterAnnotations) {
+            if (parameterAnnotation.length > 0) {
+                String name = parameterAnnotation[0].annotationType().getName();
+                for (String queryClass : QUERY_CLASSES) {
+                    if (StringUtils.equals(name, queryClass)) {
+                        return Pair.of(true, parameterAnnotation);
+                    }
+                }
+            }
+            return Pair.of(false, null);
         }
-        return false;
+        return Pair.of(false, null);
     }
 
     /**
