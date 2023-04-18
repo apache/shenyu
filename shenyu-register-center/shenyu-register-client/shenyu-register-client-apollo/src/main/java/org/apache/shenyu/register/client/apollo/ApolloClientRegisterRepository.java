@@ -32,9 +32,7 @@ import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -57,7 +55,7 @@ public class ApolloClientRegisterRepository implements ShenyuClientRegisterRepos
         String env = properties.getProperty("env", "DEV");
         String clusterName = properties.getProperty("clusterName", ConfigConsts.CLUSTER_NAME_DEFAULT);
         String namespace = properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION);
-        String portalUrl= properties.getProperty("portalUrl");
+        String portalUrl = properties.getProperty("portalUrl");
 
         ApolloConfig apolloConfig = new ApolloConfig();
         apolloConfig.setAppId(appId);

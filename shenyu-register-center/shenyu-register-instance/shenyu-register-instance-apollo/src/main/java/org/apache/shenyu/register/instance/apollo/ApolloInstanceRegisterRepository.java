@@ -48,6 +48,14 @@ import java.util.stream.Collectors;
 @Join
 public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterRepository {
 
+    private static final String APOLLO_CLUSTER = "apollo.cluster";
+
+    private static final String PROP_APP_ID = "app.id";
+
+    private static final String PROP_APOLLO_META = "apollo.meta";
+
+    private static final String APOLLO_NAMESPACE = "apollo.bootstrap.namespace";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ApolloInstanceRegisterRepository.class);
 
     private ApolloClient apolloClient;
@@ -58,19 +66,11 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private Config configService;
 
-    private static final String APOLLO_CLUSTER = "apollo.cluster";
-
-    private static final String PROP_APP_ID = "app.id";
-
-    private static final String PROP_APOLLO_META = "apollo.meta";
-
-    private static final String APOLLO_NAMESPACE = "apollo.bootstrap.namespace";
-
     @Override
     public void init(final RegisterConfig config) {
         Properties properties = config.getProps();
         String meta = config.getServerLists();
-        String appId = properties.getProperty("appId","shenyu");
+        String appId = properties.getProperty("appId", "shenyu");
         String clusterName = properties.getProperty("clusterName", ConfigConsts.CLUSTER_NAME_DEFAULT);
         String namespace = properties.getProperty("namespace", ConfigConsts.NAMESPACE_APPLICATION);
         Optional.ofNullable(appId).ifPresent(x -> System.setProperty(PROP_APP_ID, x));
@@ -99,7 +99,7 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
         apolloConfig.setEnv(env);
         apolloConfig.setClusterName(clusterName);
         apolloConfig.setNamespace(namespace);
-        this.apolloClient=  new ApolloClient(apolloConfig);
+        this.apolloClient = new ApolloClient(apolloConfig);
     }
 
     @Override
@@ -109,7 +109,7 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
         String realNode = InstancePathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         apolloClient.createOrUpdateItem(realNode, nodeData, "register instance");
-        apolloClient.publishNamespace(namespace,"publish instance");
+        apolloClient.publishNamespace(namespace, "publish instance");
         LOGGER.info("apollo instance register success: {}", nodeData);
     }
 

@@ -73,7 +73,7 @@ shenyu:
       maximumSize: 10000 # max size in cache
     rule:
       initialCapacity: 10000 # initial capacity in cache
-      maximumSize: 10000 # max size in cache
+      maximumSize: 65536 # max size in cache
   trie:
     enabled: true
     childrenSize: 10000
@@ -85,7 +85,7 @@ shenyu:
       # set to false, user can custom the netty tcp server config.
       webServerFactoryEnabled: true
       selectCount: 1
-      workerCount: 4
+      workerCount: 8
       accessLog: false
       serverSocketChannel:
         soRcvBuf: 87380
@@ -158,14 +158,10 @@ shenyu:
 #      workerCount: 8
 #      daemon: true
   register:
-    enabled: true
-    registerType: apollo #etcd #consul
-    serverLists: http://192.168.6.102:8070 #http://localhost:2379 #localhost:8848
+    enabled: false
+    registerType: zookeeper #etcd #consul #apollo
+    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848 #localhost:8080
     props:
-      appId: shenyu
-      env: dev
-      clusterName: test
-      namespace: application
   cross:
     enabled: true
     allowedHeaders:
@@ -195,15 +191,15 @@ shenyu:
     enabled: true
     maxSize : 10
   sync:
-#    websocket:
-#      urls: ws://localhost:9095/websocket
-#      allowOrigin: ws://localhost:9195
-    apollo:
-      appId: shenyu
-      meta: http://192.168.6.102:8080
-      env: dev
-      clusterName: test
-      namespace: application
+    websocket:
+      urls: ws://localhost:9095/websocket
+      allowOrigin: ws://localhost:9195
+#    apollo:
+#      appId: shenyu
+#      meta: http://localhost:8080
+#      env: dev
+#      clusterName: test
+#      namespace: application
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000
