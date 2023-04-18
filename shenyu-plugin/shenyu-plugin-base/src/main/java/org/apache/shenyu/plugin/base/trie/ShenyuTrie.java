@@ -124,7 +124,7 @@ public class ShenyuTrie {
             return;
         }
         ShenyuTrieNode node = root;
-        if (matchMode == TrieMatchModeEnum.PATH_PATTERN) {
+        if (TrieMatchModeEnum.PATH_PATTERN.equals(matchMode)) {
             checkLegalPath(uriPath, pathParts);
         }
         for (int i = 0; i < pathParts.length; i++) {
@@ -173,27 +173,27 @@ public class ShenyuTrie {
         int[] matchAll = new int[pathParts.length];
         int[] wildcard = new int[pathParts.length];
         int[] pathVariable = new int[pathParts.length];
+        ShenyuTrieNode wildcardMathNode = null;
         while (startIndex < pathParts.length) {
-            String key = pathParts[startIndex];
-            boolean endPath = startIndex == pathParts.length - 1;
+            String pathPart = pathParts[startIndex];
+            boolean endPath = Integer.compare(startIndex, pathParts.length - 1) == 0;
             if (Objects.isNull(currentNode)) {
                 return null;
             }
-            if (containsKey(currentNode.getChildren(), key)) {
-                currentNode = getVal(currentNode.getChildren(), key);
+            if (containsKey(currentNode.getChildren(), pathPart)) {
+                currentNode = getVal(currentNode.getChildren(), pathPart);
                 startIndex++;
                 if (!endPath && Objects.nonNull(currentNode) && !currentNode.getEndOfPath()) {
                     continue;
                 }
-            } else if (hasWildcardNode(currentNode.getChildren(), key) && wildcard[startIndex] == 0) {
-                checkAccess(wildcard, currentNode, startIndex, WILDCARD, key);
-                currentNode = getVal(currentNode.getChildren(), WILDCARD);
+            } else if (hasWildcardNode(currentNode.getChildren(), pathPart) && wildcard[startIndex] == 0 && Objects.nonNull(wildcardMathNode = checkAccess(wildcard, currentNode, startIndex, WILDCARD, pathPart))) {
+                currentNode = wildcardMathNode;
                 startIndex++;
                 if (Objects.nonNull(currentNode) && !endPath && !currentNode.getEndOfPath()) {
                     continue;
                 }
             } else if (containsKey(currentNode.getChildren(), MATCH_ALL) && matchAll[startIndex] == 0) {
-                checkAccess(matchAll, currentNode, startIndex, MATCH_ALL, key);
+                checkAccess(matchAll, currentNode, startIndex, MATCH_ALL, pathPart);
                 currentNode = getVal(currentNode.getChildren(), MATCH_ALL);
                 startIndex++;
                 if (Objects.nonNull(currentNode) && !endPath && !currentNode.getEndOfPath()) {
@@ -301,7 +301,7 @@ public class ShenyuTrie {
                     node = getVal(node.getChildren(), key);
                 }
             }
-            if (i == pathParts.length - 1) {
+            if (Integer.compare(i, pathParts.length - 1) == 0) {
                 return node;
             }
         }
@@ -383,10 +383,14 @@ public class ShenyuTrie {
         return children.values().stream().anyMatch(ShenyuTrieNode::getWildcard);
     }
     
-    private void checkAccess(final int[] arr, final ShenyuTrieNode node, final int startIndex, final String type, final String key) {
+    private ShenyuTrieNode checkAccess(final int[] arr, final ShenyuTrieNode node, final int startIndex, final String type, final String pathPart) {
         if (WILDCARD.equals(type)) {
-            if (arr[startIndex] == 0 && hasMatchWildcard(node.getChildren(), key)) {
-                arr[startIndex] = 1;
+            if (arr[startIndex] == 0) {
+                ShenyuTrieNode wildcardNode = findMatchWildcard(node.getChildren(), pathPart);
+                if (Objects.nonNull(wildcardNode)) {
+                    arr[startIndex] = 1;
+                    return wildcardNode;
+                }
             }
         }
         if (MATCH_ALL.equals(type)) {
@@ -394,20 +398,21 @@ public class ShenyuTrie {
                 arr[startIndex] = 1;
             }
         }
+        return null;
     }
 
-    private boolean hasMatchWildcard(final Map<String, ShenyuTrieNode> children, final String key) {
+    private ShenyuTrieNode findMatchWildcard(final Map<String, ShenyuTrieNode> children, final String pathPart) {
         if (Objects.isNull(children)) {
-            return false;
+            return null;
         }
-        return children.values().stream().anyMatch(child -> matchWildcard(key, child.getMatchStr()));
+        return children.values().stream().filter(child -> child.getWildcard() && isMatchWildcardPattern(pathPart, child.getMatchStr())).findFirst().orElse(null);
     }
 
-    private boolean matchWildcard(final String key, final String segment) {
-        int sRight = key.length();
-        int pRight = segment.length();
-        while (sRight > 0 && pRight > 0 && segment.charAt(pRight - 1) != '*') {
-            if (key.charAt(sRight - 1) == segment.charAt(pRight - 1)) {
+    private boolean isMatchWildcardPattern(final String segment, final String pattern) {
+        int sRight = segment.length();
+        int pRight = pattern.length();
+        while (sRight > 0 && pRight > 0 && pattern.charAt(pRight - 1) != '*') {
+            if (segment.charAt(sRight - 1) == pattern.charAt(pRight - 1)) {
                 --sRight;
                 --pRight;
             } else {
@@ -425,11 +430,11 @@ public class ShenyuTrie {
         int pRecord = -1;
 
         while (sIndex < sRight && pIndex < pRight) {
-            if (segment.charAt(pIndex) == '*') {
+            if (pattern.charAt(pIndex) == '*') {
                 ++pIndex;
                 sRecord = sIndex;
                 pRecord = pIndex;
-            } else if (key.charAt(sIndex) == segment.charAt(pIndex)) {
+            } else if (segment.charAt(sIndex) == pattern.charAt(pIndex)) {
                 ++sIndex;
                 ++pIndex;
             } else if (sRecord != -1 && sRecord + 1 < sRight) {
@@ -441,7 +446,7 @@ public class ShenyuTrie {
             }
         }
 
-        return allStars(segment, pIndex, pRight);
+        return allStars(pattern, pIndex, pRight);
     }
 
     private boolean allStars(final String str, final int left, final int right) {
