@@ -20,11 +20,18 @@ package org.apache.shenyu.plugin.tcp.handler;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.discovery.api.DiscoveryUpstream;
+import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
+import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.protocol.tcp.BootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
+import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TcpPluginDataHandler implements PluginDataHandler {
 
@@ -32,16 +39,23 @@ public class TcpPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        //start s
-        TcpServerConfiguration tcpServerConfiguration = GsonUtils.getInstance().fromJson(pluginData.getConfig(), TcpServerConfiguration.class);
+        DiscoveryConfig discoveryConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DiscoveryConfig.class);
         BootstrapServer bootstrapServer = new BootstrapServer();
         if (pluginData.getEnabled()) {
             LOG.info("shenyu TcpPluginDataHandler start TcpProxy");
-            bootstrapServer.start(tcpServerConfiguration);
+            bootstrapServer.start(tcpPluginConfig);
         } else {
             LOG.info("shenyu TcpPluginDataHandler shutdown TcpProxy");
             bootstrapServer.shutdown();
         }
+    }
+
+    private TcpServerConfiguration getTcpPluginConfig(ShenyuDiscoveryService shenyuDiscoveryService){
+        return new TcpServerConfiguration();
+    }
+
+    private List<DiscoveryUpstream> getUpstreamList(ShenyuDiscoveryService shenyuDiscoveryService){
+        return new ArrayList<>();
     }
 
     @Override

@@ -3,7 +3,12 @@ package org.apache.shenyu.protocol.tcp;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
+import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
+import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
 import org.apache.shenyu.protocol.tcp.connection.*;
+import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -29,19 +34,23 @@ public class BootstrapServer {
 
     private void init(Properties properties) {
         try {
-            ClientConnectionConfigProviderFactory factory = ClientConnectionConfigProviderFactory.getInstance();
+            ShenyuDiscoveryService shenyuDiscoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("zookeeper");
+            LoadBalancer loadBalancer = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin("zookeeper");
+            DefaultConnectionConfigProvider connectionConfigProvider = new DefaultConnectionConfigProvider(shenyuDiscoveryService, loadBalancer);
             this.bridge = new TcpConnectionBridge();
             this.holder = new ConnectionHolder();
-            ClientConnectionConfigProvider provider = factory.getClientConnectionConfigProviderByType(SyancType.HTTP);
-            provider.init(properties);
-            connectionContext = new ConnectionContext(provider);
+            connectionContext = new ConnectionContext(connectionConfigProvider);
             connectionContext.init(properties);
         } catch (Exception ex) {
             throw new ShenyuException(ex);
         }
     }
 
-    public void start(TcpServerConfiguration tcpServerConfiguration) {
+    public void start(DiscoveryConfig discoveryConfig, TcpServerConfiguration tcpServerConfiguration) {
+        ShenyuDiscoveryService shenyuDiscoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("zookeeper");
+        LoadBalancer radmon = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin("radmon");
+        shenyuDiscoveryService.init(discoveryConfig);
+        String data = shenyuDiscoveryService.getData("/shenyu/plugin/tcp");
         init(tcpServerConfiguration.getProps());
         LoopResources loopResources = LoopResources.create("shenyu-tcp-bootstrap-server", tcpServerConfiguration.getBossGroupThreadCount(),
                 tcpServerConfiguration.getWorkerGroupThreadCount(), true);

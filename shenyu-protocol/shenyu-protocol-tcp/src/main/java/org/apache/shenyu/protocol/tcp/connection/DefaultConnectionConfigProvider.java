@@ -5,6 +5,8 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.discovery.api.DiscoveryUpstream;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
+import org.apache.shenyu.discovery.api.listener.DataChangedEvent;
+import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
 import org.slf4j.Logger;
@@ -22,16 +24,17 @@ import java.util.Random;
  */
 public class DefaultConnectionConfigProvider implements ClientConnectionConfigProvider {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultConnectionConfigProvider.class);
-    public static final Random random = new Random();
     private final ShenyuDiscoveryService shenyuDiscoveryService;
-   private final LoadBalancer loadBalancer;
+    private final LoadBalancer loadBalancer;
 
-    public DefaultConnectionConfigProvider(ShenyuDiscoveryService shenyuDiscoveryService , LoadBalancer loadBalancer) {
-        this.shenyuDiscoveryService = shenyuDiscoveryService;
+    private volatile List<Upstream> discoveryUpstreams;
+
+    public DefaultConnectionConfigProvider(ShenyuDiscoveryService shenyuDiscoveryService, LoadBalancer loadBalancer) {
         this.loadBalancer = loadBalancer;
+        this.shenyuDiscoveryService = shenyuDiscoveryService;
     }
 
-    private List<Upstream> discoveryUpstreams;
+
 
     @Override
     public InetSocketAddress getProxiedService() {
@@ -44,10 +47,19 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
         String key = props.getProperty("key");
         String data = shenyuDiscoveryService.getData(key);
         discoveryUpstreams = GsonUtils.getInstance().fromCurrentList(data, Upstream.class);
+        shenyuDiscoveryService.watcher(key, event -> {
+            //impl
+            switch (event.getEvent()){
+                case UPDATED:
+
+
+            }
+        });
+
     }
 
-    public InetSocketAddress cover(Upstream ip){
-        return  new InetSocketAddress(90);
+    private InetSocketAddress cover(Upstream ip) {
+        return new InetSocketAddress(90);
     }
 
 }

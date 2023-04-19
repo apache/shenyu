@@ -29,6 +29,7 @@
             <groupId>org.apache.shenyu</groupId>
             <version>${project.version}</version>
         </dependency>
+
     </dependencies>
 
 </project>

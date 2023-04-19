@@ -49,4 +49,9 @@ public interface ShenyuDiscoveryService {
      * @param value the value
      */
     void register(String key, String value);
+
+    /**
+     * 
+     */
+    String getData(String key);
 }
