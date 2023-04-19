@@ -173,7 +173,7 @@ public class ShenyuTrie {
         int[] matchAll = new int[pathParts.length];
         int[] wildcard = new int[pathParts.length];
         int[] pathVariable = new int[pathParts.length];
-        ShenyuTrieNode wildcardMathNode = null;
+        ShenyuTrieNode matchNode = null;
         while (startIndex < pathParts.length) {
             String pathPart = pathParts[startIndex];
             boolean endPath = Integer.compare(startIndex, pathParts.length - 1) == 0;
@@ -187,17 +187,17 @@ public class ShenyuTrie {
                     continue;
                 }
             } else if (hasWildcardNode(currentNode.getChildren(), pathPart) && wildcard[startIndex] == 0
-                    && Objects.nonNull(wildcardMathNode = checkAccess(wildcard, currentNode, startIndex, WILDCARD, pathPart))) {
-                currentNode = wildcardMathNode;
+                    && Objects.nonNull(matchNode = getAccessAbleNode(wildcard, currentNode, startIndex, WILDCARD, pathPart))) {
+                currentNode = matchNode;
                 startIndex++;
-                if (Objects.nonNull(currentNode) && !endPath && !currentNode.getEndOfPath()) {
+                if (!endPath && !currentNode.getEndOfPath()) {
                     continue;
                 }
-            } else if (containsKey(currentNode.getChildren(), MATCH_ALL) && matchAll[startIndex] == 0) {
-                checkAccess(matchAll, currentNode, startIndex, MATCH_ALL, pathPart);
-                currentNode = getVal(currentNode.getChildren(), MATCH_ALL);
+            } else if (containsKey(currentNode.getChildren(), MATCH_ALL) && matchAll[startIndex] == 0
+                    && Objects.nonNull(matchNode = getAccessAbleNode(matchAll, currentNode, startIndex, MATCH_ALL, pathPart))) {
+                currentNode = matchNode;
                 startIndex++;
-                if (Objects.nonNull(currentNode) && !endPath && !currentNode.getEndOfPath()) {
+                if (!endPath && !currentNode.getEndOfPath()) {
                     continue;
                 }
             } else if (Objects.nonNull(currentNode.getPathVariableNode())) {
@@ -384,7 +384,7 @@ public class ShenyuTrie {
         return children.values().stream().anyMatch(ShenyuTrieNode::getWildcard);
     }
     
-    private ShenyuTrieNode checkAccess(final int[] arr, final ShenyuTrieNode node, final int startIndex, final String type, final String pathPart) {
+    private ShenyuTrieNode getAccessAbleNode(final int[] arr, final ShenyuTrieNode node, final int startIndex, final String type, final String pathPart) {
         if (WILDCARD.equals(type)) {
             if (arr[startIndex] == 0) {
                 ShenyuTrieNode wildcardNode = findMatchWildcard(node.getChildren(), pathPart);
@@ -395,8 +395,12 @@ public class ShenyuTrie {
             }
         }
         if (MATCH_ALL.equals(type)) {
-            if (arr[startIndex] == 0 && containsKey(node.getChildren(), MATCH_ALL)) {
-                arr[startIndex] = 1;
+            if (arr[startIndex] == 0) {
+                ShenyuTrieNode matchAllNode = getVal(node.getChildren(), MATCH_ALL);
+                if (Objects.nonNull(matchAllNode)) {
+                    arr[startIndex] = 1;
+                    return matchAllNode;
+                }
             }
         }
         return null;
