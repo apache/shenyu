@@ -18,5 +18,12 @@
 package org.apache.shenyu.client.core.client.parser;
 
 public interface Parser<R, T> {
+
+    /**
+     * Parses t to r.
+     *
+     * @param t t to parse
+     * @return parsing the results
+     */
     R parse(T t);
 }

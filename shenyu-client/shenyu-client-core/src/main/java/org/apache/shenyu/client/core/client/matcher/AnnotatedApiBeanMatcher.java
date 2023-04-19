@@ -24,15 +24,15 @@ import java.lang.annotation.Annotation;
 
 public final class AnnotatedApiBeanMatcher<T> implements ApiBeanMatcher<T> {
 
-    Class<? extends Annotation> aClass;
+    private final Class<? extends Annotation> aClass;
 
-    public AnnotatedApiBeanMatcher(Class<? extends Annotation> aClass) {
+    public AnnotatedApiBeanMatcher(final Class<? extends Annotation> aClass) {
         this.aClass = aClass;
     }
 
     @Override
-    public boolean match(ApiBean<T> apiBean) {
+    public boolean match(final ApiBean<T> apiBean) {
         return AnnotationUtils
-                .isAnnotationDeclaredLocally(aClass, apiBean.getTargetClass());
+                .isAnnotationDeclaredLocally(aClass, apiBean.getBeanClass());
     }
 }

@@ -24,14 +24,14 @@ import java.lang.annotation.Annotation;
 
 public final class AnnotatedApiDefinitionMatcher<T> extends ApiDefinitionMatcher<T> {
 
-    Class<? extends Annotation> aClass;
+    private final Class<? extends Annotation> aClass;
 
-    public AnnotatedApiDefinitionMatcher(Class<? extends Annotation> aClass) {
+    public AnnotatedApiDefinitionMatcher(final Class<? extends Annotation> aClass) {
         this.aClass = aClass;
     }
 
     @Override
-    public boolean match(ApiBean<T>.ApiDefinition apiDefinition) {
+    public boolean match(final ApiBean<T>.ApiDefinition apiDefinition) {
         return AnnotatedElementUtils
                 .isAnnotated(apiDefinition.getApiMethod(), aClass);
     }

@@ -29,18 +29,18 @@ public class ApiRegistrar<T, D extends DataTypeParent> extends AbstractRegistrar
 
     private final ShenyuClientRegisterEventPublisher publisher;
 
-    Parser<List<D>, ApiBean<T>.ApiDefinition> parser;
+    private final Parser<List<D>, ApiBean<T>.ApiDefinition> parser;
 
-    public ApiRegistrar(Matcher<ApiBean<T>.ApiDefinition> matcher,
-                        Parser<List<D>, ApiBean<T>.ApiDefinition> parser,
-                        ShenyuClientRegisterEventPublisher publisher) {
+    public ApiRegistrar(final Matcher<ApiBean<T>.ApiDefinition> matcher,
+                        final Parser<List<D>, ApiBean<T>.ApiDefinition> parser,
+                        final ShenyuClientRegisterEventPublisher publisher) {
         super(matcher);
         this.publisher = publisher;
         this.parser = parser;
     }
 
     @Override
-    protected final void doRegister(ApiBean<T>.ApiDefinition element) {
+    protected final void doRegister(final ApiBean<T>.ApiDefinition element) {
 
         List<? extends D> datas = parser.parse(element);
 

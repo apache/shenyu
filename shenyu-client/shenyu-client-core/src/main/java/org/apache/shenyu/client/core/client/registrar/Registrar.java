@@ -18,5 +18,11 @@
 package org.apache.shenyu.client.core.client.registrar;
 
 public interface Registrar<T> {
+
+    /**
+     * Registers info.
+     *
+     * @param info info to register
+     */
     void register(T info);
 }

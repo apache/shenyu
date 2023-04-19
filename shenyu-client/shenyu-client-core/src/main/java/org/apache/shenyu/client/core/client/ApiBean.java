@@ -35,11 +35,11 @@ public class ApiBean<T> {
 
     private final String contextPath;
 
-    private final Class<?> targetClass;
+    private final Class<?> beanClass;
 
-    List<ApiDefinition> apiDefinitions = new ArrayList<>();
+    private final List<ApiDefinition> apiDefinitions = new ArrayList<>();
 
-    public ApiBean(String contextPath, String beanName, T beanInstance, String beanPath, Class<?> targetClass) {
+    public ApiBean(final String contextPath, final String beanName, final T beanInstance, final String beanPath, final Class<?> beanClass) {
 
         this.contextPath = contextPath;
 
@@ -49,87 +49,176 @@ public class ApiBean<T> {
 
         this.beanPath = beanPath;
 
-        this.targetClass = targetClass;
+        this.beanClass = beanClass;
     }
 
-    public ApiDefinition addApiDefinition(Method method, String methodPath) {
+    /**
+     * Adds apiDefinition to apiBean.
+     *
+     * @param method     apiMethod
+     * @param methodPath methodPath
+     */
+    public void addApiDefinition(final Method method, final String methodPath) {
         ApiDefinition apiDefinition = new ApiDefinition(method, methodPath);
         apiDefinitions.add(apiDefinition);
-        return apiDefinition;
     }
 
+    /**
+     * Gets apiDefinitions.
+     *
+     * @return ApiDefinitions.
+     */
     public List<ApiDefinition> getApiDefinitions() {
         return apiDefinitions;
     }
 
+    /**
+     * Gets bean instance.
+     *
+     * @return bean Instance
+     */
     public T getBeanInstance() {
         return beanInstance;
     }
 
+    /**
+     * Gets bean name.
+     *
+     * @return bean name.
+     */
     public String getBeanName() {
         return beanName;
     }
 
-    public Class<?> getTargetClass() {
-        return targetClass;
+    /**
+     * Gets bean class.
+     *
+     * @return bean class
+     */
+    public Class<?> getBeanClass() {
+        return beanClass;
     }
 
+    /**
+     * Gets bean path.
+     *
+     * @return bean path
+     */
     public String getBeanPath() {
         return beanPath;
     }
 
-    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
-        return AnnotatedElementUtils.findMergedAnnotation(targetClass, annotationClass);
+    /**
+     * Gets annotation from Bean Class.
+     *
+     * @param annotationClass annotation class
+     * @param <A>             class extend Annotation
+     * @return annotation
+     */
+    public <A extends Annotation> A getAnnotation(final Class<A> annotationClass) {
+        return AnnotatedElementUtils.findMergedAnnotation(beanClass, annotationClass);
     }
 
+    /**
+     * Gets context path.
+     *
+     * @return context path
+     */
     public String getContextPath() {
         return contextPath;
     }
 
-    public class ApiDefinition {
+    public final class ApiDefinition {
 
         private final Method apiMethod;
 
         private final String methodPath;
 
-        private ApiDefinition(Method apiMethod, String methodPath) {
+        private ApiDefinition(final Method apiMethod, final String methodPath) {
             this.apiMethod = apiMethod;
             this.methodPath = methodPath;
         }
 
+        /**
+         * Get Api Method.
+         *
+         * @return method.
+         */
         public Method getApiMethod() {
             return apiMethod;
         }
 
+        /**
+         * Gets api method Name.
+         *
+         * @return api method Name.
+         */
         public String getApiMethodName() {
             return apiMethod.getName();
         }
 
-        public String getParentPath() {
+        /**
+         * Gets bean path.
+         *
+         * @return bean path.
+         */
+        public String getBeanPath() {
             return beanPath;
         }
 
+        /**
+         * Gets api path.
+         *
+         * @return api path.
+         */
         public String getApiPath() {
             return PathUtils.pathJoin(contextPath, beanPath, methodPath);
         }
 
+        /**
+         * Gets method path.
+         *
+         * @return method path
+         */
         public String getMethodPath() {
             return methodPath;
         }
 
+        /**
+         * Gets bean class.
+         *
+         * @return bean class
+         */
         public Class<?> getBeanClass() {
-            return targetClass;
+            return beanClass;
         }
 
+        /**
+         * Gets api bean.
+         *
+         * @return api bean
+         */
         public ApiBean<T> getApiBean() {
             return ApiBean.this;
         }
 
+        /**
+         * Gets context path.
+         *
+         * @return context path
+         */
         public String getContextPath() {
             return contextPath;
         }
 
-        public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
+        /**
+         * Get the annotation from Method.
+         *
+         * @param annotationClass annotationClass
+         * @param <A>             annotationClass extends Annotation
+         * @return annotation
+         */
+        public <A extends Annotation> A getAnnotation(final Class<A> annotationClass) {
             return AnnotatedElementUtils.findMergedAnnotation(apiMethod, annotationClass);
         }
     }

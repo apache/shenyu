@@ -24,5 +24,11 @@ import java.util.List;
 
 public interface ApiBeansExtractor<T> {
 
+    /**
+     * Extract apiBeans from applicationContext.
+     *
+     * @param applicationContext applicationContext
+     * @return apiBeans
+     */
     List<ApiBean<T>> extract(ApplicationContext applicationContext);
 }

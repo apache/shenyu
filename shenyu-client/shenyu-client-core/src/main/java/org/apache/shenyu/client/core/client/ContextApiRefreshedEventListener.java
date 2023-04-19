@@ -31,7 +31,7 @@ public final class ContextApiRefreshedEventListener<T> implements ApplicationLis
 
     private final ApiBeansExtractor<T> apiBeanExtractor;
 
-    public ContextApiRefreshedEventListener(List<AbstractRegistrar<ApiBean<T>>> apiBeanRegistrars, ApiBeansExtractor<T> apiBeanExtractor) {
+    public ContextApiRefreshedEventListener(final List<AbstractRegistrar<ApiBean<T>>> apiBeanRegistrars, final ApiBeansExtractor<T> apiBeanExtractor) {
 
         this.apiBeanExtractor = apiBeanExtractor;
 
@@ -39,7 +39,7 @@ public final class ContextApiRefreshedEventListener<T> implements ApplicationLis
     }
 
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
+    public void onApplicationEvent(final ContextRefreshedEvent event) {
 
         ApplicationContext applicationContext = event.getApplicationContext();
 

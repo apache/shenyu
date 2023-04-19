@@ -80,7 +80,7 @@ public final class ClientInfoRefreshedEventListener implements ApplicationListen
     }
 
     @Override
-    public void onApplicationEvent(ContextRefreshedEvent event) {
+    public void onApplicationEvent(final ContextRefreshedEvent event) {
 
         final int port = Integer.parseInt(Optional.ofNullable(host).orElseGet(() -> "-1"));
         final int mergedPort = port <= 0 ? PortUtils.findPort(event.getApplicationContext().getAutowireCapableBeanFactory()) : port;

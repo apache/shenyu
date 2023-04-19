@@ -27,18 +27,18 @@ public class ApiBeanPreRegistrar<T, D extends DataTypeParent> extends AbstractRe
 
     private final ShenyuClientRegisterEventPublisher publisher;
 
-    Parser<? extends D, ApiBean<T>> parser;
+    private final Parser<? extends D, ApiBean<T>> parser;
 
-    public ApiBeanPreRegistrar(Matcher<ApiBean<T>> matcher,
-                               Parser<? extends D, ApiBean<T>> parser,
-                               ShenyuClientRegisterEventPublisher publisher) {
+    public ApiBeanPreRegistrar(final Matcher<ApiBean<T>> matcher,
+                               final Parser<? extends D, ApiBean<T>> parser,
+                               final ShenyuClientRegisterEventPublisher publisher) {
         super(matcher);
         this.parser = parser;
         this.publisher = publisher;
     }
 
     @Override
-    protected void doRegister(ApiBean<T> element) {
+    protected void doRegister(final ApiBean<T> element) {
         D d = parser.parse(element);
         publisher.publishEvent(d);
     }
