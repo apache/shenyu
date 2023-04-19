@@ -55,27 +55,31 @@ public class OpenApiUtils {
      */
     public static List<Parameter> generateDocumentParameters(final String path, final Method method) {
         ArrayList<Parameter> list = new ArrayList<>();
-        Pair<Boolean, Annotation[]> query = isQuery(method);
+        Pair<Boolean, Annotation[][]> query = isQuery(method);
         if (query.getLeft()) {
-            for (Annotation annotation : query.getRight()) {
-                String name = "";
-                boolean required = false;
-                if (StringUtils.equals(QUERY_CLASSES[0], annotation.annotationType().getName())) {
-                    RequestParam requestParam = (RequestParam) annotation;
-                    name = requestParam.value();
-                    required = requestParam.required();
+            for (Annotation[] annotations : query.getRight()) {
+                if (annotations.length > 0 && isQueryName(annotations[0].annotationType().getName(), QUERY_CLASSES)) {
+                    for (Annotation annotation : annotations) {
+                        String name = "";
+                        boolean required = false;
+                        if (StringUtils.equals(QUERY_CLASSES[0], annotation.annotationType().getName())) {
+                            RequestParam requestParam = (RequestParam) annotation;
+                            name = requestParam.value();
+                            required = requestParam.required();
+                        }
+                        if (StringUtils.equals(QUERY_CLASSES[1], annotation.annotationType().getName())) {
+                            RequestPart requestPart = (RequestPart) annotation;
+                            name = requestPart.value();
+                            required = requestPart.required();
+                        }
+                        Parameter parameter = new Parameter();
+                        parameter.setIn("query");
+                        parameter.setRequired(required);
+                        parameter.setName(name);
+                        parameter.setSchema(new Schema("string", null));
+                        list.add(parameter);
+                    }
                 }
-                if (StringUtils.equals(QUERY_CLASSES[1], annotation.annotationType().getName())) {
-                    RequestPart requestPart = (RequestPart) annotation;
-                    name = requestPart.value();
-                    required = requestPart.required();
-                }
-                Parameter parameter = new Parameter();
-                parameter.setIn("query");
-                parameter.setRequired(required);
-                parameter.setName(name);
-                parameter.setSchema(new Schema("string", null));
-                list.add(parameter);
             }
         } else {
             UrlPath urlPath = UrlPath.of(path, Charset.defaultCharset());
@@ -103,20 +107,24 @@ public class OpenApiUtils {
         return list;
     }
 
-    private static Pair<Boolean, Annotation[]> isQuery(final Method method) {
+    private static Pair<Boolean, Annotation[][]> isQuery(final Method method) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         for (Annotation[] parameterAnnotation : parameterAnnotations) {
-            if (parameterAnnotation.length > 0) {
-                String name = parameterAnnotation[0].annotationType().getName();
-                for (String queryClass : QUERY_CLASSES) {
-                    if (StringUtils.equals(name, queryClass)) {
-                        return Pair.of(true, parameterAnnotation);
-                    }
-                }
+            if (parameterAnnotation.length > 0 && isQueryName(parameterAnnotation[0].annotationType().getName(), QUERY_CLASSES)) {
+                return Pair.of(true, parameterAnnotations);
             }
             return Pair.of(false, null);
         }
         return Pair.of(false, null);
+    }
+
+    private static boolean isQueryName(final String name, final String[] names) {
+        for (String s : names) {
+            if (StringUtils.equals(name, s)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
