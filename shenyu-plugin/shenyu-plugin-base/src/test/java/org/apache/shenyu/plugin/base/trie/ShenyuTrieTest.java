@@ -447,5 +447,55 @@ public class ShenyuTrieTest {
         shenyuAntPathTrie.putNode("/a/x/{name}/{sex}/c", ruleData2, null);
         Assertions.assertNotNull(shenyuAntPathTrie.getNode("/a/x/{name}/{age}/b"));
     }
+
+    @Test
+    public void testWildcardMatch() {
+        final String uriPath = "/a/*.html";
+        final String uriPath1 = "/a/b/*Safe*/b";
+        final String uriPath2 = "/a/c/{name}/*.jpg";
+        final String uriPath3 = "/**/*.json";
+
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setParamName("/");
+        conditionData.setParamValue(uriPath);
+
+        ConditionData conditionData1 = new ConditionData();
+        conditionData1.setParamType(ParamTypeEnum.URI.getName());
+        conditionData1.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData1.setParamName("/");
+        conditionData1.setParamValue(uriPath1);
+
+        ConditionData conditionData2 = new ConditionData();
+        conditionData2.setParamType(ParamTypeEnum.URI.getName());
+        conditionData2.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData2.setParamName("/");
+        conditionData2.setParamValue(uriPath2);
+
+        ConditionData conditionData3 = new ConditionData();
+        conditionData3.setParamType(ParamTypeEnum.URI.getName());
+        conditionData3.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData3.setParamName("/");
+        conditionData3.setParamValue(uriPath3);
+
+        RuleData ruleData = RuleData.builder()
+                .id("1")
+                .pluginName("test")
+                .selectorId("1")
+                .name("test-plugin-rule")
+                .enabled(true)
+                .conditionDataList(Arrays.asList(conditionData, conditionData1, conditionData2, conditionData3))
+                .build();
+        shenyuAntPathTrie.putNode(Arrays.asList(uriPath, uriPath1, uriPath2, uriPath3), ruleData, null);
+
+        Assertions.assertEquals(shenyuAntPathTrie.match("/a/index.html", "1").getFullPath(), uriPath);
+        Assertions.assertEquals(shenyuAntPathTrie.match("/a/b/Safe/b", "1").getFullPath(), uriPath1);
+        Assertions.assertEquals(shenyuAntPathTrie.match("/a/b/shenyuSafe/b", "1").getFullPath(), uriPath1);
+        Assertions.assertEquals(shenyuAntPathTrie.match("/a/b/shenyuSafeckj/b", "1").getFullPath(), uriPath1);
+        Assertions.assertEquals(shenyuAntPathTrie.match("/a/c/Safe/bbb.jpg", "1").getFullPath(), uriPath2);
+        Assertions.assertEquals(shenyuAntPathTrie.match("/aa/c/d/c/exx/data.json", "1").getFullPath(), uriPath3);
+        Assertions.assertNull(shenyuAntPathTrie.match("/a/c/egh/klm", "1"));
+    }
     
 }
