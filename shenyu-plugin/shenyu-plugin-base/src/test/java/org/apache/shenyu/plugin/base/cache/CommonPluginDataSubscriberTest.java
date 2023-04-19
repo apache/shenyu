@@ -75,7 +75,7 @@ public final class CommonPluginDataSubscriberTest {
     public void setup() {
         this.mockShenyuTrieConfig();
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
-        commonPluginDataSubscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new ShenyuTrieConfig());
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new ShenyuTrieConfig(), new ShenyuTrieConfig());
         baseDataCache = BaseDataCache.getInstance();
     }
 

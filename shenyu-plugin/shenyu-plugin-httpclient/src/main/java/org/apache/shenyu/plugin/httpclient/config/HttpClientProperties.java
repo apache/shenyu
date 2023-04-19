@@ -421,6 +421,12 @@ public class HttpClientProperties {
          * if NULL there is no max idle time.
          */
         private Long maxIdleTime;
+        
+        /**
+         * connection pool lease strategy.
+         * if NULL, default FIFO strategy will be used.
+         */
+        private LeasingStrategy leasingStrategy;
 
         /**
          * Gets type.
@@ -512,7 +518,25 @@ public class HttpClientProperties {
         public void setMaxIdleTime(final Long maxIdleTime) {
             this.maxIdleTime = maxIdleTime;
         }
-
+        
+        /**
+         * Gets leasing strategy.
+         *
+         * @return the leasing strategy
+         */
+        public LeasingStrategy getLeasingStrategy() {
+            return leasingStrategy;
+        }
+        
+        /**
+         * Sets leasing strategy.
+         *
+         * @param leasingStrategy the leasing strategy
+         */
+        public void setLeasingStrategy(final LeasingStrategy leasingStrategy) {
+            this.leasingStrategy = leasingStrategy;
+        }
+        
         /**
          * The enum Pool type.
          */
@@ -532,6 +556,18 @@ public class HttpClientProperties {
              * Disabled pool type.
              */
             DISABLED
+        }
+        
+        public enum LeasingStrategy {
+            /**
+             * FIFO
+             */
+            FIFO,
+            
+            /**
+             * LIFO
+             */
+            LIFO
         }
     }
 

@@ -20,10 +20,14 @@ package org.apache.shenyu.plugin.base.trie;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.apache.shenyu.common.enums.RuleTrieEventEnum;
+import org.apache.shenyu.common.enums.TrieEventEnum;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.base.event.RuleTrieEvent;
+import org.apache.shenyu.plugin.base.event.TrieEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 
 import java.util.Collections;
@@ -34,46 +38,95 @@ import java.util.stream.Collectors;
 /**
  * shenyu trie rule change listener.
  */
-public class ShenyuTrieRuleListener implements ApplicationListener<RuleTrieEvent> {
+public class ShenyuTrieRuleListener implements ApplicationListener<TrieEvent> {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuTrieRuleListener.class);
 
     @Override
-    public void onApplicationEvent(final RuleTrieEvent event) {
-        RuleTrieEventEnum eventEnum = event.getRuleTrieEvent();
-        RuleData ruleData = (RuleData) event.getSource();
-        // new condition
-        List<ConditionData> conditionDataList = ruleData.getConditionDataList();
-        List<ConditionData> filterConditions = Optional.ofNullable(conditionDataList).orElse(Collections.emptyList())
-                .stream().filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
-                .collect(Collectors.toList());
-
-        if (CollectionUtils.isNotEmpty(filterConditions)) {
-            List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
-            final ShenyuTrie shenyuTrie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
-            switch (eventEnum) {
-                case INSERT:
-                    synchronized (ruleData.getId()) {
-                        // insert rule data must remove original rule, and the operation must atomic
-                        shenyuTrie.remove(uriPaths, ruleData);
+    public void onApplicationEvent(final TrieEvent event) {
+        TrieEventEnum eventEnum = event.getRuleTrieEvent();
+        Object source = event.getSource();
+        List<ConditionData> filterConditions = null;
+        if ((source instanceof RuleData)) {
+            RuleData ruleData = (RuleData) source;
+            List<ConditionData> conditionDataList = ruleData.getConditionDataList();
+            filterConditions = Optional.ofNullable(conditionDataList).orElse(Collections.emptyList())
+                    .stream().filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(filterConditions)) {
+                List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
+                final ShenyuTrie shenyuTrie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
+                switch (eventEnum) {
+                    case INSERT:
+                        synchronized (ruleData.getId()) {
+                            // insert rule data must remove original rule, and the operation must atomic
+                            shenyuTrie.remove(uriPaths, ruleData);
+                            shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
+                        }
+                        break;
+                    case UPDATE:
+                        final List<ConditionData> beforeConditionDataList = ruleData.getBeforeConditionDataList();
+                        List<String> beforeUriPaths = beforeConditionDataList.stream()
+                                .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                                .map(ConditionData::getParamValue)
+                                .collect(Collectors.toList());
+                        
+                        // old condition remove
+                        shenyuTrie.remove(beforeUriPaths, ruleData);
                         shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
-                    }
-                    break;
-                case UPDATE:
-                    final List<ConditionData> beforeConditionDataList = ruleData.getBeforeConditionDataList();
-                    List<String> beforeUriPaths = beforeConditionDataList.stream()
-                            .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
-                            .map(ConditionData::getParamValue)
-                            .collect(Collectors.toList());
-
-                    // old condition remove
-                    shenyuTrie.remove(beforeUriPaths, ruleData);
-                    shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
-                    break;
-                case REMOVE:
-                    shenyuTrie.remove(uriPaths, ruleData);
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
+                        break;
+                    case REMOVE:
+                        shenyuTrie.remove(uriPaths, ruleData);
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
+                }
             }
+        } else if (source instanceof SelectorData) {
+            SelectorData selectorData = (SelectorData) source;
+            List<ConditionData> conditionDataList = selectorData.getConditionList();
+            filterConditions = Optional.ofNullable(conditionDataList).orElse(Collections.emptyList())
+                    .stream().filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(filterConditions)) {
+                List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
+                final ShenyuTrie shenyuTrie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
+                switch (eventEnum) {
+                    case INSERT:
+                        synchronized (selectorData.getId()) {
+                            // insert rule data must remove original rule, and the operation must atomic
+                            shenyuTrie.remove(uriPaths, selectorData);
+                            shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
+                        }
+                        break;
+                    case UPDATE:
+                        final List<ConditionData> beforeConditionDataList = ruleData.getBeforeConditionDataList();
+                        List<String> beforeUriPaths = beforeConditionDataList.stream()
+                                .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                                .map(ConditionData::getParamValue)
+                                .collect(Collectors.toList());
+                        
+                        // old condition remove
+                        shenyuTrie.remove(beforeUriPaths, ruleData);
+                        shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
+                        break;
+                    case REMOVE:
+                        shenyuTrie.remove(uriPaths, ruleData);
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
+                }
+            }
+        } else {
+            LogUtils.error(LOG, "shenyu trie listener error, source is not rule data or selector data");
         }
+        //RuleData ruleData = (RuleData) event.getSource();
+        //// new condition
+        //List<ConditionData> conditionDataList = ruleData.getConditionDataList();
+        //List<ConditionData> filterConditions = Optional.ofNullable(conditionDataList).orElse(Collections.emptyList())
+        //        .stream().filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+        //        .collect(Collectors.toList());
+
+        
     }
 }

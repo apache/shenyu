@@ -61,7 +61,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     
     private ShenyuTrie trie;
     
-    private ShenyuConfig.ShenyuTrieConfig trieConfig;
+    private ShenyuConfig.ShenyuTrieConfig selectorTrieConfig;
+    
+    private ShenyuConfig.ShenyuTrieConfig ruleTrieConfig;
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -169,8 +171,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.isNull(trie)) {
             trie = SpringBeanUtils.getInstance().getBean(ShenyuTrie.class);
         }
-        if (Objects.isNull(trieConfig)) {
-            trieConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class).getTrie();
+        if (Objects.isNull(selectorTrieConfig)) {
+            selectorTrieConfig = SpringBeanUtils.getInstance().getBean("shenyuSelectorTrie");
+        }
+        if (Objects.isNull(ruleTrieConfig)) {
+            ruleTrieConfig = SpringBeanUtils.getInstance().getBean("shenyuRuleTrie");
         }
     }
 
@@ -291,7 +296,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
     
     private void cacheRuleData(final String path, final RuleData ruleData) {
-        if (Objects.isNull(ruleData)) {
+        // if the ruleCache is disabled or rule data is null, not cache rule data.
+        if (Boolean.FALSE.equals(matchCacheConfig.getRule().getEnabled()) || Objects.isNull(ruleData)) {
             return;
         }
         // if the field of matchRestful is true, not cache rule data. the field is false, cache rule data.
@@ -315,7 +321,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
     
     private RuleData trieMatchRule(final ServerWebExchange exchange, final SelectorData selectorData, final String path) {
-        if (!trieConfig.getEnabled()) {
+        if (!ruleTrieConfig.getEnabled()) {
             return null;
         }
         RuleData ruleData = null;

@@ -64,6 +64,8 @@ public class SelectorData {
      * match restful api.
      */
     private Boolean matchRestful;
+    
+    private List<ConditionData> beforeConditionList;
 
     /**
      * no args constructor.
@@ -90,6 +92,7 @@ public class SelectorData {
         this.handle = builder.handle;
         this.conditionList = builder.conditionList;
         this.matchRestful = builder.matchRestful;
+        this.beforeConditionList = builder.beforeConditionList;;
     }
 
     /**
@@ -335,6 +338,24 @@ public class SelectorData {
         this.matchRestful = matchRestful;
     }
     
+    /**
+     * get before condition list.
+     *
+     * @return before condition list
+     */
+    public List<ConditionData> getBeforeConditionList() {
+        return beforeConditionList;
+    }
+    
+    /**
+     * set before condition list.
+     *
+     * @param beforeConditionList before condition list
+     */
+    public void setBeforeConditionList(final List<ConditionData> beforeConditionList) {
+        this.beforeConditionList = beforeConditionList;
+    }
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -348,12 +369,13 @@ public class SelectorData {
                 && Objects.equals(name, that.name) && Objects.equals(matchMode, that.matchMode) && Objects.equals(type, that.type)
                 && Objects.equals(sort, that.sort) && Objects.equals(enabled, that.enabled) && Objects.equals(logged, that.logged)
                 && Objects.equals(continued, that.continued) && Objects.equals(handle, that.handle)
-                && Objects.equals(conditionList, that.conditionList) && Objects.equals(matchRestful, that.matchRestful);
+                && Objects.equals(conditionList, that.conditionList) && Objects.equals(matchRestful, that.matchRestful)
+                && Objects.equals(beforeConditionList, that.beforeConditionList);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, pluginId, pluginName, name, matchMode, type, sort, enabled, logged, continued, handle, conditionList, matchRestful);
+        return Objects.hash(id, pluginId, pluginName, name, matchMode, type, sort, enabled, logged, continued, handle, conditionList, matchRestful, beforeConditionList);
     }
 
     @Override
@@ -423,6 +445,8 @@ public class SelectorData {
         private List<ConditionData> conditionList;
         
         private Boolean matchRestful;
+        
+        private List<ConditionData> beforeConditionList;
 
         /**
          * no args constructor.
@@ -579,6 +603,17 @@ public class SelectorData {
          */
         public Builder matchRestful(final Boolean matchRestful) {
             this.matchRestful = matchRestful;
+            return this;
+        }
+        
+        /**
+         * build beforeConditionList.
+         *
+         * @param beforeConditionList beforeConditionList
+         * @return this
+         */
+        public Builder beforeConditionList(final List<ConditionData> beforeConditionList) {
+            this.beforeConditionList = beforeConditionList;
             return this;
         }
     }

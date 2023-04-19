@@ -92,7 +92,7 @@ public final class LocalPluginControllerTest {
     public void setup() {
         this.mockShenyuTrieConfig();
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
-        subscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new ShenyuTrieConfig());
+        subscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new ShenyuTrieConfig(), new ShenyuTrieConfig());
         mockMvc = MockMvcBuilders.standaloneSetup(new LocalPluginController(subscriber))
                 .build();
         baseDataCache = BaseDataCache.getInstance();

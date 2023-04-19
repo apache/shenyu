@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.starter.gateway;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
+import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.RpcParamTransformPlugin;
@@ -129,7 +131,7 @@ public class ShenyuConfiguration {
                                                      final ObjectProvider<ApplicationEventPublisher> eventPublisher,
                                                      final ShenyuConfig shenyuConfig) {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList),
-                eventPublisher.getIfAvailable(), shenyuConfig.getTrie());
+                eventPublisher.getIfAvailable(), shenyuConfig.getSelectorMatchCache().getTrie(), shenyuConfig.getRuleMatchCache().getTrie());
     }
 
     /**
@@ -263,18 +265,33 @@ public class ShenyuConfiguration {
     public ShenyuConfig shenyuConfig() {
         return new ShenyuConfig();
     }
+    
+    /**
+     * shenyu selector trie config.
+     *
+     * @param shenyuConfig shenyu config
+     * @return {@linkplain ShenyuTrie}
+     */
+    @Bean(name = "shenyuSelectorTrie")
+    public ShenyuTrie shenyuSelectorTrie(final ShenyuConfig shenyuConfig) {
+        SelectorMatchCache selectorMatchCache = shenyuConfig.getSelectorMatchCache();
+        return new ShenyuTrie(selectorMatchCache.getTrie().getChildrenSize(), selectorMatchCache.getTrie().getPathRuleCacheSize(),
+                selectorMatchCache.getTrie().getPathVariableSize(), selectorMatchCache.getTrie().getMatchMode());
+    }
 
     /**
-     * shenyu trie config.
+     * shenyu rule trie config.
      *
      * @param shenyuConfig shenyu trie config
-     * @return ShenyuTrie
+     * @return {@linkplain ShenyuTrie}
      */
-    @Bean
-    public ShenyuTrie shenyuTrie(final ShenyuConfig shenyuConfig) {
-        return new ShenyuTrie(shenyuConfig.getTrie().getChildrenSize(), shenyuConfig.getTrie().getPathRuleCacheSize(),
-                shenyuConfig.getTrie().getPathVariableSize(), shenyuConfig.getTrie().getMatchMode());
+    @Bean(name = "shenyuRuleTrie")
+    public ShenyuTrie shenyuRuleTrie(final ShenyuConfig shenyuConfig) {
+        RuleMatchCache ruleMatchCache = shenyuConfig.getRuleMatchCache();
+        return new ShenyuTrie(ruleMatchCache.getTrie().getChildrenSize(), ruleMatchCache.getTrie().getPathRuleCacheSize(),
+                ruleMatchCache.getTrie().getPathVariableSize(), ruleMatchCache.getTrie().getMatchMode());
     }
+    
 
     /**
      * shenyu trie listener.
