@@ -6,6 +6,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
+import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
 import org.apache.shenyu.protocol.tcp.connection.*;
 import org.apache.shenyu.spi.ExtensionLoader;
@@ -32,26 +33,15 @@ public class BootstrapServer {
 
     private DisposableServer server;
 
-    private void init(Properties properties) {
-        try {
-            ShenyuDiscoveryService shenyuDiscoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("zookeeper");
-            LoadBalancer loadBalancer = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin("zookeeper");
-            DefaultConnectionConfigProvider connectionConfigProvider = new DefaultConnectionConfigProvider(shenyuDiscoveryService, loadBalancer);
-            this.bridge = new TcpConnectionBridge();
-            this.holder = new ConnectionHolder();
-            connectionContext = new ConnectionContext(connectionConfigProvider);
-            connectionContext.init(properties);
-        } catch (Exception ex) {
-            throw new ShenyuException(ex);
-        }
-    }
-
     public void start(DiscoveryConfig discoveryConfig, TcpServerConfiguration tcpServerConfiguration) {
         ShenyuDiscoveryService shenyuDiscoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("zookeeper");
-        LoadBalancer radmon = ExtensionLoader.getExtensionLoader(LoadBalancer.class).getJoin("radmon");
+
         shenyuDiscoveryService.init(discoveryConfig);
-        String data = shenyuDiscoveryService.getData("/shenyu/plugin/tcp");
-        init(tcpServerConfiguration.getProps());
+        DefaultConnectionConfigProvider connectionConfigProvider = new DefaultConnectionConfigProvider(shenyuDiscoveryService);
+        this.bridge = new TcpConnectionBridge();
+        this.holder = new ConnectionHolder();
+        connectionContext = new ConnectionContext(connectionConfigProvider);
+        connectionContext.init(tcpServerConfiguration.getProps());
         LoopResources loopResources = LoopResources.create("shenyu-tcp-bootstrap-server", tcpServerConfiguration.getBossGroupThreadCount(),
                 tcpServerConfiguration.getWorkerGroupThreadCount(), true);
         TcpServer tcpServer = TcpServer.create()

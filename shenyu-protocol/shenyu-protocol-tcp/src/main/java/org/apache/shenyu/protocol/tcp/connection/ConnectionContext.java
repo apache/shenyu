@@ -32,7 +32,7 @@ public class ConnectionContext {
     }
 
     public Mono<Connection> getTcpClientConnection() {
-        return Mono.just(connectionConfigProvider.getProxiedService())
+        return Mono.just(connectionConfigProvider.getProxiedService("127.0.0.1"))
                 .flatMap(inetSocketAddress ->
                         TcpClient.create(connectionProvider)
                                 .host(inetSocketAddress.getHostName())

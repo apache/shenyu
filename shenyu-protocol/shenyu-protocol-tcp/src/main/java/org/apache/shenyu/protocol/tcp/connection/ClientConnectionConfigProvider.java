@@ -13,7 +13,7 @@ public interface ClientConnectionConfigProvider {
      *
      * @return InetSocketAddress.
      */
-    InetSocketAddress getProxiedService();
+    InetSocketAddress getProxiedService(String ip );
 
     /**
      * init.
