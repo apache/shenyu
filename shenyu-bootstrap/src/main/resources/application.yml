@@ -250,6 +250,8 @@ shenyu:
     enabled: false
     paths:
       - /actuator/health
+      - /actuator/health/readiness
+      - /actuator/health/liveness
       - /health_check
   extPlugin:
     path:
