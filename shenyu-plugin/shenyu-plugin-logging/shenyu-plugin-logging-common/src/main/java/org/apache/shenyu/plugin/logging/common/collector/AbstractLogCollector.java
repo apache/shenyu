@@ -28,7 +28,7 @@ import org.apache.shenyu.plugin.logging.common.client.AbstractLogConsumeClient;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.common.utils.LogCollectConfigUtils;
-import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +42,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.apache.shenyu.plugin.logging.mask.api.utils.DataMaskUtils.maskForBody;
-import static org.apache.shenyu.plugin.logging.mask.api.utils.DataMaskUtils.maskForSingleWord;
+import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeForBody;
+import static org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils.desensitizeForSingleWord;
 
 /**
  * abstract log collector,Contains common methods.
@@ -87,9 +87,9 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     }
 
     @Override
-    public void mask(final L logInfo, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
-        this.maskShenyuRequestLog(logInfo, keyWordMatch, dataMaskAlg);
-        this.maskLog(logInfo, keyWordMatch, dataMaskAlg);
+    public void desensitize(final L logInfo, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
+        this.desensitizeShenyuRequestLog(logInfo, keyWordMatch, desensitizeAlg);
+        this.desensitizeLog(logInfo, keyWordMatch, desensitizeAlg);
     }
 
     /**
@@ -121,34 +121,34 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         }
     }
 
-    private void maskShenyuRequestLog(final L logInfo, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
-        logInfo.setClientIp(maskForSingleWord(GenericLoggingConstant.CLIENT_IP, logInfo.getClientIp(), keyWordMatch, dataMaskAlg));
-        logInfo.setTimeLocal(maskForSingleWord(GenericLoggingConstant.TIME_LOCAL, logInfo.getTimeLocal(), keyWordMatch, dataMaskAlg));
-        logInfo.setMethod(maskForSingleWord(GenericLoggingConstant.METHOD, logInfo.getMethod(), keyWordMatch, dataMaskAlg));
-        logInfo.setRequestUri(maskForSingleWord(GenericLoggingConstant.REQUEST_URI, logInfo.getRequestUri(), keyWordMatch, dataMaskAlg));
-        logInfo.setResponseContentLength(Integer.valueOf(maskForSingleWord(GenericLoggingConstant.RESPONSE_CONTENT_LENGTH,
-                logInfo.getResponseContentLength().toString(), keyWordMatch, dataMaskAlg)));
-        logInfo.setRpcType(maskForSingleWord(GenericLoggingConstant.RPC_TYPE, logInfo.getRpcType(), keyWordMatch, dataMaskAlg));
-        logInfo.setStatus(Integer.valueOf(maskForSingleWord(GenericLoggingConstant.STATUS, logInfo.getStatus().toString(), keyWordMatch, dataMaskAlg)));
-        logInfo.setUpstreamIp(maskForSingleWord(GenericLoggingConstant.UP_STREAM_IP, logInfo.getUpstreamIp(), keyWordMatch, dataMaskAlg));
-        logInfo.setUpstreamResponseTime(Long.valueOf(maskForSingleWord(GenericLoggingConstant.UP_STREAM_RESPONSE_TIME,
-                logInfo.getUpstreamResponseTime().toString(), keyWordMatch, dataMaskAlg)));
-        logInfo.setUserAgent(maskForSingleWord(GenericLoggingConstant.USERAGENT, logInfo.getUserAgent(), keyWordMatch, dataMaskAlg));
-        logInfo.setHost(maskForSingleWord(GenericLoggingConstant.HOST, logInfo.getHost(), keyWordMatch, dataMaskAlg));
-        logInfo.setModule(maskForSingleWord(GenericLoggingConstant.MODULE, logInfo.getModule(), keyWordMatch, dataMaskAlg));
-        logInfo.setTraceId(maskForSingleWord(GenericLoggingConstant.TRACE_ID, logInfo.getTraceId(), keyWordMatch, dataMaskAlg));
-        logInfo.setPath(maskForSingleWord(GenericLoggingConstant.PATH, logInfo.getPath(), keyWordMatch, dataMaskAlg));
-        logInfo.setRequestHeader(maskForSingleWord(GenericLoggingConstant.REQUEST_HEADER, logInfo.getRequestHeader(), keyWordMatch, dataMaskAlg));
-        logInfo.setResponseHeader(maskForSingleWord(GenericLoggingConstant.RESPONSE_HEADER, logInfo.getResponseHeader(),
-                keyWordMatch, dataMaskAlg));
-        logInfo.setQueryParams(maskForSingleWord(GenericLoggingConstant.QUERY_PARAMS, logInfo.getQueryParams(), keyWordMatch, dataMaskAlg));
-        logInfo.setRequestBody(maskForSingleWord(GenericLoggingConstant.REQUEST_BODY, logInfo.getRequestBody(), keyWordMatch, dataMaskAlg));
-        logInfo.setResponseBody(maskForSingleWord(GenericLoggingConstant.RESPONSE_BODY, logInfo.getResponseBody(), keyWordMatch, dataMaskAlg));
-        logInfo.setRequestHeader(maskForBody(logInfo.getRequestHeader(), keyWordMatch, dataMaskAlg));
-        logInfo.setResponseHeader(maskForBody(logInfo.getResponseHeader(), keyWordMatch, dataMaskAlg));
-        logInfo.setQueryParams(maskForBody(logInfo.getQueryParams(), keyWordMatch, dataMaskAlg));
-        logInfo.setRequestBody(maskForBody(logInfo.getRequestBody(), keyWordMatch, dataMaskAlg));
-        logInfo.setResponseBody(maskForBody(logInfo.getResponseBody(), keyWordMatch, dataMaskAlg));
+    private void desensitizeShenyuRequestLog(final L logInfo, final KeyWordMatch keyWordMatch, final String desensitizedAlg) {
+        logInfo.setClientIp(desensitizeForSingleWord(GenericLoggingConstant.CLIENT_IP, logInfo.getClientIp(), keyWordMatch, desensitizedAlg));
+        logInfo.setTimeLocal(desensitizeForSingleWord(GenericLoggingConstant.TIME_LOCAL, logInfo.getTimeLocal(), keyWordMatch, desensitizedAlg));
+        logInfo.setMethod(desensitizeForSingleWord(GenericLoggingConstant.METHOD, logInfo.getMethod(), keyWordMatch, desensitizedAlg));
+        logInfo.setRequestUri(desensitizeForSingleWord(GenericLoggingConstant.REQUEST_URI, logInfo.getRequestUri(), keyWordMatch, desensitizedAlg));
+        logInfo.setResponseContentLength(Integer.valueOf(desensitizeForSingleWord(GenericLoggingConstant.RESPONSE_CONTENT_LENGTH,
+                logInfo.getResponseContentLength().toString(), keyWordMatch, desensitizedAlg)));
+        logInfo.setRpcType(desensitizeForSingleWord(GenericLoggingConstant.RPC_TYPE, logInfo.getRpcType(), keyWordMatch, desensitizedAlg));
+        logInfo.setStatus(Integer.valueOf(desensitizeForSingleWord(GenericLoggingConstant.STATUS, logInfo.getStatus().toString(), keyWordMatch, desensitizedAlg)));
+        logInfo.setUpstreamIp(desensitizeForSingleWord(GenericLoggingConstant.UP_STREAM_IP, logInfo.getUpstreamIp(), keyWordMatch, desensitizedAlg));
+        logInfo.setUpstreamResponseTime(Long.valueOf(desensitizeForSingleWord(GenericLoggingConstant.UP_STREAM_RESPONSE_TIME,
+                logInfo.getUpstreamResponseTime().toString(), keyWordMatch, desensitizedAlg)));
+        logInfo.setUserAgent(desensitizeForSingleWord(GenericLoggingConstant.USERAGENT, logInfo.getUserAgent(), keyWordMatch, desensitizedAlg));
+        logInfo.setHost(desensitizeForSingleWord(GenericLoggingConstant.HOST, logInfo.getHost(), keyWordMatch, desensitizedAlg));
+        logInfo.setModule(desensitizeForSingleWord(GenericLoggingConstant.MODULE, logInfo.getModule(), keyWordMatch, desensitizedAlg));
+        logInfo.setTraceId(desensitizeForSingleWord(GenericLoggingConstant.TRACE_ID, logInfo.getTraceId(), keyWordMatch, desensitizedAlg));
+        logInfo.setPath(desensitizeForSingleWord(GenericLoggingConstant.PATH, logInfo.getPath(), keyWordMatch, desensitizedAlg));
+        logInfo.setRequestHeader(desensitizeForSingleWord(GenericLoggingConstant.REQUEST_HEADER, logInfo.getRequestHeader(), keyWordMatch, desensitizedAlg));
+        logInfo.setResponseHeader(desensitizeForSingleWord(GenericLoggingConstant.RESPONSE_HEADER, logInfo.getResponseHeader(),
+                keyWordMatch, desensitizedAlg));
+        logInfo.setQueryParams(desensitizeForSingleWord(GenericLoggingConstant.QUERY_PARAMS, logInfo.getQueryParams(), keyWordMatch, desensitizedAlg));
+        logInfo.setRequestBody(desensitizeForSingleWord(GenericLoggingConstant.REQUEST_BODY, logInfo.getRequestBody(), keyWordMatch, desensitizedAlg));
+        logInfo.setResponseBody(desensitizeForSingleWord(GenericLoggingConstant.RESPONSE_BODY, logInfo.getResponseBody(), keyWordMatch, desensitizedAlg));
+        logInfo.setRequestHeader(desensitizeForBody(logInfo.getRequestHeader(), keyWordMatch, desensitizedAlg));
+        logInfo.setResponseHeader(desensitizeForBody(logInfo.getResponseHeader(), keyWordMatch, desensitizedAlg));
+        logInfo.setQueryParams(desensitizeForBody(logInfo.getQueryParams(), keyWordMatch, desensitizedAlg));
+        logInfo.setRequestBody(desensitizeForBody(logInfo.getRequestBody(), keyWordMatch, desensitizedAlg));
+        logInfo.setResponseBody(desensitizeForBody(logInfo.getResponseBody(), keyWordMatch, desensitizedAlg));
     }
 
     /**
@@ -159,13 +159,13 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
     protected abstract T getLogConsumeClient();
 
     /**
-     * mask log.
+     * desensitize log.
      *
      * @param log log
      * @param keyWordMatch keyWordMathc
-     * @param dataMaskAlg data mask algorithm
+     * @param desensitizeAlg data desensitize algorithm
      */
-    protected abstract void maskLog(L log, KeyWordMatch keyWordMatch, String dataMaskAlg);
+    protected abstract void desensitizeLog(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);
 
     @Override
     public void close() throws Exception {

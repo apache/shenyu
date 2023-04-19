@@ -50,6 +50,12 @@
             <groupId>com.alipay.sofa</groupId>
             <artifactId>rpc-sofa-boot-starter</artifactId>
             <version>${rpc-sofa-boot-starter.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 <!--        <dependency>-->
