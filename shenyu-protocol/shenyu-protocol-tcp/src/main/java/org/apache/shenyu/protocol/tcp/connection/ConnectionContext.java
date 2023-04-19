@@ -31,8 +31,8 @@ public class ConnectionContext {
                 .build();
     }
 
-    public Mono<Connection> getTcpClientConnection() {
-        return Mono.just(connectionConfigProvider.getProxiedService("127.0.0.1"))
+    public Mono<Connection> getTcpClientConnection(String ip) {
+        return Mono.just(connectionConfigProvider.getProxiedService(ip))
                 .flatMap(inetSocketAddress ->
                         TcpClient.create(connectionProvider)
                                 .host(inetSocketAddress.getHostName())

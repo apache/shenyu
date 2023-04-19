@@ -18,6 +18,7 @@ import reactor.netty.DisposableServer;
 import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.TcpServer;
 
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -59,13 +60,20 @@ public class BootstrapServer {
 
     private void bridgeConnections(final Connection serverConn) {
         LOG.debug("Starting proxy client");
-        Mono<Connection> client = connectionContext.getTcpClientConnection();
+        SocketAddress socketAddress = serverConn.channel().remoteAddress();
+        Mono<Connection> client = connectionContext.getTcpClientConnection(getIp(socketAddress));
         String clientConnectionKey = connectionContext.getClientConnectionKey();
+        // todo 是否有必要
         holder.put(clientConnectionKey, serverConn);
         client.subscribe((clientConn) -> {
             LOG.debug("Bridging connection with {}", bridge);
             bridge.bridge(serverConn, clientConn);
         });
+    }
+
+    private String getIp(SocketAddress socketAddress){
+        //todo impl
+        return "127.0.0.1";
     }
 
     private void triggerJob() {
