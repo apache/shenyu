@@ -33,16 +33,17 @@ public class ConnectionContext {
 
     public Mono<Connection> getTcpClientConnection(String ip) {
         return Mono.just(connectionConfigProvider.getProxiedService(ip))
-                .flatMap(inetSocketAddress ->
+                .flatMap(url ->
                         TcpClient.create(connectionProvider)
-                                .host(inetSocketAddress.getHostName())
-                                .port(inetSocketAddress.getPort())
+                                .host(url.getHost())
+                                .port(url.getPort())
                                 .connect()
                 );
     }
 
 
-    public String getClientConnectionKey() {
+    public String getClientConnectionId() {
+
         return "TEST_CLIENT";
     }
 

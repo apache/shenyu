@@ -20,7 +20,10 @@ import reactor.netty.tcp.TcpServer;
 
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -30,28 +33,29 @@ public class BootstrapServer {
     private static final Logger LOG = LoggerFactory.getLogger(BootstrapServer.class);
     private Bridge bridge;
     private ConnectionContext connectionContext;
-    private ConnectionHolder holder;
-
     private DisposableServer server;
+    private final Map<String, Connection> connectionCache = new ConcurrentHashMap<>();
 
     public void start(DiscoveryConfig discoveryConfig, TcpServerConfiguration tcpServerConfiguration) {
-        ShenyuDiscoveryService shenyuDiscoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin("zookeeper");
 
+        String loadBalanceAlgorithm = tcpServerConfiguration.getProps().getOrDefault("shenyu.tcpPlugin.tcpServerConfiguration.props.loadBalanceAlgorithm", "random").toString();
+        ShenyuDiscoveryService shenyuDiscoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
         shenyuDiscoveryService.init(discoveryConfig);
-        DefaultConnectionConfigProvider connectionConfigProvider = new DefaultConnectionConfigProvider(shenyuDiscoveryService);
+        DefaultConnectionConfigProvider connectionConfigProvider = new DefaultConnectionConfigProvider(shenyuDiscoveryService, loadBalanceAlgorithm);
         this.bridge = new TcpConnectionBridge();
-        this.holder = new ConnectionHolder();
         connectionContext = new ConnectionContext(connectionConfigProvider);
         connectionContext.init(tcpServerConfiguration.getProps());
+
         LoopResources loopResources = LoopResources.create("shenyu-tcp-bootstrap-server", tcpServerConfiguration.getBossGroupThreadCount(),
                 tcpServerConfiguration.getWorkerGroupThreadCount(), true);
+
         TcpServer tcpServer = TcpServer.create()
                 .doOnChannelInit((connectionObserver, channel, remoteAddress) -> {
                     channel.pipeline().addFirst(new LoggingHandler(LogLevel.DEBUG));
                 })
                 .wiretap(true)
                 .doOnConnection(this::bridgeConnections)
-                .port(9123)
+                .port(tcpServerConfiguration.getPort())
                 .runOn(loopResources);
         server = tcpServer.bindNow();
         triggerJob();
@@ -62,18 +66,20 @@ public class BootstrapServer {
         LOG.debug("Starting proxy client");
         SocketAddress socketAddress = serverConn.channel().remoteAddress();
         Mono<Connection> client = connectionContext.getTcpClientConnection(getIp(socketAddress));
-        String clientConnectionKey = connectionContext.getClientConnectionKey();
-        // todo 是否有必要
-        holder.put(clientConnectionKey, serverConn);
+        String connectionId = connectionContext.getClientConnectionId();
+        connectionCache.put(connectionId, serverConn);
         client.subscribe((clientConn) -> {
             LOG.debug("Bridging connection with {}", bridge);
             bridge.bridge(serverConn, clientConn);
         });
     }
 
-    private String getIp(SocketAddress socketAddress){
-        //todo impl
-        return "127.0.0.1";
+    private String getIp(SocketAddress socketAddress) {
+        if (socketAddress == null) {
+            throw new NullPointerException("remoteAddress is null");
+        }
+        String address = socketAddress.toString();
+        return address.substring(1, address.indexOf(':'));
     }
 
     private void triggerJob() {
@@ -81,10 +87,15 @@ public class BootstrapServer {
             while (true) {
                 try {
                     LOG.info("job trigger start");
-                    ArrayList<Connection> testClient1 = new ArrayList<>(holder.getConnectionList("TEST_CLIENT"));
-                    for (Connection serverCon : testClient1) {
-                        serverCon.disposeNow();
-                        bridgeConnections(serverCon);
+                    List<String> connectionKeys = new ArrayList<>(connectionCache.keySet());
+                    for (String connectionKey : connectionKeys) {
+                        Connection serverCon = connectionCache.get(connectionKey);
+                        if (serverCon.isDisposed()) {
+                            connectionCache.remove(connectionKey);
+                        } else {
+                            serverCon.disposeNow();
+                            bridgeConnections(serverCon);
+                        }
                     }
                     LOG.info("job trigger end");
                 } catch (Throwable tx) {
@@ -99,7 +110,6 @@ public class BootstrapServer {
         };
         new Thread(runnable).start();
     }
-
 
     /**
      * shutdown.

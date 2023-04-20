@@ -39,25 +39,17 @@ public class TcpPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerPlugin(final PluginData pluginData) {
-        DiscoveryConfig discoveryConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DiscoveryConfig.class);
-        TcpServerConfiguration tcpServerConfiguration = GsonUtils.getInstance().fromJson(pluginData.getConfig(), TcpServerConfiguration.class);
+        TcpPluginConfig tcpPluginConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), TcpPluginConfig.class);
         BootstrapServer bootstrapServer = new BootstrapServer();
         if (pluginData.getEnabled()) {
             LOG.info("shenyu TcpPluginDataHandler start TcpProxy");
-            bootstrapServer.start(discoveryConfig, tcpServerConfiguration);
+            bootstrapServer.start(tcpPluginConfig.getDiscoveryConfig(), tcpPluginConfig.getTcpServerConfiguration());
         } else {
             LOG.info("shenyu TcpPluginDataHandler shutdown TcpProxy");
             bootstrapServer.shutdown();
         }
     }
 
-    private TcpServerConfiguration getTcpPluginConfig(ShenyuDiscoveryService shenyuDiscoveryService) {
-        return new TcpServerConfiguration();
-    }
-
-    private List<DiscoveryUpstream> getUpstreamList(ShenyuDiscoveryService shenyuDiscoveryService) {
-        return new ArrayList<>();
-    }
 
     @Override
     public String pluginNamed() {
