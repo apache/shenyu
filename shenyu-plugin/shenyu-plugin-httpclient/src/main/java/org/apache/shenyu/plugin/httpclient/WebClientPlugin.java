@@ -20,11 +20,13 @@ package org.apache.shenyu.plugin.httpclient;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
+import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
@@ -58,7 +60,15 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> headers.addAll(httpHeaders))
-                .body(BodyInserters.fromDataBuffers(body))
+                .body((outputMessage, context) -> {
+                    Publisher<? extends DataBuffer> publisher = body;
+                    MediaType mediaType = httpHeaders.getContentType();
+                    if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
+                        //fix https://github.com/apache/shenyu/issues/259
+                        publisher = DataBufferUtils.join(body);
+                    }
+                    return outputMessage.writeWith(publisher);
+                })
                 .exchangeToMono(response -> response.bodyToMono(byte[].class)
                         .flatMap(bytes -> Mono.fromCallable(() -> Optional.ofNullable(bytes))).defaultIfEmpty(Optional.empty())
                         .flatMap(option -> {
