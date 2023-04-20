@@ -15,20 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.extractor;
+package org.apache.shenyu.client.core.register.parser;
 
-import org.apache.shenyu.client.core.client.ApiBean;
-import org.springframework.context.ApplicationContext;
+import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
-import java.util.List;
+public interface ApiBeanMetaParser<T> extends Parser<MetaDataRegisterDTO, ApiBean<T>> {
 
-public interface ApiBeansExtractor<T> {
-
-    /**
-     * Extract apiBeans from applicationContext.
-     *
-     * @param applicationContext applicationContext
-     * @return apiBeans
-     */
-    List<ApiBean<T>> extract(ApplicationContext applicationContext);
 }

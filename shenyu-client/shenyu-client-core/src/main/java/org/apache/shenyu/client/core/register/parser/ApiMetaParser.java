@@ -15,24 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.registrar;
+package org.apache.shenyu.client.core.register.parser;
 
-import org.apache.shenyu.client.core.client.matcher.Matcher;
+import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
-public abstract class AbstractRegistrar<T> implements Registrar<T> {
+import java.util.List;
 
-    private final Matcher<T> matcher;
+public interface ApiMetaParser<T> extends Parser<List<MetaDataRegisterDTO>, ApiBean<T>.ApiDefinition> {
 
-    protected AbstractRegistrar(final Matcher<T> matcher) {
-        this.matcher = matcher;
-    }
-
-    @Override
-    public void register(final T element) {
-        if (matcher.match(element)) {
-            doRegister(element);
-        }
-    }
-
-    protected abstract void doRegister(T element);
 }

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.parser;
+package org.apache.shenyu.client.core.register.parser;
 
-import org.apache.shenyu.client.core.client.ApiBean;
+import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 
 import java.util.List;

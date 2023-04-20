@@ -15,24 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.matcher;
+package org.apache.shenyu.client.core.register.matcher;
 
-import org.apache.shenyu.client.core.client.ApiBean;
-import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.apache.shenyu.client.core.register.ApiBean;
+import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.annotation.Annotation;
 
-public final class AnnotatedApiDefinitionMatcher<T> extends ApiDefinitionMatcher<T> {
+public final class AnnotatedApiBeanMatcher<T> implements ApiBeanMatcher<T> {
 
     private final Class<? extends Annotation> aClass;
 
-    public AnnotatedApiDefinitionMatcher(final Class<? extends Annotation> aClass) {
+    public AnnotatedApiBeanMatcher(final Class<? extends Annotation> aClass) {
         this.aClass = aClass;
     }
 
     @Override
-    public boolean match(final ApiBean<T>.ApiDefinition apiDefinition) {
-        return AnnotatedElementUtils
-                .isAnnotated(apiDefinition.getApiMethod(), aClass);
+    public boolean match(final ApiBean<T> apiBean) {
+        return AnnotationUtils
+                .isAnnotationDeclaredLocally(aClass, apiBean.getBeanClass());
     }
 }

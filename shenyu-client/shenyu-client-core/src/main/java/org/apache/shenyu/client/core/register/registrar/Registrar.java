@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.parser;
+package org.apache.shenyu.client.core.register.registrar;
 
-import org.apache.shenyu.client.core.client.ApiBean;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+public interface Registrar<T> {
 
-import java.util.List;
-
-public interface ApiMetaParser<T> extends Parser<List<MetaDataRegisterDTO>, ApiBean<T>.ApiDefinition> {
-
+    /**
+     * Registers info.
+     *
+     * @param info info to register
+     */
+    void register(T info);
 }

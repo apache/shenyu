@@ -15,15 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.parser;
+package org.apache.shenyu.client.core.register.registrar;
 
-public interface Parser<R, T> {
+import org.apache.shenyu.client.core.register.matcher.Matcher;
 
-    /**
-     * Parses t to r.
-     *
-     * @param t t to parse
-     * @return parsing the results
-     */
-    R parse(T t);
+public abstract class AbstractRegistrar<T> implements Registrar<T> {
+
+    private final Matcher<T> matcher;
+
+    protected AbstractRegistrar(final Matcher<T> matcher) {
+        this.matcher = matcher;
+    }
+
+    @Override
+    public void register(final T element) {
+        if (matcher.match(element)) {
+            doRegister(element);
+        }
+    }
+
+    protected abstract void doRegister(T element);
 }

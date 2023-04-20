@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client;
+package org.apache.shenyu.client.core.register;
 
 import org.apache.shenyu.common.utils.PathUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;

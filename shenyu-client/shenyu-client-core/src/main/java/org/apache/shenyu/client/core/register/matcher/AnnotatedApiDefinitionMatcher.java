@@ -15,26 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.registrar;
+package org.apache.shenyu.client.core.register.matcher;
 
-import org.apache.shenyu.client.core.client.ApiBean;
-import org.apache.shenyu.client.core.client.matcher.Matcher;
+import org.apache.shenyu.client.core.register.ApiBean;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 
-import java.util.List;
+import java.lang.annotation.Annotation;
 
-public final class ApiBeanRegistrar<T> extends AbstractRegistrar<ApiBean<T>> {
+public final class AnnotatedApiDefinitionMatcher<T> extends ApiDefinitionMatcher<T> {
 
-    private final AbstractRegistrar<ApiBean<T>.ApiDefinition> apiRegistrar;
+    private final Class<? extends Annotation> aClass;
 
-    public ApiBeanRegistrar(final Matcher<ApiBean<T>> matcher,
-                            final AbstractRegistrar<ApiBean<T>.ApiDefinition> apiRegistrar) {
-        super(matcher);
-        this.apiRegistrar = apiRegistrar;
+    public AnnotatedApiDefinitionMatcher(final Class<? extends Annotation> aClass) {
+        this.aClass = aClass;
     }
 
     @Override
-    protected void doRegister(final ApiBean<T> element) {
-        List<ApiBean<T>.ApiDefinition> apiDefinition = element.getApiDefinitions();
-        apiDefinition.forEach(api -> apiRegistrar.register(api));
+    public boolean match(final ApiBean<T>.ApiDefinition apiDefinition) {
+        return AnnotatedElementUtils
+                .isAnnotated(apiDefinition.getApiMethod(), aClass);
     }
 }

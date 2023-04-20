@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client;
+package org.apache.shenyu.client.core.register;
 
-import org.apache.shenyu.client.core.client.extractor.ApiBeansExtractor;
-import org.apache.shenyu.client.core.client.registrar.AbstractRegistrar;
+import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
+import org.apache.shenyu.client.core.register.registrar.AbstractRegistrar;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;

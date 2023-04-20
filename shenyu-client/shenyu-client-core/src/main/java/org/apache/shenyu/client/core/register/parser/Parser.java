@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.registrar;
+package org.apache.shenyu.client.core.register.parser;
 
-public interface Registrar<T> {
+public interface Parser<R, T> {
 
     /**
-     * Registers info.
+     * Parses t to r.
      *
-     * @param info info to register
+     * @param t t to parse
+     * @return parsing the results
      */
-    void register(T info);
+    R parse(T t);
 }

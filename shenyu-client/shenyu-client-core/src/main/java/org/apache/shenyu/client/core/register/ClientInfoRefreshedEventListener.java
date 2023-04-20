@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client;
+package org.apache.shenyu.client.core.register;
 
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;

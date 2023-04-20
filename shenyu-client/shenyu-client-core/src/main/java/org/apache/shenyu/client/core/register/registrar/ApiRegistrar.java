@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.registrar;
+package org.apache.shenyu.client.core.register.registrar;
 
-import org.apache.shenyu.client.core.client.ApiBean;
-import org.apache.shenyu.client.core.client.matcher.Matcher;
-import org.apache.shenyu.client.core.client.parser.Parser;
+import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.matcher.Matcher;
+import org.apache.shenyu.client.core.register.parser.Parser;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 

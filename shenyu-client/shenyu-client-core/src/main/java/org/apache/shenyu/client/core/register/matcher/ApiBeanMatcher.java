@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.matcher;
+package org.apache.shenyu.client.core.register.matcher;
 
-import org.apache.shenyu.client.core.client.ApiBean;
+import org.apache.shenyu.client.core.register.ApiBean;
 
 public interface ApiBeanMatcher<T> extends Matcher<ApiBean<T>> {
 

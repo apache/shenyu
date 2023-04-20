@@ -15,10 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.client.matcher;
+package org.apache.shenyu.client.core.register.extractor;
 
-import org.apache.shenyu.client.core.client.ApiBean;
+import org.apache.shenyu.client.core.register.ApiBean;
+import org.springframework.context.ApplicationContext;
 
-public abstract class ApiDefinitionMatcher<T> implements Matcher<ApiBean<T>.ApiDefinition> {
+import java.util.List;
 
+public interface ApiBeansExtractor<T> {
+
+    /**
+     * Extract apiBeans from applicationContext.
+     *
+     * @param applicationContext applicationContext
+     * @return apiBeans
+     */
+    List<ApiBean<T>> extract(ApplicationContext applicationContext);
 }
