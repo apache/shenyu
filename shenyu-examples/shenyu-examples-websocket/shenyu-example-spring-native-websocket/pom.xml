@@ -72,7 +72,7 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
-            <version>4.6.6</version>
+            <version>${hutool.version}</version>
         </dependency>
     </dependencies>
 
