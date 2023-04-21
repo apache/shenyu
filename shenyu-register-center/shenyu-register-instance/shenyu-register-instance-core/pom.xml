@@ -51,6 +51,11 @@
             <artifactId>shenyu-register-instance-nacos</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-register-instance-apollo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
