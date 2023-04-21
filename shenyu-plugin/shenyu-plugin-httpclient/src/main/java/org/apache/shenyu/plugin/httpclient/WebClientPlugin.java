@@ -63,8 +63,8 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
                 .body((outputMessage, context) -> {
                     Publisher<? extends DataBuffer> publisher = body;
                     MediaType mediaType = httpHeaders.getContentType();
-                    if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType) ||
-                            MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
+                    if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)
+                            || MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
                         publisher = DataBufferUtils.join(body);
                     }
                     return outputMessage.writeWith(publisher);
