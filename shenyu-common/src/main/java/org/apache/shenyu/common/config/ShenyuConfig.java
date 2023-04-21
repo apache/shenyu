@@ -696,7 +696,7 @@ public class ShenyuConfig {
      */
     public static class SelectorCacheConfig {
         
-        private boolean selectorEnabled = Boolean.FALSE;
+        private Boolean enabled = Boolean.FALSE;
     
         /**
          * initialCapacity.
@@ -713,17 +713,17 @@ public class ShenyuConfig {
          *
          * @return the enabled
          */
-        public boolean getSelectorEnabled() {
-            return selectorEnabled;
+        public Boolean getEnabled() {
+            return enabled;
         }
     
         /**
          * Set selector enabled.
          *
-         * @param selectorEnabled the enabled
+         * @param enabled the enabled
          */
-        public void setSelectorEnabled(final boolean selectorEnabled) {
-            this.selectorEnabled = selectorEnabled;
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
         }
     
         /**

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.utils;
 
+import org.apache.shenyu.common.utils.ListUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import java.util.Collections;

@@ -28,6 +28,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
+import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -110,7 +111,7 @@ public class LocalPluginController {
                             .collect(Collectors.toList());
                     if (CollectionUtils.isNotEmpty(filterConditions)) {
                         List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
-                        uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, rule));
+                        uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, rule, TrieCacheTypeEnum.RULE));
                     }
                 });
             }

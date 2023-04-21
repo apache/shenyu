@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.utils;
+package org.apache.shenyu.common.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -187,5 +187,20 @@ public final class ListUtil {
     public static <T> List<T> merge(final List<T> list1, final List<T> list2) {
         list1.addAll(list2);
         return list1;
+    }
+    
+    /**
+     * cast list.
+     *
+     * @param list list
+     * @param clazz clazz type
+     * @return list
+     * @param <T> the type
+     */
+    public static <T> List<T> castLit(final List<?> list, final Class<T> clazz) {
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(clazz::cast).collect(Collectors.toList());
     }
 }

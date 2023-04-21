@@ -21,8 +21,10 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,11 +85,11 @@ public class ShenyuTrieTest {
                 .build();
 
         Assertions.assertNull(shenyuPathPatternTrie.getNode(matchAllEndUri));
-        shenyuPathPatternTrie.putNode(matchAllEndUri, ruleData, null);
+        shenyuPathPatternTrie.putNode(matchAllEndUri, ruleData, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuPathPatternTrie.getNode(matchAllEndUri));
 
         Assertions.assertNull(shenyuAntPathTrie.getNode(matchAllEndUri));
-        shenyuAntPathTrie.putNode(matchAllEndUri, ruleData, null);
+        shenyuAntPathTrie.putNode(matchAllEndUri, ruleData, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.getNode(matchAllEndUri));
 
         ConditionData conditionData1 = new ConditionData();
@@ -105,8 +107,8 @@ public class ShenyuTrieTest {
                 .conditionDataList(Collections.singletonList(conditionData1))
                 .build();
 
-        Assertions.assertThrows(ShenyuException.class, () -> shenyuPathPatternTrie.putNode(matchAllNotEndUri, ruleData1, null));
-        Assertions.assertDoesNotThrow(() -> shenyuAntPathTrie.putNode(matchAllNotEndUri, ruleData1, null));
+        Assertions.assertThrows(ShenyuException.class, () -> shenyuPathPatternTrie.putNode(matchAllNotEndUri, ruleData1, TrieCacheTypeEnum.RULE));
+        Assertions.assertDoesNotThrow(() -> shenyuAntPathTrie.putNode(matchAllNotEndUri, ruleData1, TrieCacheTypeEnum.RULE));
 
     }
     
@@ -128,7 +130,7 @@ public class ShenyuTrieTest {
                 .build();
 
         Assertions.assertNull(shenyuAntPathTrie.getNode(uri));
-        shenyuAntPathTrie.putNode(uri, ruleData, null);
+        shenyuAntPathTrie.putNode(uri, ruleData, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.getNode(uri));
     }
 
@@ -162,9 +164,9 @@ public class ShenyuTrieTest {
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
 
-        shenyuAntPathTrie.putNode(normalUri, ruleData, null);
-        shenyuAntPathTrie.putNode(normalUri, ruleData1, null);
-        List<RuleData> ruleDataList = shenyuAntPathTrie.getNode(normalUri).getPathRuleCache().get("1");
+        shenyuAntPathTrie.putNode(normalUri, ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode(normalUri, ruleData1, TrieCacheTypeEnum.RULE);
+        List<RuleData> ruleDataList = ListUtil.castLit(shenyuAntPathTrie.getNode(normalUri).getPathCache().get("1"), RuleData.class);
         Assertions.assertEquals(ruleDataList.get(0).getId(), "2");
         Assertions.assertEquals(ruleDataList.get(1).getId(), "1");
     }
@@ -199,9 +201,9 @@ public class ShenyuTrieTest {
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
 
-        shenyuAntPathTrie.putNode(normalUri, ruleData, null);
-        shenyuAntPathTrie.putNode(normalUri, ruleData1, null);
-        Assertions.assertEquals(shenyuAntPathTrie.getNode(normalUri).getPathRuleCache().size(), 2);
+        shenyuAntPathTrie.putNode(normalUri, ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode(normalUri, ruleData1, TrieCacheTypeEnum.RULE);
+        Assertions.assertEquals(shenyuAntPathTrie.getNode(normalUri).getPathCache().size(), 2);
     }
 
     @Test
@@ -220,9 +222,9 @@ public class ShenyuTrieTest {
                 .enabled(true)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        shenyuPathPatternTrie.putNode("/aa/bb/cc/{name}/{age}/tt", ruleData, null);
-        shenyuPathPatternTrie.putNode("/aa/bb/cc/*/*/ii", ruleData, null);
-        shenyuPathPatternTrie.putNode("/aa/bb/cc/**", ruleData, null);
+        shenyuPathPatternTrie.putNode("/aa/bb/cc/{name}/{age}/tt", ruleData, TrieCacheTypeEnum.RULE);
+        shenyuPathPatternTrie.putNode("/aa/bb/cc/*/*/ii", ruleData, TrieCacheTypeEnum.RULE);
+        shenyuPathPatternTrie.putNode("/aa/bb/cc/**", ruleData, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuPathPatternTrie.match("/aa/bb/cc/hh/dd/ee/hh", "1"));
         Assertions.assertNotNull(shenyuPathPatternTrie.match("/aa/bb/cc/hh/dd/ee/tt", "1"));
         Assertions.assertNotNull(shenyuPathPatternTrie.match("/aa/bb/cc/xx/yy/ii", "1"));
@@ -245,11 +247,11 @@ public class ShenyuTrieTest {
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
         
-        shenyuAntPathTrie.putNode("/aa/**/*.html", ruleData, null);
-        shenyuAntPathTrie.putNode("/a/b/c/**", ruleData, null);
+        shenyuAntPathTrie.putNode("/aa/**/*.html", ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode("/a/b/c/**", ruleData, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.match("/a/b/c/d/e/f", "1"));
 
-        shenyuAntPathTrie.putNode("/a/b/**/c", ruleData, null);
+        shenyuAntPathTrie.putNode("/a/b/**/c", ruleData, TrieCacheTypeEnum.RULE);
     
         RuleData ruleData2 = RuleData.builder()
                 .id("2")
@@ -259,21 +261,21 @@ public class ShenyuTrieTest {
                 .enabled(true)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        shenyuAntPathTrie.putNode("/a/*/b/c", ruleData2, null);
+        shenyuAntPathTrie.putNode("/a/*/b/c", ruleData2, TrieCacheTypeEnum.RULE);
         Assertions.assertNull(shenyuAntPathTrie.match("/a/m/b/c", "1"));
         Assertions.assertNotNull(shenyuAntPathTrie.match("/a/m/b/c", "2"));
         
-        shenyuAntPathTrie.putNode("/path1/{name}/{age}", ruleData, null);
+        shenyuAntPathTrie.putNode("/path1/{name}/{age}", ruleData, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.match("/path1/111/222", "1").getFullPath(), "/path1/{name}/{age}");
         Assertions.assertNull(shenyuAntPathTrie.match("/path1/111/222/333", "1"));
         
-        shenyuAntPathTrie.putNode("path1/name/age", ruleData, null);
+        shenyuAntPathTrie.putNode("path1/name/age", ruleData, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.match("path1/name/age", "1"));
         Assertions.assertEquals(shenyuAntPathTrie.match("path1/name/age", "1").getFullPath(), "path1/name/age");
         
-        shenyuAntPathTrie.putNode("/aa/bb/cc/{name}/{age}/tt", ruleData, null);
-        shenyuAntPathTrie.putNode("/aa/bb/cc/*/*/ii", ruleData, null);
-        shenyuAntPathTrie.putNode("/aa/bb/cc/**/hh", ruleData, null);
+        shenyuAntPathTrie.putNode("/aa/bb/cc/{name}/{age}/tt", ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode("/aa/bb/cc/*/*/ii", ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode("/aa/bb/cc/**/hh", ruleData, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.match("/aa/bb/cc/dd/ee/tt", "1"));
         Assertions.assertNotNull(shenyuAntPathTrie.match("/aa/bb/cc/dd/ee/hh", "1"));
         Assertions.assertNotNull(shenyuAntPathTrie.match("/aa/bb/cc/dd/ee/ii", "1"));
@@ -311,9 +313,9 @@ public class ShenyuTrieTest {
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
 
-        shenyuAntPathTrie.putNode(normalUri, ruleData, null);
-        shenyuAntPathTrie.putNode(normalUri, ruleData1, null);
-        Assertions.assertEquals(shenyuAntPathTrie.match("/a/b/c", "1").getPathRuleCache().get("1").size(), 2);
+        shenyuAntPathTrie.putNode(normalUri, ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode(normalUri, ruleData1, TrieCacheTypeEnum.RULE);
+        Assertions.assertEquals(shenyuAntPathTrie.match("/a/b/c", "1").getPathCache().get("1").size(), 2);
     }
 
     @Test
@@ -354,7 +356,7 @@ public class ShenyuTrieTest {
                 .enabled(true)
                 .conditionDataList(Arrays.asList(conditionData, conditionData1, conditionData2, conditionData3))
                 .build();
-        shenyuAntPathTrie.putNode(Arrays.asList(uriPath, uriPath1, uriPath2, uriPath3), ruleData, null);
+        shenyuAntPathTrie.putNode(Arrays.asList(uriPath, uriPath1, uriPath2, uriPath3), ruleData, TrieCacheTypeEnum.RULE);
         
         Assertions.assertEquals(shenyuAntPathTrie.match("/a/b/c/d/e/f", "1").getFullPath(), uriPath);
         Assertions.assertEquals(shenyuAntPathTrie.match("/a/g/c/e/ef/hi", "1").getFullPath(), uriPath1);
@@ -388,11 +390,11 @@ public class ShenyuTrieTest {
                 .sort(2)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        shenyuAntPathTrie.putNode("/a/b/c/**", ruleData, null);
-        shenyuAntPathTrie.putNode("/a/b/c/**", ruleData2, null);
-        shenyuAntPathTrie.remove("/a/b/c/**", ruleData2);
+        shenyuAntPathTrie.putNode("/a/b/c/**", ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode("/a/b/c/**", ruleData2, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.remove("/a/b/c/**", ruleData2, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.getNode("/a/b/c/**"));
-        shenyuAntPathTrie.remove("/a/b/c/**", ruleData);
+        shenyuAntPathTrie.remove("/a/b/c/**", ruleData, TrieCacheTypeEnum.RULE);
         Assertions.assertNull(shenyuAntPathTrie.getNode("/a/b/c/**"));
     
         RuleData ruleData3 = RuleData.builder()
@@ -404,8 +406,8 @@ public class ShenyuTrieTest {
                 .sort(2)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        shenyuAntPathTrie.putNode("/path1/path2", ruleData3, null);
-        shenyuAntPathTrie.remove("/path1/path2", ruleData3);
+        shenyuAntPathTrie.putNode("/path1/path2", ruleData3, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.remove("/path1/path2", ruleData3, TrieCacheTypeEnum.RULE);
         Assertions.assertNull(shenyuAntPathTrie.getNode("/path1/path2"));
     }
     
@@ -434,17 +436,17 @@ public class ShenyuTrieTest {
                 .sort(2)
                 .conditionDataList(Collections.singletonList(conditionData))
                 .build();
-        shenyuAntPathTrie.putNode("/a/b/c/**", ruleData, null);
-        shenyuAntPathTrie.putNode("/a/b/c/**", ruleData2, null);
+        shenyuAntPathTrie.putNode("/a/b/c/**", ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode("/a/b/c/**", ruleData2, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.getNode("/a/b/c/**"));
-        shenyuAntPathTrie.putNode("/path1/{age}/{name}", ruleData2, null);
+        shenyuAntPathTrie.putNode("/path1/{age}/{name}", ruleData2, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.getNode("/path1/{age}/{name}"));
-        shenyuAntPathTrie.putNode("/aaa/bbb/ccc", ruleData2, null);
+        shenyuAntPathTrie.putNode("/aaa/bbb/ccc", ruleData2, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.getNode("/aaa/bbb/ccc"));
-        shenyuAntPathTrie.putNode("/aa/*/cc", ruleData2, null);
+        shenyuAntPathTrie.putNode("/aa/*/cc", ruleData2, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.getNode("/aa/*/cc"));
-        shenyuAntPathTrie.putNode("/a/x/{name}/{age}/b", ruleData2, null);
-        shenyuAntPathTrie.putNode("/a/x/{name}/{sex}/c", ruleData2, null);
+        shenyuAntPathTrie.putNode("/a/x/{name}/{age}/b", ruleData2, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode("/a/x/{name}/{sex}/c", ruleData2, TrieCacheTypeEnum.RULE);
         Assertions.assertNotNull(shenyuAntPathTrie.getNode("/a/x/{name}/{age}/b"));
     }
 
@@ -487,7 +489,7 @@ public class ShenyuTrieTest {
                 .enabled(true)
                 .conditionDataList(Arrays.asList(conditionData, conditionData1, conditionData2, conditionData3))
                 .build();
-        shenyuAntPathTrie.putNode(Arrays.asList(uriPath, uriPath1, uriPath2, uriPath3), ruleData, null);
+        shenyuAntPathTrie.putNode(Arrays.asList(uriPath, uriPath1, uriPath2, uriPath3), ruleData, TrieCacheTypeEnum.RULE);
 
         Assertions.assertEquals(shenyuAntPathTrie.match("/a/index.html", "1").getFullPath(), uriPath);
         Assertions.assertEquals(shenyuAntPathTrie.match("/a/b/Safe/b", "1").getFullPath(), uriPath1);

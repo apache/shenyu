@@ -27,15 +27,18 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.BaseDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
+import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorConditionDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.event.plugin.BatchPluginDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
+import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
@@ -44,7 +47,7 @@ import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SelectorUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
@@ -124,7 +127,7 @@ public class SelectorServiceImpl implements SelectorService {
             selectorMapper.insertSelective(selectorDO);
             createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
         }
-        publishEvent(selectorDO, selectorDTO.getSelectorConditions());
+        publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
         return selectorDO.getId();
     }
     
@@ -157,7 +160,7 @@ public class SelectorServiceImpl implements SelectorService {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         final int selectorCount = selectorMapper.insertSelective(selectorDO);
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
-        publishEvent(selectorDO, selectorDTO.getSelectorConditions());
+        publishEvent(selectorDO, selectorDTO.getSelectorConditions(), Collections.emptyList());
         if (selectorCount > 0) {
             selectorEventPublisher.onCreated(selectorDO);
         }
@@ -170,10 +173,33 @@ public class SelectorServiceImpl implements SelectorService {
         final SelectorDO before = selectorMapper.selectById(selectorDTO.getId());
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         final int selectorCount = selectorMapper.updateSelective(selectorDO);
+        
+        // need old data for cleaning
+        List<SelectorConditionDO> beforeSelectorConditionList = selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId()));
+        List<RuleConditionDTO> beforeCondition = beforeSelectorConditionList.stream().map(selectorConditionDO ->
+                SelectorConditionDTO.builder()
+                        .selectorId(selectorConditionDO.getSelectorId())
+                        .operator(selectorConditionDO.getOperator())
+                        .paramName(selectorConditionDO.getParamName())
+                        .paramType(selectorConditionDO.getParamType())
+                        .paramValue(selectorConditionDO.getParamValue())
+                        .build()).collect(Collectors.toList());
+        List<RuleConditionDTO> currentCondition = selectorDTO.getSelectorConditions().stream().map(selectorConditionDTO ->
+                SelectorConditionDTO.builder()
+                        .selectorId(selectorConditionDTO.getSelectorId())
+                        .operator(selectorConditionDTO.getOperator())
+                        .paramName(selectorConditionDTO.getParamName())
+                        .paramType(selectorConditionDTO.getParamType())
+                        .paramValue(selectorConditionDTO.getParamValue())
+                        .build()).collect(Collectors.toList());
+        if (CollectionUtils.isEqualCollection(beforeCondition, currentCondition)) {
+            beforeSelectorConditionList = Collections.emptyList();
+        }
+        
         //delete rule condition then add
         selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(selectorDO.getId()));
         createCondition(selectorDO.getId(), selectorDTO.getSelectorConditions());
-        publishEvent(selectorDO, selectorDTO.getSelectorConditions());
+        publishEvent(selectorDO, selectorDTO.getSelectorConditions(), beforeSelectorConditionList);
         if (selectorCount > 0) {
             selectorEventPublisher.onUpdated(selectorDO, before);
         }
@@ -307,12 +333,15 @@ public class SelectorServiceImpl implements SelectorService {
         return selectors.size();
     }
     
-    private void publishEvent(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditions) {
+    private void publishEvent(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditions, final List<SelectorConditionDO> beforeSelectorCondition) {
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         List<ConditionData> conditionDataList = ListUtil.map(selectorConditions, ConditionTransfer.INSTANCE::mapToSelectorDTO);
+        List<ConditionData> beforeConditionDataList = ListUtil.map(beforeSelectorCondition, ConditionTransfer.INSTANCE::mapToSelectorDO);
+        // build selector data.
+        SelectorData selectorData = SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList, beforeConditionDataList);
         // publish change event.
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList))));
+                Collections.singletonList(selectorData)));
     }
     
     private SelectorData buildSelectorData(final SelectorDO selectorDO) {

@@ -72,7 +72,7 @@ shenyu:
       enabled: false
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 10000 # max size in cache
-    ## selector L2 cache
+    ## selector L2 cache, use trie as L2 cache
     trie:
       enabled: true
       childrenSize: 10000
@@ -80,11 +80,12 @@ shenyu:
       pathRuleCacheSize: 1000
       matchMode: antPathMatch
   ruleMatchCache:
-    ##
+    ## rule L1 cache
     cache:
       enabled: true
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 65536 # max size in cache
+    ## rule L2 cache, use trie as L2 cache
     trie:
       enabled: true
       childrenSize: 10000
@@ -128,7 +129,7 @@ shenyu:
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
 #  httpclient:
-#    strategy: webClient
+#    strategy: webClient # netty
 #    connectTimeout: 45000
 #    responseTimeout: 3000
 #    readerIdleTime: 3000

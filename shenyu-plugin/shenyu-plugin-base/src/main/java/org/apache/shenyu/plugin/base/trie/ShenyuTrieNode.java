@@ -70,12 +70,10 @@ public class ShenyuTrieNode implements Serializable {
     /**
      * selectorId mapping to RuleData.
      */
-    private Map<String, List<RuleData>> pathRuleCache;
-    
-    private String selectorId;
+    private Map<String, List<?>> pathCache;
 
     /**
-     * biz info, route info and any other info store here, e.g. ruleId, selectorId and so on.
+     * biz info, route info and any other info store here, e.g. ruleId, selectorId, pluginName and so on.
      */
     private Object bizInfo;
 
@@ -83,12 +81,12 @@ public class ShenyuTrieNode implements Serializable {
     }
 
     public ShenyuTrieNode(final String matchStr, final String fullPath, final boolean endOfPath,
-                          final Long childrenSize, final Long pathRuleCacheSize, final Long pathVariableSize) {
+                          final Long childrenSize, final Long pathCacheSize, final Long pathVariableSize) {
         this.matchStr = matchStr;
         this.fullPath = fullPath;
         this.endOfPath = endOfPath;
         this.children = new WindowTinyLFUMap<>(childrenSize);
-        this.pathRuleCache = new WindowTinyLFUMap<>(pathRuleCacheSize);
+        this.pathCache = new WindowTinyLFUMap<>(pathCacheSize);
         this.pathVariablesSet = new WindowTinyLFUMap<>(pathVariableSize);
     }
 
@@ -236,39 +234,21 @@ public class ShenyuTrieNode implements Serializable {
     }
 
     /**
-     * get path rule cache.
+     * get path cache.
      *
      * @return rule cache
      */
-    public Map<String, List<RuleData>> getPathRuleCache() {
-        return pathRuleCache;
+    public Map<String, List<?>> getPathCache() {
+        return pathCache;
     }
 
     /**
      * set path rule cache.
      *
-     * @param pathRuleCache path rule cache
+     * @param pathCache path cache
      */
-    public void setPathRuleCache(final Map<String, List<RuleData>> pathRuleCache) {
-        this.pathRuleCache = pathRuleCache;
-    }
-    
-    /**
-     * get current node selector id.
-     *
-     * @return selectorId
-     */
-    public String getSelectorId() {
-        return selectorId;
-    }
-    
-    /**
-     * set current node selector id.
-     *
-     * @param selectorId selectorId
-     */
-    public void setSelectorId(final String selectorId) {
-        this.selectorId = selectorId;
+    public void setPathRuleCache(final Map<String, List<?>> pathCache) {
+        this.pathCache = pathCache;
     }
     
     @Override
@@ -283,14 +263,13 @@ public class ShenyuTrieNode implements Serializable {
         return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr)
                 && fullPath.equals(that.fullPath) && children.equals(that.children)
                 && pathVariablesSet.equals(that.pathVariablesSet) && pathVariableNode.equals(that.pathVariableNode)
-                && pathRuleCache.equals(that.pathRuleCache) && bizInfo.equals(that.bizInfo)
-                && selectorId.equals(that.selectorId);
+                && pathCache.equals(that.pathCache) && bizInfo.equals(that.bizInfo);
     }
     
     @Override
     public int hashCode() {
         return Objects.hash(matchStr, fullPath, children, pathVariablesSet, pathVariableNode, isWildcard, endOfPath,
-                pathRuleCache, bizInfo, selectorId);
+                pathCache, bizInfo);
     }
     
     @Override
@@ -303,9 +282,8 @@ public class ShenyuTrieNode implements Serializable {
                 + ", pathVariableNode=" + pathVariableNode
                 + ", isWildcard=" + isWildcard
                 + ", endOfPath=" + endOfPath
-                + ", pathRuleCache=" + pathRuleCache
+                + ", pathRuleCache=" + pathCache
                 + ", bizInfo=" + bizInfo
-                + ", selectorId=" + selectorId
                 + '}';
     }
 }
