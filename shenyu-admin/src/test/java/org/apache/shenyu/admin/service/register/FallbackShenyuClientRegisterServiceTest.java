@@ -37,16 +37,16 @@ class FallbackShenyuClientRegisterServiceTest {
     @Test
     public void testRegisterURI() {
         MockFallbackShenyuClientRegisterService mockFallbackShenyuClientRegisterService = new MockFallbackShenyuClientRegisterService();
-        assertEquals("doRegisterURI", mockFallbackShenyuClientRegisterService.registerURI("Selector_Name",new ArrayList<>()));
+        assertEquals("doRegisterURI", mockFallbackShenyuClientRegisterService.registerURI("Selector_Name", new ArrayList<>()));
 
         MockFallbackShenyuClientRegisterServiceException mockFallbackShenyuClientRegisterServiceException = new MockFallbackShenyuClientRegisterServiceException();
-        assertEquals(StringUtils.EMPTY, mockFallbackShenyuClientRegisterServiceException.registerURI("Selector_Name",new ArrayList<>()));
+        assertEquals(StringUtils.EMPTY, mockFallbackShenyuClientRegisterServiceException.registerURI("Selector_Name", new ArrayList<>()));
     }
 
     static class MockFallbackShenyuClientRegisterService extends FallbackShenyuClientRegisterService {
 
         @Override
-        String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList) {
+        String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList) {
             return "doRegisterURI";
         }
 
@@ -56,12 +56,12 @@ class FallbackShenyuClientRegisterServiceTest {
         }
 
         @Override
-        public String register(MetaDataRegisterDTO metaDataRegisterDTO) {
+        public String register(final MetaDataRegisterDTO metaDataRegisterDTO) {
             return null;
         }
 
         @Override
-        public String registerApiDoc(ApiDocRegisterDTO apiDocRegisterDTO) {
+        public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
             return null;
         }
     }
@@ -69,7 +69,7 @@ class FallbackShenyuClientRegisterServiceTest {
     static class MockFallbackShenyuClientRegisterServiceException extends FallbackShenyuClientRegisterService {
 
         @Override
-        String doRegisterURI(String selectorName, List<URIRegisterDTO> uriList) {
+        String doRegisterURI(final String selectorName, final List<URIRegisterDTO> uriList) {
             throw new ShenyuException("Exception");
         }
 
@@ -79,12 +79,12 @@ class FallbackShenyuClientRegisterServiceTest {
         }
 
         @Override
-        public String register(MetaDataRegisterDTO metaDataRegisterDTO) {
+        public String register(final MetaDataRegisterDTO metaDataRegisterDTO) {
             return null;
         }
 
         @Override
-        public String registerApiDoc(ApiDocRegisterDTO apiDocRegisterDTO) {
+        public String registerApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
             return null;
         }
     }

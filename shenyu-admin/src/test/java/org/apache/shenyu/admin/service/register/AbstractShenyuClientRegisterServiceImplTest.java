@@ -186,7 +186,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
     static class MockAbstractShenyuClientRegisterServiceImpl extends AbstractShenyuClientRegisterServiceImpl {
 
         @Override
-        protected String selectorHandler(MetaDataRegisterDTO metaDataDTO) {
+        protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
             return "handler";
         }
 
@@ -196,12 +196,12 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         }
 
         @Override
-        protected void registerMetadata(MetaDataRegisterDTO metaDataDTO) {
+        protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
 
         }
 
         @Override
-        protected String buildHandle(List<URIRegisterDTO> uriList, SelectorDO selectorDO) {
+        protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
             return "buildHandle";
         }
 

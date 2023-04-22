@@ -63,7 +63,7 @@ class AbstractContextPathRegisterServiceTest {
     static class MockAbstractContextPathRegisterService extends AbstractContextPathRegisterService {
 
         @Override
-        protected String selectorHandler(MetaDataRegisterDTO metaDataDTO) {
+        protected String selectorHandler(final MetaDataRegisterDTO metaDataDTO) {
             return null;
         }
 
@@ -73,12 +73,12 @@ class AbstractContextPathRegisterServiceTest {
         }
 
         @Override
-        protected void registerMetadata(MetaDataRegisterDTO metaDataDTO) {
+        protected void registerMetadata(final MetaDataRegisterDTO metaDataDTO) {
 
         }
 
         @Override
-        protected String buildHandle(List<URIRegisterDTO> uriList, SelectorDO selectorDO) {
+        protected String buildHandle(final List<URIRegisterDTO> uriList, final SelectorDO selectorDO) {
             return null;
         }
 
