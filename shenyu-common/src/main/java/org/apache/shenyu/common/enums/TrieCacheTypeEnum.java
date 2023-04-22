@@ -46,6 +46,11 @@ public enum TrieCacheTypeEnum {
         this.trieType = trieType;
     }
     
+    /**
+     * get trie type.
+     *
+     * @return trie type
+     */
     public String getTrieType() {
         return trieType;
     }

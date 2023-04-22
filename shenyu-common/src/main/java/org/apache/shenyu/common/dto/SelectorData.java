@@ -92,7 +92,7 @@ public class SelectorData {
         this.handle = builder.handle;
         this.conditionList = builder.conditionList;
         this.matchRestful = builder.matchRestful;
-        this.beforeConditionList = builder.beforeConditionList;;
+        this.beforeConditionList = builder.beforeConditionList;
     }
 
     /**

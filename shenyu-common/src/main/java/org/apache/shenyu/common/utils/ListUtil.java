@@ -194,8 +194,8 @@ public final class ListUtil {
      *
      * @param list collections
      * @param clazz class type
-     * @return the result
      * @param <T> the type parameter
+     * @return the result
      */
     public static <T> List<T> castLit(final List<?> list, final Class<T> clazz) {
         if (CollectionUtils.isEmpty(list)) {

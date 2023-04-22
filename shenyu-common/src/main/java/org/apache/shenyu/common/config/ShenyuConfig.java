@@ -45,8 +45,6 @@ public class ShenyuConfig {
     private FallbackPath fallback = new FallbackPath();
     
     private ExtPlugin extPlugin = new ExtPlugin();
-
-    private MatchCache matchCache = new MatchCache();
     
     private Scheduler scheduler = new Scheduler();
     
@@ -210,24 +208,6 @@ public class ShenyuConfig {
      */
     public void setExtPlugin(final ExtPlugin extPlugin) {
         this.extPlugin = extPlugin;
-    }
-
-    /**
-     * Gets match cache.
-     *
-     * @return the match cache
-     */
-    public MatchCache getMatchCache() {
-        return matchCache;
-    }
-
-    /**
-     * Sets match cache.
-     *
-     * @param matchCache the match cache
-     */
-    public void setMatchCache(final MatchCache matchCache) {
-        this.matchCache = matchCache;
     }
     
     /**
@@ -546,59 +526,13 @@ public class ShenyuConfig {
             this.scheduleDelay = scheduleDelay;
         }
     }
-
-    /**
-     * the match cache.
-     */
-    public static class MatchCache {
-        
-        private SelectorCacheConfig selector = new SelectorCacheConfig();
-        
-        private RuleCacheConfig rule = new RuleCacheConfig();
-    
-        /**
-         * get selector cache config.
-         *
-         * @return {@linkplain SelectorCacheConfig}
-         */
-        public SelectorCacheConfig getSelector() {
-            return selector;
-        }
-    
-        /**
-         * set selector cache config.
-         *
-         * @param selector SelectorCacheConfig
-         */
-        public void setSelector(final SelectorCacheConfig selector) {
-            this.selector = selector;
-        }
-    
-        /**
-         * get rule cache Config.
-         *
-         * @return rule cache config
-         */
-        public RuleCacheConfig getRule() {
-            return rule;
-        }
-    
-        /**
-         * set rule cache config.
-         *
-         * @param rule rule cache
-         */
-        public void setRule(final RuleCacheConfig rule) {
-            this.rule = rule;
-        }
-    }
     
     public static class SelectorMatchCache {
         
         /**
          * the match cache, L1 cache.
          */
-        private SelectorCacheConfig cache = new SelectorCacheConfig();
+        private MatchCacheConfig cache = new MatchCacheConfig();
         
         /**
          * the trie cache, L2 cache.
@@ -608,9 +542,9 @@ public class ShenyuConfig {
 /**
          * get selector cache config.
          *
-         * @return {@linkplain SelectorCacheConfig}
+         * @return {@linkplain MatchCacheConfig}
          */
-        public SelectorCacheConfig getCache() {
+        public MatchCacheConfig getCache() {
             return cache;
         }
         
@@ -619,7 +553,7 @@ public class ShenyuConfig {
          *
          * @param cache SelectorCacheConfig
          */
-        public void setCache(final SelectorCacheConfig cache) {
+        public void setCache(final MatchCacheConfig cache) {
             this.cache = cache;
         }
         
@@ -647,7 +581,7 @@ public class ShenyuConfig {
         /**
          * the match cache, L1 cache.
          */
-        private RuleCacheConfig cache = new RuleCacheConfig();
+        private MatchCacheConfig cache = new MatchCacheConfig();
         
         /**
          * the trie cache, L2 cache.
@@ -657,9 +591,9 @@ public class ShenyuConfig {
         /**
          * get selector cache config.
          *
-         * @return {@linkplain SelectorCacheConfig}
+         * @return {@linkplain MatchCacheConfig}
          */
-        public RuleCacheConfig getCache() {
+        public MatchCacheConfig getCache() {
             return cache;
         }
         
@@ -668,7 +602,7 @@ public class ShenyuConfig {
          *
          * @param cache SelectorCacheConfig
          */
-        public void setCache(final RuleCacheConfig cache) {
+        public void setCache(final MatchCacheConfig cache) {
             this.cache = cache;
         }
         
@@ -692,81 +626,9 @@ public class ShenyuConfig {
     }
     
     /**
-     * selector cache.
-     */
-    public static class SelectorCacheConfig {
-        
-        private Boolean enabled = Boolean.FALSE;
-    
-        /**
-         * initialCapacity.
-         */
-        private int initialCapacity = 10000;
-    
-        /**
-         * maximumSize.
-         */
-        private long maximumSize = 10000L;
-    
-        /**
-         * Get selector cache enabled.
-         *
-         * @return the enabled
-         */
-        public Boolean getEnabled() {
-            return enabled;
-        }
-    
-        /**
-         * Set selector enabled.
-         *
-         * @param enabled the enabled
-         */
-        public void setEnabled(final Boolean enabled) {
-            this.enabled = enabled;
-        }
-    
-        /**
-         * get initialCapacity.
-         *
-         * @return initialCapacity
-         */
-        public int getInitialCapacity() {
-            return initialCapacity;
-        }
-    
-        /**
-         * set initialCapacity.
-         *
-         * @param initialCapacity initialCapacity
-         */
-        public void setInitialCapacity(final int initialCapacity) {
-            this.initialCapacity = initialCapacity;
-        }
-    
-        /**
-         * get maximumSize.
-         *
-         * @return maximumSize
-         */
-        public long getMaximumSize() {
-            return maximumSize;
-        }
-    
-        /**
-         * set maximumSize.
-         *
-         * @param maximumSize maximumSize
-         */
-        public void setMaximumSize(final long maximumSize) {
-            this.maximumSize = maximumSize;
-        }
-    }
-    
-    /**
      * rule cache config.
      */
-    public static class RuleCacheConfig {
+    public static class MatchCacheConfig {
         
         private Boolean enabled = Boolean.TRUE;
 
