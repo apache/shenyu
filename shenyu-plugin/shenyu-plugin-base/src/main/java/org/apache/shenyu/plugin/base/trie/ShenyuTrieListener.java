@@ -69,27 +69,12 @@ public class ShenyuTrieListener implements ApplicationListener<TrieEvent> {
             switch (eventEnum) {
                 case INSERT:
                     insertTrieNode(uriPaths, source, cacheTypeEnum, shenyuTrie);
-                    //synchronized (ruleData.getId()) {
-                    //    // insert rule data must remove original rule, and the operation must atomic
-                    //    shenyuTrie.remove(uriPaths, ruleData);
-                    //    shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
-                    //}
                     break;
                 case UPDATE:
                     updateTrieNode(uriPaths, source, cacheTypeEnum, shenyuTrie);
-                    //final List<ConditionData> beforeConditionDataList = ruleData.getBeforeConditionDataList();
-                    //List<String> beforeUriPaths = beforeConditionDataList.stream()
-                    //        .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
-                    //        .map(ConditionData::getParamValue)
-                    //        .collect(Collectors.toList());
-                    //
-                    //// old condition remove
-                    //shenyuTrie.remove(beforeUriPaths, ruleData);
-                    //shenyuTrie.putNode(uriPaths, ruleData, ruleData.getId());
                     break;
                 case REMOVE:
                     removeTrieNode(uriPaths, source, cacheTypeEnum, shenyuTrie);
-                    //shenyuTrie.remove(uriPaths, ruleData);
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
@@ -106,7 +91,7 @@ public class ShenyuTrieListener implements ApplicationListener<TrieEvent> {
     
     private <T> void updateTrieNode(final List<String> uriPaths, final T data, final TrieCacheTypeEnum cacheTypeEnum, final ShenyuTrie trie) {
         final List<ConditionData> beforeConditionDataList;
-        if (data.getClass() == RuleData.class) {
+        if (TrieCacheTypeEnum.RULE.equals(cacheTypeEnum)) {
             RuleData ruleData = (RuleData) data;
             beforeConditionDataList = ruleData.getBeforeConditionDataList();
         } else {

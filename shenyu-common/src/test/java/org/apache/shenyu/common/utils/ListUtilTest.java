@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.utils;
+package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.utils.ListUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import java.util.Collections;

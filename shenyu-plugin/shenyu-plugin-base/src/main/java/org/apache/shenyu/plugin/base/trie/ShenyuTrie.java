@@ -146,10 +146,10 @@ public class ShenyuTrie {
         }
         if (TrieCacheTypeEnum.RULE.equals(cacheType)) {
             RuleData ruleData = (RuleData) source;
-            //List<RuleData> ruleDataList = (List<RuleData>) node.getPathCache().get(ruleData.getSelectorId());
-            List<RuleData> ruleDataList = ListUtil.castLit(node.getPathCache().get(ruleData.getSelectorId()), RuleData.class);
-            if (CollectionUtils.isNotEmpty(ruleDataList)) {
+            List<?> collections = node.getPathCache().get(ruleData.getSelectorId());
+            if (CollectionUtils.isNotEmpty(collections)) {
                 // synchronized list
+                List<RuleData> ruleDataList = ListUtil.castLit(collections, RuleData.class);
                 synchronized (ruleData.getId()) {
                     ruleDataList.add(ruleData);
                     ruleDataList.sort(Comparator.comparing(RuleData::getSort));
@@ -161,10 +161,10 @@ public class ShenyuTrie {
             node.setBizInfo(ruleData.getSelectorId());
         } else if (TrieCacheTypeEnum.SELECTOR.equals(cacheType)) {
             SelectorData selectorData = (SelectorData) source;
-            //List<SelectorData> selectorDataList = (List<SelectorData>) node.getPathCache().get(selectorData.getPluginName());
-            List<SelectorData> selectorDataList = ListUtil.castLit(node.getPathCache().get(selectorData.getPluginName()), SelectorData.class);
-            if (CollectionUtils.isNotEmpty(selectorDataList)) {
+            List<?> collections = node.getPathCache().get(selectorData.getPluginName());
+            if (CollectionUtils.isNotEmpty(collections)) {
                 // synchronized list
+                List<SelectorData> selectorDataList = ListUtil.castLit(collections, SelectorData.class);
                 synchronized (selectorData.getId()) {
                     selectorDataList.add(selectorData);
                     selectorDataList.sort(Comparator.comparing(SelectorData::getSort));
@@ -198,7 +198,7 @@ public class ShenyuTrie {
         ShenyuTrieNode matchNode;
         while (startIndex < pathParts.length) {
             String pathPart = pathParts[startIndex];
-            boolean endPath = Integer.compare(startIndex, pathParts.length - 1) == 0;
+            boolean endPath = startIndex == pathParts.length - 1;
             if (Objects.isNull(currentNode)) {
                 return null;
             }
@@ -282,7 +282,6 @@ public class ShenyuTrie {
         }
         String strippedPath = StringUtils.strip(path, "/");
         String[] pathParts = StringUtils.split(strippedPath, "/");
-        String key = pathParts[pathParts.length - 1];
         ShenyuTrieNode currentNode = this.getNode(path);
         // node is not null, judge exist many plugin mapping
         if (Objects.nonNull(currentNode) && Objects.nonNull(currentNode.getPathCache())) {
@@ -290,26 +289,11 @@ public class ShenyuTrie {
                 RuleData ruleData = (RuleData) source;
                 List<?> dataList = currentNode.getPathCache().get(ruleData.getSelectorId());
                 Optional.ofNullable(dataList).ifPresent(col -> removeRuleData(currentNode, pathParts, ruleData, col));
-                
             } else if (TrieCacheTypeEnum.SELECTOR.equals(cacheType)) {
                 SelectorData selectorData = (SelectorData) source;
                 List<?> dataList = currentNode.getPathCache().get(selectorData.getPluginName());
                 Optional.ofNullable(dataList).ifPresent(col -> removeSelectorData(currentNode, pathParts, selectorData, col));
             }
-             //check current mapping
-            //List<RuleData> ruleDataList = getVal(currentNode.getPathCache(), ruleData.getSelectorId());
-            //ruleDataList = Optional.ofNullable(ruleDataList).orElse(Collections.emptyList());
-            //synchronized (ruleData.getId()) {
-            //    ruleDataList.removeIf(rule -> ruleData.getId().equals(rule.getId()));
-            //}
-            //if (CollectionUtils.isEmpty(ruleDataList) && Objects.isNull(currentNode.getChildren())
-            //        && Objects.isNull(currentNode.getPathVariablesSet())) {
-            //    // remove current node from parent node
-            //    String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
-            //    String parentPath = String.join("/", parentPathArray);
-            //    ShenyuTrieNode parentNode = this.getNode(parentPath);
-            //    parentNode.getChildren().remove(key);
-            //}
         }
     }
     
@@ -349,7 +333,6 @@ public class ShenyuTrie {
      * @param pathParts path array
      */
     private void checkLegalPath(final String uriPath, final String[] pathParts) {
-        //int position = Arrays.binarySearch(pathParts, 0, pathParts.length, MATCH_ALL);
         for (int i = 0; i < pathParts.length - 1 /* not the end of path */; i++) {
             if (isMatchAll(pathParts[i])) {
                 LOG.error("error path:{}, error position:{}", uriPath, i);
@@ -470,22 +453,18 @@ public class ShenyuTrie {
     }
     
     private ShenyuTrieNode getAccessAbleNode(final int[] arr, final ShenyuTrieNode node, final int startIndex, final String type, final String pathPart) {
-        if (WILDCARD.equals(type)) {
-            if (arr[startIndex] == 0) {
-                ShenyuTrieNode wildcardNode = findMatchWildcard(node.getChildren(), pathPart);
-                if (Objects.nonNull(wildcardNode)) {
-                    arr[startIndex] = 1;
-                    return wildcardNode;
-                }
+        if (WILDCARD.equals(type) && arr[startIndex] == 0) {
+            ShenyuTrieNode wildcardNode = findMatchWildcard(node.getChildren(), pathPart);
+            if (Objects.nonNull(wildcardNode)) {
+                arr[startIndex] = 1;
+                return wildcardNode;
             }
         }
-        if (MATCH_ALL.equals(type)) {
-            if (arr[startIndex] == 0) {
-                ShenyuTrieNode matchAllNode = getVal(node.getChildren(), MATCH_ALL);
-                if (Objects.nonNull(matchAllNode)) {
-                    arr[startIndex] = 1;
-                    return matchAllNode;
-                }
+        if (MATCH_ALL.equals(type) && arr[startIndex] == 0) {
+            ShenyuTrieNode matchAllNode = getVal(node.getChildren(), MATCH_ALL);
+            if (Objects.nonNull(matchAllNode)) {
+                arr[startIndex] = 1;
+                return matchAllNode;
             }
         }
         return null;
