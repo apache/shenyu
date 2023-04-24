@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.base.trie;
 
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
-import org.apache.shenyu.common.dto.RuleData;
 
 import java.io.Serializable;
 import java.util.List;
@@ -75,7 +74,7 @@ public class ShenyuTrieNode implements Serializable {
     /**
      * biz info, route info and any other info store here, e.g. ruleId, selectorId, pluginName and so on.
      */
-    private Object bizInfo;
+    private String bizInfo;
 
     public ShenyuTrieNode() {
     }
@@ -220,7 +219,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @return biz info
      */
-    public Object getBizInfo() {
+    public String getBizInfo() {
         return bizInfo;
     }
 
@@ -229,7 +228,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param bizInfo bizInfo
      */
-    public void setBizInfo(final Object bizInfo) {
+    public void setBizInfo(final String bizInfo) {
         this.bizInfo = bizInfo;
     }
 

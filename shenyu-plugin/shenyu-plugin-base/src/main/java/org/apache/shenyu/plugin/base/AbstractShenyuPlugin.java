@@ -158,10 +158,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             selectorMatchConfig = shenyuConfig.getSelectorMatchCache();
             ruleMatchConfig = shenyuConfig.getRuleMatchCache();
         }
-        if (Objects.isNull(selectorTrie)) {
+        if (Objects.isNull(selectorTrie) || Objects.isNull(ruleTrie)) {
             selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
-        }
-        if (Objects.isNull(ruleTrie)) {
             ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
         }
     }
@@ -175,11 +173,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private void cacheSelectorData(final String path, final SelectorData selectorData) {
-        if (Boolean.FALSE.equals(selectorMatchConfig.getCache().getEnabled()) || Objects.isNull(selectorData)) {
-            return;
-        }
-        if (Objects.isNull(selectorData.getMatchRestful())
-                || (Objects.nonNull(selectorData.getMatchRestful()) && selectorData.getMatchRestful())) {
+        if (Boolean.FALSE.equals(selectorMatchConfig.getCache().getEnabled()) || Objects.isNull(selectorData)
+                || Boolean.FALSE.equals(selectorData.getMatchRestful())) {
             return;
         }
         int initialCapacity = selectorMatchConfig.getCache().getInitialCapacity();
@@ -199,12 +194,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     
     private void cacheRuleData(final String path, final RuleData ruleData) {
         // if the ruleCache is disabled or rule data is null, not cache rule data.
-        if (Boolean.FALSE.equals(ruleMatchConfig.getCache().getEnabled()) || Objects.isNull(ruleData)) {
-            return;
-        }
-        // if the field of matchRestful is true, not cache rule data. the field is false, cache rule data.
-        if (Objects.isNull(ruleData.getMatchRestful())
-                || (Objects.nonNull(ruleData.getMatchRestful()) && ruleData.getMatchRestful())) {
+        if (Boolean.FALSE.equals(ruleMatchConfig.getCache().getEnabled()) || Objects.isNull(ruleData)
+                || Boolean.FALSE.equals(ruleData.getMatchRestful())) {
             return;
         }
         int initialCapacity = ruleMatchConfig.getCache().getInitialCapacity();
@@ -319,13 +310,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, SelectorData> selectorDataPair;
                 if (collection.size() < 2) {
-                    Object selector = collection.stream().findFirst().orElse(null);
-                    selectorDataPair = Objects.nonNull(selector) ? Pair.of(Boolean.TRUE, (SelectorData) selector) : Pair.of(Boolean.FALSE, null);
+                    Object selectorObj = collection.stream().findFirst().orElse(null);
+                    SelectorData selector = Objects.nonNull(selectorObj) ? (SelectorData) selectorObj : null;
+                    boolean cached = Objects.nonNull(selector) && selector.getConditionList().stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
+                    selectorDataPair = Pair.of(cached, selector);
                 } else {
                     selectorDataPair = matchSelector(exchange, ListUtil.castLit(collection, SelectorData.class));
                 }
                 selectorData = selectorDataPair.getRight();
-                if (selectorDataPair.getLeft()) {
+                if (selectorDataPair.getLeft() && Objects.nonNull(selectorData)) {
                     cacheSelectorData(path, selectorData);
                 }
             }
@@ -345,13 +338,15 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, RuleData> ruleDataPair;
                 if (collection.size() < 2) {
-                    Object rule = collection.stream().findFirst().orElse(null);
-                    ruleDataPair = Objects.nonNull(rule) ? Pair.of(Boolean.TRUE, (RuleData) rule) : Pair.of(Boolean.FALSE, null);
+                    Object ruleObj = collection.stream().findFirst().orElse(null);
+                    RuleData rule = Objects.nonNull(ruleObj) ? (RuleData) ruleObj : null;
+                    boolean cached = Objects.nonNull(rule) && rule.getConditionDataList().stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
+                    ruleDataPair = Pair.of(cached, rule);
                 } else {
                     ruleDataPair = matchRule(exchange, ListUtil.castLit(collection, RuleData.class));
                 }
                 ruleData = ruleDataPair.getRight();
-                if (ruleDataPair.getLeft()) {
+                if (ruleDataPair.getLeft() && Objects.nonNull(ruleData)) {
                     // exist only one rule data, cache rule
                     cacheRuleData(path, ruleData);
                 }

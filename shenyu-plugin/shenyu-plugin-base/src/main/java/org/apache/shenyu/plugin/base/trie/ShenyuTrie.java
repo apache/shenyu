@@ -178,13 +178,20 @@ public class ShenyuTrie {
     }
 
     /**
-     * match trie, trie exist and match the path will return current node.
+     * match trie, trie exist and match the path will return current node <br>
+     * match strategy: plugin get the node from trie and mark conflict, match sort: path > wildcard > match-all, path variable.
+     * generally, wildcard, match-all, path-variable have the same matching rights as path, if there are the above path
+     * matching variables in the child nodes of the current node, multi-marking will be performed.<br>
+     * how to mark conflict: if current node has many conflict node, match mark number increment.<br>
+     * match conflict: if current node has conflict node, mark the conflict with array index, traverse over trie,
+     * if plugin can't get node from trie, check conflict, and resolve conflict, if plugin has resolve conflict
+     * but can't get node from trie, return null.
      *
      * @param uriPath uri path
      * @param bizInfo bizInfo
      * @return {@linkplain ShenyuTrieNode}
      */
-    public ShenyuTrieNode match(final String uriPath, final Object bizInfo) {
+    public ShenyuTrieNode match(final String uriPath, final String bizInfo) {
         String strippedPath = StringUtils.strip(uriPath, "/");
         String[] pathParts = StringUtils.split(strippedPath, "/");
         if (ArrayUtils.isEmpty(pathParts)) {
@@ -203,26 +210,43 @@ public class ShenyuTrie {
                 return null;
             }
             if (containsKey(currentNode.getChildren(), pathPart)) {
-                currentNode = getVal(currentNode.getChildren(), pathPart);
+                ShenyuTrieNode newNode = getVal(currentNode.getChildren(), pathPart);
+                // current node maybe conflict with wildcard or matchAll
+                if (currentNode.getChildren().containsKey(WILDCARD) && wildcard[startIndex] == 0) {
+                    wildcard[startIndex] = 1;
+                }
+                if (currentNode.getChildren().containsKey(MATCH_ALL) && matchAll[startIndex] == 0) {
+                    matchAll[startIndex] = 1;
+                }
+                currentNode = newNode;
                 startIndex++;
                 if (!endPath && Objects.nonNull(currentNode) && !currentNode.getEndOfPath()) {
                     continue;
                 }
             } else if (hasWildcardNode(currentNode.getChildren(), pathPart) && wildcard[startIndex] == 0
-                    && Objects.nonNull(matchNode = getAccessAbleNode(wildcard, currentNode, startIndex, WILDCARD, pathPart))) {
+                    && Objects.nonNull(matchNode = getAccessibleNode(wildcard, currentNode, startIndex, WILDCARD, pathPart))) {
+                if (currentNode.getChildren().containsKey(MATCH_ALL) && matchAll[startIndex] == 0) {
+                    matchAll[startIndex] = 1;
+                }
+                if (Objects.nonNull(currentNode.getPathVariableNode()) && pathVariable[startIndex] == 0) {
+                    pathVariable[startIndex] = 1;
+                }
                 currentNode = matchNode;
                 startIndex++;
                 if (!endPath && !currentNode.getEndOfPath()) {
                     continue;
                 }
             } else if (containsKey(currentNode.getChildren(), MATCH_ALL) && matchAll[startIndex] == 0
-                    && Objects.nonNull(matchNode = getAccessAbleNode(matchAll, currentNode, startIndex, MATCH_ALL, pathPart))) {
+                    && Objects.nonNull(matchNode = getAccessibleNode(matchAll, currentNode, startIndex, MATCH_ALL, pathPart))) {
+                if (Objects.nonNull(currentNode.getPathVariableNode()) && pathVariable[startIndex] == 0) {
+                    pathVariable[startIndex] = 1;
+                }
                 currentNode = matchNode;
                 startIndex++;
                 if (!endPath && !currentNode.getEndOfPath()) {
                     continue;
                 }
-            } else if (Objects.nonNull(currentNode.getPathVariableNode())) {
+            } else if (Objects.nonNull(currentNode.getPathVariableNode()) && pathVariable[startIndex] == 0) {
                 if (pathVariable[startIndex] == 0 && Objects.nonNull(currentNode.getPathVariableNode())) {
                     pathVariable[startIndex] = 1;
                 }
@@ -237,7 +261,7 @@ public class ShenyuTrie {
             }
             // resolve conflict int mathAll, wildcard, pathVariable
             if (startIndex >= pathParts.length - 1) {
-                Pair<Integer, ShenyuTrieNode> pair = resolveConflict(wildcard, matchAll, pathVariable);
+                Pair<Integer, ShenyuTrieNode> pair = resolveConflict(pathParts, wildcard, matchAll, pathVariable);
                 if (Objects.nonNull(pair)) {
                     startIndex = pair.getLeft();
                     currentNode = pair.getRight();
@@ -314,11 +338,8 @@ public class ShenyuTrie {
         for (int i = 0; i < pathParts.length; i++) {
             String key = pathParts[i];
             if (Objects.nonNull(node)) {
-                if (isPathVariable(key) && Objects.nonNull(node.getPathVariablesSet())) {
-                    node = node.getPathVariablesSet().get(key);
-                } else {
-                    node = getVal(node.getChildren(), key);
-                }
+                node = isPathVariable(key) && Objects.nonNull(node.getPathVariablesSet())
+                        ? node.getPathVariablesSet().get(key) : getVal(node.getChildren(), key);
             }
             if (i == pathParts.length - 1) {
                 return node;
@@ -440,6 +461,9 @@ public class ShenyuTrie {
     private void removeData(final String[] pathParts) {
         String key = pathParts[pathParts.length - 1];
         String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
+        if (ArrayUtils.isEmpty(parentPathArray)) {
+            return;
+        }
         String parentPath = String.join("/", parentPathArray);
         ShenyuTrieNode parentNode = this.getNode(parentPath);
         parentNode.getChildren().remove(key);
@@ -452,7 +476,7 @@ public class ShenyuTrie {
         return children.values().stream().anyMatch(ShenyuTrieNode::getWildcard);
     }
     
-    private ShenyuTrieNode getAccessAbleNode(final int[] arr, final ShenyuTrieNode node, final int startIndex, final String type, final String pathPart) {
+    private ShenyuTrieNode getAccessibleNode(final int[] arr, final ShenyuTrieNode node, final int startIndex, final String type, final String pathPart) {
         if (WILDCARD.equals(type) && arr[startIndex] == 0) {
             ShenyuTrieNode wildcardNode = findMatchWildcard(node.getChildren(), pathPart);
             if (Objects.nonNull(wildcardNode)) {
@@ -527,25 +551,34 @@ public class ShenyuTrie {
         return true;
     }
     
-    private boolean checkNode(final boolean endPath, final ShenyuTrieNode currentNode, final Object bizInfo) {
+    private boolean checkNode(final boolean endPath, final ShenyuTrieNode currentNode, final String bizInfo) {
         return endPath && Objects.nonNull(currentNode) && currentNode.getEndOfPath()
                 && bizInfo.equals(currentNode.getBizInfo()) && Objects.nonNull(currentNode.getPathCache())
                 && CollectionUtils.isNotEmpty(currentNode.getPathCache().get(bizInfo));
     }
     
-    private Pair<Integer, ShenyuTrieNode> resolveConflict(final int[] wildcard, final int[] matchAll, final int[] pathVariable) {
+    private boolean hasConflict(final int[] wildcard, final int[] matchAll, final int[] pathVariable) {
+        return ArrayUtils.contains(wildcard, 1) && ArrayUtils.contains(matchAll, 1)
+                || ArrayUtils.contains(wildcard, 1) && ArrayUtils.contains(pathVariable, 1)
+                || ArrayUtils.contains(matchAll, 1) && ArrayUtils.contains(pathVariable, 1);
+    }
+    
+    private Pair<Integer, ShenyuTrieNode> resolveConflict(final String[] pathParts, final int[] wildcard, final int[] matchAll, final int[] pathVariable) {
         BitSet wildcardSet = ArrayUtils.indexesOf(wildcard, 1);
         BitSet matchAllSet = ArrayUtils.indexesOf(matchAll, 1);
         BitSet pathVariableSet = ArrayUtils.indexesOf(pathVariable, 1);
         if (!wildcardSet.isEmpty()) {
-            wildcard[wildcardSet.nextSetBit(0)] = -1;
-            return Pair.of(0, root);
+            int index = wildcardSet.nextSetBit(0);
+            wildcard[index] = -1;
+            return Pair.of(0, this.getNode(StringUtils.join(pathParts, "/", 0, index)));
         } else if (!matchAllSet.isEmpty()) {
-            matchAll[matchAllSet.nextSetBit(0)] = -1;
-            return Pair.of(0, root);
+            int index = matchAllSet.nextSetBit(0);
+            matchAll[index] = -1;
+            return Pair.of(0, this.getNode(StringUtils.join(pathParts, "/", 0, index)));
         } else if (!pathVariableSet.isEmpty()) {
-            pathVariable[pathVariableSet.nextSetBit(0)] = -1;
-            return Pair.of(0, root);
+            int index = pathVariableSet.nextSetBit(0);
+            pathVariable[index] = -1;
+            return Pair.of(0, this.getNode(StringUtils.join(pathParts, "/", 0, index)));
         } else {
             return null;
         }
@@ -602,17 +635,11 @@ public class ShenyuTrie {
     }
 
     private static <V> boolean containsKey(final Map<String, V> cache, final String key) {
-        if (Objects.isNull(cache)) {
-            return false;
-        }
-        return cache.containsKey(key);
+        return Objects.nonNull(cache) && cache.containsKey(key);
     }
 
     private static <V> V getVal(final Map<String, V> cache, final String key) {
-        if (Objects.nonNull(cache)) {
-            return cache.get(key);
-        }
-        return null;
+        return Objects.nonNull(cache) ? cache.get(key) : null;
     }
     
     private static <V> void cleanup(final Map<String, V> cache) {

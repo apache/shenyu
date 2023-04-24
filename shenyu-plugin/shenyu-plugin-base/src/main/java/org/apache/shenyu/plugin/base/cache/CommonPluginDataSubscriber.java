@@ -65,7 +65,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
      * @param selectorTrieConfig    shenyu selector trie config
      * @param ruleTrieConfig        shenyu selector trie config
      */
-    public CommonPluginDataSubscriber(final List<PluginDataHandler> pluginDataHandlerList, final ShenyuTrieConfig selectorTrieConfig, ShenyuTrieConfig ruleTrieConfig) {
+    public CommonPluginDataSubscriber(final List<PluginDataHandler> pluginDataHandlerList, final ShenyuTrieConfig selectorTrieConfig, final ShenyuTrieConfig ruleTrieConfig) {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
         this.selectorTrieConfig = selectorTrieConfig;
         this.ruleTrieConfig = ruleTrieConfig;

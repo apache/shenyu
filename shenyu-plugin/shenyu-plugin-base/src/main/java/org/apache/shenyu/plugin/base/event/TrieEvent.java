@@ -40,7 +40,7 @@ public class TrieEvent extends ApplicationEvent {
      * @param source            data
      
      */
-    public <T> TrieEvent(final TrieEventEnum trieEventEnum, TrieCacheTypeEnum trieCacheTypeEnum, final T source) {
+    public <T> TrieEvent(final TrieEventEnum trieEventEnum, final TrieCacheTypeEnum trieCacheTypeEnum, final T source) {
         super(source);
         this.trieEventEnum = trieEventEnum;
         this.trieCacheTypeEnum = trieCacheTypeEnum;

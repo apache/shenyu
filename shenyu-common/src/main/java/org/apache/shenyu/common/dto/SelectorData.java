@@ -60,13 +60,13 @@ public class SelectorData {
 
     private List<ConditionData> conditionList;
     
+    private List<ConditionData> beforeConditionList;
+    
     /**
      * match restful api.
      */
-    private Boolean matchRestful;
+    private Boolean matchRestful = Boolean.FALSE;
     
-    private List<ConditionData> beforeConditionList;
-
     /**
      * no args constructor.
      */

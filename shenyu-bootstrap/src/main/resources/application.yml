@@ -82,7 +82,7 @@ shenyu:
   ruleMatchCache:
     ## rule L1 cache
     cache:
-      enabled: true
+      enabled: false
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 65536 # max size in cache
     ## rule L2 cache, use trie as L2 cache

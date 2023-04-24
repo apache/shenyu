@@ -500,4 +500,36 @@ public class ShenyuTrieTest {
         Assertions.assertNull(shenyuAntPathTrie.match("/a/c/egh/klm", "1"));
     }
     
+    @Test
+    public void conflictMatchTest() {
+        ConditionData conditionData = new ConditionData();
+        conditionData.setParamType(ParamTypeEnum.URI.getName());
+        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
+        conditionData.setParamName("/");
+        conditionData.setParamValue("/a/b/c/**");
+        RuleData ruleData = RuleData.builder()
+                .id("1")
+                .pluginName("test")
+                .selectorId("2")
+                .name("test-plugin-rule")
+                .enabled(true)
+                .sort(1)
+                .conditionDataList(Collections.singletonList(conditionData))
+                .build();
+        
+        RuleData ruleData2 = RuleData.builder()
+                .id("2")
+                .pluginName("test3")
+                .selectorId("3")
+                .name("test-plugin-rule")
+                .enabled(true)
+                .sort(1)
+                .conditionDataList(Collections.singletonList(conditionData))
+                .build();
+        
+        shenyuAntPathTrie.putNode("/http/**", ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode("/http/client/hello", ruleData2, TrieCacheTypeEnum.RULE);
+        Assertions.assertNotNull(shenyuAntPathTrie.match("/http/client/hello", "2"));;
+    }
+    
 }
