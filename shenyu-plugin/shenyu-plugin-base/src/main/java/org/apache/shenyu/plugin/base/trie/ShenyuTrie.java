@@ -570,15 +570,15 @@ public class ShenyuTrie {
         if (!wildcardSet.isEmpty()) {
             int index = wildcardSet.nextSetBit(0);
             wildcard[index] = -1;
-            return Pair.of(0, this.getNode(StringUtils.join(pathParts, "/", 0, index)));
+            return Pair.of(index, this.getNode(StringUtils.join(pathParts, "/", 0, index)));
         } else if (!matchAllSet.isEmpty()) {
             int index = matchAllSet.nextSetBit(0);
             matchAll[index] = -1;
-            return Pair.of(0, this.getNode(StringUtils.join(pathParts, "/", 0, index)));
+            return Pair.of(index, this.getNode(StringUtils.join(pathParts, "/", 0, index)));
         } else if (!pathVariableSet.isEmpty()) {
             int index = pathVariableSet.nextSetBit(0);
             pathVariable[index] = -1;
-            return Pair.of(0, this.getNode(StringUtils.join(pathParts, "/", 0, index)));
+            return Pair.of(index, this.getNode(StringUtils.join(pathParts, "/", 0, index)));
         } else {
             return null;
         }
