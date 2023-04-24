@@ -21,7 +21,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 /**
- * DiscoveryDO
+ * DiscoveryDO.
  */
 public final class DiscoveryDO extends BaseDO {
 
@@ -37,9 +37,12 @@ public final class DiscoveryDO extends BaseDO {
 
     private String props;
 
-    public DiscoveryDO() {}
+    public DiscoveryDO() {
 
-    public DiscoveryDO(String name, String type, String handler, String serviceList, String listenerNode, String props) {
+    }
+
+    public DiscoveryDO(final String name, final String type, final String handler, final String serviceList,
+                       final String listenerNode, final String props) {
         this.name = name;
         this.type = type;
         this.handler = handler;
@@ -48,8 +51,9 @@ public final class DiscoveryDO extends BaseDO {
         this.props = props;
     }
 
-    public DiscoveryDO(String id, Timestamp dateCreated, Timestamp dateUpdated, String name, String type, String handler,
-                       String serviceList, String listenerNode, String props) {
+    public DiscoveryDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String name,
+                       final String type, final String handler, final String serviceList, final String listenerNode,
+                       final String props) {
         super(id, dateCreated, dateUpdated);
         this.name = name;
         this.type = type;
@@ -60,7 +64,7 @@ public final class DiscoveryDO extends BaseDO {
     }
 
     /**
-     * get the name value
+     * get the name value.
      * @return the name value
      */
     public String getName() {
@@ -68,15 +72,15 @@ public final class DiscoveryDO extends BaseDO {
     }
 
     /**
-     * set the name value
+     * set the name value.
      * @param name the name value
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
     /**
-     * get the type value
+     * get the type value.
      * @return the type value
      */
     public String getType() {
@@ -84,10 +88,10 @@ public final class DiscoveryDO extends BaseDO {
     }
 
     /**
-     * set the type value
+     * set the type value.
      * @param type the type value
      */
-    public void setType(String type) {
+    public void setType(final String type) {
         this.type = type;
     }
 
@@ -103,12 +107,12 @@ public final class DiscoveryDO extends BaseDO {
      * set the handler.
      * @param handler the handler.
      */
-    public void setHandler(String handler) {
+    public void setHandler(final String handler) {
         this.handler = handler;
     }
 
     /**
-     * get the service list value
+     * get the service list value.
      * @return the service list value
      */
     public String getServiceList() {
@@ -116,15 +120,15 @@ public final class DiscoveryDO extends BaseDO {
     }
 
     /**
-     * set the service list
+     * set the service list.
      * @param serviceList he service list
      */
-    public void setServiceList(String serviceList) {
+    public void setServiceList(final String serviceList) {
         this.serviceList = serviceList;
     }
 
     /**
-     * get list node value
+     * get list node value.
      * @return list node value
      */
     public String getListenerNode() {
@@ -132,15 +136,15 @@ public final class DiscoveryDO extends BaseDO {
     }
 
     /**
-     * set list node value
+     * set list node value.
      * @param listenerNode list node value
      */
-    public void setListenerNode(String listenerNode) {
+    public void setListenerNode(final String listenerNode) {
         this.listenerNode = listenerNode;
     }
 
     /**
-     * get props value
+     * get props value.
      * @return props value
      */
     public String getProps() {
@@ -148,19 +152,24 @@ public final class DiscoveryDO extends BaseDO {
     }
 
     /**
-     * set props value
+     * set props value.
      * @param props props value
      */
-    public void setProps(String props) {
+    public void setProps(final String props) {
         this.props = props;
     }
 
+    /**
+     * builder.
+     *
+     * @return discoveryDOBuilder
+     */
     public static DiscoveryDO.DiscoveryDOBuilder builder() {
         return new DiscoveryDO.DiscoveryDOBuilder();
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
@@ -204,7 +213,9 @@ public final class DiscoveryDO extends BaseDO {
 
         private String props;
 
-        private DiscoveryDOBuilder() {}
+        private DiscoveryDOBuilder() {
+
+        }
 
         /**
          * id.
@@ -304,6 +315,10 @@ public final class DiscoveryDO extends BaseDO {
             return this;
         }
 
+        /**
+         * build DiscoveryDO.
+         * @return DiscoveryDO
+         */
         public DiscoveryDO build() {
             DiscoveryDO discoveryDO = new DiscoveryDO();
             discoveryDO.setId(id);

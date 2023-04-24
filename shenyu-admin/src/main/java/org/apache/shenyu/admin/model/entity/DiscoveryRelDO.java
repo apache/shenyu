@@ -21,7 +21,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 /**
- * DiscoveryRelDO
+ * DiscoveryRelDO.
  */
 public final class DiscoveryRelDO extends BaseDO {
 
@@ -31,15 +31,18 @@ public final class DiscoveryRelDO extends BaseDO {
 
     private String selectorId;
 
-    public DiscoveryRelDO() {}
+    public DiscoveryRelDO() {
 
-    public DiscoveryRelDO(String level, String discoveryId, String selectorId) {
+    }
+
+    public DiscoveryRelDO(final String level, final String discoveryId, final String selectorId) {
         this.level = level;
         this.discoveryId = discoveryId;
         this.selectorId = selectorId;
     }
 
-    public DiscoveryRelDO(String id, Timestamp dateCreated, Timestamp dateUpdated, String level, String discoveryId, String selectorId) {
+    public DiscoveryRelDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String level,
+                          final String discoveryId, final String selectorId) {
         super(id, dateCreated, dateUpdated);
         this.level = level;
         this.discoveryId = discoveryId;
@@ -58,7 +61,7 @@ public final class DiscoveryRelDO extends BaseDO {
      * set level value.
      * @param level level value.
      */
-    public void setLevel(String level) {
+    public void setLevel(final String level) {
         this.level = level;
     }
 
@@ -74,7 +77,7 @@ public final class DiscoveryRelDO extends BaseDO {
      * set discovery id.
      * @param discoveryId discovery id.
      */
-    public void setDiscoveryId(String discoveryId) {
+    public void setDiscoveryId(final String discoveryId) {
         this.discoveryId = discoveryId;
     }
 
@@ -90,12 +93,21 @@ public final class DiscoveryRelDO extends BaseDO {
      * set selector id.
      * @param selectorId selector id.
      */
-    public void setSelectorId(String selectorId) {
+    public void setSelectorId(final String selectorId) {
         this.selectorId = selectorId;
     }
 
+    /**
+     * builder.
+     *
+     * @return discoveryRelDOBuilder
+     */
+    public static DiscoveryRelDO.DiscoveryRelDOBuilder builder() {
+        return new DiscoveryRelDO.DiscoveryRelDOBuilder();
+    }
+
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
@@ -130,7 +142,9 @@ public final class DiscoveryRelDO extends BaseDO {
 
         private String selectorId;
 
-        private DiscoveryRelDOBuilder() {}
+        private DiscoveryRelDOBuilder() {
+
+        }
 
         /**
          * id.
@@ -198,6 +212,10 @@ public final class DiscoveryRelDO extends BaseDO {
             return this;
         }
 
+        /**
+         * build DiscoveryRelDO.
+         * @return DiscoveryRelDO
+         */
         public DiscoveryRelDO build() {
             DiscoveryRelDO discoveryRelDO = new DiscoveryRelDO();
             discoveryRelDO.setId(id);

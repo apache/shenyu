@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 
 /**
- * DiscoveryMapper
+ * DiscoveryMapper.
  */
 public interface DiscoveryMapper {
 
