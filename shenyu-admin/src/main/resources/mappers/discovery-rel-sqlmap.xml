@@ -22,6 +22,7 @@
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="level" jdbcType="VARCHAR" property="level"/>
         <result column="discovery_id" jdbcType="VARCHAR" property="discoveryId"/>
         <result column="selector_id" jdbcType="VARCHAR" property="selectorId"/>
     </resultMap>
@@ -30,6 +31,7 @@
         id,
         date_created,
         date_updated,
+        level,
         discovery_id,
         selector_id
     </sql>
@@ -46,12 +48,14 @@
         (id,
         date_created,
         date_updated,
+        level
         discovery_id,
         selector_id)
         VALUES
         (#{id, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP},
+        #{level, jdbcType=VARCHAR},
         #{discoveryId, jdbcType=VARCHAR},
         #{selectorId, jdbcType=VARCHAR})
     </insert>
@@ -65,6 +69,9 @@
             </if>
             <if test="dateUpdated != null">
                 date_updated,
+            </if>
+            <if test="level != null">
+                level,
             </if>
             <if test="discoveryId != null">
                 discovery_id,
@@ -81,6 +88,9 @@
             <if test="dateUpdated != null">
                 #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
+            <if test="level != null">
+                #{level, jdbcType=VARCHAR},
+            </if>
             <if test="discoveryId != null">
                 #{discoveryId, jdbcType=VARCHAR},
             </if>
@@ -94,6 +104,7 @@
         UPDATE discovery_rel
         SET date_created = #{dateCreated, jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+        level = #{level, jdbcType=VARCHAR},
         discovery_id = #{discoveryId, jdbcType=VARCHAR},
         selector_id = #{selectorId, jdbcType=VARCHAR}
         WHERE id = #{id, jdbcType=VARCHAR}
@@ -108,10 +119,13 @@
             <if test="dateUpdated != null">
                 date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
-            <if test="type != null">
+            <if test="level != null">
+                level = #{level, jdbcType=VARCHAR},
+            </if>
+            <if test="discoveryId != null">
                 discovery_id = #{discoveryId, jdbcType=VARCHAR},
             </if>
-            <if test="serviceList != null">
+            <if test="selectorId != null">
                 selector_id = #{selectorId, jdbcType=VARCHAR},
             </if>
         </set>

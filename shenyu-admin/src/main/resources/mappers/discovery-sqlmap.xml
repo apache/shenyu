@@ -22,7 +22,9 @@
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="handler" jdbcType="VARCHAR" property="handler"/>
         <result column="service_list" jdbcType="VARCHAR" property="serviceList"/>
         <result column="listener_node" jdbcType="VARCHAR" property="listenerNode"/>
         <result column="props" jdbcType="TEXT" property="props"/>
@@ -32,7 +34,9 @@
         id,
         date_created,
         date_updated,
+        name,
         type,
+        handler,
         service_list,
         listener_node,
         props
@@ -50,7 +54,9 @@
         (id,
         date_created,
         date_updated,
+        name,
         type,
+        handler,
         service_list,
         listener_node,
         props)
@@ -58,7 +64,9 @@
         (#{id, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP},
+        #{name, jdbcType=VARCHAR},
         #{type, jdbcType=VARCHAR},
+        #{handler, jdbcType=VARCHAR},
         #{serviceList, jdbcType=VARCHAR},
         #{listenerNode, jdbcType=VARCHAR},
         #{props, jdbcType=TEXT})
@@ -74,8 +82,14 @@
             <if test="dateUpdated != null">
                 date_updated,
             </if>
+            <if test="name != null">
+                name,
+            </if>
             <if test="type != null">
                 type,
+            </if>
+            <if test="handler != null">
+                handler,
             </if>
             <if test="serviceList != null">
                 service_list,
@@ -95,8 +109,14 @@
             <if test="dateUpdated != null">
                 #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
+            <if test="name != null">
+                #{name, jdbcType=VARCHAR},
+            </if>
             <if test="type != null">
                 #{type, jdbcType=VARCHAR},
+            </if>
+            <if test="handler != null">
+                #{handler, jdbcType=VARCHAR},
             </if>
             <if test="serviceList != null">
                 #{serviceList, jdbcType=VARCHAR},
@@ -114,7 +134,9 @@
         UPDATE discovery
         SET date_created = #{dateCreated, jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+        name = #{name, jdbcType=VARCHAR},
         type = #{type, jdbcType=VARCHAR},
+        handler = #{handler, jdbcType=VARCHAR},
         service_list = #{serviceList, jdbcType=VARCHAR},
         listener_node = #{listenerNode, jdbcType=VARCHAR},
         props = #{props, jdbcType=TEXT}
@@ -130,8 +152,14 @@
             <if test="dateUpdated != null">
                 date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
+            <if test="name != null">
+                type = #{name, jdbcType=VARCHAR},
+            </if>
             <if test="type != null">
                 type = #{type, jdbcType=VARCHAR},
+            </if>
+            <if test="handler != null">
+                type = #{handler, jdbcType=VARCHAR},
             </if>
             <if test="serviceList != null">
                 service_list = #{serviceList, jdbcType=VARCHAR},

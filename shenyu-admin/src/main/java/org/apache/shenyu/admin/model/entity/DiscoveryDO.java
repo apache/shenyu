@@ -25,7 +25,11 @@ import java.util.Objects;
  */
 public final class DiscoveryDO extends BaseDO {
 
+    private String name;
+
     private String type;
+
+    private String handler;
 
     private String serviceList;
 
@@ -35,19 +39,40 @@ public final class DiscoveryDO extends BaseDO {
 
     public DiscoveryDO() {}
 
-    public DiscoveryDO(String type, String serviceList, String listenerNode, String props) {
+    public DiscoveryDO(String name, String type, String handler, String serviceList, String listenerNode, String props) {
+        this.name = name;
         this.type = type;
+        this.handler = handler;
         this.serviceList = serviceList;
         this.listenerNode = listenerNode;
         this.props = props;
     }
 
-    public DiscoveryDO(String id, Timestamp dateCreated, Timestamp dateUpdated, String type, String serviceList, String listenerNode, String props) {
+    public DiscoveryDO(String id, Timestamp dateCreated, Timestamp dateUpdated, String name, String type, String handler,
+                       String serviceList, String listenerNode, String props) {
         super(id, dateCreated, dateUpdated);
+        this.name = name;
         this.type = type;
+        this.handler = handler;
         this.serviceList = serviceList;
         this.listenerNode = listenerNode;
         this.props = props;
+    }
+
+    /**
+     * get the name value
+     * @return the name value
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * set the name value
+     * @param name the name value
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -64,6 +89,22 @@ public final class DiscoveryDO extends BaseDO {
      */
     public void setType(String type) {
         this.type = type;
+    }
+
+    /**
+     * get the handler.
+     * @return the handler.
+     */
+    public String getHandler() {
+        return handler;
+    }
+
+    /**
+     * set the handler.
+     * @param handler the handler.
+     */
+    public void setHandler(String handler) {
+        this.handler = handler;
     }
 
     /**
@@ -130,7 +171,9 @@ public final class DiscoveryDO extends BaseDO {
             return false;
         }
         DiscoveryDO discoveryDO = (DiscoveryDO) o;
-        return Objects.equals(type, discoveryDO.type)
+        return Objects.equals(name, discoveryDO.name)
+                && Objects.equals(type, discoveryDO.type)
+                && Objects.equals(handler, discoveryDO.handler)
                 && Objects.equals(serviceList, discoveryDO.serviceList)
                 && Objects.equals(listenerNode, discoveryDO.listenerNode)
                 && Objects.equals(props, discoveryDO.props);
@@ -138,7 +181,7 @@ public final class DiscoveryDO extends BaseDO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), type, serviceList, listenerNode, props);
+        return Objects.hash(super.hashCode(), name, type, handler, serviceList, listenerNode, props);
     }
 
     public static final class DiscoveryDOBuilder {
@@ -149,7 +192,11 @@ public final class DiscoveryDO extends BaseDO {
 
         private Timestamp dateUpdated;
 
+        private String name;
+
         private String type;
+
+        private String handler;
 
         private String serviceList;
 
@@ -192,6 +239,17 @@ public final class DiscoveryDO extends BaseDO {
         }
 
         /**
+         * name.
+         *
+         * @param name the type.
+         * @return DiscoveryDOBuilder.
+         */
+        public DiscoveryDOBuilder name(final String name) {
+            this.name = name;
+            return this;
+        }
+
+        /**
          * type.
          *
          * @param type the type.
@@ -199,6 +257,17 @@ public final class DiscoveryDO extends BaseDO {
          */
         public DiscoveryDOBuilder type(final String type) {
             this.type = type;
+            return this;
+        }
+
+        /**
+         * handler.
+         *
+         * @param handler the handler.
+         * @return DiscoveryDOBuilder.
+         */
+        public DiscoveryDOBuilder handler(final String handler) {
+            this.handler = handler;
             return this;
         }
 
@@ -216,7 +285,7 @@ public final class DiscoveryDO extends BaseDO {
         /**
          * listenerNode.
          *
-         * @param serviceList the listenerNode.
+         * @param listenerNode the listenerNode.
          * @return DiscoveryDOBuilder.
          */
         public DiscoveryDOBuilder listenerNode(final String listenerNode) {
@@ -227,7 +296,7 @@ public final class DiscoveryDO extends BaseDO {
         /**
          * props.
          *
-         * @param serviceList the props.
+         * @param props the props.
          * @return DiscoveryDOBuilder.
          */
         public DiscoveryDOBuilder props(final String props) {
@@ -240,7 +309,9 @@ public final class DiscoveryDO extends BaseDO {
             discoveryDO.setId(id);
             discoveryDO.setDateCreated(dateCreated);
             discoveryDO.setDateUpdated(dateUpdated);
+            discoveryDO.setName(name);
             discoveryDO.setType(type);
+            discoveryDO.setHandler(handler);
             discoveryDO.setServiceList(serviceList);
             discoveryDO.setListenerNode(listenerNode);
             discoveryDO.setProps(props);

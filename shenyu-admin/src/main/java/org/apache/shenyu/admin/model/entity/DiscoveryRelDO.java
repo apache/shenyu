@@ -25,21 +25,41 @@ import java.util.Objects;
  */
 public final class DiscoveryRelDO extends BaseDO {
 
+    private String level;
+
     private String discoveryId;
 
     private String selectorId;
 
     public DiscoveryRelDO() {}
 
-    public DiscoveryRelDO(String discoveryId, String selectorId) {
+    public DiscoveryRelDO(String level, String discoveryId, String selectorId) {
+        this.level = level;
         this.discoveryId = discoveryId;
         this.selectorId = selectorId;
     }
 
-    public DiscoveryRelDO(String id, Timestamp dateCreated, Timestamp dateUpdated, String discoveryId, String selectorId) {
+    public DiscoveryRelDO(String id, Timestamp dateCreated, Timestamp dateUpdated, String level, String discoveryId, String selectorId) {
         super(id, dateCreated, dateUpdated);
+        this.level = level;
         this.discoveryId = discoveryId;
         this.selectorId = selectorId;
+    }
+
+    /**
+     * get level value.
+     * @return level value.
+     */
+    public String getLevel() {
+        return level;
+    }
+
+    /**
+     * set level value.
+     * @param level level value.
+     */
+    public void setLevel(String level) {
+        this.level = level;
     }
 
     /**
@@ -86,12 +106,14 @@ public final class DiscoveryRelDO extends BaseDO {
             return false;
         }
         DiscoveryRelDO that = (DiscoveryRelDO) o;
-        return Objects.equals(discoveryId, that.discoveryId) && Objects.equals(selectorId, that.selectorId);
+        return Objects.equals(level, that.level)
+                && Objects.equals(discoveryId, that.discoveryId)
+                && Objects.equals(selectorId, that.selectorId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), discoveryId, selectorId);
+        return Objects.hash(super.hashCode(), level, discoveryId, selectorId);
     }
 
     public static final class DiscoveryRelDOBuilder {
@@ -101,6 +123,8 @@ public final class DiscoveryRelDO extends BaseDO {
         private Timestamp dateCreated;
 
         private Timestamp dateUpdated;
+
+        private String level;
 
         private String discoveryId;
 
@@ -142,6 +166,17 @@ public final class DiscoveryRelDO extends BaseDO {
         }
 
         /**
+         * level.
+         *
+         * @param level the level.
+         * @return DiscoveryRelDOBuilder.
+         */
+        public DiscoveryRelDOBuilder level(final String level) {
+            this.level = level;
+            return this;
+        }
+
+        /**
          * discoveryId.
          *
          * @param discoveryId the discoveryId.
@@ -168,6 +203,7 @@ public final class DiscoveryRelDO extends BaseDO {
             discoveryRelDO.setId(id);
             discoveryRelDO.setDateCreated(dateCreated);
             discoveryRelDO.setDateUpdated(dateUpdated);
+            discoveryRelDO.setLevel(level);
             discoveryRelDO.setDiscoveryId(discoveryId);
             discoveryRelDO.setSelectorId(selectorId);
             return discoveryRelDO;
