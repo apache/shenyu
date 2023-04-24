@@ -111,6 +111,7 @@ shenyu:
       - /websocket
       - /error
       - /actuator/health
+      - /actuator/health/** # /actuator/health/readiness /actuator/health/liveness
       - /actuator/prometheus
       - /swagger-ui.html
       - /webjars/**

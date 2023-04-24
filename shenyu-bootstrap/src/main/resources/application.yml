@@ -73,7 +73,7 @@ shenyu:
       maximumSize: 10000 # max size in cache
     rule:
       initialCapacity: 10000 # initial capacity in cache
-      maximumSize: 10000 # max size in cache
+      maximumSize: 65536 # max size in cache
   trie:
     enabled: true
     childrenSize: 10000
@@ -85,7 +85,7 @@ shenyu:
       # set to false, user can custom the netty tcp server config.
       webServerFactoryEnabled: true
       selectCount: 1
-      workerCount: 4
+      workerCount: 8
       accessLog: false
       serverSocketChannel:
         soRcvBuf: 87380
@@ -238,6 +238,8 @@ shenyu:
     enabled: false
     paths:
       - /actuator/health
+      - /actuator/health/readiness
+      - /actuator/health/liveness
       - /health_check
   extPlugin:
     path:
