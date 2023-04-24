@@ -24,22 +24,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Test cases for HmacUtils.
  */
-public class HmacUtilsTest {
+public class HmacHexUtilsTest {
 
     @Test
     public void testHmacMd5Hex() {
-        assertEquals(HmacUtils.hmacMd5Hex("testKey", "testValue"), "3024ffb5567372102ca6775cf8140cb1");
+        assertEquals(HmacHexUtils.hmacMd5Hex("testKey", "testValue"), "3024ffb5567372102ca6775cf8140cb1");
     }
 
     @Test
     public void testHmacSha256Hex() {
-        assertEquals(HmacUtils.hmacSha256Hex("testKey", "testValue"),
+        assertEquals(HmacHexUtils.hmacSha256Hex("testKey", "testValue"),
             "c52d1ebe5e779f5b337dc8f515bf594bd44a7007cb3f4ab1f6c5a15149bed793");
     }
 
     @Test
     public void testHmacSha512Hex() {
-        assertEquals(HmacUtils.hmacSha512Hex("testKey", "testValue"),
+        assertEquals(HmacHexUtils.hmacSha512Hex("testKey", "testValue"),
             "99997ffdee76da2f016fe4ee9256c3361c7dc9f1588be5cabeca9e541f8224db00b10260f4885eaaf29edab66574237058d43f5644b47e0fc13e66b89dbcde68");
     }
 }
