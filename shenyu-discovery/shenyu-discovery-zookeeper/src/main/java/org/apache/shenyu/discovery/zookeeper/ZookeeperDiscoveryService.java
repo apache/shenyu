@@ -53,12 +53,12 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void init(final DiscoveryConfig config) {
-        String baseSleepTimeMilliseconds = config.getProps().getProperty("zk.BaseSleepTimeMilliseconds", "1000");
-        String maxRetries = config.getProps().getProperty("zk.maxRetries", "3");
-        String maxSleepTimeMilliseconds = config.getProps().getProperty("zk.maxSleepTimeMilliseconds", "1000");
-        String connectionTimeoutMilliseconds = config.getProps().getProperty("zk.connectionTimeoutMilliseconds", "1000");
-        String sessionTimeoutMilliseconds = config.getProps().getProperty("zk.sessionTimeoutMilliseconds", "1000");
-        String digest = config.getProps().getProperty("zk.digest", null);
+        String baseSleepTimeMilliseconds = config.getProps().getProperty("baseSleepTimeMilliseconds", "1000");
+        String maxRetries = config.getProps().getProperty("maxRetries", "3");
+        String maxSleepTimeMilliseconds = config.getProps().getProperty("maxSleepTimeMilliseconds", "1000");
+        String connectionTimeoutMilliseconds = config.getProps().getProperty("connectionTimeoutMilliseconds", "1000");
+        String sessionTimeoutMilliseconds = config.getProps().getProperty("sessionTimeoutMilliseconds", "1000");
+        String digest = config.getProps().getProperty("digest", null);
         ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(Integer.parseInt(baseSleepTimeMilliseconds), Integer.parseInt(maxRetries), Integer.parseInt(maxSleepTimeMilliseconds));
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
                 .connectString(config.getServerList())
