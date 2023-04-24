@@ -160,7 +160,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
 
     /**
-     * checkExistence.
+     *  checkExistence.
      *
      * @param className className.
      * @return existence
