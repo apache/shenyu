@@ -332,7 +332,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
             T inst = SpringBeanUtils.getInstance().getBeanByClassName(className);
             if (Objects.isNull(inst)) {
                 Class<?> clazz = Class.forName(className, false, this);
-                //Exclude  ShenyuPlugin subclass and PluginDataHandler subclass
+                //Exclude ShenyuPlugin subclass and PluginDataHandler subclass
                 // without adding @Component @Service annotation
                 boolean next = ShenyuPlugin.class.isAssignableFrom(clazz)
                         || PluginDataHandler.class.isAssignableFrom(clazz);
