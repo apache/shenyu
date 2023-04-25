@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * The type Zookeeper for shenyu discovery service.
+ *The type Zookeeper for shenyu discovery service.
  */
 @Join
 public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
