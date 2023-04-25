@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.httpclient;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
-import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -61,13 +60,20 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> headers.addAll(httpHeaders))
                 .body((outputMessage, context) -> {
-                    Publisher<? extends DataBuffer> publisher = body;
                     MediaType mediaType = httpHeaders.getContentType();
-                    if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)
-                            || MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
-                        publisher = DataBufferUtils.join(body);
+                    if (MediaType.TEXT_EVENT_STREAM.isCompatibleWith(mediaType)
+                            || MediaType.MULTIPART_MIXED.isCompatibleWith(mediaType)
+                            || MediaType.IMAGE_PNG.isCompatibleWith(mediaType)
+                            || MediaType.IMAGE_JPEG.isCompatibleWith(mediaType)
+                            || MediaType.IMAGE_GIF.isCompatibleWith(mediaType)
+                            //APPLICATION_STREAM_JSON is deprecated
+                            || MediaType.APPLICATION_NDJSON.isCompatibleWith(mediaType)
+                            || MediaType.APPLICATION_PDF.isCompatibleWith(mediaType)
+                            || MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(mediaType)) {
+                        return outputMessage.writeWith(body);
                     }
-                    return outputMessage.writeWith(publisher);
+                    // fix chinese garbled code
+                    return outputMessage.writeWith(DataBufferUtils.join(body));
                 })
                 .exchangeToMono(response -> response.bodyToMono(byte[].class)
                         .flatMap(bytes -> Mono.fromCallable(() -> Optional.ofNullable(bytes))).defaultIfEmpty(Optional.empty())
