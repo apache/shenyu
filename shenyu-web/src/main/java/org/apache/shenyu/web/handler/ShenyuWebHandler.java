@@ -177,7 +177,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
         if (StringUtils.isNoneBlank(pluginData.getPluginJar())) {
             LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
-            shenyuLoaderService.loadUploadedJarPlugins(Collections.singletonList(pluginData.getPluginJar()));
+            shenyuLoaderService.loadUploadedJarPlugins(Collections.singletonList(pluginData));
         }
         final List<ShenyuPlugin> enabledPlugins = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
                 && pluginData.getEnabled()).collect(Collectors.toList());
