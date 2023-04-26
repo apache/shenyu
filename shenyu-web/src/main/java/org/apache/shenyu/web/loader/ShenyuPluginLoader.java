@@ -82,8 +82,24 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
 
     private final Map<String, byte[]> uploadedJarClassByteArrayCache = new ConcurrentHashMap<>();
 
-    public ShenyuPluginLoader() {
+    private ShenyuPluginLoader() {
         super(ShenyuPluginLoader.class.getClassLoader());
+    }
+
+    /**
+     * Get plugin loader instance.
+     *
+     * @return plugin loader instance
+     */
+    public static ShenyuPluginLoader getInstance() {
+        if (null == pluginLoader) {
+            synchronized (ShenyuPluginLoader.class) {
+                if (null == pluginLoader) {
+                    pluginLoader = new ShenyuPluginLoader();
+                }
+            }
+        }
+        return pluginLoader;
     }
 
     /**
@@ -144,7 +160,7 @@ public final class ShenyuPluginLoader extends ClassLoader implements Closeable {
     }
 
     /**
-     *  checkExistence.
+     * checkExistence.
      *
      * @param className className.
      * @return existence

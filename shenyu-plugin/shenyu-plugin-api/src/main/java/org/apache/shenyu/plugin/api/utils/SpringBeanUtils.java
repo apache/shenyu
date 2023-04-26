@@ -121,17 +121,17 @@ public final class SpringBeanUtils {
      * destroyBean.
      * @param className className
      */
-    public void destroyBean(final String className){
+    public void destroyBean(final String className) {
         String beanName = getBeanName(className);
         DefaultListableBeanFactory beanFactory = getBeanFactory();
-        if(beanFactory.containsBean(beanName)){
+        if (beanFactory.containsBean(beanName)) {
             beanFactory.destroySingleton(beanName);
             beanFactory.removeBeanDefinition(beanName);
         }
     }
 
-    private DefaultListableBeanFactory getBeanFactory(){
-        ConfigurableApplicationContext configurableApplicationContext =  (ConfigurableApplicationContext)applicationContext;
+    private DefaultListableBeanFactory getBeanFactory() {
+        ConfigurableApplicationContext configurableApplicationContext = (ConfigurableApplicationContext) applicationContext;
         return (DefaultListableBeanFactory) configurableApplicationContext.getBeanFactory();
     }
     
