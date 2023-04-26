@@ -691,6 +691,21 @@ public interface Constants {
      * brpc  spi bizThreadPoolName.
      */
     String SHARED_BIZTHREADPOOLNAME = "shared";
+    
+    /**
+     * trie default children size.
+     */
+    Integer TRIE_CHILDREN_SIZE = 512;
+    
+    /**
+     * trie default path variables size.
+     */
+    Integer TRIE_PATH_VARIABLES_SIZE = 128;
+    
+    /**
+     * trie default path cache size.
+     */
+    Integer TRIE_PATH_CACHE_SIZE = 256;
 
     /**
      * String q.

@@ -42,7 +42,7 @@ public class ShenyuTrieListener implements ApplicationListener<TrieEvent> {
 
     @Override
     public void onApplicationEvent(final TrieEvent event) {
-        TrieEventEnum eventEnum = event.getRuleTrieEvent();
+        TrieEventEnum eventEnum = event.getTrieEventEnum();
         TrieCacheTypeEnum cacheTypeEnum = event.getTrieCacheTypeEnum();
         Object source = event.getSource();
         
@@ -54,10 +54,12 @@ public class ShenyuTrieListener implements ApplicationListener<TrieEvent> {
             ruleData = (RuleData) source;
             conditionDataList = ruleData.getConditionDataList();
             shenyuTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
-        } else {
+        } else if (TrieCacheTypeEnum.SELECTOR.equals(cacheTypeEnum)) {
             shenyuTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
             selectorData = (SelectorData) source;
             conditionDataList = selectorData.getConditionList();
+        } else {
+            throw new IllegalStateException("Unexpected value: " + event.getTrieEventEnum());
         }
         
         List<ConditionData> filterConditions = Optional.ofNullable(conditionDataList).orElse(Collections.emptyList())
@@ -77,7 +79,7 @@ public class ShenyuTrieListener implements ApplicationListener<TrieEvent> {
                     removeTrieNode(uriPaths, source, cacheTypeEnum, shenyuTrie);
                     break;
                 default:
-                    throw new IllegalStateException("Unexpected value: " + event.getRuleTrieEvent());
+                    throw new IllegalStateException("Unexpected value: " + event.getTrieEventEnum());
             }
         }
     }

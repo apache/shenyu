@@ -75,9 +75,7 @@ shenyu:
     ## selector L2 cache, use trie as L2 cache
     trie:
       enabled: true
-      childrenSize: 10000
-      pathVariableSize: 1000
-      pathRuleCacheSize: 1000
+      cacheSize: 128 # the number of plug-ins
       matchMode: antPathMatch
   ruleMatchCache:
     ## rule L1 cache
@@ -88,9 +86,7 @@ shenyu:
     ## rule L2 cache, use trie as L2 cache
     trie:
       enabled: true
-      childrenSize: 10000
-      pathVariableSize: 1000
-      pathRuleCacheSize: 1000
+      cacheSize: 1024 # the number of selectors
       matchMode: antPathMatch
   netty:
     http:

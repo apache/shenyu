@@ -248,8 +248,8 @@ public final class AbstractShenyuPluginTest {
     private void mockShenyuConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig());
-        when(context.getBean(TrieCacheTypeEnum.RULE.getTrieType())).thenReturn(new ShenyuTrie(100L, 100L, 100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
-        when(context.getBean(TrieCacheTypeEnum.SELECTOR.getTrieType())).thenReturn(new ShenyuTrie(100L, 100L, 100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
+        when(context.getBean(TrieCacheTypeEnum.RULE.getTrieType())).thenReturn(new ShenyuTrie(100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
+        when(context.getBean(TrieCacheTypeEnum.SELECTOR.getTrieType())).thenReturn(new ShenyuTrie(100L,  TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
         SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 

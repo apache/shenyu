@@ -275,8 +275,7 @@ public class ShenyuConfiguration {
     @Bean(name = "shenyuSelectorTrie")
     public ShenyuTrie shenyuSelectorTrie(final ShenyuConfig shenyuConfig) {
         SelectorMatchCache selectorMatchCache = shenyuConfig.getSelectorMatchCache();
-        return new ShenyuTrie(selectorMatchCache.getTrie().getChildrenSize(), selectorMatchCache.getTrie().getPathRuleCacheSize(),
-                selectorMatchCache.getTrie().getPathVariableSize(), selectorMatchCache.getTrie().getMatchMode());
+        return new ShenyuTrie(selectorMatchCache.getTrie().getCacheSize(), selectorMatchCache.getTrie().getMatchMode());
     }
 
     /**
@@ -288,8 +287,7 @@ public class ShenyuConfiguration {
     @Bean(name = "shenyuRuleTrie")
     public ShenyuTrie shenyuRuleTrie(final ShenyuConfig shenyuConfig) {
         RuleMatchCache ruleMatchCache = shenyuConfig.getRuleMatchCache();
-        return new ShenyuTrie(ruleMatchCache.getTrie().getChildrenSize(), ruleMatchCache.getTrie().getPathRuleCacheSize(),
-                ruleMatchCache.getTrie().getPathVariableSize(), ruleMatchCache.getTrie().getMatchMode());
+        return new ShenyuTrie(ruleMatchCache.getTrie().getCacheSize(), ruleMatchCache.getTrie().getMatchMode());
     }
     
 

@@ -1849,11 +1849,7 @@ public class ShenyuConfig {
         
         private Boolean enabled = Boolean.TRUE;
         
-        private Long childrenSize = 10000L;
-
-        private Long pathRuleCacheSize = 1000L;
-        
-        private Long pathVariableSize = 1000L;
+        private Long cacheSize = 512L;
 
         /**
          * match mode.
@@ -1880,57 +1876,21 @@ public class ShenyuConfig {
         }
     
         /**
-         * get trie children size.
+         * get cache size.
          *
-         * @return trie children size
+         * @return cache size
          */
-        public Long getChildrenSize() {
-            return childrenSize;
+        public Long getCacheSize() {
+            return cacheSize;
         }
 
         /**
-         * set trie children size.
+         * set cache size.
          *
-         * @param childrenSize trie children size
+         * @param cacheSize cache size
          */
-        public void setChildrenSize(final Long childrenSize) {
-            this.childrenSize = childrenSize;
-        }
-
-        /**
-         * get path rule cache size.
-         *
-         * @return path rule cache size
-         */
-        public Long getPathRuleCacheSize() {
-            return pathRuleCacheSize;
-        }
-
-        /**
-         * set path rule cache size.
-         *
-         * @param pathRuleCacheSize path rule cache size
-         */
-        public void setPathRuleCacheSize(final Long pathRuleCacheSize) {
-            this.pathRuleCacheSize = pathRuleCacheSize;
-        }
-        
-        /**
-         * get path variable node size.
-         *
-         * @return path variable node size
-         */
-        public Long getPathVariableSize() {
-            return pathVariableSize;
-        }
-    
-        /**
-         * set path variable node size.
-         *
-         * @param pathVariableSize path variable node size
-         */
-        public void setPathVariableSize(final Long pathVariableSize) {
-            this.pathVariableSize = pathVariableSize;
+        public void setCacheSize(final Long cacheSize) {
+            this.cacheSize = cacheSize;
         }
     
         /**

@@ -51,7 +51,7 @@ public class TrieEvent extends ApplicationEvent {
      *
      * @return {@linkplain TrieEventEnum} include insert and remove event
      */
-    public TrieEventEnum getRuleTrieEvent() {
+    public TrieEventEnum getTrieEventEnum() {
         return trieEventEnum;
     }
     

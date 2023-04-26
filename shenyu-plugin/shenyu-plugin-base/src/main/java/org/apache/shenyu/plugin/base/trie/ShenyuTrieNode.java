@@ -17,12 +17,13 @@
 
 package org.apache.shenyu.plugin.base.trie;
 
-import org.apache.shenyu.common.cache.WindowTinyLFUMap;
+import org.apache.shenyu.common.constant.Constants;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ShenyuTrieNode.
@@ -49,7 +50,7 @@ public class ShenyuTrieNode implements Serializable {
     /**
      * path variables.
      */
-    private Map<String, ShenyuTrieNode> pathVariablesSet;
+    private Map<String, ShenyuTrieNode> pathVariables;
 
     /**
      * path variable node.
@@ -72,21 +73,20 @@ public class ShenyuTrieNode implements Serializable {
     private Map<String, List<?>> pathCache;
 
     /**
-     * biz info, route info and any other info store here, e.g. ruleId, selectorId, pluginName and so on.
+     * biz info, if the trie is selector trie, the bizInfo is pluginName, if the trie is rule trie, the bizInfo is selectorId.
      */
     private String bizInfo;
 
     public ShenyuTrieNode() {
     }
 
-    public ShenyuTrieNode(final String matchStr, final String fullPath, final boolean endOfPath,
-                          final Long childrenSize, final Long pathCacheSize, final Long pathVariableSize) {
+    public ShenyuTrieNode(final String matchStr, final String fullPath, final boolean endOfPath) {
         this.matchStr = matchStr;
         this.fullPath = fullPath;
         this.endOfPath = endOfPath;
-        this.children = new WindowTinyLFUMap<>(childrenSize);
-        this.pathCache = new WindowTinyLFUMap<>(pathCacheSize);
-        this.pathVariablesSet = new WindowTinyLFUMap<>(pathVariableSize);
+        this.children = new ConcurrentHashMap<>(Constants.TRIE_CHILDREN_SIZE);
+        this.pathCache = new ConcurrentHashMap<>(Constants.TRIE_PATH_CACHE_SIZE);
+        this.pathVariables = new ConcurrentHashMap<>(Constants.TRIE_PATH_VARIABLES_SIZE);
     }
 
     /**
@@ -139,8 +139,8 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @return path variable
      */
-    public Map<String, ShenyuTrieNode> getPathVariablesSet() {
-        return pathVariablesSet;
+    public Map<String, ShenyuTrieNode> getPathVariables() {
+        return pathVariables;
     }
 
     /**
@@ -148,8 +148,8 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param pathVariablesSet pathVariablesSet
      */
-    public void setPathVariablesSet(final Map<String, ShenyuTrieNode> pathVariablesSet) {
-        this.pathVariablesSet = pathVariablesSet;
+    public void setPathVariables(final Map<String, ShenyuTrieNode> pathVariablesSet) {
+        this.pathVariables = pathVariablesSet;
     }
 
     /**
@@ -215,7 +215,7 @@ public class ShenyuTrieNode implements Serializable {
     }
 
     /**
-     * get current path biz info.
+     * get current path biz info, the biz info maybe pluginName or selectorId.
      *
      * @return biz info
      */
@@ -235,7 +235,7 @@ public class ShenyuTrieNode implements Serializable {
     /**
      * get path cache.
      *
-     * @return rule cache
+     * @return path cache, maybe selector or rule
      */
     public Map<String, List<?>> getPathCache() {
         return pathCache;
@@ -261,13 +261,13 @@ public class ShenyuTrieNode implements Serializable {
         ShenyuTrieNode that = (ShenyuTrieNode) o;
         return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr)
                 && fullPath.equals(that.fullPath) && children.equals(that.children)
-                && pathVariablesSet.equals(that.pathVariablesSet) && pathVariableNode.equals(that.pathVariableNode)
+                && pathVariables.equals(that.pathVariables) && pathVariableNode.equals(that.pathVariableNode)
                 && pathCache.equals(that.pathCache) && bizInfo.equals(that.bizInfo);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(matchStr, fullPath, children, pathVariablesSet, pathVariableNode, isWildcard, endOfPath,
+        return Objects.hash(matchStr, fullPath, children, pathVariables, pathVariableNode, isWildcard, endOfPath,
                 pathCache, bizInfo);
     }
     
@@ -277,7 +277,7 @@ public class ShenyuTrieNode implements Serializable {
                 + "matchStr='" + matchStr + '\''
                 + ", fullPath='" + fullPath + '\''
                 + ", children=" + children
-                + ", pathVariablesSet=" + pathVariablesSet
+                + ", pathVariables=" + pathVariables
                 + ", pathVariableNode=" + pathVariableNode
                 + ", isWildcard=" + isWildcard
                 + ", endOfPath=" + endOfPath
