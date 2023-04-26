@@ -71,6 +71,8 @@ public class ApiDocRegisterDTO implements DataTypeParent {
 
     /**
      * extended fields.
+     *
+     * @see ApiExt
      */
     private String ext;
 
@@ -646,6 +648,172 @@ public class ApiDocRegisterDTO implements DataTypeParent {
             apiDocRegisterDTO.setEventType(eventType);
             apiDocRegisterDTO.setTags(tags);
             return apiDocRegisterDTO;
+        }
+    }
+    
+    /**
+     * ApiExt
+     */
+    public static class ApiExt {
+        
+        private String protocol;
+        
+        private String host;
+        
+        private Integer port;
+        
+        private boolean addPrefixed;
+        
+        private String serviceName;
+        
+        private String methodName;
+        
+        private String parameterTypes;
+        
+        private String rpcExt;
+        
+        /**
+         * getProtocol eg http or https.
+         *
+         * @return protocol
+         */
+        public String getProtocol() {
+            return protocol;
+        }
+        
+        /**
+         * set protocol.
+         *
+         * @param protocol protocol
+         */
+        public void setProtocol(final String protocol) {
+            this.protocol = protocol;
+        }
+        
+        /**
+         * get host.
+         *
+         * @return host
+         */
+        public String getHost() {
+            return host;
+        }
+        
+        /**
+         * set host.
+         *
+         * @param host host
+         */
+        public void setHost(final String host) {
+            this.host = host;
+        }
+        
+        /**
+         * get port.
+         *
+         * @return port
+         */
+        public Integer getPort() {
+            return port;
+        }
+        
+        /**
+         * set port.
+         *
+         * @param port port
+         */
+        public void setPort(final Integer port) {
+            this.port = port;
+        }
+        
+        /**
+         * isAddPrefixed.
+         *
+         * @return isAddPrefixed
+         */
+        public boolean isAddPrefixed() {
+            return addPrefixed;
+        }
+        
+        /**
+         * set addPrefixed.
+         *
+         * @param addPrefixed addPrefixed
+         */
+        public void setAddPrefixed(final boolean addPrefixed) {
+            this.addPrefixed = addPrefixed;
+        }
+        
+        /**
+         * get serviceName.
+         *
+         * @return serviceName
+         */
+        public String getServiceName() {
+            return serviceName;
+        }
+        
+        /**
+         * set serviceName.
+         *
+         * @param serviceName serviceName
+         */
+        public void setServiceName(final String serviceName) {
+            this.serviceName = serviceName;
+        }
+        
+        /**
+         * get methodName.
+         *
+         * @return methodName
+         */
+        public String getMethodName() {
+            return methodName;
+        }
+        
+        /**
+         * set methodName.
+         *
+         * @param methodName methodName
+         */
+        public void setMethodName(final String methodName) {
+            this.methodName = methodName;
+        }
+        
+        /**
+         * get parameterTypes.
+         *
+         * @return parameterTypes
+         */
+        public String getParameterTypes() {
+            return parameterTypes;
+        }
+        
+        /**
+         * set parameterTypes.
+         *
+         * @param parameterTypes parameterTypes
+         */
+        public void setParameterTypes(final String parameterTypes) {
+            this.parameterTypes = parameterTypes;
+        }
+        
+        /**
+         * get rpcExt.
+         *
+         * @return rpcExt
+         */
+        public String getRpcExt() {
+            return rpcExt;
+        }
+        
+        /**
+         * set rpcExt.
+         *
+         * @param rpcExt rpcExt
+         */
+        public void setRpcExt(final String rpcExt) {
+            this.rpcExt = rpcExt;
         }
     }
 }
