@@ -162,8 +162,10 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
         // the result of ReflectionUtils#getUniqueDeclaredMethods contains methods such as hashCode, wait, toSting
         // add Objects.nonNull(requestMapping) to make sure not register wrong method
         if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
-            getPublisher().publishEvent(buildMetaDataDTO(bean, methodShenyuClient,
-                    buildApiPath(method, superPath, methodShenyuClient), clazz, method));
+            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
+                    buildApiPath(method, superPath, methodShenyuClient), clazz, method);
+            getPublisher().publishEvent(metaData);
+            metaDataMap.put(method, metaData);
         }
     }
 

@@ -40,6 +40,7 @@ import org.javatuples.Sextet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -122,10 +123,12 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
     }
     
     @Override
-    protected String buildApiPath(final Method method, final String superPath, @NonNull final ShenyuGrpcClient methodShenyuClient) {
+    protected String buildApiPath(final Method method,
+                                  final String superPath,
+                                  @Nullable final ShenyuGrpcClient methodShenyuClient) {
         final String contextPath = getContextPath();
         return superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName())
-                : pathJoin(contextPath, superPath, methodShenyuClient.path());
+                : pathJoin(contextPath, superPath, Objects.requireNonNull(methodShenyuClient).path());
     }
     
     @Override
@@ -133,7 +136,10 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
             if (Modifier.isPublic(method.getModifiers())) {
-                getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, buildApiPath(method, superPath, beanShenyuClient), clazz, method));
+                final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                        buildApiPath(method, superPath, null), clazz, method);
+                getPublisher().publishEvent(metaData);
+                metaDataMap.put(method, metaData);
             }
         }
     }

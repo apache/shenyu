@@ -61,7 +61,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -81,6 +83,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
+    
+    protected final Map<Method, MetaDataRegisterDTO> metaDataMap = new ConcurrentHashMap<>();
 
     private final String appName;
 
@@ -174,12 +178,13 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             ApiHttpMethodEnum[] value3 = sextet.getValue3();
             for (ApiHttpMethodEnum apiHttpMethodEnum : value3) {
                 String documentJson = buildDocumentJson(pairs.getRight(), apiPath, method);
+                String extJson = buildExtJson(clazz, method);
                 ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                         .consume(sextet.getValue1())
                         .produce(sextet.getValue2())
                         .httpMethod(apiHttpMethodEnum.getValue())
                         .contextPath(contextPath)
-                        .ext("{}")
+                        .ext(extJson)
                         .document(documentJson)
                         .rpcType(sextet.getValue4().getName())
                         .version(sextet.getValue5())
@@ -196,7 +201,27 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         }
         return list;
     }
-
+    
+    private String buildExtJson(final Class<?> clazz,
+                                final Method method) {
+        ApiDocRegisterDTO.ApiExt ext = new ApiDocRegisterDTO.ApiExt();
+        ext.setHost(host);
+        ext.setPort(Integer.valueOf(port));
+        ext.setServiceName(clazz.getName());
+        ext.setMethodName(method.getName());
+        ext.setParameterTypes(Arrays.stream(method.getParameterTypes())
+                .map(Class::getName)
+                .collect(Collectors.joining(",")));
+        ext.setRpcExt(Optional.ofNullable(metaDataMap.get(method))
+                .map(MetaDataRegisterDTO::getRpcExt).orElse("{}"));
+        ext = customApiDocExt(ext);
+        return GsonUtils.getInstance().toJson(ext);
+    }
+    
+    protected ApiDocRegisterDTO.ApiExt customApiDocExt(ApiDocRegisterDTO.ApiExt ext) {
+        return ext;
+    }
+    
     private String buildDocumentJson(final List<String> tags, final String path, final Method method) {
         Map<String, Object> documentMap = ImmutableMap.<String, Object>builder()
                 .put("tags", tags)
@@ -254,7 +279,10 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
                                 final String superPath) {
         A methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, getAnnotationType());
         if (Objects.nonNull(methodShenyuClient)) {
-            publisher.publishEvent(buildMetaDataDTO(bean, methodShenyuClient, buildApiPath(method, superPath, methodShenyuClient), clazz, method));
+            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
+                    buildApiPath(method, superPath, methodShenyuClient), clazz, method);
+            publisher.publishEvent(metaData);
+            metaDataMap.put(method, metaData);
         }
     }
 

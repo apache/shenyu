@@ -38,6 +38,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -51,7 +52,7 @@ import java.util.stream.Collectors;
 /**
  * The Alibaba Dubbo ServiceBean Listener.
  */
-//@SuppressWarnings("all")
+@SuppressWarnings("all")
 public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEventListener<ServiceBean, ShenyuDubboClient> {
 
     /**
@@ -76,11 +77,11 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
         String[] values = new String[]{shenyuDubboClient.value()};
         ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
         String defaultVersion = "v0.01";
-        Class methodClass = method.getDeclaringClass();
-        Class[] interfaces = methodClass.getInterfaces();
-        for (Class anInterface : interfaces) {
+        Class<?> methodClass = method.getDeclaringClass();
+        Class<?>[] interfaces = methodClass.getInterfaces();
+        for (Class<?> anInterface : interfaces) {
             if (beans.containsKey(anInterface.getName())) {
-                ServiceBean serviceBean = beans.get(anInterface.getName());
+                ServiceBean<?> serviceBean = beans.get(anInterface.getName());
                 defaultVersion = Optional.ofNullable(serviceBean.getVersion()).orElse(defaultVersion);
             }
         }
@@ -153,17 +154,20 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
                                final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, buildApiPath(method, superPath, null), clazz, method));
+            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                    buildApiPath(method, superPath, null), clazz, method);
+            getPublisher().publishEvent(metaData);
+            metaDataMap.put(method, metaData);
         }
     }
 
     @Override
     protected String buildApiPath(final Method method,
                                   final String superPath,
-                                  final ShenyuDubboClient methodShenyuClient) {
+                                  @Nullable final ShenyuDubboClient methodShenyuClient) {
         final String contextPath = this.getContextPath();
         return superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName())
-                : pathJoin(contextPath, superPath, methodShenyuClient.path());
+                : pathJoin(contextPath, superPath, Objects.requireNonNull(methodShenyuClient).path());
     }
 
     @Override

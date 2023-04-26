@@ -36,6 +36,8 @@ import org.javatuples.Sextet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -111,24 +113,34 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     }
 
     @Override
-    protected String buildApiPath(final Method method, final String superPath, final ShenyuBrpcClient shenyuBrpcClient) {
+    protected String buildApiPath(final Method method,
+                                  final String superPath,
+                                  @Nullable final ShenyuBrpcClient shenyuBrpcClient) {
         return superPath.contains("*")
                 ? pathJoin(this.getContextPath(), superPath.replace("*", ""), method.getName())
-                : pathJoin(this.getContextPath(), superPath, shenyuBrpcClient.path());
+                : pathJoin(this.getContextPath(), superPath, Objects.requireNonNull(shenyuBrpcClient).path());
     }
 
     @Override
-    protected void handleClass(final Class<?> clazz, final Object bean, final ShenyuBrpcClient shenyuBrpcClient, final String superPath) {
+    protected void handleClass(final Class<?> clazz, final Object bean,
+                               @NonNull final ShenyuBrpcClient shenyuBrpcClient,
+                               final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            publisher.publishEvent(buildMetaDataDTO(bean, shenyuBrpcClient, superPath, clazz, method));
+            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, shenyuBrpcClient,
+                    buildApiPath(method, superPath, null), clazz, method);
+            publisher.publishEvent(metaData);
+            metaDataMap.put(method, metaData);
         }
     }
 
     @Override
-    protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, final ShenyuBrpcClient shenyuBrpcClient, final String superPath, final Class<?> clazz, final Method method) {
+    protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean,
+                                                   final ShenyuBrpcClient shenyuBrpcClient,
+                                                   final String path,
+                                                   final Class<?> clazz,
+                                                   final Method method) {
         String serviceName = clazz.getInterfaces().length > 0 ? clazz.getInterfaces()[0].getName() : clazz.getName();
-        String path = superPath;
         String desc = shenyuBrpcClient.desc();
         String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
         String configRuleName = shenyuBrpcClient.ruleName();

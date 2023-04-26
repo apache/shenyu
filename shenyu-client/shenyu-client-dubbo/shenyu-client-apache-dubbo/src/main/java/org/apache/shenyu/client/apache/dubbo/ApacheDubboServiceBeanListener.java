@@ -55,6 +55,7 @@ import static org.apache.dubbo.remoting.Constants.DEFAULT_CONNECT_TIMEOUT;
 /**
  * The Apache Dubbo ServiceBean Listener.
  */
+@SuppressWarnings("all")
 public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEventListener<ServiceBean, ShenyuDubboClient> {
 
     /**
@@ -79,11 +80,11 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
         String[] values = new String[]{shenyuDubboClient.value()};
         ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
         String defaultVersion = "v0.01";
-        Class methodClass = method.getDeclaringClass();
-        Class[] interfaces = methodClass.getInterfaces();
-        for (Class anInterface : interfaces) {
+        Class<?> methodClass = method.getDeclaringClass();
+        Class<?>[] interfaces = methodClass.getInterfaces();
+        for (Class<?> anInterface : interfaces) {
             if (beans.containsKey(anInterface.getName())) {
-                ServiceBean serviceBean = beans.get(anInterface.getName());
+                ServiceBean<?> serviceBean = beans.get(anInterface.getName());
                 defaultVersion = Optional.ofNullable(serviceBean.getVersion()).orElse(defaultVersion);
             }
         }
@@ -156,23 +157,27 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                                final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, buildApiPath(method, superPath, null), clazz, method));
+            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                    buildApiPath(method, superPath, null), clazz, method);
+            getPublisher().publishEvent(metaData);
+            metaDataMap.put(method, metaData);
         }
     }
     
     @Override
     protected String buildApiPath(final Method method,
                                   final String superPath,
-                                  @NonNull final ShenyuDubboClient methodShenyuClient) {
+                                  @Nullable final ShenyuDubboClient methodShenyuClient) {
         final String contextPath = this.getContextPath();
         return superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName())
-                : pathJoin(contextPath, superPath, methodShenyuClient.path());
+                : pathJoin(contextPath, superPath, Objects.requireNonNull(methodShenyuClient).path());
     }
     
     @Override
     protected MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean bean,
                                                    @NonNull final ShenyuDubboClient shenyuClient,
-                                                   final String path, final Class<?> clazz,
+                                                   final String path,
+                                                   final Class<?> clazz,
                                                    final Method method) {
         String appName = buildAppName(bean);
         String desc = shenyuClient.desc();

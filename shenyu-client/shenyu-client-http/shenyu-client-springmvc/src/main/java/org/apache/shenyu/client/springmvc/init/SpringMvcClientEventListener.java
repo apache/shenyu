@@ -30,6 +30,7 @@ import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.javatuples.Sextet;
@@ -172,7 +173,10 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
         // the result of ReflectionUtils#getUniqueDeclaredMethods contains method such as hashCode, wait, toSting
         // add Objects.nonNull(requestMapping) to make sure not register wrong method
         if (Objects.nonNull(methodShenyuClient) && Objects.nonNull(requestMapping)) {
-            getPublisher().publishEvent(buildMetaDataDTO(bean, methodShenyuClient, buildApiPath(method, superPath, methodShenyuClient), clazz, method));
+            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
+                    buildApiPath(method, superPath, methodShenyuClient), clazz, method);
+            getPublisher().publishEvent(metaData);
+            metaDataMap.put(method, metaData);
         }
     }
 
@@ -238,5 +242,12 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                 .ruleName(StringUtils.defaultIfBlank(shenyuClient.ruleName(), path))
                 .registerMetaData(shenyuClient.registerMetaData())
                 .build();
+    }
+    
+    @Override
+    protected ApiDocRegisterDTO.ApiExt customApiDocExt(ApiDocRegisterDTO.ApiExt ext) {
+        ext.setProtocol(protocol);
+        ext.setAddPrefixed(addPrefixed);
+        return ext;
     }
 }
