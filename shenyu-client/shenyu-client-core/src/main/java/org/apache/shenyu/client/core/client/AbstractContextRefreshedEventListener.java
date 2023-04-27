@@ -84,7 +84,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
     
-    protected final Map<Method, MetaDataRegisterDTO> metaDataMap = new ConcurrentHashMap<>();
+    private final Map<Method, MetaDataRegisterDTO> metaDataMap = new ConcurrentHashMap<>();
 
     private final String appName;
 
@@ -218,7 +218,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         return GsonUtils.getInstance().toJson(ext);
     }
     
-    protected ApiDocRegisterDTO.ApiExt customApiDocExt(ApiDocRegisterDTO.ApiExt ext) {
+    protected ApiDocRegisterDTO.ApiExt customApiDocExt(final ApiDocRegisterDTO.ApiExt ext) {
         return ext;
     }
     
@@ -317,7 +317,16 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     public ShenyuClientRegisterEventPublisher getPublisher() {
         return publisher;
     }
-
+    
+    /**
+     * Get the metadata map.
+     *
+     * @return the metadata map
+     */
+    public Map<Method, MetaDataRegisterDTO> getMetaDataMap() {
+        return metaDataMap;
+    }
+    
     /**
      * Get the app name.
      *

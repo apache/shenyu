@@ -130,7 +130,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
             final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, shenyuBrpcClient,
                     buildApiPath(method, superPath, null), clazz, method);
             publisher.publishEvent(metaData);
-            metaDataMap.put(method, metaData);
+            getMetaDataMap().put(method, metaData);
         }
     }
 

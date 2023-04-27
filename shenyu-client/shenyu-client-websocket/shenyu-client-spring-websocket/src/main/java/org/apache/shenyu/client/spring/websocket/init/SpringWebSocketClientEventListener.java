@@ -162,7 +162,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
             final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
                     pathJoin(getContextPath(), superPath), clazz, method);
             getPublisher().publishEvent(metaData);
-            metaDataMap.put(method, metaData);
+            getMetaDataMap().put(method, metaData);
         }
     }
 
@@ -178,7 +178,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
             final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
                     buildApiPath(method, superPath, methodShenyuClient), clazz, method);
             getPublisher().publishEvent(metaData);
-            metaDataMap.put(method, metaData);
+            getMetaDataMap().put(method, metaData);
         }
     }
 

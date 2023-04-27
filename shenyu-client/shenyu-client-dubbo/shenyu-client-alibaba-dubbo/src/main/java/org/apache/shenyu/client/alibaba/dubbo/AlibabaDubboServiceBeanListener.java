@@ -157,7 +157,7 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
             final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
                     buildApiPath(method, superPath, null), clazz, method);
             getPublisher().publishEvent(metaData);
-            metaDataMap.put(method, metaData);
+            getMetaDataMap().put(method, metaData);
         }
     }
 

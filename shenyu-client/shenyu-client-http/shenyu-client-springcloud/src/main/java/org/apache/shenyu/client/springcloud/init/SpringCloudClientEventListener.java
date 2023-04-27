@@ -165,7 +165,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
             final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
                     buildApiPath(method, superPath, methodShenyuClient), clazz, method);
             getPublisher().publishEvent(metaData);
-            metaDataMap.put(method, metaData);
+            getMetaDataMap().put(method, metaData);
         }
     }
 

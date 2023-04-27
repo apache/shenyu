@@ -175,7 +175,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
             final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
                     buildApiPath(method, superPath, null), clazz, method);
             publisher.publishEvent(metaData);
-            metaDataMap.put(method, metaData);
+            getMetaDataMap().put(method, metaData);
         }
     }
 
