@@ -22,7 +22,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.annotation.Annotation;
 
-public final class AnnotatedApiBeanMatcher<T> implements ApiBeanMatcher<T> {
+public final class AnnotatedApiBeanMatcher<T> extends ApiBeanMatcher<T> {
 
     private final Class<? extends Annotation> aClass;
 

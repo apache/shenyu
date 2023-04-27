@@ -23,13 +23,13 @@ import org.apache.shenyu.client.core.register.parser.Parser;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
-public class ApiBeanPreRegistrar<T, D extends DataTypeParent> extends AbstractRegistrar<ApiBean<T>> {
+public class PreApiBeanRegistrar<T, D extends DataTypeParent> extends AbstractRegistrar<ApiBean<T>> {
 
     private final ShenyuClientRegisterEventPublisher publisher;
 
     private final Parser<? extends D, ApiBean<T>> parser;
 
-    public ApiBeanPreRegistrar(final Matcher<ApiBean<T>> matcher,
+    public PreApiBeanRegistrar(final Matcher<ApiBean<T>> matcher,
                                final Parser<? extends D, ApiBean<T>> parser,
                                final ShenyuClientRegisterEventPublisher publisher) {
         super(matcher);
