@@ -652,7 +652,7 @@ public class ApiDocRegisterDTO implements DataTypeParent {
     }
     
     /**
-     * ApiExt
+     * ApiExt.
      */
     public static class ApiExt {
         
