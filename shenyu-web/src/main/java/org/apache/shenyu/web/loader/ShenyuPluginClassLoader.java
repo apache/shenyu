@@ -41,8 +41,8 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * ShenyuUploadPluginClassLoader.
  */
-public final class ShenyuUploadPluginClassLoader extends ClassLoader implements Closeable {
-    private static final Logger LOG = LoggerFactory.getLogger(ShenyuUploadPluginClassLoader.class);
+public final class ShenyuPluginClassLoader extends ClassLoader implements Closeable {
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuPluginClassLoader.class);
 
     static {
         registerAsParallelCapable();
@@ -52,10 +52,10 @@ public final class ShenyuUploadPluginClassLoader extends ClassLoader implements 
 
     private final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
 
-    private final UploadPluginJarParser.UploadPluginJar pluginJar;
+    private final PluginJarParser.PluginJar pluginJar;
 
-    public ShenyuUploadPluginClassLoader(final UploadPluginJarParser.UploadPluginJar pluginJar) {
-        super(ShenyuUploadPluginClassLoader.class.getClassLoader());
+    public ShenyuPluginClassLoader(final PluginJarParser.PluginJar pluginJar) {
+        super(ShenyuPluginClassLoader.class.getClassLoader());
         this.pluginJar = pluginJar;
     }
 

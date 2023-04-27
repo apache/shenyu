@@ -29,9 +29,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 /**
- * PluginJarParse.
+ * PluginJarParser.
  */
-public class UploadPluginJarParser {
+public class PluginJarParser {
 
     /**
      * parseJar.
@@ -39,8 +39,8 @@ public class UploadPluginJarParser {
      * @param jarBytes jarBytes
      * @return PluginJar
      */
-    public static UploadPluginJar parseJar(final byte[] jarBytes) {
-        UploadPluginJar pluginJar = new UploadPluginJar();
+    public static PluginJar parseJar(final byte[] jarBytes) {
+        PluginJar pluginJar = new PluginJar();
         try (JarInputStream jarInputStream = new JarInputStream(new ByteArrayInputStream(jarBytes))) {
             JarEntry jarEntry;
             while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
@@ -81,7 +81,9 @@ public class UploadPluginJarParser {
         return pluginJar;
     }
 
-    public static class UploadPluginJar {
+    public static class PluginJar {
+
+        private String absolutePath;
 
         private String groupId;
 
@@ -90,6 +92,24 @@ public class UploadPluginJarParser {
         private String version;
 
         private Map<String, byte[]> clazzMap = new HashMap<>();
+
+        /**
+         * getAbsolutePath.
+         *
+         * @return absolutePath
+         */
+        public String getAbsolutePath() {
+            return absolutePath;
+        }
+
+        /**
+         * setAbsolutePath.
+         *
+         * @param absolutePath absolutePath
+         */
+        public void setAbsolutePath(final String absolutePath) {
+            this.absolutePath = absolutePath;
+        }
 
         /**
          * getGroupId.

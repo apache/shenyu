@@ -27,7 +27,9 @@ public final class ShenyuPluginClassloaderHolder {
 
     private static final ShenyuPluginClassloaderHolder HOLDER = new ShenyuPluginClassloaderHolder();
 
-    private final Map<String, ShenyuUploadPluginClassLoader> cache = new ConcurrentHashMap<>();
+    private final Map<String, ShenyuPluginClassLoader> uploadPluginCache = new ConcurrentHashMap<>();
+
+    private final Map<String, ShenyuPluginClassLoader> extPathPluginCache = new ConcurrentHashMap<>();
 
     private ShenyuPluginClassloaderHolder() {
     }
@@ -47,12 +49,24 @@ public final class ShenyuPluginClassloaderHolder {
      * @param pluginJar pluginJar
      * @return ShenyuUploadPluginClassLoader
      */
-    public ShenyuUploadPluginClassLoader reCreate(final UploadPluginJarParser.UploadPluginJar pluginJar) {
+    public ShenyuPluginClassLoader recreateUploadClassLoader(final PluginJarParser.PluginJar pluginJar) {
         String jarKey = pluginJar.getJarKey();
-        if (cache.containsKey(jarKey)) {
-            this.remove(jarKey);
+        if (uploadPluginCache.containsKey(jarKey)) {
+            uploadPluginCache.remove(jarKey).close();
         }
-        return cache.computeIfAbsent(jarKey, key -> new ShenyuUploadPluginClassLoader(pluginJar));
+        return uploadPluginCache.computeIfAbsent(jarKey, key -> new ShenyuPluginClassLoader(pluginJar));
+    }
+
+    /**
+     * createExtPathClassLoader.
+     *
+     * @param pluginJar pluginJar
+     * @return ShenyuPluginClassLoader
+     */
+    public ShenyuPluginClassLoader createExtPathClassLoader(final PluginJarParser.PluginJar pluginJar) {
+        ShenyuPluginClassLoader shenyuPluginClassLoader = new ShenyuPluginClassLoader(pluginJar);
+        extPathPluginCache.put(pluginJar.getAbsolutePath(), shenyuPluginClassLoader);
+        return shenyuPluginClassLoader;
     }
 
     /**
@@ -61,19 +75,20 @@ public final class ShenyuPluginClassloaderHolder {
      * @param pluginJar pluginJar
      * @return ShenyuUploadPluginClassLoader
      */
-    public ShenyuUploadPluginClassLoader get(final UploadPluginJarParser.UploadPluginJar pluginJar) {
+    public ShenyuPluginClassLoader getUploadClassLoader(final PluginJarParser.PluginJar pluginJar) {
         String jarKey = pluginJar.getJarKey();
-        return cache.get(jarKey);
+        return uploadPluginCache.get(jarKey);
     }
 
     /**
-     * remove.
+     * removeExtPathPluginClassLoader.
      *
-     * @param pluginName pluginName
+     * @param path path
      */
-    public void remove(final String pluginName) {
-        ShenyuUploadPluginClassLoader removedLoader = cache.remove(pluginName);
-        removedLoader.close();
+    public void removeExtPathPluginClassLoader(final String path) {
+        if (extPathPluginCache.containsKey(path)) {
+            extPathPluginCache.remove(path).close();
+        }
     }
 
 }
