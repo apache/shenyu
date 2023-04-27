@@ -245,7 +245,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
     }
     
     @Override
-    protected ApiDocRegisterDTO.ApiExt customApiDocExt(ApiDocRegisterDTO.ApiExt ext) {
+    protected ApiDocRegisterDTO.ApiExt customApiDocExt(final ApiDocRegisterDTO.ApiExt ext) {
         ext.setProtocol(protocol);
         ext.setAddPrefixed(addPrefixed);
         return ext;
