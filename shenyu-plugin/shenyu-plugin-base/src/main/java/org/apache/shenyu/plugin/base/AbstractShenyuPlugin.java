@@ -17,14 +17,6 @@
 
 package org.apache.shenyu.plugin.base;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -47,6 +39,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * abstract shenyu plugin please extends.
@@ -126,32 +127,31 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (CollectionUtils.isEmpty(rules)) {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
-        RuleData ruleData = obtainRuleDataCache(path);
-        if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
-            return handleRuleIfNull(pluginName, exchange, chain);
-        }
         if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
             //get last
             RuleData rule = rules.get(rules.size() - 1);
             printLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
-        } else {
-            // lru map as L1 cache,the cache is enabled by default.
-            // if the L1 cache fails to hit, using L2 cache based on trie cache.
-            // if the L2 cache fails to hit, execute default strategy.
+        }
+        // lru map as L1 cache,the cache is enabled by default.
+        // if the L1 cache fails to hit, using L2 cache based on trie cache.
+        // if the L2 cache fails to hit, execute default strategy.
+        RuleData ruleData = obtainRuleDataCache(path);
+        if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
+            return handleRuleIfNull(pluginName, exchange, chain);
+        }
+        if (Objects.isNull(ruleData)) {
+            // L1 cache not exist data, try to get data through trie cache
+            ruleData = trieMatchRule(exchange, selectorData, path);
+            // trie cache fails to hit, execute default strategy
             if (Objects.isNull(ruleData)) {
-                // L1 cache not exist data, try to get data through trie cache
-                ruleData = trieMatchRule(exchange, selectorData, path);
-                // trie cache fails to hit, execute default strategy
-                if (Objects.isNull(ruleData)) {
-                    LOG.info("{} rule match path from default strategy", named());
-                    Pair<Boolean, RuleData> matchRuleData = matchRule(exchange, rules);
-                    ruleData = matchRuleData.getRight();
-                    if (matchRuleData.getLeft()) {
-                        ruleData = Optional.ofNullable(ruleData)
-                                .orElse(RuleData.builder().pluginName(pluginName).matchRestful(false).build());
-                        cacheRuleData(path, ruleData);
-                    }
+                LOG.info("{} rule match path from default strategy", named());
+                Pair<Boolean, RuleData> matchRuleData = matchRule(exchange, rules);
+                ruleData = matchRuleData.getRight();
+                if (matchRuleData.getLeft()) {
+                    ruleData = Optional.ofNullable(ruleData)
+                            .orElse(RuleData.builder().pluginName(pluginName).matchRestful(false).build());
+                    cacheRuleData(path, ruleData);
                 }
             }
         }
