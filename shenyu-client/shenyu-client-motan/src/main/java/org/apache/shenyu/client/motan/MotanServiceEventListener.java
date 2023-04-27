@@ -118,10 +118,13 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
     }
 
     @Override
-    protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean, final ShenyuMotanClient shenyuMotanClient, final String superPath, final Class<?> clazz, final Method method) {
+    protected MetaDataRegisterDTO buildMetaDataDTO(final Object bean,
+                                                   final ShenyuMotanClient shenyuMotanClient,
+                                                   final String path,
+                                                   final Class<?> clazz,
+                                                   final Method method) {
         Integer timeout = Optional.ofNullable(((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getRequestTimeout()).orElse(1000);
         MotanService service = AnnotatedElementUtils.findMergedAnnotation(clazz, MotanService.class);
-        String path = superPath.contains("*") ? pathJoin(getContextPath(), superPath.replace("*", ""), method.getName()) : pathJoin(getContextPath(), superPath, shenyuMotanClient.path());
         String desc = shenyuMotanClient.desc();
         String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
         int port = StringUtils.isBlank(this.getPort()) ? -1 : Integer.parseInt(this.getPort());
