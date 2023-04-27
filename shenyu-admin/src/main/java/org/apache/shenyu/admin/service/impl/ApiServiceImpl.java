@@ -159,7 +159,7 @@ public class ApiServiceImpl implements ApiService {
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
     
-    private void unregister(ApiDO apiDO) {
+    private void unregister(final ApiDO apiDO) {
         final String path = apiDO.getApiPath();
         RuleQueryCondition condition = new RuleQueryCondition();
         condition.setKeyword(path);
@@ -185,7 +185,7 @@ public class ApiServiceImpl implements ApiService {
                 .ifPresent(metaDataDO -> metaDataService.delete(Lists.newArrayList(metaDataDO.getId())));
     }
     
-    private void register(ApiDO apiDO) {
+    private void register(final ApiDO apiDO) {
         //register selector/rule/metadata if necessary
         final ApiDocRegisterDTO.ApiExt ext = GsonUtils.getInstance().fromJson(apiDO.getExt(), ApiDocRegisterDTO.ApiExt.class);
         RegisterClientServerDisruptorPublisher publisher = RegisterClientServerDisruptorPublisher.getInstance();
