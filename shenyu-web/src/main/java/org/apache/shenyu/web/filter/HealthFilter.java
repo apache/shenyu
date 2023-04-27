@@ -45,7 +45,7 @@ public final class HealthFilter extends AbstractWebFilter {
      */
     public HealthFilter(final List<String> paths) {
         if (CollectionUtils.isEmpty(paths)) {
-            this.paths = new HashSet<>(Arrays.asList("/actuator/health", "/health_check"));
+            this.paths = new HashSet<>(Arrays.asList("/actuator/health", "/actuator/health/readiness", "/actuator/health/liveness", "/health_check"));
         } else {
             this.paths = new HashSet<>(paths); 
         }

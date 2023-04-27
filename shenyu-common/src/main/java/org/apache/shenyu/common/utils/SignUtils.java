@@ -39,9 +39,9 @@ public final class SignUtils {
 
     private static final Map<String, SignFunction> SIGN_FUNCTION_MAP = ImmutableMap.of(
             SIGN_MD5, (key, data) -> DigestUtils.md5Hex(data + key),
-            SIGN_HMD5, HmacUtils::hmacMd5Hex,
-            SIGN_HS256, HmacUtils::hmacSha256Hex,
-            SIGN_HS512, HmacUtils::hmacSha512Hex
+            SIGN_HMD5, HmacHexUtils::hmacMd5Hex,
+            SIGN_HS256, HmacHexUtils::hmacSha256Hex,
+            SIGN_HS512, HmacHexUtils::hmacSha512Hex
     );
 
     /**
