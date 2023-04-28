@@ -27,7 +27,6 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -94,7 +93,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
                 .contextPath(this.getContextPath())
                 .appName(this.getAppName())
                 .rpcType(RpcTypeEnum.BRPC.getName())
-                .host(this.getHost())
+                .host(super.getHost())
                 .port(Integer.parseInt(this.getPort()))
                 .build();
     }
@@ -142,10 +141,10 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
                                                    final Method method) {
         String serviceName = clazz.getInterfaces().length > 0 ? clazz.getInterfaces()[0].getName() : clazz.getName();
         String desc = shenyuBrpcClient.desc();
-        String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
+        String host = super.getHost();
         String configRuleName = shenyuBrpcClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
-        int port = StringUtils.isBlank(this.getPort()) ? -1 : Integer.parseInt(this.getPort());
+        int port = Integer.parseInt(super.getPort());
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)

@@ -33,6 +33,7 @@ import org.apache.shenyu.common.enums.ApiSourceEnum;
 import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
@@ -95,6 +96,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     private final String host;
 
     private final String port;
+    
+    private ApplicationContext context;
 
     /**
      * Instantiates a new context refreshed event listener.
@@ -120,7 +123,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
 
     @Override
     public void onApplicationEvent(@NonNull final ContextRefreshedEvent event) {
-        final ApplicationContext context = event.getApplicationContext();
+        context = event.getApplicationContext();
         Map<String, T> beans = getBeans(context);
         if (MapUtils.isEmpty(beans)) {
             return;
@@ -205,8 +208,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
     private String buildExtJson(final Class<?> clazz,
                                 final Method method) {
         ApiDocRegisterDTO.ApiExt ext = new ApiDocRegisterDTO.ApiExt();
-        ext.setHost(host);
-        ext.setPort(Integer.valueOf(port));
+        ext.setHost(getHost());
+        ext.setPort(Integer.valueOf(getPort()));
         ext.setServiceName(clazz.getName());
         ext.setMethodName(method.getName());
         ext.setParameterTypes(Arrays.stream(method.getParameterTypes())
@@ -360,7 +363,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      * @return the host
      */
     public String getHost() {
-        return host;
+        return IpUtils.isCompleteHost(this.host) ?
+                this.host : IpUtils.getHost(this.host);
     }
 
     /**
@@ -369,6 +373,15 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      * @return the port
      */
     public String getPort() {
-        return port;
+        return StringUtils.isBlank(this.port) ? "-1" : this.port;
+    }
+    
+    /**
+     * Get the context.
+     *
+     * @return the context
+     */
+    public ApplicationContext getContext() {
+        return context;
     }
 }

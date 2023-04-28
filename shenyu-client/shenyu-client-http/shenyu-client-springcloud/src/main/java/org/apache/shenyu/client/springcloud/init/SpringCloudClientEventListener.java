@@ -27,7 +27,6 @@ import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
@@ -137,14 +136,11 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans) {
         try {
-            final String host = getHost();
-            final int port = Integer.parseInt(Optional.ofNullable(getPort()).orElseGet(() -> "-1"));
-            final int mergedPort = port <= 0 ? PortUtils.findPort(context.getAutowireCapableBeanFactory()) : port;
             return URIRegisterDTO.builder()
                     .contextPath(getContextPath())
                     .appName(getAppName())
-                    .host(IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host))
-                    .port(mergedPort)
+                    .host(super.getHost())
+                    .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                     .build();
         } catch (ShenyuException e) {
@@ -254,5 +250,12 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
     @Override
     public String getAppName() {
         return env.getProperty("spring.application.name");
+    }
+    
+    @Override
+    public String getPort() {
+        final int port = Integer.parseInt(Optional.ofNullable(super.getPort()).orElseGet(() -> "-1"));
+        final int mergedPort = port <= 0 ? PortUtils.findPort(getContext().getAutowireCapableBeanFactory()) : port;
+        return String.valueOf(mergedPort);
     }
 }

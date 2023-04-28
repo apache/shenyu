@@ -29,7 +29,6 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -115,8 +114,8 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                     .contextPath(getContextPath())
                     .appName(buildAppName(bean))
                     .rpcType(RpcTypeEnum.DUBBO.getName())
-                    .host(buildHost())
-                    .port(buildPort(bean))
+                    .host(super.getHost())
+                    .port(Integer.valueOf(getPort()))
                     .build();
         }).orElse(null);
     }
@@ -124,16 +123,6 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
     private String buildAppName(final ServiceBean<?> serviceBean) {
         String appName = this.getAppName();
         return StringUtils.isBlank(appName) ? serviceBean.getApplication().getName() : appName;
-    }
-    
-    private String buildHost() {
-        final String host = this.getHost();
-        return IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host);
-    }
-    
-    private int buildPort(final ServiceBean<?> serviceBean) {
-        final String port = this.getPort();
-        return StringUtils.isBlank(port) || "-1".equals(port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(port);
     }
     
     @Override
@@ -192,8 +181,8 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .serviceName(serviceName)
                 .methodName(methodName)
                 .contextPath(getContextPath())
-                .host(buildHost())
-                .port(buildPort(bean))
+                .host(super.getHost())
+                .port(Integer.valueOf(getPort()))
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
@@ -202,6 +191,15 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
                 .rpcType(RpcTypeEnum.DUBBO.getName())
                 .enabled(shenyuClient.enabled())
                 .build();
+    }
+    
+    @Override
+    public String getPort() {
+        final ServiceBean serviceBean = getContext()
+                .getBeanProvider(ServiceBean.class).getIfAvailable();
+        final String port = super.getPort();
+        return StringUtils.isBlank(port) || "-1".equals(port) ?
+                String.valueOf(serviceBean.getProtocol().getPort()) : port;
     }
     
     private String buildRpcExt(final ServiceBean<?> serviceBean) {

@@ -30,7 +30,6 @@ import org.apache.shenyu.client.motan.common.dto.MotanRpcExt;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -126,8 +125,6 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
         Integer timeout = Optional.ofNullable(((BasicServiceConfigBean) applicationContext.getBean(BASE_SERVICE_CONFIG)).getRequestTimeout()).orElse(1000);
         MotanService service = AnnotatedElementUtils.findMergedAnnotation(clazz, MotanService.class);
         String desc = shenyuMotanClient.desc();
-        String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
-        int port = StringUtils.isBlank(this.getPort()) ? -1 : Integer.parseInt(this.getPort());
         String configRuleName = shenyuMotanClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
@@ -151,8 +148,8 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                 .methodName(methodName)
                 .contextPath(this.getContextPath())
                 .path(path)
-                .port(port)
-                .host(host)
+                .port(Integer.parseInt(super.getPort()))
+                .host(super.getHost())
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)

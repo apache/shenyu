@@ -31,7 +31,6 @@ import org.apache.shenyu.client.grpc.json.JsonServerServiceInterceptor;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -104,7 +103,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .contextPath(getContextPath())
                 .appName(getIpAndPort())
                 .rpcType(RpcTypeEnum.GRPC.getName())
-                .host(buildHost())
+                .host(super.getHost())
                 .port(Integer.parseInt(getPort()))
                 .build();
     }
@@ -160,7 +159,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .serviceName(packageName)
                 .methodName(methodName)
                 .contextPath(getContextPath())
-                .host(buildHost())
+                .host(super.getHost())
                 .port(Integer.parseInt(getPort()))
                 .path(path)
                 .ruleName(ruleName)
@@ -170,11 +169,6 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .rpcExt(buildRpcExt(shenyuClient, methodType))
                 .enabled(shenyuClient.enabled())
                 .build();
-    }
-    
-    private String buildHost() {
-        final String host = this.getHost();
-        return IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host);
     }
     
     private String buildPackageName(final Class<?> clazz) {

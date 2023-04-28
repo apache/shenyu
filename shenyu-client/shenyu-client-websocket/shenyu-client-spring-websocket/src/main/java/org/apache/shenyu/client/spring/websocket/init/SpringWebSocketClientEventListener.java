@@ -27,7 +27,6 @@ import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocke
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
@@ -105,22 +104,18 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
         }
         Map<String, Object> endpointBeans = context.getBeansWithAnnotation(ShenyuServerEndpoint.class);
         registerEndpointsBeans(context, endpointBeans);
-
         return context.getBeansWithAnnotation(ShenyuSpringWebSocketClient.class);
     }
 
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans) {
         try {
-            final String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
-            final int port = Integer.parseInt(Optional.ofNullable(getPort()).orElseGet(() -> "-1"));
-            final int mergedPort = port <= 0 ? PortUtils.findPort(context.getAutowireCapableBeanFactory()) : port;
             return URIRegisterDTO.builder()
                     .contextPath(getContextPath())
                     .appName(getAppName())
                     .protocol(protocol)
-                    .host(host)
-                    .port(mergedPort)
+                    .host(super.getHost())
+                    .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
                     .build();
         } catch (ShenyuException e) {
@@ -209,6 +204,13 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                 .enabled(true)
                 .ruleName(StringUtils.defaultIfBlank(webSocketClient.ruleName(), getContextPath()))
                 .build();
+    }
+    
+    @Override
+    public String getPort() {
+        final int port = Integer.parseInt(Optional.ofNullable(super.getPort()).orElseGet(() -> "-1"));
+        final int mergedPort = port <= 0 ? PortUtils.findPort(getContext().getAutowireCapableBeanFactory()) : port;
+        return String.valueOf(mergedPort);
     }
 
     private void registerEndpointsBeans(final ApplicationContext context, final Map<String, Object> endpointBeans) {
