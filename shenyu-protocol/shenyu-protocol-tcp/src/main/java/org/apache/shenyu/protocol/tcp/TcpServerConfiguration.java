@@ -24,6 +24,8 @@ import java.util.Properties;
  */
 public class TcpServerConfiguration {
 
+    private String pluginSelectorName;
+
     private int port = 9500;
 
     private int bossGroupThreadCount = 1;
@@ -34,7 +36,25 @@ public class TcpServerConfiguration {
 
     private String leakDetectorLevel = "DISABLED";
 
-    private Properties props;
+    private Properties props = new Properties();
+
+    /**
+     * getPluginSelectorName.
+     *
+     * @return pluginSelectorName
+     */
+    public String getPluginSelectorName() {
+        return pluginSelectorName;
+    }
+
+    /**
+     * setPluginSelectorName.
+     *
+     * @param pluginSelectorName pluginSelectorName
+     */
+    public void setPluginSelectorName(String pluginSelectorName) {
+        this.pluginSelectorName = pluginSelectorName;
+    }
 
     /**
      * get port.
@@ -133,4 +153,5 @@ public class TcpServerConfiguration {
     public void setProps(Properties props) {
         this.props = props;
     }
+
 }

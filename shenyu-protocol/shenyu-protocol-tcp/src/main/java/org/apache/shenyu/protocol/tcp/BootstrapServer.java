@@ -36,19 +36,14 @@ public class BootstrapServer {
     private DisposableServer server;
     private final Map<String, Connection> connectionCache = new ConcurrentHashMap<>();
 
-    public void start(DiscoveryConfig discoveryConfig, TcpServerConfiguration tcpServerConfiguration) {
-
+    public void start(TcpServerConfiguration tcpServerConfiguration) {
         String loadBalanceAlgorithm = tcpServerConfiguration.getProps().getOrDefault("shenyu.tcpPlugin.tcpServerConfiguration.props.loadBalanceAlgorithm", "random").toString();
-        ShenyuDiscoveryService shenyuDiscoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(discoveryConfig.getType());
-        shenyuDiscoveryService.init(discoveryConfig);
-        DefaultConnectionConfigProvider connectionConfigProvider = new DefaultConnectionConfigProvider(shenyuDiscoveryService, loadBalanceAlgorithm);
+        DefaultConnectionConfigProvider connectionConfigProvider = new DefaultConnectionConfigProvider(loadBalanceAlgorithm, tcpServerConfiguration.getPluginSelectorName());
         this.bridge = new TcpConnectionBridge();
         connectionContext = new ConnectionContext(connectionConfigProvider);
         connectionContext.init(tcpServerConfiguration.getProps());
-
         LoopResources loopResources = LoopResources.create("shenyu-tcp-bootstrap-server", tcpServerConfiguration.getBossGroupThreadCount(),
                 tcpServerConfiguration.getWorkerGroupThreadCount(), true);
-
         TcpServer tcpServer = TcpServer.create()
                 .doOnChannelInit((connectionObserver, channel, remoteAddress) -> {
                     channel.pipeline().addFirst(new LoggingHandler(LogLevel.DEBUG));
@@ -59,7 +54,7 @@ public class BootstrapServer {
                 .runOn(loopResources);
         server = tcpServer.bindNow();
         triggerJob();
-        server.onDispose().block();
+       // server.onDispose().block();
     }
 
     private void bridgeConnections(final Connection serverConn) {
@@ -79,7 +74,7 @@ public class BootstrapServer {
             throw new NullPointerException("remoteAddress is null");
         }
         String address = socketAddress.toString();
-        return address.substring(1, address.indexOf(':'));
+        return address.substring(2, address.indexOf(':'));
     }
 
     private void triggerJob() {

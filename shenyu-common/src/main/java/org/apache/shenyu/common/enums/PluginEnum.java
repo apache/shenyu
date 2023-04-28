@@ -34,7 +34,7 @@ public enum PluginEnum {
     /**
      * Tcp plugin enum.
      */
-    TCP(0,0,"tcp"),
+    TCP(0, 0, "tcp"),
     /**
      * Mqtt plugin enum.
      */

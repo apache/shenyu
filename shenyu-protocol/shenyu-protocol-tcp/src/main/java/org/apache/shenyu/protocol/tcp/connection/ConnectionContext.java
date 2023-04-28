@@ -41,9 +41,7 @@ public class ConnectionContext {
                 );
     }
 
-
     public String getClientConnectionId() {
-
         return "TEST_CLIENT";
     }
 

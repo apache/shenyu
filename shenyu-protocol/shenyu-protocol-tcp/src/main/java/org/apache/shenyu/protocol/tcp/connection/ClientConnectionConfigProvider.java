@@ -1,8 +1,6 @@
 package org.apache.shenyu.protocol.tcp.connection;
 
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.util.Properties;
+import java.net.URI;
 
 /**
  * ClientConnectionConfigProvider.
@@ -14,13 +12,6 @@ public interface ClientConnectionConfigProvider {
      *
      * @return InetSocketAddress.
      */
-    URL getProxiedService(String ip);
-
-    /**
-     * init.
-     *
-     * @param props props
-     */
-    void init(Properties props);
+    URI getProxiedService(String ip);
 
 }

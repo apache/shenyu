@@ -9,5 +9,5 @@ public interface Bridge {
      * @param server tcp server connection
      * @param client tcp client connection
      */
-    public void bridge(final Connection server, final Connection client);
+    void bridge(final Connection server, final Connection client);
 }
