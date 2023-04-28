@@ -171,6 +171,7 @@
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
         <asm.version>9.2</asm.version>
+        <apollo.version>2.1.0</apollo.version>
     </properties>
 
     <dependencyManagement>

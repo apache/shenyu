@@ -37,6 +37,7 @@ public class ConnectionContext {
                         TcpClient.create(connectionProvider)
                                 .host(url.getHost())
                                 .port(url.getPort())
+                                .observe(new ActivityConnectionObserver("TcpClient"))
                                 .connect()
                 );
     }

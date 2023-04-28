@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.*;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * ClientConnectionConfigProviderFactory.

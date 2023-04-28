@@ -2,14 +2,7 @@ package org.apache.shenyu.protocol.tcp;
 
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
-import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
-import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
-import org.apache.shenyu.loadbalancer.spi.LoadBalancer;
 import org.apache.shenyu.protocol.tcp.connection.*;
-import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
@@ -22,7 +15,6 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -49,22 +41,26 @@ public class BootstrapServer {
                     channel.pipeline().addFirst(new LoggingHandler(LogLevel.DEBUG));
                 })
                 .wiretap(true)
+                .observe((c, s) -> {
+                    LOG.info("connection={}|status={}", c.toString(), s.toString());
+                })
+                //todo 使用 child 去监控
+                .childObserve(new ActivityConnectionObserver("TcpServer"))
                 .doOnConnection(this::bridgeConnections)
                 .port(tcpServerConfiguration.getPort())
                 .runOn(loopResources);
         server = tcpServer.bindNow();
         triggerJob();
-       // server.onDispose().block();
     }
 
     private void bridgeConnections(final Connection serverConn) {
-        LOG.debug("Starting proxy client");
+        LOG.info("Starting proxy client ={}", serverConn);
         SocketAddress socketAddress = serverConn.channel().remoteAddress();
         Mono<Connection> client = connectionContext.getTcpClientConnection(getIp(socketAddress));
         String connectionId = connectionContext.getClientConnectionId();
         connectionCache.put(connectionId, serverConn);
         client.subscribe((clientConn) -> {
-            LOG.debug("Bridging connection with {}", bridge);
+            //LOG.info("Bridging connection with {}", bridge);
             bridge.bridge(serverConn, clientConn);
         });
     }
@@ -81,7 +77,7 @@ public class BootstrapServer {
         Runnable runnable = () -> {
             while (true) {
                 try {
-                    LOG.info("job trigger start");
+                    //  LOG.info("job trigger start");
                     List<String> connectionKeys = new ArrayList<>(connectionCache.keySet());
                     for (String connectionKey : connectionKeys) {
                         Connection serverCon = connectionCache.get(connectionKey);
@@ -92,7 +88,7 @@ public class BootstrapServer {
                             bridgeConnections(serverCon);
                         }
                     }
-                    LOG.info("job trigger end");
+                    //LOG.info("job trigger end");
                 } catch (Throwable tx) {
                     LOG.error("error", tx);
                 }
