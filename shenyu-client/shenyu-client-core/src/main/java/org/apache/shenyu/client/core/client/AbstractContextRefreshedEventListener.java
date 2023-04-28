@@ -363,8 +363,8 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      * @return the host
      */
     public String getHost() {
-        return IpUtils.isCompleteHost(this.host) ?
-                this.host : IpUtils.getHost(this.host);
+        return IpUtils.isCompleteHost(this.host) ? this.host
+                : IpUtils.getHost(this.host);
     }
 
     /**
