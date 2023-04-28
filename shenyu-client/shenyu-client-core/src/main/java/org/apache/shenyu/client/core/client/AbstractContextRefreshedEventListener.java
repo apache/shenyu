@@ -64,7 +64,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -181,7 +180,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
             ApiHttpMethodEnum[] value3 = sextet.getValue3();
             for (ApiHttpMethodEnum apiHttpMethodEnum : value3) {
                 String documentJson = buildDocumentJson(pairs.getRight(), apiPath, method);
-                String extJson = buildExtJson(clazz, method);
+                String extJson = buildExtJson(method);
                 ApiDocRegisterDTO build = ApiDocRegisterDTO.builder()
                         .consume(sextet.getValue1())
                         .produce(sextet.getValue2())
@@ -205,18 +204,18 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         return list;
     }
     
-    private String buildExtJson(final Class<?> clazz,
-                                final Method method) {
+    private String buildExtJson(final Method method) {
+        final MetaDataRegisterDTO metaData = metaDataMap.get(method);
+        if (Objects.isNull(metaData)) {
+            return "{}";
+        }
         ApiDocRegisterDTO.ApiExt ext = new ApiDocRegisterDTO.ApiExt();
         ext.setHost(getHost());
         ext.setPort(Integer.valueOf(getPort()));
-        ext.setServiceName(clazz.getName());
-        ext.setMethodName(method.getName());
-        ext.setParameterTypes(Arrays.stream(method.getParameterTypes())
-                .map(Class::getName)
-                .collect(Collectors.joining(",")));
-        ext.setRpcExt(Optional.ofNullable(metaDataMap.get(method))
-                .map(MetaDataRegisterDTO::getRpcExt).orElse("{}"));
+        ext.setServiceName(metaData.getServiceName());
+        ext.setMethodName(metaData.getMethodName());
+        ext.setParameterTypes(metaData.getParameterTypes());
+        ext.setRpcExt(metaData.getRpcExt());
         ext = customApiDocExt(ext);
         return GsonUtils.getInstance().toJson(ext);
     }
