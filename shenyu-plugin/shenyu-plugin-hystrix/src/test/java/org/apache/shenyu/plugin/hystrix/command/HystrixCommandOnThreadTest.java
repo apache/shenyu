@@ -74,7 +74,7 @@ public final class HystrixCommandOnThreadTest {
                 .remoteAddress(new InetSocketAddress(8092))
                 .header("MetaDataCache", "Hello")
                 .build());
-        hystrixCommandOnThread = new HystrixCommandOnThread(setter, exchange, mock(ShenyuPluginChain.class), "http://callback:8093/test");
+        hystrixCommandOnThread = new HystrixCommandOnThread(setter, exchange, mock(ShenyuPluginChain.class), "/test");
     }
 
     @Test
