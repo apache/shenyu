@@ -79,7 +79,7 @@ public final class HystrixCommandOnThreadTest {
 
     @Test
     public void testGetCallBackUri() {
-        assertEquals("callback", hystrixCommandOnThread.getCallBackUri().getHost());
+        assertEquals("/test", hystrixCommandOnThread.getCallBackUri().getPath());
     }
 
     @Test
