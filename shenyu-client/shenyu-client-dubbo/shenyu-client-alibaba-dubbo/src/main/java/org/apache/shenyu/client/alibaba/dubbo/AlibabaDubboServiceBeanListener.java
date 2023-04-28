@@ -192,11 +192,13 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
 
     @Override
     public String getPort() {
-        final ServiceBean serviceBean = getContext()
-                .getBeanProvider(ServiceBean.class).getIfAvailable();
         final String port = super.getPort();
-        return StringUtils.isBlank(port) || "-1".equals(port)
-                ? String.valueOf(serviceBean.getProtocol().getPort()) : port;
+        return getContext().getBeansOfType(ServiceBean.class).entrySet()
+                .stream().findFirst().map(entry -> {
+                    final ServiceBean<?> serviceBean = entry.getValue();
+                    return StringUtils.isBlank(port) || "-1".equals(port)
+                            ? String.valueOf(serviceBean.getProtocol().getPort()) : port;
+                }).orElse(port);
     }
     
     private String buildRpcExt(final ServiceBean<?> serviceBean) {
