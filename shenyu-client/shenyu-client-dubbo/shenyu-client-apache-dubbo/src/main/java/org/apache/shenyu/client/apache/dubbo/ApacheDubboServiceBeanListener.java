@@ -198,8 +198,8 @@ public class ApacheDubboServiceBeanListener extends AbstractContextRefreshedEven
         final ServiceBean serviceBean = getContext()
                 .getBeanProvider(ServiceBean.class).getIfAvailable();
         final String port = super.getPort();
-        return StringUtils.isBlank(port) || "-1".equals(port) ?
-                String.valueOf(serviceBean.getProtocol().getPort()) : port;
+        return StringUtils.isBlank(port) || "-1".equals(port)
+                ? String.valueOf(serviceBean.getProtocol().getPort()) : port;
     }
     
     private String buildRpcExt(final ServiceBean<?> serviceBean) {
