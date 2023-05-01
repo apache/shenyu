@@ -17,7 +17,85 @@
 
 package org.apache.shenyu.client.springmvc.register.apimeta;
 
+import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.junit.jupiter.api.Test;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.lang.reflect.Method;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 public class SpringMvcApiDefinitionMetaMatcherTest {
 
+    private final SpringMvcApiDefinitionMetaMatcher apiDefinitionMetaMatcher =
+            new SpringMvcApiDefinitionMetaMatcher();
 
+    @Test
+    public void testMatchAnnotatedClass() throws Exception {
+        Method method = TestBeanMatchAnnotatedClass.class.getMethod("testMethod");
+        ApiBean<Object>.ApiDefinition apiDefinition =
+                createApiDefinition(TestBeanMatchAnnotatedClass.class, method, "/testMethod");
+        boolean result = apiDefinitionMetaMatcher.match(apiDefinition);
+
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void testMatchAnnotatedMethod() throws Exception {
+        Method method = TestBeanMatchClass.class.getMethod("testAnnotatedMethod");
+        ApiBean<Object>.ApiDefinition apiDefinition =
+                createApiDefinition(TestBeanMatchClass.class, method, "/testAnnotatedMethod");
+        boolean result = apiDefinitionMetaMatcher.match(apiDefinition);
+
+        assertThat(result, is(true));
+    }
+
+    @Test
+    public void tesMatchWithoutAnnotation() throws Exception {
+        Method method = TestBeanMatchClass.class.getMethod("testMethod");
+        ApiBean<Object>.ApiDefinition apiDefinition =
+                createApiDefinition(TestBeanMatchClass.class, method, "/testMethod");
+        boolean result = apiDefinitionMetaMatcher.match(apiDefinition);
+
+        assertThat(result, is(false));
+    }
+
+    private ApiBean<Object>.ApiDefinition createApiDefinition(final Class<?> beanClass, final Method method,
+                                                              final String methodPath) throws Exception {
+        ApiBean<Object> apiBean = new ApiBean<>("/http",
+                "testBeanMatchClass", beanClass.getDeclaredConstructor().newInstance(),
+                "/testClass", beanClass);
+
+        apiBean.addApiDefinition(method, methodPath);
+        return apiBean.getApiDefinitions().get(0);
+    }
+
+    @ShenyuSpringMvcClient
+    @RestController
+    @RequestMapping("/testClass")
+    static class TestBeanMatchAnnotatedClass {
+        @RequestMapping("/testMethod")
+        public String testMethod() {
+            return "";
+        }
+    }
+
+    @RestController
+    @RequestMapping("/testClass")
+    static class TestBeanMatchClass {
+
+        @RequestMapping("/testMethod")
+        public String testMethod() {
+            return "";
+        }
+
+        @RequestMapping("/testAnnotatedMethod")
+        @ShenyuSpringMvcClient("/testAnnotatedMethodo")
+        public String testAnnotatedMethod() {
+            return "";
+        }
+    }
 }
