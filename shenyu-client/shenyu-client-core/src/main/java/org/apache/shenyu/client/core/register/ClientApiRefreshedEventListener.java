@@ -25,13 +25,13 @@ import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.util.List;
 
-public final class ContextApiRefreshedEventListener<T> implements ApplicationListener<ContextRefreshedEvent> {
+public final class ClientApiRefreshedEventListener<T> implements ApplicationListener<ContextRefreshedEvent> {
 
     private final List<AbstractRegistrar<ApiBean<T>>> apiBeanRegistrars;
 
     private final ApiBeansExtractor<T> apiBeanExtractor;
 
-    public ContextApiRefreshedEventListener(final List<AbstractRegistrar<ApiBean<T>>> apiBeanRegistrars, final ApiBeansExtractor<T> apiBeanExtractor) {
+    public ClientApiRefreshedEventListener(final List<AbstractRegistrar<ApiBean<T>>> apiBeanRegistrars, final ApiBeansExtractor<T> apiBeanExtractor) {
 
         this.apiBeanExtractor = apiBeanExtractor;
 
