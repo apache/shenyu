@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register;
+package org.apache.shenyu.client.springmvc.register.apimeta;
 
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;

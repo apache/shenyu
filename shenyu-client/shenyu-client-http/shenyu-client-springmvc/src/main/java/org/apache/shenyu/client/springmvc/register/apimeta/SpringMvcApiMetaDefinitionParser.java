@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register;
+package org.apache.shenyu.client.springmvc.register.apimeta;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;

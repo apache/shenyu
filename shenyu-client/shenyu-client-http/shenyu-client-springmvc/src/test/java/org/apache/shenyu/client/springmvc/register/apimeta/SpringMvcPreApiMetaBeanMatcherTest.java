@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register;
+package org.apache.shenyu.client.springmvc.register.apimeta;
 
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
@@ -24,31 +24,31 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class SpringMvcApiMetaBeanMatcherTest {
+public class SpringMvcPreApiMetaBeanMatcherTest {
 
-    private final SpringMvcApiMetaBeanMatcher beanMatcher = new SpringMvcApiMetaBeanMatcher();
+    private final SpringMvcPreApiMetaBeanMatcher preApiMetaBeanMatcher = new SpringMvcPreApiMetaBeanMatcher();
 
     @Test
-    public void testBeanMatch() throws Exception {
+    public void testBeanMatchWithAnnotation() throws Exception {
         ApiBean<Object> apiBean = createSimpleApiBean(TestBeanMatchClass.class);
-        boolean result = beanMatcher.match(apiBean);
-        assertThat(result, is(true));
+        boolean result = preApiMetaBeanMatcher.match(apiBean);
+        assertThat(result, is(false));
     }
 
     @Test
     public void testBeanMatchWithoutAnnotation() throws Exception {
 
         ApiBean<Object> apiBean = createSimpleApiBean(TestBeanMatchWithoutAnnotationClass.class);
-        boolean result = beanMatcher.match(apiBean);
-        assertThat(result, is(true));
+        boolean result = preApiMetaBeanMatcher.match(apiBean);
+        assertThat(result, is(false));
     }
 
     @Test
     public void testBeanMatchWithStarAnnotation() throws Exception {
 
         ApiBean<Object> apiBean = createSimpleApiBean(TestBeanMatchWithStarAnnotationClass.class);
-        boolean result = beanMatcher.match(apiBean);
-        assertThat(result, is(false));
+        boolean result = preApiMetaBeanMatcher.match(apiBean);
+        assertThat(result, is(true));
     }
 
     private static ApiBean<Object> createSimpleApiBean(final Class<?> beanClass) throws Exception {
@@ -67,4 +67,5 @@ public class SpringMvcApiMetaBeanMatcherTest {
     @ShenyuSpringMvcClient("/**")
     static class TestBeanMatchWithStarAnnotationClass {
     }
+
 }
