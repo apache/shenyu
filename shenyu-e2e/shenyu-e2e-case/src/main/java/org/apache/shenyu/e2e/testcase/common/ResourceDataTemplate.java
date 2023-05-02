@@ -18,10 +18,8 @@
 package org.apache.shenyu.e2e.testcase.common;
 
 import com.google.common.base.Strings;
-import org.apache.shenyu.e2e.client.admin.model.LoadBalance;
 import org.apache.shenyu.e2e.client.admin.model.MatchMode;
 import org.apache.shenyu.e2e.client.admin.model.Plugin;
-import org.apache.shenyu.e2e.client.admin.model.RetryStrategy;
 import org.apache.shenyu.e2e.client.admin.model.SelectorType;
 import org.apache.shenyu.e2e.client.admin.model.data.Condition;
 import org.apache.shenyu.e2e.client.admin.model.data.Condition.Operator;
@@ -91,8 +89,8 @@ public class ResourceDataTemplate {
      */
     public static DivideRuleHandle newDivideRuleHandle() {
         return DivideRuleHandle.builder()
-                .loadBalance(LoadBalance.HASH.getName())
-                .retryStrategy(RetryStrategy.CURRENT.getName())
+                .loadBalance("hash")
+                .retryStrategy("current")
                 .retry(1)
                 .timeout(3000)
                 .headerMaxSize(10240)
