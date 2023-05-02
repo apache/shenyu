@@ -139,6 +139,7 @@ public class AppAuthVO implements Serializable {
     public void setAppName(final String appName) {
         this.appName = appName;
     }
+    
     /**
      * Gets the value of appKey.
      *
