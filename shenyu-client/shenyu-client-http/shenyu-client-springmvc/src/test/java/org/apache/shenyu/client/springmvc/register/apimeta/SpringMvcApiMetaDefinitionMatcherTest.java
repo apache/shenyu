@@ -28,10 +28,10 @@ import java.lang.reflect.Method;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class SpringMvcApiDefinitionMetaMatcherTest {
+public class SpringMvcApiMetaDefinitionMatcherTest {
 
-    private final SpringMvcApiDefinitionMetaMatcher apiDefinitionMetaMatcher =
-            new SpringMvcApiDefinitionMetaMatcher();
+    private final SpringMvcApiMetaDefinitionMatcher apiDefinitionMetaMatcher =
+            new SpringMvcApiMetaDefinitionMatcher();
 
     @Test
     public void testMatchAnnotatedClass() throws Exception {

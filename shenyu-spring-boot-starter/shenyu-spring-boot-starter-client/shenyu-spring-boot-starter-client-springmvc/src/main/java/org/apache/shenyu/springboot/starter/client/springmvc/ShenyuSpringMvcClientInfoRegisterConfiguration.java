@@ -27,8 +27,8 @@ import org.apache.shenyu.client.core.register.matcher.Matcher;
 import org.apache.shenyu.client.core.register.parser.ApiDocDefinitionParser;
 import org.apache.shenyu.client.core.register.parser.ApiMetaDefinitionParser;
 import org.apache.shenyu.client.core.register.parser.PreApiMetaBeanParser;
-import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiBeansExtractor;
-import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiDefinitionMetaMatcher;
+import org.apache.shenyu.client.springmvc.register.SpringMvcApiBeansExtractor;
+import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaDefinitionMatcher;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaBeanMatcher;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaDefinitionParser;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcPreApiMetaBeanMatcher;
@@ -125,7 +125,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     @Bean(name = API_META_DEFINITION_MATCHER)
     @ConditionalOnMissingBean(name = API_META_DEFINITION_MATCHER)
     public Matcher<ApiBean<Object>.ApiDefinition> apiDefinitionMetaMatcher() {
-        return new SpringMvcApiDefinitionMetaMatcher();
+        return new SpringMvcApiMetaDefinitionMatcher();
     }
 
     /**
