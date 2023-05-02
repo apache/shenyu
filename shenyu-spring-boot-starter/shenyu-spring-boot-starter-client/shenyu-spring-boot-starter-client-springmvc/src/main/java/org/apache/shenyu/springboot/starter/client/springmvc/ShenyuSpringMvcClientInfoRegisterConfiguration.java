@@ -124,7 +124,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      */
     @Bean(name = API_META_DEFINITION_MATCHER)
     @ConditionalOnMissingBean(name = API_META_DEFINITION_MATCHER)
-    public Matcher<ApiBean<Object>.ApiDefinition> apiDefinitionMetaMatcher() {
+    public Matcher<ApiBean<Object>.ApiDefinition> apiMetaDefinitionMatcher() {
         return new SpringMvcApiMetaDefinitionMatcher();
     }
 
