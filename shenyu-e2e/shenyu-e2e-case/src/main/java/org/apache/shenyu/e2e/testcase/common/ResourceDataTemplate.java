@@ -18,8 +18,10 @@
 package org.apache.shenyu.e2e.testcase.common;
 
 import com.google.common.base.Strings;
+import org.apache.shenyu.e2e.client.admin.model.LoadBalance;
 import org.apache.shenyu.e2e.client.admin.model.MatchMode;
 import org.apache.shenyu.e2e.client.admin.model.Plugin;
+import org.apache.shenyu.e2e.client.admin.model.RetryStrategy;
 import org.apache.shenyu.e2e.client.admin.model.SelectorType;
 import org.apache.shenyu.e2e.client.admin.model.data.Condition;
 import org.apache.shenyu.e2e.client.admin.model.data.Condition.Operator;
@@ -27,8 +29,6 @@ import org.apache.shenyu.e2e.client.admin.model.data.Condition.ParamType;
 import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
 import org.apache.shenyu.e2e.client.admin.model.data.SelectorData;
 import org.apache.shenyu.e2e.client.admin.model.handle.DivideRuleHandle;
-import org.apache.shenyu.e2e.client.admin.model.handle.DivideRuleHandle.LoadBalance;
-import org.apache.shenyu.e2e.client.admin.model.handle.DivideRuleHandle.RetryStrategy;
 import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams;
 import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams.Upstream;
 import org.jetbrains.annotations.NotNull;

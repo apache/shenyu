@@ -29,9 +29,9 @@ import com.fasterxml.jackson.databind.util.Converter;
  */
 public class DivideRuleHandle implements RuleHandle {
     
-    private String loadBalance; // todo enhancement, change to enum
+    private String loadBalance;
     
-    private String retryStrategy; // todo enhancement, change to enum
+    private String retryStrategy;
     
     @JsonSerialize(converter = IntConverter.class)
     private int retry;
@@ -59,82 +59,6 @@ public class DivideRuleHandle implements RuleHandle {
         @Override
         public JavaType getOutputType(TypeFactory typeFactory) {
             return _OUT;
-        }
-    }
-
-    public enum LoadBalance {
-
-        /**
-         * Hash load balance enum.
-         */
-        HASH("hash"),
-
-        /**
-         * Random load balance enum.
-         */
-        RANDOM("random"),
-
-        /**
-         * Round robin load balance enum.
-         */
-        ROUND_ROBIN("roundRobin"),
-
-        /**
-         * least activity load balance enum.
-         */
-        LEAST_ACTIVITY("leastActive"),
-
-        /**
-         * pick of 2 choices load balance enum.
-         */
-        P2C("p2c"),
-
-        /**
-         * shortest response load balance enum.
-         */
-        SHORTEST_RESPONSE("shortestResponse");
-
-        private final String name;
-
-        LoadBalance(String name) {
-            this.name = name;
-        }
-
-        /**
-         * get name.
-         *
-         * @return name
-         */
-        public String getName() {
-            return name;
-        }
-    }
-
-    public enum RetryStrategy {
-
-        /**
-         * Current retry strategy.
-         */
-        CURRENT("current"),
-
-        /**
-         * Failover retry strategy.
-         */
-        FAILOVER("failover");
-
-        private final String name;
-
-        RetryStrategy(String name) {
-            this.name = name;
-        }
-
-        /**
-         * get name.
-         *
-         * @return name
-         */
-        public String getName() {
-            return name;
         }
     }
 
@@ -274,9 +198,9 @@ public class DivideRuleHandle implements RuleHandle {
      */
     public static final class Builder {
 
-        private String loadBalance; // todo enhancement, change to enum
+        private String loadBalance;
 
-        private String retryStrategy; // todo enhancement, change to enum
+        private String retryStrategy;
 
         @JsonSerialize(converter = IntConverter.class)
         private int retry;
