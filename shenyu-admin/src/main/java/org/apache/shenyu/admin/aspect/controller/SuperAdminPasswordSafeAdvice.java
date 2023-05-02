@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * <h3>SuperAdminPasswordSafeAdvice.</h3>
+ * <h1>SuperAdminPasswordSafeAdvice.</h1>
  * <p>The Super Administrator account has some privileges that are dangerous and unique to the account</p>
  * <p>This is implemented to ensure that the super administrator account password is secure</p>
  * <p>1 The password is the initial password, which we consider dangerous and will force it to change the password if the user is so set</p>
