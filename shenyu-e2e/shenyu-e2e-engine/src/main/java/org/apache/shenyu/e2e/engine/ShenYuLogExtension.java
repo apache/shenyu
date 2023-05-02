@@ -33,7 +33,7 @@ public class ShenYuLogExtension implements InvocationInterceptor {
     
     @Override
     public void interceptBeforeEachMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {
-        MDC.put("phase", "BeforeAll");
+        MDC.put("phase", "BeforeEach");
         invocation.proceed();
     }
     

@@ -19,9 +19,6 @@ package org.apache.shenyu.e2e.testcase.common.specification;
 
 import io.restassured.http.Method;
 import io.restassured.specification.ResponseSpecification;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.apache.shenyu.e2e.client.admin.model.ResourcesData;
 import org.apache.shenyu.e2e.client.admin.model.ResourcesData.ResourcesDataBuilder;
 import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
@@ -34,17 +31,51 @@ import org.apache.shenyu.e2e.testcase.common.function.HttpWaiting;
 import org.apache.shenyu.e2e.testcase.common.function.WaitForHelper;
 import org.jetbrains.annotations.NotNull;
 
-@Getter
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class ShenYuBeforeEachSpec implements BeforeEachSpec {
     private final Checker checker;
     private final ResourcesData resources;
     private final Waiting waiting;
-    
+
+    public ShenYuBeforeEachSpec(Checker checker, ResourcesData resources, Waiting waiting) {
+        this.checker = checker;
+        this.resources = resources;
+        this.waiting = waiting;
+    }
+
     public static ShenYuBeforeEachSpecBuilder builder() {
         return new ShenYuBeforeEachSpecBuilder();
     }
-    
+
+    /**
+     * get checker.
+     *
+     * @return checker
+     */
+    @Override
+    public Checker getChecker() {
+        return checker;
+    }
+
+    /**
+     * get resources.
+     *
+     * @return  resources
+     */
+    @Override
+    public ResourcesData getResources() {
+        return resources;
+    }
+
+    /**
+     * get waiting.
+     *
+     * @return waiting
+     */
+    @Override
+    public Waiting getWaiting() {
+        return waiting;
+    }
+
     public static class ShenYuBeforeEachSpecBuilder {
         private final ResourcesDataBuilder builder = ResourcesData.builder();
         private Checker checker = Checker.DEFAULT;

@@ -18,8 +18,6 @@
 package org.apache.shenyu.e2e.testcase.common.specification;
 
 import com.google.common.base.Strings;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.apache.shenyu.e2e.common.IdGenerator;
 import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
@@ -27,8 +25,9 @@ import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.junit.jupiter.api.Assertions;
 
-@Getter
-@AllArgsConstructor
+/**
+ * ShenYu Scenario Spec.
+ */
 public class ShenYuScenarioSpec implements ScenarioSpec {
     
     private final String name;
@@ -38,7 +37,54 @@ public class ShenYuScenarioSpec implements ScenarioSpec {
     private final CaseSpec caseSpec;
     
     private final AfterEachSpec afterEachSpec;
-    
+
+    public ShenYuScenarioSpec(String name, BeforeEachSpec beforeEachSpec, CaseSpec caseSpec, AfterEachSpec afterEachSpec) {
+        this.name = name;
+        this.beforeEachSpec = beforeEachSpec;
+        this.caseSpec = caseSpec;
+        this.afterEachSpec = afterEachSpec;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * get beforeEachSpec.
+     *
+     * @return beforeEachSpec
+     */
+    @Override
+    public BeforeEachSpec getBeforeEachSpec() {
+        return beforeEachSpec;
+    }
+
+    /**
+     * get caseSpec.
+     *
+     * @return caseSpec
+     */
+    @Override
+    public CaseSpec getCaseSpec() {
+        return caseSpec;
+    }
+
+    /**
+     * get afterEachSpec.
+     *
+     * @return afterEachSpec
+     */
+    @Override
+    public AfterEachSpec getAfterEachSpec() {
+        return afterEachSpec;
+    }
+
     public static ShenYuScenarioSpecBuilder builder() {
         return new ShenYuScenarioSpecBuilder();
     }

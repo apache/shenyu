@@ -20,8 +20,6 @@ package org.apache.shenyu.e2e.engine.service;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import junit.framework.AssertionFailedError;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.e2e.client.ExternalServiceClient;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
@@ -30,6 +28,8 @@ import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure.DockerServiceConfigure;
 import org.apache.shenyu.e2e.engine.service.docker.DockerComposeFile;
 import org.apache.shenyu.e2e.engine.service.docker.ShenYuLogConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.DockerComposeContainer;
 
@@ -37,17 +37,20 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@Slf4j
-@Getter
 public class DockerServiceCompose implements ServiceCompose {
+
+    private static final Logger log = LoggerFactory.getLogger(DockerServiceCompose.class);
+
     private final DockerComposeContainer<?> container;
+
     private final DockerConfigure configure;
     
     private final DockerServiceConfigure adminConfigure;
+
     private final DockerServiceConfigure gatewayConfigure;
-    
+
     private List<DockerServiceConfigure> externalServiceConfigurations;
-    
+
     public DockerServiceCompose(DockerConfigure configure) {
         this.configure = configure;
         this.adminConfigure = configure.getAdmin();

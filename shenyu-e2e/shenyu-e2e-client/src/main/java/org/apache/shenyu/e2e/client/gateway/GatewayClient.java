@@ -19,11 +19,10 @@ package org.apache.shenyu.e2e.client.gateway;
 
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.e2e.annotation.ShenYuGatewayClient;
 import org.apache.shenyu.e2e.common.RequestLogConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.util.Properties;
@@ -35,17 +34,31 @@ import static io.restassured.RestAssured.given;
  * A client to connect to ShenYu bootstrap(Gateway) server over HTTP.
  */
 @ShenYuGatewayClient
-@AllArgsConstructor
-@Slf4j
 public class GatewayClient {
+
+    private static final Logger log = LoggerFactory.getLogger(GatewayClient.class);
     
     private final String scenarioId;
-    
-    @Getter
+
     private final String baseUrl;
     
     private final Properties properties;
-    
+
+    public GatewayClient(String scenarioId, String baseUrl, Properties properties) {
+        this.scenarioId = scenarioId;
+        this.baseUrl = baseUrl;
+        this.properties = properties;
+    }
+
+    /**
+     * get baseUrl.
+     *
+     * @return baseUrl
+     */
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
     public Supplier<RequestSpecification> getHttpRequesterSupplier() {
         return () -> given().baseUri(getBaseUrl())
                 .filter((req, resp, ctx) -> {

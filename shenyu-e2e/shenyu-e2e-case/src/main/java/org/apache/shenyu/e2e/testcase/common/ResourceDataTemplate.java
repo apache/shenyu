@@ -37,9 +37,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 // TODO replace it by introducing Auto-Value-Annotations?
+/**
+ * Templates for various entity classes.
+ */
 public class ResourceDataTemplate {
-    
-    public static SelectorData.SelectorDataBuilder newSelectorBuilder(@NotNull String name, Plugin plugin) {
+
+    /**
+     * Build new SelectorBuilder.
+     *
+     * @param name name
+     * @param plugin plugin
+     * @return SelectorData.Builder
+     */
+    public static SelectorData.Builder newSelectorBuilder(@NotNull String name, Plugin plugin) {
         return SelectorData.builder()
                 .name(name)
                 .plugin(plugin)
@@ -51,12 +61,18 @@ public class ResourceDataTemplate {
                 .matchRestful(false)
                 .sort(1);
     }
-    
-    public static RuleData.RuleDataBuilder newRuleBuilder(@Nonnull String name) {
+
+    /**
+     * Build new RuleBuilder.
+     *
+     * @param name name
+     * @return RuleData.Builder
+     */
+    public static RuleData.Builder newRuleBuilder(@Nonnull String name) {
         return newRuleBuilder(name, null);
     }
     
-    public static RuleData.RuleDataBuilder newRuleBuilder(@Nonnull String name, String selectorId) {
+    public static RuleData.Builder newRuleBuilder(@Nonnull String name, String selectorId) {
         return RuleData.builder()
                 .name(name)
                 .matchMode(MatchMode.AND)
@@ -66,7 +82,12 @@ public class ResourceDataTemplate {
                 .matchRestful(false)
                 .sort(1);
     }
-    
+
+    /**
+     * Build new DivideRuleHandle.
+     *
+     * @return DivideRuleHandle
+     */
     public static DivideRuleHandle newDivideRuleHandle() {
         return DivideRuleHandle.builder()
                 .loadBalance("hash")
@@ -77,7 +98,15 @@ public class ResourceDataTemplate {
                 .requestMaxSize(10240)
                 .build();
     }
-    
+
+    /**
+     * Build new Condition.
+     *
+     * @param type type
+     * @param opt opt
+     * @param value value
+     * @return Condition
+     */
     public static Condition newCondition(ParamType type, Operator opt, String value) {
         return newCondition(type, opt, null, value);
     }
@@ -96,7 +125,13 @@ public class ResourceDataTemplate {
         list.add(newCondition(type, opt, value));
         return list;
     }
-    
+
+    /**
+     * Build new Upstream.
+     *
+     * @param url url
+     * @return Upstream
+     */
     public static Upstream newUpstream(String url) {
         return Upstream.builder()
                 .upstreamUrl(url)

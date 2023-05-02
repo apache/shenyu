@@ -19,16 +19,15 @@ package org.apache.shenyu.e2e.client.admin.model.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Builder;
-import lombok.Data;
 import org.apache.shenyu.e2e.client.admin.model.MatchMode;
 import org.apache.shenyu.e2e.client.admin.model.handle.RuleHandle;
 import org.apache.shenyu.e2e.client.admin.model.handle.RuleHandle.Serializer;
 
 import java.util.List;
 
-@Data
-@Builder(toBuilder = true)
+/**
+ * Rule data.
+ */
 public class RuleData implements ResourceData {
     
     private String id;
@@ -46,11 +45,379 @@ public class RuleData implements ResourceData {
     
     @JsonSerialize(using = Serializer.class)
     private RuleHandle handle;
-    
+
+    /**
+     * List of ruleConditions.
+     */
     @JsonProperty("ruleConditions")
     private List<Condition> conditionList;
     
     private boolean enabled;
     
     private Boolean matchRestful;
+
+    /**
+     * builder constructor.
+     *
+     * @param builder builder
+     */
+    private RuleData(final Builder builder) {
+        this.id = builder.id;
+        this.name = builder.name;
+        this.selectorId = builder.selectorId;
+        this.logged = builder.logged;
+        this.matchMode = builder.matchMode;
+        this.sort = builder.sort;
+        this.handle = builder.handle;
+        this.conditionList = builder.conditionList;
+        this.enabled = builder.enabled;
+        this.matchRestful = builder.matchRestful;
+    }
+
+    /**
+     * class builder.
+     *
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * get id.
+     *
+     * @return id
+     */
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * set name.
+     *
+     * @param name name
+     */
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * set selectorId.
+     *
+     * @param selectorId selectorId
+     */
+    public void setSelectorId(String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * get selectorId.
+     *
+     * @return selectorId
+     */
+    public String getSelectorId() {
+        return selectorId;
+    }
+
+    /**
+     * is logged.
+     *
+     * @return logged
+     */
+    public boolean isLogged() {
+        return logged;
+    }
+
+    /**
+     * set logged.
+     *
+     * @param logged logged
+     */
+    public void setLogged(boolean logged) {
+        this.logged = logged;
+    }
+
+    /**
+     * set matchMode.
+     *
+     * @param matchMode matchMode
+     */
+    public void setMatchMode(MatchMode matchMode) {
+        this.matchMode = matchMode;
+    }
+
+    /**
+     * get matchMode.
+     *
+     * @return matchMode
+     */
+    public MatchMode getMatchMode() {
+        return matchMode;
+    }
+
+    /**
+     * set sort.
+     *
+     * @param sort sort
+     */
+    public void setSort(int sort) {
+        this.sort = sort;
+    }
+
+    /**
+     * get sort.
+     *
+     * @return sort
+     */
+    public int getSort() {
+        return sort;
+    }
+
+    /**
+     * set handle.
+     *
+     * @param handle handle
+     */
+    public void setHandle(RuleHandle handle) {
+        this.handle = handle;
+    }
+
+    /**
+     * get handle.
+     *
+     * @return handle
+     */
+    public RuleHandle getHandle() {
+        return handle;
+    }
+
+    /**
+     * set conditionList.
+     *
+     * @param conditionList conditionList
+     */
+    public void conditionList(List<Condition> conditionList) {
+        this.conditionList = conditionList;
+    }
+
+    /**
+     * get conditionList.
+     *
+     * @return conditionList
+     */
+    public List<Condition> getConditionList() {
+        return conditionList;
+    }
+
+    /**
+     * set enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * is enabled.
+     *
+     * @return enabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * set matchRestful.
+     *
+     * @param matchRestful matchRestful
+     */
+    public void setMatchRestful(Boolean matchRestful) {
+        this.matchRestful = matchRestful;
+    }
+
+    /**
+     * get matchRestful.
+     *
+     * @return matchRestful
+     */
+    public Boolean getMatchRestful() {
+        return matchRestful;
+    }
+
+    /**
+     * class builder.
+     */
+    public static final class Builder {
+
+        private String id;
+
+        private String name;
+
+        private String selectorId;
+
+        @JsonProperty("loged")
+        private boolean logged;
+
+        private MatchMode matchMode;
+
+        private int sort;
+
+        @JsonSerialize(using = Serializer.class)
+        private RuleHandle handle;
+
+        @JsonProperty("ruleConditions")
+        private List<Condition> conditionList;
+
+        private boolean enabled;
+
+        private Boolean matchRestful;
+
+        /**
+         * no args constructor.
+         */
+        private Builder() {
+
+        }
+
+        /**
+         * build new Object.
+         *
+         * @return RuleData
+         */
+        public RuleData build() {
+            return new RuleData(this);
+        }
+
+        /**
+         * build id.
+         *
+         * @param id id
+         * @return this
+         */
+        public Builder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        /**
+         * build name.
+         *
+         * @param name name
+         * @return this
+         */
+        public Builder name(final String name) {
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * build selectorId.
+         *
+         * @param selectorId selectorId
+         * @return this
+         */
+        public Builder selectorId(final String selectorId) {
+            this.selectorId = selectorId;
+            return this;
+        }
+
+        /**
+         * build logged.
+         *
+         * @param logged logged
+         * @return this
+         */
+        public Builder logged(final boolean logged) {
+            this.logged = logged;
+            return this;
+        }
+
+        /**
+         * build matchMode.
+         *
+         * @param matchMode matchMode
+         * @return this
+         */
+        public Builder matchMode(final MatchMode matchMode) {
+            this.matchMode = matchMode;
+            return this;
+        }
+
+        /**
+         * build sort.
+         *
+         * @param sort sort
+         * @return this
+         */
+        public Builder sort(final int sort) {
+            this.sort = sort;
+            return this;
+        }
+
+        /**
+         * build handle.
+         *
+         * @param handle handle
+         * @return this
+         */
+        public Builder handle(final RuleHandle handle) {
+            this.handle = handle;
+            return this;
+        }
+
+        /**
+         * build conditionList.
+         *
+         * @param conditionList conditionList
+         * @return this
+         */
+        public Builder conditionList(final List<Condition> conditionList) {
+            this.conditionList = conditionList;
+            return this;
+        }
+
+        /**
+         * build enabled.
+         *
+         * @param enabled enabled
+         * @return this
+         */
+        public Builder enabled(final boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        /**
+         * build matchRestful.
+         *
+         * @param matchRestful matchRestful
+         * @return this
+         */
+        public Builder matchRestful(final Boolean matchRestful) {
+            this.matchRestful = matchRestful;
+            return this;
+        }
+    }
 }

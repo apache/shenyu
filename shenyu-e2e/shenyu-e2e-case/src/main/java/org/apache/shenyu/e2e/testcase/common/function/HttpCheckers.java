@@ -25,12 +25,22 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
+/**
+ * Check if the endpoint exists.
+ */
 public class HttpCheckers {
     
     public static HttpChecker notExists(String endpoint) {
         return notExists(Method.GET, endpoint);
     }
-    
+
+    /**
+     * Detection endpoint does not exist.
+     *
+     * @param method method
+     * @param endpoint endpoint
+     * @return HttpChecker
+     */
     public static HttpChecker notExists(Method method, String endpoint) {
         return (request) -> {
             try {
@@ -45,11 +55,18 @@ public class HttpCheckers {
             }
         };
     }
-    
+
     public static HttpChecker exists(String endpoint) {
         return exists(Method.GET, endpoint);
     }
-    
+
+    /**
+     * Detection endpoint exists.
+     *
+     * @param method method
+     * @param endpoint endpoint
+     * @return HttpChecker
+     */
     public static HttpChecker exists(Method method, String endpoint) {
         return (request) -> {
             try {

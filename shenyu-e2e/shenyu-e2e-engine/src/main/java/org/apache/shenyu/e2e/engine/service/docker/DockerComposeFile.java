@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.engine.service.docker;
 
-import lombok.Getter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.springframework.util.ResourceUtils;
@@ -33,12 +32,30 @@ import java.util.Map;
 import java.util.Objects;
 
 public class DockerComposeFile {
-    @Getter
+
     private final List<String> services;
     
-    @Getter
+
     private final File file;
-    
+
+    /**
+     * get services.
+     *
+     * @return services
+     */
+    public List<String> getServices() {
+        return services;
+    }
+
+    /**
+     * get file.
+     *
+     * @return file
+     */
+    public File getFile() {
+        return file;
+    }
+
     DockerComposeFile(List<String> services, File file) {
         this.services = services;
         this.file = file;
