@@ -61,7 +61,7 @@ public class RuleData implements ResourceData {
      *
      * @param builder builder
      */
-    private RuleData(final Builder builder) {
+    private RuleData(final RuleDataBuilder builder) {
         this.id = builder.id;
         this.name = builder.name;
         this.selectorId = builder.selectorId;
@@ -79,8 +79,8 @@ public class RuleData implements ResourceData {
      *
      * @return Builder
      */
-    public static Builder builder() {
-        return new Builder();
+    public static RuleDataBuilder builder() {
+        return new RuleDataBuilder();
     }
 
     /**
@@ -269,7 +269,7 @@ public class RuleData implements ResourceData {
     /**
      * class builder.
      */
-    public static final class Builder {
+    public static final class RuleDataBuilder {
 
         private String id;
 
@@ -297,7 +297,7 @@ public class RuleData implements ResourceData {
         /**
          * no args constructor.
          */
-        private Builder() {
+        private RuleDataBuilder() {
 
         }
 
@@ -316,7 +316,7 @@ public class RuleData implements ResourceData {
          * @param id id
          * @return this
          */
-        public Builder id(final String id) {
+        public RuleDataBuilder id(final String id) {
             this.id = id;
             return this;
         }
@@ -327,7 +327,7 @@ public class RuleData implements ResourceData {
          * @param name name
          * @return this
          */
-        public Builder name(final String name) {
+        public RuleDataBuilder name(final String name) {
             this.name = name;
             return this;
         }
@@ -338,7 +338,7 @@ public class RuleData implements ResourceData {
          * @param selectorId selectorId
          * @return this
          */
-        public Builder selectorId(final String selectorId) {
+        public RuleDataBuilder selectorId(final String selectorId) {
             this.selectorId = selectorId;
             return this;
         }
@@ -349,7 +349,7 @@ public class RuleData implements ResourceData {
          * @param logged logged
          * @return this
          */
-        public Builder logged(final boolean logged) {
+        public RuleDataBuilder logged(final boolean logged) {
             this.logged = logged;
             return this;
         }
@@ -360,7 +360,7 @@ public class RuleData implements ResourceData {
          * @param matchMode matchMode
          * @return this
          */
-        public Builder matchMode(final MatchMode matchMode) {
+        public RuleDataBuilder matchMode(final MatchMode matchMode) {
             this.matchMode = matchMode;
             return this;
         }
@@ -371,7 +371,7 @@ public class RuleData implements ResourceData {
          * @param sort sort
          * @return this
          */
-        public Builder sort(final int sort) {
+        public RuleDataBuilder sort(final int sort) {
             this.sort = sort;
             return this;
         }
@@ -382,7 +382,7 @@ public class RuleData implements ResourceData {
          * @param handle handle
          * @return this
          */
-        public Builder handle(final RuleHandle handle) {
+        public RuleDataBuilder handle(final RuleHandle handle) {
             this.handle = handle;
             return this;
         }
@@ -393,7 +393,7 @@ public class RuleData implements ResourceData {
          * @param conditionList conditionList
          * @return this
          */
-        public Builder conditionList(final List<Condition> conditionList) {
+        public RuleDataBuilder conditionList(final List<Condition> conditionList) {
             this.conditionList = conditionList;
             return this;
         }
@@ -404,7 +404,7 @@ public class RuleData implements ResourceData {
          * @param enabled enabled
          * @return this
          */
-        public Builder enabled(final boolean enabled) {
+        public RuleDataBuilder enabled(final boolean enabled) {
             this.enabled = enabled;
             return this;
         }
@@ -415,7 +415,7 @@ public class RuleData implements ResourceData {
          * @param matchRestful matchRestful
          * @return this
          */
-        public Builder matchRestful(final Boolean matchRestful) {
+        public RuleDataBuilder matchRestful(final Boolean matchRestful) {
             this.matchRestful = matchRestful;
             return this;
         }

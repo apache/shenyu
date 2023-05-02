@@ -70,7 +70,7 @@ public class SelectorData implements ResourceData {
      *
      * @param builder builder
      */
-    private SelectorData(final Builder builder) {
+    private SelectorData(final SelectorDataBuilder builder) {
         this.id = builder.id;
         this.name = builder.name;
         this.plugin = builder.plugin;
@@ -90,8 +90,8 @@ public class SelectorData implements ResourceData {
      *
      * @return Builder
      */
-    public static Builder builder() {
-        return new Builder();
+    public static SelectorDataBuilder builder() {
+        return new SelectorDataBuilder();
     }
 
     /**
@@ -326,7 +326,7 @@ public class SelectorData implements ResourceData {
     /**
      * class builder.
      */
-    public static final class Builder {
+    public static final class SelectorDataBuilder {
 
         private String id;
 
@@ -359,7 +359,7 @@ public class SelectorData implements ResourceData {
         /**
          * no args constructor.
          */
-        private Builder() {
+        private SelectorDataBuilder() {
 
         }
 
@@ -378,7 +378,7 @@ public class SelectorData implements ResourceData {
          * @param id id
          * @return this
          */
-        public Builder id(String id) {
+        public SelectorDataBuilder id(String id) {
             this.id = id;
             return this;
         }
@@ -389,7 +389,7 @@ public class SelectorData implements ResourceData {
          * @param name name
          * @return this
          */
-        public Builder name(String name) {
+        public SelectorDataBuilder name(String name) {
             this.name = name;
             return this;
         }
@@ -400,7 +400,7 @@ public class SelectorData implements ResourceData {
          * @param plugin plugin
          * @return this
          */
-        public Builder plugin(Plugin plugin) {
+        public SelectorDataBuilder plugin(Plugin plugin) {
             this.plugin = plugin;
             return this;
         }
@@ -411,7 +411,7 @@ public class SelectorData implements ResourceData {
          * @param type type
          * @return this
          */
-        public Builder type(SelectorType type) {
+        public SelectorDataBuilder type(SelectorType type) {
             this.type = type;
             return this;
         }
@@ -422,7 +422,7 @@ public class SelectorData implements ResourceData {
          * @param matchMode matchMode
          * @return this
          */
-        public Builder matchMode(MatchMode matchMode) {
+        public SelectorDataBuilder matchMode(MatchMode matchMode) {
             this.matchMode = matchMode;
             return this;
         }
@@ -433,7 +433,7 @@ public class SelectorData implements ResourceData {
          * @param enabled enabled
          * @return this
          */
-        public Builder enabled(boolean enabled) {
+        public SelectorDataBuilder enabled(boolean enabled) {
             this.enabled = enabled;
             return this;
         }
@@ -444,7 +444,7 @@ public class SelectorData implements ResourceData {
          * @param logged logged
          * @return this
          */
-        public Builder logged(boolean logged) {
+        public SelectorDataBuilder logged(boolean logged) {
             this.logged = logged;
             return this;
         }
@@ -455,7 +455,7 @@ public class SelectorData implements ResourceData {
          * @param continued continued
          * @return this
          */
-        public Builder continued(boolean continued) {
+        public SelectorDataBuilder continued(boolean continued) {
             this.continued = continued;
             return this;
         }
@@ -466,7 +466,7 @@ public class SelectorData implements ResourceData {
          * @param handle handle
          * @return this
          */
-        public Builder handle(PluginHandle handle) {
+        public SelectorDataBuilder handle(PluginHandle handle) {
             this.handle = handle;
             return this;
         }
@@ -477,7 +477,7 @@ public class SelectorData implements ResourceData {
          * @param conditionList conditionList
          * @return this
          */
-        public Builder conditionList(List<Condition> conditionList) {
+        public SelectorDataBuilder conditionList(List<Condition> conditionList) {
             this.conditionList = conditionList;
             return this;
         }
@@ -488,7 +488,7 @@ public class SelectorData implements ResourceData {
          * @param sort sort
          * @return this
          */
-        public Builder sort(int sort) {
+        public SelectorDataBuilder sort(int sort) {
             this.sort = sort;
             return this;
         }
@@ -499,7 +499,7 @@ public class SelectorData implements ResourceData {
          * @param matchRestful matchRestful
          * @return this
          */
-        public Builder matchRestful(boolean matchRestful) {
+        public SelectorDataBuilder matchRestful(boolean matchRestful) {
             this.matchRestful = matchRestful;
             return this;
         }
