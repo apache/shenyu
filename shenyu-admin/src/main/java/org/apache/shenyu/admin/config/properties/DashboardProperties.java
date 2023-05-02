@@ -57,6 +57,19 @@ public class DashboardProperties implements InitializingBean {
      */
     private Boolean enableOnlySuperAdminPermission = true;
     
+    /**
+     * enable SuperAdminPasswordSafe.
+     * default is true
+     */
+    private Boolean enableSuperAdminPasswordSafe = true;
+    
+    
+    /**
+     * enable SuperAdminPassword valid duration
+     * default is true
+     */
+    private Long superAdminPasswordValidDuration = 30 * 24 * 60 * 60 * 1000L;
+    
     
     /**
      * Only the super administrator root user has the privileges.
@@ -154,6 +167,42 @@ public class DashboardProperties implements InitializingBean {
      */
     public void setOnlySuperAdminPermission(final List<String> onlySuperAdminPermission) {
         this.onlySuperAdminPermission = onlySuperAdminPermission;
+    }
+    
+    /**
+     * get enableSuperAdminPasswordSafe.
+     *
+     * @return boolean
+     */
+    public Boolean getEnableSuperAdminPasswordSafe() {
+        return enableSuperAdminPasswordSafe;
+    }
+    
+    /**
+     * set enableSuperAdminPasswordSafe.
+     *
+     * @param enableSuperAdminPasswordSafe enableSuperAdminPasswordSafe
+     */
+    public void setEnableSuperAdminPasswordSafe(Boolean enableSuperAdminPasswordSafe) {
+        this.enableSuperAdminPasswordSafe = enableSuperAdminPasswordSafe;
+    }
+    
+    /**
+     * get superAdminPasswordValidDuration.
+     *
+     * @return long
+     */
+    public Long getSuperAdminPasswordValidDuration() {
+        return superAdminPasswordValidDuration;
+    }
+    
+    /**
+     * set superAdminPasswordValidDuration.
+     *
+     * @param superAdminPasswordValidDuration superAdminPasswordValidDuration
+     */
+    public void setSuperAdminPasswordValidDuration(Long superAdminPasswordValidDuration) {
+        this.superAdminPasswordValidDuration = superAdminPasswordValidDuration;
     }
     
     @Override

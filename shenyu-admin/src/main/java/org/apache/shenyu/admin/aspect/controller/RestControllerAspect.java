@@ -15,72 +15,82 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.aspect;
+package org.apache.shenyu.admin.aspect.controller;
 
-import org.apache.shenyu.admin.config.properties.DashboardProperties;
+import com.google.common.base.Stopwatch;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Method;
+import java.util.List;
+
 /**
- * print log aspect.
+ * RestControllerAspect.
  */
 @Aspect
 @Component
-public class PrintApiLogAspect {
+public class RestControllerAspect {
     
-    private static final Logger LOG = LoggerFactory.getLogger(PrintApiLogAspect.class);
+    private final List<ControllerMethodAdvice> methodAdviceList;
     
-    private final DashboardProperties properties;
     
-    public PrintApiLogAspect(final DashboardProperties properties) {
-        this.properties = properties;
+    public RestControllerAspect(final List<ControllerMethodAdvice> methodAdviceList) {
+        this.methodAdviceList = methodAdviceList;
     }
     
     /**
      * cut.
      */
     @Pointcut("@within(org.springframework.web.bind.annotation.RestController)")
-    public void pointCut() {
+    public void controller() {
     }
     
     /**
-     * log around.
+     * controller.
      *
      * @param point point {@link ProceedingJoinPoint}
      * @return result {@link Object}
      */
-    @Around("pointCut()")
+    @Around("controller()")
     public Object logAround(final ProceedingJoinPoint point) {
-        final long start = System.currentTimeMillis();
+        final Stopwatch stopwatch = Stopwatch.createStarted();
+        final Method method = ((MethodSignature) point.getSignature()).getMethod();
+        final Object target = point.getTarget();
         try {
-            preLog(point);
+            doExec(a -> a.doPreProcess(target, method, stopwatch));
             return point.proceed();
         } catch (final Throwable throwable) {
+            doExec(a -> a.doThrowable(target, method, stopwatch, throwable));
             throw new ShenyuException(throwable);
         } finally {
-            postLog(point, start);
-            SessionUtil.clean();
+            try {
+                doExec(a -> a.doFinally(target, method, stopwatch));
+            } finally {
+                SessionUtil.clean();
+            }
         }
     }
     
-    private void postLog(final ProceedingJoinPoint point, final long start) {
-        if (Boolean.TRUE.equals(properties.getEnablePrintApiLog())) {
-            LOG.info("{} exec: method [{}.{}] over, time cost: {}", SessionUtil.visitorName(),
-                    point.getTarget().getClass().getSimpleName(), point.getSignature().getName(), System.currentTimeMillis() - start);
+    void doExec(final Call call) {
+        for (ControllerMethodAdvice advice : methodAdviceList) {
+            call.call(advice);
         }
     }
     
-    private void preLog(final ProceedingJoinPoint point) {
-        if (Boolean.TRUE.equals(properties.getEnablePrintApiLog())) {
-            LOG.info("{} exec: method [{}.{}]", SessionUtil.visitorName(), point.getTarget().getClass().getSimpleName(), point.getSignature().getName());
-        }
+    interface Call {
+        
+        /**
+         * call
+         *
+         * @param advice advice
+         */
+        void call(ControllerMethodAdvice advice);
     }
     
 }

@@ -158,7 +158,6 @@ public class DashboardUserController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/modify-password/{id}")
-    @RequiresPermissions("system:manager:edit")
     public ShenyuAdminResult modifyPassword(@PathVariable("id")
                                             @Existed(provider = DashboardUserMapper.class,
                                                     message = "user is not found") final String id,
@@ -185,7 +184,7 @@ public class DashboardUserController {
     @RequiresPermissions("system:manager:delete")
     public ShenyuAdminResult deleteDashboardUser(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         // [mandatory] This function can only be used by the admin user
-        Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
+        Assert.isTrue(SessionUtil.isAdmin(), "xxx.xxx");
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dashboardUserService.delete(new HashSet<>(ids)));
     }
 }
