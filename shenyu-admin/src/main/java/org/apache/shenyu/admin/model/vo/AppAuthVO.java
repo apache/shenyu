@@ -31,7 +31,12 @@ public class AppAuthVO implements Serializable {
      * primary key.
      */
     private String id;
-
+    
+    /**
+     * application name.
+     */
+    private String appName;
+    
     /**
      * application key.
      */
@@ -66,6 +71,11 @@ public class AppAuthVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+    
+    /**
+     * updated time.
+     */
+    private String dateCreated;
 
     public AppAuthVO() {
     }
@@ -111,7 +121,24 @@ public class AppAuthVO implements Serializable {
     public void setId(final String id) {
         this.id = id;
     }
-
+    
+    /**
+     * Gets the value of appName.
+     *
+     * @return the value of appName
+     */
+    public String getAppName() {
+        return appName;
+    }
+    
+    /**
+     * Sets the appName.
+     *
+     * @param appName appName
+     */
+    public void setAppName(final String appName) {
+        this.appName = appName;
+    }
     /**
      * Gets the value of appKey.
      *
@@ -290,5 +317,23 @@ public class AppAuthVO implements Serializable {
      */
     public void setDateUpdated(final String dateUpdated) {
         this.dateUpdated = dateUpdated;
+    }
+    
+    /**
+     * Gets the value of dateCreated.
+     *
+     * @return the value of dateCreated
+     */
+    public String getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * Sets the dateCreated.
+     *
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(final String dateCreated) {
+        this.dateCreated = dateCreated;
     }
 }

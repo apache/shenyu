@@ -24,6 +24,9 @@ import org.apache.shenyu.admin.validation.annotation.Existed;
 import java.sql.Timestamp;
 import java.util.Objects;
 
+/**
+ * DetailVO.
+ */
 public class DetailVO {
 
     @Existed(provider = DetailMapper.class, nullOfIgnore = true, message = "detail is not existed")
@@ -233,7 +236,10 @@ public class DetailVO {
                 .dateCreated(detailDO.getDateCreated())
                 .build();
     }
-
+    
+    /**
+     * DetailVOBuilder.
+     */
     public static final class DetailVOBuilder {
 
         private String id;
