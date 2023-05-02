@@ -26,11 +26,8 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser<Object> {
 
@@ -56,10 +53,6 @@ public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser
 
         String apiPath = PathUtils.pathJoin(apiDefinition.getContextPath(), apiDefinition.getBeanPath(), methodPath);
 
-        String parameterTypes = Optional.ofNullable(apiDefinition.getApiMethod())
-                .map(m -> Arrays.stream(m.getParameterTypes()).map(Class::getName)
-                        .collect(Collectors.joining(","))).orElse(null);
-
         ShenyuSpringMvcClient classAnnotation = apiDefinition.getApiBean()
                 .getAnnotation(ShenyuSpringMvcClient.class);
 
@@ -82,7 +75,7 @@ public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser
                 .methodName(apiDefinition.getApiMethodName())
                 .path(apiPath)
                 .pathDesc(pathDesc)
-                .parameterTypes(parameterTypes)
+                .parameterTypes(apiDefinition.getParameterTypes())
                 .rpcType(RpcTypeEnum.HTTP.getName())
                 .enabled(enabled)
                 .ruleName(ruleName)

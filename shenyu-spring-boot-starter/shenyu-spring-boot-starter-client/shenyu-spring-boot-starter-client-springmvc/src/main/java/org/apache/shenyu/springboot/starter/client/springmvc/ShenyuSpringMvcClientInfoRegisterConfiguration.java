@@ -23,13 +23,16 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientInfoRefreshedEventListener;
 import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
+import org.apache.shenyu.client.core.register.matcher.ApiDocBeanMatcher;
+import org.apache.shenyu.client.core.register.matcher.ApiDocDefinitionMatcher;
 import org.apache.shenyu.client.core.register.matcher.Matcher;
 import org.apache.shenyu.client.core.register.parser.ApiDocDefinitionParser;
 import org.apache.shenyu.client.core.register.parser.ApiMetaDefinitionParser;
+import org.apache.shenyu.client.core.register.parser.HttpApiDocDefinitionParser;
 import org.apache.shenyu.client.core.register.parser.PreApiMetaBeanParser;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiBeansExtractor;
-import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaDefinitionMatcher;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaBeanMatcher;
+import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaDefinitionMatcher;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaDefinitionParser;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcPreApiMetaBeanMatcher;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcPreApiMetaBeanParser;
@@ -42,7 +45,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -66,6 +68,10 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
 
     private final PropertiesConfig clientConfig;
 
+    private final String host;
+
+    private final String port;
+
     public ShenyuSpringMvcClientInfoRegisterConfiguration(final ShenyuClientConfig clientConfig) {
 
         this.clientConfig = clientConfig.getClient().get(RpcTypeEnum.HTTP.getName());
@@ -82,6 +88,10 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
                 .map(UriUtils::repairData).orElse("");
 
         this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+
+        this.host = props.getProperty(ShenyuClientConstants.HOST);
+
+        this.port = props.getProperty(ShenyuClientConstants.PORT);
     }
 
     /**
@@ -167,8 +177,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     @Bean(name = API_DOC_BEAN_MATCHER)
     @ConditionalOnMissingBean(name = API_DOC_BEAN_MATCHER)
     public Matcher<ApiBean<Object>> apiDocBeanMatcher() {
-        //todo implements spring mvc doc collection
-        return e -> false;
+        return new ApiDocBeanMatcher();
     }
 
     /**
@@ -179,8 +188,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     @Bean(name = API_DOC_DEFINITION_MATCHER)
     @ConditionalOnMissingBean(name = API_DOC_DEFINITION_MATCHER)
     public Matcher<ApiBean<Object>.ApiDefinition> apiDocDefinitionMatcher() {
-        //todo implements spring mvc doc collection
-        return e -> false;
+        return new ApiDocDefinitionMatcher();
     }
 
     /**
@@ -191,7 +199,6 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ApiDocDefinitionParser<Object> apiDocDefinitionParser() {
-        //todo implements spring mvc doc collection
-        return t -> Collections.emptyList();
+        return new HttpApiDocDefinitionParser(RpcTypeEnum.HTTP, host, port, addPrefixed);
     }
 }
