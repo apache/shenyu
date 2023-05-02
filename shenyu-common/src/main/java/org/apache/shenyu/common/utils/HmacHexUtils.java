@@ -18,11 +18,12 @@
 package org.apache.shenyu.common.utils;
 
 import org.apache.commons.codec.digest.HmacAlgorithms;
+import org.apache.commons.codec.digest.HmacUtils;
 
 /**
  * HmacUtils.
  */
-public class HmacUtils {
+public class HmacHexUtils {
 
     /**
      * Returns a HmacMd5 Message Authentication Code (MAC) as hex string (lowercase).
@@ -59,8 +60,7 @@ public class HmacUtils {
     }
 
     private static String getHmacHex(final HmacAlgorithms algorithm, final String key, final String valueToDigest) {
-        return new org.apache.commons.codec.digest.HmacUtils(algorithm, key)
-                .hmacHex(valueToDigest);
+        return new HmacUtils(algorithm, key).hmacHex(valueToDigest);
     }
 
 }
