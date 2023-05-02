@@ -65,8 +65,8 @@ public class DashboardProperties implements InitializingBean {
     
     
     /**
-     * enable SuperAdminPassword valid duration
-     * default is true
+     * enable SuperAdminPassword valid duration.
+     * default is 30 day
      */
     private Long superAdminPasswordValidDuration = 30 * 24 * 60 * 60 * 1000L;
     
@@ -183,7 +183,7 @@ public class DashboardProperties implements InitializingBean {
      *
      * @param enableSuperAdminPasswordSafe enableSuperAdminPasswordSafe
      */
-    public void setEnableSuperAdminPasswordSafe(Boolean enableSuperAdminPasswordSafe) {
+    public void setEnableSuperAdminPasswordSafe(final Boolean enableSuperAdminPasswordSafe) {
         this.enableSuperAdminPasswordSafe = enableSuperAdminPasswordSafe;
     }
     
@@ -201,7 +201,7 @@ public class DashboardProperties implements InitializingBean {
      *
      * @param superAdminPasswordValidDuration superAdminPasswordValidDuration
      */
-    public void setSuperAdminPasswordValidDuration(Long superAdminPasswordValidDuration) {
+    public void setSuperAdminPasswordValidDuration(final Long superAdminPasswordValidDuration) {
         this.superAdminPasswordValidDuration = superAdminPasswordValidDuration;
     }
     

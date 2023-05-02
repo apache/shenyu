@@ -39,7 +39,6 @@ public class RestControllerAspect {
     
     private final List<ControllerMethodAdvice> methodAdviceList;
     
-    
     public RestControllerAspect(final List<ControllerMethodAdvice> methodAdviceList) {
         this.methodAdviceList = methodAdviceList;
     }
@@ -86,7 +85,7 @@ public class RestControllerAspect {
     interface Call {
         
         /**
-         * call
+         * call.
          *
          * @param advice advice
          */
