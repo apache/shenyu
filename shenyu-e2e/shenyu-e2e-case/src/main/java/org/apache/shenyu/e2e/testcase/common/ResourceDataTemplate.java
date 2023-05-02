@@ -27,6 +27,8 @@ import org.apache.shenyu.e2e.client.admin.model.data.Condition.ParamType;
 import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
 import org.apache.shenyu.e2e.client.admin.model.data.SelectorData;
 import org.apache.shenyu.e2e.client.admin.model.handle.DivideRuleHandle;
+import org.apache.shenyu.e2e.client.admin.model.handle.DivideRuleHandle.LoadBalance;
+import org.apache.shenyu.e2e.client.admin.model.handle.DivideRuleHandle.RetryStrategy;
 import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams;
 import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams.Upstream;
 import org.jetbrains.annotations.NotNull;
@@ -89,8 +91,8 @@ public class ResourceDataTemplate {
      */
     public static DivideRuleHandle newDivideRuleHandle() {
         return DivideRuleHandle.builder()
-                .loadBalance(DivideRuleHandle.LoadBalance.HASH.getName())
-                .retryStrategy(DivideRuleHandle.RetryStrategy.CURRENT.getName())
+                .loadBalance(LoadBalance.HASH.getName())
+                .retryStrategy(RetryStrategy.CURRENT.getName())
                 .retry(1)
                 .timeout(3000)
                 .headerMaxSize(10240)
