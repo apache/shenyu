@@ -26,7 +26,7 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.junit.jupiter.api.Assertions;
 
 /**
- * ShenYu Scenario Spec.
+ * ShenYu scenario specification.
  */
 public class ShenYuScenarioSpec implements ScenarioSpec {
     
@@ -90,8 +90,11 @@ public class ShenYuScenarioSpec implements ScenarioSpec {
     }
     
     public static class ShenYuScenarioSpecBuilder {
+
         private String name;
+
         private BeforeEachSpec beforeEachSpec = BeforeEachSpec.DEFAULT;
+
         private AfterEachSpec afterEachSpec = AfterEachSpec.DEFAULT;
         
         private CaseSpec caseSpec;

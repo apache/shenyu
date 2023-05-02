@@ -24,6 +24,9 @@ import org.slf4j.MDC;
 
 import java.lang.reflect.Method;
 
+/**
+ * ShenYu log extension.
+ */
 public class ShenYuLogExtension implements InvocationInterceptor {
     @Override
     public void interceptBeforeAllMethod(Invocation<Void> invocation, ReflectiveInvocationContext<Method> invocationContext, ExtensionContext extensionContext) throws Throwable {

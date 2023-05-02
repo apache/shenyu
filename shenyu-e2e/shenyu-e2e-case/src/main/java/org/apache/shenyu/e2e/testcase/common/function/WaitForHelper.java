@@ -22,7 +22,6 @@ import io.restassured.http.Method;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
-import org.apache.shenyu.e2e.client.admin.model.Plugin;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +38,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
+/**
+ * Wait for checking endpoint.
+ */
 public class WaitForHelper {
 
     private static final Logger log = LoggerFactory.getLogger(WaitForHelper.class);
@@ -60,6 +62,15 @@ public class WaitForHelper {
         this.timeout = timeout;
     }
 
+    /**
+     * Check if the endpoint is successful. If unsuccessful, retry until the maximum number of times is reached.
+     *
+     * @param supplier supplier
+     * @param method method
+     * @param endpoint endpoint
+     * @param expected expected
+     * @throws TimeoutException TimeoutException
+     */
     public void waitFor(Supplier<RequestSpecification> supplier, Method method, String endpoint, ResponseSpecification expected) throws TimeoutException {
         final Map<String, String> contextMap = MDC.getCopyOfContextMap();
         Future<?> future = executor.submit(() -> {
@@ -96,8 +107,14 @@ public class WaitForHelper {
             throw new TimeoutException("checking endpoint '" + endpoint + "' timeout after " + timeout);
         }
     }
-    
-    
+
+    /**
+     * Check if the endpoint is successful. If unsuccessful, retry until the maximum number of times is reached.
+     *
+     * @param supplier supplier
+     * @param checker checker
+     * @throws TimeoutException TimeoutException
+     */
     public void waitFor(Supplier<RequestSpecification> supplier, HttpChecker checker) throws TimeoutException {
         final Map<String, String> contextMap = MDC.getCopyOfContextMap();
         Future<?> future = executor.submit(() -> {

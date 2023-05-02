@@ -62,6 +62,82 @@ public class DivideRuleHandle implements RuleHandle {
         }
     }
 
+    public enum LoadBalance {
+
+        /**
+         * Hash load balance enum.
+         */
+        HASH("hash"),
+
+        /**
+         * Random load balance enum.
+         */
+        RANDOM("random"),
+
+        /**
+         * Round robin load balance enum.
+         */
+        ROUND_ROBIN("roundRobin"),
+
+        /**
+         * least activity load balance enum.
+         */
+        LEAST_ACTIVITY("leastActive"),
+
+        /**
+         * pick of 2 choices load balance enum.
+         */
+        P2C("p2c"),
+
+        /**
+         * shortest response load balance enum.
+         */
+        SHORTEST_RESPONSE("shortestResponse");
+
+        private final String name;
+
+        LoadBalance(String name) {
+            this.name = name;
+        }
+
+        /**
+         * get name.
+         *
+         * @return name
+         */
+        public String getName() {
+            return name;
+        }
+    }
+
+    public enum RetryStrategy {
+
+        /**
+         * Current retry strategy.
+         */
+        CURRENT("current"),
+
+        /**
+         * Failover retry strategy.
+         */
+        FAILOVER("failover");
+
+        private final String name;
+
+        RetryStrategy(String name) {
+            this.name = name;
+        }
+
+        /**
+         * get name.
+         *
+         * @return name
+         */
+        public String getName() {
+            return name;
+        }
+    }
+
     /**
      * builder constructor.
      *

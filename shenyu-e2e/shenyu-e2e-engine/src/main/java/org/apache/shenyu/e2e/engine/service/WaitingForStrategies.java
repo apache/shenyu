@@ -27,7 +27,7 @@ import java.time.Duration;
  */
 public class WaitingForStrategies {
 
-    private static final String GET = "get";
+    private static final String GET = "GET";
 
     private static final String ACTUATOR_HEALTH = "/actuator/health";
 

@@ -39,7 +39,9 @@ public class ShenYuExtensionContext {
     private final String scenarioId;
     
     private final ServiceCompose serviceCompose;
+
     private AdminClient adminClient;
+
     private GatewayClient gatewayClient;
     
     private Map<String, ExternalServiceClient> externalServiceClientMap;

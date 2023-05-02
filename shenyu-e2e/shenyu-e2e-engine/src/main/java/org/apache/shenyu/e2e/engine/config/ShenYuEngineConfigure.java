@@ -36,6 +36,9 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * ShenYu engine configure.
+ */
 public class ShenYuEngineConfigure {
     
     private static final Pattern EXTRACTOR_PATTERN = Pattern.compile("\\{(.*?)\\}");

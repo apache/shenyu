@@ -19,7 +19,6 @@ package org.apache.shenyu.e2e.matcher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
 import org.apache.shenyu.e2e.client.admin.model.response.RuleDTO;
 import org.json.JSONException;
@@ -36,17 +35,25 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
- * RuleMatcher.
+ * Rule matcher.
  */
 public class RuleMatcher {
+
     private final ObjectMapper mapper = new ObjectMapper();
+
     private final RuleData expected;
     
     public RuleMatcher(RuleData expected) {
         this.expected = expected;
     }
-    
 
+    /**
+     *
+     *
+     * @param actual actual
+     * @throws JsonProcessingException JsonProcessingException
+     * @throws JSONException JSONException
+     */
     public void matches(RuleDTO actual) throws JsonProcessingException, JSONException {
         String handle = actual.getHandle();
         if (Objects.nonNull(expected.getHandle())) {

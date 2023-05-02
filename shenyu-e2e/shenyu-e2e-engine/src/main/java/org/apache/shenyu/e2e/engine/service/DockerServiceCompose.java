@@ -37,6 +37,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Start docker environment.
+ */
 public class DockerServiceCompose implements ServiceCompose {
 
     private static final Logger log = LoggerFactory.getLogger(DockerServiceCompose.class);

@@ -19,6 +19,9 @@ package org.apache.shenyu.e2e.client;
 
 import java.util.Properties;
 
+/**
+ * External service client.
+ */
 public class ExternalServiceClient {
 
     private final String url;

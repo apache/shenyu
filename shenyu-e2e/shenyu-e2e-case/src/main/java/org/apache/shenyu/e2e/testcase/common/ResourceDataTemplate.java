@@ -36,7 +36,6 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO replace it by introducing Auto-Value-Annotations?
 /**
  * Templates for various entity classes.
  */
@@ -90,8 +89,8 @@ public class ResourceDataTemplate {
      */
     public static DivideRuleHandle newDivideRuleHandle() {
         return DivideRuleHandle.builder()
-                .loadBalance("hash")
-                .retryStrategy("current")
+                .loadBalance(DivideRuleHandle.LoadBalance.HASH.getName())
+                .retryStrategy(DivideRuleHandle.RetryStrategy.CURRENT.getName())
                 .retry(1)
                 .timeout(3000)
                 .headerMaxSize(10240)

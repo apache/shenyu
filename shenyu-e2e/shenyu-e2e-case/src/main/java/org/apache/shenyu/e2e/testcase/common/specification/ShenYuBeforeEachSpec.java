@@ -31,12 +31,18 @@ import org.apache.shenyu.e2e.testcase.common.function.HttpWaiting;
 import org.apache.shenyu.e2e.testcase.common.function.WaitForHelper;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * ShenYu before each specification.
+ */
 public class ShenYuBeforeEachSpec implements BeforeEachSpec {
+
     private final Checker checker;
+
     private final ResourcesData resources;
+
     private final Waiting waiting;
 
-    public ShenYuBeforeEachSpec(Checker checker, ResourcesData resources, Waiting waiting) {
+   ShenYuBeforeEachSpec(Checker checker, ResourcesData resources, Waiting waiting) {
         this.checker = checker;
         this.resources = resources;
         this.waiting = waiting;
@@ -77,8 +83,11 @@ public class ShenYuBeforeEachSpec implements BeforeEachSpec {
     }
 
     public static class ShenYuBeforeEachSpecBuilder {
+
         private final ResourcesDataBuilder builder = ResourcesData.builder();
+
         private Checker checker = Checker.DEFAULT;
+
         private Waiting waiting = Waiting.DEFAULT;
         
         public ShenYuBeforeEachSpecBuilder checker(@NotNull Checker checker) {

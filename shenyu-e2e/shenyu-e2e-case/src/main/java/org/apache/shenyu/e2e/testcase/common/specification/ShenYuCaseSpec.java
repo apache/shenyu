@@ -29,6 +29,9 @@ import java.util.List;
 import static org.apache.shenyu.e2e.testcase.common.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.testcase.common.function.HttpCheckers.notExists;
 
+/**
+ * ShenYu case specification.
+ */
 public class ShenYuCaseSpec implements CaseSpec {
     
     private final String name;
@@ -69,7 +72,9 @@ public class ShenYuCaseSpec implements CaseSpec {
     }
 
     public static class ShenYuTestCaseSpecBuilder {
+
         private String name;
+
         private final Builder<Verifier> builder = ImmutableList.builder();
 
         public ShenYuTestCaseSpecBuilder() {

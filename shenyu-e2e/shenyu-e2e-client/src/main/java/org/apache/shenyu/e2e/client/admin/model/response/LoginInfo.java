@@ -19,7 +19,6 @@ package org.apache.shenyu.e2e.client.admin.model.response;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 
 /**
  * Login information.

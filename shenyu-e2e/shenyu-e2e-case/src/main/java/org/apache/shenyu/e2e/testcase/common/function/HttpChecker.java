@@ -24,6 +24,9 @@ import org.slf4j.MDC;
 
 import java.util.function.Supplier;
 
+/**
+ * Http Checker interface.
+ */
 @FunctionalInterface
 public interface HttpChecker extends Checker, HttpVerifier {
     

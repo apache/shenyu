@@ -28,6 +28,9 @@ import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.HostConfigure.H
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Start host environment.
+ */
 public class HostServiceCompose implements ServiceCompose {
     
     private HostConfigure configure;

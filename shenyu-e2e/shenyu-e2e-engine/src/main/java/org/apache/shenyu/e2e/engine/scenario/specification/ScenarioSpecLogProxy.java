@@ -27,6 +27,7 @@ import org.slf4j.MDC;
 import java.util.List;
 
 public class ScenarioSpecLogProxy implements ScenarioSpec {
+
     private final ScenarioSpec spec;
 
     public ScenarioSpecLogProxy(ScenarioSpec spec) {

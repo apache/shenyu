@@ -29,6 +29,9 @@ import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.Collections;
 
+/**
+ * Consume request log.
+ */
 public class RequestLogConsumer {
     private static final OutputStream FAKE_STREAM = new OutputStream() {
         @Override

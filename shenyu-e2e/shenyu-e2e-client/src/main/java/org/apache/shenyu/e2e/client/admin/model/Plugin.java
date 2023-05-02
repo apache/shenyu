@@ -30,6 +30,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Plugin enum.
+ */
 public enum Plugin {
     
     SIGN("sign", 1),

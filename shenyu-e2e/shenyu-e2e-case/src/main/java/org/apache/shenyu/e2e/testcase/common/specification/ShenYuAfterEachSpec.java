@@ -21,6 +21,9 @@ import org.apache.shenyu.e2e.engine.scenario.function.Checker;
 import org.apache.shenyu.e2e.engine.scenario.function.Deleter;
 import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 
+/**
+ * ShenYu after each specification.
+ */
 public class ShenYuAfterEachSpec implements AfterEachSpec {
     
     private final Deleter deleter;

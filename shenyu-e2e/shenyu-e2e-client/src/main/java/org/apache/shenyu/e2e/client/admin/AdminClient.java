@@ -23,7 +23,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.e2e.annotation.ShenYuAdminClient;
 import org.apache.shenyu.e2e.client.admin.model.Plugin;
 import org.apache.shenyu.e2e.client.admin.model.ShenYuResult;
@@ -63,6 +62,9 @@ import java.util.stream.Collectors;
 
 import static org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.QUERY_ALL;
 
+/**
+ * A client to connect to ShenYu Admin.
+ */
 @ShenYuAdminClient
 public class AdminClient {
 
@@ -417,7 +419,6 @@ public class AdminClient {
         
         return rst;
     }
-
 
     @FunctionalInterface
     interface Mapper<IN, OUT> extends Function<IN, OUT> {

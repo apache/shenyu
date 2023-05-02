@@ -35,7 +35,7 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
- * SelectorMatcher.
+ * Selector matcher.
  */
 public class SelectorMatcher {
     private final ObjectMapper mapper = new ObjectMapper();
