@@ -184,7 +184,7 @@ public class DashboardUserController {
     @RequiresPermissions("system:manager:delete")
     public ShenyuAdminResult deleteDashboardUser(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         // [mandatory] This function can only be used by the admin user
-        Assert.isTrue(SessionUtil.isAdmin(), "xxx.xxx");
+        Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dashboardUserService.delete(new HashSet<>(ids)));
     }
 }
