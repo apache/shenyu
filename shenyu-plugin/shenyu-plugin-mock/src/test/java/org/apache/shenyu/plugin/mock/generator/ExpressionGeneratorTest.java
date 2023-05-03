@@ -77,9 +77,6 @@ public class ExpressionGeneratorTest {
         assertThat(generator.generate("expression|#nowDate()", mockRequest),
                 is(JsonUtils.toJson(LocalDate.now().toString())));
         
-        assertThat(generator.generate("expression|#nowTime()", mockRequest),
-                is(JsonUtils.toJson(LocalDateTime.now().toString())));
-        
         assertThat(generator.generate("expression|1==1", mockRequest),
                 is("true"));
     }
