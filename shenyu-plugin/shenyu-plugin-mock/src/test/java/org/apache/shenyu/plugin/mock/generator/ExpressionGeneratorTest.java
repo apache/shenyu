@@ -28,7 +28,6 @@ import org.springframework.expression.spel.SpelEvaluationException;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import static org.hamcrest.MatcherAssert.assertThat;
