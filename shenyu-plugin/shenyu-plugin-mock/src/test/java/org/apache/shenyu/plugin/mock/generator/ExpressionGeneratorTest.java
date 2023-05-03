@@ -25,7 +25,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.io.IOUtil;
-import org.springframework.expression.spel.SpelParseException;
+import org.springframework.expression.spel.SpelEvaluationException;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -206,11 +206,16 @@ public class ExpressionGeneratorTest {
     
     @Test
     public void testSafe() {
-        assertThrowsExactly(SpelParseException.class,
-                () -> generator.generate("${expression|T(java.lang.Runtime).getRuntime().exec(\"ls\")}", mockRequest));
+        final String command = "T(java.lang.Runtime).getRuntime().exec(\"ls\")";
+        final StandardExpressionGenerator standardExpressionGenerator = new StandardExpressionGenerator();
+        final String generate = standardExpressionGenerator.generate("standardSPELExpression|" + command, mockRequest);
+        assertNotNull(generate);
+        assertThrowsExactly(SpelEvaluationException.class,
+                () -> generator.generate("expression|" + command, mockRequest));
         assertDoesNotThrow(
                 () -> {
                     final Process ls = Runtime.getRuntime().exec("ls");
+                    assertNotNull(ls);
                     for (String readLine : IOUtil.readLines(ls.getInputStream())) {
                         // print
                     }
