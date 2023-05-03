@@ -25,27 +25,27 @@ import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.DataBindingPropertyAccessor;
-import org.springframework.expression.spel.support.SimpleEvaluationContext;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.util.List;
 
 /**
- * The simplified version of the SEPL parsing implementation does not support write function execution.
+ * Insecure support for SPEL parsed implementations.
  *
- * @see SimpleEvaluationContext
- * @see DataBindingPropertyAccessor#forReadOnlyAccess()
+ * @see StandardEvaluationContext
+ * @see SpelExpressionParser
  */
 @Join
-public class ExpressionGenerator implements Generator<String> {
+public class StandardExpressionGenerator implements Generator<String> {
     
     private static final ExpressionParser PARSER = new SpelExpressionParser();
     
     private static final EvaluationContext CONTEXT = initContext();
     
+    
     @Override
     public String getName() {
-        return "expression";
+        return "standardSPELExpression";
     }
     
     @Override
@@ -71,11 +71,14 @@ public class ExpressionGenerator implements Generator<String> {
     
     private static EvaluationContext initContext() {
         
-        EvaluationContext context = SimpleEvaluationContext
-                .forPropertyAccessors(DataBindingPropertyAccessor.forReadOnlyAccess(), new MapAccessor())
-                .build();
+        // org.springframework.security.access.expression.method.MethodSecurityEvaluationContext
+        
+        StandardEvaluationContext context = new StandardEvaluationContext();
+        
+        context.addPropertyAccessor(new MapAccessor());
         
         EvaluationContextUtil.init(context);
         return context;
     }
+    
 }
