@@ -1,35 +1,79 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.protocol.tcp;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class UpstreamProvider {
-    private Map<String, List<Upstream>> chache = new ConcurrentHashMap<>();
+/**
+ * UpstreamProvider.
+ */
+public final class UpstreamProvider {
+
+    private static final UpstreamProvider SINGLETON = new UpstreamProvider();
+
+    private final Map<String, List<Upstream>> cache = new ConcurrentHashMap<>();
 
     private UpstreamProvider() {
     }
 
-    private final static UpstreamProvider SINGLETON = new UpstreamProvider();
-
+    /**
+     * getSingleton.
+     *
+     * @return UpstreamProvider
+     */
     public static UpstreamProvider getSingleton() {
         return SINGLETON;
     }
 
-    public List<Upstream> provide(String pluginSelectorName) {
-        return chache.get(pluginSelectorName);
+    /**
+     * provide.
+     *
+     * @param pluginSelectorName pluginSelectorName
+     * @return UpstreamList
+     */
+    public List<Upstream> provide(final String pluginSelectorName) {
+        return cache.get(pluginSelectorName);
     }
 
-    public void createUpstreams(String pluginSelectorName, List<Upstream> upstreams) {
-        chache.put(pluginSelectorName, upstreams);
+    /**
+     * createUpstreams.
+     *
+     * @param pluginSelectorName pluginSelectorName
+     * @param upstreams          upstreams
+     */
+    public void createUpstreams(final String pluginSelectorName, final List<Upstream> upstreams) {
+        cache.put(pluginSelectorName, upstreams);
     }
 
-    public void refresh(String pluginSelectorName, List<Upstream> upstreams) {
-        List<Upstream> remove = chache.remove(pluginSelectorName);
-        remove = null;
-        chache.put(pluginSelectorName, upstreams);
+    /**
+     * refreshCache.
+     *
+     * @param pluginSelectorName pluginSelectorName
+     * @param upstreams          upstreams
+     * @return removeList
+     */
+    public List<Upstream> refreshCache(final String pluginSelectorName, final List<Upstream> upstreams) {
+        List<Upstream> remove = cache.remove(pluginSelectorName);
+        cache.put(pluginSelectorName, upstreams);
+        return remove;
     }
 }

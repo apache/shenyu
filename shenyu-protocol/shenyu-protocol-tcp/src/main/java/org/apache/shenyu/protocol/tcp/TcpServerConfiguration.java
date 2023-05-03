@@ -52,7 +52,7 @@ public class TcpServerConfiguration {
      *
      * @param pluginSelectorName pluginSelectorName
      */
-    public void setPluginSelectorName(String pluginSelectorName) {
+    public void setPluginSelectorName(final String pluginSelectorName) {
         this.pluginSelectorName = pluginSelectorName;
     }
 
@@ -146,11 +146,21 @@ public class TcpServerConfiguration {
         this.leakDetectorLevel = leakDetectorLevel;
     }
 
+    /**
+     * getProps.
+     *
+     * @return props
+     */
     public Properties getProps() {
         return props;
     }
 
-    public void setProps(Properties props) {
+    /**
+     * setProps.
+     *
+     * @param props props
+     */
+    public void setProps(final Properties props) {
         this.props = props;
     }
 

@@ -42,4 +42,9 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     public void register(final String key, final String value) {
         
     }
+
+    @Override
+    public String getData(String key) {
+        return null;
+    }
 }
