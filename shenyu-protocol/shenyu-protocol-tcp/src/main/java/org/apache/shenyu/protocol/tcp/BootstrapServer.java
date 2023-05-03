@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.protocol.tcp;
 
-import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ public interface BootstrapServer {
      *
      * @param removeList removeList
      */
-    void doOnUpdate(List<Upstream> removeList);
+    void removeCommonUpstream(List<DiscoveryUpstream> removeList);
 
     /**
      * shutdown.

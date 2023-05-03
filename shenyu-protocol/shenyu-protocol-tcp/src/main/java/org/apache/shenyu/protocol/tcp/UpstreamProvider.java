@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.protocol.tcp;
 
-import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
 
 import java.util.List;
 import java.util.Map;
@@ -30,7 +30,7 @@ public final class UpstreamProvider {
 
     private static final UpstreamProvider SINGLETON = new UpstreamProvider();
 
-    private final Map<String, List<Upstream>> cache = new ConcurrentHashMap<>();
+    private final Map<String, List<DiscoveryUpstream>> cache = new ConcurrentHashMap<>();
 
     private UpstreamProvider() {
     }
@@ -50,7 +50,7 @@ public final class UpstreamProvider {
      * @param pluginSelectorName pluginSelectorName
      * @return UpstreamList
      */
-    public List<Upstream> provide(final String pluginSelectorName) {
+    public List<DiscoveryUpstream> provide(final String pluginSelectorName) {
         return cache.get(pluginSelectorName);
     }
 
@@ -60,7 +60,7 @@ public final class UpstreamProvider {
      * @param pluginSelectorName pluginSelectorName
      * @param upstreams          upstreams
      */
-    public void createUpstreams(final String pluginSelectorName, final List<Upstream> upstreams) {
+    public void createUpstreams(final String pluginSelectorName, final List<DiscoveryUpstream> upstreams) {
         cache.put(pluginSelectorName, upstreams);
     }
 
@@ -71,8 +71,8 @@ public final class UpstreamProvider {
      * @param upstreams          upstreams
      * @return removeList
      */
-    public List<Upstream> refreshCache(final String pluginSelectorName, final List<Upstream> upstreams) {
-        List<Upstream> remove = cache.remove(pluginSelectorName);
+    public List<DiscoveryUpstream> refreshCache(final String pluginSelectorName, final List<DiscoveryUpstream> upstreams) {
+        List<DiscoveryUpstream> remove = cache.remove(pluginSelectorName);
         cache.put(pluginSelectorName, upstreams);
         return remove;
     }

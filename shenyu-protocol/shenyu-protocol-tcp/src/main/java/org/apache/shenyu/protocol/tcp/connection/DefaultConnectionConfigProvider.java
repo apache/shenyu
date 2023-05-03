@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -46,7 +48,10 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
 
     @Override
     public URI getProxiedService(final String ip) {
-        Upstream upstream = LoadBalancerFactory.selector(UpstreamProvider.getSingleton().provide(this.pluginSelectorName), loadBalanceAlgorithm, ip);
+        List<Upstream> upstreamList = UpstreamProvider.getSingleton().provide(this.pluginSelectorName).stream().map(dp -> {
+            return Upstream.builder().url(dp.getUpstreamUrl()).status(dp.isStatus()).weight(dp.getWeight()).protocol(dp.getProtocol()).build();
+        }).collect(Collectors.toList());
+        Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalanceAlgorithm, ip);
         return cover(upstream);
     }
 

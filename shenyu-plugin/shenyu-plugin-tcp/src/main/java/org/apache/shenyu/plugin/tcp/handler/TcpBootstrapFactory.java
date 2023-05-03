@@ -25,12 +25,18 @@ import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
 /**
  * TcpBootstrapFactory.
  */
-public class TcpBootstrapFactory {
-    private TcpBootstrapFactory() {
-    }
+public final class TcpBootstrapFactory {
 
     private static final TcpBootstrapFactory SINGLETON = new TcpBootstrapFactory();
 
+    private TcpBootstrapFactory() {
+    }
+
+    /**
+     * getSingleton.
+     *
+     * @return TcpBootstrapFactory
+     */
     public static TcpBootstrapFactory getSingleton() {
         return SINGLETON;
     }
@@ -41,7 +47,7 @@ public class TcpBootstrapFactory {
      * @param configuration configuration
      * @return BootstrapServer
      */
-    public BootstrapServer createBootstrapServer(TcpServerConfiguration configuration) {
+    public BootstrapServer createBootstrapServer(final TcpServerConfiguration configuration) {
         EventBus eventBus = new EventBus();
         BootstrapServer bootstrapServer = new TcpBootstrapServer(eventBus);
         bootstrapServer.start(configuration);

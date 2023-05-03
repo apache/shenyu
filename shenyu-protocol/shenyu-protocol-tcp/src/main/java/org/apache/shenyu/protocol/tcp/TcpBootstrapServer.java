@@ -20,8 +20,8 @@ package org.apache.shenyu.protocol.tcp;
 import com.google.common.eventbus.EventBus;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import org.apache.shenyu.loadbalancer.entity.Upstream;
 
+import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
 import org.apache.shenyu.protocol.tcp.connection.Bridge;
 import org.apache.shenyu.protocol.tcp.connection.ConnectionContext;
 import org.apache.shenyu.protocol.tcp.connection.DefaultConnectionConfigProvider;
@@ -105,7 +105,7 @@ public class TcpBootstrapServer implements BootstrapServer {
      * @param removeList removeList
      */
     @Override
-    public void doOnUpdate(final List<Upstream> removeList) {
+    public void removeCommonUpstream(final List<DiscoveryUpstream> removeList) {
         eventBus.post(removeList);
     }
 
