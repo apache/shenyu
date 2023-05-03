@@ -83,7 +83,12 @@ public class RequestPlugin extends AbstractShenyuPlugin {
     public String named() {
         return PluginEnum.REQUEST.getName();
     }
-
+    
+    @Override
+    public boolean skip(final ServerWebExchange exchange) {
+        return skipExceptHttpLike(exchange);
+    }
+    
     /**
      * getHeaders.
      *

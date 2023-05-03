@@ -57,6 +57,16 @@ public class ApolloPathConstants {
     public static final String META_DATA_ID = "shenyu.meta.json";
 
     /**
+     * register metadata id.
+     */
+    public static final String REGISTER_METADATA_ID = "shenyu.register.metadata";
+
+    /**
+     * register uri id.
+     */
+    public static final String REGISTER_URI_ID = "shenyu.register.uri";
+
+    /**
      * default value of get config.
      */
     public static final String EMPTY_CONFIG_DEFAULT_VALUE = "{}";

@@ -118,7 +118,7 @@ public class ApiController {
                                                provider = ApiMapper.class) final String id,
                                        @Valid @RequestBody final ApiDTO apiDTO) {
         apiDTO.setId(id);
-        return createApi(apiDTO);
+        return ShenyuAdminResult.success(apiService.createOrUpdate(apiDTO));
     }
 
     /**

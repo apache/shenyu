@@ -19,6 +19,8 @@ package org.apache.shenyu.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.constant.Constants;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * The type Path utils.
@@ -53,5 +55,23 @@ public final class PathUtils {
      */
     public static String decoratorPathWithSlash(final String contextPath) {
         return StringUtils.endsWith(contextPath, AdminConstants.URI_SLASH_SUFFIX) ? contextPath : contextPath + AdminConstants.URI_SLASH_SUFFIX;
+    }
+
+    /**
+     * Joint paths.
+     * @param path paths
+     * @return path
+     */
+    public static String pathJoin(@NonNull final String... path) {
+
+        StringBuilder result = new StringBuilder(Constants.PATH_SEPARATOR);
+
+        for (String p : path) {
+            if (!result.toString().endsWith(Constants.PATH_SEPARATOR)) {
+                result.append(Constants.PATH_SEPARATOR);
+            }
+            result.append(p.startsWith(Constants.PATH_SEPARATOR) ? p.replaceFirst(Constants.PATH_SEPARATOR, "") : p);
+        }
+        return result.toString();
     }
 }
