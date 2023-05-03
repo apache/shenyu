@@ -31,7 +31,7 @@ import java.util.Random;
 
 import static org.apache.shenyu.plugin.mock.util.RandomUtil.randomLowerLetterString;
 
-public class MockUtil {
+public final class MockUtil {
     
     private static final Logger LOG = LoggerFactory.getLogger(MockUtil.class);
     
@@ -39,7 +39,7 @@ public class MockUtil {
     
     private static final String[] DOMAIN_SUFFIX = {"com", "org", "cn", "com.cn", "top", "edu", "io"};
     
-    private MockUtil(){
+    private MockUtil() {
     
     }
     

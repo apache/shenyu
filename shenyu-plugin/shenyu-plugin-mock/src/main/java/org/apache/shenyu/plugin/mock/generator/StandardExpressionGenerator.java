@@ -42,7 +42,6 @@ public class StandardExpressionGenerator implements Generator<String> {
     
     private static final EvaluationContext CONTEXT = initContext();
     
-    
     @Override
     public String getName() {
         return "standardSPELExpression";

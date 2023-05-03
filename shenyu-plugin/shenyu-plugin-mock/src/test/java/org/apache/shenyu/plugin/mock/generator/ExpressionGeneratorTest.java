@@ -204,17 +204,17 @@ public class ExpressionGeneratorTest {
         assertFalse(generator.match("expression|"));
     }
     
-    
     @Test
     public void testSafe() {
         assertThrowsExactly(SpelParseException.class,
                 () -> generator.generate("${expression|T(java.lang.Runtime).getRuntime().exec(\"ls\")}", mockRequest));
-        assertDoesNotThrow(() -> {
-            final Process ls = Runtime.getRuntime().exec("ls");
-            for (String readLine : IOUtil.readLines(ls.getInputStream())) {
-                System.out.println(readLine);
-            }
-        });
+        assertDoesNotThrow(
+                () -> {
+                    final Process ls = Runtime.getRuntime().exec("ls");
+                    for (String readLine : IOUtil.readLines(ls.getInputStream())) {
+                        // print
+                    }
+                });
         
     }
 }

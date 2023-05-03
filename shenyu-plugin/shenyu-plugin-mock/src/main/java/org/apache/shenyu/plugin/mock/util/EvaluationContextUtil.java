@@ -24,10 +24,9 @@ import org.springframework.expression.EvaluationContext;
 /**
  * EvaluationContextUtil.
  */
-public class EvaluationContextUtil {
+public final class EvaluationContextUtil {
     
     private static final Logger LOG = LoggerFactory.getLogger(EvaluationContextUtil.class);
-    
     
     private EvaluationContextUtil() {
     
@@ -64,7 +63,6 @@ public class EvaluationContextUtil {
             registerMockFunction(context, "nowDate", "nowDate");
             
             registerMockFunction(context, "nowTime", "nowTime");
-            
             
         } catch (NoSuchMethodException e) {
             // It will never happen
