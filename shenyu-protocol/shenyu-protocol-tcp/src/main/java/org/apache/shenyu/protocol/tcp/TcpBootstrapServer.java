@@ -69,11 +69,11 @@ public class TcpBootstrapServer implements BootstrapServer {
 
         TcpServer tcpServer = TcpServer.create()
                 .doOnChannelInit((connObserver, channel, remoteAddress) -> {
-                    channel.pipeline().addFirst(new LoggingHandler(LogLevel.DEBUG));
+                    channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO));
                 })
                 .wiretap(true)
                 .observe((c, s) -> {
-                    LOG.info("connection={}|status={}", c.toString(), s.toString());
+                    LOG.info("connection={}|status={}", c, s);
                 })
                 //.childObserve(connectionObserver)
                 .doOnConnection(this::bridgeConnections)
