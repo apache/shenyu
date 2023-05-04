@@ -22,6 +22,9 @@ import org.apache.shenyu.admin.model.entity.FieldDO;
 import java.sql.Timestamp;
 import java.util.Objects;
 
+/**
+ * FieldVO.
+ */
 public class FieldVO {
 
     /**
@@ -283,7 +286,10 @@ public class FieldVO {
     public static FieldVO.FieldVOBuilder builder() {
         return new FieldVO.FieldVOBuilder();
     }
-
+    
+    /**
+     * FieldVOBuilder.
+     */
     public static final class FieldVOBuilder {
 
         private String id;

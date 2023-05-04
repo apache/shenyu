@@ -15,36 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.discovery.zookeeper;
+package org.apache.shenyu.protocol.tcp.connection;
 
-import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
-import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
-import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
-import org.apache.shenyu.spi.Join;
+import reactor.netty.Connection;
 
 /**
- * The type Zookeeper for shenyu discovery service.
+ * Bridge.
  */
-@Join
-public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
+public interface Bridge {
 
-    @Override
-    public void init(final DiscoveryConfig config) {
-
-    }
-
-    @Override
-    public void watcher(final String key, final DataChangedEventListener listener) {
-
-    }
-
-    @Override
-    public void register(final String key, final String value) {
-
-    }
-
-    @Override
-    public String getData(final String key) {
-        return null;
-    }
+    /**
+     * bridge.
+     *
+     * @param server tcp server connection
+     * @param client tcp client connection
+     */
+    void bridge(Connection server, Connection client);
 }

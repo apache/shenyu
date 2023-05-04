@@ -135,7 +135,10 @@ public class PermissionMenuVO implements Serializable {
                 + ", allAuth=" + allAuth
                 + '}';
     }
-
+    
+    /**
+     * MenuInfo.
+     */
     public static class MenuInfo {
 
         /**
@@ -383,7 +386,10 @@ public class PermissionMenuVO implements Serializable {
                     + ", sort=" + sort
                     + '}';
         }
-
+        
+        /**
+         * MenuInfoBuilder.
+         */
         public static final class MenuInfoBuilder {
 
             /**
@@ -513,7 +519,10 @@ public class PermissionMenuVO implements Serializable {
             }
         }
     }
-
+    
+    /**
+     * AuthPerm.
+     */
     public static class AuthPerm {
 
         /**

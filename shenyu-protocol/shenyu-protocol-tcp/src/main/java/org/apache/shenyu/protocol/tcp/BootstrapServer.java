@@ -15,36 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.discovery.zookeeper;
+package org.apache.shenyu.protocol.tcp;
 
-import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
-import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
-import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
-import org.apache.shenyu.spi.Join;
+import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
+
+import java.util.List;
 
 /**
- * The type Zookeeper for shenyu discovery service.
+ * BootstrapServer.
  */
-@Join
-public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
+public interface BootstrapServer {
 
-    @Override
-    public void init(final DiscoveryConfig config) {
+    /**
+     * start.
+     *
+     * @param tcpServerConfiguration tcpServerConfiguration
+     */
+    void start(TcpServerConfiguration tcpServerConfiguration);
 
-    }
+    /**
+     * doOnUpdate.
+     *
+     * @param removeList removeList
+     */
+    void removeCommonUpstream(List<DiscoveryUpstream> removeList);
 
-    @Override
-    public void watcher(final String key, final DataChangedEventListener listener) {
-
-    }
-
-    @Override
-    public void register(final String key, final String value) {
-
-    }
-
-    @Override
-    public String getData(final String key) {
-        return null;
-    }
+    /**
+     * shutdown.
+     */
+    void shutdown();
 }
