@@ -15,36 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.discovery.zookeeper;
+package org.apache.shenyu.protocol.tcp.connection;
 
-import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
-import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
-import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
-import org.apache.shenyu.spi.Join;
+import java.net.URI;
 
 /**
- * The type Zookeeper for shenyu discovery service.
+ * ClientConnectionConfigProvider.
  */
-@Join
-public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
+public interface ClientConnectionConfigProvider {
 
-    @Override
-    public void init(final DiscoveryConfig config) {
+    /**
+     * getProxiedService.
+     *
+     * @param ip ip
+     * @return URI
+     */
+    URI getProxiedService(String ip);
 
-    }
-
-    @Override
-    public void watcher(final String key, final DataChangedEventListener listener) {
-
-    }
-
-    @Override
-    public void register(final String key, final String value) {
-
-    }
-
-    @Override
-    public String getData(final String key) {
-        return null;
-    }
 }
