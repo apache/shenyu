@@ -158,7 +158,6 @@ public class DashboardUserController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/modify-password/{id}")
-    @RequiresPermissions("system:manager:edit")
     public ShenyuAdminResult modifyPassword(@PathVariable("id")
                                             @Existed(provider = DashboardUserMapper.class,
                                                     message = "user is not found") final String id,

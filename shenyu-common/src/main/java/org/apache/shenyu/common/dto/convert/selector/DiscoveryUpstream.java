@@ -15,36 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.discovery.zookeeper;
-
-import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
-import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
-import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
-import org.apache.shenyu.spi.Join;
+package org.apache.shenyu.common.dto.convert.selector;
 
 /**
- * The type Zookeeper for shenyu discovery service.
+ * DiscoveryUpstream.
  */
-@Join
-public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
+public class DiscoveryUpstream extends CommonUpstream {
 
-    @Override
-    public void init(final DiscoveryConfig config) {
+    private int weight;
 
+    private String prop;
+
+    /**
+     * getWeight.
+     *
+     * @return weight
+     */
+    public int getWeight() {
+        return weight;
     }
 
-    @Override
-    public void watcher(final String key, final DataChangedEventListener listener) {
-
+    /**
+     * setWeight.
+     *
+     * @param weight weight
+     */
+    public void setWeight(final int weight) {
+        this.weight = weight;
     }
 
-    @Override
-    public void register(final String key, final String value) {
-
+    /**
+     * getProp.
+     *
+     * @return prop
+     */
+    public String getProp() {
+        return prop;
     }
 
-    @Override
-    public String getData(final String key) {
-        return null;
+    /**
+     * setProp.
+     *
+     * @param prop prop
+     */
+    public void setProp(final String prop) {
+        this.prop = prop;
     }
 }

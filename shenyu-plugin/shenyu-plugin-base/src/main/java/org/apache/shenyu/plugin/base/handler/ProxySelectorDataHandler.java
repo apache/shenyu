@@ -15,47 +15,39 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.discovery.api;
+package org.apache.shenyu.plugin.base.handler;
 
-import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
-import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
-import org.apache.shenyu.spi.SPI;
+import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
+
+import java.util.List;
 
 /**
- * The interface for shenyu discovery service.
+ * ProxySelectorDataHandler.
  */
-@SPI
-public interface ShenyuDiscoveryService {
+public interface ProxySelectorDataHandler {
 
     /**
-     * Init shenyu discovery service .
+     * handlerProxySelector.
      *
-     * @param config the config
+     * @param selectorData selectorData
+     * @param upstreamsList upstreamsList
      */
-    void init(DiscoveryConfig config);
+    void handlerProxySelector(ProxySelectorData selectorData, List<DiscoveryUpstream> upstreamsList);
 
     /**
-     * Watcher path , fire data changed event.
+     * updateProxySelector.
      *
-     * @param key      the key
-     * @param listener the listener
+     * @param proxySelectorName proxySelectorName
+     * @param upstreamsList upstreamsList
      */
-    void watcher(String key, DataChangedEventListener listener);
+    void updateProxySelector(String proxySelectorName, List<DiscoveryUpstream> upstreamsList);
 
     /**
-     * Register data.
+     * removeProxySelector.
      *
-     * @param key   the key
-     * @param value the value
+     * @param proxySelectorName proxySelectorName
      */
-    void register(String key, String value);
-
-    /**
-     * getData by key.
-     *
-     * @param key key
-     * @return value
-     */
-    String getData(String key);
+    void removeProxySelector(String proxySelectorName);
 
 }
