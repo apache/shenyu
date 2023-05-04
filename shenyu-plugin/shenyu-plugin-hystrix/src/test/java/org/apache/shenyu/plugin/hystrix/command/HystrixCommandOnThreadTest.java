@@ -74,7 +74,7 @@ public final class HystrixCommandOnThreadTest {
                 .remoteAddress(new InetSocketAddress(8092))
                 .header("MetaDataCache", "Hello")
                 .build());
-        hystrixCommandOnThread = new HystrixCommandOnThread(setter, exchange, mock(ShenyuPluginChain.class), "/test");
+        hystrixCommandOnThread = new HystrixCommandOnThread(setter, exchange, mock(ShenyuPluginChain.class), "fallback:/test");
     }
 
     @Test
@@ -84,8 +84,6 @@ public final class HystrixCommandOnThreadTest {
 
     @Test
     public void testGetFallback() {
-        assertThrows(NullPointerException.class, () -> {
-            StepVerifier.create(hystrixCommandOnThread.getFallback()).expectSubscription().verifyComplete();
-        });
+        assertThrows(NullPointerException.class, () -> StepVerifier.create(hystrixCommandOnThread.getFallback()).expectSubscription().verifyComplete());
     }
 }
