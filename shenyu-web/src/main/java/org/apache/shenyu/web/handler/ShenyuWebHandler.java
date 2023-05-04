@@ -122,17 +122,18 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 .filter(e -> plugins.stream().anyMatch(plugin -> plugin.named().equals(e.named())))
                 .collect(Collectors.toList());
 
+        if (CollectionUtils.isEmpty(shenyuAddPlugins) && CollectionUtils.isEmpty(shenyuUpdatePlugins)) {
+            return;
+        }
+        // copy new list
+        List<ShenyuPlugin> newPluginList = new ArrayList<>(plugins);
+
         if (CollectionUtils.isNotEmpty(shenyuAddPlugins)) {
             shenyuAddPlugins.forEach(plugin -> LOG.info("shenyu auto add extends plugins:{}", plugin.named()));
-            // copy new list
-            List<ShenyuPlugin> newPluginList = new ArrayList<>(plugins);
             newPluginList.addAll(shenyuAddPlugins);
-            plugins = sortPlugins(newPluginList);
         }
         if (CollectionUtils.isNotEmpty(shenyuUpdatePlugins)) {
             shenyuUpdatePlugins.forEach(plugin -> LOG.info("shenyu auto update extends plugins:{}", plugin.named()));
-            // copy new list
-            List<ShenyuPlugin> newPluginList = new ArrayList<>(plugins);
             for (ShenyuPlugin updatePlugin : shenyuUpdatePlugins) {
                 for (int i = 0; i < newPluginList.size(); i++) {
                     if (newPluginList.get(i).named().equals(updatePlugin.named())) {
@@ -140,8 +141,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                     }
                 }
             }
-            plugins = sortPlugins(newPluginList);
         }
+        plugins = sortPlugins(newPluginList);
     }
 
     /**
