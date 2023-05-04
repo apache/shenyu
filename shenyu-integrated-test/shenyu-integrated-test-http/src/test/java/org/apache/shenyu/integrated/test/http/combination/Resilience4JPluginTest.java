@@ -46,7 +46,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class Resilience4JPluginTest extends AbstractPluginDataInit {
-    
+
+    private static final String TEST_RESILIENCE4J_SUCCESS_OUT_SCOPE_PATH = "/http/test/success";
+
     private static final String TEST_RESILIENCE4J_SUCCESS_PATH = "/http/test/request/accepted";
 
     private static final String TEST_RESILIENCE4J_BAD_REQUEST_PATH = "/http/test/request/badrequest";
@@ -121,6 +123,10 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
         assertThat(selectorAndRulesResult, is("success"));
 
         List<Integer> rets = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_OUT_SCOPE_PATH, ResultBean.class);
+            rets.add(resp.getCode());
+        }
         for (int i = 0; i < 5; i++) {
             ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_BAD_REQUEST_PATH, ResultBean.class);
             rets.add(resp.getCode());
