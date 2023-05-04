@@ -28,6 +28,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +49,7 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
 
     private static final String TEST_SENTINEL_PATH = "/http/test/sentinel/pass";
 
-    private static final String TEST_SENTINEL_FALLBACK_PATH = "/http/test/request/accepted";
+    private static final String TEST_SENTINEL_FALLBACK_PATH = "/fallback/sentinel";
 
     @BeforeEach
     public void setup() throws IOException {
@@ -76,14 +77,13 @@ public final class SentinelPluginTest extends AbstractPluginDataInit {
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.SENTINEL.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(TEST_SENTINEL_FALLBACK_PATH));
         assertThat(selectorAndRulesResult, is("success"));
-
         Type returnType = new TypeToken<Map<String, Object>>() {
         }.getType();
         Map<String, Object> result = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, returnType);
         assertNotNull(result);
         assertEquals("pass", result.get("msg"));
         ResultBean fallbackRet = HttpHelper.INSTANCE.postGateway(TEST_SENTINEL_PATH, ResultBean.class);
-        assertEquals(202, fallbackRet.getCode());
+        assertEquals(ShenyuResultEnum.DEFAULT_FALLBACK.getCode(), fallbackRet.getCode());
     }
 
     private static List<ConditionData> buildSelectorConditionList() {
