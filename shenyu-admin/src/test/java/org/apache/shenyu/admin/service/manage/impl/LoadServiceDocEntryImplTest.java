@@ -1,7 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.shenyu.admin.service.manage.impl;
-
 import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -13,7 +27,6 @@ import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.manager.ServiceDocManager;
-import org.apache.shenyu.admin.service.manager.impl.DocManagerImpl;
 import org.apache.shenyu.admin.service.manager.impl.LoadServiceDocEntryImpl;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
@@ -25,13 +38,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import java.util.*;
-
 import static org.mockito.ArgumentMatchers.any;
-
 import static org.mockito.Mockito.mock;
-
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,15 +73,15 @@ public class LoadServiceDocEntryImplTest {
         pluginDO.setName("test");
         pluginDOList.add(pluginDO);
         CommonPager<SelectorVO> commonPager = new CommonPager<>();
-        List list = new ArrayList<>();
-        SelectorVO selectorVO = new SelectorVO("1","1","test",1,"testMatchMode",1,"testType",1,true,true,true,true,"[{\"weight\":1}]",new ArrayList<>(),"now","now");
+        List<SelectorVO> list = new ArrayList<>();
+        SelectorVO selectorVO = new SelectorVO("1", "1", "test", 1, "testMatchMode", 1, "testType",  1, true, true, true, true, "[{\"weight\":1}]", new ArrayList<>(), "now", "now");
 
         list.add(selectorVO);
         commonPager.setDataList(list);
         commonPager.setPage(new PageParameter(1,1));
         SelectorHandleConverter selectorHandleConverter = mock(SelectorHandleConverter.class);
         List<CommonUpstream> upstreamList = new ArrayList<>();
-        upstreamList.add(new CommonUpstream("testProtocol","testUpstreamHost","testUrl",true,1000L));
+        upstreamList.add(new CommonUpstream("testProtocol", "testUpstreamHost", "testUrl", true, 1000L));
 
         when(selectorHandleConverter.convertUpstream(any())).thenReturn(upstreamList);
         when(converterFactor.newInstance(any())).thenReturn(selectorHandleConverter);

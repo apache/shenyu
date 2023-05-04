@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.shenyu.admin.service.manage.impl;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.DocItem;
@@ -5,19 +21,15 @@ import org.apache.shenyu.admin.service.manager.impl.DocManagerImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.util.DigestUtils;
-
 import java.lang.reflect.Field;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -31,7 +43,8 @@ public class DocManagerImplTest {
     public void testAddDocInfo(){
         String clusterName = "testClusterName";
         AtomicBoolean atomicBoolean = new AtomicBoolean(false);
-        String  docInfoJson = "{\n" +
+        String  docInfoJson =
+                "{\n" +
                 "    \"info\":\n" +
                 "    {\n" +
                 "        \"title\":\"testTitle\"\n" +
@@ -55,7 +68,7 @@ public class DocManagerImplTest {
 
         docManager.addDocInfo(clusterName, docInfoJson, docInfo -> atomicBoolean.set(true));
 
-        assertEquals(true,atomicBoolean.get());
+        assertTrue(atomicBoolean.get());
 
         Class<DocManagerImpl> DocManageClass = DocManagerImpl.class;
         Map<String, DocInfo> docDefinitionMap;
@@ -129,7 +142,7 @@ public class DocManagerImplTest {
         docDefinitionMap.put(title1,expectedDocInfo1);
         docDefinitionMap.put(title2,expectedDocInfo2);
         Collection<DocInfo> docInfos = docManager.listAll();
-        assertEquals(true,!docInfos.isEmpty());
+        assertTrue(!docInfos.isEmpty());
     }
     @Test
     public void testGetDocMd5(){
@@ -162,6 +175,6 @@ public class DocManagerImplTest {
         clusterMd5Map.put(title, DigestUtils.md5DigestAsHex(title.getBytes()));
         assertEquals(DigestUtils.md5DigestAsHex(title.getBytes()),docManager.getDocMd5(title));
         docManager.remove(title);
-        assertEquals(null,docManager.getDocMd5(title));
+        assertNull(docManager.getDocMd5(title));
     }
 }
