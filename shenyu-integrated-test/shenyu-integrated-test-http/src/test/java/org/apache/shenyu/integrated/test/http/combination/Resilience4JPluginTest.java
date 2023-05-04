@@ -27,7 +27,6 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
-import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.web.controller.LocalPluginController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
@@ -47,9 +46,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class Resilience4JPluginTest extends AbstractPluginDataInit {
-
-    private static final String FALL_BACK_PATH = "/fallback/resilience4j";
-
+    
     private static final String TEST_RESILIENCE4J_SUCCESS_PATH = "/http/test/request/accepted";
 
     private static final String TEST_RESILIENCE4J_BAD_REQUEST_PATH = "/http/test/request/badrequest";
@@ -120,19 +117,15 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
     public void testCircuitBreakerFallbackUri() throws IOException {
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.RESILIENCE4J.getName(), "",
-                        buildSelectorConditionList(), buildRuleLocalDataList(1, 5000, FALL_BACK_PATH));
+                        buildSelectorConditionList(), buildRuleLocalDataList(1, 5000, TEST_RESILIENCE4J_SUCCESS_PATH));
         assertThat(selectorAndRulesResult, is("success"));
 
         List<Integer> rets = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
-            ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class);
-            rets.add(resp.getCode());
-        }
         for (int i = 0; i < 5; i++) {
             ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_BAD_REQUEST_PATH, ResultBean.class);
             rets.add(resp.getCode());
         }
-        assertTrue(rets.contains(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode()));
+        assertTrue(rets.contains(202));
         assertTrue(rets.contains(400));
         assertTrue(rets.contains(200));
     }

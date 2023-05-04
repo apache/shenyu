@@ -53,7 +53,7 @@ public final class HystrixPluginTest extends AbstractPluginDataInit {
 
     private static final String TEST_HYSTRIX_BAD_REQUEST_PATH = "/http/test/hystrix/fallback";
     
-    private static final String FALL_BACK = "/fallback/hystrix";
+    private static final String FALL_BACK = "fallback:/fallback/hystrix";
 
     @BeforeEach
     public void setup() throws IOException {

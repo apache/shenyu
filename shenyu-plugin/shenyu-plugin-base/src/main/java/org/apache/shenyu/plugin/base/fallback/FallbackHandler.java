@@ -34,6 +34,8 @@ import java.util.Objects;
  * Fallback handler.
  */
 public interface FallbackHandler {
+    
+    String PREFIX = "fallback:";
 
     /**
      * do without fallback uri.
@@ -57,10 +59,11 @@ public interface FallbackHandler {
         if (t instanceof HttpStatusCodeException || Objects.isNull(uri)) {
             return withoutFallback(exchange, t);
         } 
-        if (uri.toString().startsWith("/")) {
+        if (uri.toString().startsWith(PREFIX)) {
+            String fallbackUri = uri.toString().substring(PREFIX.length());
             DispatcherHandler dispatcherHandler =
                     SpringBeanUtils.getInstance().getBean(DispatcherHandler.class);
-            ServerHttpRequest request = exchange.getRequest().mutate().uri(uri).build();
+            ServerHttpRequest request = exchange.getRequest().mutate().uri(URI.create(fallbackUri)).build();
             ServerWebExchange mutated = exchange.mutate().request(request).build();
             return dispatcherHandler.handle(mutated);
         }

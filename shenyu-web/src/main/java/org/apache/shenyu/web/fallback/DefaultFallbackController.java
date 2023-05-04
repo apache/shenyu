@@ -39,7 +39,7 @@ public class DefaultFallbackController {
     public Object hystrixPluginFallback() {
         return ShenyuResultWrap.error(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK, null);
     }
-
+    
     /**
      * default fallback for resilience4j.
      *
@@ -50,8 +50,13 @@ public class DefaultFallbackController {
         return ShenyuResultWrap.error(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK, null);
     }
     
+    /**
+     * Sentinel fall back object.
+     *
+     * @return the object
+     */
     @GetMapping("/sentinel")
     public Object sentinelFallBack() {
-        return ShenyuResultWrap.error(ShenyuResultEnum.DEFAULT_FALLBACK, null);
+        return ShenyuResultWrap.error(ShenyuResultEnum.SENTINEL_PLUGIN_FALLBACK, null);
     }
 }
