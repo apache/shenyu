@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.model.vo;
 
+/**
+ * AlertTemplateVO.
+ */
 public class AlertTemplateVO {
 
     private Long id;
