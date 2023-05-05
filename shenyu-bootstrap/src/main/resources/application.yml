@@ -234,12 +234,11 @@ shenyu:
     paths:
       - /fallback/hystrix
       - /fallback/resilience4j
+      - /fallback/sentinel
   health:
     enabled: false
     paths:
-      - /actuator/health
-      - /actuator/health/readiness
-      - /actuator/health/liveness
+      - /actuator
       - /health_check
   extPlugin:
     path:
