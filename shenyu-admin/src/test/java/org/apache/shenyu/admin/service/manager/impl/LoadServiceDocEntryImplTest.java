@@ -40,7 +40,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -48,7 +51,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -73,7 +75,7 @@ public class LoadServiceDocEntryImplTest {
     private ShenyuDictService shenyuDictService;
 
     @Test
-    public void testLoadApiDocument(){
+    public void testLoadApiDocument() {
         ShenyuDictVO shenyuInitData = new ShenyuDictVO();
         shenyuInitData.setDictValue("true");
         when(shenyuDictService.findByDictCodeName(any(), any())).thenReturn(shenyuInitData);
@@ -84,7 +86,17 @@ public class LoadServiceDocEntryImplTest {
         pluginDOList.add(pluginDO);
         CommonPager<SelectorVO> commonPager = new CommonPager<>();
         List<SelectorVO> list = new ArrayList<>();
-        SelectorVO selectorVO = new SelectorVO("1", "1", "test", 1, "testMatchMode", 1, "testType", 1, true, true, true, true, "[{\"weight\":1}]", new ArrayList<>(), "now", "now");
+        String dateString = "2023-05-06 03:48:48";
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        Date date = null;
+        try {
+            date = inputFormat.parse(dateString);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        String formattedDateString = outputFormat.format(date);
+        SelectorVO selectorVO = new SelectorVO("1", "1", "test", 1, "testMatchMode", 1, "testType", 1, true, true, true, true, "[{\"weight\":1}]", new ArrayList<>(), formattedDateString, formattedDateString);
         list.add(selectorVO);
         commonPager.setDataList(list);
         commonPager.setPage(new PageParameter(1, 1));
