@@ -18,9 +18,10 @@
 package org.apache.shenyu.e2e.client.admin.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.e2e.client.admin.model.response.PluginDTO;
 import org.junit.jupiter.api.Assertions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +30,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Slf4j
+/**
+ * Plugin enum.
+ */
 public enum Plugin {
     
     SIGN("sign", 1),
@@ -69,7 +72,7 @@ public enum Plugin {
     LOGGING_PULSAR("loggingPulsar", 35),
     LOGGING_CLICK_HOUSE("loggingClickHouse", 38),
     ;
-    
+    private static final Logger log = LoggerFactory.getLogger(Plugin.class);
     private final String id;
     private final String alias;
     

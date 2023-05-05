@@ -18,11 +18,12 @@
 package org.apache.shenyu.e2e.client.admin.model.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 
 import java.util.Date;
 
-@Data
+/**
+ * Fake resourceDTO.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FakeResourceDTO implements ResourceDTO{
     
@@ -38,5 +39,43 @@ public class FakeResourceDTO implements ResourceDTO{
     @Override
     public Date getDateUpdated() {
         return null;
+    }
+
+    /**
+     * get id.
+     *
+     * @return id
+     */
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * set name.
+     *
+     * @param name name
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 }

@@ -19,6 +19,9 @@ package org.apache.shenyu.e2e.client.admin.model.data;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Plugin Data.
+ */
 public class PluginData {
     
     private String id;

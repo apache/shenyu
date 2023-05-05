@@ -21,6 +21,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Locale;
 
+/**
+ * Type of selector.
+ */
 public enum SelectorType {
     
     FULL(0), CUSTOM(1);
