@@ -15,25 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http;
+package org.apache.shenyu.client.core.register.matcher;
 
-import org.apache.shenyu.client.auto.config.EnableClientRegister;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
+import org.apache.shenyu.client.core.register.ApiBean;
 
-/**
- * ShenyuTestHttpApplication.
- */
-@SpringBootApplication
-@EnableClientRegister
-public class ShenyuTestHttpApplication {
+public class ApiDocBeanMatcher implements Matcher<ApiBean<Object>> {
 
-    /**
-     * main.
-     *
-     * @param args args
-     */
-    public static void main(final String[] args) {
-        SpringApplication.run(ShenyuTestHttpApplication.class, args);
+    private final Matcher<ApiBean<Object>> matcher;
+
+    public ApiDocBeanMatcher() {
+        matcher = new AnnotatedApiBeanMatcher<>(ApiModule.class);
+    }
+
+    @Override
+    public boolean match(final ApiBean<Object> element) {
+        return matcher.match(element);
     }
 }
