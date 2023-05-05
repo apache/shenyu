@@ -17,11 +17,16 @@
 
 package org.apache.shenyu.e2e.engine.service.docker;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
-@Slf4j(topic = "docker-compose")
+/**
+ * ShenYu-Log Consumer.
+ */
 public class ShenYuLogConsumer extends Slf4jLogConsumer {
+
+    private static final Logger log = LoggerFactory.getLogger("docker-compose");
     
     public ShenYuLogConsumer(String serviceName) {
         super(log);

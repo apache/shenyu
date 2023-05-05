@@ -23,12 +23,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Lists;
-import lombok.Data;
 import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams.Serializer;
 
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * upstream list.
+ */
 @JsonSerialize(using = Serializer.class)
 public class Upstreams implements PluginHandle {
     
@@ -37,24 +39,116 @@ public class Upstreams implements PluginHandle {
     Upstreams(List<Upstream> upstreams) {
         this.upstreams = upstreams;
     }
-    
+
+    /**
+     * get upstreams.
+     *
+     * @return upstreams
+     */
     public List<Upstream> getUpstreams() {
         return this.upstreams;
     }
-    
+
+    /**
+     * class builder.
+     *
+     * @return Builder
+     */
     public static Builder builder() {
         return new Builder();
     }
-    
-    @Data
-    @lombok.Builder
+
+    /**
+     * class upstream.
+     */
     public static class Upstream {
+
         private String upstreamUrl;
+
+        /**
+         * builder constructor.
+         *
+         * @param builder builder
+         */
+        private Upstream(Builder builder) {
+            this.upstreamUrl = builder.upstreamUrl;
+        }
+
+        /**
+         * class builder.
+         *
+         * @return Builder
+         */
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        /**
+         * get upstreamUrl.
+         *
+         * @return upstreamUrl
+         */
+        public String getUpstreamUrl() {
+            return upstreamUrl;
+        }
+
+        /**
+         * set upstreamUrl.
+         *
+         * @param upstreamUrl upstreamUrl
+         */
+        public void setUpstreamUrl(String upstreamUrl) {
+            this.upstreamUrl = upstreamUrl;
+        }
+
+        /**
+         * class builder.
+         */
+        public static final class Builder {
+
+            private String upstreamUrl;
+
+            /**
+             * no args constructor.
+             */
+            private Builder() {
+            }
+
+            /**
+             * build new Object.
+             *
+             * @return Upstream
+             */
+            public Upstream build() {
+                return new Upstream(this);
+            }
+
+            /**
+             * build upstreamUrl.
+             *
+             * @param upstreamUrl upstreamUrl
+             * @return this
+             */
+            public Builder upstreamUrl(String upstreamUrl) {
+                this.upstreamUrl = upstreamUrl;
+                return this;
+            }
+        }
     }
-    
+
+    /**
+     * class Builder.
+     */
     public static final class Builder {
+
         private List<Upstream> upstreams = Lists.newArrayList();
-        
+
+        /**
+         * add upstream.
+         *
+         * @param upstream
+         * @return this
+         */
         public Builder add(Upstream upstream) {
             upstreams.add(upstream);
             return this;

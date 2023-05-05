@@ -17,16 +17,13 @@
 
 package org.apache.shenyu.e2e.testcase.common.specification;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
 import org.apache.shenyu.e2e.engine.scenario.function.Checker;
 import org.apache.shenyu.e2e.engine.scenario.function.Deleter;
 import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 
-@Getter
-@AllArgsConstructor
-@Builder(toBuilder = true)
+/**
+ * ShenYu after each specification.
+ */
 public class ShenYuAfterEachSpec implements AfterEachSpec {
     
     private final Deleter deleter;
@@ -34,5 +31,27 @@ public class ShenYuAfterEachSpec implements AfterEachSpec {
     private final Checker postChecker;
     
     public static final ShenYuAfterEachSpec DEFAULT = new ShenYuAfterEachSpec(Deleter.DEFAULT, Checker.DEFAULT);
-    
+
+    public ShenYuAfterEachSpec(Deleter deleter, Checker postChecker) {
+        this.deleter = deleter;
+        this.postChecker = postChecker;
+    }
+
+    /**
+     * get deleter.
+     *
+     * @return deleter
+     */
+    public Deleter getDeleter() {
+        return deleter;
+    }
+
+    /**
+     * get postChecker.
+     *
+     * @return postChecker
+     */
+    public Checker getPostChecker() {
+        return postChecker;
+    }
 }
