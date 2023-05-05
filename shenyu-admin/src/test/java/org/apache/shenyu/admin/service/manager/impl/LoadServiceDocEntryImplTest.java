@@ -49,7 +49,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class LoadServiceDocEntryImplTest {
@@ -73,7 +72,7 @@ public class LoadServiceDocEntryImplTest {
     private ShenyuDictService shenyuDictService;
 
     @Test
-    public void testLoadApiDocument(){
+    public void testLoadApiDocument() {
         ShenyuDictVO shenyuInitData = new ShenyuDictVO();
         shenyuInitData.setDictValue("true");
         when(shenyuDictService.findByDictCodeName(any(), any())).thenReturn(shenyuInitData);
