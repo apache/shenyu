@@ -18,14 +18,11 @@
 package org.apache.shenyu.web.filter;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.common.utils.JsonUtils;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -36,16 +33,20 @@ import java.util.Set;
  */
 public final class HealthFilter extends AbstractWebFilter {
     
+    private final DispatcherHandler dispatcherHandler;
+    
     private final Set<String> paths;
     
     /**
      * Instantiates a new Health filter.
      *
+     * @param dispatcherHandler the dispatcher handler
      * @param paths the paths
      */
-    public HealthFilter(final List<String> paths) {
+    public HealthFilter(final DispatcherHandler dispatcherHandler, final List<String> paths) {
+        this.dispatcherHandler = dispatcherHandler;
         if (CollectionUtils.isEmpty(paths)) {
-            this.paths = new HashSet<>(Arrays.asList("/actuator/health", "/actuator/health/readiness", "/actuator/health/liveness", "/health_check"));
+            this.paths = new HashSet<>(Arrays.asList("/actuator", "/health_check"));
         } else {
             this.paths = new HashSet<>(paths); 
         }
@@ -53,13 +54,11 @@ public final class HealthFilter extends AbstractWebFilter {
     
     @Override
     protected Mono<Boolean> doMatcher(final ServerWebExchange exchange, final WebFilterChain chain) {
-        return Mono.just(paths.contains(exchange.getRequest().getURI().getPath()));
+        return Mono.just(paths.stream().anyMatch(path -> exchange.getRequest().getURI().getPath().startsWith(path)));
     }
     
     @Override
     protected Mono<Void> doFilter(final ServerWebExchange exchange) {
-        String result = JsonUtils.toJson(new Health.Builder().up().build());
-        DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(result.getBytes(StandardCharsets.UTF_8));
-        return exchange.getResponse().writeWith(Mono.just(dataBuffer));
+        return dispatcherHandler.handle(exchange);
     }
 }
