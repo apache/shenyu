@@ -119,12 +119,12 @@ public final class Resilience4JPluginTest extends AbstractPluginDataInit {
     public void testCircuitBreakerFallbackUri() throws IOException {
         String selectorAndRulesResult =
                 initSelectorAndRules(PluginEnum.RESILIENCE4J.getName(), "",
-                        buildSelectorConditionList(), buildRuleLocalDataList(1, 5000, TEST_RESILIENCE4J_SUCCESS_PATH));
+                        buildSelectorConditionList(), buildRuleLocalDataList(1, 5000, TEST_RESILIENCE4J_SUCCESS_OUT_SCOPE_PATH));
         assertThat(selectorAndRulesResult, is("success"));
 
         List<Integer> rets = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
-            ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_OUT_SCOPE_PATH, ResultBean.class);
+            ResultBean resp = HttpHelper.INSTANCE.getFromGateway(TEST_RESILIENCE4J_SUCCESS_PATH, ResultBean.class);
             rets.add(resp.getCode());
         }
         for (int i = 0; i < 5; i++) {
