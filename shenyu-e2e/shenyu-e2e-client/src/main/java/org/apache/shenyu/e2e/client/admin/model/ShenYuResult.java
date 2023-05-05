@@ -19,13 +19,16 @@ package org.apache.shenyu.e2e.client.admin.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
 
 import java.io.IOException;
 
-@Data
+/**
+ * ShenYu result.
+ */
 public class ShenYuResult {
+
     private int code;
+
     private String message;
     
     private JsonNode data;
@@ -35,5 +38,58 @@ public class ShenYuResult {
     public <Data> Data toObject(Class<Data> type) throws IOException {
         return mapper.readValue(data.traverse(), type);
     }
-    
+
+    /**
+     * get code.
+     *
+     * @return code
+     */
+    public int getCode() {
+        return code;
+    }
+
+    /**
+     * set code.
+     *
+     * @param code code
+     */
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    /**
+     * get message.
+     *
+     * @return message
+     */
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * set message.
+     *
+     * @param message message
+     */
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    /**
+     * get data.
+     *
+     * @return data
+     */
+    public JsonNode getData() {
+        return data;
+    }
+
+    /**
+     * set data.
+     *
+     * @param data data
+     */
+    public void setData(JsonNode data) {
+        this.data = data;
+    }
 }
