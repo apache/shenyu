@@ -20,19 +20,15 @@ package org.apache.shenyu.client.core.register.parser;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 
 import java.util.List;
 
 public class NoHttpApiDocDefinitionParser extends AbstractApiDocDefinitionParser<Object> {
 
-    public NoHttpApiDocDefinitionParser(final RpcTypeEnum rpcTypeEnum,
-                                        final String host,
-                                        final String port,
-                                        final Boolean addPrefixed) {
-
-        super(rpcTypeEnum, host, port, addPrefixed);
+    public NoHttpApiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
+        super(clientRegisterConfig);
     }
 
     @Override

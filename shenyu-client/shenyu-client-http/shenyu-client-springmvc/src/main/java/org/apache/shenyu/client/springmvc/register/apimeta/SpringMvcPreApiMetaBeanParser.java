@@ -19,6 +19,7 @@ package org.apache.shenyu.client.springmvc.register.apimeta;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.register.parser.PreApiMetaBeanParser;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -31,9 +32,15 @@ public class SpringMvcPreApiMetaBeanParser implements PreApiMetaBeanParser<Objec
 
     private final String appName;
 
-    public SpringMvcPreApiMetaBeanParser(final Boolean addPrefixed, final String appName) {
-        this.addPrefixed = addPrefixed;
-        this.appName = appName;
+    private final String host;
+
+    private final Integer port;
+
+    public SpringMvcPreApiMetaBeanParser(final ClientRegisterConfig clientRegisterConfig) {
+        this.addPrefixed = clientRegisterConfig.getAddPrefixed();
+        this.appName = clientRegisterConfig.getAppName();
+        this.host = clientRegisterConfig.getHost();
+        this.port = clientRegisterConfig.getPort();
     }
 
     @Override
@@ -51,6 +58,8 @@ public class SpringMvcPreApiMetaBeanParser implements PreApiMetaBeanParser<Objec
                 .addPrefixed(addPrefixed)
                 .appName(appName)
                 .serviceName(apiBean.getBeanClass().getName())
+                .host(host)
+                .port(port)
                 .methodName(null)
                 .path(apiPath)
                 .pathDesc(annotation.desc())

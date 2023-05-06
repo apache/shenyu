@@ -19,8 +19,8 @@ package org.apache.shenyu.client.core.register.parser;
 
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -30,12 +30,8 @@ import java.util.stream.Stream;
 
 public class HttpApiDocDefinitionParser extends AbstractApiDocDefinitionParser<Object> {
 
-    public HttpApiDocDefinitionParser(final RpcTypeEnum rpcTypeEnum,
-                                      final String host,
-                                      final String port,
-                                      final Boolean addPrefixed) {
-
-        super(rpcTypeEnum, host, port, addPrefixed);
+    public HttpApiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
+        super(clientRegisterConfig);
     }
 
     @Override
