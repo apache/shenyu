@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.utils.OpenApiUtils;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.ApiSourceEnum;
@@ -46,18 +47,15 @@ public abstract class AbstractApiDocDefinitionParser<T> implements ApiDocDefinit
 
     private final String host;
 
-    private final String port;
+    private final Integer port;
 
     private final Boolean addPrefixed;
 
-    public AbstractApiDocDefinitionParser(final RpcTypeEnum rpcTypeEnum,
-                                          final String host,
-                                          final String port,
-                                          final Boolean addPrefixed) {
-        this.rpcTypeEnum = rpcTypeEnum;
-        this.host = host;
-        this.port = port;
-        this.addPrefixed = addPrefixed;
+    public AbstractApiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
+        this.rpcTypeEnum = clientRegisterConfig.getRpcTypeEnum();
+        this.host = clientRegisterConfig.getHost();
+        this.port = clientRegisterConfig.getPort();
+        this.addPrefixed = clientRegisterConfig.getAddPrefixed();
     }
 
     @Override
@@ -116,7 +114,7 @@ public abstract class AbstractApiDocDefinitionParser<T> implements ApiDocDefinit
         ApiDocRegisterDTO.ApiExt ext = new ApiDocRegisterDTO.ApiExt();
 
         ext.setHost(host);
-        ext.setPort(Integer.valueOf(port));
+        ext.setPort(port);
         ext.setServiceName(apiDefinition.getServiceName());
         ext.setMethodName(apiDefinition.getApiMethodName());
         ext.setParameterTypes(apiDefinition.getParameterTypes());
