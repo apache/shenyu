@@ -18,8 +18,10 @@
 package org.apache.shenyu.client.springmvc.register.apimeta;
 
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,15 +32,29 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SpringMvcApiMetaDefinitionParserTest {
 
-    private final SpringMvcApiMetaDefinitionParser apiMetaDefinitionParser =
-            new SpringMvcApiMetaDefinitionParser(false, "http");
+    private SpringMvcApiMetaDefinitionParser apiMetaDefinitionParser;
+
+    @BeforeEach
+    public void init() {
+
+        ClientRegisterConfig clientRegisterConfig = mock(ClientRegisterConfig.class);
+        when(clientRegisterConfig.getAddPrefixed()).thenReturn(true);
+        when(clientRegisterConfig.getAppName()).thenReturn("http");
+        when(clientRegisterConfig.getHost()).thenReturn("127.0.0.1");
+        when(clientRegisterConfig.getContextPath()).thenReturn("/http");
+
+        apiMetaDefinitionParser = new SpringMvcApiMetaDefinitionParser(clientRegisterConfig);
+    }
 
     @Test
     public void testParse() throws Exception {
         Method method = TestBeanMatchClass.class.getMethod("testMethod");
+
         ApiBean<Object>.ApiDefinition apiDefinition =
                 createApiDefinition(TestBeanMatchClass.class, method, "/testMethod");
 

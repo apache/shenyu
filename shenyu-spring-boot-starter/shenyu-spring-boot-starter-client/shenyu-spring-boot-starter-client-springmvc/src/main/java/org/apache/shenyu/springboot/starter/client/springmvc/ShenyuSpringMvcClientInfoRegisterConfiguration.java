@@ -18,33 +18,33 @@
 package org.apache.shenyu.springboot.starter.client.springmvc;
 
 import org.apache.shenyu.client.auto.config.ClientRegisterConfiguration;
-import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientInfoRefreshedEventListener;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
 import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
+import org.apache.shenyu.client.core.register.matcher.ApiDocBeanMatcher;
+import org.apache.shenyu.client.core.register.matcher.ApiDocDefinitionMatcher;
 import org.apache.shenyu.client.core.register.matcher.Matcher;
 import org.apache.shenyu.client.core.register.parser.ApiDocDefinitionParser;
 import org.apache.shenyu.client.core.register.parser.ApiMetaDefinitionParser;
+import org.apache.shenyu.client.core.register.parser.HttpApiDocDefinitionParser;
 import org.apache.shenyu.client.core.register.parser.PreApiMetaBeanParser;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiBeansExtractor;
-import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaDefinitionMatcher;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaBeanMatcher;
+import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaDefinitionMatcher;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcApiMetaDefinitionParser;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcPreApiMetaBeanMatcher;
 import org.apache.shenyu.client.springmvc.register.apimeta.SpringMvcPreApiMetaBeanParser;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.UriUtils;
-import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Properties;
+import org.springframework.core.env.Environment;
 
 import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_DOC_BEAN_MATCHER;
 import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_DOC_DEFINITION_MATCHER;
@@ -56,54 +56,31 @@ import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.PRE_A
 @ConditionalOnBean(ClientRegisterConfiguration.class)
 public class ShenyuSpringMvcClientInfoRegisterConfiguration {
 
-    private final boolean addPrefixed;
-
-    private final boolean isFull;
-
-    private final String contextPath;
-
-    private final String appName;
-
-    private final PropertiesConfig clientConfig;
-
-    public ShenyuSpringMvcClientInfoRegisterConfiguration(final ShenyuClientConfig clientConfig) {
-
-        this.clientConfig = clientConfig.getClient().get(RpcTypeEnum.HTTP.getName());
-
-        Properties props = this.clientConfig.getProps();
-
-        this.addPrefixed = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.ADD_PREFIXED,
-                Boolean.FALSE.toString()));
-
-        this.isFull = Boolean.parseBoolean(props.getProperty(ShenyuClientConstants.IS_FULL, Boolean.FALSE.toString()));
-
-        this.contextPath = Optional.ofNullable(props
-                .getProperty(ShenyuClientConstants.CONTEXT_PATH))
-                .map(UriUtils::repairData).orElse("");
-
-        this.appName = props.getProperty(ShenyuClientConstants.APP_NAME);
+    public ShenyuSpringMvcClientInfoRegisterConfiguration() {
     }
 
     /**
      * ClientInfoRefreshedEventListener Bean.
      *
+     * @param clientRegisterConfig clientRegisterConfig
      * @param publisher publisher
      * @return clientInfoRefreshedEventListener
      */
     @Bean
-    public ClientInfoRefreshedEventListener clientInfoEventListener(final ShenyuClientRegisterEventPublisher publisher) {
-        return new ClientInfoRefreshedEventListener(clientConfig, publisher, RpcTypeEnum.HTTP);
+    public ClientInfoRefreshedEventListener clientInfoEventListener(final ClientRegisterConfig clientRegisterConfig,
+                                                                    final ShenyuClientRegisterEventPublisher publisher) {
+        return new ClientInfoRefreshedEventListener(clientRegisterConfig, publisher);
     }
 
     /**
      * ApiBeansExtractor Bean.
-     *
+     * @param clientRegisterConfig clientRegisterConfig
      * @return apiBeansExtractor
      */
     @Bean
     @ConditionalOnMissingBean
-    public ApiBeansExtractor<Object> apiBeansExtractor() {
-        return new SpringMvcApiBeansExtractor(contextPath);
+    public ApiBeansExtractor<Object> apiBeansExtractor(final ClientRegisterConfig clientRegisterConfig) {
+        return new SpringMvcApiBeansExtractor(clientRegisterConfig.getContextPath());
     }
 
     /**
@@ -131,11 +108,12 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     /**
      * ApiMetaDefinitionParser Bean.
      *
+     * @param clientRegisterConfig clientRegisterConfig
      * @return apiMetaParser
      */
     @Bean
-    public ApiMetaDefinitionParser<Object> apiMetaDefinitionParser() {
-        return new SpringMvcApiMetaDefinitionParser(addPrefixed, appName);
+    public ApiMetaDefinitionParser<Object> apiMetaDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
+        return new SpringMvcApiMetaDefinitionParser(clientRegisterConfig);
     }
 
     /**
@@ -152,11 +130,12 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     /**
      * apiBeanMetaParser Bean.
      *
+     * @param clientRegisterConfig clientRegisterConfig
      * @return apiBeanMetaParser
      */
     @Bean
-    public PreApiMetaBeanParser<Object> apiBeanMetaParser() {
-        return new SpringMvcPreApiMetaBeanParser(addPrefixed, appName);
+    public PreApiMetaBeanParser<Object> apiBeanMetaParser(final ClientRegisterConfig clientRegisterConfig) {
+        return new SpringMvcPreApiMetaBeanParser(clientRegisterConfig);
     }
 
     /**
@@ -167,8 +146,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     @Bean(name = API_DOC_BEAN_MATCHER)
     @ConditionalOnMissingBean(name = API_DOC_BEAN_MATCHER)
     public Matcher<ApiBean<Object>> apiDocBeanMatcher() {
-        //todo implements spring mvc doc collection
-        return e -> false;
+        return new ApiDocBeanMatcher();
     }
 
     /**
@@ -179,19 +157,32 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     @Bean(name = API_DOC_DEFINITION_MATCHER)
     @ConditionalOnMissingBean(name = API_DOC_DEFINITION_MATCHER)
     public Matcher<ApiBean<Object>.ApiDefinition> apiDocDefinitionMatcher() {
-        //todo implements spring mvc doc collection
-        return e -> false;
+        return new ApiDocDefinitionMatcher();
     }
 
     /**
      * ApiDocDefinitionParser Bean.
      *
+     * @param clientRegisterConfig clientRegisterConfig
      * @return apiDocDefinitionParser
      */
     @Bean
     @ConditionalOnMissingBean
-    public ApiDocDefinitionParser<Object> apiDocDefinitionParser() {
-        //todo implements spring mvc doc collection
-        return t -> Collections.emptyList();
+    public ApiDocDefinitionParser<Object> apiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
+        return new HttpApiDocDefinitionParser(clientRegisterConfig);
+    }
+
+    /**
+     * ClientRegisterConfig Bean.
+     * @param shenyuClientConfig shenyuClientConfig
+     * @param applicationContext applicationContext
+     * @param env env
+     * @return clientRegisterConfig
+     */
+    @Bean
+    public ClientRegisterConfig clientRegisterConfig(final ShenyuClientConfig shenyuClientConfig,
+                                                     final ApplicationContext applicationContext,
+                                                     final Environment env) {
+        return new ClientRegisterConfigImpl(shenyuClientConfig, RpcTypeEnum.HTTP, applicationContext, env);
     }
 }
