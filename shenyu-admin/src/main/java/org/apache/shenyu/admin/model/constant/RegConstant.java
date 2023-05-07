@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.model.constant;
 /**
  * RegConstant.
  */
-public class RegConstant {
+public final class RegConstant {
     
     /**
      * Minimum length of 8, including upper and lower case letters, numbers and special characters.

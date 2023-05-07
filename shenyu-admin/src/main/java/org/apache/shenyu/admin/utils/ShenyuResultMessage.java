@@ -82,8 +82,8 @@ public final class ShenyuResultMessage {
     
     public static final String PASSWORD_IS_DEFAULT = "The password is the default password and you must complete the change once";
     
-    public static final String PASSWORD_USED_FOR_LONG_TIME = "If the password has not been changed for a long time, " +
-            "please use it after changing it to ensure the security of the super administrator account";
+    public static final String PASSWORD_USED_FOR_LONG_TIME = "If the password has not been changed for a long time, "
+            + "please use it after changing it to ensure the security of the super administrator account";
     
     private ShenyuResultMessage() {
     
