@@ -42,6 +42,12 @@
         props
     </sql>
 
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT true
+        FROM discovery
+        WHERE id = #{id} limit 1
+    </select>
+
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
@@ -144,7 +150,7 @@
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
-        UPDATE rule_condition
+        UPDATE discovery
         <set>
             <if test="dateCreated != null">
                 date_created = #{dateCreated, jdbcType=TIMESTAMP},
@@ -153,13 +159,13 @@
                 date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
             </if>
             <if test="name != null">
-                type = #{name, jdbcType=VARCHAR},
+                name = #{name, jdbcType=VARCHAR},
             </if>
             <if test="type != null">
                 type = #{type, jdbcType=VARCHAR},
             </if>
             <if test="handler != null">
-                type = #{handler, jdbcType=VARCHAR},
+                handler = #{handler, jdbcType=VARCHAR},
             </if>
             <if test="serviceList != null">
                 service_list = #{serviceList, jdbcType=VARCHAR},

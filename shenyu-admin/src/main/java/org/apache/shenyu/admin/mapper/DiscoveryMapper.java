@@ -17,12 +17,27 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.validation.ExistProvider;
+
+import java.io.Serializable;
 
 /**
  * DiscoveryMapper.
  */
-public interface DiscoveryMapper {
+@Mapper
+public interface DiscoveryMapper extends ExistProvider {
+
+    /**
+     * existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
 
     /**
      * select discovery by id.
