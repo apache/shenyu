@@ -274,7 +274,9 @@ public class ShenyuTrie {
                 String[] parentPathArray = Arrays.copyOfRange(pathParts, 0, pathParts.length - 1);
                 String parentPath = String.join("/", parentPathArray);
                 ShenyuTrieNode parentNode = this.getNode(parentPath);
-                parentNode.getChildren().remove(key);
+                if (parentNode != null) {
+                    parentNode.getChildren().remove(key);
+                }
             }
         }
     }
