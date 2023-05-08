@@ -96,7 +96,24 @@ public class LoadServiceDocEntryImplTest {
             throw new RuntimeException(e);
         }
         String formattedDateString = outputFormat.format(date);
-        SelectorVO selectorVO = new SelectorVO("1", "1", "test", 1, "testMatchMode", 1, "testType", 1, true, true, true, true, "[{\"weight\":1}]", new ArrayList<>(), formattedDateString, formattedDateString);
+        SelectorVO selectorVO = new SelectorVO(
+                "1",
+                "1",
+                "test",
+                1,
+                "testMatchMode",
+                1,
+                "testType",
+                1,
+                true,
+                true,
+                true,
+                true,
+                "[{\"weight\":1}]",
+                new ArrayList<>(),
+                formattedDateString,
+                formattedDateString
+        );
         list.add(selectorVO);
         commonPager.setDataList(list);
         commonPager.setPage(new PageParameter(1, 1));
