@@ -103,7 +103,7 @@ class ShenyuClientRegisterWebSocketServiceImplTest {
         assertEquals(webSocketUpstreamResult.get("host"), "localhost");
         assertEquals(webSocketUpstreamResult.get("url"), "host:8080");
         assertEquals(webSocketUpstreamResult.get("weight"), 50.0);
-        assertEquals(webSocketUpstreamResult.get("warmup"), 10.0);
+        assertEquals(webSocketUpstreamResult.get("warmup"), 600000.0);
         assertEquals(webSocketUpstreamResult.get("upstreamHost"), "localhost");
         assertEquals(webSocketUpstreamResult.get("status"), true);
 
@@ -123,7 +123,7 @@ class ShenyuClientRegisterWebSocketServiceImplTest {
         assertEquals(webSocketUpstreamResult.get("host"), "localhost");
         assertEquals(webSocketUpstreamResult.get("url"), "host:8080");
         assertEquals(webSocketUpstreamResult.get("weight"), 50.0);
-        assertEquals(webSocketUpstreamResult.get("warmup"), 10.0);
+        assertEquals(webSocketUpstreamResult.get("warmup"), 600000.0);
         assertEquals(webSocketUpstreamResult.get("upstreamHost"), "localhost");
         assertEquals(webSocketUpstreamResult.get("status"), true);
     }
