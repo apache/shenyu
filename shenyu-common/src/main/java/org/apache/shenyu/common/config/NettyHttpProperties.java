@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.springboot.starter.netty;
+package org.apache.shenyu.common.config;
+
+import org.apache.shenyu.common.config.ssl.SslCrtAndKeyFile;
+
+import java.util.List;
 
 /**
  * The netty tcp properties.
@@ -33,6 +37,8 @@ public class NettyHttpProperties {
     private ServerSocketChannelProperties serverSocketChannel = new ServerSocketChannelProperties();
 
     private SocketChannelProperties socketChannel = new SocketChannelProperties();
+
+    private SniProperties sni = new SniProperties();
 
     /**
      * get webServerFactoryEnabled.
@@ -123,6 +129,24 @@ public class NettyHttpProperties {
      */
     public SocketChannelProperties getSocketChannel() {
         return socketChannel;
+    }
+
+    /**
+     * get sni properties.
+     *
+     * @return sni properties
+     */
+    public SniProperties getSni() {
+        return sni;
+    }
+
+    /**
+     * set sni properties.
+     *
+     * @param sni sni properties
+     */
+    public void setSni(final SniProperties sni) {
+        this.sni = sni;
     }
 
     /**
@@ -285,6 +309,101 @@ public class NettyHttpProperties {
          */
         public void setAllowHalfClosure(final Boolean allowHalfClosure) {
             this.allowHalfClosure = allowHalfClosure;
+        }
+    }
+
+    public static class SniProperties {
+
+        private Boolean enabled = false;
+
+        private String mod;
+
+        private String defaultK8sSecretName;
+
+        private String defaultK8sSecretNamespace;
+
+        private List<SslCrtAndKeyFile> certificates;
+
+        /**
+         * Get default kubernetes secret namespace.
+         *
+         * @return default kubernetes secret namespace
+         */
+        public String getDefaultK8sSecretNamespace() {
+            return defaultK8sSecretNamespace;
+        }
+
+        /**
+         * Set default kubernetes secret namespace.
+         *
+         * @param defaultK8sSecretNamespace default kubernetes secret namespace
+         */
+        public void setDefaultK8sSecretNamespace(final String defaultK8sSecretNamespace) {
+            this.defaultK8sSecretNamespace = defaultK8sSecretNamespace;
+        }
+
+        /**
+         * get enabled.
+         * @return enabled
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        /**
+         * set enabled.
+         * @param enabled enabled
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        /**
+         * get mod.
+         * @return mod
+         */
+        public String getMod() {
+            return mod;
+        }
+
+        /**
+         * set mod.
+         * @param mod mod
+         */
+        public void setMod(final String mod) {
+            this.mod = mod;
+        }
+
+        /**
+         * get defaultK8sSecretName.
+         * @return defaultK8sSecretName
+         */
+        public String getDefaultK8sSecretName() {
+            return defaultK8sSecretName;
+        }
+
+        /**
+         * set defaultK8sSecretName.
+         * @param defaultK8sSecretName defaultK8sSecretName
+         */
+        public void setDefaultK8sSecretName(final String defaultK8sSecretName) {
+            this.defaultK8sSecretName = defaultK8sSecretName;
+        }
+
+        /**
+         * get certificates.
+         * @return certificates
+         */
+        public List<SslCrtAndKeyFile> getCertificates() {
+            return certificates;
+        }
+
+        /**
+         * set certificates.
+         * @param certificates certificates
+         */
+        public void setCertificates(final List<SslCrtAndKeyFile> certificates) {
+            this.certificates = certificates;
         }
     }
 }
