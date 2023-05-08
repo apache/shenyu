@@ -23,6 +23,9 @@ import org.apache.shenyu.e2e.engine.scenario.function.Waiting;
 
 import java.util.function.Supplier;
 
+/**
+ * Http Waiting interface.
+ */
 @FunctionalInterface
 public interface HttpWaiting extends Waiting {
     

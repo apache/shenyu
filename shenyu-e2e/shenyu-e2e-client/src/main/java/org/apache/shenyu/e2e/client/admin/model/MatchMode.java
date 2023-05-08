@@ -21,6 +21,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Locale;
 
+/**
+ * Match mode.
+ */
 public enum MatchMode {
     
     AND(0), OR(1);

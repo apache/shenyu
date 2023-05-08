@@ -19,6 +19,9 @@ package org.apache.shenyu.e2e.testcase.common.function;
 
 import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
 
+/**
+ * Http Verifier interface.
+ */
 public interface HttpVerifier extends Verifier {
 
 }

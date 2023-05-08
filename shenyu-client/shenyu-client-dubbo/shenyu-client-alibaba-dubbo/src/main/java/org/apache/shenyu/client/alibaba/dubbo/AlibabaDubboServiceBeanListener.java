@@ -28,7 +28,6 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -38,6 +37,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 /**
  * The Alibaba Dubbo ServiceBean Listener.
  */
-//@SuppressWarnings("all")
+@SuppressWarnings("all")
 public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEventListener<ServiceBean, ShenyuDubboClient> {
 
     /**
@@ -76,11 +76,11 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
         String[] values = new String[]{shenyuDubboClient.value()};
         ApiHttpMethodEnum[] apiHttpMethodEnums = new ApiHttpMethodEnum[]{ApiHttpMethodEnum.NOT_HTTP};
         String defaultVersion = "v0.01";
-        Class methodClass = method.getDeclaringClass();
-        Class[] interfaces = methodClass.getInterfaces();
-        for (Class anInterface : interfaces) {
+        Class<?> methodClass = method.getDeclaringClass();
+        Class<?>[] interfaces = methodClass.getInterfaces();
+        for (Class<?> anInterface : interfaces) {
             if (beans.containsKey(anInterface.getName())) {
-                ServiceBean serviceBean = beans.get(anInterface.getName());
+                ServiceBean<?> serviceBean = beans.get(anInterface.getName());
                 defaultVersion = Optional.ofNullable(serviceBean.getVersion()).orElse(defaultVersion);
             }
         }
@@ -111,8 +111,8 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
                     .contextPath(getContextPath())
                     .appName(buildAppName(bean))
                     .rpcType(RpcTypeEnum.DUBBO.getName())
-                    .host(buildHost())
-                    .port(buildPort(bean))
+                    .host(super.getHost())
+                    .port(Integer.valueOf(getPort()))
                     .build();
         }).orElse(null);
     }
@@ -120,16 +120,6 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
     private String buildAppName(final ServiceBean<?> serviceBean) {
         String appName = this.getAppName();
         return StringUtils.isBlank(appName) ? serviceBean.getApplication().getName() : appName;
-    }
-
-    private String buildHost() {
-        final String host = this.getHost();
-        return IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host);
-    }
-
-    private int buildPort(final ServiceBean<?> serviceBean) {
-        final String port = this.getPort();
-        return StringUtils.isBlank(port) || "-1".equals(port) ? serviceBean.getProtocol().getPort() : Integer.parseInt(port);
     }
 
     @Override
@@ -153,17 +143,20 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
                                final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, buildApiPath(method, superPath, null), clazz, method));
+            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                    buildApiPath(method, superPath, null), clazz, method);
+            getPublisher().publishEvent(metaData);
+            getMetaDataMap().put(method, metaData);
         }
     }
 
     @Override
     protected String buildApiPath(final Method method,
                                   final String superPath,
-                                  final ShenyuDubboClient methodShenyuClient) {
+                                  @Nullable final ShenyuDubboClient methodShenyuClient) {
         final String contextPath = this.getContextPath();
         return superPath.contains("*") ? pathJoin(contextPath, superPath.replace("*", ""), method.getName())
-                : pathJoin(contextPath, superPath, methodShenyuClient.path());
+                : pathJoin(contextPath, superPath, Objects.requireNonNull(methodShenyuClient).path());
     }
 
     @Override
@@ -185,8 +178,8 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
                 .serviceName(serviceName)
                 .methodName(methodName)
                 .contextPath(getContextPath())
-                .host(buildHost())
-                .port(buildPort(bean))
+                .host(super.getHost())
+                .port(Integer.valueOf(getPort()))
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
@@ -197,6 +190,17 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
                 .build();
     }
 
+    @Override
+    public String getPort() {
+        final String port = super.getPort();
+        return getContext().getBeansOfType(ServiceBean.class).entrySet()
+                .stream().findFirst().map(entry -> {
+                    final ServiceBean<?> serviceBean = entry.getValue();
+                    return StringUtils.isBlank(port) || "-1".equals(port)
+                            ? String.valueOf(serviceBean.getProtocol().getPort()) : port;
+                }).orElse(port);
+    }
+    
     private String buildRpcExt(final ServiceBean<?> serviceBean) {
         DubboRpcExt build = DubboRpcExt.builder()
                 .protocol(StringUtils.isNotEmpty(serviceBean.getProtocol().getName()) ? serviceBean.getProtocol().getName() : "")

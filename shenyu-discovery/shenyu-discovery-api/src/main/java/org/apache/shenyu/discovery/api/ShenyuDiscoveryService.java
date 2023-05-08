@@ -26,27 +26,36 @@ import org.apache.shenyu.spi.SPI;
  */
 @SPI
 public interface ShenyuDiscoveryService {
-    
+
     /**
      * Init shenyu discovery service .
      *
      * @param config the config
      */
     void init(DiscoveryConfig config);
-    
+
     /**
      * Watcher path , fire data changed event.
      *
-     * @param key the key
+     * @param key      the key
      * @param listener the listener
      */
     void watcher(String key, DataChangedEventListener listener);
-    
+
     /**
      * Register data.
      *
-     * @param key the key
+     * @param key   the key
      * @param value the value
      */
     void register(String key, String value);
+
+    /**
+     * getData by key.
+     *
+     * @param key key
+     * @return value
+     */
+    String getData(String key);
+
 }

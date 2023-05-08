@@ -27,19 +27,24 @@ import org.apache.shenyu.spi.Join;
  */
 @Join
 public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
-    
+
     @Override
     public void init(final DiscoveryConfig config) {
-        
+
     }
-    
+
     @Override
     public void watcher(final String key, final DataChangedEventListener listener) {
-        
+
     }
-    
+
     @Override
     public void register(final String key, final String value) {
-        
+
+    }
+
+    @Override
+    public String getData(final String key) {
+        return null;
     }
 }

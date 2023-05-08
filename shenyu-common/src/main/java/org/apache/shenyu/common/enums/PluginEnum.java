@@ -32,6 +32,10 @@ public enum PluginEnum {
      */
     GLOBAL(-1, 0, "global"),
     /**
+     * Tcp plugin enum.
+     */
+    TCP(0, 0, "tcp"),
+    /**
      * Mqtt plugin enum.
      */
     MQTT(0, 0, "mqtt"),

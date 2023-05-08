@@ -21,8 +21,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest.Parameter;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest.ServiceConfigure;
@@ -38,7 +36,9 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Getter
+/**
+ * ShenYu engine configure.
+ */
 public class ShenYuEngineConfigure {
     
     private static final Pattern EXTRACTOR_PATTERN = Pattern.compile("\\{(.*?)\\}");
@@ -58,8 +58,36 @@ public class ShenYuEngineConfigure {
     public boolean isRunOnDocker() {
         return Mode.DOCKER == mode;
     }
-    
+
+    /**
+     * get mode.
+     *
+     * @return mode
+     */
+    public Mode getMode() {
+        return mode;
+    }
+
+    /**
+     * get hostConfigure.
+     *
+     * @return hostConfigure
+     */
+    public HostConfigure getHostConfigure() {
+        return hostConfigure;
+    }
+
+    /**
+     * get dockerConfigure.
+     *
+     * @return dockerConfigure
+     */
+    public DockerConfigure getDockerConfigure() {
+        return dockerConfigure;
+    }
+
     public enum Mode {
+
         HOST, DOCKER;
         
         @JsonValue
@@ -69,42 +97,205 @@ public class ShenYuEngineConfigure {
     }
     
     public enum ServiceType {
+
         SHENYU_ADMIN,
+
         SHENYU_GATEWAY,
+
         EXTERNAL_SERVICE,
     }
     
-    @Getter
-    @AllArgsConstructor
+
     public static class HostConfigure {
+
         private final HostServiceConfigure admin;
+
         private final HostServiceConfigure gateway;
+
         private final List<HostServiceConfigure> externalServices;
-        
-        @Getter
-        @AllArgsConstructor
+
+
+        public HostConfigure(HostServiceConfigure admin, HostServiceConfigure gateway, List<HostServiceConfigure> externalServices) {
+            this.admin = admin;
+            this.gateway = gateway;
+            this.externalServices = externalServices;
+        }
+
+        /**
+         * get admin.
+         *
+         * @return admin
+         */
+        public HostServiceConfigure getAdmin() {
+            return admin;
+        }
+
+        /**
+         * get gateway.
+         *
+         * @return gateway
+         */
+        public HostServiceConfigure getGateway() {
+            return gateway;
+        }
+
+        /**
+         * get externalServices.
+         *
+         * @return externalServices
+         */
+        public List<HostServiceConfigure> getExternalServices() {
+            return externalServices;
+        }
+
         public static class HostServiceConfigure {
+
             private final String serviceName;
+
             private final String baseUrl;
+
             private final Properties properties;
+
+            public HostServiceConfigure(String serviceName, String baseUrl, Properties properties) {
+                this.serviceName = serviceName;
+                this.baseUrl = baseUrl;
+                this.properties = properties;
+            }
+
+            /**
+             * get serviceName.
+             *
+             * @return serviceName
+             */
+            public String getServiceName() {
+                return serviceName;
+            }
+
+            /**
+             * get baseUrl.
+             *
+             * @return baseUrl
+             */
+            public String getBaseUrl() {
+                return baseUrl;
+            }
+
+            /**
+             * get properties.
+             *
+             * @return properties
+             */
+            public Properties getProperties() {
+                return properties;
+            }
         }
     }
-    
-    @Getter
-    @AllArgsConstructor
+
     public static class DockerConfigure {
+
         private final String dockerComposeFile;
+
         private final DockerServiceConfigure admin;
+
         private final DockerServiceConfigure gateway;
+
         private final List<DockerServiceConfigure> externalServices;
-        
-        @Getter
-        @AllArgsConstructor
+
+        public DockerConfigure(String dockerComposeFile, DockerServiceConfigure admin, DockerServiceConfigure gateway, List<DockerServiceConfigure> externalServices) {
+            this.dockerComposeFile = dockerComposeFile;
+            this.admin = admin;
+            this.gateway = gateway;
+            this.externalServices = externalServices;
+        }
+
+        /**
+         * get dockerComposeFile.
+         *
+         * @return dockerComposeFile
+         */
+        public String getDockerComposeFile() {
+            return dockerComposeFile;
+        }
+
+        /**
+         * get admin.
+         *
+         * @return admin
+         */
+        public DockerServiceConfigure getAdmin() {
+            return admin;
+        }
+
+        /**
+         * get gateway.
+         *
+         * @return gateway
+         */
+        public DockerServiceConfigure getGateway() {
+            return gateway;
+        }
+
+        /**
+         * get externalServices.
+         *
+         * @return
+         */
+        public List<DockerServiceConfigure> getExternalServices() {
+            return externalServices;
+        }
+
         public static class DockerServiceConfigure {
+
             private final String schema;
+
             private final String serviceName;
+
             private final int port;
+
             private final Properties properties;
+
+            public DockerServiceConfigure(String schema, String serviceName, int port, Properties properties) {
+                this.schema = schema;
+                this.serviceName = serviceName;
+                this.port = port;
+                this.properties = properties;
+            }
+
+            /**
+             * get schema.
+             *
+             * @return schema
+             */
+            public String getSchema() {
+                return schema;
+            }
+
+            /**
+             * get serviceName.
+             *
+             * @return serviceName
+             */
+            public String getServiceName() {
+                return serviceName;
+            }
+
+            /**
+             * get port.
+             *
+             * @return port
+             */
+            public int getPort() {
+                return port;
+            }
+
+            /**
+             * get properties.
+             *
+             * @return properties
+             */
+            public Properties getProperties() {
+                return properties;
+            }
         }
     }
     

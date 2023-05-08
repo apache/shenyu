@@ -40,9 +40,15 @@ import org.testcontainers.DockerClientFactory;
 
 import java.util.Objects;
 
+/**
+ * ShenYu extension.
+ */
 public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, AfterAllCallback, ParameterResolver {
+
     private static final Namespace NAMESPACE = Namespace.create(ShenYuExtension.class);
+
     private static final String KEY_EXTENSION_CONTEXT = "_shenyu_service_compose_";
+
     private static final String KEY_ENGINE_CONFIGURE = "_shenyu_engine_configure_";
     
     @Override
@@ -75,7 +81,7 @@ public class ShenYuExtension implements BeforeAllCallback, ExecutionCondition, A
         
         return ConditionEvaluationResult.enabled("ShenYu test engine is available");
     }
-    
+
     private boolean isDockerAvailable() {
         try {
             DockerClientFactory.instance().client();

@@ -19,9 +19,10 @@ package org.apache.shenyu.e2e.client.admin.model.response;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 
-@Data
+/**
+ * Pagination.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Pagination {
 
@@ -35,16 +36,76 @@ public class Pagination {
     
     @JsonAlias({"pages", "totalPage"})
     private int totalPage;
-//
-//
-//
-//    private boolean hasNextPage;
-//    private int size;
-//    private int startRow;
-//    private int endRow;
-//
-//    private int pages;
-//    private int pageNum;
-//    private int pageSize;
 
+    /**
+     * get currentPage.
+     *
+     * @return currentPage
+     */
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    /**
+     * set currentPage
+     *
+     * @param currentPage currentPage
+     */
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    /**
+     * get pageSize.
+     *
+     * @return pageSize
+     */
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    /**
+     * set pageSize.
+     *
+     * @param pageSize pageSize
+     */
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    /**
+     * get totalSize
+     *
+     * @return totalSize.
+     */
+    public int getTotalSize() {
+        return totalSize;
+    }
+
+    /**
+     * set totalSize.
+     *
+     * @param totalSize totalSize
+     */
+    public void setTotalSize(int totalSize) {
+        this.totalSize = totalSize;
+    }
+
+    /**
+     * get totalPage.
+     *
+     * @return totalPage
+     */
+    public int getTotalPage() {
+        return totalPage;
+    }
+
+    /**
+     * set totalPage.
+     *
+     * @param totalPage totalPage
+     */
+    public void setTotalPage(int totalPage) {
+        this.totalPage = totalPage;
+    }
 }
