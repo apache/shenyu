@@ -76,6 +76,10 @@ public class ShenyuTrieNode implements Serializable {
      * biz info, if the trie is selector trie, the bizInfo is pluginName, if the trie is rule trie, the bizInfo is selectorId.
      */
     private String bizInfo;
+    
+    private ShenyuTrieNode parentNode;
+    
+    private ShenyuTrieNode failToNode;
 
     public ShenyuTrieNode() {
     }
@@ -87,6 +91,8 @@ public class ShenyuTrieNode implements Serializable {
         this.children = new ConcurrentHashMap<>(Constants.TRIE_CHILDREN_SIZE);
         this.pathCache = new ConcurrentHashMap<>(Constants.TRIE_PATH_CACHE_SIZE);
         this.pathVariables = new ConcurrentHashMap<>(Constants.TRIE_PATH_VARIABLES_SIZE);
+        this.parentNode = null;
+        this.failToNode = null;
     }
 
     /**
@@ -248,6 +254,22 @@ public class ShenyuTrieNode implements Serializable {
      */
     public void setPathRuleCache(final Map<String, List<?>> pathCache) {
         this.pathCache = pathCache;
+    }
+    
+    public ShenyuTrieNode getParentNode() {
+        return parentNode;
+    }
+    
+    public void setParentNode(ShenyuTrieNode parentNode) {
+        this.parentNode = parentNode;
+    }
+    
+    public ShenyuTrieNode getFailToNode() {
+        return failToNode;
+    }
+    
+    public void setFailToNode(ShenyuTrieNode failToNode) {
+        this.failToNode = failToNode;
     }
     
     @Override

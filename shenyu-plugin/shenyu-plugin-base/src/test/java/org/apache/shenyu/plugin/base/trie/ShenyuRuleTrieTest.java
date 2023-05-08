@@ -566,11 +566,13 @@ public class ShenyuRuleTrieTest {
         shenyuAntPathTrie.putNode("/aa/bb/*/a", ruleData, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode("/aa/bb/*/b", ruleData, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode("/aa/bb/*/c", ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode("/aa/bb/*/*/i", ruleData, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode("/aa/bb/**/m/c", ruleData, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode("/aa/bb/**/n/b", ruleData, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode("/aa/bb/{path}/x/a", ruleData, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode("/aa/bb/{path}/y/b", ruleData, TrieCacheTypeEnum.RULE);
-        
+        shenyuAntPathTrie.putNode("/http/a/{a}/{b}/m", ruleData, TrieCacheTypeEnum.RULE);
+        shenyuAntPathTrie.putNode("/http/a/{c}/{d}/n", ruleData, TrieCacheTypeEnum.RULE);
         System.out.println(shenyuAntPathTrie.match("/aa/bb/dd/uu/n/b", "2").getFullPath().equals("/aa/bb/**/n/b"));;
     }
     

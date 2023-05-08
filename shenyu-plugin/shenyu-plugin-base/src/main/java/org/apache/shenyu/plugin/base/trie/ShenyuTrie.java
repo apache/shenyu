@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.base.trie;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,16 +30,22 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ShenyuTrie {
@@ -119,6 +126,9 @@ public class ShenyuTrie {
         if (ArrayUtils.isEmpty(pathParts)) {
             return;
         }
+        if (TrieMatchModeEnum.PATH_PATTERN.equals(matchMode)) {
+            checkLegalPath(uriPath, pathParts);
+        }
         RuleData ruleData = null;
         SelectorData selectorData = null;
         ShenyuTrieNode node;
@@ -159,6 +169,7 @@ public class ShenyuTrie {
                 node.getPathCache().put(ruleData.getSelectorId(), Lists.newArrayList(ruleData));
             }
             node.setBizInfo(ruleData.getSelectorId());
+            buildFailToNode(keyRootMap.get(ruleData.getSelectorId()));
         } else {
             List<?> collections = node.getPathCache().get(selectorData.getPluginName());
             if (CollectionUtils.isNotEmpty(collections)) {
@@ -174,6 +185,87 @@ public class ShenyuTrie {
             }
             node.setBizInfo(selectorData.getPluginName());
         }
+    }
+    
+    private void buildFailToNode(final ShenyuTrieNode root) {
+        if (Objects.isNull(root)) {
+            return;
+        }
+        Queue<ShenyuTrieNode> queue = new LinkedList<>();
+        Map<String, ShenyuTrieNode> pathVariableChildren = Optional.ofNullable(root.getPathVariables()).orElse(new HashMap<>(0));
+        Map<String, ShenyuTrieNode> children = Optional.ofNullable(root.getChildren()).orElse(new HashMap<>(0));
+        Map<String, ShenyuTrieNode> allChildren = new HashMap<>();
+        allChildren.putAll(children);
+        allChildren.putAll(pathVariableChildren);
+        for (Entry<String, ShenyuTrieNode> nodeEntry : allChildren.entrySet()) {
+            ShenyuTrieNode currentNode = nodeEntry.getValue();
+            currentNode.setFailToNode(root);
+            queue.offer(currentNode);
+        }
+        
+        while (!queue.isEmpty()) {
+            ShenyuTrieNode currentNode = queue.poll();
+            Map<String, ShenyuTrieNode> childrenList = Optional.ofNullable(currentNode.getChildren()).orElse(new HashMap<>(0));
+            Map<String, ShenyuTrieNode> pathList = Optional.ofNullable(currentNode.getPathVariables()).orElse(new HashMap<>(0));
+            Map<String, ShenyuTrieNode> newChildren = new HashMap<>();
+            newChildren.putAll(childrenList);
+            newChildren.putAll(pathList);
+            for (Entry<String, ShenyuTrieNode> nodeEntry : newChildren.entrySet()) {
+                queue.add(nodeEntry.getValue());
+                ShenyuTrieNode failToNode = currentNode.getFailToNode();
+                while (true) {
+                    if (Objects.isNull(failToNode)) {
+                        nodeEntry.getValue().setFailToNode(root);
+                        break;
+                    }
+                    System.out.println(nodeEntry.getKey());
+                    if (failToNode.getChildren().containsKey(nodeEntry.getKey())) {
+                        nodeEntry.getValue().setFailToNode(failToNode.getChildren().get(nodeEntry.getKey()));
+                        break;
+                    }
+                    failToNode = failToNode.getFailToNode();
+                }
+            }
+        }
+        
+        //Stack<ShenyuTrieNode> handleStack = new Stack<>();
+        //Stack<ShenyuTrieNode> stack = new Stack<>();
+        //stack.push(root);
+        //while (!stack.isEmpty()) {
+        //    ShenyuTrieNode node = stack.pop();
+        //    handleStack.push(node);
+        //    System.out.println(node.getMatchStr());
+        //    // add path-variable and child node to stack
+        //    Map<String, ShenyuTrieNode> pathVariableChildren = Optional.ofNullable(node.getPathVariables()).orElse(new HashMap<>(0));
+        //    Map<String, ShenyuTrieNode> children = Optional.ofNullable(node.getChildren()).orElse(new HashMap<>(0));
+        //    Map<String, ShenyuTrieNode> allChildren = new HashMap<>();
+        //    allChildren.putAll(children);
+        //    allChildren.putAll(pathVariableChildren);
+        //    for (Entry<String, ShenyuTrieNode> nodeEntry : allChildren.entrySet()) {
+        //        ShenyuTrieNode currentNode = nodeEntry.getValue();
+        //        stack.push(currentNode);
+        //    }
+        //}
+        //System.out.println("////test---");
+        //while (!handleStack.isEmpty()) {
+        //    ShenyuTrieNode node = handleStack.pop();
+        //    System.out.println(node.getMatchStr());
+        //    if (node.getMatchStr().equals("/")) {
+        //        continue;
+        //    }
+        //    if (node.getEndOfPath() && isMatchAll(node.getMatchStr())) {
+        //        node.setFailToNode(null);
+        //    } else {
+        //        ShenyuTrieNode parent = node.getParentNode();
+        //        if (MapUtils.isEmpty(node.getChildren()) && MapUtils.isEmpty(node.getPathVariables())) {
+        //            node.setFailToNode(parent);
+        //        } else {
+        //
+        //        }
+        //
+        //    }
+        //
+        //}
     }
 
     /**
@@ -371,6 +463,7 @@ public class ShenyuTrie {
             } else {
                 childNode = new ShenyuTrieNode();
                 childNode.setMatchStr(segment);
+                childNode.setParentNode(shenyuTrieNode);
                 if (Objects.isNull(shenyuTrieNode.getPathVariables())) {
                     shenyuTrieNode.setPathVariables(new ConcurrentHashMap<>(Constants.TRIE_PATH_VARIABLES_SIZE));
                 }
@@ -399,6 +492,7 @@ public class ShenyuTrie {
         } else {
             childrenNode = new ShenyuTrieNode();
             childrenNode.setMatchStr(segment);
+            childrenNode.setParentNode(shenyuTrieNode);
             shenyuTrieNode.getChildren().put(segment, childrenNode);
         }
         return childrenNode;
