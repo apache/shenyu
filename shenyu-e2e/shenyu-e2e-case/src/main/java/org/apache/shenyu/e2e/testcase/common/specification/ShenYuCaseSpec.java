@@ -20,9 +20,6 @@ package org.apache.shenyu.e2e.testcase.common.specification;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import io.restassured.http.Method;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.hamcrest.Matcher;
@@ -32,14 +29,40 @@ import java.util.List;
 import static org.apache.shenyu.e2e.testcase.common.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.testcase.common.function.HttpCheckers.notExists;
 
-@Getter
-@AllArgsConstructor
+/**
+ * ShenYu case specification.
+ */
 public class ShenYuCaseSpec implements CaseSpec {
     
     private final String name;
     
     private final List<Verifier> verifiers;
-    
+
+    public ShenYuCaseSpec(String name, List<Verifier> verifiers) {
+        this.name = name;
+        this.verifiers = verifiers;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * get verifiers.
+     *
+     * @return verifiers
+     */
+    @Override
+    public List<Verifier> getVerifiers() {
+        return verifiers;
+    }
+
     public static ShenYuTestCaseSpecBuilder builder() {
         return new ShenYuTestCaseSpecBuilder();
     }
@@ -47,13 +70,20 @@ public class ShenYuCaseSpec implements CaseSpec {
     public static ShenYuTestCaseSpecBuilder builder(String name) {
         return new ShenYuTestCaseSpecBuilder(name);
     }
-    
-    @NoArgsConstructor
-    @AllArgsConstructor
+
     public static class ShenYuTestCaseSpecBuilder {
+
         private String name;
+
         private final Builder<Verifier> builder = ImmutableList.builder();
-        
+
+        public ShenYuTestCaseSpecBuilder() {
+        }
+
+        public ShenYuTestCaseSpecBuilder(String name) {
+            this.name = name;
+        }
+
         public ShenYuTestCaseSpecBuilder name(String name) {
             this.name = name;
             return this;

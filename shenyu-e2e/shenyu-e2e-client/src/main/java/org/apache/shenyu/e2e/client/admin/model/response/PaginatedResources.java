@@ -17,14 +17,52 @@
 
 package org.apache.shenyu.e2e.client.admin.model.response;
 
-import lombok.Data;
-
 import java.util.List;
 
-@Data
+/**
+ * Paginated resources.
+ *
+ * @param <T> <T>
+ */
 public class PaginatedResources<T extends ResourceDTO> {
     
     private Pagination page;
     
     private List<T> dataList;
+
+    /**
+     * get page.
+     *
+     * @return page
+     */
+    public Pagination getPage() {
+        return page;
+    }
+
+    /**
+     * set page.
+     *
+     * @param page page
+     */
+    public void setPage(Pagination page) {
+        this.page = page;
+    }
+
+    /**
+     * get dataList.
+     *
+     * @return dataList
+     */
+    public List<T> getDataList() {
+        return dataList;
+    }
+
+    /**
+     * set dataList.
+     *
+     * @param dataList dataList
+     */
+    public void setDataList(List<T> dataList) {
+        this.dataList = dataList;
+    }
 }

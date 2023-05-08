@@ -17,54 +17,15 @@
 
 package org.apache.shenyu.e2e.client.admin.model.data;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
 
-@Getter
-@Builder
-@ToString
+/**
+ * The condition of searching.
+ */
 @JsonInclude(Include.NON_NULL)
 public class SearchCondition {
-    
-    public interface QueryCondition {
-        String getExcluded();
-        
-        String getKeyword();
-        
-        boolean isSwitchStatus();
-    }
-    
-    @Getter
-    @Builder
-    @ToString
-    @JsonInclude(Include.NON_NULL)
-    public static class SelectorQueryCondition implements QueryCondition {
-        private String excluded;
-        private String keyword;
-        
-        @JsonAlias("plugin")
-        private String[] plugins;
-        
-        private boolean switchStatus;
-    }
-    
-    @Getter
-    @Builder
-    @ToString
-    @JsonInclude(Include.NON_NULL)
-    public static class RuleQueryCondition implements QueryCondition {
-        private String excluded;
-        private String keyword;
-        
-        private String[] selectors;
-        
-        private boolean switchStatus;
-    }
-    
+
     public static QueryCondition QUERY_ALL = new QueryCondition() {
     
         @Override
@@ -88,5 +49,150 @@ public class SearchCondition {
     private int pageSize;
     
     private QueryCondition condition;
-    
+
+    /**
+     * class builder.
+     *
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * builder constructor.
+     *
+     * @param builder builder
+     */
+    private SearchCondition(Builder builder) {
+        this.pageNum = builder.pageNum;
+        this.pageSize = builder.pageSize;
+        this.condition = builder.condition;
+    }
+
+    /**
+     * get pageNum.
+     *
+     * @return pageNum
+     */
+    public int getPageNum() {
+        return pageNum;
+    }
+
+    /**
+     * set pageNum.
+     *
+     * @param pageNum pageNum
+     */
+    public void setPageNum(int pageNum) {
+        this.pageNum = pageNum;
+    }
+
+    /**
+     * get pageSize.
+     *
+     * @return pageSize
+     */
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    /**
+     * set pageSize.
+     *
+     * @param pageSize pageSize
+     */
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    /**
+     * get condition.
+     *
+     * @return condition
+     */
+    public QueryCondition getCondition() {
+        return condition;
+    }
+
+    /**
+     * set condition.
+     *
+     * @param condition condition
+     */
+    public void setCondition(QueryCondition condition) {
+        this.condition = condition;
+    }
+
+    @Override
+    public String toString() {
+        return "SearchCondition{"
+                + "pageNum="
+                + pageNum
+                + ", pageSize="
+                + pageSize
+                + ", condition="
+                + condition
+                + '}';
+    }
+
+    /**
+     * class builder.
+     */
+    public static final class Builder {
+
+        private int pageNum;
+
+        private int pageSize;
+
+        private QueryCondition condition;
+
+        /**
+         * no args constructor.
+         */
+        private Builder() {
+        }
+
+        /**
+         * build new Object.
+         *
+         * @return SearchCondition
+         */
+        public SearchCondition build() {
+            return new SearchCondition(this);
+        }
+
+        /**
+         * build pageNum.
+         *
+         * @param pageNum pageNum
+         * @return this
+         */
+        public Builder pageNum(int pageNum) {
+            this.pageNum = pageNum;
+            return this;
+        }
+
+        /**
+         * build pageSize.
+         *
+         * @param pageSize pageSize
+         * @return this
+         */
+        public Builder pageSize(int pageSize) {
+            this.pageSize = pageSize;
+            return this;
+        }
+
+        /**
+         * build condition.
+         *
+         * @param condition condition
+         * @return this
+         */
+        public Builder condition(QueryCondition condition) {
+            this.condition = condition;
+            return this;
+        }
+    }
 }

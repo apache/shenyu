@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.e2e.common;
 
+/**
+ * Utils for concatenating names.
+ */
 public class NameUtils {
     
     public static String wrap(String name, String scenarioId) {

@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- *The type Zookeeper for shenyu discovery service.
+ * The type Zookeeper for shenyu discovery service.
  */
 @Join
 public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
@@ -135,6 +135,16 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void register(final String key, final String value) {
         this.createOrUpdate(key, value, CreateMode.EPHEMERAL);
+    }
+
+    @Override
+    public String getData(final String key) {
+        try {
+            byte[] ret = client.getData().forPath(key);
+            return Objects.isNull(ret) ? null : new String(ret, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
     }
 
     private DataChangedEvent buildDataChangedEvent(final String key, final String value, final WatchedEvent watchedEvent) {

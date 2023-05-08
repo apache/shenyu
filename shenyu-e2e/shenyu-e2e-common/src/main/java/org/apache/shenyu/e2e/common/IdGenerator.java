@@ -19,6 +19,9 @@ package org.apache.shenyu.e2e.common;
 
 import java.time.LocalTime;
 
+/**
+ * Id Generator.
+ */
 public class IdGenerator {
     
     public static String generateScenarioId() {

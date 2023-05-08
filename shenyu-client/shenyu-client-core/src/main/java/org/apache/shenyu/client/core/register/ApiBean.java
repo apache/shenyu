@@ -23,7 +23,10 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ApiBean<T> {
 
@@ -39,6 +42,8 @@ public class ApiBean<T> {
 
     private final List<ApiDefinition> apiDefinitions = new ArrayList<>();
 
+    private final String serviceName;
+
     public ApiBean(final String contextPath, final String beanName, final T beanInstance, final String beanPath, final Class<?> beanClass) {
 
         this.contextPath = contextPath;
@@ -50,6 +55,8 @@ public class ApiBean<T> {
         this.beanPath = beanPath;
 
         this.beanClass = beanClass;
+
+        this.serviceName = beanClass.getName();
     }
 
     /**
@@ -60,6 +67,18 @@ public class ApiBean<T> {
      */
     public void addApiDefinition(final Method method, final String methodPath) {
         ApiDefinition apiDefinition = new ApiDefinition(method, methodPath);
+        apiDefinitions.add(apiDefinition);
+    }
+
+    /**
+     * Adds apiDefinition to apiBean.
+     *
+     * @param method     apiMethod
+     * @param methodPath methodPath
+     * @param rpcExt     rpcExt
+     */
+    public void addApiDefinition(final Method method, final String methodPath, final String rpcExt) {
+        ApiDefinition apiDefinition = new ApiDefinition(method, methodPath, rpcExt);
         apiDefinitions.add(apiDefinition);
     }
 
@@ -128,15 +147,36 @@ public class ApiBean<T> {
         return contextPath;
     }
 
+    /**
+     * Gets serviceName.
+     *
+     * @return serviceName
+     */
+    public String getServiceName() {
+        return serviceName;
+    }
+
     public final class ApiDefinition {
 
         private final Method apiMethod;
 
         private final String methodPath;
 
+        private final String rpcExt;
+
+        private final String parameterTypes;
+
         private ApiDefinition(final Method apiMethod, final String methodPath) {
+            this(apiMethod, methodPath, "{}");
+        }
+
+        private ApiDefinition(final Method apiMethod, final String methodPath, final String rpcExt) {
             this.apiMethod = apiMethod;
             this.methodPath = methodPath;
+            this.rpcExt = rpcExt;
+            this.parameterTypes = Optional.ofNullable(apiMethod)
+                    .map(m -> Arrays.stream(m.getParameterTypes()).map(Class::getName)
+                            .collect(Collectors.joining(","))).orElse(null);
         }
 
         /**
@@ -220,6 +260,33 @@ public class ApiBean<T> {
          */
         public <A extends Annotation> A getAnnotation(final Class<A> annotationClass) {
             return AnnotatedElementUtils.findMergedAnnotation(apiMethod, annotationClass);
+        }
+
+        /**
+         * Gets serviceName.
+         *
+         * @return serviceName
+         */
+        public String getServiceName() {
+            return serviceName;
+        }
+
+        /**
+         * Gets rpcExt.
+         *
+         * @return rpcExt.
+         */
+        public String getRpcExt() {
+            return rpcExt;
+        }
+
+        /**
+         * Gets parameterTypes.
+         *
+         * @return parameterTypes
+         */
+        public String getParameterTypes() {
+            return parameterTypes;
         }
     }
 }

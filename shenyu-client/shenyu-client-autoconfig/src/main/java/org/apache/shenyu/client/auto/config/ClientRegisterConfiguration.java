@@ -22,7 +22,7 @@ import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientApiRefreshedEventListener;
 import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
 import org.apache.shenyu.client.core.register.matcher.Matcher;
-import org.apache.shenyu.client.core.register.parser.ApiMetaBeanParser;
+import org.apache.shenyu.client.core.register.parser.PreApiMetaBeanParser;
 import org.apache.shenyu.client.core.register.parser.ApiDocDefinitionParser;
 import org.apache.shenyu.client.core.register.parser.ApiMetaDefinitionParser;
 import org.apache.shenyu.client.core.register.registrar.AbstractRegistrar;
@@ -89,7 +89,7 @@ public class ClientRegisterConfiguration {
      * Builds ApiMetaBeanPreRegistrar Bean.
      *
      * @param preApiMetaBeanMatcher apiMetaBeanPreMatcher
-     * @param apiBeanMetaParser     apiBeanMetaParser
+     * @param preApiBeanMetaParser  preApiBeanMetaParser
      * @param publisher             publisher
      * @param <T>                   ApiBean Type
      * @return apiBeanPreRegistrar
@@ -97,9 +97,9 @@ public class ClientRegisterConfiguration {
     @Bean(name = "PreApiMetaBeanRegistrar")
     @ConditionalOnProperty(value = "shenyu.register.api.meta.enabled", matchIfMissing = true, havingValue = "true")
     public <T> PreApiBeanRegistrar<T, DataTypeParent> buildApiMetaBeanPreRegistrar(final @Qualifier(PRE_API_META_BEAN_MATCHER) Matcher<ApiBean<T>> preApiMetaBeanMatcher,
-                                                                                   final ApiMetaBeanParser<T> apiBeanMetaParser,
+                                                                                   final PreApiMetaBeanParser<T> preApiBeanMetaParser,
                                                                                    final ShenyuClientRegisterEventPublisher publisher) {
-        return new PreApiBeanRegistrar<>(preApiMetaBeanMatcher, apiBeanMetaParser, publisher);
+        return new PreApiBeanRegistrar<>(preApiMetaBeanMatcher, preApiBeanMetaParser, publisher);
     }
 
     /**

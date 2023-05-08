@@ -23,17 +23,16 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.e2e.annotation.ShenYuAdminClient;
 import org.apache.shenyu.e2e.client.admin.model.Plugin;
 import org.apache.shenyu.e2e.client.admin.model.ShenYuResult;
+import org.apache.shenyu.e2e.client.admin.model.data.QueryCondition;
 import org.apache.shenyu.e2e.client.admin.model.data.ResourceData;
 import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
+import org.apache.shenyu.e2e.client.admin.model.data.RuleQueryCondition;
 import org.apache.shenyu.e2e.client.admin.model.data.SearchCondition;
-import org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.QueryCondition;
-import org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.RuleQueryCondition;
-import org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.SelectorQueryCondition;
 import org.apache.shenyu.e2e.client.admin.model.data.SelectorData;
+import org.apache.shenyu.e2e.client.admin.model.data.SelectorQueryCondition;
 import org.apache.shenyu.e2e.client.admin.model.response.FakeResourceDTO;
 import org.apache.shenyu.e2e.client.admin.model.response.LoginInfo;
 import org.apache.shenyu.e2e.client.admin.model.response.PaginatedResources;
@@ -46,6 +45,8 @@ import org.apache.shenyu.e2e.common.IdManagers.Rules;
 import org.apache.shenyu.e2e.common.IdManagers.Selectors;
 import org.apache.shenyu.e2e.common.NameUtils;
 import org.junit.jupiter.api.Assertions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -61,24 +62,34 @@ import java.util.stream.Collectors;
 
 import static org.apache.shenyu.e2e.client.admin.model.data.SearchCondition.QUERY_ALL;
 
-@Slf4j
+/**
+ * A client to connect to ShenYu Admin.
+ */
 @ShenYuAdminClient
 public class AdminClient {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminClient.class);
+
     private final MultiValueMap<String, String> basicAuth = new HttpHeaders();
+
     private final RestTemplate template = new RestTemplateBuilder().build();
+
     private final ObjectMapper mapper = new ObjectMapper();
     
     private final String scenarioId;
     
     private final String baseURL;
+
     private final ImmutableMap<String, String> loginInfo;
     
     private static final TypeReference<PaginatedResources<PluginDTO>> PAGINATED_PLUGINS_TYPE_REFERENCE = new TypeReference<PaginatedResources<PluginDTO>>() {
     };
     private static final TypeReference<SearchedResources<SelectorDTO>> SEARCHED_SELECTORS_TYPE_REFERENCE = new TypeReference<SearchedResources<SelectorDTO>>() {
     };
+
     private static final TypeReference<SearchedResources<RuleDTO>> SEARCHED_RULES_TYPE_REFERENCE = new TypeReference<SearchedResources<RuleDTO>>() {
     };
+
     private static final TypeReference<SearchedResources<FakeResourceDTO>> FAKE_VALUE_TYPE = new TypeReference<SearchedResources<FakeResourceDTO>>() {
     };
     
@@ -408,7 +419,7 @@ public class AdminClient {
         
         return rst;
     }
-    
+
     @FunctionalInterface
     interface Mapper<IN, OUT> extends Function<IN, OUT> {
     

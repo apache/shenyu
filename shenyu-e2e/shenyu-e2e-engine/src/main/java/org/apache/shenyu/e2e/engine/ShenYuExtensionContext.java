@@ -19,7 +19,6 @@ package org.apache.shenyu.e2e.engine;
 
 import com.google.common.collect.Maps;
 import junit.framework.AssertionFailedError;
-import lombok.Getter;
 import org.apache.shenyu.e2e.client.ExternalServiceClient;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
@@ -32,12 +31,17 @@ import org.apache.shenyu.e2e.engine.service.ServiceCompose;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Start the project using the corresponding method based on the selected configuration.
+ */
 public class ShenYuExtensionContext {
-    @Getter
+
     private final String scenarioId;
     
     private final ServiceCompose serviceCompose;
+
     private AdminClient adminClient;
+
     private GatewayClient gatewayClient;
     
     private Map<String, ExternalServiceClient> externalServiceClientMap;
@@ -91,5 +95,13 @@ public class ShenYuExtensionContext {
     public void cleanup() {
         serviceCompose.stop();
     }
-    
+
+    /**
+     * get scenarioId.
+     *
+     * @return scenarioId
+     */
+    public String getScenarioId() {
+        return scenarioId;
+    }
 }

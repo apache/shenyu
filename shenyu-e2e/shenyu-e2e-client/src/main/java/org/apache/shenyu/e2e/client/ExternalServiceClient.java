@@ -17,12 +17,19 @@
 
 package org.apache.shenyu.e2e.client;
 
-import lombok.AllArgsConstructor;
-
 import java.util.Properties;
 
-@AllArgsConstructor
+/**
+ * External service client.
+ */
 public class ExternalServiceClient {
+
     private final String url;
+
     private final Properties properties;
+
+    public ExternalServiceClient(String url, Properties properties) {
+        this.url = url;
+        this.properties = properties;
+    }
 }
