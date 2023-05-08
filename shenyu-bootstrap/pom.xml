@@ -571,6 +571,14 @@
         </dependency>
         <!-- shenyu brpc plugin end -->
 
+        <!-- shenyu kubernetes controller starter -->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.shenyu</groupId>-->
+<!--            <artifactId>shenyu-spring-boot-starter-k8s</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+        <!-- shenyu kubernetes controller end -->
+
     </dependencies>
     <profiles>
         <profile>

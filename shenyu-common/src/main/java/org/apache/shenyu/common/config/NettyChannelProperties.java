@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.springboot.starter.netty;
+package org.apache.shenyu.common.config;
 
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
