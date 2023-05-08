@@ -45,6 +45,7 @@
         <module>shenyu-alert</module>
         <module>shenyu-sdk</module>
         <module>shenyu-discovery</module>
+        <module>shenyu-kubernetes-controller</module>
     </modules>
 
     <licenses>
@@ -138,6 +139,7 @@
         <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
         <eureka.version>1.10.17</eureka.version>
         <javatuples.version>1.2</javatuples.version>
+        <k8s-client.version>17.0.2</k8s-client.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -503,6 +505,12 @@
                 <groupId>com.netflix.eureka</groupId>
                 <artifactId>eureka-client</artifactId>
                 <version>${eureka.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.kubernetes</groupId>
+                <artifactId>client-java-spring-integration</artifactId>
+                <version>${k8s-client.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
