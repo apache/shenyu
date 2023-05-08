@@ -19,10 +19,8 @@ package org.apache.shenyu.admin.aspect.controller;
 
 import com.google.common.base.Stopwatch;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
-import org.apache.shenyu.admin.mapper.DashboardUserMapper;
-import org.apache.shenyu.admin.model.entity.DashboardUserDO;
+import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.utils.SessionUtil;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.stereotype.Component;
@@ -43,12 +41,12 @@ public class SuperAdminPasswordSafeAdvice implements ControllerMethodAdvice {
     
     private final DashboardProperties properties;
     
-    private final DashboardUserMapper userMapper;
+    private final DashboardUserService userService;
     
     public SuperAdminPasswordSafeAdvice(final DashboardProperties properties,
-                                        final DashboardUserMapper userMapper) {
+                                        final DashboardUserService userService) {
         this.properties = properties;
-        this.userMapper = userMapper;
+        this.userService = userService;
     }
     
     @Override
@@ -76,16 +74,7 @@ public class SuperAdminPasswordSafeAdvice implements ControllerMethodAdvice {
                 .stream()
                 .anyMatch(p -> Arrays.asList(permissions.value()).contains(p))) {
             
-            final String userId = SessionUtil.visitor().getUserId();
-            final DashboardUserDO userDO = userMapper.selectById(userId);
-            if (Objects.equals(userDO.getDateCreated(), userDO.getDateUpdated())) {
-                throw new ShenyuException("The password is the default password and you must complete the change once");
-            }
-            // The password has not been changed for a long time
-            if (userDO.getDateUpdated().getTime() <= System.currentTimeMillis() - properties.getSuperAdminPasswordValidDuration()) {
-                throw new ShenyuException("If the password has not been changed for a long time, please use it after changing it to ensure the security of the super administrator account");
-            }
-            // Weak password blacklist
+            userService.checkUserPassword(SessionUtil.visitor().getUserId());
         }
         
     }
