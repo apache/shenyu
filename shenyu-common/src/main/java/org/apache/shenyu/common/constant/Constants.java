@@ -693,6 +693,7 @@ public interface Constants {
     String SHARED_BIZTHREADPOOLNAME = "shared";
     
     /**
+
      * trie default children size.
      */
     Integer TRIE_CHILDREN_SIZE = 512;
@@ -706,6 +707,10 @@ public interface Constants {
      * trie default path cache size.
      */
     Integer TRIE_PATH_CACHE_SIZE = 256;
+
+     * the default warm time is ten minutes.
+     */
+    int WARMUP_TIME = 10 * 60 * 1000;
 
     /**
      * String q.

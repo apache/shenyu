@@ -25,7 +25,14 @@ import java.util.Objects;
 public interface ScenarioSpec {
     
     String getName();
-    
+
+    /**
+     * Verify which type the class belongs to.
+     *
+     * @param type type
+     * @return <T>
+     * @param <T> <T>
+     */
     default <T> T getByType(Class<T> type) {
         if (type.isAssignableFrom(BeforeEachSpec.class)) {
             if (Objects.isNull(getBeforeEachSpec())) {

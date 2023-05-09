@@ -20,8 +20,9 @@ package org.apache.shenyu.e2e.engine.service;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.HostConfigure.HostServiceConfigure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.DockerComposeContainer;
 
 import java.lang.reflect.Field;
@@ -32,9 +33,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Slf4j
+/**
+ * Resolve name.
+ */
 public enum NamingResolver {
     INSTANCE;
+
+    private static final Logger log = LoggerFactory.getLogger(NamingResolver.class);
     
     private Map<String, String> namingMap;
     

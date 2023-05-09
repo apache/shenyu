@@ -19,14 +19,14 @@ package org.apache.shenyu.client.auto.config;
 
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.client.core.register.ContextApiRefreshedEventListener;
+import org.apache.shenyu.client.core.register.ClientApiRefreshedEventListener;
 import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
 import org.apache.shenyu.client.core.register.matcher.Matcher;
-import org.apache.shenyu.client.core.register.parser.ApiBeanMetaParser;
-import org.apache.shenyu.client.core.register.parser.ApiDocParser;
-import org.apache.shenyu.client.core.register.parser.ApiMetaParser;
+import org.apache.shenyu.client.core.register.parser.PreApiMetaBeanParser;
+import org.apache.shenyu.client.core.register.parser.ApiDocDefinitionParser;
+import org.apache.shenyu.client.core.register.parser.ApiMetaDefinitionParser;
 import org.apache.shenyu.client.core.register.registrar.AbstractRegistrar;
-import org.apache.shenyu.client.core.register.registrar.ApiBeanPreRegistrar;
+import org.apache.shenyu.client.core.register.registrar.PreApiBeanRegistrar;
 import org.apache.shenyu.client.core.register.registrar.ApiBeanRegistrar;
 import org.apache.shenyu.client.core.register.registrar.ApiRegistrar;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -41,10 +41,10 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_DOC_BEAN_MATCHER;
-import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_DOC_MATCHER;
+import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_DOC_DEFINITION_MATCHER;
 import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_META_BEAN_MATCHER;
-import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_META_BEAN_PRE_MATCHER;
-import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_META_MATCHER;
+import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.PRE_API_META_BEAN_MATCHER;
+import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_META_DEFINITION_MATCHER;
 
 @Configuration(proxyBeanMethods = false)
 public class ClientRegisterConfiguration {
@@ -58,9 +58,9 @@ public class ClientRegisterConfiguration {
      * @return contextApiRefreshedEventListener
      */
     @Bean
-    public <T> ContextApiRefreshedEventListener<T> apiListener(final ApiBeansExtractor<T> apiBeanExtractor,
-                                                               final List<AbstractRegistrar<ApiBean<T>>> apiMetaBeanRegistrars) {
-        return new ContextApiRefreshedEventListener<>(apiMetaBeanRegistrars, apiBeanExtractor);
+    public <T> ClientApiRefreshedEventListener<T> apiListener(final ApiBeansExtractor<T> apiBeanExtractor,
+                                                              final List<AbstractRegistrar<ApiBean<T>>> apiMetaBeanRegistrars) {
+        return new ClientApiRefreshedEventListener<>(apiMetaBeanRegistrars, apiBeanExtractor);
     }
 
     /**
@@ -68,7 +68,7 @@ public class ClientRegisterConfiguration {
      *
      * @param apiMetaBeanMatcher apiMetaBeanMatcher
      * @param apiMetaMatcher     apiMetaMatcher
-     * @param apiMetaParser      apiMetaParser
+     * @param apiMetaDefinitionParser      apiMetaParser
      * @param publisher          publisher
      * @param <T>                ApiBean Type
      * @return apiBeanRegistrars
@@ -76,30 +76,30 @@ public class ClientRegisterConfiguration {
     @Bean(name = "ApiMetaBeanRegistrar")
     @ConditionalOnProperty(value = "shenyu.register.api.meta.enabled", matchIfMissing = true, havingValue = "true")
     public <T> ApiBeanRegistrar<T> buildApiMetaBeanRegistrar(@Qualifier(API_META_BEAN_MATCHER) final Matcher<ApiBean<T>> apiMetaBeanMatcher,
-                                                             @Qualifier(API_META_MATCHER) final Matcher<ApiBean<T>.ApiDefinition> apiMetaMatcher,
-                                                             final ApiMetaParser<T> apiMetaParser,
+                                                             @Qualifier(API_META_DEFINITION_MATCHER) final Matcher<ApiBean<T>.ApiDefinition> apiMetaMatcher,
+                                                             final ApiMetaDefinitionParser<T> apiMetaDefinitionParser,
                                                              final ShenyuClientRegisterEventPublisher publisher) {
 
         ApiRegistrar<T, MetaDataRegisterDTO> apiMetaRegistrar =
-                new ApiRegistrar<>(apiMetaMatcher, apiMetaParser, publisher);
+                new ApiRegistrar<>(apiMetaMatcher, apiMetaDefinitionParser, publisher);
         return new ApiBeanRegistrar<>(apiMetaBeanMatcher, apiMetaRegistrar);
     }
 
     /**
      * Builds ApiMetaBeanPreRegistrar Bean.
      *
-     * @param apiMetaBeanPreMatcher apiMetaBeanPreMatcher
-     * @param apiBeanMetaParser     apiBeanMetaParser
+     * @param preApiMetaBeanMatcher apiMetaBeanPreMatcher
+     * @param preApiBeanMetaParser  preApiBeanMetaParser
      * @param publisher             publisher
      * @param <T>                   ApiBean Type
      * @return apiBeanPreRegistrar
      */
-    @Bean(name = "ApiMetaBeanPreRegistrar")
+    @Bean(name = "PreApiMetaBeanRegistrar")
     @ConditionalOnProperty(value = "shenyu.register.api.meta.enabled", matchIfMissing = true, havingValue = "true")
-    public <T> ApiBeanPreRegistrar<T, DataTypeParent> buildApiMetaBeanPreRegistrar(final @Qualifier(API_META_BEAN_PRE_MATCHER) Matcher<ApiBean<T>> apiMetaBeanPreMatcher,
-                                                                                   final ApiBeanMetaParser<T> apiBeanMetaParser,
+    public <T> PreApiBeanRegistrar<T, DataTypeParent> buildApiMetaBeanPreRegistrar(final @Qualifier(PRE_API_META_BEAN_MATCHER) Matcher<ApiBean<T>> preApiMetaBeanMatcher,
+                                                                                   final PreApiMetaBeanParser<T> preApiBeanMetaParser,
                                                                                    final ShenyuClientRegisterEventPublisher publisher) {
-        return new ApiBeanPreRegistrar<>(apiMetaBeanPreMatcher, apiBeanMetaParser, publisher);
+        return new PreApiBeanRegistrar<>(preApiMetaBeanMatcher, preApiBeanMetaParser, publisher);
     }
 
     /**
@@ -107,7 +107,7 @@ public class ClientRegisterConfiguration {
      *
      * @param apiDocBeanMatcher apiDocBeanMatcher
      * @param apiDocMatcher     apiDocMatcher
-     * @param apiDocParser      apiDocParser
+     * @param apiDocDefinitionParser      apiDocParser
      * @param publisher         publisher
      * @param <T>               ApiBean Type
      * @return apiBeanRegistrar
@@ -115,12 +115,12 @@ public class ClientRegisterConfiguration {
     @Bean(name = "ApiDocBeanRegistrar")
     @ConditionalOnProperty(value = "shenyu.register.api.doc.enabled", matchIfMissing = true, havingValue = "true")
     public <T> ApiBeanRegistrar<T> buildApiDocBeanRegistrar(@Qualifier(API_DOC_BEAN_MATCHER) final Matcher<ApiBean<T>> apiDocBeanMatcher,
-                                                            @Qualifier(API_DOC_MATCHER) final Matcher<ApiBean<T>.ApiDefinition> apiDocMatcher,
-                                                            final ApiDocParser<T> apiDocParser,
+                                                            @Qualifier(API_DOC_DEFINITION_MATCHER) final Matcher<ApiBean<T>.ApiDefinition> apiDocMatcher,
+                                                            final ApiDocDefinitionParser<T> apiDocDefinitionParser,
                                                             final ShenyuClientRegisterEventPublisher publisher) {
 
         ApiRegistrar<T, ApiDocRegisterDTO> apiDocRegistrar =
-                new ApiRegistrar<>(apiDocMatcher, apiDocParser, publisher);
+                new ApiRegistrar<>(apiDocMatcher, apiDocDefinitionParser, publisher);
         return new ApiBeanRegistrar<>(apiDocBeanMatcher, apiDocRegistrar);
     }
 

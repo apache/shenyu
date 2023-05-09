@@ -34,6 +34,7 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.configuration.ErrorHandlerConfiguration;
 import org.apache.shenyu.web.configuration.ShenyuExtConfiguration;
 import org.apache.shenyu.web.configuration.SpringExtConfiguration;
+import org.apache.shenyu.web.filter.CollapseSlashesFilter;
 import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
 import org.apache.shenyu.web.filter.FallbackFilter;
@@ -80,12 +81,12 @@ public class ShenyuConfiguration {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuConfiguration.class);
-
+    
     /**
      * Init ShenyuWebHandler.
      *
-     * @param plugins             this plugins is All impl ShenyuPlugin.
-     * @param config              the config
+     * @param plugins this plugins is All impl ShenyuPlugin.
+     * @param config the config
      * @param shenyuLoaderService theLoaderServer
      * @return {@linkplain ShenyuWebHandler}
      */
@@ -133,7 +134,7 @@ public class ShenyuConfiguration {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList),
                 eventPublisher.getIfAvailable(), shenyuConfig.getSelectorMatchCache().getTrie(), shenyuConfig.getRuleMatchCache().getTrie());
     }
-
+    
     /**
      * common meta data subscriber.
      *
@@ -169,6 +170,18 @@ public class ShenyuConfiguration {
     @ConditionalOnMissingBean(RemoteAddressResolver.class)
     public RemoteAddressResolver remoteAddressResolver() {
         return new ForwardedRemoteAddressResolver(1);
+    }
+    
+    /**
+     * Collapse slashes filter web filter.
+     *
+     * @return the web filter
+     */
+    @Bean
+    @Order(-300)
+    @ConditionalOnProperty(value = "shenyu.switchConfig.collapseSlashes", havingValue = "true")
+    public WebFilter collapseSlashesFilter() {
+        return new CollapseSlashesFilter();
     }
     
     /**
@@ -245,14 +258,15 @@ public class ShenyuConfiguration {
     /**
      * Health filter.
      *
+     * @param dispatcherHandler the dispatcher handler
      * @param shenyuConfig the shenyu config
      * @return the web filter
      */
     @Bean
     @Order(-99)
     @ConditionalOnProperty(name = "shenyu.health.enabled", havingValue = "true")
-    public WebFilter healthFilter(final ShenyuConfig shenyuConfig) {
-        return new HealthFilter(shenyuConfig.getHealth().getPaths());
+    public WebFilter healthFilter(final DispatcherHandler dispatcherHandler, final ShenyuConfig shenyuConfig) {
+        return new HealthFilter(dispatcherHandler, shenyuConfig.getHealth().getPaths());
     }
     
     /**
@@ -289,7 +303,7 @@ public class ShenyuConfiguration {
         RuleMatchCache ruleMatchCache = shenyuConfig.getRuleMatchCache();
         return new ShenyuTrie(ruleMatchCache.getTrie().getCacheSize(), ruleMatchCache.getTrie().getMatchMode());
     }
-    
+   
 
     /**
      * shenyu trie listener.

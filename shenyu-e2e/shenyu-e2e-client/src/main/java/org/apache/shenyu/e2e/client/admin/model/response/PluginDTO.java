@@ -18,22 +18,177 @@
 package org.apache.shenyu.e2e.client.admin.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Data;
 
 import java.util.Date;
 
-@Data
+/**
+ * PluginDTO.
+ */
 public class PluginDTO implements ResourceDTO {
     
     private String id;
+
     private String name;
+
     private String role;
+
     private int sort;
+
     private boolean enabled;
+
     private String config;
     
     @JsonFormat(pattern = "YYYY-MM-dd HH:mm:ss")
     private Date dateCreated;
+
     @JsonFormat(pattern = "YYYY-MM-dd HH:mm:ss")
     private Date dateUpdated;
+
+    /**
+     * get id.
+     *
+     * @return id
+     */
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * get name.
+     *
+     * @return name
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * set name.
+     *
+     * @param name name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * get role.
+     *
+     * @return role
+     */
+    public String getRole() {
+        return role;
+    }
+
+    /**
+     * set role.
+     *
+     * @param role role
+     */
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    /**
+     * get sort.
+     *
+     * @return sort
+     */
+    public int getSort() {
+        return sort;
+    }
+
+    /**
+     * set sort.
+     *
+     * @param sort sort
+     */
+    public void setSort(int sort) {
+        this.sort = sort;
+    }
+
+    /**
+     * is enabled.
+     *
+     * @return enabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * set enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * get config.
+     *
+     * @return config
+     */
+    public String getConfig() {
+        return config;
+    }
+
+    /**
+     * set config.
+     *
+     * @param config config
+     */
+    public void setConfig(String config) {
+        this.config = config;
+    }
+
+    /**
+     * get dateCreated.
+     *
+     * @return dateCreated
+     */
+    @Override
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * set dateCreated.
+     *
+     * @param dateCreated dateCreated
+     */
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * get dateUpdated.
+     *
+     * @return dateUpdated
+     */
+    @Override
+    public Date getDateUpdated() {
+        return dateUpdated;
+    }
+
+    /**
+     * set dateUpdated.
+     *
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(Date dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
 }
