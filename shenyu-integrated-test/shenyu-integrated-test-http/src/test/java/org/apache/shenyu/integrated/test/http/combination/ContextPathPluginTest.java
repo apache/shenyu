@@ -52,7 +52,7 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
 
         Map<String, Object> response = HttpHelper.INSTANCE.getFromGateway("/http/order/findById?id=1001", Map.class);
         assertThat(response.get("error"), is("Not Found"));
-        assertThat(response.get("path"), is("/error/order/findById"));
+        assertThat(response.get("path"), is("/error/http/order/findById"));
     }
 
     private void setupErrorConfiguration() throws IOException {
