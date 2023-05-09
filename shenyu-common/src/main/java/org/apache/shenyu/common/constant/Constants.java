@@ -691,6 +691,11 @@ public interface Constants {
      * brpc  spi bizThreadPoolName.
      */
     String SHARED_BIZTHREADPOOLNAME = "shared";
+    
+    /**
+     * the default warm time is ten minutes.
+     */
+    int WARMUP_TIME = 10 * 60 * 1000;
 
     /**
      * String q.

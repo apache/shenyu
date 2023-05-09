@@ -36,9 +36,18 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO replace it by introducing Auto-Value-Annotations?
+/**
+ * Templates for various entity classes.
+ */
 public class ResourceDataTemplate {
-    
+
+    /**
+     * Build new SelectorBuilder.
+     *
+     * @param name name
+     * @param plugin plugin
+     * @return SelectorData.Builder
+     */
     public static SelectorData.SelectorDataBuilder newSelectorBuilder(@NotNull String name, Plugin plugin) {
         return SelectorData.builder()
                 .name(name)
@@ -51,7 +60,13 @@ public class ResourceDataTemplate {
                 .matchRestful(false)
                 .sort(1);
     }
-    
+
+    /**
+     * Build new RuleBuilder.
+     *
+     * @param name name
+     * @return RuleData.Builder
+     */
     public static RuleData.RuleDataBuilder newRuleBuilder(@Nonnull String name) {
         return newRuleBuilder(name, null);
     }
@@ -66,7 +81,12 @@ public class ResourceDataTemplate {
                 .matchRestful(false)
                 .sort(1);
     }
-    
+
+    /**
+     * Build new DivideRuleHandle.
+     *
+     * @return DivideRuleHandle
+     */
     public static DivideRuleHandle newDivideRuleHandle() {
         return DivideRuleHandle.builder()
                 .loadBalance("hash")
@@ -77,7 +97,15 @@ public class ResourceDataTemplate {
                 .requestMaxSize(10240)
                 .build();
     }
-    
+
+    /**
+     * Build new Condition.
+     *
+     * @param type type
+     * @param opt opt
+     * @param value value
+     * @return Condition
+     */
     public static Condition newCondition(ParamType type, Operator opt, String value) {
         return newCondition(type, opt, null, value);
     }
@@ -96,7 +124,13 @@ public class ResourceDataTemplate {
         list.add(newCondition(type, opt, value));
         return list;
     }
-    
+
+    /**
+     * Build new Upstream.
+     *
+     * @param url url
+     * @return Upstream
+     */
     public static Upstream newUpstream(String url) {
         return Upstream.builder()
                 .upstreamUrl(url)

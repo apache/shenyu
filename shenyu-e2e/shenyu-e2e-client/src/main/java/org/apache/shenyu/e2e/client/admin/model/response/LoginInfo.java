@@ -19,9 +19,10 @@ package org.apache.shenyu.e2e.client.admin.model.response;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 
-@Data
+/**
+ * Login information.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LoginInfo {
     @JsonAlias("userName")
@@ -32,4 +33,76 @@ public class LoginInfo {
     private boolean enabled;
     
     private long expiredTime;
+
+    /**
+     * get username.
+     *
+     * @return username
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * set username.
+     *
+     * @param username username
+     */
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    /**
+     * get token.
+     *
+     * @return token
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * set token.
+     *
+     * @param token token
+     */
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    /**
+     * is enabled.
+     *
+     * @return enabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * set enabled.
+     *
+     * @param enabled enabled
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * get expiredTime.
+     *
+     * @return expiredTime
+     */
+    public long getExpiredTime() {
+        return expiredTime;
+    }
+
+    /**
+     * set expiredTime.
+     *
+     * @param expiredTime expiredTime
+     */
+    public void setExpiredTime(long expiredTime) {
+        this.expiredTime = expiredTime;
+    }
 }

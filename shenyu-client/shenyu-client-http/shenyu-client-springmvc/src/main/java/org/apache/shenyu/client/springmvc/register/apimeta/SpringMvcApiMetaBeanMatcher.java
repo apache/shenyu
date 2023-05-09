@@ -15,11 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.parser;
+package org.apache.shenyu.client.springmvc.register.apimeta;
 
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.client.core.register.matcher.Matcher;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 
-public interface ApiMetaBeanParser<T> extends Parser<MetaDataRegisterDTO, ApiBean<T>> {
+public class SpringMvcApiMetaBeanMatcher implements Matcher<ApiBean<Object>> {
+
+    @Override
+    public boolean match(final ApiBean<Object> element) {
+        ShenyuSpringMvcClient annotation = element.getAnnotation(ShenyuSpringMvcClient.class);
+        if (annotation != null) {
+            return !annotation.path().endsWith("/**");
+        }
+        return true;
+    }
 
 }

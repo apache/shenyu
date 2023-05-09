@@ -105,10 +105,10 @@ public final class ShenyuClientRegisterDubboServiceImplTest {
     public void testBuildHandle() {
         shenyuClientRegisterDubboService = spy(shenyuClientRegisterDubboService);
     
-        final String returnStr = "[{protocol:'dubbo://',upstreamHost:'localhost',upstreamUrl:'localhost:8090',warmup:10,weight:50,status:true,timestamp:1637826588267},"
-                + "{protocol:'dubbo://',upstreamHost:'localhost',upstreamUrl:'localhost:8091',warmup:10,weight:50,status:false,timestamp:" + (System.currentTimeMillis() + 60000) + "}]";
-        final String expected = "[{\"port\":0,\"weight\":50,\"warmup\":10,\"protocol\":\"dubbo://\",\"upstreamHost\":\"localhost\",\"upstreamUrl\":\"localhost:8090\","
-                + "\"status\":true,\"timestamp\":1637826588267},{\"port\":0,\"weight\":50,\"warmup\":10,\"protocol\":\"dubbo://\",\"upstreamHost\":\"localhost\","
+        final String returnStr = "[{protocol:'dubbo://',upstreamHost:'localhost',upstreamUrl:'localhost:8090',warmup:600000,weight:50,status:true,timestamp:1637826588267},"
+                + "{protocol:'dubbo://',upstreamHost:'localhost',upstreamUrl:'localhost:8091',warmup:600000,weight:50,status:false,timestamp:" + (System.currentTimeMillis() + 60000) + "}]";
+        final String expected = "[{\"port\":0,\"weight\":50,\"warmup\":600000,\"protocol\":\"dubbo://\",\"upstreamHost\":\"localhost\",\"upstreamUrl\":\"localhost:8090\","
+                + "\"status\":true,\"timestamp\":1637826588267},{\"port\":0,\"weight\":50,\"warmup\":600000,\"protocol\":\"dubbo://\",\"upstreamHost\":\"localhost\","
                 + "\"upstreamUrl\":\"localhost:8091\",\"status\":false,\"timestamp\":1637826588267}]";
         
         List<URIRegisterDTO> list = new ArrayList<>();
