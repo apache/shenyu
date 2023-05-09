@@ -58,7 +58,7 @@ public final class ContextPathPluginTest extends AbstractPluginDataInit {
     private void setupErrorConfiguration() throws IOException {
         String pluginResult = initPlugin(PluginEnum.CONTEXT_PATH.getName(), "");
         assertThat(pluginResult, CoreMatchers.is("success"));
-        final String ruleHandle = "{\"contextPath\":\"/http\", \"addPrefix\":\"/error\"}";
+        final String ruleHandle = "{\"contextPath\":\"\", \"addPrefix\":\"/error\"}";
         String message = initSelectorAndRules(PluginEnum.CONTEXT_PATH.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList(ruleHandle));
         assertThat(message, is("success"));
     }
