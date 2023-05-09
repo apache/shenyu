@@ -543,7 +543,7 @@ public class ShenyuRuleTrieTest {
         shenyuAntPathTrie.putNode("/http/{name}/hell", ruleData3, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode("/http/*/helle", ruleData3, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode("/http/**/hello", ruleData3, TrieCacheTypeEnum.RULE);
-        Assertions.assertNotNull(shenyuAntPathTrie.match("/http/client/hell", "43"));;
+        Assertions.assertNotNull(shenyuAntPathTrie.match("/http/client/hell", "43"));
     }
     
     @Test

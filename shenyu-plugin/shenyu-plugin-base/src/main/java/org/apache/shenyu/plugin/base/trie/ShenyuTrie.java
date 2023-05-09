@@ -52,8 +52,6 @@ public class ShenyuTrie {
 
     private static final String MATCH_ALL = "**";
     
-    private static final Integer MAX_NUMBER = 9999;
-    
     /**
      * when the trie is selector trie, the key is pluginName, when the trie is rule trie, the key is selectorId.
      */
@@ -656,16 +654,6 @@ public class ShenyuTrie {
     }
 
     /**
-     * determines whether the string is * or **.
-     *
-     * @param key the path key
-     * @return true or false
-     */
-    private static boolean isMatchAllOrWildcard(final String key) {
-        return isMatchAll(key) || isMatchWildcard(key);
-    }
-
-    /**
      * determines whether the string is path variable.
      *
      * @param key path string
@@ -687,9 +675,5 @@ public class ShenyuTrie {
         if (Objects.nonNull(cache)) {
             cache.clear();
         }
-    }
-
-    private static boolean checkChildrenNotNull(final ShenyuTrieNode shenyuTrieNode) {
-        return Objects.nonNull(shenyuTrieNode) && Objects.nonNull(shenyuTrieNode.getChildren());
     }
 }
