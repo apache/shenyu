@@ -126,7 +126,6 @@ public class LoadServiceDocEntryImplTest {
         when(selectorService.listByPage(any())).thenReturn(commonPager);
         when(pluginMapper.selectByNames(any())).thenReturn(pluginDOList);
         loadServiceDocEntry.loadApiDocument();
-
         verify(serviceDocManager).pullApiDocument((Set<UpstreamInstance>) any());
     }
 
