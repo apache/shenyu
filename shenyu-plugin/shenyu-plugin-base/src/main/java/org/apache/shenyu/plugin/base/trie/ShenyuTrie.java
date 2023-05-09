@@ -35,6 +35,7 @@ import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -47,6 +48,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class ShenyuTrie {
     
@@ -202,7 +204,6 @@ public class ShenyuTrie {
             currentNode.setFailToNode(root);
             queue.offer(currentNode);
         }
-        
         while (!queue.isEmpty()) {
             ShenyuTrieNode currentNode = queue.poll();
             Map<String, ShenyuTrieNode> childrenList = Optional.ofNullable(currentNode.getChildren()).orElse(new HashMap<>(0));
@@ -210,62 +211,67 @@ public class ShenyuTrie {
             Map<String, ShenyuTrieNode> newChildren = new HashMap<>();
             newChildren.putAll(childrenList);
             newChildren.putAll(pathList);
-            for (Entry<String, ShenyuTrieNode> nodeEntry : newChildren.entrySet()) {
-                queue.add(nodeEntry.getValue());
-                ShenyuTrieNode failToNode = currentNode.getFailToNode();
-                while (true) {
-                    if (Objects.isNull(failToNode)) {
-                        nodeEntry.getValue().setFailToNode(root);
-                        break;
-                    }
-                    System.out.println(nodeEntry.getKey());
-                    if (failToNode.getChildren().containsKey(nodeEntry.getKey())) {
-                        nodeEntry.getValue().setFailToNode(failToNode.getChildren().get(nodeEntry.getKey()));
-                        break;
-                    }
-                    failToNode = failToNode.getFailToNode();
+            if (allChildren.containsKey(currentNode.getMatchStr())) {
+                for (Entry<String, ShenyuTrieNode> nodeEntry : newChildren.entrySet()) {
+                    queue.offer(nodeEntry.getValue());
                 }
+                continue;
+            }
+            ShenyuTrieNode parent = currentNode.getParentNode();
+            if (!isMatchWildcard(currentNode.getMatchStr()) && !isMatchAll(currentNode.getMatchStr()) && !isPathVariable(currentNode.getMatchStr())) {
+                if (containsKey(parent.getChildren(), WILDCARD)) {
+                    currentNode.setFailToNode(parent.getChildren().get(WILDCARD));
+                } else if (containsKey(parent.getChildren(), MATCH_ALL)) {
+                    currentNode.setFailToNode(parent.getChildren().get(MATCH_ALL));
+                } else if (Objects.nonNull(parent.getPathVariableNode())) {
+                    currentNode.setFailToNode(parent.getPathVariableNode());
+                } else {
+                    currentNode.setFailToNode(parent.getFailToNode());
+                }
+            } else if (isMatchWildcard(currentNode.getMatchStr())) {
+                if (containsKey(parent.getChildren(), MATCH_ALL)) {
+                    currentNode.setFailToNode(parent.getChildren().get(MATCH_ALL));
+                } else if (Objects.nonNull(parent.getPathVariableNode())) {
+                    currentNode.setFailToNode(parent.getPathVariableNode());
+                } else {
+                    currentNode.setFailToNode(parent.getFailToNode());
+                }
+            } else if (isMatchAll(currentNode.getMatchStr())) {
+                if (currentNode.getEndOfPath()) {
+                    currentNode.setFailToNode(null);
+                } else if (Objects.nonNull(parent.getPathVariableNode())) {
+                    currentNode.setFailToNode(parent.getPathVariableNode());
+                } else {
+                    currentNode.setFailToNode(parent.getFailToNode());
+                }
+            } else if (isPathVariable(currentNode.getMatchStr()) && MapUtils.isNotEmpty(parent.getPathVariables())) {
+                if (parent.getPathVariables().size() == 1) {
+                    currentNode.setFailToNode(parent.getFailToNode());
+                } else {
+                    if (Objects.isNull(currentNode.getFailToNode())) {
+                        Queue<ShenyuTrieNode> pathVariableQueue = new LinkedList<>();
+                        Map<String, ShenyuTrieNode> map = new HashMap<>(parent.getPathVariables());
+                        map.remove(currentNode.getMatchStr());
+                        map.values().forEach(pathVariableQueue::offer);
+                        while (!pathVariableQueue.isEmpty()) {
+                            ShenyuTrieNode pathVariableNode = pathVariableQueue.poll();
+                            if (pathVariableQueue.size() > 1) {
+                                currentNode.setFailToNode(pathVariableNode);
+                                currentNode = pathVariableNode;
+                            } else {
+                                currentNode.setFailToNode(pathVariableNode);
+                                pathVariableNode.setFailToNode(parent.getFailToNode());
+                            }
+                        }
+                    }
+                }
+            } else {
+                currentNode.setFailToNode(parent.getFailToNode());
+            }
+            for (Entry<String, ShenyuTrieNode> nodeEntry : newChildren.entrySet()) {
+                queue.offer(nodeEntry.getValue());
             }
         }
-        
-        //Stack<ShenyuTrieNode> handleStack = new Stack<>();
-        //Stack<ShenyuTrieNode> stack = new Stack<>();
-        //stack.push(root);
-        //while (!stack.isEmpty()) {
-        //    ShenyuTrieNode node = stack.pop();
-        //    handleStack.push(node);
-        //    System.out.println(node.getMatchStr());
-        //    // add path-variable and child node to stack
-        //    Map<String, ShenyuTrieNode> pathVariableChildren = Optional.ofNullable(node.getPathVariables()).orElse(new HashMap<>(0));
-        //    Map<String, ShenyuTrieNode> children = Optional.ofNullable(node.getChildren()).orElse(new HashMap<>(0));
-        //    Map<String, ShenyuTrieNode> allChildren = new HashMap<>();
-        //    allChildren.putAll(children);
-        //    allChildren.putAll(pathVariableChildren);
-        //    for (Entry<String, ShenyuTrieNode> nodeEntry : allChildren.entrySet()) {
-        //        ShenyuTrieNode currentNode = nodeEntry.getValue();
-        //        stack.push(currentNode);
-        //    }
-        //}
-        //System.out.println("////test---");
-        //while (!handleStack.isEmpty()) {
-        //    ShenyuTrieNode node = handleStack.pop();
-        //    System.out.println(node.getMatchStr());
-        //    if (node.getMatchStr().equals("/")) {
-        //        continue;
-        //    }
-        //    if (node.getEndOfPath() && isMatchAll(node.getMatchStr())) {
-        //        node.setFailToNode(null);
-        //    } else {
-        //        ShenyuTrieNode parent = node.getParentNode();
-        //        if (MapUtils.isEmpty(node.getChildren()) && MapUtils.isEmpty(node.getPathVariables())) {
-        //            node.setFailToNode(parent);
-        //        } else {
-        //
-        //        }
-        //
-        //    }
-        //
-        //}
     }
 
     /**
@@ -289,50 +295,68 @@ public class ShenyuTrie {
             return null;
         }
         ShenyuTrieNode currentNode = keyRootMap.get(bizInfo);
-        int[] path = new int[pathParts.length];
+        int startIndex = 0;
         int[] matchAll = new int[pathParts.length];
         int[] wildcard = new int[pathParts.length];
         int[] pathVariable = new int[pathParts.length];
         ShenyuTrieNode matchNode;
-        int startIndex = 0;
         while (startIndex < pathParts.length) {
             String pathPart = pathParts[startIndex];
             if (Objects.isNull(currentNode)) {
                 return null;
             }
-            if (containsKey(currentNode.getChildren(), pathPart) && hasAccess(path[startIndex])) {
-                ShenyuTrieNode newNode = getVal(currentNode.getChildren(), pathPart);
-                markConflict(currentNode, wildcard, matchAll, pathVariable, startIndex);
-                path[startIndex] = -1;
-                currentNode = newNode;
-            } else if (hasWildcardNode(currentNode.getChildren(), pathPart) && hasAccess(wildcard[startIndex])
-                    && Objects.nonNull(matchNode = getAccessibleNode(wildcard, currentNode, startIndex, WILDCARD, pathPart))) {
-                markMatchAll(currentNode, matchAll, startIndex);
-                markPathVariable(currentNode, pathVariable, startIndex);
-                wildcard[startIndex] = -1;
+            if (containsKey(currentNode.getChildren(), pathPart)) {
+                currentNode = currentNode.getChildren().get(pathPart);
+            } else if (hasWildcardNode(currentNode.getChildren(), pathPart) && Objects.nonNull(matchNode = findMatchWildcard(currentNode.getChildren(), pathPart)) && wildcard[startIndex] == 0) {
                 currentNode = matchNode;
-            } else if (containsKey(currentNode.getChildren(), MATCH_ALL) && hasAccess(matchAll[startIndex])
-                    && Objects.nonNull(matchNode = getAccessibleNode(matchAll, currentNode, startIndex, MATCH_ALL, pathPart))) {
-                markPathVariable(currentNode, pathVariable, startIndex);
-                matchAll[startIndex] = -1;
-                currentNode = matchNode;
-            } else if (Objects.nonNull(currentNode.getPathVariableNode()) && hasAccess(pathVariable[startIndex])) {
-                pathVariable[startIndex] = -1;
-                currentNode = currentNode.getPathVariableNode();
-            } else {
-                if (startIndex >= pathParts.length - 1) {
-                    Pair<Integer, ShenyuTrieNode> pair = resolveConflict(pathParts, path, wildcard, matchAll, pathVariable, bizInfo);
-                    if (Objects.nonNull(pair)) {
-                        startIndex = pair.getLeft();
-                        currentNode = pair.getRight();
-                        continue;
-                    } else {
-                        return null;
+                wildcard[startIndex] = 1;
+            } else if (containsKey(currentNode.getChildren(), MATCH_ALL) && matchAll[startIndex] == 0) {
+                currentNode = currentNode.getChildren().get(MATCH_ALL);
+                matchAll[startIndex] = 1;
+                int matchAllIndex = startIndex;
+                while (true) {
+                    if (matchAllIndex == pathParts.length - 1) {
+                        break;
                     }
-                } else {
-                    startIndex++;
-                    continue;
+                    matchAllIndex++;
+                    if (containsKey(currentNode.getChildren(), pathParts[matchAllIndex])) {
+                        currentNode = currentNode.getChildren().get(pathParts[matchAllIndex]);
+                        startIndex = matchAllIndex;
+                        break;
+                    } else if (hasWildcardNode(currentNode.getChildren(), pathParts[matchAllIndex])
+                            && Objects.nonNull(matchNode = findMatchWildcard(currentNode.getChildren(), pathParts[matchAllIndex]))) {
+                        currentNode = matchNode;
+                        wildcard[matchAllIndex] = 1;
+                        startIndex = matchAllIndex;
+                        break;
+                    }
                 }
+            } else if (Objects.nonNull(currentNode.getPathVariableNode()) && currentNode.getPathVariables().size() == 1 && pathVariable[startIndex] == 0) {
+                currentNode = currentNode.getPathVariableNode();
+                pathVariable[startIndex] = 1;
+            } else {
+                // fail to match, reset the node to failToNode
+                ShenyuTrieNode preParentNode = currentNode.getParentNode();
+                ShenyuTrieNode newCurrentNode = currentNode.getFailToNode();
+                // search failToNode's parentNode
+                ShenyuTrieNode parentNode = newCurrentNode.getParentNode();
+                if (Objects.isNull(parentNode) || (Objects.nonNull(parentNode.getFailToNode()) && Objects.nonNull(newCurrentNode.getFailToNode())
+                        && wildcard[startIndex] == 1 && pathVariable[startIndex] == 1 && matchAll[startIndex] == 1
+                        && parentNode.getFailToNode().equals(newCurrentNode.getFailToNode()) && "/".equals(parentNode.getParentNode().getMatchStr()))) {
+                    return null;
+                }
+                startIndex--;
+                if (preParentNode.equals(parentNode)) {
+                    startIndex--;
+                    currentNode = parentNode.getParentNode();
+                } else {
+                    while (!preParentNode.equals(parentNode)) {
+                        preParentNode = preParentNode.getParentNode();
+                        startIndex--;
+                    }
+                    currentNode = parentNode;
+                }
+                continue;
             }
             if (startIndex < pathParts.length - 1 && Objects.nonNull(currentNode) && !currentNode.getEndOfPath()) {
                 startIndex++;
@@ -340,17 +364,6 @@ public class ShenyuTrie {
             }
             if ((startIndex == pathParts.length - 1 && checkNode(currentNode, bizInfo)) || (Objects.nonNull(currentNode) && isMatchAll(currentNode.getMatchStr()) && checkNode(currentNode, bizInfo))) {
                 return currentNode;
-            }
-            if (startIndex >= pathParts.length - 1) {
-                Pair<Integer, ShenyuTrieNode> pair = resolveConflict(pathParts, path, wildcard, matchAll, pathVariable, bizInfo);
-                if (Objects.nonNull(pair)) {
-                    startIndex = pair.getLeft();
-                    currentNode = pair.getRight();
-                } else {
-                    return null;
-                }
-            } else {
-                startIndex++;
             }
         }
         return null;
@@ -556,35 +569,17 @@ public class ShenyuTrie {
         if (Objects.isNull(children)) {
             return false;
         }
-        return children.values().stream().anyMatch(ShenyuTrieNode::getWildcard);
-    }
-    
-    private ShenyuTrieNode getAccessibleNode(final int[] arr, final ShenyuTrieNode node, final int startIndex, final String type, final String pathPart) {
-        if (WILDCARD.equals(type) && hasAccess(arr[startIndex])) {
-            ShenyuTrieNode wildcardNode = findMatchWildcard(node.getChildren(), pathPart);
-            if (Objects.nonNull(wildcardNode)) {
-                arr[startIndex] = 1;
-                return wildcardNode;
-            }
-        }
-        if (MATCH_ALL.equals(type) && hasAccess(arr[startIndex])) {
-            ShenyuTrieNode matchAllNode = getVal(node.getChildren(), MATCH_ALL);
-            if (Objects.nonNull(matchAllNode)) {
-                arr[startIndex] = 1;
-                return matchAllNode;
-            }
-        }
-        return null;
+        return children.values().stream().anyMatch(child -> isMatchWildcardPattern(key, child.getMatchStr()));
     }
 
-    private ShenyuTrieNode findMatchWildcard(final Map<String, ShenyuTrieNode> children, final String pathPart) {
+    private static ShenyuTrieNode findMatchWildcard(final Map<String, ShenyuTrieNode> children, final String pathPart) {
         if (Objects.isNull(children)) {
             return null;
         }
         return children.values().stream().filter(child -> child.getWildcard() && isMatchWildcardPattern(pathPart, child.getMatchStr())).findFirst().orElse(null);
     }
 
-    private boolean isMatchWildcardPattern(final String segment, final String pattern) {
+    private static boolean isMatchWildcardPattern(final String segment, final String pattern) {
         int sRight = segment.length();
         int pRight = pattern.length();
         while (sRight > 0 && pRight > 0 && pattern.charAt(pRight - 1) != '*') {
@@ -625,7 +620,7 @@ public class ShenyuTrie {
         return allStars(pattern, pIndex, pRight);
     }
 
-    private boolean allStars(final String str, final int left, final int right) {
+    private static boolean allStars(final String str, final int left, final int right) {
         for (int i = left; i < right; ++i) {
             if (str.charAt(i) != '*') {
                 return false;
@@ -638,90 +633,6 @@ public class ShenyuTrie {
         return Objects.nonNull(currentNode) && currentNode.getEndOfPath()
                 && bizInfo.equals(currentNode.getBizInfo()) && Objects.nonNull(currentNode.getPathCache())
                 && CollectionUtils.isNotEmpty(currentNode.getPathCache().get(bizInfo));
-    }
-    
-    private boolean hasAccess(final int key) {
-        return key == 1 || key == 0;
-    }
-    
-    private void markConflict(final ShenyuTrieNode currentNode, final int[] wildcard, final int[] matchAll, final int[] pathVariable, final int index) {
-        Optional.ofNullable(currentNode).ifPresent(node -> {
-            markWildcard(currentNode, wildcard, index);
-            markMatchAll(currentNode, matchAll, index);
-            markPathVariable(currentNode, pathVariable, index);
-        });
-    }
-    
-    private void markWildcard(final ShenyuTrieNode currentNode, final int[] wildcard, final int index) {
-        Optional.ofNullable(currentNode).ifPresent(node -> {
-            if (containsKey(node.getChildren(), WILDCARD) && wildcard[index] == 0) {
-                wildcard[index] = 1;
-            }
-        });
-    }
-    
-    private void markMatchAll(final ShenyuTrieNode currentNode, final int[] matchAll, final int index) {
-        Optional.ofNullable(currentNode).ifPresent(node -> {
-            if (containsKey(node.getChildren(), MATCH_ALL) && matchAll[index] == 0) {
-                matchAll[index] = 1;
-            }
-        });
-    }
-    
-    private void markPathVariable(final ShenyuTrieNode currentNode, final int[] pathVariable, final int index) {
-        Optional.ofNullable(currentNode).ifPresent(node -> {
-            if (Objects.nonNull(node.getPathVariableNode()) && pathVariable[index] == 0) {
-                pathVariable[index] = 1;
-            }
-        });
-    }
-    
-    private Pair<Integer, ShenyuTrieNode> resolveConflict(final String[] pathParts, final int[] path, final int[] wildcard,
-                                                          final int[] matchAll, final int[] pathVariable, final String bizInfo) {
-        int pathCount = searchMark(path);
-        int wildcardCount = searchMark(wildcard);
-        int matchAllCount = searchMark(matchAll);
-        int pathVariableCount = searchMark(pathVariable);
-        int low = Math.min(pathCount, Math.min(wildcardCount, Math.min(matchAllCount, pathVariableCount)));
-        if (low == MAX_NUMBER) {
-            return null;
-        }
-        if (low == pathCount) {
-            for (int i = 0; i < wildcard.length; i++) {
-                if (i > pathCount) {
-                    wildcard[i] = 0;
-                    matchAll[i] = 0;
-                    pathVariable[i] = 0;
-                }
-            }
-            return Pair.of(pathCount, this.getNode(StringUtils.join(pathParts, "/", 0, pathCount), bizInfo));
-        } else if (low == wildcardCount) {
-            for (int i = 0; i < wildcard.length; i++) {
-                if (i > wildcardCount) {
-                    matchAll[i] = 0;
-                    pathVariable[i] = 0;
-                }
-            }
-            return Pair.of(wildcardCount, this.getNode(StringUtils.join(pathParts, "/", 0, wildcardCount), bizInfo));
-        } else if (low == matchAllCount) {
-            for (int i = 0; i < wildcard.length; i++) {
-                if (i > matchAllCount) {
-                    pathVariable[i] = 0;
-                }
-            }
-            return Pair.of(matchAllCount, this.getNode(StringUtils.join(pathParts, "/", 0, matchAllCount), bizInfo));
-        } else {
-            return Pair.of(pathVariableCount, this.getNode(StringUtils.join(pathParts, "/", 0, pathVariableCount), bizInfo));
-        }
-    }
-    
-    private int searchMark(final int[] arr) {
-        for (int i = 0; i < arr.length; i++) {
-            if (arr[i] == 1) {
-                return i;
-            }
-        }
-        return MAX_NUMBER;
     }
 
     /**

@@ -573,7 +573,7 @@ public class ShenyuRuleTrieTest {
         shenyuAntPathTrie.putNode("/aa/bb/{path}/y/b", ruleData, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode("/http/a/{a}/{b}/m", ruleData, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode("/http/a/{c}/{d}/n", ruleData, TrieCacheTypeEnum.RULE);
-        System.out.println(shenyuAntPathTrie.match("/aa/bb/dd/uu/n/b", "2").getFullPath().equals("/aa/bb/**/n/b"));;
+        Assertions.assertEquals("/aa/bb/**/n/b", shenyuAntPathTrie.match("/aa/bb/dd/uu/n/b", "2").getFullPath());
     }
     
 }
