@@ -22,7 +22,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -30,25 +29,20 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class ShenyuTrie {
     
@@ -186,6 +180,7 @@ public class ShenyuTrie {
                 node.getPathCache().put(selectorData.getPluginName(), Lists.newArrayList(selectorData));
             }
             node.setBizInfo(selectorData.getPluginName());
+            buildFailToNode(keyRootMap.get(selectorData.getPluginName()));
         }
     }
     
@@ -199,11 +194,10 @@ public class ShenyuTrie {
         Map<String, ShenyuTrieNode> allChildren = new HashMap<>();
         allChildren.putAll(children);
         allChildren.putAll(pathVariableChildren);
-        for (Entry<String, ShenyuTrieNode> nodeEntry : allChildren.entrySet()) {
-            ShenyuTrieNode currentNode = nodeEntry.getValue();
+        allChildren.forEach((key, currentNode) -> {
             currentNode.setFailToNode(root);
             queue.offer(currentNode);
-        }
+        });
         while (!queue.isEmpty()) {
             ShenyuTrieNode currentNode = queue.poll();
             Map<String, ShenyuTrieNode> childrenList = Optional.ofNullable(currentNode.getChildren()).orElse(new HashMap<>(0));
@@ -212,9 +206,7 @@ public class ShenyuTrie {
             newChildren.putAll(childrenList);
             newChildren.putAll(pathList);
             if (allChildren.containsKey(currentNode.getMatchStr())) {
-                for (Entry<String, ShenyuTrieNode> nodeEntry : newChildren.entrySet()) {
-                    queue.offer(nodeEntry.getValue());
-                }
+                newChildren.forEach((key, node) -> queue.offer(node));
                 continue;
             }
             ShenyuTrieNode parent = currentNode.getParentNode();
@@ -268,9 +260,7 @@ public class ShenyuTrie {
             } else {
                 currentNode.setFailToNode(parent.getFailToNode());
             }
-            for (Entry<String, ShenyuTrieNode> nodeEntry : newChildren.entrySet()) {
-                queue.offer(nodeEntry.getValue());
-            }
+            newChildren.forEach((key, value) -> queue.offer(value));
         }
     }
 
