@@ -135,7 +135,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         // lru map as L1 cache,the cache is enabled by default.
         // if the L1 cache fails to hit, using L2 cache based on trie cache.
         // if the L2 cache fails to hit, execute default strategy.
-        RuleData ruleData = obtainRuleDataCache(path);
+        RuleData ruleData = obtainRuleDataCacheIfEnabled(path);
         if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
