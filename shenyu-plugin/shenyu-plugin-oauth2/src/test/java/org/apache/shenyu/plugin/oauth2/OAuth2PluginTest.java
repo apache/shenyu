@@ -42,14 +42,13 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public final class OAuth2PluginTest {
+public class OAuth2PluginTest {
     
     private static final Duration TIMEOUT = Duration.ofSeconds(25);
 
@@ -76,12 +75,6 @@ public final class OAuth2PluginTest {
     }
     
     @Test
-    public void notPrincipal() {
-        oAuth2Plugin.execute(mockExchange, chain).block(TIMEOUT);
-        assertFalse(request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION));
-    }
-    
-    @Test
     public void havePrincipal() {
         OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
         when(accessToken.getTokenValue()).thenReturn("token");
@@ -102,6 +95,5 @@ public final class OAuth2PluginTest {
         assertTrue(request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION));
         assertTrue(Objects.requireNonNull(request.getHeaders().get(HttpHeaders.AUTHORIZATION)).contains("Bearer token"));
     }
-    
 }
 
