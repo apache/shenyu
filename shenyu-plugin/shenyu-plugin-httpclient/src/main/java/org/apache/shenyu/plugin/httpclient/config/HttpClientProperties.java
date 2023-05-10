@@ -560,12 +560,12 @@ public class HttpClientProperties {
         
         public enum LeasingStrategy {
             /**
-             * FIFO
+             * FIFO.
              */
             FIFO,
             
             /**
-             * LIFO
+             * LIFO.
              */
             LIFO
         }
