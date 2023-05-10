@@ -49,7 +49,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class OAuth2PluginTest {
+public final class OAuth2PluginTest {
     
     private static final Duration TIMEOUT = Duration.ofSeconds(25);
 
@@ -74,7 +74,6 @@ public class OAuth2PluginTest {
         when(objectProvider.getIfAvailable()).thenReturn(oAuth2AuthorizedClientService);
         this.oAuth2Plugin = new OAuth2Plugin(objectProvider);
     }
-    
     
     @Test
     public void notPrincipal() {
