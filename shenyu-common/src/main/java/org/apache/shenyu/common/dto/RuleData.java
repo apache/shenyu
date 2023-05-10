@@ -58,7 +58,7 @@ public class RuleData {
     /**
      * match restful.
      */
-    private Boolean matchRestful = Boolean.FALSE;
+    private Boolean matchRestful;
 
     /**
      * no args constructor.

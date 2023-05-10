@@ -65,7 +65,7 @@ public class SelectorData {
     /**
      * match restful api.
      */
-    private Boolean matchRestful = Boolean.FALSE;
+    private Boolean matchRestful;
     
     /**
      * no args constructor.

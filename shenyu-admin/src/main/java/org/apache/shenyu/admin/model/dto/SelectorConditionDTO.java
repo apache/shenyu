@@ -201,7 +201,6 @@ public class SelectorConditionDTO implements Serializable {
         return Objects.hash(id, selectorId, paramType, operator, paramName, paramValue);
     }
     
-    
     /**
      * {@code SelectorConditionDTO} builder static inner class.
      */
