@@ -330,7 +330,7 @@ public class ShenyuTrie {
                 // search failToNode's parentNode
                 ShenyuTrieNode parentNode = newCurrentNode.getParentNode();
                 if (Objects.isNull(parentNode) || (Objects.nonNull(parentNode.getFailToNode()) && Objects.nonNull(newCurrentNode.getFailToNode())
-                        && wildcard[startIndex] == 1 && pathVariable[startIndex] == 1 && matchAll[startIndex] == 1
+                        && completeResolveConflict(parentNode, wildcard, matchAll, pathVariable, startIndex)
                         && parentNode.getFailToNode().equals(newCurrentNode.getFailToNode()) && "/".equals(parentNode.getParentNode().getMatchStr()))) {
                     return null;
                 }
@@ -356,6 +356,20 @@ public class ShenyuTrie {
             }
         }
         return null;
+    }
+    
+    private boolean completeResolveConflict(final ShenyuTrieNode node, final int[] wildcard, final int[] matchAll,
+                                            final int[] pathVariable, final int index) {
+        if (hasWildcardNode(node.getChildren(), WILDCARD) && containsKey(node.getChildren(), MATCH_ALL) && Objects.nonNull(node.getPathVariableNode())) {
+            return wildcard[index] == 1 && matchAll[index] == 1 && pathVariable[index] == 1;
+        } else if (hasWildcardNode(node.getChildren(), WILDCARD) && containsKey(node.getChildren(), MATCH_ALL)) {
+            return wildcard[index] == 1 && matchAll[index] == 1;
+        } else if (hasWildcardNode(node.getChildren(), WILDCARD) && Objects.nonNull(node.getPathVariableNode())) {
+            return wildcard[index] == 1 && pathVariable[index] == 1;
+        } else if (containsKey(node.getChildren(), MATCH_ALL) && Objects.nonNull(node.getPathVariableNode())) {
+            return matchAll[index] == 1 && pathVariable[index] == 1;
+        }
+        return false;
     }
     
     /**
@@ -394,7 +408,7 @@ public class ShenyuTrie {
             RuleData ruleData = (RuleData) source;
             currentNode = this.getNode(path, ruleData.getSelectorId());
             Optional.ofNullable(currentNode).ifPresent(node -> {
-                List<?> dataList = Objects.nonNull(node.getPathCache()) ? node.getPathCache().get(ruleData.getSelectorId()) : Collections.emptyList();
+                List<?> dataList = Optional.ofNullable(node.getPathCache()).map(cache -> cache.get(ruleData.getSelectorId())).orElse(Collections.emptyList());
                 if (CollectionUtils.isNotEmpty(dataList)) {
                     removeRuleData(currentNode, pathParts, ruleData, dataList);
                 }
@@ -403,7 +417,7 @@ public class ShenyuTrie {
             SelectorData selectorData = (SelectorData) source;
             currentNode = this.getNode(path, selectorData.getPluginName());
             Optional.ofNullable(currentNode).ifPresent(node -> {
-                List<?> dataList = Objects.nonNull(node.getPathCache()) ? node.getPathCache().get(selectorData.getPluginName()) : Collections.emptyList();
+                List<?> dataList = Optional.ofNullable(node.getPathCache()).map(cache -> cache.get(selectorData.getPluginName())).orElse(Collections.emptyList());
                 if (CollectionUtils.isNotEmpty(dataList)) {
                     removeSelectorData(currentNode, pathParts, selectorData, dataList);
                 }
