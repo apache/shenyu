@@ -20,6 +20,7 @@ package org.apache.shenyu.springboot.sync.data.zookeeper;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperClient;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperConfig;
