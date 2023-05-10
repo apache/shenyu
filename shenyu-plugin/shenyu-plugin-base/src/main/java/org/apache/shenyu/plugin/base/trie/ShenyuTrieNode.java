@@ -276,7 +276,7 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param parentNode parent node
      */
-    public void setParentNode(ShenyuTrieNode parentNode) {
+    public void setParentNode(final ShenyuTrieNode parentNode) {
         this.parentNode = parentNode;
     }
     
@@ -294,21 +294,30 @@ public class ShenyuTrieNode implements Serializable {
      *
      * @param failToNode fail to node
      */
-    public void setFailToNode(ShenyuTrieNode failToNode) {
+    public void setFailToNode(final ShenyuTrieNode failToNode) {
         this.failToNode = failToNode;
     }
     
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ShenyuTrieNode)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ShenyuTrieNode)) {
+            return false;
+        }
         ShenyuTrieNode that = (ShenyuTrieNode) o;
-        return getWildcard() == that.getWildcard() && getEndOfPath() == that.getEndOfPath() && Objects.equals(getMatchStr(), that.getMatchStr()) && Objects.equals(getFullPath(), that.getFullPath()) && Objects.equals(getChildren(), that.getChildren()) && Objects.equals(getPathVariables(), that.getPathVariables()) && Objects.equals(getPathVariableNode(), that.getPathVariableNode()) && Objects.equals(getPathCache(), that.getPathCache()) && Objects.equals(getBizInfo(), that.getBizInfo()) && Objects.equals(getParentNode(), that.getParentNode()) && Objects.equals(getFailToNode(), that.getFailToNode());
+        return getWildcard() == that.getWildcard() && getEndOfPath() == that.getEndOfPath() && Objects.equals(getMatchStr(), that.getMatchStr())
+                && Objects.equals(getFullPath(), that.getFullPath()) && Objects.equals(getChildren(), that.getChildren())
+                && Objects.equals(getPathVariables(), that.getPathVariables()) && Objects.equals(getPathVariableNode(), that.getPathVariableNode())
+                && Objects.equals(getPathCache(), that.getPathCache()) && Objects.equals(getBizInfo(), that.getBizInfo())
+                && Objects.equals(getParentNode(), that.getParentNode()) && Objects.equals(getFailToNode(), that.getFailToNode());
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(getMatchStr(), getFullPath(), getChildren(), getPathVariables(), getPathVariableNode(), getWildcard(), getEndOfPath(), getPathCache(), getBizInfo(), getParentNode(), getFailToNode());
+        return Objects.hash(getMatchStr(), getFullPath(), getChildren(), getPathVariables(), getPathVariableNode(),
+                getWildcard(), getEndOfPath(), getPathCache(), getBizInfo(), getParentNode(), getFailToNode());
     }
     
     @Override
