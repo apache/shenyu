@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -392,13 +393,21 @@ public class ShenyuTrie {
         if (TrieCacheTypeEnum.RULE.equals(cacheType)) {
             RuleData ruleData = (RuleData) source;
             currentNode = this.getNode(path, ruleData.getSelectorId());
-            List<?> dataList = currentNode.getPathCache().get(ruleData.getSelectorId());
-            Optional.ofNullable(dataList).ifPresent(col -> removeRuleData(currentNode, pathParts, ruleData, col));
+            Optional.ofNullable(currentNode).ifPresent(node -> {
+                List<?> dataList = Objects.nonNull(node.getPathCache()) ? node.getPathCache().get(ruleData.getSelectorId()) : Collections.emptyList();
+                if (CollectionUtils.isNotEmpty(dataList)) {
+                    removeRuleData(currentNode, pathParts, ruleData, dataList);
+                }
+            });
         } else {
             SelectorData selectorData = (SelectorData) source;
             currentNode = this.getNode(path, selectorData.getPluginName());
-            List<?> dataList = currentNode.getPathCache().get(selectorData.getPluginName());
-            Optional.ofNullable(dataList).ifPresent(col -> removeSelectorData(currentNode, pathParts, selectorData, col));
+            Optional.ofNullable(currentNode).ifPresent(node -> {
+                List<?> dataList = Objects.nonNull(node.getPathCache()) ? node.getPathCache().get(selectorData.getPluginName()) : Collections.emptyList();
+                if (CollectionUtils.isNotEmpty(dataList)) {
+                    removeSelectorData(currentNode, pathParts, selectorData, dataList);
+                }
+            });
         }
     }
     
@@ -417,6 +426,9 @@ public class ShenyuTrie {
         String[] pathParts = StringUtils.split(strippedPath, "/");
         // get node from path pathParts
         ShenyuTrieNode node = keyRootMap.get(bizInfo);
+        if (Objects.isNull(node)) {
+            return null;
+        }
         for (int i = 0; i < pathParts.length; i++) {
             String key = pathParts[i];
             if (Objects.nonNull(node)) {
@@ -550,7 +562,10 @@ public class ShenyuTrie {
         }
         String parentPath = String.join("/", parentPathArray);
         ShenyuTrieNode parentNode = this.getNode(parentPath, source);
-        parentNode.getChildren().remove(key);
+        if (Objects.isNull(parentNode)) {
+            return;
+        }
+        Optional.ofNullable(parentNode.getChildren()).ifPresent(cache -> cache.remove(key));
     }
 
     private boolean hasWildcardNode(final Map<String, ShenyuTrieNode> children, final String key) {

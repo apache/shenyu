@@ -323,15 +323,15 @@ public class ShenyuTrieNode implements Serializable {
     @Override
     public String toString() {
         return "ShenyuTrieNode{"
-                + "matchStr='" + matchStr + '\''
-                + ", fullPath='" + fullPath + '\''
+                + "matchStr='" + matchStr
+                + ", fullPath='" + fullPath
                 + ", children=" + children
                 + ", pathVariables=" + pathVariables
                 + ", pathVariableNode=" + pathVariableNode
                 + ", isWildcard=" + isWildcard
                 + ", endOfPath=" + endOfPath
-                + ", pathRuleCache=" + pathCache
-                + ", bizInfo=" + bizInfo
+                + ", pathCache=" + pathCache
+                + ", bizInfo='" + bizInfo
                 + '}';
     }
 }

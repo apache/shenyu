@@ -156,7 +156,7 @@ public class RuleServiceImpl implements RuleService {
 
         // need old data for cleaning
         List<RuleConditionDO> beforeRuleCondition = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
-        List<RuleConditionDTO> beforeeCondition = beforeRuleCondition.stream().map(ruleConditionDO ->
+        List<RuleConditionDTO> beforeCondition = beforeRuleCondition.stream().map(ruleConditionDO ->
                 RuleConditionDTO.builder()
                         .ruleId(ruleConditionDO.getRuleId())
                         .operator(ruleConditionDO.getOperator())
@@ -172,7 +172,7 @@ public class RuleServiceImpl implements RuleService {
                         .paramType(ruleConditionDTO.getParamType())
                         .paramValue(ruleConditionDTO.getParamValue())
                         .build()).collect(Collectors.toList());
-        if (CollectionUtils.isEqualCollection(beforeeCondition, currentCondition)) {
+        if (CollectionUtils.isEqualCollection(beforeCondition, currentCondition)) {
             beforeRuleCondition = Collections.emptyList();
         }
         //delete rule condition then add

@@ -1843,7 +1843,7 @@ public class ShenyuConfig {
     }
 
     /**
-     * shenyu rule trie config.
+     * shenyu trie config.
      */
     public static class ShenyuTrieConfig {
         
