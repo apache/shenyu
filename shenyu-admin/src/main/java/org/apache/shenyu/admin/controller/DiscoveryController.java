@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
-import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -52,7 +51,7 @@ public class DiscoveryController {
      */
     @GetMapping("/typeEnums")
     public ShenyuAdminResult typeEnums() {
-        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, DiscoveryTypeEnum.types());
+        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.typeEnums());
     }
 
     /**

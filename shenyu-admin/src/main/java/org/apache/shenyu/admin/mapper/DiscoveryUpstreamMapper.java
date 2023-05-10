@@ -68,4 +68,12 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(@Param("ids") List<String> ids);
+
+    /**
+     * save discovery upstream list.
+     *
+     * @param list discovery upstream list
+     * @return result
+     */
+    int saveBatch(@Param("list") List<DiscoveryUpstreamDO> list);
 }

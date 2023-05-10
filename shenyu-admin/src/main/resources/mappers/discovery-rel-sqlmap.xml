@@ -24,7 +24,7 @@
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="level" jdbcType="VARCHAR" property="level"/>
         <result column="discovery_id" jdbcType="VARCHAR" property="discoveryId"/>
-        <result column="selector_id" jdbcType="VARCHAR" property="selectorId"/>
+        <result column="service_id" jdbcType="VARCHAR" property="serviceId"/>
     </resultMap>
     
     <sql id="Base_Column_List">
@@ -33,7 +33,7 @@
         date_updated,
         level,
         discovery_id,
-        selector_id
+        service_id
     </sql>
     
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -50,14 +50,14 @@
         date_updated,
         level
         discovery_id,
-        selector_id)
+        service_id)
         VALUES
         (#{id, jdbcType=VARCHAR},
         #{dateCreated, jdbcType=TIMESTAMP},
         #{dateUpdated, jdbcType=TIMESTAMP},
         #{level, jdbcType=VARCHAR},
         #{discoveryId, jdbcType=VARCHAR},
-        #{selectorId, jdbcType=VARCHAR})
+        #{serviceId, jdbcType=VARCHAR})
     </insert>
     
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryRelDO">
@@ -76,8 +76,8 @@
             <if test="discoveryId != null">
                 discovery_id,
             </if>
-            <if test="selectorId != null">
-                selector_id,
+            <if test="serviceId != null">
+                service_id,
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -94,8 +94,8 @@
             <if test="discoveryId != null">
                 #{discoveryId, jdbcType=VARCHAR},
             </if>
-            <if test="selectorId != null">
-                #{selectorId, jdbcType=VARCHAR},
+            <if test="serviceId != null">
+                #{serviceId, jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>
@@ -106,7 +106,7 @@
         date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
         level = #{level, jdbcType=VARCHAR},
         discovery_id = #{discoveryId, jdbcType=VARCHAR},
-        selector_id = #{selectorId, jdbcType=VARCHAR}
+        service_id = #{serviceId, jdbcType=VARCHAR}
         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
     
@@ -125,8 +125,8 @@
             <if test="discoveryId != null">
                 discovery_id = #{discoveryId, jdbcType=VARCHAR},
             </if>
-            <if test="selectorId != null">
-                selector_id = #{selectorId, jdbcType=VARCHAR},
+            <if test="serviceId != null">
+                service_id = #{serviceId, jdbcType=VARCHAR},
             </if>
         </set>
         WHERE id = #{id, jdbcType=VARCHAR}

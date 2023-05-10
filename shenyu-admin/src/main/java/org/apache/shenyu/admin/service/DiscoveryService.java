@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 
 import java.util.List;
 
@@ -36,5 +37,5 @@ public interface DiscoveryService {
      * @param discoveryDTO the discovery dto
      * @return the string
      */
-    int createOrUpdate(DiscoveryDTO discoveryDTO);
+    DiscoveryVO createOrUpdate(DiscoveryDTO discoveryDTO);
 }

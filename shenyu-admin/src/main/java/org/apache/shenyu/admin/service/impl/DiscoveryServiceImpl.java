@@ -21,8 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.enums.DiscoveryTypeEnum;
+import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -39,17 +42,17 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     @Override
     public List<String> typeEnums() {
-        return null;
+        return DiscoveryTypeEnum.types();
     }
 
     @Override
-    public int createOrUpdate(final DiscoveryDTO discoveryDTO) {
+    public DiscoveryVO createOrUpdate(final DiscoveryDTO discoveryDTO) {
         return StringUtils.isBlank(discoveryDTO.getId()) ? this.create(discoveryDTO) : this.update(discoveryDTO);
     }
 
-    private int create(final DiscoveryDTO discoveryDTO) {
+    private DiscoveryVO create(final DiscoveryDTO discoveryDTO) {
         if (discoveryDTO == null) {
-            return 0;
+            return null;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         DiscoveryDO discoveryDO = DiscoveryDO.builder()
@@ -66,12 +69,12 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         if (StringUtils.isEmpty(discoveryDTO.getId())) {
             discoveryDO.setId(UUIDUtils.getInstance().generateShortUuid());
         }
-        return discoveryMapper.insert(discoveryDO);
+        return discoveryMapper.insert(discoveryDO) > 0 ? discoveryVO(discoveryDO) : null;
     }
 
-    private int update(final DiscoveryDTO discoveryDTO) {
+    private DiscoveryVO update(final DiscoveryDTO discoveryDTO) {
         if (discoveryDTO == null || discoveryDTO.getId() == null) {
-            return 0;
+            return null;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         DiscoveryDO discoveryDO = DiscoveryDO.builder()
@@ -84,6 +87,18 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                 .props(discoveryDTO.getProps())
                 .dateUpdated(currentTime)
                 .build();
-        return discoveryMapper.updateSelective(discoveryDO);
+        return discoveryMapper.updateSelective(discoveryDO) > 0 ? discoveryVO(discoveryDO) : null;
+    }
+
+    /**
+     * copy discovery data.
+     *
+     * @param discoveryDO {@link DiscoveryDTO}
+     * @return {@link DiscoveryVO}
+     */
+    private DiscoveryVO discoveryVO(final DiscoveryDO discoveryDO) {
+        DiscoveryVO discoveryVO = new DiscoveryVO();
+        BeanUtils.copyProperties(discoveryDO, discoveryVO);
+        return discoveryVO;
     }
 }

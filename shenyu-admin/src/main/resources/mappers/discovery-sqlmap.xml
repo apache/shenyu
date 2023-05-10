@@ -55,7 +55,8 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
-    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+    <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
+            parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
         INSERT INTO discovery
         (id,
         date_created,

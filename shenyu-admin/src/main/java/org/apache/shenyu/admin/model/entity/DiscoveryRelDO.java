@@ -29,24 +29,24 @@ public final class DiscoveryRelDO extends BaseDO {
 
     private String discoveryId;
 
-    private String selectorId;
+    private String serviceId;
 
     public DiscoveryRelDO() {
 
     }
 
-    public DiscoveryRelDO(final String level, final String discoveryId, final String selectorId) {
+    public DiscoveryRelDO(final String level, final String discoveryId, final String serviceId) {
         this.level = level;
         this.discoveryId = discoveryId;
-        this.selectorId = selectorId;
+        this.serviceId = serviceId;
     }
 
     public DiscoveryRelDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String level,
-                          final String discoveryId, final String selectorId) {
+                          final String discoveryId, final String serviceId) {
         super(id, dateCreated, dateUpdated);
         this.level = level;
         this.discoveryId = discoveryId;
-        this.selectorId = selectorId;
+        this.serviceId = serviceId;
     }
 
     /**
@@ -85,16 +85,16 @@ public final class DiscoveryRelDO extends BaseDO {
      * get selector id.
      * @return selector id.
      */
-    public String getSelectorId() {
-        return selectorId;
+    public String getServiceId() {
+        return serviceId;
     }
 
     /**
      * set selector id.
-     * @param selectorId selector id.
+     * @param serviceId service id.
      */
-    public void setSelectorId(final String selectorId) {
-        this.selectorId = selectorId;
+    public void setServiceId(final String serviceId) {
+        this.serviceId = serviceId;
     }
 
     /**
@@ -120,12 +120,12 @@ public final class DiscoveryRelDO extends BaseDO {
         DiscoveryRelDO that = (DiscoveryRelDO) o;
         return Objects.equals(level, that.level)
                 && Objects.equals(discoveryId, that.discoveryId)
-                && Objects.equals(selectorId, that.selectorId);
+                && Objects.equals(serviceId, that.serviceId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), level, discoveryId, selectorId);
+        return Objects.hash(super.hashCode(), level, discoveryId, serviceId);
     }
 
     public static final class DiscoveryRelDOBuilder {
@@ -140,7 +140,7 @@ public final class DiscoveryRelDO extends BaseDO {
 
         private String discoveryId;
 
-        private String selectorId;
+        private String serviceId;
 
         private DiscoveryRelDOBuilder() {
 
@@ -204,11 +204,11 @@ public final class DiscoveryRelDO extends BaseDO {
         /**
          * selectorId.
          *
-         * @param selectorId the selectorId.
+         * @param serviceId the selectorId.
          * @return DiscoveryRelDOBuilder.
          */
-        public DiscoveryRelDOBuilder selectorId(final String selectorId) {
-            this.selectorId = selectorId;
+        public DiscoveryRelDOBuilder serviceId(final String serviceId) {
+            this.serviceId = serviceId;
             return this;
         }
 
@@ -223,7 +223,7 @@ public final class DiscoveryRelDO extends BaseDO {
             discoveryRelDO.setDateUpdated(dateUpdated);
             discoveryRelDO.setLevel(level);
             discoveryRelDO.setDiscoveryId(discoveryId);
-            discoveryRelDO.setSelectorId(selectorId);
+            discoveryRelDO.setServiceId(serviceId);
             return discoveryRelDO;
         }
     }

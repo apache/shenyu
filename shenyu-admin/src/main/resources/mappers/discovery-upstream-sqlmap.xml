@@ -56,7 +56,8 @@
         url,
         status,
         weight,
-        props,date_created,
+        props,
+        date_created,
         date_updated)
         VALUES (
         #{id, jdbcType=VARCHAR},
@@ -99,4 +100,29 @@
             #{id, jdbcType=VARCHAR}
         </foreach>
     </delete>
+
+    <insert id="saveBatch" parameterType="java.util.List">
+        INSERT INTO discovery_upstream (
+        id,
+        discovery_id,
+        protocol,
+        url,
+        status,
+        weight,
+        props,
+        date_created,
+        date_updated)
+        VALUES
+        <foreach collection="list" separator="," item="item">
+            (#{item.id, jdbcType=VARCHAR},
+            #{item.discoveryId,jdbcType=VARCHAR},
+            #{item.protocol,jdbcType=VARCHAR},
+            #{item.url,jdbcType=VARCHAR},
+            #{item.status,jdbcType=INTEGER},
+            #{item.weight,jdbcType=INTEGER},
+            #{item.props,jdbcType=VARCHAR},
+            #{item.dateCreated, jdbcType=TIMESTAMP},
+            #{item.dateUpdated, jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
 </mapper>

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
@@ -49,4 +50,12 @@ public interface ProxySelectorService {
      * @return the string
      */
     String delete(List<String> ids);
+
+    /**
+     * addProxySelector.
+     *
+     * @param proxySelectorAddDTO {@link ProxySelectorAddDTO}
+     * @return the Integer
+     */
+    Integer addProxySelector(ProxySelectorAddDTO proxySelectorAddDTO);
 }

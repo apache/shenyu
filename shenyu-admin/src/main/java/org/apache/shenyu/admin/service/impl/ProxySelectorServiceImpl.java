@@ -17,9 +17,17 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
@@ -29,9 +37,13 @@ import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.utils.UUIDUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,6 +54,15 @@ import java.util.stream.Collectors;
 public class ProxySelectorServiceImpl implements ProxySelectorService {
 
     private final ProxySelectorMapper proxySelectorMapper;
+
+    @Autowired
+    private DiscoveryMapper discoveryMapper;
+
+    @Autowired
+    private DiscoveryRelMapper discoveryRelMapper;
+
+    @Autowired
+    private DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
     public ProxySelectorServiceImpl(final ProxySelectorMapper proxySelectorMapper) {
 
@@ -87,6 +108,75 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
 
         proxySelectorMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;
+    }
+
+    /**
+     * add proxy selector.
+     *
+     * @param proxySelectorAddDTO {@link ProxySelectorAddDTO}
+     * @return insert data count
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Integer addProxySelector(final ProxySelectorAddDTO proxySelectorAddDTO) {
+
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        int result = 0;
+        String proxySelectorId = UUIDUtils.getInstance().generateShortUuid();
+        ProxySelectorDO proxySelectorDO = ProxySelectorDO.builder()
+                .id(proxySelectorId)
+                .name(proxySelectorAddDTO.getName())
+                .pluginName(proxySelectorAddDTO.getPluginName())
+                .forwardPort(proxySelectorAddDTO.getForwardPort())
+                .type(proxySelectorAddDTO.getType())
+                .props(proxySelectorAddDTO.getProps())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
+        if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
+            result += 1;
+            String discoveryId = UUIDUtils.getInstance().generateShortUuid();
+            DiscoveryDO discoveryDO = DiscoveryDO.builder()
+                    .id(discoveryId)
+                    .name(proxySelectorAddDTO.getName())
+                    .handler(proxySelectorAddDTO.getDiscovery().getHandler())
+                    .type(proxySelectorAddDTO.getDiscovery().getDiscoveryType())
+                    .serviceList(proxySelectorAddDTO.getDiscovery().getServiceList())
+                    .listenerNode(proxySelectorAddDTO.getDiscovery().getListenerNode())
+                    .dateCreated(currentTime)
+                    .dateUpdated(currentTime)
+                    .build();
+            if (discoveryMapper.insertSelective(discoveryDO) > 0) {
+                result += 1;
+                DiscoveryRelDO discoveryRelDO = DiscoveryRelDO.builder()
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .discoveryId(discoveryId)
+                        .serviceId(proxySelectorId)
+                        .level("")
+                        .dateCreated(currentTime)
+                        .dateUpdated(currentTime)
+                        .build();
+                discoveryRelMapper.insertSelective(discoveryRelDO);
+            }
+            List<DiscoveryUpstreamDO> upstreamDOList = Lists.newArrayList();
+            proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
+                DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .discoveryId(discoveryId)
+                        .protocol(discoveryUpstream.getProtocol())
+                        .url(discoveryUpstream.getUrl())
+                        .status(discoveryUpstream.getStatus())
+                        .weight(discoveryUpstream.getWeight())
+                        .props(proxySelectorAddDTO.getProps())
+                        .dateCreated(currentTime)
+                        .dateUpdated(currentTime)
+                        .build();
+                upstreamDOList.add(discoveryUpstreamDO);
+            });
+            result = discoveryUpstreamMapper.saveBatch(upstreamDOList) + result;
+        }
+
+        return result;
     }
 
     /**
