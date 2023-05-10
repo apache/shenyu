@@ -73,7 +73,7 @@ shenyu:
       maximumSize: 10000 # max size in cache
     rule:
       initialCapacity: 10000 # initial capacity in cache
-      maximumSize: 10000 # max size in cache
+      maximumSize: 65536 # max size in cache
   trie:
     enabled: true
     childrenSize: 10000
@@ -85,7 +85,7 @@ shenyu:
       # set to false, user can custom the netty tcp server config.
       webServerFactoryEnabled: true
       selectCount: 1
-      workerCount: 4
+      workerCount: 8
       accessLog: false
       serverSocketChannel:
         soRcvBuf: 87380
@@ -116,6 +116,19 @@ shenyu:
         allocType: "pooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
+      sni:
+        enabled: false
+        mod: k8s #manul
+        defaultK8sSecretNamespace: shenyu-ingress
+        defaultK8sSecretName: default-cert
+#        mod: manual
+#        certificates:
+#          - domain: 'localhost'
+#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
+#          - domain: 'example.com'
+#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
 #  httpclient:
 #    strategy: webClient
 #    connectTimeout: 45000
@@ -194,6 +207,12 @@ shenyu:
     websocket:
       urls: ws://localhost:9095/websocket
       allowOrigin: ws://localhost:9195
+#    apollo:
+#      appId: shenyu
+#      meta: http://localhost:8080
+#      env: dev
+#      clusterName: test
+#      namespace: application
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000
@@ -228,10 +247,11 @@ shenyu:
     paths:
       - /fallback/hystrix
       - /fallback/resilience4j
+      - /fallback/sentinel
   health:
     enabled: false
     paths:
-      - /actuator/health
+      - /actuator
       - /health_check
   extPlugin:
     path:

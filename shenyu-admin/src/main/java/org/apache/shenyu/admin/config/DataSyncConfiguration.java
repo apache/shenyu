@@ -29,8 +29,12 @@ import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.config.properties.NacosProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
+import org.apache.shenyu.admin.config.properties.ApolloProperties;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.listener.apollo.ApolloClient;
+import org.apache.shenyu.admin.listener.apollo.ApolloDataChangedInit;
+import org.apache.shenyu.admin.listener.apollo.ApolloDataChangedListener;
 import org.apache.shenyu.admin.listener.consul.ConsulDataChangedInit;
 import org.apache.shenyu.admin.listener.consul.ConsulDataChangedListener;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
@@ -324,6 +328,51 @@ public class DataSyncConfiguration {
         public DataChangedInit consulDataChangedInit(final ConsulClient consulClient) {
             return new ConsulDataChangedInit(consulClient);
         }
+    }
+
+    /**
+     * the type apollo listener.
+     */
+    @Configuration
+    @ConditionalOnProperty(prefix = "shenyu.sync.apollo", name = "meta")
+    @EnableConfigurationProperties(ApolloProperties.class)
+    static class ApolloListener {
+
+        /**
+         * init Consul client.
+         *
+         * @param apolloProperties the apollo properties
+         * @return apollo client
+         */
+        @Bean
+        public ApolloClient apolloClient(final ApolloProperties apolloProperties) {
+            return new ApolloClient(apolloProperties);
+        }
+
+        /**
+         * Config event listener data changed listener.
+         *
+         * @param apolloClient the apollo client
+         * @return the data changed listener
+         */
+        @Bean
+        @ConditionalOnMissingBean(ApolloDataChangedListener.class)
+        public DataChangedListener apolloDataChangeListener(final ApolloClient apolloClient) {
+            return new ApolloDataChangedListener(apolloClient);
+        }
+
+        /**
+         * apollo data init.
+         *
+         * @param apolloClient the apollo client
+         * @return the apollo data init
+         */
+        @Bean
+        @ConditionalOnMissingBean(ApolloDataChangedInit.class)
+        public DataChangedInit apolloDataChangeInit(final ApolloClient apolloClient) {
+            return new ApolloDataChangedInit(apolloClient);
+        }
+
     }
 }
 

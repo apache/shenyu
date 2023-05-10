@@ -32,6 +32,7 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.configuration.ErrorHandlerConfiguration;
 import org.apache.shenyu.web.configuration.ShenyuExtConfiguration;
 import org.apache.shenyu.web.configuration.SpringExtConfiguration;
+import org.apache.shenyu.web.filter.CollapseSlashesFilter;
 import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
 import org.apache.shenyu.web.filter.FallbackFilter;
@@ -78,12 +79,12 @@ public class ShenyuConfiguration {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuConfiguration.class);
-
+    
     /**
      * Init ShenyuWebHandler.
      *
-     * @param plugins             this plugins is All impl ShenyuPlugin.
-     * @param config              the config
+     * @param plugins this plugins is All impl ShenyuPlugin.
+     * @param config the config
      * @param shenyuLoaderService theLoaderServer
      * @return {@linkplain ShenyuWebHandler}
      */
@@ -121,14 +122,17 @@ public class ShenyuConfiguration {
      *
      * @param pluginDataHandlerList the plugin data handler list
      * @param eventPublisher event publisher
+     * @param shenyuConfig shenyu config
      * @return the plugin data subscriber
      */
     @Bean
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList,
-                                                     final ObjectProvider<ApplicationEventPublisher> eventPublisher) {
-        return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList), eventPublisher.getIfAvailable());
+                                                     final ObjectProvider<ApplicationEventPublisher> eventPublisher,
+                                                     final ShenyuConfig shenyuConfig) {
+        return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList),
+                eventPublisher.getIfAvailable(), shenyuConfig.getTrie());
     }
-
+    
     /**
      * common meta data subscriber.
      *
@@ -164,6 +168,18 @@ public class ShenyuConfiguration {
     @ConditionalOnMissingBean(RemoteAddressResolver.class)
     public RemoteAddressResolver remoteAddressResolver() {
         return new ForwardedRemoteAddressResolver(1);
+    }
+    
+    /**
+     * Collapse slashes filter web filter.
+     *
+     * @return the web filter
+     */
+    @Bean
+    @Order(-300)
+    @ConditionalOnProperty(value = "shenyu.switchConfig.collapseSlashes", havingValue = "true")
+    public WebFilter collapseSlashesFilter() {
+        return new CollapseSlashesFilter();
     }
     
     /**
@@ -240,14 +256,15 @@ public class ShenyuConfiguration {
     /**
      * Health filter.
      *
+     * @param dispatcherHandler the dispatcher handler
      * @param shenyuConfig the shenyu config
      * @return the web filter
      */
     @Bean
     @Order(-99)
     @ConditionalOnProperty(name = "shenyu.health.enabled", havingValue = "true")
-    public WebFilter healthFilter(final ShenyuConfig shenyuConfig) {
-        return new HealthFilter(shenyuConfig.getHealth().getPaths());
+    public WebFilter healthFilter(final DispatcherHandler dispatcherHandler, final ShenyuConfig shenyuConfig) {
+        return new HealthFilter(dispatcherHandler, shenyuConfig.getHealth().getPaths());
     }
     
     /**
@@ -260,23 +277,23 @@ public class ShenyuConfiguration {
     public ShenyuConfig shenyuConfig() {
         return new ShenyuConfig();
     }
-
+    
     /**
      * shenyu trie config.
      *
      * @param shenyuConfig shenyu trie config
-     * @return ShenyuTrie
+     * @return ShenyuTrie shenyu trie
      */
     @Bean
     public ShenyuTrie shenyuTrie(final ShenyuConfig shenyuConfig) {
         return new ShenyuTrie(shenyuConfig.getTrie().getChildrenSize(), shenyuConfig.getTrie().getPathRuleCacheSize(),
                 shenyuConfig.getTrie().getPathVariableSize(), shenyuConfig.getTrie().getMatchMode());
     }
-
+    
     /**
      * shenyu trie listener.
      *
-     * @return ShenyuTrieRuleListener
+     * @return ShenyuTrieRuleListener shenyu trie rule listener
      */
     @Bean
     public ShenyuTrieRuleListener shenyuTrieRuleListener() {

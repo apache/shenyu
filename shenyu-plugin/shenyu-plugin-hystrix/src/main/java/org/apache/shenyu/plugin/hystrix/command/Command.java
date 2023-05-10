@@ -21,22 +21,19 @@ import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.hystrix.exception.HystrixTimeoutException;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Observable;
 
 import java.net.URI;
-import java.util.Objects;
 
 /**
  * hystrix command for semaphore and thread.
  */
-public interface Command {
+public interface Command extends FallbackHandler {
     /**
      * wrap fetch Observable in {@link HystrixCommand} and {@link HystrixCommandOnThread}.
      *
@@ -51,18 +48,12 @@ public interface Command {
      * @return boolean
      */
     boolean isCircuitBreakerOpen();
-
-    /**
-     * generate a error when some error occurs.
-     *
-     * @param exchange  the exchange
-     * @param exception exception instance
-     * @return error which be wrapped by {@link ShenyuResultWrap}
-     */
-    default Object generateError(ServerWebExchange exchange, Throwable exception) {
+    
+    @Override
+    default Mono<Void> withoutFallback(final ServerWebExchange exchange, final Throwable throwable) {
         Object error;
-        if (exception instanceof HystrixRuntimeException) {
-            HystrixRuntimeException e = (HystrixRuntimeException) exception;
+        if (throwable instanceof HystrixRuntimeException) {
+            HystrixRuntimeException e = (HystrixRuntimeException) throwable;
             if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
                 exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
                 error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT);
@@ -70,33 +61,14 @@ public interface Command {
                 exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
                 error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
             }
-        } else if (exception instanceof HystrixTimeoutException) {
+        } else if (throwable instanceof HystrixTimeoutException) {
             exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
             error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT);
         } else {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
         }
-        return error;
-    }
-
-    /**
-     * do fall back when some error occurs on hystrix execute.
-     * @param exchange {@link ServerWebExchange}
-     * @param exception {@link Throwable}
-     * @return {@code Mono<Void>} to indicate when request processing is complete.
-     */
-    default Mono<Void> doFallback(ServerWebExchange exchange, Throwable exception) {
-        if (Objects.isNull(getCallBackUri())) {
-            Object error;
-            error = generateError(exchange, exception);
-            return WebFluxResultUtils.result(exchange, error);
-        }
-        DispatcherHandler dispatcherHandler =
-            SpringBeanUtils.getInstance().getBean(DispatcherHandler.class);
-        ServerHttpRequest request = exchange.getRequest().mutate().uri(getCallBackUri()).build();
-        ServerWebExchange mutated = exchange.mutate().request(request).build();
-        return dispatcherHandler.handle(mutated);
+        return WebFluxResultUtils.result(exchange, error);
     }
 
     /**

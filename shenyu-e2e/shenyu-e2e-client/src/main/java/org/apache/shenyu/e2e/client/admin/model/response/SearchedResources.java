@@ -18,19 +18,114 @@
 package org.apache.shenyu.e2e.client.admin.model.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 
 import java.util.List;
 
-@Data
+/**
+ * Searched resources.
+ *
+ * @param <T> <T>
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchedResources<T extends ResourceDTO> {
     
     private int pageNum;
+
     private int pageSize;
+
     private int total;
+
     private int pages;
     
     private List<T> list;
-    
+
+    /**
+     * get pageNum.
+     *
+     * @return pageNum
+     */
+    public int getPageNum() {
+        return pageNum;
+    }
+
+    /**
+     * set pageNum.
+     *
+     * @param pageNum pageNum
+     */
+    public void setPageNum(int pageNum) {
+        this.pageNum = pageNum;
+    }
+
+    /**
+     * get pageSize.
+     *
+     * @return pageSize
+     */
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    /**
+     * set pageSize.
+     *
+     * @param pageSize pageSize
+     */
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    /**
+     * get total.
+     *
+     * @return total
+     */
+    public int getTotal() {
+        return total;
+    }
+
+    /**
+     * set total.
+     *
+     * @param total total
+     */
+    public void setTotal(int total) {
+        this.total = total;
+    }
+
+    /**
+     * get pages.
+     *
+     * @return pages
+     */
+    public int getPages() {
+        return pages;
+    }
+
+    /**
+     * set pages.
+     *
+     * @param pages pages
+     */
+    public void setPages(int pages) {
+        this.pages = pages;
+    }
+
+    /**
+     * get list.
+     *
+     * @return list
+     */
+    public List<T> getList() {
+        return list;
+    }
+
+    /**
+     * set list.
+     *
+     * @param list list
+     */
+    public void setList(List<T> list) {
+        this.list = list;
+    }
 }

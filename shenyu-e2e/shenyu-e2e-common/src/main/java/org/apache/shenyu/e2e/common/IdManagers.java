@@ -19,15 +19,31 @@ package org.apache.shenyu.e2e.common;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+import java.util.StringJoiner;
+
+/**
+ * Id mangers.
+ */
 public class IdManagers {
+
+    private static final Logger log = LoggerFactory.getLogger(IdManagers.class);
+
     public enum Plugins {
         INSTANCE;
         
         private BiMap<String, String> name2id;
         public void set(BiMap<String, String> name2id) {
             this.name2id = name2id;
-            System.out.println("plugin list: " + name2id); // TODO
+            StringJoiner joiner = new StringJoiner(",");
+            for (Map.Entry entry : name2id.entrySet()) {
+                joiner.add(entry.getKey().toString());
+            }
+            log.info("plugin list: " + joiner);
+
         }
         
         public String getIdByName(String name) {

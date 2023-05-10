@@ -22,9 +22,10 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
@@ -58,7 +59,22 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ClientResponse> {
         // exchange is deprecated, so change to {@link WebClient.RequestHeadersSpec#exchangeToMono(Function)}
         return webClient.method(HttpMethod.valueOf(httpMethod)).uri(uri)
                 .headers(headers -> headers.addAll(httpHeaders))
-                .body(BodyInserters.fromDataBuffers(body))
+                .body((outputMessage, context) -> {
+                    MediaType mediaType = httpHeaders.getContentType();
+                    if (MediaType.TEXT_EVENT_STREAM.isCompatibleWith(mediaType)
+                            || MediaType.MULTIPART_MIXED.isCompatibleWith(mediaType)
+                            || MediaType.IMAGE_PNG.isCompatibleWith(mediaType)
+                            || MediaType.IMAGE_JPEG.isCompatibleWith(mediaType)
+                            || MediaType.IMAGE_GIF.isCompatibleWith(mediaType)
+                            //APPLICATION_STREAM_JSON is deprecated
+                            || MediaType.APPLICATION_NDJSON.isCompatibleWith(mediaType)
+                            || MediaType.APPLICATION_PDF.isCompatibleWith(mediaType)
+                            || MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(mediaType)) {
+                        return outputMessage.writeWith(body);
+                    }
+                    // fix chinese garbled code
+                    return outputMessage.writeWith(DataBufferUtils.join(body));
+                })
                 .exchangeToMono(response -> response.bodyToMono(byte[].class)
                         .flatMap(bytes -> Mono.fromCallable(() -> Optional.ofNullable(bytes))).defaultIfEmpty(Optional.empty())
                         .flatMap(option -> {

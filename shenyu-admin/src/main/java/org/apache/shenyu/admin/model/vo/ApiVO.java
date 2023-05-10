@@ -482,7 +482,10 @@ public class ApiVO implements Serializable {
                 .tags(tags)
                 .build();
     }
-
+    
+    /**
+     * ApiVOBuilder.
+     */
     public static final class ApiVOBuilder {
 
         /**
