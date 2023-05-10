@@ -21,9 +21,9 @@ import org.apache.shenyu.admin.aspect.controller.PrintLogControllerMethodAdviceI
 import org.apache.shenyu.admin.aspect.controller.RestControllerAspect;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.model.custom.UserInfo;
-import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.BeforeEach;
