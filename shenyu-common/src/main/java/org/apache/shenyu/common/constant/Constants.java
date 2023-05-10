@@ -708,7 +708,7 @@ public interface Constants {
      */
     Integer TRIE_PATH_CACHE_SIZE = 256;
 
-    /*
+    /**
      * the default warm time is ten minutes.
      */
     int WARMUP_TIME = 10 * 60 * 1000;
