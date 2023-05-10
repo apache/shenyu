@@ -77,8 +77,14 @@ public class ShenyuTrieNode implements Serializable {
      */
     private String bizInfo;
     
+    /**
+     * parent node.
+     */
     private ShenyuTrieNode parentNode;
     
+    /**
+     * fail to node.
+     */
     private ShenyuTrieNode failToNode;
 
     public ShenyuTrieNode() {
@@ -256,41 +262,53 @@ public class ShenyuTrieNode implements Serializable {
         this.pathCache = pathCache;
     }
     
+    /**
+     * get parent node.
+     *
+     * @return parent node
+     */
     public ShenyuTrieNode getParentNode() {
         return parentNode;
     }
     
+    /**
+     * set parent node.
+     *
+     * @param parentNode parent node
+     */
     public void setParentNode(ShenyuTrieNode parentNode) {
         this.parentNode = parentNode;
     }
     
+    /**
+     * get fail to node.
+     *
+     * @return fail to node
+     */
     public ShenyuTrieNode getFailToNode() {
         return failToNode;
     }
     
+    /**
+     * set fail to node.
+     *
+     * @param failToNode fail to node
+     */
     public void setFailToNode(ShenyuTrieNode failToNode) {
         this.failToNode = failToNode;
     }
     
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ShenyuTrieNode)) return false;
         ShenyuTrieNode that = (ShenyuTrieNode) o;
-        return isWildcard == that.isWildcard && endOfPath == that.endOfPath && matchStr.equals(that.matchStr)
-                && fullPath.equals(that.fullPath) && children.equals(that.children)
-                && pathVariables.equals(that.pathVariables) && pathVariableNode.equals(that.pathVariableNode)
-                && pathCache.equals(that.pathCache) && bizInfo.equals(that.bizInfo);
+        return getWildcard() == that.getWildcard() && getEndOfPath() == that.getEndOfPath() && Objects.equals(getMatchStr(), that.getMatchStr()) && Objects.equals(getFullPath(), that.getFullPath()) && Objects.equals(getChildren(), that.getChildren()) && Objects.equals(getPathVariables(), that.getPathVariables()) && Objects.equals(getPathVariableNode(), that.getPathVariableNode()) && Objects.equals(getPathCache(), that.getPathCache()) && Objects.equals(getBizInfo(), that.getBizInfo()) && Objects.equals(getParentNode(), that.getParentNode()) && Objects.equals(getFailToNode(), that.getFailToNode());
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(matchStr, fullPath, children, pathVariables, pathVariableNode, isWildcard, endOfPath,
-                pathCache, bizInfo);
+        return Objects.hash(getMatchStr(), getFullPath(), getChildren(), getPathVariables(), getPathVariableNode(), getWildcard(), getEndOfPath(), getPathCache(), getBizInfo(), getParentNode(), getFailToNode());
     }
     
     @Override
