@@ -27,11 +27,11 @@ import java.util.List;
  */
 public interface ProxySelectorDataSubscriber {
 
-
     /**
      * On subscribe.
      *
      * @param proxySelectorData the proxySelector data
+     * @param upstreamsList upstreamsList
      */
     void onSubscribe(ProxySelectorData proxySelectorData, List<DiscoveryUpstream> upstreamsList);
 

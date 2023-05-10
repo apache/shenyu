@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.tcp.handler;
 
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
 import org.apache.shenyu.protocol.tcp.BootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
@@ -71,9 +72,14 @@ public class TcpUpstreamDataHandler implements ProxySelectorDataHandler {
         }
     }
 
+    @Override
+    public String pluginName() {
+        return PluginEnum.TCP.getName();
+    }
+
     public static void main(String[] args) throws IOException {
         TcpUpstreamDataHandler tcpUpstreamDataHandler = new TcpUpstreamDataHandler();
-        System.out.println(tcpUpstreamDataHandler.name());
+        System.out.println(tcpUpstreamDataHandler.pluginName());
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         proxySelectorData.setName("mysql-proxy");
         proxySelectorData.setId("1");

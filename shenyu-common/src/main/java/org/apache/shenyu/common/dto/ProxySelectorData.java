@@ -39,7 +39,6 @@ public class ProxySelectorData {
 
     private Properties props = new Properties();
 
-
     private List<DiscoveryUpstream> discoveryUpstreamList;
 
     /**
@@ -150,11 +149,22 @@ public class ProxySelectorData {
         this.props = props;
     }
 
+    /**
+     * getDiscoveryUpstreamList.
+     *
+     * @return discoveryUpstreamList
+     */
     public List<DiscoveryUpstream> getDiscoveryUpstreamList() {
         return discoveryUpstreamList;
     }
 
-    public void setDiscoveryUpstreamList(List<DiscoveryUpstream> discoveryUpstreamList) {
+    /**
+     * setDiscoveryUpstreamList.
+     *
+     * @param discoveryUpstreamList discoveryUpstreamList
+     */
+    public void setDiscoveryUpstreamList(final List<DiscoveryUpstream> discoveryUpstreamList) {
         this.discoveryUpstreamList = discoveryUpstreamList;
     }
+
 }
