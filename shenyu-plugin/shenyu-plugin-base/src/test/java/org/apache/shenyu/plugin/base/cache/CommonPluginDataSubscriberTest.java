@@ -134,7 +134,7 @@ public final class CommonPluginDataSubscriberTest {
     public void testOnSelectorSubscribe() {
         baseDataCache.cleanSelectorData();
 
-        SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
+        SelectorData selectorData = SelectorData.builder().id("1").enabled(true).pluginName(mockPluginName1).sort(1).build();
         commonPluginDataSubscriber.onSelectorSubscribe(selectorData);
         List<SelectorData> obtainSelectorData = baseDataCache.obtainSelectorData(selectorData.getPluginName());
         assertEquals(Lists.newArrayList(selectorData), obtainSelectorData);
@@ -143,7 +143,7 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testUnSelectorSubscribe() {
         baseDataCache.cleanSelectorData();
-        SelectorData selectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
+        SelectorData selectorData = SelectorData.builder().id("1").enabled(true).pluginName(mockPluginName1).build();
         baseDataCache.cacheSelectData(selectorData);
         assertNotNull(baseDataCache.obtainSelectorData(selectorData.getPluginName()));
 
@@ -154,8 +154,8 @@ public final class CommonPluginDataSubscriberTest {
     @Test
     public void testRefreshSelectorDataAll() {
         baseDataCache.cleanSelectorData();
-        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
-        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").enabled(true).pluginName(mockPluginName1).build();
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").enabled(true).pluginName(mockPluginName2).build();
         baseDataCache.cacheSelectData(firstCachedSelectorData);
         baseDataCache.cacheSelectData(secondCachedSelectorData);
         assertNotNull(baseDataCache.obtainSelectorData(firstCachedSelectorData.getPluginName()));
