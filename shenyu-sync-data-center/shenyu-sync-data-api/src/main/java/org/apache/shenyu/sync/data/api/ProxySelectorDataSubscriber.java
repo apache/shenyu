@@ -18,6 +18,9 @@
 package org.apache.shenyu.sync.data.api;
 
 import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
+
+import java.util.List;
 
 /**
  * ProxySelectorDataSubscriber.
@@ -30,7 +33,7 @@ public interface ProxySelectorDataSubscriber {
      *
      * @param proxySelectorData the proxySelector data
      */
-    void onSubscribe(ProxySelectorData proxySelectorData);
+    void onSubscribe(ProxySelectorData proxySelectorData, List<DiscoveryUpstream> upstreamsList);
 
     /**
      * Un subscribe.

@@ -58,11 +58,15 @@ public class ZookeeperSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService syncDataService(final ObjectProvider<ZookeeperClient> zookeeperClient, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
-                                           final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
+    public SyncDataService syncDataService(final ObjectProvider<ZookeeperClient> zookeeperClient,
+                                           final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
+                                           final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
+                                           final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
+                                           final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers) {
         LOGGER.info("you use zookeeper sync shenyu data.......");
         return new ZookeeperSyncDataService(zookeeperClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
+                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
+                proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList));
     }
 
     /**
