@@ -1847,7 +1847,7 @@ public class ShenyuConfig {
      */
     public static class ShenyuTrieConfig {
         
-        private Boolean enabled = Boolean.TRUE;
+        private Boolean enabled = Boolean.FALSE;
         
         private Long cacheSize = 512L;
 
