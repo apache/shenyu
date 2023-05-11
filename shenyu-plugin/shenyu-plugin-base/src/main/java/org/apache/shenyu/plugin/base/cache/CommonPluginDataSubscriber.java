@@ -168,7 +168,10 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     public void refreshRuleDataAll() {
         BaseDataCache.getInstance().cleanRuleData();
         MatchDataCache.getInstance().cleanRuleDataData();
-        SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).clear();
+        ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
+        ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
+        ruleTrie.clear();
+        selectorTrie.clear();
     }
     
     @Override

@@ -96,7 +96,7 @@ public class LocalPluginController {
         LOG.info("clean apache shenyu local plugin for {}", name);
         BaseDataCache.getInstance().removePluginDataByPluginName(name);
         List<SelectorData> selectorData = BaseDataCache.getInstance().obtainSelectorData(name);
-        final List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
+        List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
         MatchDataCache.getInstance().removeSelectorData(name);
         MatchDataCache.getInstance().removeRuleData(name);
@@ -105,12 +105,14 @@ public class LocalPluginController {
         // remove selector trie cache
         selectorData.forEach(selector -> {
             List<ConditionData> conditionDataList = selector.getConditionList();
-            List<ConditionData> filterConditions = conditionDataList.stream()
-                    .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
-                    .collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(filterConditions)) {
-                List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
-                selectorTrie.remove(uriPaths, selector, TrieCacheTypeEnum.SELECTOR);
+            if (CollectionUtils.isNotEmpty(conditionDataList)) {
+                List<ConditionData> filterConditions = conditionDataList.stream()
+                        .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                        .collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(filterConditions)) {
+                    List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
+                    selectorTrie.remove(uriPaths, selector, TrieCacheTypeEnum.SELECTOR);
+                }
             }
         });
         // remove rule trie cache
