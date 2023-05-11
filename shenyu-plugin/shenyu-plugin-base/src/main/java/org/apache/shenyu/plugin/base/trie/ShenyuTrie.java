@@ -265,7 +265,7 @@ public class ShenyuTrie {
 
     /**
      * match trie, trie exist and match the path will return current node <br>
-     * match strategy: plugin get the node from trie and mark conflict, match sort: path > wildcard > match-all, path variable.
+     * match strategy: plugin get the node from trie and mark conflict, match sort: path, wildcard, match-all, path variable.
      * generally, wildcard, match-all, path-variable have the same matching rights as path, if there are the above path
      * matching variables in the child nodes of the current node, multi-marking will be performed.<br>
      * how to mark conflict: if current node has many conflict node, match mark number increment.<br>

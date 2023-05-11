@@ -219,7 +219,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             if (!selectorTrieConfig.getEnabled()) {
                 return;
             }
-            if (selectorData.getEnabled()) {
+            if (Boolean.TRUE.equals(selectorData.getEnabled())) {
                 if (CollectionUtils.isEmpty(selectorData.getBeforeConditionList())) {
                     eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.INSERT, TrieCacheTypeEnum.SELECTOR, selectorData));
                 } else {
@@ -238,7 +238,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             if (!ruleTrieConfig.getEnabled()) {
                 return;
             }
-            if (ruleData.getEnabled()) {
+            if (Boolean.TRUE.equals(ruleData.getEnabled())) {
                 if (CollectionUtils.isEmpty(ruleData.getBeforeConditionDataList())) {
                     eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.INSERT, TrieCacheTypeEnum.RULE, ruleData));
                 } else {

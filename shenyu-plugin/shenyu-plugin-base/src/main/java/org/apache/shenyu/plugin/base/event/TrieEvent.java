@@ -38,7 +38,6 @@ public class TrieEvent extends ApplicationEvent {
      * @param trieEventEnum     ruleTrieEventEnum
      * @param trieCacheTypeEnum trie cache type
      * @param source            data
-     
      */
     public <T> TrieEvent(final TrieEventEnum trieEventEnum, final TrieCacheTypeEnum trieCacheTypeEnum, final T source) {
         super(source);
