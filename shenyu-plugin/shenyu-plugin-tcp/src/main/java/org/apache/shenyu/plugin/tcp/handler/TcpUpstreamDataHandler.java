@@ -27,8 +27,6 @@ import org.apache.shenyu.protocol.tcp.UpstreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,7 +61,6 @@ public class TcpUpstreamDataHandler implements ProxySelectorDataHandler {
         }
     }
 
-
     @Override
     public void removeProxySelector(final String proxySelectorName) {
         if (cache.containsKey(proxySelectorName)) {
@@ -75,20 +72,6 @@ public class TcpUpstreamDataHandler implements ProxySelectorDataHandler {
     @Override
     public String pluginName() {
         return PluginEnum.TCP.getName();
-    }
-
-    public static void main(String[] args) throws IOException {
-        TcpUpstreamDataHandler tcpUpstreamDataHandler = new TcpUpstreamDataHandler();
-        System.out.println(tcpUpstreamDataHandler.pluginName());
-        ProxySelectorData proxySelectorData = new ProxySelectorData();
-        proxySelectorData.setName("mysql-proxy");
-        proxySelectorData.setId("1");
-        proxySelectorData.setForwardPort(9600);
-        DiscoveryUpstream discoveryUpstream = new DiscoveryUpstream();
-        discoveryUpstream.setProtocol("tcp");
-        discoveryUpstream.setUpstreamUrl("127.0.0.1:3306");
-        tcpUpstreamDataHandler.handlerProxySelector(proxySelectorData, Arrays.asList(discoveryUpstream));
-        System.in.read();
     }
 
 }
