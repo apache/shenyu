@@ -76,26 +76,6 @@ services:
     networks:
       - shenyu
 
-  shenyu-examples-http:
-    deploy:
-      resources:
-        limits:
-          memory: 2048M
-    container_name: shenyu-examples-http
-    image: shenyu-examples-http:latest
-    restart: always
-    healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
-      timeout: 2s
-      retries: 30
-    ports:
-      - "8189:8189"
-    depends_on:
-      shenyu-integrated-test-https:
-        condition: service_healthy
-    networks:
-      - shenyu
-
 networks:
   shenyu:
     name: shenyu
