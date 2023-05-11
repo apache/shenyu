@@ -102,6 +102,78 @@ public class ProxySelectorVO implements Serializable {
     }
 
     /**
+     * get id.
+     *
+     * @return id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     *
+     * @param id id
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * get plugin name.
+     *
+     * @return plugin name
+     */
+    public String getPluginName() {
+        return pluginName;
+    }
+
+    /**
+     * set plugin name.
+     *
+     * @param pluginName plugin name
+     */
+    public void setPluginName(String pluginName) {
+        this.pluginName = pluginName;
+    }
+
+    /**
+     * get type.
+     *
+     * @return type of selector
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * set type of selector.
+     *
+     * @param type type of selector
+     */
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    /**
+     * get props.
+     *
+     * @return props of selector
+     */
+    public String getProps() {
+        return props;
+    }
+
+    /**
+     * set props.
+     *
+     * @param props props of selector
+     */
+    public void setProps(String props) {
+        this.props = props;
+    }
+
+    /**
      * getName.
      *
      * @return name
