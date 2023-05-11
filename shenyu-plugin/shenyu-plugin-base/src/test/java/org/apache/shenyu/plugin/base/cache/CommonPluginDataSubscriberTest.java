@@ -22,6 +22,7 @@ import org.apache.shenyu.common.config.ShenyuConfig.ShenyuTrieConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
@@ -234,6 +235,8 @@ public final class CommonPluginDataSubscriberTest {
 
     private void mockShenyuTrieConfig() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(TrieCacheTypeEnum.RULE.getTrieType())).thenReturn(new ShenyuTrie(100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
+        when(context.getBean(TrieCacheTypeEnum.SELECTOR.getTrieType())).thenReturn(new ShenyuTrie(100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
         when(context.getBean(ShenyuTrie.class)).thenReturn(new ShenyuTrie(100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
         SpringBeanUtils.getInstance().setApplicationContext(context);
     }
