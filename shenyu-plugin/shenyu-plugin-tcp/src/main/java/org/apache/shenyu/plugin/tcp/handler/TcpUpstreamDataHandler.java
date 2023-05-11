@@ -45,7 +45,7 @@ public class TcpUpstreamDataHandler implements ProxySelectorDataHandler {
     @Override
     public synchronized void handlerProxySelector(final ProxySelectorData proxySelectorData, final List<DiscoveryUpstream> upstreamsList) {
         String name = proxySelectorData.getName();
-        if (cache.containsKey(name)) {
+        if (!cache.containsKey(name)) {
             Integer forwardPort = proxySelectorData.getForwardPort();
             TcpServerConfiguration tcpServerConfiguration = new TcpServerConfiguration();
             tcpServerConfiguration.setPort(forwardPort);
