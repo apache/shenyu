@@ -28,7 +28,6 @@ import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
 import java.util.List;
-import java.util.Objects;
 
 public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser<Object> {
 
@@ -54,27 +53,30 @@ public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser
 
         ShenyuSpringMvcClient methodAnnotation = apiDefinition.getAnnotation(ShenyuSpringMvcClient.class);
 
-        String methodPath = Objects.isNull(methodAnnotation) ? StringUtils.EMPTY : methodAnnotation.path();
+        String methodPath = methodAnnotation.path();
 
         if (StringUtils.isEmpty(methodPath)) {
             methodPath = apiDefinition.getMethodPath();
         }
 
-        String apiPath = PathUtils.pathJoin(apiDefinition.getContextPath(), apiDefinition.getBeanPath(), methodPath);
+        ShenyuSpringMvcClient classAnnotation =
+                apiDefinition.getApiBean().getAnnotation(ShenyuSpringMvcClient.class);
 
-        ShenyuSpringMvcClient classAnnotation = apiDefinition.getApiBean()
-                .getAnnotation(ShenyuSpringMvcClient.class);
+        String beanPath = classAnnotation.path();
 
-        String pathDesc = Objects.isNull(methodAnnotation) ? classAnnotation.desc() : methodAnnotation.desc();
+        if (StringUtils.isEmpty(beanPath)) {
+            beanPath = apiDefinition.getBeanPath();
+        }
 
-        boolean enabled = (Objects.isNull(classAnnotation) || classAnnotation.enabled())
-                && (Objects.isNull(methodAnnotation) || methodAnnotation.enabled());
+        String apiPath = PathUtils.pathJoin(apiDefinition.getContextPath(), beanPath, methodPath);
 
-        String ruleName = Objects.isNull(methodAnnotation) || StringUtils.isEmpty(methodAnnotation.ruleName())
-                ? apiPath : methodAnnotation.ruleName();
+        String pathDesc = methodAnnotation.desc();
 
-        boolean registerMetaData = (Objects.isNull(classAnnotation) || classAnnotation.registerMetaData())
-                && (Objects.isNull(methodAnnotation) || methodAnnotation.registerMetaData());
+        boolean enabled = classAnnotation.enabled() && methodAnnotation.enabled();
+
+        String ruleName = methodAnnotation.ruleName();
+
+        boolean registerMetaData = methodAnnotation.registerMetaData();
 
         return Lists.newArrayList(MetaDataRegisterDTO.builder()
                 .contextPath(apiDefinition.getContextPath())

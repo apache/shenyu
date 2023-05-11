@@ -21,17 +21,13 @@ import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.AnnotatedApiDefinitionMatcher;
 import org.apache.shenyu.client.core.register.matcher.Matcher;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
-import org.springframework.core.annotation.AnnotationUtils;
 
 public class SpringMvcApiMetaDefinitionMatcher implements Matcher<ApiBean<Object>.ApiDefinition> {
 
     private final Matcher<ApiBean<Object>.ApiDefinition> matcher;
 
     public SpringMvcApiMetaDefinitionMatcher() {
-
-        this.matcher = new AnnotatedApiDefinitionMatcher<>(ShenyuSpringMvcClient.class)
-                .or(api -> AnnotationUtils
-                        .isAnnotationDeclaredLocally(ShenyuSpringMvcClient.class, api.getBeanClass()));
+        this.matcher = new AnnotatedApiDefinitionMatcher<>(ShenyuSpringMvcClient.class);
     }
 
     @Override

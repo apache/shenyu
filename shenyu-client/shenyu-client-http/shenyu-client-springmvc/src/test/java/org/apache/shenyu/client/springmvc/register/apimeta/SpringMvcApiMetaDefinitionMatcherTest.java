@@ -34,16 +34,6 @@ public class SpringMvcApiMetaDefinitionMatcherTest {
             new SpringMvcApiMetaDefinitionMatcher();
 
     @Test
-    public void testMatchAnnotatedClass() throws Exception {
-        Method method = TestBeanMatchAnnotatedClass.class.getMethod("testMethod");
-        ApiBean<Object>.ApiDefinition apiDefinition =
-                createApiDefinition(TestBeanMatchAnnotatedClass.class, method, "/testMethod");
-        boolean result = apiDefinitionMetaMatcher.match(apiDefinition);
-
-        assertThat(result, is(true));
-    }
-
-    @Test
     public void testMatchAnnotatedMethod() throws Exception {
         Method method = TestBeanMatchClass.class.getMethod("testAnnotatedMethod");
         ApiBean<Object>.ApiDefinition apiDefinition =
@@ -76,26 +66,18 @@ public class SpringMvcApiMetaDefinitionMatcherTest {
     @ShenyuSpringMvcClient
     @RestController
     @RequestMapping("/testClass")
-    static class TestBeanMatchAnnotatedClass {
-        @RequestMapping("/testMethod")
-        public String testMethod() {
-            return "";
-        }
-    }
-
-    @RestController
-    @RequestMapping("/testClass")
     static class TestBeanMatchClass {
-
-        @RequestMapping("/testMethod")
-        public String testMethod() {
-            return "";
-        }
 
         @RequestMapping("/testAnnotatedMethod")
         @ShenyuSpringMvcClient("/testAnnotatedMethodo")
         public String testAnnotatedMethod() {
             return "";
         }
+
+        @RequestMapping("/testMethod")
+        public String testMethod() {
+            return "";
+        }
+
     }
 }

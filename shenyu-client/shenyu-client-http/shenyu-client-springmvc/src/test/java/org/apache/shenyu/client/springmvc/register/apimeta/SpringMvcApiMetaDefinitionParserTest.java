@@ -94,6 +94,7 @@ public class SpringMvcApiMetaDefinitionParserTest {
     static class TestBeanMatchClass {
 
         @RequestMapping("/testMethod")
+        @ShenyuSpringMvcClient
         public String testMethod() {
             return "";
         }

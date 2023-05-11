@@ -40,7 +40,7 @@ public class SpringMvcApiMetaBeanMatcherTest {
 
         ApiBean<Object> apiBean = createSimpleApiBean(TestBeanMatchWithoutAnnotationClass.class);
         boolean result = beanMatcher.match(apiBean);
-        assertThat(result, is(true));
+        assertThat(result, is(false));
     }
 
     @Test
