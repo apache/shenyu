@@ -311,13 +311,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             List<?> collection = shenyuTrieNode.getPathCache().get(pluginName);
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, SelectorData> selectorDataPair;
-                if (collection.size() < 2) {
+                if (collection.size() > 1) {
+                    selectorDataPair = matchSelector(exchange, ListUtil.castLit(collection, SelectorData.class));
+                } else {
                     Object selectorObj = collection.stream().findFirst().orElse(null);
                     SelectorData selector = Objects.nonNull(selectorObj) ? (SelectorData) selectorObj : null;
                     boolean cached = Objects.nonNull(selector) && selector.getConditionList().stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
                     selectorDataPair = Pair.of(cached, selector);
-                } else {
-                    selectorDataPair = matchSelector(exchange, ListUtil.castLit(collection, SelectorData.class));
                 }
                 selectorData = selectorDataPair.getRight();
                 if (selectorDataPair.getLeft() && Objects.nonNull(selectorData)) {
@@ -339,13 +339,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             List<?> collection = shenyuTrieNode.getPathCache().get(selectorData.getId());
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, RuleData> ruleDataPair;
-                if (collection.size() < 2) {
+                if (collection.size() > 1) {
+                    ruleDataPair = matchRule(exchange, ListUtil.castLit(collection, RuleData.class));
+                } else {
                     Object ruleObj = collection.stream().findFirst().orElse(null);
                     RuleData rule = Objects.nonNull(ruleObj) ? (RuleData) ruleObj : null;
                     boolean cached = Objects.nonNull(rule) && rule.getConditionDataList().stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
                     ruleDataPair = Pair.of(cached, rule);
-                } else {
-                    ruleDataPair = matchRule(exchange, ListUtil.castLit(collection, RuleData.class));
                 }
                 ruleData = ruleDataPair.getRight();
                 if (ruleDataPair.getLeft() && Objects.nonNull(ruleData)) {
