@@ -49,7 +49,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -145,12 +144,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             // trie cache fails to hit, execute default strategy
             if (Objects.isNull(ruleData)) {
                 LOG.info("{} rule match path from default strategy", named());
-                Pair<Boolean, RuleData> matchRuleData = matchRule(exchange, rules);
-                ruleData = matchRuleData.getRight();
-                if (matchRuleData.getLeft()) {
-                    ruleData = Optional.ofNullable(ruleData)
-                            .orElse(RuleData.builder().pluginName(pluginName).matchRestful(false).build());
-                    cacheRuleData(path, ruleData);
+                ruleData = defaultMatchRule(exchange, rules, path);
+                if (Objects.isNull(ruleData)) {
+                    return handleRuleIfNull(pluginName, exchange, chain);
                 }
             }
         }
