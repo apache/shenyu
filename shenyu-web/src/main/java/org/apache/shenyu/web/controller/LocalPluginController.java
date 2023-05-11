@@ -100,9 +100,23 @@ public class LocalPluginController {
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
         MatchDataCache.getInstance().removeSelectorData(name);
         MatchDataCache.getInstance().removeRuleData(name);
+        ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
+        ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
+        // remove selector trie cache
+        selectorData.forEach(selector -> {
+            List<ConditionData> conditionDataList = selector.getConditionList();
+            List<ConditionData> filterConditions = conditionDataList.stream()
+                    .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(filterConditions)) {
+                List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
+                selectorTrie.remove(uriPaths, selector, TrieCacheTypeEnum.SELECTOR);
+            }
+        });
+        // remove rule trie cache
         for (String selectorId : selectorIds) {
-            BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
             List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(selectorId);
+            BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
             if (CollectionUtils.isNotEmpty(ruleDataList)) {
                 ruleDataList.forEach(rule -> {
                     List<ConditionData> conditionDataList = rule.getConditionDataList();
@@ -111,7 +125,7 @@ public class LocalPluginController {
                             .collect(Collectors.toList());
                     if (CollectionUtils.isNotEmpty(filterConditions)) {
                         List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
-                        uriPaths.forEach(path -> SpringBeanUtils.getInstance().getBean(ShenyuTrie.class).remove(path, rule, TrieCacheTypeEnum.RULE));
+                        ruleTrie.remove(uriPaths, rule, TrieCacheTypeEnum.RULE);
                     }
                 });
             }
@@ -324,7 +338,7 @@ public class LocalPluginController {
      */
     @GetMapping("/plugin/rule/findList")
     public Mono<String> findListRule(@RequestParam("selectorId") final String selectorId,
-                                         @RequestParam(value = "id", required = false) final String id) {
+                                     @RequestParam(value = "id", required = false) final String id) {
         List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(selectorId);
         if (CollectionUtils.isEmpty(ruleDataList)) {
             return Mono.just("Error: can not find rule data by selector id :" + selectorId);
