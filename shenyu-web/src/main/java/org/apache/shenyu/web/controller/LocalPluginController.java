@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -105,37 +106,43 @@ public class LocalPluginController {
         MatchDataCache.getInstance().removeRuleData(name);
         ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
         ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
+        ShenyuConfig.SelectorMatchCache selectorMatchCacheConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.SelectorMatchCache.class);
+        ShenyuConfig.RuleMatchCache ruleMatchCacheConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.RuleMatchCache.class);
         // remove selector trie cache
-        newSelectorData.forEach(selector -> {
-            List<ConditionData> conditionDataList = selector.getConditionList();
-            if (CollectionUtils.isNotEmpty(conditionDataList)) {
-                List<ConditionData> filterConditions = conditionDataList.stream()
-                        .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
-                        .collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(filterConditions)) {
-                    List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
-                    selectorTrie.remove(uriPaths, selector, TrieCacheTypeEnum.SELECTOR);
+        if (selectorMatchCacheConfig.getTrie().getEnabled()) {
+            newSelectorData.forEach(selector -> {
+                List<ConditionData> conditionDataList = selector.getConditionList();
+                if (CollectionUtils.isNotEmpty(conditionDataList)) {
+                    List<ConditionData> filterConditions = conditionDataList.stream()
+                            .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                            .collect(Collectors.toList());
+                    if (CollectionUtils.isNotEmpty(filterConditions)) {
+                        List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
+                        selectorTrie.remove(uriPaths, selector, TrieCacheTypeEnum.SELECTOR);
+                    }
                 }
-            }
-        });
+            });
+        }
         // remove rule trie cache
         for (String selectorId : selectorIds) {
             List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(selectorId);
             List<RuleData> newRuleDataList = CollectionUtils.isNotEmpty(ruleDataList) ? Lists.newArrayList(ruleDataList) : Collections.emptyList();
             BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
-            if (CollectionUtils.isNotEmpty(newRuleDataList)) {
-                newRuleDataList.forEach(rule -> {
-                    List<ConditionData> conditionDataList = rule.getConditionDataList();
-                    if (CollectionUtils.isNotEmpty(conditionDataList)) {
-                        List<ConditionData> filterConditions = conditionDataList.stream()
-                                .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
-                                .collect(Collectors.toList());
-                        if (CollectionUtils.isNotEmpty(filterConditions)) {
-                            List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
-                            ruleTrie.remove(uriPaths, rule, TrieCacheTypeEnum.RULE);
+            if (ruleMatchCacheConfig.getTrie().getEnabled()) {
+                if (CollectionUtils.isNotEmpty(newRuleDataList)) {
+                    newRuleDataList.forEach(rule -> {
+                        List<ConditionData> conditionDataList = rule.getConditionDataList();
+                        if (CollectionUtils.isNotEmpty(conditionDataList)) {
+                            List<ConditionData> filterConditions = conditionDataList.stream()
+                                    .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                                    .collect(Collectors.toList());
+                            if (CollectionUtils.isNotEmpty(filterConditions)) {
+                                List<String> uriPaths = filterConditions.stream().map(ConditionData::getParamValue).collect(Collectors.toList());
+                                ruleTrie.remove(uriPaths, rule, TrieCacheTypeEnum.RULE);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
         return Mono.just(Constants.SUCCESS);
