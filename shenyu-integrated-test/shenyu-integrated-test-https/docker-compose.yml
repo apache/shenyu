@@ -77,5 +77,5 @@ services:
       - shenyu
 
 networks:
-  shenyu:
-    name: shenyu
+   shenyu:
+      name: shenyu
