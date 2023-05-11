@@ -48,8 +48,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -98,7 +100,7 @@ public class LocalPluginController {
         BaseDataCache.getInstance().removePluginDataByPluginName(name);
         List<SelectorData> selectorData = BaseDataCache.getInstance().obtainSelectorData(name);
         final List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
-        final List<SelectorData> newSelectorData = Lists.newArrayList(selectorData);
+        final List<SelectorData> newSelectorData = CollectionUtils.isNotEmpty(selectorData) ? Lists.newArrayList(selectorData) : Collections.emptyList();
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
         MatchDataCache.getInstance().removeSelectorData(name);
         MatchDataCache.getInstance().removeRuleData(name);
@@ -120,7 +122,7 @@ public class LocalPluginController {
         // remove rule trie cache
         for (String selectorId : selectorIds) {
             List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(selectorId);
-            List<RuleData> newRuleDataList = Lists.newArrayList(ruleDataList);
+            List<RuleData> newRuleDataList = CollectionUtils.isNotEmpty(ruleDataList) ? Lists.newArrayList(ruleDataList) : Collections.emptyList();
             BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
             if (CollectionUtils.isNotEmpty(newRuleDataList)) {
                 newRuleDataList.forEach(rule -> {
