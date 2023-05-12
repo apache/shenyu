@@ -20,8 +20,6 @@ package org.apache.shenyu.web.controller;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
-import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.common.config.ShenyuConfig.ShenyuTrieConfig;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
