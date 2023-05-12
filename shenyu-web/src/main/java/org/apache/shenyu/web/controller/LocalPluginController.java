@@ -103,6 +103,7 @@ public class LocalPluginController {
         final List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         final List<SelectorData> newSelectorData = CollectionUtils.isNotEmpty(selectorData) ? Lists.newArrayList(selectorData) : Collections.emptyList();
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
+        // remove selector and rule l1 cache
         MatchDataCache.getInstance().removeSelectorData(name);
         MatchDataCache.getInstance().removeRuleData(name);
         ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());

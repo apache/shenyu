@@ -197,13 +197,7 @@ public class HttpClientPluginConfiguration {
                 .maxConnections(pool.getMaxConnections())
                 .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()))
                 .maxIdleTime(pool.getMaxIdleTime());
-        // default is LIFO for fixed connection pool, see https://projectreactor.io/docs/netty/release/reference/index.html#_connection_pool_2
-        return builder.fifo().build();
-        //if (Objects.isNull(pool.getLeasingStrategy()) || LeasingStrategy.LIFO.equals(pool.getLeasingStrategy())) {
-        //    return builder.lifo().build();
-        //} else {
-        //    return builder.fifo().build();
-        //}
+        return builder.build();
     }
 
     /**
@@ -219,14 +213,7 @@ public class HttpClientPluginConfiguration {
                 .pendingAcquireTimeout(Duration.ofMillis(0))
                 .pendingAcquireMaxCount(-1)
                 .maxIdleTime(pool.getMaxIdleTime());
-        // default is fifo for elastic connection pool, see https://projectreactor.io/docs/netty/release/reference/index.html#_connection_pool_2
-        
-        //if (Objects.isNull(pool.getLeasingStrategy()) || LeasingStrategy.FIFO.equals(pool.getLeasingStrategy())) {
-        //    return builder.fifo().build();
-        //} else {
-        //    return builder.lifo().build();
-        //}
-        return builder.fifo().build();
+        return builder.build();
     }
 
     /**
