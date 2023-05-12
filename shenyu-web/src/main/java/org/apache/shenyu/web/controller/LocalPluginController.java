@@ -52,6 +52,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -98,7 +99,7 @@ public class LocalPluginController {
     public Mono<String> cleanPlugin(@RequestParam("name") final String name) {
         LOG.info("clean apache shenyu local plugin for {}", name);
         BaseDataCache.getInstance().removePluginDataByPluginName(name);
-        List<SelectorData> selectorData = BaseDataCache.getInstance().obtainSelectorData(name);
+        List<SelectorData> selectorData = Optional.ofNullable(BaseDataCache.getInstance().obtainSelectorData(name)).orElse(Collections.emptyList());
         final List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         final List<SelectorData> newSelectorData = CollectionUtils.isNotEmpty(selectorData) ? Lists.newArrayList(selectorData) : Collections.emptyList();
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
@@ -106,10 +107,9 @@ public class LocalPluginController {
         MatchDataCache.getInstance().removeRuleData(name);
         ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
         ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
-        ShenyuConfig.SelectorMatchCache selectorMatchCacheConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.SelectorMatchCache.class);
-        ShenyuConfig.RuleMatchCache ruleMatchCacheConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.RuleMatchCache.class);
+        ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
         // remove selector trie cache
-        if (Boolean.TRUE.equals(selectorMatchCacheConfig.getTrie().getEnabled())) {
+        if (Boolean.TRUE.equals(shenyuConfig.getSelectorMatchCache().getTrie().getEnabled())) {
             newSelectorData.forEach(selector -> {
                 List<ConditionData> conditionDataList = selector.getConditionList();
                 if (CollectionUtils.isNotEmpty(conditionDataList)) {
@@ -128,7 +128,7 @@ public class LocalPluginController {
             List<RuleData> ruleDataList = BaseDataCache.getInstance().obtainRuleData(selectorId);
             List<RuleData> newRuleDataList = CollectionUtils.isNotEmpty(ruleDataList) ? Lists.newArrayList(ruleDataList) : Collections.emptyList();
             BaseDataCache.getInstance().removeRuleDataBySelectorId(selectorId);
-            if (Boolean.TRUE.equals(ruleMatchCacheConfig.getTrie().getEnabled())) {
+            if (Boolean.TRUE.equals(shenyuConfig.getRuleMatchCache().getTrie().getEnabled())) {
                 if (CollectionUtils.isNotEmpty(newRuleDataList)) {
                     newRuleDataList.forEach(rule -> {
                         List<ConditionData> conditionDataList = rule.getConditionDataList();

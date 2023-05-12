@@ -109,7 +109,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.isNull(selectorData)) {
             selectorData = trieMatchSelector(exchange, pluginName, path);
             if (Objects.isNull(selectorData)) {
-                LogUtils.info(LOG, "{} selector match from default strategy", pluginName);
                 selectorData = defaultMatchSelector(exchange, selectors, path);
                 if (Objects.isNull(selectorData)) {
                     return handleSelectorIfNull(pluginName, exchange, chain);
@@ -143,7 +142,6 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             ruleData = trieMatchRule(exchange, selectorData, path);
             // trie cache fails to hit, execute default strategy
             if (Objects.isNull(ruleData)) {
-                LOG.info("{} rule match path from default strategy", named());
                 ruleData = defaultMatchRule(exchange, rules, path);
                 if (Objects.isNull(ruleData)) {
                     return handleRuleIfNull(pluginName, exchange, chain);
@@ -307,7 +305,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         SelectorData selectorData = null;
         ShenyuTrieNode shenyuTrieNode = selectorTrie.match(path, pluginName);
         if (Objects.nonNull(shenyuTrieNode)) {
-            LOG.info("{} selector match path from shenyu trie", named());
+            LogUtils.info(LOG, "{} selector match path from shenyu trie");
             List<?> collection = shenyuTrieNode.getPathCache().get(pluginName);
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, SelectorData> selectorDataPair;
@@ -335,7 +333,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         RuleData ruleData = null;
         ShenyuTrieNode shenyuTrieNode = ruleTrie.match(path, selectorData.getId());
         if (Objects.nonNull(shenyuTrieNode)) {
-            LOG.info("{} rule match path from shenyu trie", named());
+            LogUtils.info(LOG, "{} rule match path from shenyu trie", named());
             List<?> collection = shenyuTrieNode.getPathCache().get(selectorData.getId());
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, RuleData> ruleDataPair;
@@ -361,6 +359,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         Pair<Boolean, SelectorData> matchSelectorPair = matchSelector(exchange, selectors);
         SelectorData selectorData = matchSelectorPair.getRight();
         if (Objects.nonNull(selectorData)) {
+            LogUtils.info(LOG, "{} selector match success from default strategy", named());
             // cache selector data
             if (matchSelectorPair.getLeft()) {
                 cacheSelectorData(path, selectorData);
@@ -380,6 +379,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         Pair<Boolean, RuleData> matchRulePair = matchRule(exchange, rules);
         RuleData ruleData = matchRulePair.getRight();
         if (Objects.nonNull(ruleData)) {
+            LOG.info("{} rule match path from default strategy", named());
             // cache rule data
             if (matchRulePair.getLeft()) {
                 cacheRuleData(path, ruleData);
