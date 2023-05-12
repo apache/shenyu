@@ -29,7 +29,6 @@ import org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin;
 import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties.Pool;
-import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties.Pool.LeasingStrategy;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
