@@ -27,64 +27,55 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
 
 /**
  * Test for {@link ShenyuClientApiDocExecutorSubscriber}.
  */
 public class ShenyuClientApiDocExecutorSubscriberTest {
 
-	private ShenyuClientRegisterRepository shenyuClientRegisterRepository;
-	private ShenyuClientApiDocExecutorSubscriber executorSubscriber;
+    private ShenyuClientRegisterRepository shenyuClientRegisterRepository;
 
-	@BeforeEach
-	public void setUp() {
-		shenyuClientRegisterRepository = mock(ShenyuClientRegisterRepository.class);
-		executorSubscriber = new ShenyuClientApiDocExecutorSubscriber(shenyuClientRegisterRepository);
-	}
+    private ShenyuClientApiDocExecutorSubscriber executorSubscriber;
 
-	@Test
-	public void testGetType() {
-		DataType expected = DataType.API_DOC;
-		DataType actual = executorSubscriber.getType();
-		assertEquals(expected, actual);
-	}
+    @BeforeEach
+    public void setUp() {
+        shenyuClientRegisterRepository = mock(ShenyuClientRegisterRepository.class);
+        executorSubscriber = new ShenyuClientApiDocExecutorSubscriber(shenyuClientRegisterRepository);
+    }
 
-	@Test
-	public void testExecutorWithEmptyData() {
-		Collection<ApiDocRegisterDTO> dataList = new ArrayList<>();
-		executorSubscriber.executor(dataList);
+    @Test
+    public void testGetType() {
+        DataType expected = DataType.API_DOC;
+        DataType actual = executorSubscriber.getType();
+        assertEquals(expected, actual);
+    }
 
-		verify(shenyuClientRegisterRepository, never()).persistApiDoc(any());
-	}
+    @Test
+    public void testExecutorWithEmptyData() {
+        Collection<ApiDocRegisterDTO> dataList = new ArrayList<>();
+        executorSubscriber.executor(dataList);
 
-	@Test
-	public void testExecutorValidData() {
-		Collection<ApiDocRegisterDTO> apiDocRegisterDTOList = new ArrayList<>();
+        verify(shenyuClientRegisterRepository, never()).persistApiDoc(any());
+    }
 
-		ApiDocRegisterDTO apiDocRegisterDTO = ApiDocRegisterDTO.builder()
-				.contextPath("/test")
-				.apiPath("/api")
-				.httpMethod(0)
-				.consume("application/json")
-				.produce("application/json")
-				.version("V0.01")
-				.rpcType("http")
-				.state(1)
-				.ext("test")
-				.apiOwner("test")
-				.apiDesc("test")
-				.apiSource(0)
-				.document("test")
-				.eventType(EventType.UPDATED)
-				.tags(new ArrayList<>())
-				.build();
-		apiDocRegisterDTOList.add(apiDocRegisterDTO);
+    @Test
+    public void testExecutorValidData() {
+        Collection<ApiDocRegisterDTO> apiDocRegisterDTOList = new ArrayList<>();
 
-		executorSubscriber.executor(apiDocRegisterDTOList);
+        ApiDocRegisterDTO apiDocRegisterDTO =
+            ApiDocRegisterDTO.builder().contextPath("/test").apiPath("/api").httpMethod(0).consume("application/json").produce("application/json").version("V0.01").rpcType("http").state(1).ext("test")
+                .apiOwner("test").apiDesc("test").apiSource(0).document("test").eventType(EventType.UPDATED).tags(new ArrayList<>()).build();
+        apiDocRegisterDTOList.add(apiDocRegisterDTO);
 
-		verify(shenyuClientRegisterRepository, times(1)).persistApiDoc(apiDocRegisterDTO);
-	}
+        executorSubscriber.executor(apiDocRegisterDTOList);
+
+        verify(shenyuClientRegisterRepository, times(1)).persistApiDoc(apiDocRegisterDTO);
+    }
 
 }
