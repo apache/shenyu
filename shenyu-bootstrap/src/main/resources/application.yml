@@ -74,7 +74,7 @@ shenyu:
       maximumSize: 10000 # max size in cache
     ## selector L2 cache, use trie as L2 cache
     trie:
-      enabled: true
+      enabled: false
       cacheSize: 128 # the number of plug-ins
       matchMode: antPathMatch
   ruleMatchCache:
@@ -85,7 +85,7 @@ shenyu:
       maximumSize: 65536 # max size in cache
     ## rule L2 cache, use trie as L2 cache
     trie:
-      enabled: true
+      enabled: false
       cacheSize: 1024 # the number of selectors
       matchMode: antPathMatch
   netty:
