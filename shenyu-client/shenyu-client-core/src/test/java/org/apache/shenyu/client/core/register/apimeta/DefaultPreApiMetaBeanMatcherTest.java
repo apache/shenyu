@@ -15,18 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register.apimeta;
+package org.apache.shenyu.client.core.register.apimeta;
 
+import org.apache.shenyu.client.core.annotation.ApiMeta;
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.client.core.register.matcher.apimeta.DefaultPreApiMetaBeanMatcher;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class SpringMvcPreApiMetaBeanMatcherTest {
+public class DefaultPreApiMetaBeanMatcherTest {
 
-    private final SpringMvcPreApiMetaBeanMatcher preApiMetaBeanMatcher = new SpringMvcPreApiMetaBeanMatcher();
+    private final DefaultPreApiMetaBeanMatcher<Object> preApiMetaBeanMatcher = new DefaultPreApiMetaBeanMatcher();
 
     @Test
     public void testBeanMatchWithAnnotation() throws Exception {
@@ -57,14 +58,14 @@ public class SpringMvcPreApiMetaBeanMatcherTest {
         return apiBean;
     }
 
-    @ShenyuSpringMvcClient
+    @ApiMeta
     static class TestBeanMatchClass {
     }
 
     static class TestBeanMatchWithoutAnnotationClass {
     }
 
-    @ShenyuSpringMvcClient("/**")
+    @ApiMeta("/**")
     static class TestBeanMatchWithStarAnnotationClass {
     }
 

@@ -15,13 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.parser;
+package org.apache.shenyu.client.core.register.matcher.apidoc;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.client.core.register.matcher.AnnotatedApiBeanMatcher;
+import org.apache.shenyu.client.core.register.matcher.Matcher;
 
-import java.util.List;
+public class DefaultApiDocBeanMatcher<T> implements Matcher<ApiBean<T>> {
 
-public interface ApiDocDefinitionParser<T> extends Parser<List<ApiDocRegisterDTO>, ApiBean<T>.ApiDefinition> {
+    private final Matcher<ApiBean<T>> matcher;
 
+    public DefaultApiDocBeanMatcher() {
+        matcher = new AnnotatedApiBeanMatcher<>(ApiModule.class);
+    }
+
+    @Override
+    public boolean match(final ApiBean<T> element) {
+        return matcher.match(element);
+    }
 }

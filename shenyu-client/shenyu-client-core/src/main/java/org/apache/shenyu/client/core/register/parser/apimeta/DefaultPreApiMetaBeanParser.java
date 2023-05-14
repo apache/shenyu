@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register.apimeta;
+package org.apache.shenyu.client.core.register.parser.apimeta;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.annotation.ApiMeta;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
-import org.apache.shenyu.client.core.register.parser.PreApiMetaBeanParser;
-import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
-public class SpringMvcPreApiMetaBeanParser implements PreApiMetaBeanParser<Object> {
+public class DefaultPreApiMetaBeanParser<T> implements PreApiMetaBeanParser<T> {
 
     private final Boolean addPrefixed;
 
@@ -36,7 +35,7 @@ public class SpringMvcPreApiMetaBeanParser implements PreApiMetaBeanParser<Objec
 
     private final Integer port;
 
-    public SpringMvcPreApiMetaBeanParser(final ClientRegisterConfig clientRegisterConfig) {
+    public DefaultPreApiMetaBeanParser(final ClientRegisterConfig clientRegisterConfig) {
         this.addPrefixed = clientRegisterConfig.getAddPrefixed();
         this.appName = clientRegisterConfig.getAppName();
         this.host = clientRegisterConfig.getHost();
@@ -44,13 +43,13 @@ public class SpringMvcPreApiMetaBeanParser implements PreApiMetaBeanParser<Objec
     }
 
     @Override
-    public MetaDataRegisterDTO parse(final ApiBean<Object> apiBean) {
+    public MetaDataRegisterDTO parse(final ApiBean<T> apiBean) {
         return apiBean2ApiMeta(apiBean);
     }
 
-    private MetaDataRegisterDTO apiBean2ApiMeta(final ApiBean<Object> apiBean) {
+    private MetaDataRegisterDTO apiBean2ApiMeta(final ApiBean<T> apiBean) {
 
-        ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
+        ApiMeta annotation = apiBean.getAnnotation(ApiMeta.class);
         String apiPath = PathUtils.pathJoin(apiBean.getContextPath(), annotation.path());
 
         return MetaDataRegisterDTO.builder()

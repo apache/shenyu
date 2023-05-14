@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.parser;
+package org.apache.shenyu.client.core.register.parser.apidoc;
 
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.register.ApiBean;

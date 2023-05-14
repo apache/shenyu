@@ -23,42 +23,49 @@ public interface ClientRegisterConfig {
 
     /**
      * Gets port.
+     *
      * @return port
      */
     Integer getPort();
 
     /**
      * Gets host.
+     *
      * @return host
      */
     String getHost();
 
     /**
      * Gets appName.
+     *
      * @return appName
      */
     String getAppName();
 
     /**
      * Gets contextPath.
+     *
      * @return contextPath
      */
     String getContextPath();
 
     /**
      * Gets ipAndPort.
+     *
      * @return ipAndPort
      */
     String getIpAndPort();
 
     /**
      * Gets addPrefixed.
+     *
      * @return dddPrefixed
      */
     Boolean getAddPrefixed();
 
     /**
      * Gets rpcTypeEnum.
+     *
      * @return rpcTypeEnum
      */
     RpcTypeEnum getRpcTypeEnum();

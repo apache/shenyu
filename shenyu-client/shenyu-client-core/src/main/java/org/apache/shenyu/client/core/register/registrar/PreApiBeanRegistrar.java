@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.client.core.register.registrar;
 
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.Matcher;
 import org.apache.shenyu.client.core.register.parser.Parser;
-import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
 public class PreApiBeanRegistrar<T, D extends DataTypeParent> extends AbstractRegistrar<ApiBean<T>> {

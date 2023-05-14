@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register.apimeta;
+package org.apache.shenyu.client.core.register.parser.apimeta;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.annotation.ApiMeta;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
-import org.apache.shenyu.client.core.register.parser.ApiMetaDefinitionParser;
-import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -30,7 +29,7 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import java.util.List;
 import java.util.Objects;
 
-public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser<Object> {
+public class DefaultApiMetaDefinitionParser<T> implements ApiMetaDefinitionParser<T> {
 
     private final Boolean addPrefixed;
 
@@ -40,7 +39,7 @@ public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser
 
     private final Integer port;
 
-    public SpringMvcApiMetaDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
+    public DefaultApiMetaDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
 
         this.addPrefixed = clientRegisterConfig.getAddPrefixed();
         this.appName = clientRegisterConfig.getAppName();
@@ -50,9 +49,9 @@ public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser
     }
 
     @Override
-    public List<MetaDataRegisterDTO> parse(final ApiBean<Object>.ApiDefinition apiDefinition) {
+    public List<MetaDataRegisterDTO> parse(final ApiBean<T>.ApiDefinition apiDefinition) {
 
-        ShenyuSpringMvcClient methodAnnotation = apiDefinition.getAnnotation(ShenyuSpringMvcClient.class);
+        ApiMeta methodAnnotation = apiDefinition.getAnnotation(ApiMeta.class);
 
         String methodPath = Objects.isNull(methodAnnotation) ? StringUtils.EMPTY : methodAnnotation.path();
 
@@ -62,8 +61,8 @@ public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser
 
         String apiPath = PathUtils.pathJoin(apiDefinition.getContextPath(), apiDefinition.getBeanPath(), methodPath);
 
-        ShenyuSpringMvcClient classAnnotation = apiDefinition.getApiBean()
-                .getAnnotation(ShenyuSpringMvcClient.class);
+        ApiMeta classAnnotation = apiDefinition.getApiBean()
+                .getAnnotation(ApiMeta.class);
 
         String pathDesc = Objects.isNull(methodAnnotation) ? classAnnotation.desc() : methodAnnotation.desc();
 

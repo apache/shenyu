@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.parser;
+package org.apache.shenyu.client.core.register.parser.apidoc;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

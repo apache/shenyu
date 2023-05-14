@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.parser;
+package org.apache.shenyu.client.core.register.parser.apidoc;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
@@ -25,14 +25,14 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 
 import java.util.List;
 
-public class NoHttpApiDocDefinitionParser extends AbstractApiDocDefinitionParser<Object> {
+public class NoHttpApiDocDefinitionParser<T> extends AbstractApiDocDefinitionParser<T> {
 
     public NoHttpApiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
         super(clientRegisterConfig);
     }
 
     @Override
-    protected HttpApiSpecificInfo doParse(final ApiBean<Object>.ApiDefinition apiDefinition) {
+    protected HttpApiSpecificInfo doParse(final ApiBean<T>.ApiDefinition apiDefinition) {
 
         String produce = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
 

@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register.apimeta;
+package org.apache.shenyu.client.core.register.apimeta;
 
+import org.apache.shenyu.client.core.annotation.ApiMeta;
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.client.core.register.matcher.apimeta.DefaultApiMetaDefinitionMatcher;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,10 +29,10 @@ import java.lang.reflect.Method;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class SpringMvcApiMetaDefinitionMatcherTest {
+public class DefaultApiMetaDefinitionMatcherTest {
 
-    private final SpringMvcApiMetaDefinitionMatcher apiDefinitionMetaMatcher =
-            new SpringMvcApiMetaDefinitionMatcher();
+    private final DefaultApiMetaDefinitionMatcher<Object> apiDefinitionMetaMatcher =
+            new DefaultApiMetaDefinitionMatcher<>();
 
     @Test
     public void testMatchAnnotatedClass() throws Exception {
@@ -73,7 +74,7 @@ public class SpringMvcApiMetaDefinitionMatcherTest {
         return apiBean.getApiDefinitions().get(0);
     }
 
-    @ShenyuSpringMvcClient
+    @ApiMeta
     @RestController
     @RequestMapping("/testClass")
     static class TestBeanMatchAnnotatedClass {
@@ -93,7 +94,7 @@ public class SpringMvcApiMetaDefinitionMatcherTest {
         }
 
         @RequestMapping("/testAnnotatedMethod")
-        @ShenyuSpringMvcClient("/testAnnotatedMethodo")
+        @ApiMeta("/testAnnotatedMethodo")
         public String testAnnotatedMethod() {
             return "";
         }

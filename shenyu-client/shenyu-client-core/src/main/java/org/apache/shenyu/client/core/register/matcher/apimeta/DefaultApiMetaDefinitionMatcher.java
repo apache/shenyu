@@ -15,21 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.matcher;
+package org.apache.shenyu.client.core.register.matcher.apimeta;
 
-import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.core.annotation.ApiMeta;
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.matcher.AnnotatedApiDefinitionMatcher;
+import org.apache.shenyu.client.core.register.matcher.Matcher;
 
-public class ApiDocDefinitionMatcher implements Matcher<ApiBean<Object>.ApiDefinition> {
+import java.util.Objects;
 
-    private final Matcher<ApiBean<Object>.ApiDefinition> matcher;
+public class DefaultApiMetaDefinitionMatcher<T> implements Matcher<ApiBean<T>.ApiDefinition> {
 
-    public ApiDocDefinitionMatcher() {
-        this.matcher = new AnnotatedApiDefinitionMatcher<>(ApiDoc.class);
+    private final Matcher<ApiBean<T>.ApiDefinition> matcher;
+
+    public DefaultApiMetaDefinitionMatcher() {
+
+        this.matcher = new AnnotatedApiDefinitionMatcher<T>(ApiMeta.class)
+                .or(api -> Objects.nonNull(api.getApiBean().getAnnotation(ApiMeta.class)));
     }
 
     @Override
-    public boolean match(final ApiBean<Object>.ApiDefinition element) {
+    public boolean match(final ApiBean<T>.ApiDefinition element) {
         return matcher.match(element);
     }
 }

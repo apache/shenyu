@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.annotation;
+package org.apache.shenyu.client.core.annotation;
 
-import org.apache.shenyu.client.core.annotation.ApiMeta;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
@@ -25,20 +24,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * The interface shenyu client.
- */
-@Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
-@ApiMeta
-public @interface ShenyuSpringMvcClient {
-    
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ApiMeta {
+
     /**
      * Path string.
      *
      * @return the string
      */
-    @AliasFor(annotation = ApiMeta.class)
+    @AliasFor(attribute = "path")
     String value() default "";
 
     /**
@@ -46,7 +41,7 @@ public @interface ShenyuSpringMvcClient {
      *
      * @return the string
      */
-    @AliasFor(annotation = ApiMeta.class)
+    @AliasFor(attribute = "value")
     String path() default "";
 
     /**
@@ -54,15 +49,13 @@ public @interface ShenyuSpringMvcClient {
      *
      * @return the string
      */
-    @AliasFor(annotation = ApiMeta.class)
     String ruleName() default "";
-    
+
     /**
      * Desc string.
      *
      * @return String string
      */
-    @AliasFor(annotation = ApiMeta.class)
     String desc() default "";
 
     /**
@@ -70,14 +63,12 @@ public @interface ShenyuSpringMvcClient {
      *
      * @return the boolean
      */
-    @AliasFor(annotation = ApiMeta.class)
     boolean enabled() default true;
-    
+
     /**
      * Register meta data boolean.
      *
      * @return the boolean
      */
-    @AliasFor(annotation = ApiMeta.class)
     boolean registerMetaData() default true;
 }

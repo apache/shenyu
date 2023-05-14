@@ -15,21 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register.apimeta;
+package org.apache.shenyu.client.core.register.matcher.apidoc;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.core.register.ApiBean;
+import org.apache.shenyu.client.core.register.matcher.AnnotatedApiDefinitionMatcher;
 import org.apache.shenyu.client.core.register.matcher.Matcher;
-import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 
-public class SpringMvcApiMetaBeanMatcher implements Matcher<ApiBean<Object>> {
+public class DefaultApiDocDefinitionMatcher<T> implements Matcher<ApiBean<T>.ApiDefinition> {
 
-    @Override
-    public boolean match(final ApiBean<Object> element) {
-        ShenyuSpringMvcClient annotation = element.getAnnotation(ShenyuSpringMvcClient.class);
-        if (annotation != null) {
-            return !annotation.path().endsWith("/**");
-        }
-        return true;
+    private final Matcher<ApiBean<T>.ApiDefinition> matcher;
+
+    public DefaultApiDocDefinitionMatcher() {
+        this.matcher = new AnnotatedApiDefinitionMatcher<>(ApiDoc.class);
     }
 
+    @Override
+    public boolean match(final ApiBean<T>.ApiDefinition element) {
+        return matcher.match(element);
+    }
 }

@@ -15,13 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.parser;
+package org.apache.shenyu.client.core.register.matcher.apimeta;
 
+import org.apache.shenyu.client.core.annotation.ApiMeta;
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.client.core.register.matcher.Matcher;
 
-import java.util.List;
+public class DefaultPreApiMetaBeanMatcher<T> implements Matcher<ApiBean<T>> {
 
-public interface ApiMetaDefinitionParser<T> extends Parser<List<MetaDataRegisterDTO>, ApiBean<T>.ApiDefinition> {
-
+    @Override
+    public boolean match(final ApiBean<T> element) {
+        ApiMeta annotation = element.getAnnotation(ApiMeta.class);
+        return annotation != null && annotation.path().endsWith("/**");
+    }
 }
