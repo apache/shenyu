@@ -32,13 +32,13 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @ApiMeta
 public @interface ShenyuSpringMvcClient {
-    
+
     /**
      * Path string.
      *
      * @return the string
      */
-    @AliasFor(annotation = ApiMeta.class)
+    @AliasFor(attribute = "path")
     String value() default "";
 
     /**
@@ -46,7 +46,7 @@ public @interface ShenyuSpringMvcClient {
      *
      * @return the string
      */
-    @AliasFor(annotation = ApiMeta.class)
+    @AliasFor(attribute = "value")
     String path() default "";
 
     /**
@@ -56,7 +56,7 @@ public @interface ShenyuSpringMvcClient {
      */
     @AliasFor(annotation = ApiMeta.class)
     String ruleName() default "";
-    
+
     /**
      * Desc string.
      *
@@ -72,7 +72,7 @@ public @interface ShenyuSpringMvcClient {
      */
     @AliasFor(annotation = ApiMeta.class)
     boolean enabled() default true;
-    
+
     /**
      * Register meta data boolean.
      *
