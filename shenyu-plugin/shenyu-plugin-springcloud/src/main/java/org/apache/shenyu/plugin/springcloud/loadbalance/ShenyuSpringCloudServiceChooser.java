@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.springcloud.loadbalance;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -149,7 +150,7 @@ public final class ShenyuSpringCloudServiceChooser {
         return Upstream.builder().url(upstreamUrl)
                 .protocol(protocol)
                 .weight(50)
-                .warmup(10)
+                .warmup(Constants.WARMUP_TIME)
                 .timestamp(0)
                 .build();
     }

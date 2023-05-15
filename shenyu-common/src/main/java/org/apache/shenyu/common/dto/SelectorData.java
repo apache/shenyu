@@ -54,7 +54,7 @@ public class SelectorData {
 
     private Boolean logged;
 
-    private Boolean continued;
+    private Boolean continued = Boolean.TRUE;
 
     private String handle;
 
@@ -269,6 +269,9 @@ public class SelectorData {
      * @return continued
      */
     public Boolean getContinued() {
+        if (Objects.isNull(continued)) {
+            return true;
+        }
         return continued;
     }
 

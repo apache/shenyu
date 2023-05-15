@@ -33,6 +33,7 @@
         <module>shenyu-spring-boot-starter-client</module>
         <module>shenyu-spring-boot-starter-instance</module>
         <module>shenyu-spring-boot-starter-sdk</module>
+        <module>shenyu-spring-boot-starter-k8s</module>
     </modules>
 
     <dependencies>

@@ -35,97 +35,118 @@ public class CryptorRuleHandler implements RuleHandle {
     private String mapType;
 
     private String way;
-
+    
+    /**
+     * New instance cryptor rule handler.
+     *
+     * @return the cryptor rule handler
+     */
+    public static CryptorRuleHandler newInstance() {
+        return new CryptorRuleHandler();
+    }
+    
     /**
      * get strategyName.
-     * @return strategyName
+     *
+     * @return strategyName strategy name
      */
     public String getStrategyName() {
         return strategyName;
     }
-
+    
     /**
      * set strategyName.
+     *
      * @param strategyName strategyName
      */
     public void setStrategyName(final String strategyName) {
         this.strategyName = strategyName;
     }
-
+    
     /**
      * get decryptKey.
-     * @return decryptKey
+     *
+     * @return decryptKey decrypt key
      */
     public String getDecryptKey() {
         return decryptKey;
     }
-
+    
     /**
      * set decryptKey.
+     *
      * @param decryptKey decryptKey
      */
     public void setDecryptKey(final String decryptKey) {
         this.decryptKey = decryptKey;
     }
-
+    
     /**
      * get encryptKey.
-     * @return encryptKey
+     *
+     * @return encryptKey encrypt key
      */
     public String getEncryptKey() {
         return encryptKey;
     }
-
+    
     /**
      * set encryptKey.
+     *
      * @param encryptKey encryptKey
      */
     public void setEncryptKey(final String encryptKey) {
         this.encryptKey = encryptKey;
     }
-
+    
     /**
      * get fieldNames.
-     * @return fieldNames
+     *
+     * @return fieldNames field names
      */
     public String getFieldNames() {
         return fieldNames;
     }
-
+    
     /**
      * set fieldNames.
+     *
      * @param fieldNames fieldNames
      */
     public void setFieldNames(final String fieldNames) {
         this.fieldNames = fieldNames;
     }
-
+    
     /**
      * get mapType.
-     * @return mapType
+     *
+     * @return mapType map type
      */
     public String getMapType() {
         return mapType;
     }
-
+    
     /**
      * set mapType.
+     *
      * @param mapType mapType
      */
     public void setMapType(final String mapType) {
         this.mapType = mapType;
     }
-
+    
     /**
      * set way.
-     * @return way
+     *
+     * @return way way
      */
     public String getWay() {
         return way;
     }
-
+    
     /**
      * set way.
+     *
      * @param way way
      */
     public void setWay(final String way) {

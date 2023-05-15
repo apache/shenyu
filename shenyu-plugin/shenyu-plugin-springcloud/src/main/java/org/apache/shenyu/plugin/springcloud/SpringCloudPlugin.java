@@ -119,11 +119,7 @@ public class SpringCloudPlugin extends AbstractShenyuPlugin {
     }
     
     private SpringCloudRuleHandle buildRuleHandle(final RuleData rule) {
-        if (StringUtils.isNotEmpty(rule.getId())) {
-            return SpringCloudPluginDataHandler.RULE_CACHED.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        } else {
-            return defaultRuleHandle;
-        }
+        return SpringCloudPluginDataHandler.RULE_CACHED.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
 
     private void setDomain(final URI uri, final ServerWebExchange exchange) {
