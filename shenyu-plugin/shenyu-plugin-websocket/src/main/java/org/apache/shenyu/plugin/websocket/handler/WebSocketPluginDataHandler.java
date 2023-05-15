@@ -18,10 +18,11 @@
 package org.apache.shenyu.plugin.websocket.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
+import org.apache.shenyu.common.dto.convert.selector.WebSocketUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
@@ -49,11 +50,15 @@ public class WebSocketPluginDataHandler implements PluginDataHandler {
         if (CollectionUtils.isNotEmpty(upstreamList)) {
             UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(upstreamList));
         }
+        if (!selectorData.getContinued()) {
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), WebSocketRuleHandle.newDefaultInstance());
+        }
     }
     
     @Override
     public void removeSelector(final SelectorData selectorData) {
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
     }
     
     @Override

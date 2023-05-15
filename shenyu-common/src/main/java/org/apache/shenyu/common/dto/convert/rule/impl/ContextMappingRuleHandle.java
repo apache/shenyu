@@ -31,16 +31,25 @@ public class ContextMappingRuleHandle implements RuleHandle {
     private String contextPath;
 
     private String addPrefix;
-
+    
+    /**
+     * New instance context mapping rule handle.
+     *
+     * @return the context mapping rule handle
+     */
+    public static ContextMappingRuleHandle newInstance() {
+        return new ContextMappingRuleHandle();
+    }
+    
     /**
      * get prefix forward status.
      *
-     * @return prefix-forward status
+     * @return prefix -forward status
      */
     public boolean getAddPrefixed() {
         return addPrefixed;
     }
-
+    
     /**
      * set prefix forward.
      *
@@ -49,16 +58,16 @@ public class ContextMappingRuleHandle implements RuleHandle {
     public void setAddPrefixed(final boolean addPrefixed) {
         this.addPrefixed = addPrefixed;
     }
-
+    
     /**
      * get contextPath.
      *
-     * @return contextPath
+     * @return contextPath context path
      */
     public String getContextPath() {
         return contextPath;
     }
-
+    
     /**
      * set contextPath.
      *
@@ -67,16 +76,16 @@ public class ContextMappingRuleHandle implements RuleHandle {
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
     }
-
+    
     /**
      * get addPrefix.
      *
-     * @return addPrefix
+     * @return addPrefix add prefix
      */
     public String getAddPrefix() {
         return addPrefix;
     }
-
+    
     /**
      * set addPrefix.
      *

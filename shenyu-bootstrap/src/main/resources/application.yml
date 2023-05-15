@@ -116,6 +116,19 @@ shenyu:
         allocType: "pooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
+      sni:
+        enabled: false
+        mod: k8s #manul
+        defaultK8sSecretNamespace: shenyu-ingress
+        defaultK8sSecretName: default-cert
+#        mod: manual
+#        certificates:
+#          - domain: 'localhost'
+#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
+#          - domain: 'example.com'
+#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
 #  httpclient:
 #    strategy: webClient
 #    connectTimeout: 45000

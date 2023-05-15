@@ -45,6 +45,9 @@ public class GeneralContextPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         Map<String, List<GeneralContextHandle>> generalContextHandleMap = GeneralContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        if (generalContextHandleMap.isEmpty()) {
+            return chain.execute(exchange);
+        }
         Map<String, Map<String, String>> generalContextMap = new HashMap<>();
         HttpHeaders headers = exchange.getRequest().getHeaders();
         generalContextHandleMap.forEach((rpcType, v) -> {
