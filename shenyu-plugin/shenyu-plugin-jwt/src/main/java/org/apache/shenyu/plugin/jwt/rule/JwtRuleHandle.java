@@ -31,7 +31,7 @@ import java.util.Objects;
 
 public class JwtRuleHandle implements RuleHandle {
     
-    private String handleType = "default";
+    private String handleType;
 
     /**
      * get handleType.
@@ -64,7 +64,7 @@ public class JwtRuleHandle implements RuleHandle {
         Map<String, Object> handleMap = GsonUtils.getInstance().convertToMap(handleJson);
         String handleType = null;
         if (Objects.nonNull(handleMap)) {
-            handleType = handleMap.get("handleType").toString();
+            handleType = handleMap.getOrDefault("handleType", "default").toString();
         }
         JwtConvertStrategy convertStrategy = JwtConvertStrategyFactory.newInstance(handleType);
         return convertStrategy.parseHandleJson(handleJson);

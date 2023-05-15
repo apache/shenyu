@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.jwt.strategy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
 
 public class JwtConvertStrategyFactory {
@@ -28,6 +29,10 @@ public class JwtConvertStrategyFactory {
      * @return jwtConvertStrategy
      */
     public static JwtConvertStrategy newInstance(final String handleType) {
-        return ExtensionLoader.getExtensionLoader(JwtConvertStrategy.class).getJoin(handleType);
+        String type = handleType;
+        if (StringUtils.isBlank(type)) {
+            type = "default";
+        }
+        return ExtensionLoader.getExtensionLoader(JwtConvertStrategy.class).getJoin(type);
     }
 }
