@@ -37,6 +37,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * MockPlugin.
@@ -48,6 +49,9 @@ public class MockPlugin extends AbstractShenyuPlugin {
                                    final SelectorData selector, final RuleData rule) {
         
         MockHandle mockHandle = MockPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        if (Objects.isNull(mockHandle)) {
+            return chain.execute(exchange);
+        }
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
         exchange.getResponse().setStatusCode(HttpStatus.valueOf(mockHandle.getHttpStatusCode()));
         
