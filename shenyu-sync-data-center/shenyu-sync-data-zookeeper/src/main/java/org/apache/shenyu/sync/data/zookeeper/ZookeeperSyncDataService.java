@@ -333,18 +333,25 @@ public class ZookeeperSyncDataService implements SyncDataService {
             if (!path.contains(DefaultPathConstants.PROXY_SELECTOR_DATA)) {
                 return;
             }
-
+            String[] pathInfoArray = path.split("/");
+            if (pathInfoArray.length != 5) {
+                return;
+            }
+            String pluginName = pathInfoArray[pathInfoArray.length - 2];
+            String proxySelectorName = pathInfoArray[pathInfoArray.length - 1];
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
-                final String realPath = path.substring(DefaultPathConstants.PROXY_SELECTOR_DATA.length() + 1);
                 ProxySelectorData proxySelectorData = new ProxySelectorData();
-                proxySelectorData.setName(realPath);
+                proxySelectorData.setPluginName(pluginName);
+                proxySelectorData.setName(proxySelectorName);
                 unCacheProxySelectorData(proxySelectorData);
                 return;
             }
-
+            ProxySelectorData proxySelectorData = GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), ProxySelectorData.class);
+            proxySelectorData.setName(proxySelectorName);
+            proxySelectorData.setPluginName(pluginName);
             // create or update
             Optional.ofNullable(data)
-                    .ifPresent(e -> cacheProxySelectorData(GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), ProxySelectorData.class)));
+                    .ifPresent(e -> cacheProxySelectorData(proxySelectorData));
 
         }
     }

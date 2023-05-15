@@ -40,13 +40,13 @@ public class CommonProxySelectorDataSubscriber implements ProxySelectorDataSubsc
 
     @Override
     public void onSubscribe(final ProxySelectorData proxySelectorData, final List<DiscoveryUpstream> upstreamsList) {
-        Optional.ofNullable(handlerMap.get(proxySelectorData.getName()))
+        Optional.ofNullable(handlerMap.get(proxySelectorData.getPluginName()))
                 .ifPresent(handler -> handler.handlerProxySelector(proxySelectorData, upstreamsList));
     }
 
     @Override
     public void unSubscribe(final ProxySelectorData proxySelectorData) {
-        Optional.ofNullable(handlerMap.get(proxySelectorData.getName()))
+        Optional.ofNullable(handlerMap.get(proxySelectorData.getPluginName()))
                 .ifPresent(handler -> handler.removeProxySelector(proxySelectorData.getName()));
     }
 
