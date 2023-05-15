@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -72,9 +73,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
      * this is Template Method child has Implement your own logic.
      *
      * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
-     * @param chain    chain the current chain  {@linkplain ServerWebExchange}
+     * @param chain chain the current chain  {@linkplain ServerWebExchange}
      * @param selector selector    {@linkplain SelectorData}
-     * @param rule     rule    {@linkplain RuleData}
+     * @param rule rule    {@linkplain RuleData}
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     protected abstract Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule);
@@ -116,7 +117,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             }
         }
         printLog(selectorData, pluginName);
-        if (Objects.nonNull(selectorData.getContinued()) && !selectorData.getContinued()) {
+        if (!selectorData.getContinued()) {
             // if continued， not match rules
             return doExecute(exchange, chain, selectorData, defaultRuleData(selectorData));
         }
@@ -213,17 +214,34 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
 
-    protected RuleData defaultRuleData(final SelectorData selectorData) {
+    private RuleData defaultRuleData(final SelectorData selectorData) {
         RuleData ruleData = new RuleData();
         ruleData.setSelectorId(selectorData.getId());
         ruleData.setPluginName(selectorData.getPluginName());
+        ruleData.setId(Constants.DEFAULT_RULE);
         return ruleData;
     }
-
+    
+    /**
+     * Handle selector if null mono.
+     *
+     * @param pluginName the plugin name
+     * @param exchange the exchange
+     * @param chain the chain
+     * @return the mono
+     */
     protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
-
+    
+    /**
+     * Handle rule if null mono.
+     *
+     * @param pluginName the plugin name
+     * @param exchange the exchange
+     * @param chain the chain
+     * @return the mono
+     */
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
