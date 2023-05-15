@@ -90,7 +90,7 @@ public class OAuth2PluginTest {
         SecurityContextImpl securityContext = new SecurityContextImpl(authenticationToken);
         SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange, Mono.just(securityContext));
     
-        oAuth2Plugin.execute(exchange, chain).block(TIMEOUT);
+        oAuth2Plugin.doExecute(exchange, chain, null, null).block(TIMEOUT);
     
         assertTrue(request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION));
         assertTrue(Objects.requireNonNull(request.getHeaders().get(HttpHeaders.AUTHORIZATION)).contains("Bearer token"));

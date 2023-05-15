@@ -53,16 +53,25 @@ public class DubboRuleHandle implements RuleHandle {
      * timeout is required.
      */
     private long timeout = Constants.TIME_OUT;
-
+    
+    /**
+     * New instance dubbo rule handle.
+     *
+     * @return the dubbo rule handle
+     */
+    public static DubboRuleHandle newInstance() {
+        return new DubboRuleHandle();
+    }
+    
     /**
      * get version.
      *
-     * @return version
+     * @return version version
      */
     public String getVersion() {
         return version;
     }
-
+    
     /**
      * set version.
      *
@@ -71,16 +80,16 @@ public class DubboRuleHandle implements RuleHandle {
     public void setVersion(final String version) {
         this.version = version;
     }
-
+    
     /**
      * get group.
      *
-     * @return group
+     * @return group group
      */
     public String getGroup() {
         return group;
     }
-
+    
     /**
      * set group.
      *
@@ -89,16 +98,16 @@ public class DubboRuleHandle implements RuleHandle {
     public void setGroup(final String group) {
         this.group = group;
     }
-
+    
     /**
      * get retries.
      *
-     * @return retries
+     * @return retries retries
      */
     public Integer getRetries() {
         return retries;
     }
-
+    
     /**
      * set retries.
      *
@@ -107,7 +116,7 @@ public class DubboRuleHandle implements RuleHandle {
     public void setRetries(final Integer retries) {
         this.retries = retries;
     }
-
+    
     /**
      * Gets the value of loadbalance.
      *
@@ -116,7 +125,7 @@ public class DubboRuleHandle implements RuleHandle {
     public String getLoadbalance() {
         return loadbalance;
     }
-
+    
     /**
      * Sets the loadbalance.
      *
@@ -125,16 +134,16 @@ public class DubboRuleHandle implements RuleHandle {
     public void setLoadbalance(final String loadbalance) {
         this.loadbalance = loadbalance;
     }
-
+    
     /**
      * get timeout.
      *
-     * @return timeout
+     * @return timeout timeout
      */
     public long getTimeout() {
         return timeout;
     }
-
+    
     /**
      * set timeout.
      *

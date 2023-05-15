@@ -43,14 +43,6 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
     
     private static final Logger LOG = LoggerFactory.getLogger(ContextPathPlugin.class);
     
-    private final ContextMappingRuleHandle defaultRuleHandle;
-    
-    {
-        defaultRuleHandle = new ContextMappingRuleHandle();
-        defaultRuleHandle.setAddPrefixed(true);
-        defaultRuleHandle.setContextPath("/default");
-    }
-    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
@@ -86,11 +78,7 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
     }
     
     private ContextMappingRuleHandle buildRuleHandle(final RuleData rule) {
-        if (StringUtils.isNotEmpty(rule.getId())) {
-            return ContextPathPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        } else {
-            return defaultRuleHandle;
-        }
+        return ContextPathPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
     
     /**
