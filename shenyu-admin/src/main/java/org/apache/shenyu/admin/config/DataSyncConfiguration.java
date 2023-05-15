@@ -30,6 +30,7 @@ import org.apache.shenyu.admin.config.properties.NacosProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
 import org.apache.shenyu.admin.config.properties.ApolloProperties;
+import org.apache.shenyu.admin.controller.ConfigController;
 import org.apache.shenyu.admin.listener.DataChangedInit;
 import org.apache.shenyu.admin.listener.DataChangedListener;
 import org.apache.shenyu.admin.listener.apollo.ApolloClient;
@@ -77,6 +78,12 @@ public class DataSyncConfiguration {
         @ConditionalOnMissingBean(HttpLongPollingDataChangedListener.class)
         public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
             return new HttpLongPollingDataChangedListener(httpSyncProperties);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(ConfigController.class)
+        public ConfigController configController(final HttpLongPollingDataChangedListener httpLongPollingDataChangedListener) {
+            return new ConfigController(httpLongPollingDataChangedListener);
         }
     }
 
