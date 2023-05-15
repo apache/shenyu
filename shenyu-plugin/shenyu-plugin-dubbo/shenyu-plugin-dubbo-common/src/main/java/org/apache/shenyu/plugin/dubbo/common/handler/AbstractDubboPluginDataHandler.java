@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.dubbo.common.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -33,6 +34,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +71,9 @@ public abstract class AbstractDubboPluginDataHandler implements PluginDataHandle
 
     @Override
     public void handlerSelector(final SelectorData selectorData) {
+        if (!selectorData.getContinued()) {
+            RULE_CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), DubboRuleHandle.newInstance());
+        }
         List<DubboUpstream> dubboUpstreams = GsonUtils.getInstance().fromList(selectorData.getHandle(), DubboUpstream.class);
         if (CollectionUtils.isEmpty(dubboUpstreams)) {
             return;
@@ -89,6 +94,7 @@ public abstract class AbstractDubboPluginDataHandler implements PluginDataHandle
     public void removeSelector(final SelectorData selectorData) {
         SELECTOR_CACHED_HANDLE.get().removeHandle(selectorData.getId());
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
+        RULE_CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
     }
 
     @Override

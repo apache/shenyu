@@ -40,7 +40,12 @@ public class KeyAuthPluginDataHandler implements PluginDataHandler {
             CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), ruleHandle);
         });
     }
-
+    
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+    }
+    
     @Override
     public String pluginNamed() {
         return PluginEnum.KEY_AUTH.getName();

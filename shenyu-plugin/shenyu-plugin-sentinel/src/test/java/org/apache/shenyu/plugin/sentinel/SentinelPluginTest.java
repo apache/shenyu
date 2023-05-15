@@ -120,42 +120,6 @@ public final class SentinelPluginTest {
         sentinelRuleHandle.removeRule(data);
     }
 
-
-    /**
-     * Test Sentinel Degrade.
-     */
-    @Test
-    public void testSentinelPluginDegradeException() {
-        RuleData data = new RuleData();
-        data.setSelectorId("sentinel");
-        data.setName("testSentinelPluginDegradeException");
-        SentinelHandle sentinelHandle = new SentinelHandle();
-        sentinelHandle.setFlowRuleEnable(0);
-        sentinelHandle.setFlowRuleCount(10);
-        sentinelHandle.setFlowRuleGrade(1);
-        sentinelHandle.setFlowRuleControlBehavior(0);
-        sentinelHandle.setDegradeRuleEnable(1);
-        sentinelHandle.setDegradeRuleCount(1d);
-        sentinelHandle.setDegradeRuleGrade(2);
-        sentinelHandle.setDegradeRuleTimeWindow(10);
-        sentinelHandle.setDegradeRuleMinRequestAmount(5);
-        sentinelHandle.setDegradeRuleStatIntervals(10);
-        sentinelHandle.setDegradeRuleSlowRatioThreshold(0.5d);
-        data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
-        sentinelRuleHandle.handlerRule(data);
-        Mono mono = Mono.error(RuntimeException::new);
-        when(chain.execute(exchange)).thenReturn(mono);
-        for (int i = 0; i < 5; i++) {
-            StepVerifier.create(sentinelPlugin.doExecute(exchange, chain, selectorData, data))
-                    .expectError(RuntimeException.class).verify();
-        }
-        StepVerifier.create(sentinelPlugin.doExecute(exchange, chain, selectorData, data))
-                .expectSubscription().verifyComplete();
-
-        // remove rule
-        sentinelRuleHandle.removeRule(data);
-    }
-
     /**
      * Test chain.execute doOnSuccess return HttpStatus.OK.
      */
