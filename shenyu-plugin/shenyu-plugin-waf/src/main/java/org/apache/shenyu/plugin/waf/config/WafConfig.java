@@ -17,15 +17,11 @@
 
 package org.apache.shenyu.plugin.waf.config;
 
-import java.io.Serializable;
-
 /**
  * The type Waf config.
  */
-public class WafConfig implements Serializable {
-
-    private static final long serialVersionUID = 96834909685183123L;
-
+public class WafConfig {
+    
     /**
      * black or mixed.
      * default is black; mixed .

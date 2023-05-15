@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.plugin.ratelimiter.handler;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RateLimiterHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -61,7 +63,19 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
             }
         }
     }
-
+    
+    @Override
+    public void handlerSelector(final SelectorData selectorData) {
+        if (!selectorData.getContinued()) {
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), RateLimiterHandle.newDefaultInstance());
+        }
+    }
+    
+    @Override
+    public void removeSelector(final SelectorData selectorData) {
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
+    }
+    
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
