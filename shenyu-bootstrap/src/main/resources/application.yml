@@ -62,8 +62,17 @@ eureka:
 
 management:
   health:
-    defaults:
+    redis:
       enabled: false
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*" # or health,info
+        
 
 shenyu:
   selectorMatchCache:
@@ -257,7 +266,7 @@ shenyu:
       - /fallback/resilience4j
       - /fallback/sentinel
   health:
-    enabled: false
+    enabled: true
     paths:
       - /actuator
       - /health_check
