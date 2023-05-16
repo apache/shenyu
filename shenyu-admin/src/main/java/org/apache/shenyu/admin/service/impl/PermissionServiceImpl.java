@@ -35,7 +35,7 @@ import org.apache.shenyu.admin.model.vo.PermissionMenuVO.AuthPerm;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.utils.JwtUtils;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;

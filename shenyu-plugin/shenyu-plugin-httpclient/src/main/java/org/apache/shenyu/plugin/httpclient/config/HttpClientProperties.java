@@ -512,7 +512,7 @@ public class HttpClientProperties {
         public void setMaxIdleTime(final Long maxIdleTime) {
             this.maxIdleTime = maxIdleTime;
         }
-
+        
         /**
          * The enum Pool type.
          */

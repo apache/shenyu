@@ -15,36 +15,43 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.event.rule;
-
-import org.apache.shenyu.admin.model.entity.RuleDO;
-import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+package org.apache.shenyu.common.enums;
 
 /**
- * SelectorUpdatedEvent.
+ * Shenyu trie cache type enum.
  */
-public class RuleUpdatedEvent extends RuleChangedEvent {
-    
-    private static final long serialVersionUID = 7530493252121753856L;
+public enum TrieCacheTypeEnum {
     
     /**
-     * Create a new {@code RuleChangedEvent}.operator is unknown.
-     *
-     * @param source   Current rule state
-     * @param before   before rule state
-     * @param operator operator
+     * selector.
      */
-    public RuleUpdatedEvent(final RuleDO source, final RuleDO before, final String operator) {
-        super(source, before, EventTypeEnum.RULE_UPDATE, operator);
+    SELECTOR("shenyuSelectorTrie"),
+    
+    /**
+     * rule.
+     */
+    RULE("shenyuRuleTrie");
+    
+    /**
+     * trie type, include selector and rule.
+     */
+    private final String trieType;
+    
+    /**
+     * trie cache type enum.
+     *
+     * @param trieType trie type
+     */
+    TrieCacheTypeEnum(final String trieType) {
+        this.trieType = trieType;
     }
     
     /**
-     * the created selector.
+     * get trie type.
      *
-     * @return selector
+     * @return trie type
      */
-    public RuleDO getRule() {
-        return (RuleDO) getSource();
+    public String getTrieType() {
+        return trieType;
     }
-    
 }

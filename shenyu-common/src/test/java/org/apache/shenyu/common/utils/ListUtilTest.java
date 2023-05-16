@@ -15,22 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.enums;
+package org.apache.shenyu.common.utils;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Collections;
 
 /**
- * Test Cases for RuleTrieEventEnum.
+ * ListUtilTest.
  */
-public class RuleTrieEventEnumTest {
+public class ListUtilTest {
 
     @Test
-    public void testEvent() {
-        Arrays.stream(RuleTrieEventEnum.values())
-                .forEach(ruleTrieEventEnum -> assertEquals(ruleTrieEventEnum, RuleTrieEventEnum.valueOf(ruleTrieEventEnum.name())));
+    public void testListUtil() {
+        Assertions.assertNotNull(ListUtil.emptyIsDefault(Collections.emptyList(), Collections.singletonList(1)));
+        Assertions.assertNotNull(ListUtil.findFirst(Collections.singletonList(1), res -> res == 1));
+        Assertions.assertNull(ListUtil.findFirst(Collections.singletonList(1), res -> false));
+        Assertions.assertNull(ListUtil.findFirst(Collections.emptyList(), res -> false));
     }
 }
