@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.handler;
+package org.apache.shenyu.sync.data.api;
 
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
@@ -23,31 +23,28 @@ import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
 import java.util.List;
 
 /**
- * ProxySelectorDataHandler.
+ * ProxySelectorDataSubscriber.
  */
-public interface ProxySelectorDataHandler {
+public interface ProxySelectorDataSubscriber {
 
     /**
-     * handlerProxySelector.
+     * On subscribe.
      *
-     * @param selectorData  selectorData
+     * @param proxySelectorData the proxySelector data
      * @param upstreamsList upstreamsList
      */
-    void handlerProxySelector(ProxySelectorData selectorData, List<DiscoveryUpstream> upstreamsList);
-
-
-    /**
-     * removeProxySelector.
-     *
-     * @param proxySelectorName proxySelectorName
-     */
-    void removeProxySelector(String proxySelectorName);
+    void onSubscribe(ProxySelectorData proxySelectorData, List<DiscoveryUpstream> upstreamsList);
 
     /**
-     * pluginName.
+     * Un subscribe.
      *
-     * @return pluginName
+     * @param proxySelectorData the proxySelector data
      */
-    String pluginName();
+    void unSubscribe(ProxySelectorData proxySelectorData);
 
+    /**
+     * Refresh.
+     */
+    default void refresh() {
+    }
 }
