@@ -15,39 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.handler;
+package org.apache.shenyu.springboot.starter.plugin.tcp;
 
-import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
-
-import java.util.List;
+import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
+import org.apache.shenyu.plugin.tcp.handler.TcpUpstreamDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * ProxySelectorDataHandler.
+ * The type mqtt plugin configuration.
  */
-public interface ProxySelectorDataHandler {
+@Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.tcp.enabled"}, havingValue = "true", matchIfMissing = true)
+public class TcpPluginConfiguration {
 
     /**
-     * handlerProxySelector.
+     * tcpProxySelectorDataHandler.
      *
-     * @param selectorData  selectorData
-     * @param upstreamsList upstreamsList
+     * @return ProxySelectorDataHandler
      */
-    void handlerProxySelector(ProxySelectorData selectorData, List<DiscoveryUpstream> upstreamsList);
-
-
-    /**
-     * removeProxySelector.
-     *
-     * @param proxySelectorName proxySelectorName
-     */
-    void removeProxySelector(String proxySelectorName);
-
-    /**
-     * pluginName.
-     *
-     * @return pluginName
-     */
-    String pluginName();
-
+    @Bean
+    public ProxySelectorDataHandler tcpProxySelectorDataHandler() {
+        return new TcpUpstreamDataHandler();
+    }
 }
