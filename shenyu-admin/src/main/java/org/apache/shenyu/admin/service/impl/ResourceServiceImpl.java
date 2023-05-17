@@ -38,7 +38,6 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 
 import java.util.List;

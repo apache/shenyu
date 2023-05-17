@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.utils;
 
+import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -34,18 +35,24 @@ import java.util.concurrent.ConcurrentHashMap;
  * i18n util
  */
 public class I18nUtil {
+
     private static Logger logger = LoggerFactory.getLogger(I18nUtil.class);
 
     public static final String HEADER_LOCATION = "Location";
 
     private static final String DEFAULT_I18N = "en";
 
-    private static final Map<String, Properties> i18nMap = new ConcurrentHashMap<>();
+    private static final Map<String, Properties> I18N_MAP = new ConcurrentHashMap<>();
 
-    public static Properties loadI18nProp(String i18n) {
+    /**
+     * loadI18nProp
+     * @param i18n language
+     * @return Properties {@link Properties}
+     */
+    public static Properties loadI18nProp(final String i18n) {
         try {
-            if (i18nMap.get(i18n) != null) {
-                return i18nMap.get(i18n);
+            if (I18N_MAP.get(i18n) != null) {
+                return I18N_MAP.get(i18n);
             }
             // build i18n prop
             String i18nFile = MessageFormat.format("i18n/message_{0}.properties", i18n);
@@ -53,7 +60,7 @@ public class I18nUtil {
             Resource resource = new ClassPathResource(i18nFile);
             EncodedResource encodedResource = new EncodedResource(resource, "UTF-8");
             Properties properties = PropertiesLoaderUtils.loadProperties(encodedResource);
-            i18nMap.put(i18n, properties);
+            I18N_MAP.put(i18n, properties);
             return properties;
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
@@ -64,8 +71,9 @@ public class I18nUtil {
     /**
      * get val of i18n key
      *
-     * @param key
-     * @return
+     * @param key  i18nKey
+     * @param i18n language
+     * @return i18n_language
      */
     public static String getString(String i18n, String key) {
         if (i18n == null) {

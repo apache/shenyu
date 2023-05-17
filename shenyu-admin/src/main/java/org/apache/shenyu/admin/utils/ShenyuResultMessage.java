@@ -68,15 +68,16 @@ public enum ShenyuResultMessage {
     DATA_PATH_IS_EXIST,
     PARAMS_ERROR,
     PLUGIN_JAR_IS_NOT_RIGHT,
-    PROXY_SELECTOR_NAME_IS_EXIST ,
-    PROXY_SELECTOR_ID_IS_NOT_EXIST ,
+    PROXY_SELECTOR_NAME_IS_EXIST,
+    PROXY_SELECTOR_ID_IS_NOT_EXIST,
     SYSTEM_IS_BUSY;
 
 
     /**
-     * getMessageContext,
-     * <p>
-     * If the configuration content does not exist, it will return enum name
+     * getI18n If the configuration content does not exist, it will return enum name
+     *
+     * @param key {@link ShenyuResultMessage}
+     * @return i18n value
      */
 
     public static String getI18n(ShenyuResultMessage key) {

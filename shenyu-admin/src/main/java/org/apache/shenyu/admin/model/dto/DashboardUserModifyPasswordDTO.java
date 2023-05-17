@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.model.constant.RegConstant;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
