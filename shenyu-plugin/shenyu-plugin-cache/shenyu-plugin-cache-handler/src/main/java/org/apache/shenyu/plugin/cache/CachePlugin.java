@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.cache;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.CacheRuleHandle;
@@ -44,8 +43,6 @@ import java.util.Optional;
  * CacheWritePlugin.
  */
 public class CachePlugin extends AbstractShenyuPlugin {
-    
-    private final CacheRuleHandle defaultRuleHandle = new CacheRuleHandle();
 
     @Override
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
@@ -83,11 +80,7 @@ public class CachePlugin extends AbstractShenyuPlugin {
     }
     
     private CacheRuleHandle buildRuleHandle(final RuleData rule) {
-        if (StringUtils.isNotEmpty(rule.getId())) {
-            return CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        } else {
-            return defaultRuleHandle;
-        }
+        return CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
 
     static class CacheHttpResponse extends ServerHttpResponseDecorator {

@@ -44,16 +44,24 @@ public class WebSocketRuleHandle implements RuleHandle {
      */
     private long timeout = Constants.TIME_OUT;
     
-
+    /**
+     * New default instance web socket rule handle.
+     *
+     * @return the web socket rule handle
+     */
+    public static WebSocketRuleHandle newDefaultInstance() {
+        return new WebSocketRuleHandle();
+    }
+    
     /**
      * get loadBalance.
      *
-     * @return loadBalance
+     * @return loadBalance load balance
      */
     public String getLoadBalance() {
         return loadBalance;
     }
-
+    
     /**
      * set loadBalance.
      *
@@ -62,16 +70,16 @@ public class WebSocketRuleHandle implements RuleHandle {
     public void setLoadBalance(final String loadBalance) {
         this.loadBalance = loadBalance;
     }
-
+    
     /**
      * get retry.
      *
-     * @return retry
+     * @return retry retry
      */
     public int getRetry() {
         return retry;
     }
-
+    
     /**
      * set retry.
      *
@@ -80,16 +88,16 @@ public class WebSocketRuleHandle implements RuleHandle {
     public void setRetry(final int retry) {
         this.retry = retry;
     }
-
+    
     /**
      * get timeout.
      *
-     * @return timeout
+     * @return timeout timeout
      */
     public long getTimeout() {
         return timeout;
     }
-
+    
     /**
      * set timeout.
      *

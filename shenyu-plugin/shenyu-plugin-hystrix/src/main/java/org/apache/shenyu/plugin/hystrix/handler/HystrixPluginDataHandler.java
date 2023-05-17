@@ -18,7 +18,9 @@
 package org.apache.shenyu.plugin.hystrix.handler;
 
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.HystrixHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -40,7 +42,19 @@ import java.util.function.Supplier;
 public class HystrixPluginDataHandler implements PluginDataHandler {
 
     public static final Supplier<CommonHandleCache<String, HystrixHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
-
+    
+    @Override
+    public void handlerSelector(final SelectorData selectorData) {
+        if (!selectorData.getContinued()) {
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), HystrixHandle.newDefaultInstance());
+        }
+    }
+    
+    @Override
+    public void removeSelector(final SelectorData selectorData) {
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
+    }
+    
     @Override
     public void handlerRule(final RuleData ruleData) {
         HystrixPropertiesFactory.reset();

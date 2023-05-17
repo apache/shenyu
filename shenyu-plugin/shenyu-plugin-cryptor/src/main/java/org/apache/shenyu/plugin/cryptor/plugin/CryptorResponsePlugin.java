@@ -38,7 +38,6 @@ public class CryptorResponsePlugin extends AbstractCryptorPlugin {
     protected Mono<Void> doExecute0(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                     final SelectorData selector, final RuleData rule, final CryptorRuleHandler ruleHandle) {
         ServerWebExchange newExchange = ServerWebExchangeUtils.rewriteResponseBody(exchange, originalBody -> convert(originalBody, ruleHandle, exchange));
-
         return chain.execute(newExchange).onErrorResume(error -> {
             if (error instanceof ResponsiveException) {
                 return WebFluxResultUtils.failedResult((ResponsiveException) error);

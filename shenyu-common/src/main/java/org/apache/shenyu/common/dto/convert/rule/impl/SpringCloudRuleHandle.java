@@ -43,16 +43,28 @@ public class SpringCloudRuleHandle implements RuleHandle {
      * {@linkplain LoadBalanceEnum}
      */
     private String loadBalance = LoadBalanceEnum.ROUND_ROBIN.getName();
-
+    
+    /**
+     * New default instance spring cloud rule handle.
+     *
+     * @return the spring cloud rule handle
+     */
+    public static SpringCloudRuleHandle newDefaultInstance() {
+        SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
+        springCloudRuleHandle.setTimeout(Constants.TIME_OUT);
+        springCloudRuleHandle.setLoadBalance(LoadBalanceEnum.ROUND_ROBIN.getName());
+        return springCloudRuleHandle;
+    }
+    
     /**
      * get path.
      *
-     * @return path
+     * @return path path
      */
     public String getPath() {
         return path;
     }
-
+    
     /**
      * set path.
      *
@@ -61,16 +73,16 @@ public class SpringCloudRuleHandle implements RuleHandle {
     public void setPath(final String path) {
         this.path = path;
     }
-
+    
     /**
      * get timeout.
      *
-     * @return timeout
+     * @return timeout timeout
      */
     public long getTimeout() {
         return timeout;
     }
-
+    
     /**
      * set timeout.
      *
@@ -79,7 +91,7 @@ public class SpringCloudRuleHandle implements RuleHandle {
     public void setTimeout(final long timeout) {
         this.timeout = timeout;
     }
-
+    
     /**
      * get loadBalance.
      *
@@ -88,7 +100,7 @@ public class SpringCloudRuleHandle implements RuleHandle {
     public String getLoadBalance() {
         return loadBalance;
     }
-
+    
     /**
      * set loadBalance.
      *
