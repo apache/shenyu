@@ -36,12 +36,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class I18nUtil {
 
-    private static final Logger LOG = LoggerFactory.getLogger(I18nUtil.class);
-
     /**
      * request header params.
      */
     public static final String HEADER_LOCATION = "Location";
+
+    private static final Logger LOG = LoggerFactory.getLogger(I18nUtil.class);
 
     /**
      * default_i18n.
