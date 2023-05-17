@@ -41,7 +41,7 @@ public class I18nUtil {
     /**
      * request header params.
      */
-    public final static String HEADER_LOCATION = "Location";
+    public static final String HEADER_LOCATION = "Location";
 
     /**
      * default_i18n.
