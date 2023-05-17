@@ -81,8 +81,13 @@ public enum ShenyuResultMessage {
      */
 
     public static String getI18n(final ShenyuResultMessage key) {
-        String i18n = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes()))
-                .getRequest().getHeader(I18nUtil.HEADER_LOCATION);
+        String i18n;
+        try {
+            i18n = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes()))
+                    .getRequest().getHeader(I18nUtil.HEADER_LOCATION);
+        } catch (Exception e) {
+            i18n = "";
+        }
         String result = I18nUtil.getString(i18n, key.name());
         if (StringUtils.isBlank(result)) {
             return key.name();
