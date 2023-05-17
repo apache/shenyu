@@ -192,7 +192,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         // publish MetaData's create event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
     }
     
     private String update(final MetaDataDTO metaDataDTO) {
@@ -209,7 +209,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         // publish AppAuthData's update event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
-        return ShenyuResultMessage.UPDATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS);
     }
     
 }

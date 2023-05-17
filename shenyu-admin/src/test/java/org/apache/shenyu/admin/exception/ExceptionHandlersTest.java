@@ -105,11 +105,19 @@ public final class ExceptionHandlersTest {
     }
 
     @Test
+    public void testValidFailExceptionHandler() {
+        ValidFailException validFailException = new ValidFailException("Test validFailException message!");
+        ShenyuAdminResult result = exceptionHandlersUnderTest.handleValidFailException(validFailException);
+        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        assertEquals(result.getMessage(), ShenyuResultMessage.getI18n(ShenyuResultMessage.PARAMETER_ERROR));
+    }
+
+    @Test
     public void testServerExceptionHandlerByDuplicateKeyException() {
         DuplicateKeyException duplicateKeyException = new DuplicateKeyException("Test duplicateKeyException message!");
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleDuplicateKeyException(duplicateKeyException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(result.getMessage(), ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
+        assertEquals(result.getMessage(), ShenyuResultMessage.getI18n(ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR));
     }
 
     @Test
@@ -117,7 +125,7 @@ public final class ExceptionHandlersTest {
         UnauthorizedException unauthorizedException = new UnauthorizedException("Test unauthorizedException");
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleUnauthorizedException(unauthorizedException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.TOKEN_NO_PERMISSION);
-        assertEquals(result.getMessage(), ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
+        assertEquals(result.getMessage(), ShenyuResultMessage.getI18n(ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION));
     }
 
     @Test
@@ -125,7 +133,7 @@ public final class ExceptionHandlersTest {
         NullPointerException nullPointerException = new NullPointerException("TEST NULL POINT EXCEPTION");
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleNullPointException(nullPointerException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.NOT_FOUND_EXCEPTION);
-        assertEquals(result.getMessage(), ShenyuResultMessage.NOT_FOUND_EXCEPTION);
+        assertEquals(result.getMessage(), ShenyuResultMessage.getI18n(ShenyuResultMessage.NOT_FOUND_EXCEPTION));
     }
 
     @Test

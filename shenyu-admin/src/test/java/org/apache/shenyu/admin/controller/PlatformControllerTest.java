@@ -88,7 +88,7 @@ public final class PlatformControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.GET, loginUri))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(CommonErrorCode.SUCCESSFUL)))
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS))))
                 .andExpect(jsonPath("$.data.id", is(loginDashboardUserVO.getId())))
                 .andReturn();
     }

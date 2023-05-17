@@ -131,7 +131,7 @@ public final class ApiServiceTest {
 
     private void testCreate() {
         ApiDTO apiDTO = buildApiDTO("");
-        assertEquals(ShenyuResultMessage.CREATE_SUCCESS, this.apiService.createOrUpdate(apiDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), this.apiService.createOrUpdate(apiDTO));
     }
 
     private ApiDTO buildApiDTO(final String id) {
@@ -159,6 +159,6 @@ public final class ApiServiceTest {
         apiDTO.setId(id);
         apiDTO.setApiPath("test");
         apiDTO.setDocument("testDocument");
-        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, this.apiService.createOrUpdate(apiDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), this.apiService.createOrUpdate(apiDTO));
     }
 }

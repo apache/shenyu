@@ -96,7 +96,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     public ShenyuAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isBlank(authApplyDTO.getAppName())
                 || (authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList()))) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.PARAMETER_ERROR));
         }
         AppAuthDO appAuthDO = AppAuthDO.create(authApplyDTO);
         appAuthMapper.insert(appAuthDO);
@@ -127,18 +127,18 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(data)));
 
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS));
     }
 
     @Override
     public ShenyuAdminResult applyUpdate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isAnyBlank(authApplyDTO.getAppKey(), authApplyDTO.getAppName())
                 || (authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList()))) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.PARAMETER_ERROR));
         }
         AppAuthDO appAuthDO = appAuthMapper.findByAppKey(authApplyDTO.getAppKey());
         if (Objects.isNull(appAuthDO)) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.APPKEY_NOT_EXIST_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.APPKEY_NOT_EXIST_ERROR));
         }
 
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
@@ -163,7 +163,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(buildByEntity(appAuthDO))));
 
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS));
     }
 
     @Override

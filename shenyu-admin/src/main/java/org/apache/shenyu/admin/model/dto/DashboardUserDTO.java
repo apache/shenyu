@@ -48,7 +48,7 @@ public class DashboardUserDTO implements Serializable {
     /**
      * user password.
      */
-    @Pattern(regexp = RegConstant.PASSWORD_RULE, message = ShenyuResultMessage.PASSWORD_MUST)
+    @Pattern(regexp = RegConstant.PASSWORD_RULE)
     private String password;
     
     /**

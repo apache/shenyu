@@ -110,7 +110,7 @@ public final class RuleControllerTest {
         String urlTemplate = "/rule?selectorId={selectorId}&name={name}&currentPage={currentPage}&pageSize={pageSize}";
         this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "168", "/http/test/**", 1, 12))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data.dataList[0].id", is(ruleVO.getId())))
                 .andReturn();
 
@@ -121,7 +121,7 @@ public final class RuleControllerTest {
         given(this.ruleService.findById("666")).willReturn(ruleVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/rule/{id}", "666"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andExpect(jsonPath("$.data.id", is(ruleVO.getId())))
                 .andReturn();
     }
@@ -163,7 +163,7 @@ public final class RuleControllerTest {
                         .content(GsonUtils.getInstance().toJson(ruleDTO))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -203,7 +203,7 @@ public final class RuleControllerTest {
                         .content(GsonUtils.getInstance().toJson(ruleDTO))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -215,7 +215,7 @@ public final class RuleControllerTest {
                         .content("[\"111\"]")
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andReturn();
     }
 

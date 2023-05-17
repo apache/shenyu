@@ -17,75 +17,62 @@
 
 package org.apache.shenyu.admin.utils;
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.Objects;
+
 /**
  * result message.
  */
-public final class ShenyuResultMessage {
-    
-    public static final String SUCCESS = "success";
-    
-    public static final String CREATE_SUCCESS = "create success";
-    
-    public static final String DELETE_SUCCESS = "delete success";
-    
-    public static final String UPDATE_SUCCESS = "update success";
-    
-    public static final String QUERY_SUCCESS = "query success";
-    
-    public static final String QUERY_FAILED = "query failed";
-    
-    public static final String DETAIL_SUCCESS = "detail success";
-    
-    public static final String DETAIL_FAILED = "detail failed";
-    
-    public static final String ENABLE_SUCCESS = "enable success";
-    
-    public static final String SYNC_SUCCESS = "sync success";
-    
-    public static final String SYNC_FAIL = "sync fail";
-    
-    public static final String ROLE_CREATE_ERROR = "can not create super role";
-    
-    public static final String DASHBOARD_USER_LOGIN_ERROR = "user not login please login first";
-    
-    public static final String DASHBOARD_QUERY_ERROR = "user info is empty";
-    
-    public static final String DASHBOARD_MODIFY_PASSWORD_ERROR = "can not modify other user password";
-    
-    public static final String DASHBOARD_CREATE_USER_ERROR = "empty user info, please confirm";
-    
-    public static final String PLATFORM_LOGIN_SUCCESS = "login dashboard user success";
-    
-    public static final String PLATFORM_LOGIN_ERROR = "username or password error";
-    
-    public static final String LOGIN_USER_DISABLE_ERROR = "the user is disabled";
-    
-    public static final String PARAMETER_ERROR = "parameter error";
-    
-    public static final String UNIQUE_INDEX_CONFLICT_ERROR = "unique index conflict, please enter again";
-    
-    public static final String APPKEY_NOT_EXIST_ERROR = "the appKey passed in does not exist";
-    
-    public static final String TOKEN_IS_ERROR = "token is error";
-    
-    public static final String TOKEN_HAS_NO_PERMISSION = "token has no permission";
-    
-    public static final String MENU_SUCCESS = "get menu and permission success";
-    
-    public static final String MENU_FAILED = "get menu and permission failed";
-    
-    public static final String SAVE_SUCCESS = "save success";
-    
-    public static final String NOT_FOUND_EXCEPTION = "not found exception";
-    
-    public static final String PASSWORD_MUST = "Minimum length of 8, including upper and lower case letters, numbers and special characters";
-    
-    public static final String PASSWORD_IS_DEFAULT = "The password is the default password and you must complete the change once";
-    
-    public static final String PASSWORD_USED_FOR_LONG_TIME = "If the password has not been changed for a long time, "
-            + "please use it after changing it to ensure the security of the super administrator account";
-    
-    private ShenyuResultMessage() {
-    
+public enum ShenyuResultMessage {
+    SUCCESS,
+    CREATE_SUCCESS,
+    DELETE_SUCCESS,
+    UPDATE_SUCCESS,
+    QUERY_SUCCESS,
+    QUERY_FAILED,
+    DETAIL_SUCCESS,
+    DETAIL_FAILED,
+    ENABLE_SUCCESS,
+    SYNC_SUCCESS,
+    SYNC_FAIL,
+    ROLE_CREATE_ERROR,
+    DASHBOARD_USER_LOGIN_ERROR,
+    DASHBOARD_QUERY_ERROR,
+    DASHBOARD_MODIFY_PASSWORD_ERROR,
+    DASHBOARD_CREATE_USER_ERROR,
+    PLATFORM_LOGIN_SUCCESS,
+    PLATFORM_LOGIN_ERROR,
+    LOGIN_USER_DISABLE_ERROR,
+    PARAMETER_ERROR,
+    UNIQUE_INDEX_CONFLICT_ERROR,
+    APPKEY_NOT_EXIST_ERROR,
+    TOKEN_IS_ERROR,
+    TOKEN_HAS_NO_PERMISSION,
+    MENU_SUCCESS,
+    MENU_FAILED,
+    SAVE_SUCCESS,
+    NOT_FOUND_EXCEPTION,
+    PASSWORD_MUST,
+    PASSWORD_IS_DEFAULT,
+    PASSWORD_USED_FOR_LONG_TIME,
+    SYSTEM_IS_BUSY;
+
+    /**
+     * getMessageContext,
+     * <p>
+     * If the configuration content does not exist, it will return enum name
+     */
+
+    public static String getI18n(ShenyuResultMessage key) {
+        String i18n = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes()))
+                .getRequest().getHeader(I18nUtil.HEADER_LOCATION);
+        String result = I18nUtil.getString(i18n, key.name());
+        if (StringUtils.isBlank(result)) {
+            return key.name();
+        }
+        return result;
     }
 }

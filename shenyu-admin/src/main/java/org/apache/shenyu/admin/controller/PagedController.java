@@ -42,7 +42,7 @@ public interface PagedController<V, T> {
      */
     @PostMapping("list/search")
     default AdminResult<PageInfo<T>> search(@RequestBody @Validated final PageCondition<V> pageCondition) {
-        return ResultUtil.ok(pageService().searchByPage(pageCondition), ShenyuResultMessage.QUERY_SUCCESS);
+        return ResultUtil.ok(pageService().searchByPage(pageCondition), ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS));
     }
     
     /**
@@ -54,7 +54,7 @@ public interface PagedController<V, T> {
     @PostMapping("list/search/adaptor")
     default AdminResult<CommonPager<T>> searchAdaptor(
             @RequestBody @Validated final PageCondition<V> pageCondition) {
-        return ResultUtil.ok(pageService().searchByPageToPager(pageCondition), ShenyuResultMessage.QUERY_SUCCESS);
+        return ResultUtil.ok(pageService().searchByPageToPager(pageCondition), ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS));
     }
     
     /**

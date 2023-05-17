@@ -104,7 +104,7 @@ public final class MetaDataControllerTest {
                 .param("currentPage", pageParameter.getCurrentPage() + "")
                 .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data.dataList[0].appName", is(metaDataVO.getAppName())))
                 .andReturn();
     }
@@ -116,7 +116,7 @@ public final class MetaDataControllerTest {
         given(this.metaDataService.findAll()).willReturn(metaDataVOS);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/findAll"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data[0].appName", is(metaDataVO.getAppName())))
                 .andReturn();
     }
@@ -131,7 +131,7 @@ public final class MetaDataControllerTest {
         given(this.metaDataService.findAllGroup()).willReturn(result);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/findAllGroup"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data." + groupName + "[0].appName", is(metaDataVO.getAppName())))
                 .andReturn();
     }
@@ -141,7 +141,7 @@ public final class MetaDataControllerTest {
         given(this.metaDataService.findById("1")).willReturn(metaDataVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/{id}", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andExpect(jsonPath("$.data.appName", is(metaDataVO.getAppName())))
                 .andReturn();
     }
@@ -161,12 +161,12 @@ public final class MetaDataControllerTest {
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
         when(SpringBeanUtils.getInstance().getBean(MetaDataMapper.class)).thenReturn(metaDataMapper);
         when(metaDataMapper.existed(metaDataDTO.getId())).thenReturn(true);
-        given(this.metaDataService.createOrUpdate(metaDataDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
+        given(this.metaDataService.createOrUpdate(metaDataDTO)).willReturn(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS));
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/createOrUpdate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -204,7 +204,7 @@ public final class MetaDataControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(ids)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andExpect(jsonPath("$.data", is(2)))
                 .andReturn();
     }
@@ -219,7 +219,7 @@ public final class MetaDataControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.ENABLE_SUCCESS))))
                 .andReturn();
     }
 

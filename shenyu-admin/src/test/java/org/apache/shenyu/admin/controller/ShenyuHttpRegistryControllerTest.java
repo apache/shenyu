@@ -75,7 +75,7 @@ public final class ShenyuHttpRegistryControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(metaDataRegisterDTO)))
                 .andExpect(status().isOk())
-                .andExpect(content().string(ShenyuResultMessage.SUCCESS))
+                .andExpect(content().string(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS)))
                 .andReturn();
     }
 
@@ -92,7 +92,7 @@ public final class ShenyuHttpRegistryControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(uriRegisterDTO)))
                 .andExpect(status().isOk())
-                .andExpect(content().string(ShenyuResultMessage.SUCCESS))
+                .andExpect(content().string(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS)))
                 .andReturn();
     }
 }

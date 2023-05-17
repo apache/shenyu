@@ -92,7 +92,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
         wrapCorsResponse(httpResponse);
         httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         ShenyuAdminResult result = ShenyuAdminResult.error(CommonErrorCode.TOKEN_ERROR,
-                ShenyuResultMessage.TOKEN_IS_ERROR);
+                ShenyuResultMessage.getI18n(ShenyuResultMessage.TOKEN_IS_ERROR));
         httpResponse.getWriter().println(GsonUtils.getInstance().toJson(result));
     }
 

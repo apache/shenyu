@@ -57,10 +57,10 @@ public class PlatformController {
         return Optional.ofNullable(loginVO)
                 .map(loginStatus -> {
                     if (Boolean.TRUE.equals(loginStatus.getEnabled())) {
-                        return ShenyuAdminResult.success(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
+                        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS), loginVO);
                     }
-                    return ShenyuAdminResult.error(ShenyuResultMessage.LOGIN_USER_DISABLE_ERROR);
-                }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
+                    return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.LOGIN_USER_DISABLE_ERROR));
+                }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.PLATFORM_LOGIN_ERROR)));
     }
 
     /**

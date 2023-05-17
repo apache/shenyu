@@ -234,7 +234,7 @@ public final class AppAuthServiceTest {
     private void testApplyCreateParameterError() {
         AuthApplyDTO newAuthApplyDTO = new AuthApplyDTO();
         ShenyuAdminResult parameterErrorResult = this.appAuthService.applyCreate(newAuthApplyDTO);
-        assertEquals(ShenyuResultMessage.PARAMETER_ERROR, parameterErrorResult.getMessage());
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.PARAMETER_ERROR), parameterErrorResult.getMessage());
     }
 
     private void testApplyCreateSuccess() {
@@ -242,17 +242,17 @@ public final class AppAuthServiceTest {
         given(this.appAuthMapper.insert(any())).willReturn(1);
         given(this.authParamMapper.save(any())).willReturn(1);
         ShenyuAdminResult successResult = this.appAuthService.applyCreate(newAuthApplyDTO);
-        assertEquals(ShenyuResultMessage.CREATE_SUCCESS, successResult.getMessage());
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), successResult.getMessage());
     }
 
     private void testApplyUpdateParameterError() {
         ShenyuAdminResult parameterErrorResult = this.appAuthService.applyUpdate(new AuthApplyDTO());
-        assertEquals(ShenyuResultMessage.PARAMETER_ERROR, parameterErrorResult.getMessage());
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.PARAMETER_ERROR), parameterErrorResult.getMessage());
     }
 
     private void testApplyUpdateAppKeyNotExist() {
         ShenyuAdminResult appKeyNotExistResult = this.appAuthService.applyUpdate(buildAuthApplyDTO());
-        assertEquals(ShenyuResultMessage.APPKEY_NOT_EXIST_ERROR, appKeyNotExistResult.getMessage());
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.APPKEY_NOT_EXIST_ERROR), appKeyNotExistResult.getMessage());
     }
 
     private void testApplyUpdateSuccess() {
@@ -272,7 +272,7 @@ public final class AppAuthServiceTest {
         given(authPathMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(Collections.singletonList(authPathDO));
         given(authParamMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(authParamDOList);
         ShenyuAdminResult successResult = this.appAuthService.applyUpdate(buildAuthApplyDTO());
-        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, successResult.getMessage());
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), successResult.getMessage());
     }
 
     private AuthApplyDTO buildAuthApplyDTO() {

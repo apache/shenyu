@@ -59,7 +59,7 @@ public class ConfigController {
             ConfigData<?> data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey));
             result.put(groupKey, data);
         }
-        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, result);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), result);
     }
     
     /**

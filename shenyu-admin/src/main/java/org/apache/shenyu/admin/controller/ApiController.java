@@ -75,7 +75,7 @@ public class ApiController {
                                        @NotNull final Integer currentPage,
                                        @NotNull final Integer pageSize) {
         CommonPager<ApiVO> commonPager = apiService.listByPage(new ApiQuery(apiPath, state, tagId, new PageParameter(currentPage, pageSize)));
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), commonPager);
     }
 
     /**
@@ -89,7 +89,7 @@ public class ApiController {
                                        @Existed(message = "api is not existed",
                                                provider = ApiMapper.class) final String id) {
         ApiVO apiVO = apiService.findById(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, apiVO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), apiVO);
     }
 
     /**
@@ -134,7 +134,7 @@ public class ApiController {
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS));
     }
 
 }

@@ -72,7 +72,7 @@ public class RoleController {
     @GetMapping("/getAllRoles")
     @RequiresPermissions("system:role:list")
     public ShenyuAdminResult selectAll() {
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, roleService.selectAll());
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), roleService.selectAll());
     }
     
     /**
@@ -89,7 +89,7 @@ public class RoleController {
                                        @RequestParam @NotNull final Integer currentPage,
                                        @RequestParam @NotNull final Integer pageSize) {
         CommonPager<RoleVO> commonPager = roleService.listByPage(new RoleQuery(roleName, new PageParameter(currentPage, pageSize)));
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), commonPager);
     }
     
     /**
@@ -105,8 +105,8 @@ public class RoleController {
                                                 message = "role is not existed") final String id) {
         RoleEditVO roleEditVO = roleService.findById(id);
         return Optional.ofNullable(roleEditVO)
-                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
-                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), item))
+                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_FAILED)));
     }
     
     /**
@@ -119,9 +119,9 @@ public class RoleController {
     @RequiresPermissions("system:role:add")
     public ShenyuAdminResult createRole(@Valid @RequestBody final RoleDTO roleDTO) {
         if (SUPER.equals(roleDTO.getRoleName())) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.ROLE_CREATE_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.ROLE_CREATE_ERROR));
         }
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, roleService.createOrUpdate(roleDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), roleService.createOrUpdate(roleDTO));
     }
     
     /**
@@ -138,7 +138,7 @@ public class RoleController {
                                                 message = "role is not existed") final String id,
                                         @Valid @RequestBody final RoleDTO roleDTO) {
         roleDTO.setId(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, roleService.createOrUpdate(roleDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), roleService.createOrUpdate(roleDTO));
     }
     
     /**
@@ -150,6 +150,6 @@ public class RoleController {
     @DeleteMapping("/batch")
     @RequiresPermissions("system:role:delete")
     public ShenyuAdminResult deleteRole(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, roleService.delete(ids));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), roleService.delete(ids));
     }
 }

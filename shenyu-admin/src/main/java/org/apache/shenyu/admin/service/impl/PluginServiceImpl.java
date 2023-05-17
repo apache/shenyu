@@ -100,7 +100,7 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public String createPluginResource(final PluginDTO pluginDTO) {
         pluginEventPublisher.onCreated(PluginDO.buildPluginDO(pluginDTO));
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
     }
 
     /**
@@ -230,7 +230,7 @@ public class PluginServiceImpl implements PluginService {
             // publish create event. init plugin data
             pluginEventPublisher.onCreated(pluginDO);
         }
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
     }
 
 
@@ -251,7 +251,7 @@ public class PluginServiceImpl implements PluginService {
             // publish update event.
             pluginEventPublisher.onUpdated(pluginDO, before);
         }
-        return ShenyuResultMessage.UPDATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS);
     }
 
     /**

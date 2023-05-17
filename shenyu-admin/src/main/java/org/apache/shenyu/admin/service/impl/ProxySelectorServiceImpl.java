@@ -86,7 +86,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public String delete(final List<String> ids) {
 
         proxySelectorMapper.deleteByIds(ids);
-        return ShenyuResultMessage.DELETE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS);
     }
 
     /**
@@ -101,7 +101,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 AdminConstants.PROXY_SELECTOR_NAME_IS_EXIST);
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO);
         proxySelectorMapper.insert(proxySelectorDO);
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
 
     }
 
@@ -117,6 +117,6 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 AdminConstants.PROXY_SELECTOR_NAME_IS_EXIST);
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO);
         proxySelectorMapper.update(proxySelectorDO);
-        return ShenyuResultMessage.UPDATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS);
     }
 }

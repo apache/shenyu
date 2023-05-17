@@ -73,7 +73,7 @@ public class MockRequestRecordControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(new MockRequestRecordDTO())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS))))
                 .andReturn();
     }
 
@@ -84,7 +84,7 @@ public class MockRequestRecordControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(Lists.newArrayList("1"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andReturn();
     }
 
@@ -98,7 +98,7 @@ public class MockRequestRecordControllerTest {
                         .param("currentPage", 1 + "")
                         .param("pageSize", 10 + ""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data.dataList[0].apiId", is("123")))
                 .andReturn();
     }

@@ -83,7 +83,7 @@ public class DataPermissionControllerTest {
                 .param("pluginId", pluginId)
                 .param("name", name))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data.dataList[0].dataId", is(dataPermissionPageVO.getDataId())))
                 .andReturn();
     }
@@ -108,7 +108,7 @@ public class DataPermissionControllerTest {
                 .param("selectorId", selectorId)
                 .param("name", name))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data.dataList[0].dataId", is(dataPermissionPageVO.getDataId())))
                 .andReturn();
     }
@@ -123,7 +123,7 @@ public class DataPermissionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(dataPermissionDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SAVE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.SAVE_SUCCESS))))
                 .andExpect(jsonPath("$.data", is(1)))
                 .andReturn();
     }
@@ -138,7 +138,7 @@ public class DataPermissionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(dataPermissionDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andExpect(jsonPath("$.data", is(1)))
                 .andReturn();
     }
@@ -153,7 +153,7 @@ public class DataPermissionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(dataPermissionDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SAVE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.SAVE_SUCCESS))))
                 .andExpect(jsonPath("$.data", is(1)))
                 .andReturn();
     }
@@ -168,7 +168,7 @@ public class DataPermissionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(dataPermissionDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andExpect(jsonPath("$.data", is(1)))
                 .andReturn();
     }

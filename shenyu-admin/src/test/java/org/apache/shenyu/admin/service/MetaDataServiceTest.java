@@ -247,7 +247,7 @@ public final class MetaDataServiceTest {
         when(metaDataMapper.insert(any())).thenReturn(1);
         when(metaDataMapper.pathExisted(any())).thenReturn(null);
         String msg = metaDataService.createOrUpdate(metaDataDTO);
-        assertEquals(ShenyuResultMessage.CREATE_SUCCESS, msg);
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), msg);
     }
 
     /**
@@ -262,7 +262,7 @@ public final class MetaDataServiceTest {
         when(metaDataMapper.selectById("id")).thenReturn(metaDataDO);
         when(metaDataMapper.update(any())).thenReturn(1);
         String msg = metaDataService.createOrUpdate(metaDataDTO);
-        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, msg);
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), msg);
     }
 
     private void assertEquals(final String expected, final String actual) {

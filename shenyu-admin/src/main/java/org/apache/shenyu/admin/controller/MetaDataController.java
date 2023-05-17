@@ -74,7 +74,7 @@ public class MetaDataController {
                                        @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
                                        @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(path, new PageParameter(currentPage, pageSize)));
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), commonPager);
     }
 
     /**
@@ -85,7 +85,7 @@ public class MetaDataController {
     @GetMapping("/findAll")
     @RequiresPermissions("system:meta:list")
     public ShenyuAdminResult findAll() {
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, metaDataService.findAll());
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), metaDataService.findAll());
     }
 
     /**
@@ -96,7 +96,7 @@ public class MetaDataController {
     @GetMapping("/findAllGroup")
     @RequiresPermissions("system:meta:list")
     public ShenyuAdminResult findAllGroup() {
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, metaDataService.findAllGroup());
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), metaDataService.findAllGroup());
     }
 
     /**
@@ -108,7 +108,7 @@ public class MetaDataController {
     @GetMapping("/{id}")
     @RequiresPermissions("system:meta:edit")
     public ShenyuAdminResult detail(@PathVariable("id") final String id) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, metaDataService.findById(id));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), metaDataService.findById(id));
     }
 
     /**
@@ -133,7 +133,7 @@ public class MetaDataController {
     @RequiresPermissions("system:meta:delete")
     public ShenyuAdminResult batchDeleted(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = metaDataService.delete(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), deleteCount);
     }
     
     /**
@@ -161,7 +161,7 @@ public class MetaDataController {
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }
-        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.ENABLE_SUCCESS));
     }
 
     /**

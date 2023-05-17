@@ -93,7 +93,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
                                         @Existed(provider = RuleMapper.class,
                                                 message = "rule is not existed") final String id) {
         RuleVO ruleVO = ruleService.findById(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, ruleVO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), ruleVO);
     }
     
     /**
@@ -105,7 +105,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
     @PostMapping("")
     public ShenyuAdminResult createRule(@Valid @RequestBody final RuleDTO ruleDTO) {
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), createCount);
     }
     
     /**
@@ -122,7 +122,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
                                         @Valid @RequestBody final RuleDTO ruleDTO) {
         ruleDTO.setId(id);
         Integer updateCount = ruleService.createOrUpdate(ruleDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), updateCount);
     }
     
     /**
@@ -134,7 +134,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
     @DeleteMapping("/batch")
     public ShenyuAdminResult deleteRules(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = ruleService.delete(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), deleteCount);
     }
     
     @Override

@@ -23,7 +23,7 @@ package org.apache.shenyu.common.constant;
 public final class AdminConstants {
 
     /**
-     * The constant SUCCESS, equals to ShenyuResultMessage.SUCCESS.
+     * The constant SUCCESS, equals to ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS.
      */
     public static final String SUCCESS = "SUCCESS";
 

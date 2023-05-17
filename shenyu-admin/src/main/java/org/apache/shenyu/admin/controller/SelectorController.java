@@ -93,7 +93,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
                                             @Existed(provider = SelectorMapper.class,
                                                     message = "selector is not existed") final String id) {
         SelectorVO selectorVO = selectorService.findById(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, selectorVO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), selectorVO);
     }
     
     /**
@@ -105,7 +105,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     @PostMapping("")
     public ShenyuAdminResult createSelector(@Valid @RequestBody final SelectorDTO selectorDTO) {
         Integer createCount = selectorService.createOrUpdate(selectorDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), createCount);
     }
     
     /**
@@ -122,7 +122,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
                                             @Valid @RequestBody final SelectorDTO selectorDTO) {
         selectorDTO.setId(id);
         Integer updateCount = selectorService.createOrUpdate(selectorDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), updateCount);
     }
     
     /**
@@ -134,7 +134,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     @DeleteMapping("/batch")
     public ShenyuAdminResult deleteSelector(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = selectorService.delete(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), deleteCount);
     }
     
     @Override

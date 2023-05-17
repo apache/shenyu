@@ -83,7 +83,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
                                           @NotNull final Integer currentPage,
                                           @NotNull final Integer pageSize) {
         CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, enabled, new PageParameter(currentPage, pageSize)));
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), commonPager);
     }
     
     /**
@@ -94,7 +94,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     @GetMapping("/all")
     public ShenyuAdminResult queryAllPlugins() {
         List<PluginData> pluginDataList = pluginService.listAll();
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), pluginDataList);
     }
     
     /**
@@ -109,7 +109,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
                                           @Existed(message = "plugin is not existed",
                                                   provider = PluginMapper.class) final String id) {
         PluginVO pluginVO = pluginService.findById(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, pluginVO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), pluginVO);
     }
 
     /**
@@ -171,7 +171,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS));
     }
     
     /**
@@ -187,7 +187,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }
-        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.ENABLE_SUCCESS));
     }
     
     /**
@@ -200,9 +200,9 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     public ShenyuAdminResult syncPluginAll() {
         boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         if (success) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.SYNC_SUCCESS);
+            return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYNC_SUCCESS));
         } else {
-            return ShenyuAdminResult.error(ShenyuResultMessage.SYNC_FAIL);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYNC_FAIL));
         }
     }
     
@@ -216,7 +216,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     public ShenyuAdminResult syncPluginData(@PathVariable("id")
                                             @Existed(message = "plugin is not existed",
                                                     provider = PluginMapper.class) final String id) {
-        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
+        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.getI18n(ShenyuResultMessage.SYNC_SUCCESS) : ShenyuResultMessage.getI18n(ShenyuResultMessage.SYNC_FAIL));
     }
     
     /**

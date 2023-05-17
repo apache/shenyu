@@ -110,7 +110,7 @@ public final class AppAuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(pageCondition)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andReturn();
     }
 
@@ -122,7 +122,7 @@ public final class AppAuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(pageCondition)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andReturn();
     }
 
@@ -139,12 +139,12 @@ public final class AppAuthControllerTest {
         authApplyDTO.setOpen(true);
         authApplyDTO.setPathList(pathList);
         given(this.appAuthService.applyCreate(authApplyDTO)).willReturn(
-                ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS));
+                ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS)));
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/apply")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(authApplyDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -162,12 +162,12 @@ public final class AppAuthControllerTest {
         authApplyDTO.setOpen(true);
         authApplyDTO.setPathList(pathList);
         given(this.appAuthService.applyUpdate(authApplyDTO)).willReturn(
-                ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS));
+                ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS)));
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/apply")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(authApplyDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -192,7 +192,7 @@ public final class AppAuthControllerTest {
                 .param("currentPage", pageParameter.getCurrentPage() + "")
                 .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data.dataList[0].appKey", is(appAuthVO.getAppKey())))
                 .andReturn();
     }
@@ -203,7 +203,7 @@ public final class AppAuthControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/appAuth/detail")
                 .param("id", "0001"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andExpect(jsonPath("$.data.id", is(appAuthVO.getId())))
                 .andReturn();
     }
@@ -216,7 +216,7 @@ public final class AppAuthControllerTest {
         appAuthDTO.setAppSecret("app secret");
         appAuthDTO.setPhone("1234567");
         given(this.appAuthService.updateDetail(appAuthDTO)).willReturn(
-                ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS));
+                ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS)));
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         when(SpringBeanUtils.getInstance().getBean(AppAuthMapper.class)).thenReturn(appAuthMapper);
@@ -225,7 +225,7 @@ public final class AppAuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(appAuthDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -239,7 +239,7 @@ public final class AppAuthControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/appAuth/detailPath")
                 .param("id", "0001"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andExpect(jsonPath("$.data[0].path", is(authPathVO.getPath())))
                 .andReturn();
     }
@@ -279,7 +279,7 @@ public final class AppAuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(ids)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andExpect(jsonPath("$.data", is(2)))
                 .andReturn();
     }
@@ -295,7 +295,7 @@ public final class AppAuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.ENABLE_SUCCESS))))
                 .andReturn();
     }
 

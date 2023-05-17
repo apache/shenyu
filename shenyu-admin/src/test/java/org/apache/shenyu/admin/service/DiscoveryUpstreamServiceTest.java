@@ -64,11 +64,11 @@ class DiscoveryUpstreamServiceTest {
         discoveryUpstreamDTO.setStatus(1);
         given(discoveryUpstreamMapper.insert(DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO)))
                 .willReturn(1);
-        assertEquals(ShenyuResultMessage.CREATE_SUCCESS, discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO));
         discoveryUpstreamDTO.setId("1");
         given(discoveryUpstreamMapper.update(DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO)))
                 .willReturn(1);
-        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), discoveryUpstreamService.createOrUpdate(discoveryUpstreamDTO));
 
     }
 
@@ -76,6 +76,6 @@ class DiscoveryUpstreamServiceTest {
     void delete() {
 
         given(discoveryUpstreamMapper.deleteByIds(Arrays.asList("1"))).willReturn(1);
-        assertEquals(ShenyuResultMessage.DELETE_SUCCESS, discoveryUpstreamService.delete(Arrays.asList("1")));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), discoveryUpstreamService.delete(Arrays.asList("1")));
     }
 }

@@ -124,7 +124,7 @@ public class ApiServiceImpl implements ApiService {
                 unregister(apiDO);
             }
         }
-        return ShenyuResultMessage.UPDATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS);
     }
 
     /**
@@ -156,7 +156,7 @@ public class ApiServiceImpl implements ApiService {
                 unregister(apiDO);
             }
         }
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
     }
     
     private void unregister(final ApiDO apiDO) {
@@ -284,6 +284,6 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public String offlineByContextPath(final String contextPath) {
         apiMapper.updateOfflineByContextPath(contextPath);
-        return ShenyuResultMessage.SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS);
     }
 }

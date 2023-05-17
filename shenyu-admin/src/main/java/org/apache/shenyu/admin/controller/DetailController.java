@@ -56,7 +56,7 @@ public class DetailController {
      */
     @PostMapping("/insertOrUpdate")
     public ShenyuAdminResult createOrUpdate(@Valid @RequestBody final DetailDTO detailDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, detailService.createOrUpdate(detailDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), detailService.createOrUpdate(detailDTO));
     }
 
     /**
@@ -68,7 +68,7 @@ public class DetailController {
     @DeleteMapping("/batchDelete")
     public ShenyuAdminResult batchDelete(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = detailService.deleteBatch(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), deleteCount);
     }
 
     /**
@@ -86,7 +86,7 @@ public class DetailController {
                                         @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
                                         @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         PageParameter pageParameter = new PageParameter(currentPage, pageSize);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, this.detailService.listByPage(new DetailQuery(fieldValue, valueDesc, pageParameter)));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), this.detailService.listByPage(new DetailQuery(fieldValue, valueDesc, pageParameter)));
     }
 
 }

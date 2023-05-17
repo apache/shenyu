@@ -60,7 +60,7 @@ public class PermissionControllerTest {
         when(mockPermissionService.getPermissionMenu("token")).thenReturn(permissionMenuVO);
         final ShenyuAdminResult result = permissionController.getUserPermissionByToken("token");
         assertThat(result.getCode(), is(CommonErrorCode.SUCCESSFUL));
-        assertThat(result.getMessage(), is(ShenyuResultMessage.MENU_SUCCESS));
+        assertThat(result.getMessage(), is(ShenyuResultMessage.getI18n(ShenyuResultMessage.MENU_SUCCESS)));
         assertThat(result.getData(), is(permissionMenuVO));
     }
 
@@ -69,6 +69,6 @@ public class PermissionControllerTest {
         when(mockPermissionService.getPermissionMenu("token")).thenReturn(null);
         final ShenyuAdminResult result = permissionController.getUserPermissionByToken("token");
         assertThat(result.getCode(), is(CommonErrorCode.ERROR));
-        assertThat(result.getMessage(), is(ShenyuResultMessage.MENU_FAILED));
+        assertThat(result.getMessage(), is(ShenyuResultMessage.getI18n(ShenyuResultMessage.MENU_FAILED)));
     }
 }

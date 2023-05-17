@@ -178,7 +178,7 @@ public final class PluginServiceTest {
         PluginDTO pluginDTO = buildPluginDTO("");
         when(pluginMapper.nameExisted(pluginDTO.getName())).thenReturn(null);
         when(pluginMapper.insert(any())).thenReturn(1);
-        assertEquals(ShenyuResultMessage.CREATE_SUCCESS, this.pluginService.createOrUpdate(pluginDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), this.pluginService.createOrUpdate(pluginDTO));
     }
     
     private void testUpdate() {
@@ -190,7 +190,7 @@ public final class PluginServiceTest {
         pluginDTO.setName("test");
         when(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDO.getId()))).thenReturn(null);
         when(pluginMapper.update(any())).thenReturn(1);
-        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, this.pluginService.createOrUpdate(pluginDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), this.pluginService.createOrUpdate(pluginDTO));
     }
     
     private PluginDTO buildPluginDTO() {

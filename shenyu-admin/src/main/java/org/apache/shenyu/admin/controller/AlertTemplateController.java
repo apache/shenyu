@@ -56,7 +56,7 @@ public class AlertTemplateController {
     @PostMapping("addTemplate")
     public ShenyuAdminResult addTemplate(@Valid @RequestBody final AlertTemplateDTO alertTemplateDTO) {
         int row = alertTemplateService.addTemplate(alertTemplateDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, row);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), row);
     }
 
     /**
@@ -67,7 +67,7 @@ public class AlertTemplateController {
     @PostMapping("deleteTemplate")
     public ShenyuAdminResult deleteTemplate(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         int row = alertTemplateService.deleteTemplate(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, row);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), row);
     }
 
     /**
@@ -78,7 +78,7 @@ public class AlertTemplateController {
     @PostMapping("updateTemplate")
     public ShenyuAdminResult updateTemplate(@Valid @RequestBody final AlertTemplateDTO alertTemplateDTO) {
         int row = alertTemplateService.updateTemplate(alertTemplateDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, row);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), row);
     }
 
     /**
@@ -87,7 +87,7 @@ public class AlertTemplateController {
      */
     @GetMapping("getAll")
     public ShenyuAdminResult getAll() {
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, alertTemplateService.getAll());
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), alertTemplateService.getAll());
     }
 
     /**
@@ -97,6 +97,6 @@ public class AlertTemplateController {
      */
     @GetMapping("detail/{id}")
     public ShenyuAdminResult detail(@PathVariable("id") final Long id) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, alertTemplateService.detail(id));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), alertTemplateService.detail(id));
     }
 }

@@ -43,7 +43,7 @@ public class DashboardUserModifyPasswordDTO implements Serializable {
      * user password.
      */
     @NotBlank
-    @Pattern(regexp = RegConstant.PASSWORD_RULE, message = ShenyuResultMessage.PASSWORD_MUST)
+    @Pattern(regexp = RegConstant.PASSWORD_RULE)
     private String password;
     
     /**

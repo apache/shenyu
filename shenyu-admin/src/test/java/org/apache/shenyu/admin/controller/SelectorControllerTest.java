@@ -104,7 +104,7 @@ public final class SelectorControllerTest {
         String urlTemplate = "/selector?pluginId={pluginId}&name={name}&currentPage={currentPage}&pageSize={pageSize}";
         this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "2", "selector-1", 1, 12))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data.dataList[0].id", is(selectorVO.getId())))
                 .andReturn();
     }
@@ -132,7 +132,7 @@ public final class SelectorControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(selectorDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -159,7 +159,7 @@ public final class SelectorControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(selectorDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -170,7 +170,7 @@ public final class SelectorControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andReturn();
     }
 
@@ -179,7 +179,7 @@ public final class SelectorControllerTest {
         given(this.selectorService.findById("1")).willReturn(selectorVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/{id}", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andExpect(jsonPath("$.data.id", is(selectorVO.getId())))
                 .andReturn();
     }
