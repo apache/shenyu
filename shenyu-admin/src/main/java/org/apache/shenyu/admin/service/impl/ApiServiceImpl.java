@@ -226,7 +226,8 @@ public class ApiServiceImpl implements ApiService {
         // select api id.
         List<ApiDO> apis = this.apiMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(apis)) {
-            return AdminConstants.SYS_API_ID_NOT_EXIST;
+            return ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_API_ID_NOT_EXIST);
+
         }
         // delete apis.
         final List<String> apiIds = ListUtil.map(apis, ApiDO::getId);

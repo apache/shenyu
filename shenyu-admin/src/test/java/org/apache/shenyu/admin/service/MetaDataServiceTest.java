@@ -137,7 +137,7 @@ public final class MetaDataServiceTest {
     public void testEnabled() {
         List<String> ids = Lists.newArrayList("id1", "id2", "id3");
         String msg = metaDataService.enabled(ids, true);
-        assertEquals(AdminConstants.ID_NOT_EXIST, msg);
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST), msg);
         when(metaDataMapper.selectByIdList(ids))
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()))
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));

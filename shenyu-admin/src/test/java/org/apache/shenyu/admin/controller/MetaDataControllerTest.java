@@ -228,12 +228,12 @@ public final class MetaDataControllerTest {
         final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList("1", "2"));
         batchCommonDTO.setEnabled(true);
-        given(this.metaDataService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(AdminConstants.ID_NOT_EXIST);
+        given(this.metaDataService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST));
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(AdminConstants.ID_NOT_EXIST)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST))))
                 .andReturn();
     }
 

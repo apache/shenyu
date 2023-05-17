@@ -305,12 +305,12 @@ public final class AppAuthControllerTest {
         batchCommonDTO.setIds(Arrays.asList("0001", "0002"));
         batchCommonDTO.setEnabled(true);
         given(this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()))
-                .willReturn(AdminConstants.ID_NOT_EXIST);
+                .willReturn(ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST));
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(AdminConstants.ID_NOT_EXIST)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST))))
                 .andReturn();
     }
 

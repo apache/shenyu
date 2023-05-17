@@ -109,7 +109,7 @@ public final class PluginServiceTest {
         
         PluginDO pluginDO = buildPluginDO("123");
         final List<String> ids = Collections.singletonList(pluginDO.getId());
-        assertEquals(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST, pluginService.delete(ids));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_ID_NOT_EXIST), pluginService.delete(ids));
     }
     
     @Test
@@ -134,7 +134,7 @@ public final class PluginServiceTest {
         
         given(this.pluginMapper.updateEnable(any())).willReturn(1);
         
-        assertThat(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()), equalTo(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST));
+        assertThat(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()), equalTo(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_ID_NOT_EXIST)));
     }
     
     @Test

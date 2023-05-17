@@ -239,20 +239,20 @@ public final class PluginControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andReturn();
         
-        given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
+        given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_ID_NOT_EXIST));
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_ID_NOT_EXIST))))
                 .andReturn();
         
-        given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(AdminConstants.SYS_PLUGIN_NOT_DELETE);
+        given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_NOT_DELETE));
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(AdminConstants.SYS_PLUGIN_NOT_DELETE)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_NOT_DELETE))))
                 .andReturn();
     }
     
@@ -269,12 +269,12 @@ public final class PluginControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.ENABLE_SUCCESS))))
                 .andReturn();
         
-        given(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
+        given(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_ID_NOT_EXIST));
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/enabled")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_ID_NOT_EXIST))))
                 .andReturn();
     }
     

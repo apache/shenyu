@@ -122,7 +122,7 @@ public final class AppAuthServiceTest {
         authPathWarpDTO.setId(UUIDUtils.getInstance().generateShortUuid());
         authPathWarpDTO.setAuthPathDTOList(authPathDTOList);
         ShenyuAdminResult idNotExistResult = this.appAuthService.updateDetailPath(authPathWarpDTO);
-        assertEquals(AdminConstants.ID_NOT_EXIST, idNotExistResult.getMessage());
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST), idNotExistResult.getMessage());
 
         given(appAuthMapper.selectById(eq(authPathWarpDTO.getId()))).willReturn(appAuthDO);
         ShenyuAdminResult successResult = this.appAuthService.updateDetailPath(authPathWarpDTO);
@@ -151,7 +151,7 @@ public final class AppAuthServiceTest {
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(Boolean.TRUE);
         batchCommonDTO.setIds(Collections.singletonList(appAuthDO.getId()));
-        assertEquals(AdminConstants.ID_NOT_EXIST, this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST), this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()));
 
         given(this.appAuthMapper.selectById(appAuthDO.getId())).willReturn(appAuthDO);
         given(this.appAuthMapper.selectByIds(Collections.singletonList(appAuthDO.getId()))).willReturn(Collections.singletonList(appAuthDO));

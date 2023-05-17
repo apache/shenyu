@@ -98,7 +98,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     private String create(final ProxySelectorDTO proxySelectorDTO) {
 
         Assert.isNull(proxySelectorMapper.nameExisted(proxySelectorDTO.getName()),
-                AdminConstants.PROXY_SELECTOR_NAME_IS_EXIST);
+                ShenyuResultMessage.getI18n(ShenyuResultMessage.PROXY_SELECTOR_NAME_IS_EXIST));
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO);
         proxySelectorMapper.insert(proxySelectorDO);
         return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
@@ -114,7 +114,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     private String update(final ProxySelectorDTO proxySelectorDTO) {
 
         Assert.isNull(proxySelectorMapper.nameExisted(proxySelectorDTO.getName()),
-                AdminConstants.PROXY_SELECTOR_NAME_IS_EXIST);
+                ShenyuResultMessage.getI18n(ShenyuResultMessage.PROXY_SELECTOR_NAME_IS_EXIST));
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO);
         proxySelectorMapper.update(proxySelectorDO);
         return ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS);

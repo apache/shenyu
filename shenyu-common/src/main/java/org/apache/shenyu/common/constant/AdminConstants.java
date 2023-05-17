@@ -23,56 +23,6 @@ package org.apache.shenyu.common.constant;
 public final class AdminConstants {
 
     /**
-     * The constant SUCCESS, equals to ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS.
-     */
-    public static final String SUCCESS = "SUCCESS";
-
-    /**
-     * The constant PLUGIN_NAME_IS_EXIST.
-     */
-    public static final String PLUGIN_NAME_IS_EXIST = "The plugin name already exists and can't be added repeatedly!";
-
-    /**
-     * The constant RESOURCE_NAME_IS_EXIST.
-     */
-    public static final String RESOURCE_NAME_IS_EXIST = "The resource name already exists and can't be added repeatedly!";
-
-    /**
-     * The constant ID_NOT_EXIST.
-     */
-    public static final String ID_NOT_EXIST = "ID NOT EXIST!";
-
-    /**
-     * The constant PLUGIN_NAME_NOT_EXIST.
-     */
-    public static final String PLUGIN_NAME_NOT_EXIST = "The plugin name not exist!";
-
-    /**
-     * The constant SYS_PLUGIN_NOT_DELETE.
-     */
-    public static final String SYS_PLUGIN_NOT_DELETE = "System plugins can't be deleted!";
-
-    /**
-     * The constant SYS_PLUGIN_ID_NOT_EXIST.
-     */
-    public static final String SYS_PLUGIN_ID_NOT_EXIST = "The plugin(s) does not exist！";
-
-    /**
-     * The constant SYS_API_ID_NOT_EXIST.
-     */
-    public static final String SYS_API_ID_NOT_EXIST = "The api(s) does not exist！";
-
-    /**
-     * The constant DATA_PATH_IS_EXIST.
-     */
-    public static final String DATA_PATH_IS_EXIST = "The path already exists and can't be added repeatedly!";
-
-    /**
-     * The constant PARAMS_ERROR.
-     */
-    public static final String PARAMS_ERROR = "Error parameter！";
-
-    /**
      * The constant Super Role ID.
      */
     public static final String ROLE_SUPER_ID = "1346358560427216896";
@@ -264,14 +214,9 @@ public final class AdminConstants {
 
     public static final String TAG_ROOT_PARENT_ID = "0";
 
-    public static final String PLUGIN_JAR_IS_NOT_RIGHT = "The plugin jar is not right!";
-
     public static final String PLUGIN_INTERFACE_PATH = "org.apache.shenyu.plugin.api.ShenyuPlugin";
 
     public static final String PLUGIN_ABSTRACR_PATH = "org.apache.shenyu.plugin.base.AbstractShenyuPlugin";
 
-    public static final String PROXY_SELECTOR_NAME_IS_EXIST = "The proxy selector name already exists and can't be added repeatedly!";
-
-    public static final String PROXY_SELECTOR_ID_IS_NOT_EXIST = "The proxy selector(s) does not exist";
 }
 

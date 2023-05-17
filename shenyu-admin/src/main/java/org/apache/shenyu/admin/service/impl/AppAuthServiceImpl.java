@@ -206,7 +206,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     public ShenyuAdminResult updateDetailPath(final AuthPathWarpDTO authPathWarpDTO) {
         AppAuthDO appAuthDO = appAuthMapper.selectById(authPathWarpDTO.getId());
         if (Objects.isNull(appAuthDO)) {
-            return ShenyuAdminResult.error(AdminConstants.ID_NOT_EXIST);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST));
         }
         List<AuthPathDTO> authPathDTOList = authPathWarpDTO.getAuthPathDTOList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
@@ -319,7 +319,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectByIds(distinctIds);
         if (CollectionUtils.isEmpty(appAuthDOList)) {
-            return AdminConstants.ID_NOT_EXIST;
+            return ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST);
         }
 
         Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(distinctIds);
