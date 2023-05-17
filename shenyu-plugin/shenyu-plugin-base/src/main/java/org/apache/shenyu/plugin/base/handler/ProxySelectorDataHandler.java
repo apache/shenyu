@@ -30,18 +30,11 @@ public interface ProxySelectorDataHandler {
     /**
      * handlerProxySelector.
      *
-     * @param selectorData selectorData
+     * @param selectorData  selectorData
      * @param upstreamsList upstreamsList
      */
     void handlerProxySelector(ProxySelectorData selectorData, List<DiscoveryUpstream> upstreamsList);
 
-    /**
-     * updateProxySelector.
-     *
-     * @param proxySelectorName proxySelectorName
-     * @param upstreamsList upstreamsList
-     */
-    void updateProxySelector(String proxySelectorName, List<DiscoveryUpstream> upstreamsList);
 
     /**
      * removeProxySelector.
@@ -49,5 +42,12 @@ public interface ProxySelectorDataHandler {
      * @param proxySelectorName proxySelectorName
      */
     void removeProxySelector(String proxySelectorName);
+
+    /**
+     * pluginName.
+     *
+     * @return pluginName
+     */
+    String pluginName();
 
 }

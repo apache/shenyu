@@ -20,6 +20,7 @@ package org.apache.shenyu.springboot.sync.data.zookeeper;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperClient;
 import org.apache.shenyu.sync.data.zookeeper.ZookeeperConfig;
@@ -55,14 +56,19 @@ public class ZookeeperSyncDataConfiguration {
      * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers  the meta subscribers
      * @param authSubscribers  the auth subscribers
+     * @param proxySelectorDataSubscribers  the proxySelector subscribers
      * @return the sync data service
      */
     @Bean
-    public SyncDataService syncDataService(final ObjectProvider<ZookeeperClient> zookeeperClient, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
-                                           final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
+    public SyncDataService syncDataService(final ObjectProvider<ZookeeperClient> zookeeperClient,
+                                           final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
+                                           final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
+                                           final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
+                                           final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorDataSubscribers) {
         LOGGER.info("you use zookeeper sync shenyu data.......");
         return new ZookeeperSyncDataService(zookeeperClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
+                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
+                proxySelectorDataSubscribers.getIfAvailable(Collections::emptyList));
     }
 
     /**

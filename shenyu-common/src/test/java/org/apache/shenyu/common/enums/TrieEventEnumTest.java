@@ -17,23 +17,20 @@
 
 package org.apache.shenyu.common.enums;
 
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
- * Rule trie event enum.
+ * Test Cases for RuleTrieEventEnum.
  */
-public enum RuleTrieEventEnum {
+public class TrieEventEnumTest {
 
-    /**
-     * Shenyu Trie insert event.
-     */
-    INSERT,
-
-    /**
-     * Shenyu Trie update event.
-     */
-    UPDATE,
-
-    /**
-     * Shenyu Trie remove event.
-     */
-    REMOVE;
+    @Test
+    public void testEvent() {
+        Arrays.stream(TrieEventEnum.values())
+                .forEach(trieEventEnum -> assertEquals(trieEventEnum, TrieEventEnum.valueOf(trieEventEnum.name())));
+    }
 }

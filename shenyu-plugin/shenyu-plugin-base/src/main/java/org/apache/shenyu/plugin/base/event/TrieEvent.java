@@ -17,36 +17,49 @@
 
 package org.apache.shenyu.plugin.base.event;
 
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.enums.RuleTrieEventEnum;
+import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
+import org.apache.shenyu.common.enums.TrieEventEnum;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * Rule trie event.
  */
-public class RuleTrieEvent extends ApplicationEvent {
+public class TrieEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = -6616858497711197175L;
 
-    private final RuleTrieEventEnum ruleTrieEventEnum;
+    private final TrieEventEnum trieEventEnum;
+    
+    private final TrieCacheTypeEnum trieCacheTypeEnum;
 
     /**
      * shenyu trie event.
      *
-     * @param ruleTrieEventEnum ruleTrieEventEnum
-     * @param source data
+     * @param trieEventEnum     ruleTrieEventEnum
+     * @param trieCacheTypeEnum trie cache type
+     * @param source            data
      */
-    public RuleTrieEvent(final RuleTrieEventEnum ruleTrieEventEnum, final RuleData source) {
+    public <T> TrieEvent(final TrieEventEnum trieEventEnum, final TrieCacheTypeEnum trieCacheTypeEnum, final T source) {
         super(source);
-        this.ruleTrieEventEnum = ruleTrieEventEnum;
+        this.trieEventEnum = trieEventEnum;
+        this.trieCacheTypeEnum = trieCacheTypeEnum;
     }
 
     /**
      * get rule trie build or remove event.
      *
-     * @return {@linkplain RuleTrieEventEnum} include insert and remove event
+     * @return {@linkplain TrieEventEnum} include insert and remove event
      */
-    public RuleTrieEventEnum getRuleTrieEvent() {
-        return ruleTrieEventEnum;
+    public TrieEventEnum getTrieEventEnum() {
+        return trieEventEnum;
+    }
+    
+    /**
+     * get trie cache type.
+     *
+     * @return {@linkplain TrieCacheTypeEnum}
+     */
+    public TrieCacheTypeEnum getTrieCacheTypeEnum() {
+        return trieCacheTypeEnum;
     }
 }
