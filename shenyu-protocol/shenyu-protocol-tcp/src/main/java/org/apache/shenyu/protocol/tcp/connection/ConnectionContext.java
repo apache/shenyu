@@ -44,14 +44,18 @@ public class ConnectionContext {
      * @param props props
      */
     public void init(final Properties props) {
-        final String maxTotal = props.getProperty("tcpProxy.maxConnections", "800");
-        final String maxIdleTimeMs = props.getProperty("tcpProxy.maxIdleTimeMs", "100");
-        final String tcpProxyClientName = props.getProperty("tcpProxy.Name", "shenyu-tcp-connection-pool-client");
-        final String disposeTimeoutMs = props.getProperty("tcpProxy.disposeTimeoutMs", "2000");
+        final String tcpProxyClientName = props.getProperty("Name", "shenyu-tcp-connection-pool-client");
+        final String maxConnections = props.getProperty("maxConnections", "20");
+        final String maxIdleTimeMs = props.getProperty("maxIdleTimeMs", "30");
+        final String maxLifeTimeMs = props.getProperty("maxLifeTimeMs", "60");
+        final String pendingAcquireTimeout = props.getProperty("pendingAcquireTimeout", "5");
+        final String pendingAcquireMaxCount = props.getProperty("pendingAcquireMaxCount", "5");
         connectionProvider = ConnectionProvider.builder(tcpProxyClientName)
-                .maxConnections(Integer.parseInt(maxTotal))
-                .maxIdleTime(Duration.ofMillis(Integer.parseInt(maxIdleTimeMs)))
-                .disposeTimeout(Duration.ofMillis(Integer.parseInt(disposeTimeoutMs)))
+                .maxConnections(Integer.parseInt(maxConnections))
+                .pendingAcquireTimeout(Duration.ofSeconds(Integer.parseInt(pendingAcquireTimeout)))
+                .pendingAcquireMaxCount(Integer.parseInt(pendingAcquireMaxCount))
+                .maxIdleTime(Duration.ofSeconds(Integer.parseInt(maxIdleTimeMs)))
+                .maxLifeTime(Duration.ofSeconds(Integer.parseInt(maxLifeTimeMs)))
                 .build();
     }
 
