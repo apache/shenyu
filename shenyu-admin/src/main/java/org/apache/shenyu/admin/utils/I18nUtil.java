@@ -38,11 +38,20 @@ public class I18nUtil {
 
     private static Logger logger = LoggerFactory.getLogger(I18nUtil.class);
 
+    /**
+     * request header params.
+     */
     public final static String HEADER_LOCATION = "Location";
 
-    private final static String DEFAULT_I18N = "en";
+    /**
+     * default_i18n.
+     */
+    private static final String DEFAULT_I18N = "en";
 
-    private final static Map<String, Properties> I18N_MAP = new ConcurrentHashMap<>();
+    /**
+     * loaded i18n properties.
+     */
+    private static final Map<String, Properties> I18N_MAP = new ConcurrentHashMap<>();
 
     /**
      * loadI18nProp.
