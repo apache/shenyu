@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class I18nUtil {
 
-    private static Logger logger = LoggerFactory.getLogger(I18nUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(I18nUtil.class);
 
     /**
      * request header params.
@@ -73,7 +73,7 @@ public class I18nUtil {
             I18N_MAP.put(i18n, properties);
             return properties;
         } catch (IOException e) {
-            logger.error(e.getMessage(), e);
+            LOG.error(e.getMessage(), e);
         }
         return null;
     }
@@ -93,7 +93,7 @@ public class I18nUtil {
             properties = loadI18nProp(i18n);
         }
         if (properties == null) {
-            logger.error("i18n language {} is not exists!", i18n);
+            LOG.error("i18n language {} is not exists!", i18n);
             return "";
         }
         return properties.getProperty(key);
