@@ -61,6 +61,15 @@ public class SelectorConditionDTO implements Serializable {
      */
     @NotBlank
     private String paramValue;
+    
+    /**
+     * selector condition builder.
+     *
+     * @return SelectorConditionDTOBuilder
+     */
+    public static SelectorConditionDTO.SelectorConditionDTOBuilder builder() {
+        return new SelectorConditionDTO.SelectorConditionDTOBuilder();
+    }
 
     /**
      * Gets the value of id.
@@ -190,5 +199,101 @@ public class SelectorConditionDTO implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id, selectorId, paramType, operator, paramName, paramValue);
+    }
+    
+    /**
+     * {@code SelectorConditionDTO} builder static inner class.
+     */
+    public static final class SelectorConditionDTOBuilder {
+        
+        private String id;
+        
+        private String selectorId;
+        
+        private String paramType;
+        
+        private String operator;
+        
+        private String paramName;
+        
+        private String paramValue;
+        
+        public SelectorConditionDTOBuilder() {
+        }
+        
+        /**
+         * Sets the {@code id} and returns a reference to this Builder enabling method chaining.
+         *
+         * @param id the {@code id} to set
+         * @return a reference to this Builder
+         */
+        public SelectorConditionDTOBuilder id(final String id) {
+            this.id = id;
+            return this;
+        }
+        
+        /**
+         * Sets the {@code selectorId} and returns a reference to this Builder enabling method chaining.
+         *
+         * @param selectorId the {@code selectorId} to set
+         * @return a reference to this Builder
+         */
+        public SelectorConditionDTOBuilder selectorId(final String selectorId) {
+            this.selectorId = selectorId;
+            return this;
+        }
+        
+        /**
+         * Sets the {@code paramType} and returns a reference to this Builder enabling method chaining.
+         *
+         * @param paramType the {@code paramType} to set
+         * @return a reference to this Builder
+         */
+        public SelectorConditionDTOBuilder paramType(final String paramType) {
+            this.paramType = paramType;
+            return this;
+        }
+        
+        /**
+         * Sets the {@code operator} and returns a reference to this Builder enabling method chaining.
+         *
+         * @param operator the {@code operator} to set
+         * @return a reference to this Builder
+         */
+        public SelectorConditionDTOBuilder operator(final String operator) {
+            this.operator = operator;
+            return this;
+        }
+        
+        /**
+         * Sets the {@code paramName} and returns a reference to this Builder enabling method chaining.
+         *
+         * @param paramName the {@code paramName} to set
+         * @return a reference to this Builder
+         */
+        public SelectorConditionDTOBuilder paramName(final String paramName) {
+            this.paramName = paramName;
+            return this;
+        }
+        
+        /**
+         * Sets the {@code paramValue} and returns a reference to this Builder enabling method chaining.
+         *
+         * @param paramValue the {@code paramValue} to set
+         * @return a reference to this Builder
+         */
+        public SelectorConditionDTOBuilder paramValue(final String paramValue) {
+            this.paramValue = paramValue;
+            return this;
+        }
+        
+        /**
+         * Returns a {@code SelectorConditionDTO} built from the parameters previously set.
+         *
+         * @return a {@code SelectorConditionDTO} built with parameters of this {@code SelectorConditionDTO.Builder}
+         */
+        public RuleConditionDTO build() {
+            return new RuleConditionDTO(id, selectorId, paramType, operator, paramName, paramValue);
+        }
     }
 }

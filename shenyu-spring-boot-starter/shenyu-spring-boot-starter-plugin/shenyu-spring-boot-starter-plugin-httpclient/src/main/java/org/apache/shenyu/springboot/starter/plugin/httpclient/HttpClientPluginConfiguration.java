@@ -28,6 +28,7 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin;
 import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
+import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties.Pool;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -169,12 +170,12 @@ public class HttpClientPluginConfiguration {
         } else if (pool.getType() == HttpClientProperties.Pool.PoolType.FIXED) {
             // reactor remove fixed pool by fixed method from 0.9.4
             // reason: https://github.com/reactor/reactor-netty/issues/1499 and https://github.com/reactor/reactor-netty/issues/1960
-            connectionProvider = buildFixedConnectionPool(pool.getName(), pool.getMaxConnections(), pool.getAcquireTimeout(), pool.getMaxIdleTime());
+            connectionProvider = buildFixedConnectionPool(pool);
         } else {
             // please see https://projectreactor.io/docs/netty/release/reference/index.html#_connection_pool_2
             // reactor remove elastic pool by elastic method from 0.9.4
             // reason: https://github.com/reactor/reactor-netty/issues/1499 and https://github.com/reactor/reactor-netty/issues/1960
-            connectionProvider = buildElasticConnectionPool(pool.getName(), pool.getMaxIdleTime());
+            connectionProvider = buildElasticConnectionPool(pool);
         }
         return connectionProvider;
     }
@@ -182,44 +183,37 @@ public class HttpClientPluginConfiguration {
     /**
      * build fixed connection pool.
      *
-     * @param poolName pool name
-     * @param maxConnections max connections
-     * @param acquireTimeout pending acquire timeout
-     * @param maxIdleTime max idle time
+     * @param pool connection pool params
      * @return {@link ConnectionProvider}
      */
-    public static ConnectionProvider buildFixedConnectionPool(final String poolName, final Integer maxConnections,
-                                             final Long acquireTimeout, final Duration maxIdleTime) {
-        if (maxConnections <= 0) {
+    public static ConnectionProvider buildFixedConnectionPool(final Pool pool) {
+        if (pool.getMaxConnections() <= 0) {
             throw new IllegalArgumentException("Max Connections value must be strictly positive");
         }
-        if (acquireTimeout < 0) {
+        if (pool.getAcquireTimeout() < 0) {
             throw new IllegalArgumentException("Acquire Timeout value must be positive");
         }
-        return ConnectionProvider.builder(poolName)
-                .fifo()
-                .maxConnections(maxConnections)
-                .pendingAcquireTimeout(Duration.ofMillis(acquireTimeout))
-                .maxIdleTime(maxIdleTime)
-                .build();
+        ConnectionProvider.Builder builder = ConnectionProvider.builder(pool.getName())
+                .maxConnections(pool.getMaxConnections())
+                .pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()))
+                .maxIdleTime(pool.getMaxIdleTime());
+        return builder.build();
     }
 
     /**
      * build elastic connection provider pool.
      *
-     * @param poolName pool name
-     * @param maxIdleTime max idle time
+     * @param pool connection pool params
      * @return {@link ConnectionProvider} elastic pool
      */
-    public ConnectionProvider buildElasticConnectionPool(final String poolName, final Duration maxIdleTime) {
+    public ConnectionProvider buildElasticConnectionPool(final Pool pool) {
         // about the args, please see https://projectreactor.io/docs/netty/release/reference/index.html#_connection_pool_2
-        return ConnectionProvider.builder(poolName)
-                .fifo()
+        ConnectionProvider.Builder builder = ConnectionProvider.builder(pool.getName())
                 .maxConnections(Integer.MAX_VALUE)
                 .pendingAcquireTimeout(Duration.ofMillis(0))
                 .pendingAcquireMaxCount(-1)
-                .maxIdleTime(maxIdleTime)
-                .build();
+                .maxIdleTime(pool.getMaxIdleTime());
+        return builder.build();
     }
 
     /**
