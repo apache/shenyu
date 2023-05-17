@@ -216,8 +216,8 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     public ShenyuAdminResult syncPluginData(@PathVariable("id")
                                             @Existed(message = "plugin is not existed",
                                                     provider = PluginMapper.class) final String id) {
-        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ?
-                ShenyuResultMessage.getI18n(ShenyuResultMessage.SYNC_SUCCESS) : ShenyuResultMessage.getI18n(ShenyuResultMessage.SYNC_FAIL));
+        return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.getI18n(ShenyuResultMessage.SYNC_SUCCESS)
+                : ShenyuResultMessage.getI18n(ShenyuResultMessage.SYNC_FAIL));
     }
     
     /**

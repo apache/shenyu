@@ -74,13 +74,13 @@ public enum ShenyuResultMessage {
 
 
     /**
-     * getI18n If the configuration content does not exist, it will return enum name
+     * getI18n If the configuration content does not exist, it will return enum name.
      *
      * @param key {@link ShenyuResultMessage}
      * @return i18n value
      */
 
-    public static String getI18n(ShenyuResultMessage key) {
+    public static String getI18n(final ShenyuResultMessage key) {
         String i18n = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes()))
                 .getRequest().getHeader(I18nUtil.HEADER_LOCATION);
         String result = I18nUtil.getString(i18n, key.name());

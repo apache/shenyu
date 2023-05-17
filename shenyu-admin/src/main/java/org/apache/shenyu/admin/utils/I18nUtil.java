@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.utils;
 
-import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -32,20 +32,21 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * i18n util
+ * i18n util.
  */
 public class I18nUtil {
 
     private static Logger logger = LoggerFactory.getLogger(I18nUtil.class);
 
-    public static final String HEADER_LOCATION = "Location";
+    public final static String HEADER_LOCATION = "Location";
 
-    private static final String DEFAULT_I18N = "en";
+    private final static String DEFAULT_I18N = "en";
 
-    private static final Map<String, Properties> I18N_MAP = new ConcurrentHashMap<>();
+    private final static Map<String, Properties> I18N_MAP = new ConcurrentHashMap<>();
 
     /**
-     * loadI18nProp
+     * loadI18nProp.
+     *
      * @param i18n language
      * @return Properties {@link Properties}
      */
@@ -69,17 +70,19 @@ public class I18nUtil {
     }
 
     /**
-     * get val of i18n key
+     * get val of i18n key.
      *
      * @param key  i18nKey
      * @param i18n language
      * @return i18n_language
      */
-    public static String getString(String i18n, String key) {
-        if (i18n == null) {
-            i18n = DEFAULT_I18N;
+    public static String getString(final String i18n, final String key) {
+        Properties properties = null;
+        if (StringUtils.isBlank(i18n)) {
+            properties = loadI18nProp(DEFAULT_I18N);
+        } else {
+            properties = loadI18nProp(i18n);
         }
-        Properties properties = loadI18nProp(i18n);
         if (properties == null) {
             logger.error("i18n language {} is not exists!", i18n);
             return "";
