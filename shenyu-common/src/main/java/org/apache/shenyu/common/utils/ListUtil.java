@@ -197,10 +197,25 @@ public final class ListUtil {
      * @param <T> the type parameter
      * @return the result
      */
-    public static <T> List<T> castLit(final List<?> list, final Class<T> clazz) {
+    public static <T> List<T> castList(final List<?> list, final Class<T> clazz) {
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
         return list.stream().map(clazz::cast).collect(Collectors.toList());
     }
+    
+    /**
+     * cast list.
+     *
+     * @param list collections
+     * @param mapper mapper function
+     * @return the result
+     */
+    public static <R, T> List<T> castList(final List<R> list, final Function<R, T> mapper) {
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(mapper).collect(Collectors.toList());
+    }
+    
 }
