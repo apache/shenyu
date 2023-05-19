@@ -34,7 +34,6 @@ import org.apache.shenyu.admin.transfer.MetaDataTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -114,7 +113,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     public String enabled(final List<String> ids, final Boolean enabled) {
         List<MetaDataDO> metaDataDoList = metaDataMapper.selectByIdList(ids);
         if (CollectionUtils.isEmpty(metaDataDoList)) {
-            return AdminConstants.ID_NOT_EXIST;
+            return ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST);
         }
         for (MetaDataDO metaDataDO : metaDataDoList) {
             metaDataDO.setEnabled(enabled);
@@ -178,7 +177,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
     
     private String create(final MetaDataDTO metaDataDTO) {
-        Assert.isNull(metaDataMapper.pathExisted(metaDataDTO.getPath()), AdminConstants.DATA_PATH_IS_EXIST);
+        Assert.isNull(metaDataMapper.pathExisted(metaDataDTO.getPath()), ShenyuResultMessage.getI18n(ShenyuResultMessage.DATA_PATH_IS_EXIST));
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
         metaDataDO.setPathDesc(Objects.isNull(metaDataDO.getPathDesc()) ? "" : metaDataDO.getPathDesc());
@@ -192,11 +191,11 @@ public class MetaDataServiceImpl implements MetaDataService {
         // publish MetaData's create event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
     }
     
     private String update(final MetaDataDTO metaDataDTO) {
-        Assert.isNull(metaDataMapper.pathExistedExclude(metaDataDTO.getPath(), Collections.singletonList(metaDataDTO.getId())), AdminConstants.DATA_PATH_IS_EXIST);
+        Assert.isNull(metaDataMapper.pathExistedExclude(metaDataDTO.getPath(), Collections.singletonList(metaDataDTO.getId())), ShenyuResultMessage.getI18n(ShenyuResultMessage.DATA_PATH_IS_EXIST));
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         Optional.ofNullable(metaDataMapper.selectById(metaDataDTO.getId()))
                 .ifPresent(e -> metaDataDTO.setEnabled(e.getEnabled()));
@@ -209,7 +208,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         // publish AppAuthData's update event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
-        return ShenyuResultMessage.UPDATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS);
     }
     
 }

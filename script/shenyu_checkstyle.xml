@@ -22,7 +22,8 @@
     <property name="severity" value="error"/>
     <property name="fileExtensions" value="java, properties, xml"/>
     <module name="Header">
-        <property name="headerFile" value="${checkstyle.header.file}"/>
+<!--        <property name="headerFile" value="${checkstyle.header.file}"/>-->
+        <property name="headerFile" value="./checkstyle-header.txt"/>
         <property name="fileExtensions" value="java"/>
     </module>
     <module name="FileTabCharacter">

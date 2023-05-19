@@ -84,10 +84,10 @@ class ProxySelectorServiceTest {
         proxySelectorDTO.setProps("test");
         given(proxySelectorMapper.nameExisted("test")).willReturn(null);
         given(proxySelectorMapper.insert(ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO))).willReturn(1);
-        assertEquals(proxySelectorService.createOrUpdate(proxySelectorDTO), ShenyuResultMessage.CREATE_SUCCESS);
+        assertEquals(proxySelectorService.createOrUpdate(proxySelectorDTO), ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS));
         proxySelectorDTO.setId("123");
         given(proxySelectorMapper.update(ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO))).willReturn(1);
-        assertEquals(proxySelectorService.createOrUpdate(proxySelectorDTO), ShenyuResultMessage.UPDATE_SUCCESS);
+        assertEquals(proxySelectorService.createOrUpdate(proxySelectorDTO), ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS));
     }
 
     @Test
@@ -96,6 +96,6 @@ class ProxySelectorServiceTest {
         List<String> ids = new ArrayList<>();
         ids.add("123");
         given(proxySelectorMapper.deleteByIds(ids)).willReturn(1);
-        assertEquals(proxySelectorService.delete(ids), ShenyuResultMessage.DELETE_SUCCESS);
+        assertEquals(proxySelectorService.delete(ids), ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS));
     }
 }

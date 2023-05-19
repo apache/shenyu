@@ -100,7 +100,7 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public String createPluginResource(final PluginDTO pluginDTO) {
         pluginEventPublisher.onCreated(PluginDO.buildPluginDO(pluginDTO));
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
     }
 
     /**
@@ -115,7 +115,7 @@ public class PluginServiceImpl implements PluginService {
         // select plugin id.
         List<PluginDO> plugins = this.pluginMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(plugins)) {
-            return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+            return ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_ID_NOT_EXIST);
         }
         // delete plugins.
         if (this.pluginMapper.deleteByIds(ListUtil.map(plugins, PluginDO::getId)) > 0) {
@@ -136,7 +136,7 @@ public class PluginServiceImpl implements PluginService {
     public String enabled(final List<String> ids, final Boolean enabled) {
         List<PluginDO> plugins = pluginMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(plugins)) {
-            return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+            return ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_ID_NOT_EXIST);
         }
         plugins.forEach(pluginDO -> pluginDO.setEnabled(enabled));
         pluginMapper.updateEnableByIdList(ids, enabled);
@@ -221,16 +221,16 @@ public class PluginServiceImpl implements PluginService {
      * @see PluginCreatedEvent
      */
     private String create(final PluginDTO pluginDTO) {
-        Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        Assert.isNull(pluginMapper.nameExisted(pluginDTO.getName()), ShenyuResultMessage.getI18n(ShenyuResultMessage.PLUGIN_NAME_IS_EXIST));
         if (!Objects.isNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
+            Assert.isTrue(checkFile(pluginDTO.getFile()), ShenyuResultMessage.getI18n(ShenyuResultMessage.PLUGIN_JAR_IS_NOT_RIGHT));
         }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (pluginMapper.insertSelective(pluginDO) > 0) {
             // publish create event. init plugin data
             pluginEventPublisher.onCreated(pluginDO);
         }
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
     }
 
 
@@ -241,9 +241,9 @@ public class PluginServiceImpl implements PluginService {
      * @return success is empty
      */
     private String update(final PluginDTO pluginDTO) {
-        Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), AdminConstants.PLUGIN_NAME_IS_EXIST);
+        Assert.isNull(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDTO.getId())), ShenyuResultMessage.getI18n(ShenyuResultMessage.PLUGIN_NAME_IS_EXIST));
         if (!Objects.isNull(pluginDTO.getFile())) {
-            Assert.isTrue(checkFile(pluginDTO.getFile()), AdminConstants.PLUGIN_JAR_IS_NOT_RIGHT);
+            Assert.isTrue(checkFile(pluginDTO.getFile()), ShenyuResultMessage.getI18n(ShenyuResultMessage.PLUGIN_JAR_IS_NOT_RIGHT));
         }
         final PluginDO before = pluginMapper.selectById(pluginDTO.getId());
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
@@ -251,7 +251,7 @@ public class PluginServiceImpl implements PluginService {
             // publish update event.
             pluginEventPublisher.onUpdated(pluginDO, before);
         }
-        return ShenyuResultMessage.UPDATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS);
     }
 
     /**

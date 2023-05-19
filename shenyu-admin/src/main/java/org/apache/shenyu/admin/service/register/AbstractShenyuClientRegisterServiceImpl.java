@@ -147,7 +147,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
         if (StringUtils.isNotEmpty(contextPath)) {
             registerContextPath(dto);
         }
-        return ShenyuResultMessage.SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS);
     }
 
     @Override
@@ -181,7 +181,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             String contextPath = apiDocRegisterDTO.getContextPath();
             apiService.offlineByContextPath(contextPath);
         }
-        return ShenyuResultMessage.SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS);
     }
 
     private ApiDTO buildApiDTO(final ApiDocRegisterDTO apiDocRegisterDTO) {
@@ -232,7 +232,7 @@ public abstract class AbstractShenyuClientRegisterServiceImpl extends FallbackSh
             // publish change event.
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
         }
-        return ShenyuResultMessage.SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS);
     }
     
     /**

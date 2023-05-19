@@ -28,7 +28,6 @@ import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -86,7 +85,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public String delete(final List<String> ids) {
 
         proxySelectorMapper.deleteByIds(ids);
-        return ShenyuResultMessage.DELETE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS);
     }
 
     /**
@@ -98,10 +97,10 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     private String create(final ProxySelectorDTO proxySelectorDTO) {
 
         Assert.isNull(proxySelectorMapper.nameExisted(proxySelectorDTO.getName()),
-                AdminConstants.PROXY_SELECTOR_NAME_IS_EXIST);
+                ShenyuResultMessage.getI18n(ShenyuResultMessage.PROXY_SELECTOR_NAME_IS_EXIST));
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO);
         proxySelectorMapper.insert(proxySelectorDO);
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
 
     }
 
@@ -114,9 +113,9 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     private String update(final ProxySelectorDTO proxySelectorDTO) {
 
         Assert.isNull(proxySelectorMapper.nameExisted(proxySelectorDTO.getName()),
-                AdminConstants.PROXY_SELECTOR_NAME_IS_EXIST);
+                ShenyuResultMessage.getI18n(ShenyuResultMessage.PROXY_SELECTOR_NAME_IS_EXIST));
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO);
         proxySelectorMapper.update(proxySelectorDO);
-        return ShenyuResultMessage.UPDATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS);
     }
 }

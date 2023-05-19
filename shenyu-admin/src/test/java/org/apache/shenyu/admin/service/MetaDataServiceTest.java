@@ -29,7 +29,6 @@ import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.admin.service.publish.MetaDataEventPublisher;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.jupiter.api.AfterAll;
@@ -137,7 +136,7 @@ public final class MetaDataServiceTest {
     public void testEnabled() {
         List<String> ids = Lists.newArrayList("id1", "id2", "id3");
         String msg = metaDataService.enabled(ids, true);
-        assertEquals(AdminConstants.ID_NOT_EXIST, msg);
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST), msg);
         when(metaDataMapper.selectByIdList(ids))
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build()))
                 .thenReturn(Arrays.asList(MetaDataDO.builder().build(), MetaDataDO.builder().build(), MetaDataDO.builder().build()));
@@ -247,7 +246,7 @@ public final class MetaDataServiceTest {
         when(metaDataMapper.insert(any())).thenReturn(1);
         when(metaDataMapper.pathExisted(any())).thenReturn(null);
         String msg = metaDataService.createOrUpdate(metaDataDTO);
-        assertEquals(ShenyuResultMessage.CREATE_SUCCESS, msg);
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), msg);
     }
 
     /**
@@ -262,7 +261,7 @@ public final class MetaDataServiceTest {
         when(metaDataMapper.selectById("id")).thenReturn(metaDataDO);
         when(metaDataMapper.update(any())).thenReturn(1);
         String msg = metaDataService.createOrUpdate(metaDataDTO);
-        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, msg);
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), msg);
     }
 
     private void assertEquals(final String expected, final String actual) {

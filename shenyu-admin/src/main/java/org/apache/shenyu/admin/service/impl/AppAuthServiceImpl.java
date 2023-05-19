@@ -43,7 +43,6 @@ import org.apache.shenyu.admin.model.vo.AuthPathVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.transfer.AppAuthTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.AuthParamData;
 import org.apache.shenyu.common.dto.AuthPathData;
@@ -96,7 +95,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     public ShenyuAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isBlank(authApplyDTO.getAppName())
                 || (authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList()))) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.PARAMETER_ERROR));
         }
         AppAuthDO appAuthDO = AppAuthDO.create(authApplyDTO);
         appAuthMapper.insert(appAuthDO);
@@ -127,18 +126,18 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(data)));
 
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS));
     }
 
     @Override
     public ShenyuAdminResult applyUpdate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isAnyBlank(authApplyDTO.getAppKey(), authApplyDTO.getAppName())
                 || (authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList()))) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.PARAMETER_ERROR));
         }
         AppAuthDO appAuthDO = appAuthMapper.findByAppKey(authApplyDTO.getAppKey());
         if (Objects.isNull(appAuthDO)) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.APPKEY_NOT_EXIST_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.APPKEY_NOT_EXIST_ERROR));
         }
 
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
@@ -163,7 +162,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(buildByEntity(appAuthDO))));
 
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS));
     }
 
     @Override
@@ -206,7 +205,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     public ShenyuAdminResult updateDetailPath(final AuthPathWarpDTO authPathWarpDTO) {
         AppAuthDO appAuthDO = appAuthMapper.selectById(authPathWarpDTO.getId());
         if (Objects.isNull(appAuthDO)) {
-            return ShenyuAdminResult.error(AdminConstants.ID_NOT_EXIST);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST));
         }
         List<AuthPathDTO> authPathDTOList = authPathWarpDTO.getAuthPathDTOList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
@@ -319,7 +318,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectByIds(distinctIds);
         if (CollectionUtils.isEmpty(appAuthDOList)) {
-            return AdminConstants.ID_NOT_EXIST;
+            return ShenyuResultMessage.getI18n(ShenyuResultMessage.ID_NOT_EXIST);
         }
 
         Map<String, List<AuthParamData>> paramMap = this.prepareAuthParamData(distinctIds);

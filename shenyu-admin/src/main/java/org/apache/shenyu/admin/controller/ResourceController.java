@@ -81,9 +81,9 @@ public class ResourceController {
                                            @RequestParam @NotNull final Integer pageSize) {
         CommonPager<ResourceVO> commonPager = resourceService.listByPage(new ResourceQuery(title, new PageParameter(currentPage, pageSize)));
         if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
+            return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), commonPager);
         }
-        return ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED);
+        return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_FAILED));
     }
     
     /**
@@ -96,9 +96,9 @@ public class ResourceController {
     public ShenyuAdminResult getMenuTree() {
         List<MenuInfo> menuInfoList = resourceService.getMenuTree();
         if (CollectionUtils.isNotEmpty(menuInfoList)) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, menuInfoList);
+            return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), menuInfoList);
         }
-        return ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED);
+        return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_FAILED));
     }
     
     /**
@@ -112,9 +112,9 @@ public class ResourceController {
     public ShenyuAdminResult getButton(final String id) {
         List<ResourceVO> resourceVOList = resourceService.findByParentId(id);
         if (CollectionUtils.isNotEmpty(resourceVOList)) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, resourceVOList);
+            return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), resourceVOList);
         }
-        return ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED);
+        return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_FAILED));
     }
     
     /**
@@ -127,8 +127,8 @@ public class ResourceController {
     @RequiresPermissions(value = {"system:resource:list", "system:resource:editMenu", "system:resource:list"}, logical = Logical.OR)
     public ShenyuAdminResult detailResource(@PathVariable("id") final String id) {
         return Optional.ofNullable(resourceService.findById(id))
-                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
-                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), item))
+                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_FAILED)));
     }
     
     /**
@@ -140,7 +140,7 @@ public class ResourceController {
     @PostMapping("")
     @RequiresPermissions(value = {"system:resource:addMenu", "system:resource:addButton"}, logical = Logical.OR)
     public ShenyuAdminResult createResource(@Valid @RequestBody final CreateResourceDTO createResourceDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, resourceService.create(createResourceDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), resourceService.create(createResourceDTO));
     }
     
     /**
@@ -157,7 +157,7 @@ public class ResourceController {
                                                     message = "resource not existed") final String id,
                                             @RequestBody final ResourceDTO resourceDTO) {
         resourceDTO.setId(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, resourceService.update(resourceDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), resourceService.update(resourceDTO));
     }
     
     /**
@@ -169,6 +169,6 @@ public class ResourceController {
     @DeleteMapping("/batch")
     @RequiresPermissions(value = {"system:resource:deleteMenu", "system:resource:deleteButton"}, logical = Logical.OR)
     public ShenyuAdminResult deleteResource(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, resourceService.delete(ids));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), resourceService.delete(ids));
     }
 }

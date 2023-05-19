@@ -63,7 +63,7 @@ public class MockRequestRecordController {
      */
     @PostMapping("/insertOrUpdate")
     public ShenyuAdminResult createOrUpdate(@Valid @RequestBody final MockRequestRecordDTO mockRequestRecordDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, mockRequestRecordService.createOrUpdate(mockRequestRecordDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), mockRequestRecordService.createOrUpdate(mockRequestRecordDTO));
     }
 
     /**
@@ -74,7 +74,7 @@ public class MockRequestRecordController {
     @DeleteMapping("/batchDelete")
     public ShenyuAdminResult batchDelete(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = mockRequestRecordService.batchDelete(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), deleteCount);
     }
 
     /**
@@ -85,7 +85,7 @@ public class MockRequestRecordController {
     @DeleteMapping("/{id}")
     public ShenyuAdminResult delete(@PathVariable @Valid @Existed(provider = MockRequestRecordMapper.class,
             message = " is not existed") final String id) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, mockRequestRecordService.delete(id));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), mockRequestRecordService.delete(id));
     }
 
     /**
@@ -105,7 +105,7 @@ public class MockRequestRecordController {
                                         @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
                                         @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         PageParameter pageParameter = new PageParameter(currentPage, pageSize);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, this.mockRequestRecordService.listByPage(new MockRequestRecordQuery(apiId, host, url,
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), this.mockRequestRecordService.listByPage(new MockRequestRecordQuery(apiId, host, url,
                 pathVariable, header, pageParameter)));
     }
 
@@ -116,6 +116,6 @@ public class MockRequestRecordController {
      */
     @GetMapping("/{apiId}")
     public ShenyuAdminResult get(@PathVariable final String apiId) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, this.mockRequestRecordService.queryByApiId(apiId));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), this.mockRequestRecordService.queryByApiId(apiId));
     }
 }

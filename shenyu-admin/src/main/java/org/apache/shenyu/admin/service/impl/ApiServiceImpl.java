@@ -42,7 +42,6 @@ import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ApiStateEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -124,7 +123,7 @@ public class ApiServiceImpl implements ApiService {
                 unregister(apiDO);
             }
         }
-        return ShenyuResultMessage.UPDATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS);
     }
 
     /**
@@ -156,7 +155,7 @@ public class ApiServiceImpl implements ApiService {
                 unregister(apiDO);
             }
         }
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
     }
     
     private void unregister(final ApiDO apiDO) {
@@ -226,7 +225,8 @@ public class ApiServiceImpl implements ApiService {
         // select api id.
         List<ApiDO> apis = this.apiMapper.selectByIds(ids);
         if (CollectionUtils.isEmpty(apis)) {
-            return AdminConstants.SYS_API_ID_NOT_EXIST;
+            return ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_API_ID_NOT_EXIST);
+
         }
         // delete apis.
         final List<String> apiIds = ListUtil.map(apis, ApiDO::getId);
@@ -284,6 +284,6 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public String offlineByContextPath(final String contextPath) {
         apiMapper.updateOfflineByContextPath(contextPath);
-        return ShenyuResultMessage.SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS);
     }
 }

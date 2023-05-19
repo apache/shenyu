@@ -69,7 +69,7 @@ public class ProxySelectorController {
 
         CommonPager<ProxySelectorVO> commonPager = proxySelectorService
                 .listByPage(new ProxySelectorQuery(name, new PageParameter(currentPage, pageSize)));
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), commonPager);
     }
 
     /**

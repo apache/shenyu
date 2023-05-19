@@ -90,16 +90,16 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         dto.setContextPath("Context_Path");
         dto.setPath("Path");
         when(selectorService.registerDefault(any(), any(), any())).thenReturn("SELECTOR_ID");
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.register(dto));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), abstractShenyuClientRegisterService.register(dto));
 
         dto.setPath("Path/");
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.register(dto));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), abstractShenyuClientRegisterService.register(dto));
 
         dto.setPath("Path/**");
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.register(dto));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), abstractShenyuClientRegisterService.register(dto));
 
         dto.setPath("Path/*{id}");
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.register(dto));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), abstractShenyuClientRegisterService.register(dto));
     }
 
     @Test
@@ -119,15 +119,15 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         apiDocRegisterDTO.setState(1);
         apiDocRegisterDTO.setApiDesc("Api_Desc");
         apiDocRegisterDTO.setTags(Collections.singletonList("Tag"));
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
 
         TagVO tagVO = new TagVO();
         tagVO.setId("123");
         when(tagService.findByQuery(any())).thenReturn(Collections.singletonList(tagVO));
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
 
         apiDocRegisterDTO.setEventType(EventType.OFFLINE);
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), abstractShenyuClientRegisterService.registerApiDoc(apiDocRegisterDTO));
     }
 
     @Test
@@ -143,7 +143,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         when(selectorService.findByNameAndPluginName(any(), any())).thenReturn(selectorDO);
         SelectorData selectorData = new SelectorData();
         when(selectorService.buildByName(any(), any())).thenReturn(selectorData);
-        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO)));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO)));
     }
 
     @Test

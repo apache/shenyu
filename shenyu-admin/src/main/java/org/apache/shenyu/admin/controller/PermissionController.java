@@ -51,7 +51,7 @@ public class PermissionController {
     public ShenyuAdminResult getUserPermissionByToken(@RequestParam(name = "token") final String token) {
         PermissionMenuVO permissionMenuVO = permissionService.getPermissionMenu(token);
         return Optional.ofNullable(permissionMenuVO)
-                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.MENU_SUCCESS, item))
-                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.MENU_FAILED));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.MENU_SUCCESS), item))
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.MENU_FAILED)));
     }
 }

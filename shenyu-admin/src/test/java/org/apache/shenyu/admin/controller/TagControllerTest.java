@@ -75,7 +75,7 @@ public final class TagControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(tagDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -85,7 +85,7 @@ public final class TagControllerTest {
         given(tagService.findByParentTagId("0")).willReturn(tagVOS);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/tag/queryRootTag"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andReturn();
     }
 
@@ -94,7 +94,7 @@ public final class TagControllerTest {
         given(tagService.findById("123")).willReturn(buildTagVO());
         this.mockMvc.perform(MockMvcRequestBuilders.get("/tag/id/{id}", "123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andReturn();
     }
 
@@ -105,7 +105,7 @@ public final class TagControllerTest {
         given(tagService.findByParentTagId(anyString())).willReturn(list);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/tag/parentTagId/{parentTagId}", "123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andReturn();
     }
 
@@ -116,7 +116,7 @@ public final class TagControllerTest {
         given(tagService.findByQuery(anyString())).willReturn(list);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/tag/name/{name}", "123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andReturn();
     }
 
@@ -129,7 +129,7 @@ public final class TagControllerTest {
                         .param("id", "123")
                         .content(GsonUtils.getInstance().toJson(tagDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -143,7 +143,7 @@ public final class TagControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(ids)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andExpect(jsonPath("$.data", is(2)))
                 .andReturn();
     }

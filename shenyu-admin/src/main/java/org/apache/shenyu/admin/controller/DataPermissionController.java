@@ -70,7 +70,7 @@ public class DataPermissionController {
                                                              @RequestParam(value = "name", required = false) final String name) {
         CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listSelectorsByPage(
                 new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)), userId);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, selectorList);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), selectorList);
     }
     
     
@@ -92,7 +92,7 @@ public class DataPermissionController {
                                                          @RequestParam(value = "name", required = false) final String name) {
         CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listRulesByPage(
                 new RuleQuery(selectorId, name, new PageParameter(currentPage, pageSize)), userId);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, selectorList);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), selectorList);
     }
     
     
@@ -104,7 +104,7 @@ public class DataPermissionController {
      */
     @PostMapping("/selector")
     public ShenyuAdminResult saveSelector(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createSelector(dataPermissionDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.SAVE_SUCCESS), dataPermissionService.createSelector(dataPermissionDTO));
     }
     
     /**
@@ -115,7 +115,7 @@ public class DataPermissionController {
      */
     @DeleteMapping("/selector")
     public ShenyuAdminResult deleteSelector(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteSelector(dataPermissionDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), dataPermissionService.deleteSelector(dataPermissionDTO));
     }
     
     /**
@@ -126,7 +126,7 @@ public class DataPermissionController {
      */
     @PostMapping("/rule")
     public ShenyuAdminResult saveRule(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createRule(dataPermissionDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.SAVE_SUCCESS), dataPermissionService.createRule(dataPermissionDTO));
     }
     
     /**
@@ -137,6 +137,6 @@ public class DataPermissionController {
      */
     @DeleteMapping("/rule")
     public ShenyuAdminResult deleteRule(@RequestBody @Valid @NotNull final DataPermissionDTO dataPermissionDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteRule(dataPermissionDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), dataPermissionService.deleteRule(dataPermissionDTO));
     }
 }

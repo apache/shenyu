@@ -56,7 +56,7 @@ public class FieldController {
      */
     @PostMapping("/insertOrUpdate")
     public ShenyuAdminResult createOrUpdate(@Valid @RequestBody final FieldDTO fieldDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, fieldService.createOrUpdate(fieldDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), fieldService.createOrUpdate(fieldDTO));
     }
 
     /**
@@ -68,7 +68,7 @@ public class FieldController {
     @DeleteMapping("/batchDelete")
     public ShenyuAdminResult batchDelete(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = fieldService.deleteBatch(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), deleteCount);
     }
 
     /**
@@ -85,7 +85,7 @@ public class FieldController {
                                         @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
                                         @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         PageParameter pageParameter = new PageParameter(currentPage, pageSize);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, this.fieldService.listByPage(new FieldQuery(name, fieldDesc, pageParameter)));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), this.fieldService.listByPage(new FieldQuery(name, fieldDesc, pageParameter)));
     }
 
 }

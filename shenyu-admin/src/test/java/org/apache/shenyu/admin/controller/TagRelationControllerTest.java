@@ -74,7 +74,7 @@ public final class TagRelationControllerTest {
         given(tagRelationService.findByTagId(anyString())).willReturn(tagRelationDOS);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/tag-relation/tagId/{tagId}", "123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andReturn();
     }
 
@@ -87,7 +87,7 @@ public final class TagRelationControllerTest {
                         .param("id", "123")
                         .content(GsonUtils.getInstance().toJson(tagRelationDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -101,7 +101,7 @@ public final class TagRelationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(ids)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andExpect(jsonPath("$.data", is(2)))
                 .andReturn();
     }

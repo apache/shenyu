@@ -78,7 +78,7 @@ public final class ConfigControllerTest {
                 .param("groupKeys", new String[]{ConfigGroupEnum.APP_AUTH.toString()})
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS))))
                 .andExpect(jsonPath("$.data['APP_AUTH'].md5", is("md5-value1")))
                 .andReturn().getResponse();
 

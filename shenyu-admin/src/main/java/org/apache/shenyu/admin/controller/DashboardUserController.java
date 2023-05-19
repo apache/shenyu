@@ -92,9 +92,9 @@ public class DashboardUserController {
                 new PageParameter(currentPage, pageSize)));
         
         if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
+            return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), commonPager);
         } else {
-            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
         }
     }
     
@@ -109,8 +109,8 @@ public class DashboardUserController {
     public ShenyuAdminResult detailDashboardUser(@PathVariable("id") final String id) {
         DashboardUserEditVO dashboardUserEditVO = dashboardUserService.findById(id);
         return Optional.ofNullable(dashboardUserEditVO)
-                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
-                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), item))
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.DASHBOARD_QUERY_ERROR)));
     }
     
     /**
@@ -126,9 +126,9 @@ public class DashboardUserController {
                 .map(item -> {
                     item.setPassword(DigestUtils.sha512Hex(item.getPassword()));
                     Integer createCount = dashboardUserService.createOrUpdate(item);
-                    return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
+                    return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), createCount);
                 })
-                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_CREATE_USER_ERROR));
+                .orElseGet(() -> ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.DASHBOARD_CREATE_USER_ERROR)));
     }
     
     /**
@@ -149,7 +149,7 @@ public class DashboardUserController {
             dashboardUserDTO.setPassword(DigestUtils.sha512Hex(dashboardUserDTO.getPassword()));
         }
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), updateCount);
     }
     
     /**
@@ -166,15 +166,15 @@ public class DashboardUserController {
                                             @Valid @RequestBody final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
         UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipal();
         if (Objects.isNull(userInfo)) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_USER_LOGIN_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.DASHBOARD_USER_LOGIN_ERROR));
         }
         dashboardUserModifyPasswordDTO.setId(id);
         if (!userInfo.getUserId().equals(id) && !userInfo.getUserName().equals(dashboardUserModifyPasswordDTO.getUserName())) {
-            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_MODIFY_PASSWORD_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.DASHBOARD_MODIFY_PASSWORD_ERROR));
         }
         dashboardUserModifyPasswordDTO.setPassword(DigestUtils.sha512Hex(dashboardUserModifyPasswordDTO.getPassword()));
         dashboardUserModifyPasswordDTO.setOldPassword(DigestUtils.sha512Hex(dashboardUserModifyPasswordDTO.getOldPassword()));
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, dashboardUserService.modifyPassword(dashboardUserModifyPasswordDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), dashboardUserService.modifyPassword(dashboardUserModifyPasswordDTO));
     }
     
     /**
@@ -198,6 +198,6 @@ public class DashboardUserController {
     public ShenyuAdminResult deleteDashboardUser(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         // [mandatory] This function can only be used by the admin user
         Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dashboardUserService.delete(new HashSet<>(ids)));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), dashboardUserService.delete(new HashSet<>(ids)));
     }
 }

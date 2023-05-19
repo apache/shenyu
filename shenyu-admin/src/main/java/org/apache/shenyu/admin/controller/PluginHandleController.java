@@ -75,7 +75,7 @@ public class PluginHandleController {
                                                 @RequestParam @NotNull final Integer currentPage,
                                                 @RequestParam @NotNull final Integer pageSize) {
         CommonPager<PluginHandleVO> commonPager = pluginHandleService.listByPage(new PluginHandleQuery(pluginId, field, null, new PageParameter(currentPage, pageSize)));
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), commonPager);
     }
     
     /**
@@ -87,7 +87,7 @@ public class PluginHandleController {
      */
     @GetMapping("/all/{pluginId}/{type}")
     public ShenyuAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId, @PathVariable("type") final Integer type) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginHandleService.list(pluginId, type));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), pluginHandleService.list(pluginId, type));
     }
     
     /**
@@ -102,7 +102,7 @@ public class PluginHandleController {
                                         @Existed(provider = PluginHandleMapper.class,
                                                 message = "rule not exited") final String id) {
         PluginHandleVO pluginHandleVO = pluginHandleService.findById(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, pluginHandleVO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), pluginHandleVO);
     }
     
     /**
@@ -115,7 +115,7 @@ public class PluginHandleController {
     @RequiresPermissions("system:pluginHandler:add")
     public ShenyuAdminResult createPluginHandle(@Valid @RequestBody final PluginHandleDTO pluginHandleDTO) {
         Integer createCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), createCount);
     }
     
     /**
@@ -132,7 +132,7 @@ public class PluginHandleController {
                                                         message = "rule not exited") final String id,
                                                 @Valid @RequestBody final PluginHandleDTO pluginHandleDTO) {
         pluginHandleDTO.setId(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, pluginHandleService.createOrUpdate(pluginHandleDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), pluginHandleService.createOrUpdate(pluginHandleDTO));
     }
     
     /**
@@ -144,6 +144,6 @@ public class PluginHandleController {
     @DeleteMapping("/batch")
     @RequiresPermissions("system:pluginHandler:delete")
     public ShenyuAdminResult deletePluginHandles(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, pluginHandleService.deletePluginHandles(ids));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), pluginHandleService.deletePluginHandles(ids));
     }
 }

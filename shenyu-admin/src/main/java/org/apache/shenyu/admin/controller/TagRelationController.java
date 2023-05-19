@@ -57,7 +57,7 @@ public class TagRelationController {
     @GetMapping("/tagId/{tagId}")
     public ShenyuAdminResult queryApiByTagId(@PathVariable("tagId") @Valid final String tagId) {
         List<TagRelationDO> tagRelationDOS = Optional.ofNullable(tagRelationService.findByTagId(tagId)).orElse(Lists.newArrayList());
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagRelationDOS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), tagRelationDOS);
     }
 
     /**
@@ -72,7 +72,7 @@ public class TagRelationController {
                                        @Valid @RequestBody final TagRelationDTO tagRelationDTO) {
         tagRelationDTO.setId(id);
         Integer updateCount = tagRelationService.update(tagRelationDTO);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), updateCount);
     }
 
     /**
@@ -84,6 +84,6 @@ public class TagRelationController {
     @DeleteMapping("/batchDelete")
     public ShenyuAdminResult deleteTagRelation(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = tagRelationService.delete(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), deleteCount);
     }
 }

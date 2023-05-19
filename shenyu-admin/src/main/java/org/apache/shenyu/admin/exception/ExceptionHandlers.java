@@ -60,7 +60,7 @@ public class ExceptionHandlers {
             ShenyuException shenyuException = (ShenyuException) exception;
             message = shenyuException.getMessage();
         } else {
-            message = "The system is busy, please try again later";
+            message = ShenyuResultMessage.getI18n(ShenyuResultMessage.SYSTEM_IS_BUSY);
         }
         return ShenyuAdminResult.error(message);
     }
@@ -68,19 +68,25 @@ public class ExceptionHandlers {
     @ExceptionHandler(DuplicateKeyException.class)
     protected ShenyuAdminResult handleDuplicateKeyException(final DuplicateKeyException exception) {
         LOG.error("duplicate key exception ", exception);
-        return ShenyuAdminResult.error(ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
+        return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR));
+    }
+
+    @ExceptionHandler(ValidFailException.class)
+    protected ShenyuAdminResult handleValidFailException(final ValidFailException exception) {
+        LOG.error("valid fail exception ", exception);
+        return ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.PARAMETER_ERROR));
     }
     
     @ExceptionHandler(UnauthorizedException.class)
     protected ShenyuAdminResult handleUnauthorizedException(final UnauthorizedException exception) {
         LOG.error("unauthorized exception", exception);
-        return ShenyuAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
+        return ShenyuAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, ShenyuResultMessage.getI18n(ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION));
     }
     
     @ExceptionHandler(NullPointerException.class)
     protected ShenyuAdminResult handleNullPointException(final NullPointerException exception) {
         LOG.error("null pointer exception ", exception);
-        return ShenyuAdminResult.error(CommonErrorCode.NOT_FOUND_EXCEPTION, ShenyuResultMessage.NOT_FOUND_EXCEPTION);
+        return ShenyuAdminResult.error(CommonErrorCode.NOT_FOUND_EXCEPTION, ShenyuResultMessage.getI18n(ShenyuResultMessage.NOT_FOUND_EXCEPTION));
     }
     
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

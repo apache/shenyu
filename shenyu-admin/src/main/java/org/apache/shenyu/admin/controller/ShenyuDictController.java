@@ -76,7 +76,7 @@ public class ShenyuDictController {
                                         @RequestParam @NotNull final Integer currentPage,
                                         @RequestParam @NotNull final Integer pageSize) {
         final ShenyuDictQuery query = new ShenyuDictQuery(type, dictCode, dictName, new PageParameter(currentPage, pageSize));
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, shenyuDictService.listByPage(query));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), shenyuDictService.listByPage(query));
     }
     
     /**
@@ -87,7 +87,7 @@ public class ShenyuDictController {
      */
     @GetMapping("/all/{type}")
     public ShenyuAdminResult findByType(@PathVariable("type") final String type) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, shenyuDictService.list(type));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), shenyuDictService.list(type));
     }
     
     /**
@@ -101,7 +101,7 @@ public class ShenyuDictController {
     public ShenyuAdminResult detail(@PathVariable("id") @Valid
                                     @Existed(provider = ShenyuDictMapper.class,
                                             message = "dict is not existed") final String id) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, shenyuDictService.findById(id));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), shenyuDictService.findById(id));
     }
     
     /**
@@ -113,7 +113,7 @@ public class ShenyuDictController {
     @PostMapping("")
     @RequiresPermissions(value = {"system:dict:add", "system:dict:edit"}, logical = Logical.OR)
     public ShenyuAdminResult createShenyuDict(@Valid @RequestBody final ShenyuDictDTO shenyuDictDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, shenyuDictService.createOrUpdate(shenyuDictDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), shenyuDictService.createOrUpdate(shenyuDictDTO));
     }
     
     /**
@@ -130,7 +130,7 @@ public class ShenyuDictController {
                                                       message = "dict is not existed") final String id,
                                               @Valid @NotNull @RequestBody final ShenyuDictDTO shenyuDictDTO) {
         shenyuDictDTO.setId(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, shenyuDictService.createOrUpdate(shenyuDictDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), shenyuDictService.createOrUpdate(shenyuDictDTO));
     }
     
     /**
@@ -142,7 +142,7 @@ public class ShenyuDictController {
     @DeleteMapping("/batch")
     @RequiresPermissions("system:dict:delete")
     public ShenyuAdminResult deleteShenyuDicts(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, shenyuDictService.deleteShenyuDicts(ids));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), shenyuDictService.deleteShenyuDicts(ids));
     }
     
     /**

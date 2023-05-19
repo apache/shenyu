@@ -96,7 +96,7 @@ public final class ShenyuDictControllerTest {
                 .param("currentPage", Integer.toString(pageParameter.getCurrentPage()))
                 .param("pageSize", Integer.toString(pageParameter.getPageSize())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data.dataList[0].id", is(commonPager.getDataList().get(0).getId())))
                 .andReturn();
     }
@@ -106,7 +106,7 @@ public final class ShenyuDictControllerTest {
         given(this.shenyuDictService.list("1")).willReturn(Collections.singletonList(shenyuDictVO));
         this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu-dict/all/{type}", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data[0].id", is(shenyuDictVO.getId())))
                 .andReturn();
     }
@@ -116,7 +116,7 @@ public final class ShenyuDictControllerTest {
         given(this.shenyuDictService.findById("123")).willReturn(shenyuDictVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu-dict/{id}", "123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andExpect(jsonPath("$.data.id", is(shenyuDictVO.getId())))
                 .andReturn();
     }
@@ -134,7 +134,7 @@ public final class ShenyuDictControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(shenyuDictDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -151,7 +151,7 @@ public final class ShenyuDictControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(shenyuDictDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS))))
                 .andReturn();
     }
     
@@ -169,7 +169,7 @@ public final class ShenyuDictControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"" + shenyuDictDTO.getId() + "\"]"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andReturn();
     }
     

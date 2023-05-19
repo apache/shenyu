@@ -60,7 +60,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     public String delete(final List<String> ids) {
 
         discoveryUpstreamMapper.deleteByIds(ids);
-        return ShenyuResultMessage.DELETE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS);
     }
 
     /**
@@ -73,7 +73,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         discoveryUpstreamMapper.insert(discoveryUpstreamDO);
-        return ShenyuResultMessage.CREATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS);
     }
 
     /**
@@ -86,6 +86,6 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         discoveryUpstreamMapper.update(discoveryUpstreamDO);
-        return ShenyuResultMessage.UPDATE_SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS);
     }
 }

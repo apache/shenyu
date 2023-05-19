@@ -90,7 +90,7 @@ public class ResourceControllerTest {
                 .queryParam("title", queryTitle)
                 .queryParam("currentPage", String.valueOf(queryCurrentPage))
                 .queryParam("pageSize", String.valueOf(queryPageSize)))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, queryResult))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), queryResult))))
                 .andReturn();
     }
 
@@ -107,7 +107,7 @@ public class ResourceControllerTest {
                 .queryParam("title", queryTitle)
                 .queryParam("currentPage", String.valueOf(queryCurrentPage))
                 .queryParam("pageSize", String.valueOf(queryPageSize)))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_FAILED)))))
                 .andReturn();
     }
 
@@ -117,7 +117,7 @@ public class ResourceControllerTest {
         given(resourceService.getMenuTree()).willReturn(mockResult);
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/resource/menu"))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, mockResult))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), mockResult))))
                 .andReturn();
     }
 
@@ -126,7 +126,7 @@ public class ResourceControllerTest {
         given(resourceService.getMenuTree()).willReturn(newArrayList());
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/resource/menu"))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_FAILED)))))
                 .andReturn();
     }
 
@@ -138,7 +138,7 @@ public class ResourceControllerTest {
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/resource/button")
                 .queryParam("id", mockId))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, mockResult))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), mockResult))))
                 .andReturn();
     }
 
@@ -149,7 +149,7 @@ public class ResourceControllerTest {
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/resource/button")
                 .queryParam("id", mockId))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_FAILED)))))
                 .andReturn();
     }
 
@@ -159,7 +159,7 @@ public class ResourceControllerTest {
         final ResourceVO mockResult = new ResourceVO();
         given(resourceService.findById(mockId)).willReturn(mockResult);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/resource/" + mockId))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, mockResult))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), mockResult))))
                 .andReturn();
     }
 
@@ -168,7 +168,7 @@ public class ResourceControllerTest {
         final String mockId = "mock-id";
         given(resourceService.findById(mockId)).willReturn(null);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/resource/" + mockId))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.error(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_FAILED)))))
                 .andReturn();
     }
 
@@ -181,7 +181,7 @@ public class ResourceControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.post("/resource")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(createResourceDTO)))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, 1))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), 1))))
                 .andReturn();
     }
 
@@ -197,7 +197,7 @@ public class ResourceControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.put("/resource/" + mockId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(resourceDTO)))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, 1))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), 1))))
                 .andReturn();
     }
     
@@ -209,7 +209,7 @@ public class ResourceControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/resource/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(mockParameter)))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, 1))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), 1))))
                 .andReturn();
     }
     

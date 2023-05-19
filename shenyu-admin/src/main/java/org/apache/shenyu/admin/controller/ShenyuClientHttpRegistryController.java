@@ -59,7 +59,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @ResponseBody
     public String registerMetadata(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
         publisher.publish(metaDataRegisterDTO);
-        return ShenyuResultMessage.SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS);
     }
     
     
@@ -73,7 +73,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @ResponseBody
     public String registerURI(@RequestBody final URIRegisterDTO uriRegisterDTO) {
         publisher.publish(uriRegisterDTO);
-        return ShenyuResultMessage.SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS);
     }
 
     /**
@@ -85,7 +85,7 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
     @ResponseBody
     public String registerApiDoc(@RequestBody final ApiDocRegisterDTO apiDocRegisterDTO) {
         publisher.publish(apiDocRegisterDTO);
-        return ShenyuResultMessage.SUCCESS;
+        return ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS);
     }
     
 }

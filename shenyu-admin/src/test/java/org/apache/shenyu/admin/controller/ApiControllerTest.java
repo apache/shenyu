@@ -112,7 +112,7 @@ public final class ApiControllerTest {
                         .param("currentPage", pageParameter.getCurrentPage() + "")
                         .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
                 .andExpect(jsonPath("$.data.dataList[0].contextPath", is(apiVO.getContextPath())))
                 .andReturn();
     }
@@ -122,7 +122,7 @@ public final class ApiControllerTest {
         given(this.apiService.findById("123")).willReturn(apiVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/api/{id}", "123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
                 .andExpect(jsonPath("$.data.id", is(apiVO.getId())))
                 .andReturn();
     }
@@ -143,12 +143,12 @@ public final class ApiControllerTest {
         apiDTO.setApiSource(0);
         apiDTO.setDocument("document");
         apiDTO.setExt("ext");
-        given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.CREATE_SUCCESS);
+        given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS));
         this.mockMvc.perform(MockMvcRequestBuilders.post("/api")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(apiDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS))))
                 .andReturn();
     }
 
@@ -219,12 +219,12 @@ public final class ApiControllerTest {
         apiDTO.setId("123");
         when(SpringBeanUtils.getInstance().getBean(ApiMapper.class)).thenReturn(apiMapper);
         when(apiMapper.existed(apiDTO.getId())).thenReturn(true);
-        given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.UPDATE_SUCCESS);
+        given(this.apiService.createOrUpdate(apiDTO)).willReturn(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS));
         this.mockMvc.perform(MockMvcRequestBuilders.put("/api/{id}", apiDTO.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(apiDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS))))
                 .andReturn();
 
     }
@@ -236,7 +236,7 @@ public final class ApiControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[\"123\"]"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
                 .andReturn();
 
     }

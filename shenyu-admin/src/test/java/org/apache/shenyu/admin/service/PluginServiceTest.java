@@ -31,7 +31,6 @@ import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.impl.PluginServiceImpl;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,7 +108,7 @@ public final class PluginServiceTest {
         
         PluginDO pluginDO = buildPluginDO("123");
         final List<String> ids = Collections.singletonList(pluginDO.getId());
-        assertEquals(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST, pluginService.delete(ids));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_ID_NOT_EXIST), pluginService.delete(ids));
     }
     
     @Test
@@ -134,7 +133,7 @@ public final class PluginServiceTest {
         
         given(this.pluginMapper.updateEnable(any())).willReturn(1);
         
-        assertThat(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()), equalTo(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST));
+        assertThat(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()), equalTo(ShenyuResultMessage.getI18n(ShenyuResultMessage.SYS_PLUGIN_ID_NOT_EXIST)));
     }
     
     @Test
@@ -178,7 +177,7 @@ public final class PluginServiceTest {
         PluginDTO pluginDTO = buildPluginDTO("");
         when(pluginMapper.nameExisted(pluginDTO.getName())).thenReturn(null);
         when(pluginMapper.insert(any())).thenReturn(1);
-        assertEquals(ShenyuResultMessage.CREATE_SUCCESS, this.pluginService.createOrUpdate(pluginDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS), this.pluginService.createOrUpdate(pluginDTO));
     }
     
     private void testUpdate() {
@@ -190,7 +189,7 @@ public final class PluginServiceTest {
         pluginDTO.setName("test");
         when(pluginMapper.nameExistedExclude(pluginDTO.getName(), Collections.singletonList(pluginDO.getId()))).thenReturn(null);
         when(pluginMapper.update(any())).thenReturn(1);
-        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, this.pluginService.createOrUpdate(pluginDTO));
+        assertEquals(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS), this.pluginService.createOrUpdate(pluginDTO));
     }
     
     private PluginDTO buildPluginDTO() {

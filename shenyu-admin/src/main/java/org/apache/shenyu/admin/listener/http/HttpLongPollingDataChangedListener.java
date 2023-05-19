@@ -230,7 +230,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             response.setHeader("Cache-Control", "no-cache,no-store");
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().println(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, changedGroups)));
+            response.getWriter().println(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), changedGroups)));
         } catch (IOException ex) {
             LOG.error("Sending response failed.", ex);
         }

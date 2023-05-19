@@ -112,7 +112,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
         query.setAppKey(appKey);
         query.setPageParameter(new PageParameter(currentPage, pageSize));
         CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(query);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS), commonPager);
     }
     
     /**
@@ -126,7 +126,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     public ShenyuAdminResult detail(@RequestParam("id")
                                     @Existed(message = "app key not existed",
                                             provider = AppAuthMapper.class) final String id) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), appAuthService.findById(id));
     }
     
     /**
@@ -154,7 +154,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
                                                     providerMethodName = "existedByAuthId",
                                                     provider = AuthPathMapper.class)
                                         @NotBlank final String authId) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(authId));
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS), appAuthService.detailPath(authId));
     }
     
     /**
@@ -179,7 +179,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @RequiresPermissions("system:authen:delete")
     public ShenyuAdminResult batchDelete(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         Integer deleteCount = appAuthService.delete(ids);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS), deleteCount);
     }
     
     /**
@@ -195,7 +195,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }
-        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.ENABLE_SUCCESS));
     }
     
     /**

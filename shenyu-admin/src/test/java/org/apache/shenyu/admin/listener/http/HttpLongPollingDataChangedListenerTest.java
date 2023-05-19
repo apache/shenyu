@@ -86,7 +86,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         this.httpServletResponse.setHeader("Cache-Control", "no-cache,no-store");
         this.httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
         this.httpServletResponse.setStatus(MockHttpServletResponse.SC_OK);
-        this.httpServletResponse.getWriter().println(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, changedGroups)));
+        this.httpServletResponse.getWriter().println(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.getI18n(ShenyuResultMessage.SUCCESS), changedGroups)));
     }
 
     /**

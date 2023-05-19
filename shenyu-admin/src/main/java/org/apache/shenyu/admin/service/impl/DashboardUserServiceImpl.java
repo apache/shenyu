@@ -309,10 +309,10 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public boolean checkUserPassword(final String userId) {
         final DashboardUserDO userDO = dashboardUserMapper.selectById(userId);
         
-        Assert.isTrue(!Objects.equals(userDO.getDateCreated(), userDO.getDateUpdated()), ShenyuResultMessage.PASSWORD_IS_DEFAULT);
+        Assert.isTrue(!Objects.equals(userDO.getDateCreated(), userDO.getDateUpdated()), ShenyuResultMessage.getI18n(ShenyuResultMessage.PASSWORD_IS_DEFAULT));
         
         // The password has not been changed for a long time
-        Assert.isTrue(passwordUsedLongTime(userDO), ShenyuResultMessage.PASSWORD_USED_FOR_LONG_TIME);
+        Assert.isTrue(passwordUsedLongTime(userDO), ShenyuResultMessage.getI18n(ShenyuResultMessage.PASSWORD_USED_FOR_LONG_TIME));
         
         // Weak password blacklist
         

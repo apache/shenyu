@@ -86,7 +86,7 @@ public class RoleControllerTest {
         given(roleService.selectAll()).willReturn(Collections.emptyList());
         this.mockMvc.perform(MockMvcRequestBuilders.get("/role/getAllRoles"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
             .andReturn();
     }
 
@@ -99,7 +99,7 @@ public class RoleControllerTest {
         String urlTemplate = "/role?roleName={roleName}&currentPage={currentPage}&pageSize={pageSize}";
         this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, roleVO.getRoleName(), pageParameter.getCurrentPage(), pageParameter.getPageSize()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.QUERY_SUCCESS))))
             .andExpect(jsonPath("$.data.dataList[0].id", is(roleVO.getId())))
             .andReturn();
     }
@@ -110,14 +110,14 @@ public class RoleControllerTest {
         String urlTemplate = "/role/{id}";
         this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "test_id"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_FAILED)))
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_FAILED))))
             .andReturn();
         RoleEditVO roleEditVO = buildRoleEditVO();
         given(roleService.findById(roleEditVO.getSysRole().getId())).willReturn(roleEditVO);
         urlTemplate = "/role/{id}";
         this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, roleEditVO.getSysRole().getId()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DETAIL_SUCCESS))))
             .andReturn();
     }
 
@@ -132,7 +132,7 @@ public class RoleControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(GsonUtils.getInstance().toJson(roleDTO)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.CREATE_SUCCESS))))
             .andReturn();
         roleDTO.setRoleName(SUPER);
         given(roleService.createOrUpdate(roleDTO)).willReturn(1);
@@ -140,7 +140,7 @@ public class RoleControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(GsonUtils.getInstance().toJson(roleDTO)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ROLE_CREATE_ERROR)))
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.ROLE_CREATE_ERROR))))
             .andReturn();
     }
 
@@ -155,7 +155,7 @@ public class RoleControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(GsonUtils.getInstance().toJson(roleDTO)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.UPDATE_SUCCESS))))
             .andReturn();
     }
 
@@ -167,7 +167,7 @@ public class RoleControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(GsonUtils.getInstance().toJson(testIds)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
+            .andExpect(jsonPath("$.message", is(ShenyuResultMessage.getI18n(ShenyuResultMessage.DELETE_SUCCESS))))
             .andReturn();
 
     }
