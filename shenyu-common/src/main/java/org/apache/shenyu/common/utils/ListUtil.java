@@ -206,10 +206,11 @@ public final class ListUtil {
     
     /**
      * cast list.
-     *
-     * @param list collections
-     * @param mapper mapper function
-     * @return the result
+     * @param list list
+     * @param mapper mapper
+     * @return List<T>
+     * @param <R> the source type parameter
+     * @param <T> the target type parameter
      */
     public static <R, T> List<T> castList(final List<R> list, final Function<R, T> mapper) {
         if (CollectionUtils.isEmpty(list)) {
