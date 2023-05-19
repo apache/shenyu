@@ -77,10 +77,11 @@ public enum ShenyuResultMessage {
      * getI18n If the configuration content does not exist, it will return enum name.
      *
      * @param key {@link ShenyuResultMessage}
+     * @param args replace args
      * @return i18n value
      */
 
-    public static String getI18n(final ShenyuResultMessage key, String... args) {
+    public static String getI18n(final ShenyuResultMessage key, final String... args) {
         if (messageSource == null) {
             synchronized (LOCK) {
                 if (messageSource == null) {
