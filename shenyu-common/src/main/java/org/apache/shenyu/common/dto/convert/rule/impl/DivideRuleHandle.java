@@ -60,16 +60,25 @@ public class DivideRuleHandle implements RuleHandle {
      * requestMaxSize.
      */
     private long requestMaxSize;
-
+    
+    /**
+     * New instance divide rule handle.
+     *
+     * @return the divide rule handle
+     */
+    public static DivideRuleHandle newInstance() {
+        return new DivideRuleHandle();
+    }
+    
     /**
      * get loadBalance.
      *
-     * @return loadBalance
+     * @return loadBalance load balance
      */
     public String getLoadBalance() {
         return loadBalance;
     }
-
+    
     /**
      * set loadBalance.
      *
@@ -78,16 +87,16 @@ public class DivideRuleHandle implements RuleHandle {
     public void setLoadBalance(final String loadBalance) {
         this.loadBalance = loadBalance;
     }
-
+    
     /**
      * get retryStrategy.
      *
-     * @return retryStrategy
+     * @return retryStrategy retry strategy
      */
     public String getRetryStrategy() {
         return retryStrategy;
     }
-
+    
     /**
      * set retryStrategy.
      *
@@ -96,16 +105,16 @@ public class DivideRuleHandle implements RuleHandle {
     public void setRetryStrategy(final String retryStrategy) {
         this.retryStrategy = retryStrategy;
     }
-
+    
     /**
      * get retry.
      *
-     * @return retry
+     * @return retry retry
      */
     public int getRetry() {
         return retry;
     }
-
+    
     /**
      * set retry.
      *
@@ -114,16 +123,16 @@ public class DivideRuleHandle implements RuleHandle {
     public void setRetry(final int retry) {
         this.retry = retry;
     }
-
+    
     /**
      * get timeout.
      *
-     * @return timeout
+     * @return timeout timeout
      */
     public long getTimeout() {
         return timeout;
     }
-
+    
     /**
      * set timeout.
      *
@@ -132,16 +141,16 @@ public class DivideRuleHandle implements RuleHandle {
     public void setTimeout(final long timeout) {
         this.timeout = timeout;
     }
-
+    
     /**
      * get headerMaxSize.
      *
-     * @return headerMaxSize
+     * @return headerMaxSize header max size
      */
     public long getHeaderMaxSize() {
         return headerMaxSize;
     }
-
+    
     /**
      * set headerMaxSize.
      *
@@ -150,16 +159,16 @@ public class DivideRuleHandle implements RuleHandle {
     public void setHeaderMaxSize(final long headerMaxSize) {
         this.headerMaxSize = headerMaxSize;
     }
-
+    
     /**
      * get requestMaxSize.
      *
-     * @return requestMaxSize
+     * @return requestMaxSize request max size
      */
     public long getRequestMaxSize() {
         return requestMaxSize;
     }
-
+    
     /**
      * set requestMaxSize.
      *

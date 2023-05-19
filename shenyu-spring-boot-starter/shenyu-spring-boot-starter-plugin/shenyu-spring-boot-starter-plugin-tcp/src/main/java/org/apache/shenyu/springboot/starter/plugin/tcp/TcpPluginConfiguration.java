@@ -15,22 +15,28 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.utils;
+package org.apache.shenyu.springboot.starter.plugin.tcp;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import java.util.Collections;
+import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
+import org.apache.shenyu.plugin.tcp.handler.TcpUpstreamDataHandler;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * ListUtilTest.
+ * The type mqtt plugin configuration.
  */
-public class ListUtilTest {
+@Configuration
+@ConditionalOnProperty(value = {"shenyu.plugins.tcp.enabled"}, havingValue = "true", matchIfMissing = true)
+public class TcpPluginConfiguration {
 
-    @Test
-    public void testListUtil() {
-        Assertions.assertNotNull(ListUtil.emptyIsDefault(Collections.emptyList(), Collections.singletonList(1)));
-        Assertions.assertNotNull(ListUtil.findFirst(Collections.singletonList(1), res -> res == 1));
-        Assertions.assertNull(ListUtil.findFirst(Collections.singletonList(1), res -> false));
-        Assertions.assertNull(ListUtil.findFirst(Collections.emptyList(), res -> false));
+    /**
+     * tcpProxySelectorDataHandler.
+     *
+     * @return ProxySelectorDataHandler
+     */
+    @Bean
+    public ProxySelectorDataHandler tcpProxySelectorDataHandler() {
+        return new TcpUpstreamDataHandler();
     }
 }
