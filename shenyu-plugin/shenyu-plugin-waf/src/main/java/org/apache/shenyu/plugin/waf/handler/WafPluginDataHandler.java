@@ -17,16 +17,18 @@
 
 package org.apache.shenyu.plugin.waf.handler;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.WafHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.waf.config.WafConfig;
 
 import java.util.Optional;
@@ -44,7 +46,19 @@ public class WafPluginDataHandler implements PluginDataHandler {
         WafConfig wafConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), WafConfig.class);
         Singleton.INST.single(WafConfig.class, wafConfig);
     }
-
+    
+    @Override
+    public void handlerSelector(final SelectorData selectorData) {
+        if (!selectorData.getContinued()) {
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), WafHandle.newDefaultInstance());
+        }
+    }
+    
+    @Override
+    public void removeSelector(final SelectorData selectorData) {
+        PluginDataHandler.super.removeSelector(selectorData);
+    }
+    
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto.convert.rule;
 
+import org.apache.shenyu.common.enums.WafEnum;
+
 import java.util.Objects;
 
 /**
@@ -33,16 +35,28 @@ public class WafHandle {
      * statusCode.
      */
     private String statusCode;
-
+    
+    /**
+     * New default instance waf handle.
+     *
+     * @return the waf handle
+     */
+    public static WafHandle newDefaultInstance() {
+        WafHandle wafHandle = new WafHandle();
+        wafHandle.setPermission(WafEnum.REJECT.getName());
+        wafHandle.setStatusCode("403");
+        return wafHandle;
+    }
+    
     /**
      * get permission.
      *
-     * @return permission
+     * @return permission permission
      */
     public String getPermission() {
         return permission;
     }
-
+    
     /**
      * set permission.
      *
@@ -51,16 +65,16 @@ public class WafHandle {
     public void setPermission(final String permission) {
         this.permission = permission;
     }
-
+    
     /**
      * get statusCode.
      *
-     * @return statusCode
+     * @return statusCode status code
      */
     public String getStatusCode() {
         return statusCode;
     }
-
+    
     /**
      * set statusCode.
      *

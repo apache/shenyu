@@ -26,6 +26,7 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -372,9 +373,11 @@ public final class SelectorDO extends BaseDO {
      * @param selectorDO        the selector do
      * @param pluginName        the plugin name
      * @param conditionDataList the condition data list
+     * @param beforeConditionDataList before condition data list
      * @return the selector data
      */
-    public static SelectorData transFrom(final SelectorDO selectorDO, final String pluginName, final List<ConditionData> conditionDataList) {
+    public static SelectorData transFrom(final SelectorDO selectorDO, final String pluginName,
+                                         final List<ConditionData> conditionDataList, final List<ConditionData> beforeConditionDataList) {
         return SelectorData.builder()
                 .id(selectorDO.getId())
                 .pluginId(selectorDO.getPluginId())
@@ -389,7 +392,20 @@ public final class SelectorDO extends BaseDO {
                 .handle(selectorDO.getHandle())
                 .conditionList(conditionDataList)
                 .matchRestful(selectorDO.getMatchRestful())
+                .beforeConditionList(beforeConditionDataList)
                 .build();
+    }
+    
+    /**
+     * selector data transform.
+     *
+     * @param selectorDO selector entity
+     * @param pluginName plugin name
+     * @param conditionDataList condition data list
+     * @return the selector data
+     */
+    public static SelectorData transFrom(final SelectorDO selectorDO, final String pluginName, final List<ConditionData> conditionDataList) {
+        return transFrom(selectorDO, pluginName, conditionDataList, Collections.emptyList());
     }
 
     public static final class SelectorDOBuilder {

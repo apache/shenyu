@@ -67,13 +67,13 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     private final boolean scheduled;
 
     private Scheduler scheduler;
-
+    
     /**
      * Instantiates a new shenyu web handler.
      *
-     * @param plugins             the plugins
+     * @param plugins the plugins
      * @param shenyuLoaderService shenyuLoaderService
-     * @param shenyuConfig        plugins config
+     * @param shenyuConfig plugins config
      */
     public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuLoaderService shenyuLoaderService, final ShenyuConfig shenyuConfig) {
         this.sourcePlugins = new ArrayList<>(plugins);
@@ -104,7 +104,16 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         }
         return execute;
     }
-
+    
+    /**
+     * Gets plugins.
+     *
+     * @return the plugins
+     */
+    public List<ShenyuPlugin> getPlugins() {
+        return plugins;
+    }
+    
     /**
      * Put ext plugins.
      *
@@ -224,7 +233,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         private int index;
 
         private final List<ShenyuPlugin> plugins;
-
+    
         /**
          * Instantiates a new Default shenyu plugin chain.
          *

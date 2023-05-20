@@ -27,6 +27,7 @@ import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.enums.AdminPluginOperateEnum;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.utils.ListUtil;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
