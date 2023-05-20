@@ -168,7 +168,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             // md5,lastModifyTime
             String[] params = StringUtils.split(request.getParameter(group.name()), ',');
             if (params == null || params.length != 2) {
-                throw new ShenyuException("group param invalid:" + request.getParameter(group.name()));
+                throw new ShenyuException(ShenyuResultMessage.GROUP_PARAM_INVALID + request.getParameter(group.name()));
             }
             String clientMd5 = params[0];
             long clientModifyTime = NumberUtils.toLong(params[1]);
