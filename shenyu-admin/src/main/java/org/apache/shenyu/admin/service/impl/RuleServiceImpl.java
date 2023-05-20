@@ -43,6 +43,7 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
@@ -150,7 +151,7 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public int update(final RuleDTO ruleDTO) {
         final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
-        Assert.notNull(before, "the updated rule is not found");
+        Assert.notNull(before, ShenyuResultMessage.UPDATED_RULE_NOT_FOUND);
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
 

@@ -22,9 +22,12 @@ import org.apache.shenyu.admin.mapper.OperationRecordLogMapper;
 import org.apache.shenyu.admin.model.entity.OperationRecordLog;
 import org.apache.shenyu.admin.model.query.RecordLogQueryCondition;
 import org.apache.shenyu.admin.service.OperationRecordLogService;
+import org.apache.shenyu.admin.spring.ShenyuMessageSourceAware;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -71,7 +74,7 @@ public class OperationRecordLogServiceImpl implements OperationRecordLogService 
     @Override
     public boolean cleanHistory(final Date date) {
         final long supportMaxTime = System.currentTimeMillis() - (dashboardProperties.getOnlyCleanDays() * 1000 * 60 * 60 * 24);
-        Assert.isTrue(date.getTime() < supportMaxTime, String.format("Only supports cleaning data older than %d days", dashboardProperties.getOnlyCleanDays()));
+        Assert.isTrue(date.getTime() < supportMaxTime, ShenyuMessageSourceAware.getMessageSource().getMessage(ShenyuResultMessage.ONLY_SUPPORT_CLEANING_OLDER_DATA, new Object[]{dashboardProperties.getOnlyCleanDays()}, LocaleContextHolder.getLocale()));
         return recordLogMapper.deleteByBefore(date) > 0;
     }
 }

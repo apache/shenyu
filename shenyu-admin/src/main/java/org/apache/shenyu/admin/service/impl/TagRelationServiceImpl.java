@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.admin.service.TagRelationService;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.stereotype.Service;
 
 /**
@@ -49,7 +50,7 @@ public class TagRelationServiceImpl implements TagRelationService {
     @Override
     public int update(final TagRelationDTO tagRelationDTO) {
         TagRelationDO before = tagRelationMapper.selectByPrimaryKey(tagRelationDTO.getId());
-        Assert.notNull(before, "the updated rule is not found");
+        Assert.notNull(before, ShenyuResultMessage.UPDATED_RULE_NOT_FOUND);
         TagRelationDO tagRelationDO = TagRelationDO.buildTagRelationDO(tagRelationDTO);
         return tagRelationMapper.updateByPrimaryKeySelective(tagRelationDO);
     }

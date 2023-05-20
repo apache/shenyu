@@ -84,56 +84,80 @@ public final class ShenyuResultMessage {
     
     public static final String PASSWORD_USED_FOR_LONG_TIME = "PASSWORD_USED_FOR_LONG_TIME";
 
-    public static final String APP_AUTH_ID_NOT_NULL = "app auth id not null";
+    public static final String APP_AUTH_ID_NOT_NULL = "APP_AUTH_ID_NOT_NULL";
 
-    public static final String APP_AUTH_ID_NOT_EXISTED = "app auth is not existed";
+    public static final String APP_AUTH_ID_NOT_EXISTED = "APP_AUTH_ID_NOT_EXISTED";
 
-    public static final String APP_AUTH_APPKEY_NOT_NULL = "app auth appKey not null";
+    public static final String APP_AUTH_APPKEY_NOT_NULL = "APP_AUTH_APPKEY_NOT_NULL";
 
-    public static final String APP_AUTH_APPSECRET_NOT_NULL = "app auth appSecret not null";
+    public static final String APP_AUTH_APPSECRET_NOT_NULL = "APP_AUTH_APPSECRET_NOT_NULL";
 
-    public static final String NUMBER_IS_ILLEGAL = "number is illegal, length 7 to 11! e.g. +1234567 or 1234567";
+    public static final String NUMBER_IS_ILLEGAL = "NUMBER_IS_ILLEGAL";
 
-    public static final String APPKEY_NOT_EXISTED = "app key not existed";
+    public static final String APPKEY_NOT_EXISTED = "APPKEY_NOT_EXISTED";
 
-    public static final String CURRENTPAGE_NOT_NULL = "currentPage not null";
+    public static final String CURRENTPAGE_NOT_NULL = "CURRENTPAGE_NOT_NULL";
 
-    public static final String PAGESIZE_NOT_NULL = "pageSize not null";
+    public static final String PAGESIZE_NOT_NULL = "PAGESIZE_NOT_NULL";
 
-    public static final String AUTH_PATH_NOT_EXISTED = "auth path not existed";
+    public static final String AUTH_PATH_NOT_EXISTED = "AUTH_PATH_NOT_EXISTED";
 
-    public static final String SYSTEM_IS_BUSY = "The system is busy, please try again later";
+    public static final String SYSTEM_IS_BUSY = "SYSTEM_IS_BUSY";
 
-    public static final String USER_NOT_FOUND = "user is not found";
+    public static final String USER_NOT_FOUND = "USER_NOT_FOUND";
 
-    public static final String DISCOVERY_UPSTRAM_IS_NOT_EXISTED = "discovery upstream is not existed";
+    public static final String DISCOVERY_UPSTRAM_IS_NOT_EXISTED = "DISCOVERY_UPSTRAM_IS_NOT_EXISTED";
 
-    public static final String ONLY_BE_USED_BY_ADMIN = "This function can only be used by the admin(root) user";
+    public static final String ONLY_BE_USED_BY_ADMIN = "ONLY_BE_USED_BY_ADMIN";
 
-    public static final String SIZE_MAX_1000 = "size max support is 1000";
+    public static final String SIZE_MAX_1000 = "SIZE_MAX_1000";
 
-    public static final String SIZE_MIN_1 = "size min support is 1";
+    public static final String SIZE_MIN_1 = "SIZE_MIN_1";
 
-    public static final String PLUGIN_NOT_EXISTED = "plugin is not existed";
+    public static final String PLUGIN_NOT_EXISTED = "PLUGIN_NOT_EXISTED";
 
-    public static final String RULE_NOT_EXISTED = "rule not existed";
+    public static final String RULE_NOT_EXISTED = "RULE_NOT_EXISTED";
 
-    public static final String PROXY_SELECTOR_NOT_EXISTED = "proxy selector not existed";
+    public static final String PROXY_SELECTOR_NOT_EXISTED = "PROXY_SELECTOR_NOT_EXISTED";
 
-    public static final String RESOURCE_NOT_EXISTED = "resource not existed";
+    public static final String RESOURCE_NOT_EXISTED = "RESOURCE_NOT_EXISTED";
 
-    public static final String ROLE_NOT_EXISTED = "role is not existed";
+    public static final String ROLE_NOT_EXISTED = "ROLE_NOT_EXISTED";
 
-    public static final String SELECTOR_NOT_EXISTED = "selector is not existed";
+    public static final String SELECTOR_NOT_EXISTED = "SELECTOR_NOT_EXISTED";
 
-    public static final String DICT_NOT_EXISTED = "dict is not existed";
+    public static final String DICT_NOT_EXISTED = "DICT_NOT_EXISTED";
 
-    public static final String BATCH_ENABLE_SUCCESS = "batch enable success";
+    public static final String BATCH_ENABLE_SUCCESS = "BATCH_ENABLE_SUCCESS";
 
-    public static final String TAG_NOT_EXISTED = "tag is not existed";
+    public static final String TAG_NOT_EXISTED = "TAG_NOT_EXISTED";
 
-    public static final String API_ID_NOT_EXISTED = "the apiId is not exited";
-    
+    public static final String API_ID_NOT_EXISTED = "API_ID_NOT_EXISTED";
+
+    public static final String GROUP_PARAM_INVALID = "GROUP_PARAM_INVALID";
+
+    public static final String PASSWORD_NOT_NULL = "PASSWORD_NOT_NULL";
+
+    public static final String ROLE_NOT_NULL = "ROLE_NOT_NULL";
+
+    public static final String DISABLE_YOURSELF = "DISABLE_YOURSELF";
+
+    public static final String SUPER_ADMIN_NAME = "SUPER_ADMIN_NAME";
+
+    public static final String USER_LOCKED = "USER_LOCKED";
+
+    public static final String IDAP_CONFIG_NOT_ENABLE = "IDAP_CONFIG_NOT_ENABLE";
+
+    public static final String ONLY_SUPPORT_CLEANING_OLDER_DATA = "ONLY_SUPPORT_CLEANING_OLDER_DATA";
+
+    public static final String UPDATED_RULE_NOT_FOUND = "UPDATED_RULE_NOT_FOUND";
+
+    public static final String UPDATED_TAG_NOT_FOUND = "UPDATED_TAG_NOT_FOUND";
+
+    public static final String TAGDTO_NOT_NULL = "TAGDTO_NOT_NULL";
+
+    public static final String PARENT_TAG_ID_NOT_NULL = "PARENT_TAG_ID_NOT_NULL";
+
     private ShenyuResultMessage() {
     
     }

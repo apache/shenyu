@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.publish.DictEventPublisher;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +67,7 @@ public class ShenyuDictServiceImpl implements ShenyuDictService {
     
     private int update(final ShenyuDictDTO shenyuDictDTO) {
         final ShenyuDictDO before = shenyuDictMapper.selectById(shenyuDictDTO.getId());
-        Assert.notNull(before, "the dict is not existed");
+        Assert.notNull(before, ShenyuResultMessage.DICT_NOT_EXISTED);
         final ShenyuDictDO dict = ShenyuDictDO.buildShenyuDictDO(shenyuDictDTO);
         final int changeCount = shenyuDictMapper.updateByPrimaryKeySelective(dict);
         if (changeCount > 0) {

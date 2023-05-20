@@ -33,6 +33,7 @@ import org.apache.shenyu.admin.model.query.TagQuery;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.stereotype.Service;
@@ -51,8 +52,8 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public int create(final TagDTO tagDTO) {
-        Assert.notNull(tagDTO, "tagDTO is not allowed null");
-        Assert.notNull(tagDTO.getParentTagId(), "parent tag id is not allowed null");
+        Assert.notNull(tagDTO, ShenyuResultMessage.TAGDTO_NOT_NULL);
+        Assert.notNull(tagDTO.getParentTagId(), ShenyuResultMessage.PARENT_TAG_ID_NOT_NULL);
         String ext = "";
         if (!tagDTO.getParentTagId().equals(AdminConstants.TAG_ROOT_PARENT_ID)) {
             TagDO tagDO = tagMapper.selectByPrimaryKey(tagDTO.getParentTagId());
@@ -66,7 +67,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public int update(final TagDTO tagDTO) {
         TagDO before = tagMapper.selectByPrimaryKey(tagDTO.getId());
-        Assert.notNull(before, "the updated tag is not found");
+        Assert.notNull(before, ShenyuResultMessage.UPDATED_TAG_NOT_FOUND);
         TagDO tagDO = TagDO.buildTagDO(tagDTO);
         updateSubTags(tagDTO);
         return tagMapper.updateByPrimaryKeySelective(tagDO);
