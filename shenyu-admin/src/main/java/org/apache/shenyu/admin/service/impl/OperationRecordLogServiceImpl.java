@@ -74,7 +74,9 @@ public class OperationRecordLogServiceImpl implements OperationRecordLogService 
     @Override
     public boolean cleanHistory(final Date date) {
         final long supportMaxTime = System.currentTimeMillis() - (dashboardProperties.getOnlyCleanDays() * 1000 * 60 * 60 * 24);
-        Assert.isTrue(date.getTime() < supportMaxTime, ShenyuMessageSourceAware.getMessageSource().getMessage(ShenyuResultMessage.ONLY_SUPPORT_CLEANING_OLDER_DATA, new Object[]{dashboardProperties.getOnlyCleanDays()}, LocaleContextHolder.getLocale()));
+        String message = ShenyuResultMessage.ONLY_SUPPORT_CLEANING_OLDER_DATA;
+        message = ShenyuMessageSourceAware.getMessageSource().getMessage(message, new Object[]{dashboardProperties.getOnlyCleanDays()}, LocaleContextHolder.getLocale());
+        Assert.isTrue(date.getTime() < supportMaxTime, message);
         return recordLogMapper.deleteByBefore(date) > 0;
     }
 }
