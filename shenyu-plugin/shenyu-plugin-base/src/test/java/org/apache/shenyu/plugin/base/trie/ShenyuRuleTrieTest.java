@@ -166,7 +166,7 @@ public class ShenyuRuleTrieTest {
 
         shenyuAntPathTrie.putNode(normalUri, ruleData, TrieCacheTypeEnum.RULE);
         shenyuAntPathTrie.putNode(normalUri, ruleData1, TrieCacheTypeEnum.RULE);
-        List<RuleData> ruleDataList = ListUtil.castLit(shenyuAntPathTrie.getNode(normalUri, "1").getPathCache().get("1"), RuleData.class);
+        List<RuleData> ruleDataList = ListUtil.castList(shenyuAntPathTrie.getNode(normalUri, "1").getPathCache().get("1"), RuleData.class::cast);
         Assertions.assertEquals(ruleDataList.get(0).getId(), "2");
         Assertions.assertEquals(ruleDataList.get(1).getId(), "1");
     }
