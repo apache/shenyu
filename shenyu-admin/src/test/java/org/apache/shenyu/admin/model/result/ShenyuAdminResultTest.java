@@ -17,12 +17,17 @@
 
 package org.apache.shenyu.admin.model.result;
 
+import org.apache.shenyu.admin.spring.ShenyuMessageSourceAware;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,13 +42,19 @@ public final class ShenyuAdminResultTest {
 
     @BeforeEach
     public void setUp() {
-        shenyuAdminResultUnderTest = new ShenyuAdminResult(0, "message", "data");
+        shenyuAdminResultUnderTest = new ShenyuAdminResult(0, ShenyuResultMessage.SUCCESS, "data");
+        ShenyuMessageSourceAware shenyuMessageSourceAware = new ShenyuMessageSourceAware();
+        ResourceBundleMessageSource resourceBundleMessageSourcenew = new ResourceBundleMessageSource();
+        resourceBundleMessageSourcenew.setBasename("i18n.messages");
+        resourceBundleMessageSourcenew.setDefaultEncoding("UTF-8");
+        shenyuMessageSourceAware.setMessageSource(resourceBundleMessageSourcenew);
+        LocaleContextHolder.setLocale(Locale.CHINESE);
     }
 
     @Test
     public void testEquals() {
         assertEquals(shenyuAdminResultUnderTest.getCode().intValue(), 0);
-        assertEquals(shenyuAdminResultUnderTest.getMessage(), "message");
+        assertEquals(shenyuAdminResultUnderTest.getMessage(), ShenyuResultMessage.SUCCESS);
     }
 
     @Test
@@ -59,7 +70,7 @@ public final class ShenyuAdminResultTest {
     @Test
     public void testToString() {
         final String result = shenyuAdminResultUnderTest.toString();
-        assertEquals("ShenyuAdminResult{code=0, message='message', data=data}", result);
+        assertEquals("ShenyuAdminResult{code=0, message='成功', data=data}", result);
     }
 
     @Test
@@ -74,12 +85,12 @@ public final class ShenyuAdminResultTest {
 
     @Test
     public void testSuccessWithMsg() {
-        final ShenyuAdminResult result = ShenyuAdminResult.success("msg");
+        final ShenyuAdminResult result = ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS);
         assertEquals(CommonErrorCode.SUCCESSFUL, result.getCode().intValue());
-        assertEquals("msg", result.getMessage());
+        assertEquals(ShenyuResultMessage.SUCCESS, result.getMessage());
         assertNull(result.getData());
-        assertEquals(3582918, result.hashCode());
-        assertEquals("ShenyuAdminResult{code=200, message='msg', data=null}", result.toString());
+        assertEquals(-1264839772, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=200, message='成功', data=null}", result.toString());
     }
 
     @Test
@@ -93,41 +104,41 @@ public final class ShenyuAdminResultTest {
 
     @Test
     public void testSuccessWithMsgAndData() {
-        final ShenyuAdminResult result = ShenyuAdminResult.success("msg", "data");
+        final ShenyuAdminResult result = ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, "data");
         assertEquals(CommonErrorCode.SUCCESSFUL, result.getCode().intValue());
-        assertEquals("msg", result.getMessage());
+        assertEquals(ShenyuResultMessage.SUCCESS, result.getMessage());
         assertEquals("data", result.getData());
-        assertEquals(6658928, result.hashCode());
-        assertEquals("ShenyuAdminResult{code=200, message='msg', data=data}", result.toString());
+        assertEquals(-1261763762, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=200, message='成功', data=data}", result.toString());
     }
 
     @Test
     public void testError() {
-        final ShenyuAdminResult result = ShenyuAdminResult.error("msg");
+        final ShenyuAdminResult result = ShenyuAdminResult.error(ShenyuResultMessage.SUCCESS);
         assertEquals(CommonErrorCode.ERROR, result.getCode().intValue());
-        assertEquals("msg", result.getMessage());
+        assertEquals(ShenyuResultMessage.SUCCESS, result.getMessage());
         assertNull(result.getData());
-        assertEquals(3871218, result.hashCode());
-        assertEquals("ShenyuAdminResult{code=500, message='msg', data=null}", result.toString());
+        assertEquals(-1264551472, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=500, message='成功', data=null}", result.toString());
     }
 
     @Test
     public void testErrorWithMsg() {
-        final ShenyuAdminResult result = ShenyuAdminResult.error(0, "msg");
+        final ShenyuAdminResult result = ShenyuAdminResult.error(0, ShenyuResultMessage.SUCCESS);
         assertEquals(0, result.getCode().intValue());
-        assertEquals("msg", result.getMessage());
+        assertEquals(ShenyuResultMessage.SUCCESS, result.getMessage());
         assertNull(result.getData());
-        assertEquals(3390718, result.hashCode());
-        assertEquals("ShenyuAdminResult{code=0, message='msg', data=null}", result.toString());
+        assertEquals(-1265031972, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=0, message='成功', data=null}", result.toString());
     }
 
     @Test
     public void testTimeout() {
-        final ShenyuAdminResult result = ShenyuAdminResult.timeout("msg");
+        final ShenyuAdminResult result = ShenyuAdminResult.timeout(ShenyuResultMessage.SUCCESS);
         assertEquals(HttpStatus.REQUEST_TIMEOUT.value(), result.getCode().intValue());
-        assertEquals("msg", result.getMessage());
+        assertEquals(ShenyuResultMessage.SUCCESS, result.getMessage());
         assertNull(result.getData());
-        assertEquals(3782806, result.hashCode());
-        assertEquals("ShenyuAdminResult{code=408, message='msg', data=null}", result.toString());
+        assertEquals(-1264639884, result.hashCode());
+        assertEquals("ShenyuAdminResult{code=408, message='成功', data=null}", result.toString());
     }
 }

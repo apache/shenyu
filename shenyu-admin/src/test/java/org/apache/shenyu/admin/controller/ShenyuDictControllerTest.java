@@ -183,7 +183,7 @@ public final class ShenyuDictControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is("batch enable success")))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.BATCH_ENABLE_SUCCESS)))
                 .andReturn();
     }
     

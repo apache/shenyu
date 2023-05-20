@@ -112,9 +112,16 @@ public class AdminResult<T> implements Serializable {
 
     @Override
     public String toString() {
+        if ("".equals(this.getMessage()) || this.getMessage() == null) {
+            return "ShenyuAdminResult{"
+                    + "code=" + code
+                    + ", message='" + this.getMessage()
+                    + '\'' + ", data=" + data
+                    + '}';
+        }
         return "ShenyuAdminResult{"
                 + "code=" + code
-                + ", message='" + ShenyuMessageSourceAware.getMessageSource().getMessage(message, null, LocaleContextHolder.getLocale())
+                + ", message='" + ShenyuMessageSourceAware.getMessageSource().getMessage(this.getMessage(), null, LocaleContextHolder.getLocale())
                 + '\'' + ", data=" + data
                 + '}';
     }

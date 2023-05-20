@@ -93,7 +93,7 @@ public final class ExceptionHandlersTest {
         Exception exception = new Exception();
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleExceptionHandler(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(result.getMessage(), "The system is busy, please try again later");
+        assertEquals(result.getMessage(), ShenyuResultMessage.SYSTEM_IS_BUSY);
     }
 
     @Test
