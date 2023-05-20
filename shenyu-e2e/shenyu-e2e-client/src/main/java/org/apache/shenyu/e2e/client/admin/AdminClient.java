@@ -115,8 +115,8 @@ public class AdminClient {
                 ShenYuResult.class,
                 loginInfo
         );
-        ShenYuResult rst = assertAndGet(response, "login dashboard user success");
-        
+        ShenYuResult rst = assertAndGet(response, "PLATFORM_LOGIN_SUCCESS");
+
         String token = Assertions.assertDoesNotThrow(() -> rst.toObject(LoginInfo.class).getToken(), "checking to cast common");
         Assertions.assertNotNull(token, "checking token not null");
         Assertions.assertNotEquals("", token, "checking token not empty");
@@ -144,7 +144,7 @@ public class AdminClient {
                     cur,
                     30
             );
-            ShenYuResult rst = assertAndGet(response, "query success");
+            ShenYuResult rst = assertAndGet(response, "QUERY_SUCCESS");
             
             PaginatedResources<PluginDTO> pagination = Assertions.assertDoesNotThrow(
                     () -> mapper.readValue(rst.getData().traverse(), PAGINATED_PLUGINS_TYPE_REFERENCE),
@@ -259,7 +259,7 @@ public class AdminClient {
         
         HttpEntity<SearchCondition> entity = new HttpEntity<>(searchCondition, basicAuth);
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + uri, entity, ShenYuResult.class);
-        ShenYuResult rst = assertAndGet(response, "query success");
+        ShenYuResult rst = assertAndGet(response, "QUERY_SUCCESS");
         
         return Assertions.assertDoesNotThrow(
                 () -> mapper.readValue(rst.getData().traverse(), valueType),
@@ -294,7 +294,7 @@ public class AdminClient {
         ShenYuResult rst = response.getBody();
         Assertions.assertNotNull(rst, "checking http response body");
         Assertions.assertEquals(200, rst.getCode(), "checking shenyu result code");
-        Assertions.assertEquals("create success", rst.getMessage(), "checking shenyu result message");
+        Assertions.assertEquals("CREATE_SUCCESS", rst.getMessage(), "checking shenyu result message");
         
         
         SearchedResources<?> searchedResources = null;
@@ -376,7 +376,7 @@ public class AdminClient {
         
         HttpEntity<List<String>> entity = new HttpEntity<>(ids, basicAuth);
         ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri, HttpMethod.DELETE, entity, ShenYuResult.class);
-        ShenYuResult rst = assertAndGet(response, "delete success");
+        ShenYuResult rst = assertAndGet(response, "DELETE_SUCCESS");
         Integer deleted = Assertions.assertDoesNotThrow(() -> rst.toObject(Integer.class), "checking to cast object");
         Assertions.assertEquals(ids.size(), deleted, "checking deleted records");
         
@@ -400,11 +400,11 @@ public class AdminClient {
         Assertions.assertNotNull(rst, "checking http response body");
         
         if (rst.getCode() == 500) {
-            Assertions.assertTrue(rst.getMessage().contains("selector is not existed"), "checking shenyu result message");
+            Assertions.assertTrue(rst.getMessage().contains("SELECTOR_NOT_EXISTED"), "checking shenyu result message");
             return null;
         }
     
-        Assertions.assertEquals("detail success", rst.getMessage(), "checking shenyu result message");
+        Assertions.assertEquals("DETAIL_SUCCESS", rst.getMessage(), "checking shenyu result message");
         Assertions.assertEquals(200, rst.getCode(), "checking shenyu result code");
         return Assertions.assertDoesNotThrow(() -> rst.toObject(valueType), "checking cast data to " + valueType.getSimpleName());
     }
