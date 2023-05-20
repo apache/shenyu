@@ -31,6 +31,14 @@ spring:
       matching-strategy: ant_path_matcher
   jackson:
     time-zone: GMT+8 # GMT , Asia/Shanghai
+  # 国际化资源
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+    cache-duration: 3600
+    fallback-to-system-locale: true
+    alwaysUseMessageFormat: true
+    useCodeAsDefaultMessage: false
 
 management:
   endpoints:
