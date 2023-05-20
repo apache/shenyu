@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import javax.validation.constraints.NotBlank;
@@ -34,7 +35,7 @@ public class ProxySelectorDTO implements Serializable {
     /**
      * id.
      */
-    @Existed(provider = ProxySelectorMapper.class, nullOfIgnore = true, message = "proxy selector not exited")
+    @Existed(provider = ProxySelectorMapper.class, nullOfIgnore = true, message = ShenyuResultMessage.PROXY_SELECTOR_NOT_EXISTED)
     private String id;
 
     /**

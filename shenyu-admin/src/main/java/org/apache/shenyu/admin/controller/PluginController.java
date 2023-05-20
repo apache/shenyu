@@ -106,7 +106,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     @GetMapping("/{id}")
     @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult detailPlugin(@PathVariable("id")
-                                          @Existed(message = "plugin is not existed",
+                                          @Existed(message = ShenyuResultMessage.PLUGIN_NOT_EXISTED,
                                                   provider = PluginMapper.class) final String id) {
         PluginVO pluginVO = pluginService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, pluginVO);
@@ -135,7 +135,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     @PutMapping("/{id}")
     @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult updatePlugin(@PathVariable("id")
-                                          @Existed(message = "plugin is not existed",
+                                          @Existed(message = ShenyuResultMessage.PLUGIN_NOT_EXISTED,
                                                   provider = PluginMapper.class) final String id,
                                           @Valid @ModelAttribute final PluginDTO pluginDTO) {
         pluginDTO.setId(id);
@@ -151,7 +151,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     @PutMapping("/createPluginResource/{id}")
     @RequiresPermissions("system:plugin:resource")
     public ShenyuAdminResult createPluginResource(@PathVariable("id")
-                                                  @Existed(message = "plugin is not existed",
+                                                  @Existed(message = ShenyuResultMessage.PLUGIN_NOT_EXISTED,
                                                           provider = PluginMapper.class) final String id,
                                                   @Valid @RequestBody final PluginDTO pluginDTO) {
         pluginDTO.setId(id);
@@ -214,7 +214,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
      */
     @PutMapping("/syncPluginData/{id}")
     public ShenyuAdminResult syncPluginData(@PathVariable("id")
-                                            @Existed(message = "plugin is not existed",
+                                            @Existed(message = ShenyuResultMessage.PLUGIN_NOT_EXISTED,
                                                     provider = PluginMapper.class) final String id) {
         return ShenyuAdminResult.success(syncDataService.syncPluginData(id) ? ShenyuResultMessage.SYNC_SUCCESS : ShenyuResultMessage.SYNC_FAIL);
     }

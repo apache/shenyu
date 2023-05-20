@@ -82,8 +82,8 @@ public class FieldController {
      */
     @GetMapping("/findPageByQuery")
     public ShenyuAdminResult listByPage(final String name, final String fieldDesc,
-                                        @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
-                                        @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
+                                        @RequestParam @NotNull(message = ShenyuResultMessage.CURRENTPAGE_NOT_NULL) final Integer currentPage,
+                                        @RequestParam @NotNull(message = ShenyuResultMessage.PAGESIZE_NOT_NULL) final Integer pageSize) {
         PageParameter pageParameter = new PageParameter(currentPage, pageSize);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, this.fieldService.listByPage(new FieldQuery(name, fieldDesc, pageParameter)));
     }

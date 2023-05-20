@@ -91,7 +91,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     @GetMapping("/{id}")
     public ShenyuAdminResult detailSelector(@PathVariable("id") @Valid
                                             @Existed(provider = SelectorMapper.class,
-                                                    message = "selector is not existed") final String id) {
+                                                    message = ShenyuResultMessage.SELECTOR_NOT_EXISTED) final String id) {
         SelectorVO selectorVO = selectorService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, selectorVO);
     }
@@ -118,7 +118,7 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     @PutMapping("/{id}")
     public ShenyuAdminResult updateSelector(@PathVariable("id") @Valid
                                             @Existed(provider = SelectorMapper.class,
-                                                    message = "selector is not existed") final String id,
+                                                    message = ShenyuResultMessage.SELECTOR_NOT_EXISTED) final String id,
                                             @Valid @RequestBody final SelectorDTO selectorDTO) {
         selectorDTO.setId(id);
         Integer updateCount = selectorService.createOrUpdate(selectorDTO);

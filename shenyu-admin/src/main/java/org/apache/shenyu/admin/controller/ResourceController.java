@@ -154,7 +154,7 @@ public class ResourceController {
     @RequiresPermissions(value = {"system:resource:editMenu", "system:resource:editButton"}, logical = Logical.OR)
     public ShenyuAdminResult updateResource(@PathVariable("id") @Valid
                                             @Existed(provider = ResourceMapper.class,
-                                                    message = "resource not existed") final String id,
+                                                    message = ShenyuResultMessage.RESOURCE_NOT_EXISTED) final String id,
                                             @RequestBody final ResourceDTO resourceDTO) {
         resourceDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, resourceService.update(resourceDTO));

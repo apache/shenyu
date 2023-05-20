@@ -60,7 +60,7 @@ public class ExceptionHandlers {
             ShenyuException shenyuException = (ShenyuException) exception;
             message = shenyuException.getMessage();
         } else {
-            message = "The system is busy, please try again later";
+            message = ShenyuResultMessage.SYSTEM_IS_BUSY;
         }
         return ShenyuAdminResult.error(message);
     }

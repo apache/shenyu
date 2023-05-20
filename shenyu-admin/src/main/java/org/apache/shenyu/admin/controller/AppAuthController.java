@@ -87,7 +87,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
      */
     @GetMapping("/updateSk")
     public ShenyuAdminResult updateSk(@RequestParam("appKey")
-                                      @Existed(message = "app key not existed",
+                                      @Existed(message = ShenyuResultMessage.APPKEY_NOT_EXISTED,
                                               provider = AppKeyProvider.class) final String appKey,
                                       @RequestParam("appSecret") final String appSecret) {
         return appAuthService.updateAppSecretByAppKey(appKey, appSecret);
@@ -105,8 +105,8 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @GetMapping("/findPageByQuery")
     @RequiresPermissions("system:authen:list")
     public ShenyuAdminResult findPageByQuery(final String appKey, final String phone,
-                                             @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
-                                             @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
+                                             @RequestParam @NotNull(message = ShenyuResultMessage.CURRENTPAGE_NOT_NULL) final Integer currentPage,
+                                             @RequestParam @NotNull(message = ShenyuResultMessage.PAGESIZE_NOT_NULL) final Integer pageSize) {
         AppAuthQuery query = new AppAuthQuery();
         query.setPhone(phone);
         query.setAppKey(appKey);
@@ -124,7 +124,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @GetMapping("/detail")
     @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult detail(@RequestParam("id")
-                                    @Existed(message = "app key not existed",
+                                    @Existed(message = ShenyuResultMessage.APPKEY_NOT_EXIST_ERROR,
                                             provider = AppAuthMapper.class) final String id) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
     }
@@ -150,7 +150,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     @GetMapping("/detailPath")
     @RequiresPermissions("system:authen:editResourceDetails")
     public ShenyuAdminResult detailPath(@RequestParam("id")
-                                            @Existed(message = "auth path not existed",
+                                            @Existed(message = ShenyuResultMessage.AUTH_PATH_NOT_EXISTED,
                                                     providerMethodName = "existedByAuthId",
                                                     provider = AuthPathMapper.class)
                                         @NotBlank final String authId) {

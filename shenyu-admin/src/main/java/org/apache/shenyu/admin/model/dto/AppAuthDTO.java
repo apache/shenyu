@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import javax.validation.Valid;
@@ -37,25 +38,25 @@ public class AppAuthDTO implements Serializable {
     /**
      * primary key.
      */
-    @NotBlank(message = "app auth id not null")
-    @Existed(message = "app auth is not existed", provider = AppAuthMapper.class)
+    @NotBlank(message = ShenyuResultMessage.APP_AUTH_ID_NOT_NULL)
+    @Existed(message = ShenyuResultMessage.APP_AUTH_ID_NOT_EXISTED, provider = AppAuthMapper.class)
     private String id;
     
     /**
      * application key.
      */
-    @NotBlank(message = "app auth appKey not null")
+    @NotBlank(message = ShenyuResultMessage.APP_AUTH_APPKEY_NOT_NULL)
     private String appKey;
     
     /**
      * encryption secret.
      */
-    @NotBlank(message = "app auth appSecret not null")
+    @NotBlank(message = ShenyuResultMessage.APP_AUTH_APPSECRET_NOT_NULL)
     private String appSecret;
     
     private String userId;
 
-    @Pattern(regexp = "\\+?\\d{7,11}", message = "number is illegal, length 7 to 11! e.g. +1234567 or 1234567")
+    @Pattern(regexp = "\\+?\\d{7,11}", message = ShenyuResultMessage.NUMBER_IS_ILLEGAL)
     private String phone;
     
     private String extInfo;

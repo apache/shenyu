@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -69,7 +70,7 @@ public class DiscoveryUpstreamController {
      */
     @PutMapping("/{id}")
     public ShenyuAdminResult updateDiscoveryUpstream(@PathVariable("id")
-                                                     @Existed(message = "discovery upstream is not existed",
+                                                     @Existed(message = ShenyuResultMessage.DISCOVERY_UPSTRAM_IS_NOT_EXISTED,
                                                              provider = PluginMapper.class) final String id,
                                                      @Valid @RequestBody final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
 

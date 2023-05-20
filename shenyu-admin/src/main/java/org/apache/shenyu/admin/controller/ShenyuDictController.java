@@ -100,7 +100,7 @@ public class ShenyuDictController {
     @RequiresPermissions("system:dict:edit")
     public ShenyuAdminResult detail(@PathVariable("id") @Valid
                                     @Existed(provider = ShenyuDictMapper.class,
-                                            message = "dict is not existed") final String id) {
+                                            message = ShenyuResultMessage.DICT_NOT_EXISTED) final String id) {
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, shenyuDictService.findById(id));
     }
     
@@ -127,7 +127,7 @@ public class ShenyuDictController {
     @RequiresPermissions("system:dict:edit")
     public ShenyuAdminResult updateShenyuDict(@PathVariable("id") @Valid
                                               @Existed(provider = ShenyuDictMapper.class,
-                                                      message = "dict is not existed") final String id,
+                                                      message = ShenyuResultMessage.DICT_NOT_EXISTED) final String id,
                                               @Valid @NotNull @RequestBody final ShenyuDictDTO shenyuDictDTO) {
         shenyuDictDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, shenyuDictService.createOrUpdate(shenyuDictDTO));
@@ -155,6 +155,6 @@ public class ShenyuDictController {
     @RequiresPermissions("system:dict:disable")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
         final Integer result = shenyuDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
-        return ShenyuAdminResult.success("batch enable success", result);
+        return ShenyuAdminResult.success(ShenyuResultMessage.BATCH_ENABLE_SUCCESS, result);
     }
 }

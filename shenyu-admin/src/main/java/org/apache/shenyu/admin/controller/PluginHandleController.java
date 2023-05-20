@@ -100,7 +100,7 @@ public class PluginHandleController {
     @RequiresPermissions("system:pluginHandler:edit")
     public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
                                         @Existed(provider = PluginHandleMapper.class,
-                                                message = "rule not exited") final String id) {
+                                                message = ShenyuResultMessage.RULE_NOT_EXISTED) final String id) {
         PluginHandleVO pluginHandleVO = pluginHandleService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, pluginHandleVO);
     }
@@ -129,7 +129,7 @@ public class PluginHandleController {
     @RequiresPermissions("system:pluginHandler:edit")
     public ShenyuAdminResult updatePluginHandle(@PathVariable("id") @Valid
                                                 @Existed(provider = PluginHandleMapper.class,
-                                                        message = "rule not exited") final String id,
+                                                        message = ShenyuResultMessage.RULE_NOT_EXISTED) final String id,
                                                 @Valid @RequestBody final PluginHandleDTO pluginHandleDTO) {
         pluginHandleDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, pluginHandleService.createOrUpdate(pluginHandleDTO));

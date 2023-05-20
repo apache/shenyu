@@ -83,8 +83,8 @@ public class DetailController {
     @GetMapping("/findPageByQuery")
     public ShenyuAdminResult listByPage(final String fieldValue,
                                         final String valueDesc,
-                                        @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
-                                        @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
+                                        @RequestParam @NotNull(message = ShenyuResultMessage.CURRENTPAGE_NOT_NULL) final Integer currentPage,
+                                        @RequestParam @NotNull(message = ShenyuResultMessage.PAGESIZE_NOT_NULL) final Integer pageSize) {
         PageParameter pageParameter = new PageParameter(currentPage, pageSize);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, this.detailService.listByPage(new DetailQuery(fieldValue, valueDesc, pageParameter)));
     }

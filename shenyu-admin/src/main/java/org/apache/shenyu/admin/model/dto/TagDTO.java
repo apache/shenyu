@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.dto;
 
 import java.io.Serializable;
 import org.apache.shenyu.admin.mapper.TagMapper;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 /**
@@ -34,7 +35,7 @@ public class TagDTO implements Serializable {
     /**
      * primary key.
      */
-    @Existed(provider = TagMapper.class, nullOfIgnore = true, message = "tag is not existed")
+    @Existed(provider = TagMapper.class, nullOfIgnore = true, message = ShenyuResultMessage.TAG_NOT_EXISTED)
     private String id;
 
     /**

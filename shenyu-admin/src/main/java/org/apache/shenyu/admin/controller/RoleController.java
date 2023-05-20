@@ -102,7 +102,7 @@ public class RoleController {
     @RequiresPermissions("system:role:edit")
     public ShenyuAdminResult detailRole(@PathVariable("id") @Valid
                                         @Existed(provider = RoleMapper.class,
-                                                message = "role is not existed") final String id) {
+                                                message = ShenyuResultMessage.ROLE_NOT_EXISTED) final String id) {
         RoleEditVO roleEditVO = roleService.findById(id);
         return Optional.ofNullable(roleEditVO)
                 .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item))
@@ -135,7 +135,7 @@ public class RoleController {
     @RequiresPermissions("system:role:edit")
     public ShenyuAdminResult updateRole(@PathVariable("id") @Valid
                                         @Existed(provider = RoleMapper.class,
-                                                message = "role is not existed") final String id,
+                                                message = ShenyuResultMessage.ROLE_NOT_EXISTED) final String id,
                                         @Valid @RequestBody final RoleDTO roleDTO) {
         roleDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, roleService.createOrUpdate(roleDTO));

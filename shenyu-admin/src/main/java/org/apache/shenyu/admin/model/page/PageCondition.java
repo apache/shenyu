@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.model.page;
 
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -37,8 +39,8 @@ public class PageCondition<T> {
      * page size.
      */
     @NotNull
-    @Max(value = 1000, message = "size max support is 1000")
-    @Min(value = 1, message = "size min support is 1")
+    @Max(value = 1000, message = ShenyuResultMessage.SIZE_MAX_1000)
+    @Min(value = 1, message = ShenyuResultMessage.SIZE_MIN_1)
     private Integer pageSize;
     
     /**

@@ -86,8 +86,8 @@ public class DashboardUserController {
     @GetMapping("")
     @RequiresPermissions("system:manager:list")
     public ShenyuAdminResult queryDashboardUsers(final String userName,
-                                                 @RequestParam @NotNull(message = "currentPage not null") final Integer currentPage,
-                                                 @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
+                                                 @RequestParam @NotNull(message = ShenyuResultMessage.CURRENTPAGE_NOT_NULL) final Integer currentPage,
+                                                 @RequestParam @NotNull(message = ShenyuResultMessage.PAGESIZE_NOT_NULL) final Integer pageSize) {
         CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName,
                 new PageParameter(currentPage, pageSize)));
         
@@ -142,7 +142,7 @@ public class DashboardUserController {
     @RequiresPermissions("system:manager:edit")
     public ShenyuAdminResult updateDashboardUser(@PathVariable("id")
                                                  @Existed(provider = DashboardUserMapper.class,
-                                                         message = "user is not found") final String id,
+                                                         message = ShenyuResultMessage.USER_NOT_FOUND) final String id,
                                                  @Valid @RequestBody final DashboardUserDTO dashboardUserDTO) {
         dashboardUserDTO.setId(id);
         if (StringUtils.isNotBlank(dashboardUserDTO.getPassword())) {
@@ -162,7 +162,7 @@ public class DashboardUserController {
     @PutMapping("/modify-password/{id}")
     public ShenyuAdminResult modifyPassword(@PathVariable("id")
                                             @Existed(provider = DashboardUserMapper.class,
-                                                    message = "user is not found") final String id,
+                                                    message = ShenyuResultMessage.USER_NOT_FOUND) final String id,
                                             @Valid @RequestBody final DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO) {
         UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipal();
         if (Objects.isNull(userInfo)) {
@@ -197,7 +197,7 @@ public class DashboardUserController {
     @RequiresPermissions("system:manager:delete")
     public ShenyuAdminResult deleteDashboardUser(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         // [mandatory] This function can only be used by the admin user
-        Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
+        Assert.isTrue(SessionUtil.isAdmin(), ShenyuResultMessage.ONLY_BE_USED_BY_ADMIN);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dashboardUserService.delete(new HashSet<>(ids)));
     }
 }

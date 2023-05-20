@@ -81,7 +81,7 @@ public class TagController {
     @GetMapping("/id/{id}")
     public ShenyuAdminResult queryById(@PathVariable("id") @Valid
                                         @Existed(provider = TagMapper.class,
-                                                message = "tag is not existed") final String id) {
+                                                message = ShenyuResultMessage.TAG_NOT_EXISTED) final String id) {
         TagVO tagVO = tagService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, tagVO);
     }

@@ -91,7 +91,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
     @GetMapping("/{id}")
     public ShenyuAdminResult detailRule(@PathVariable("id") @Valid
                                         @Existed(provider = RuleMapper.class,
-                                                message = "rule is not existed") final String id) {
+                                                message = ShenyuResultMessage.RULE_NOT_EXISTED) final String id) {
         RuleVO ruleVO = ruleService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, ruleVO);
     }
@@ -118,7 +118,7 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
     @PutMapping("/{id}")
     public ShenyuAdminResult updateRule(@PathVariable("id") @Valid
                                         @Existed(provider = RuleMapper.class,
-                                                message = "rule is not existed") final String id,
+                                                message = ShenyuResultMessage.RULE_NOT_EXISTED) final String id,
                                         @Valid @RequestBody final RuleDTO ruleDTO) {
         ruleDTO.setId(id);
         Integer updateCount = ruleService.createOrUpdate(ruleDTO);

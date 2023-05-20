@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import javax.validation.Valid;
@@ -33,10 +34,10 @@ public class AuthPathWarpDTO implements Serializable {
 
     private static final long serialVersionUID = -3167442906221294444L;
     
-    @Existed(message = "app key not existed", provider = AppAuthMapper.class)
+    @Existed(message = ShenyuResultMessage.APPKEY_NOT_EXISTED, provider = AppAuthMapper.class)
     private String id;
 
-    @NotEmpty(message = "auth path is not empty")
+    @NotEmpty(message = ShenyuResultMessage.AUTH_PATH_NOT_EXISTED)
     private List<@Valid AuthPathDTO> authPathDTOList;
 
     /**

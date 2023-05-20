@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.mapper.ApiMapper;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 
 import java.io.Serializable;
@@ -39,7 +40,7 @@ public class MockRequestRecordDTO implements Serializable {
     /**
      * apiId.
      */
-    @Existed(provider = ApiMapper.class, nullOfIgnore = true, message = "the apiId is not exited")
+    @Existed(provider = ApiMapper.class, nullOfIgnore = true, message = ShenyuResultMessage.API_ID_NOT_EXISTED)
     private String apiId;
 
     /**
