@@ -22,6 +22,6 @@ import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 
 import java.util.List;
 
-public interface ApiDocDefinitionParser<T> extends Parser<List<ApiDocRegisterDTO>, ApiBean<T>.ApiDefinition> {
+public interface ApiDocDefinitionParser extends Parser<List<ApiDocRegisterDTO>, ApiBean.ApiDefinition> {
 
 }

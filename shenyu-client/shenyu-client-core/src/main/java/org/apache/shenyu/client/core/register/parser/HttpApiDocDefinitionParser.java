@@ -28,14 +28,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class HttpApiDocDefinitionParser extends AbstractApiDocDefinitionParser<Object> {
+public class HttpApiDocDefinitionParser extends AbstractApiDocDefinitionParser {
 
     public HttpApiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
         super(clientRegisterConfig);
     }
 
     @Override
-    protected HttpApiSpecificInfo doParse(final ApiBean<Object>.ApiDefinition apiDefinition) {
+    protected HttpApiSpecificInfo doParse(final ApiBean.ApiDefinition apiDefinition) {
 
         RequestMapping requestMapping = apiDefinition.getAnnotation(RequestMapping.class);
 

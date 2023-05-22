@@ -328,7 +328,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, SelectorData> selectorDataPair;
                 if (collection.size() > 1) {
-                    selectorDataPair = matchSelector(exchange, ListUtil.castLit(collection, SelectorData.class));
+                    selectorDataPair = matchSelector(exchange, ListUtil.castList(collection, SelectorData.class::cast));
                 } else {
                     Object selectorObj = collection.stream().findFirst().orElse(null);
                     SelectorData selector = Objects.nonNull(selectorObj) ? (SelectorData) selectorObj : null;
@@ -356,7 +356,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, RuleData> ruleDataPair;
                 if (collection.size() > 1) {
-                    ruleDataPair = matchRule(exchange, ListUtil.castLit(collection, RuleData.class));
+                    ruleDataPair = matchRule(exchange, ListUtil.castList(collection, RuleData.class::cast));
                 } else {
                     Object ruleObj = collection.stream().findFirst().orElse(null);
                     RuleData rule = Objects.nonNull(ruleObj) ? (RuleData) ruleObj : null;

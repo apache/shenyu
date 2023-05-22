@@ -30,7 +30,7 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import java.util.List;
 import java.util.Objects;
 
-public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser<Object> {
+public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser {
 
     private final Boolean addPrefixed;
 
@@ -50,7 +50,7 @@ public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser
     }
 
     @Override
-    public List<MetaDataRegisterDTO> parse(final ApiBean<Object>.ApiDefinition apiDefinition) {
+    public List<MetaDataRegisterDTO> parse(final ApiBean.ApiDefinition apiDefinition) {
 
         ShenyuSpringMvcClient methodAnnotation = apiDefinition.getAnnotation(ShenyuSpringMvcClient.class);
 
