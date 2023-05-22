@@ -249,7 +249,7 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
     }
 
     @Override
-    public void onProxySelectorChanged(List<ProxySelectorData> changed, DataEventTypeEnum eventType) {
+    public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
         updateProxySelectorMap(getConfig(changeData.getProxySelectorDataId()));
         switch (eventType) {
             case DELETE:
@@ -290,8 +290,8 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
         }
         publishConfig(changeData.getProxySelectorDataId(), PROXY_SELECTOR_MAP);
         LOG.debug("[DataChangedListener] ProxySelectorChanged {}", changeData.getProxySelectorDataId());
-
     }
+
     private void updateAuthMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
         Set<String> set = new HashSet<>(AUTH_MAP.keySet());
@@ -400,6 +400,7 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
          * meta data id.
          */
         private final String metaDataId;
+
         /**
          * proxySelector data id.
          */
