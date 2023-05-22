@@ -231,6 +231,34 @@ public final class BaseDataCache {
     public List<RuleData> obtainRuleData(final String selectorId) {
         return RULE_MAP.get(selectorId);
     }
+    
+    /**
+     * Gets plugin map.
+     *
+     * @return the plugin map
+     */
+    public ConcurrentMap<String, PluginData> getPluginMap() {
+        return PLUGIN_MAP;
+    }
+    
+    /**
+     * Gets selector map.
+     *
+     * @return the selector map
+     */
+    public ConcurrentMap<String, List<SelectorData>> getSelectorMap() {
+        return SELECTOR_MAP;
+    }
+    
+    /**
+     * Gets rule map.
+     *
+     * @return the rule map
+     */
+    public ConcurrentMap<String, List<RuleData>> getRuleMap() {
+        return RULE_MAP;
+    }
+    
 
     /**
      *  cache rule data.

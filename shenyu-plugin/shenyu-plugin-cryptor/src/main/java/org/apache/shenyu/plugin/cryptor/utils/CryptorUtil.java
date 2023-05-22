@@ -68,7 +68,6 @@ public final class CryptorUtil {
      * @return is null
      */
     public static Pair<Boolean, String> checkParam(final CryptorRuleHandler ruleHandle) {
-
         if (StringUtils.isEmpty(ruleHandle.getWay())) {
             return Pair.of(true, "way");
         }

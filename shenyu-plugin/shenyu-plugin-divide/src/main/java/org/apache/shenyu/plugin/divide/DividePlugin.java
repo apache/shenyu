@@ -60,8 +60,6 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private static final String SHORTEST_RESPONSE = "shortestResponse";
 
     private Long beginTime;
-    
-    private final DivideRuleHandle defaultRuleHandle = new DivideRuleHandle();
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
@@ -151,11 +149,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     }
     
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
-        if (StringUtils.isNotEmpty(rule.getId())) {
-            return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        } else {
-            return defaultRuleHandle;
-        }
+        return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
 
     private void responseTrigger(final Upstream upstream) {

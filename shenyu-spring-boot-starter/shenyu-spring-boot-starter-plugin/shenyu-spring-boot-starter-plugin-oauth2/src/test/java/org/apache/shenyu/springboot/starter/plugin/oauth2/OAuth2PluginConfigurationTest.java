@@ -25,10 +25,6 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
-import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
-import org.springframework.security.web.server.SecurityWebFilterChain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,7 +43,6 @@ public class OAuth2PluginConfigurationTest {
         applicationContextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(OAuth2PluginConfiguration.class))
             .withBean(OAuth2PluginConfigurationTest.class)
-            .withBean(InMemoryReactiveOAuth2AuthorizedClientService.class)
             .withPropertyValues("debug=true");
     }
 
@@ -57,36 +52,6 @@ public class OAuth2PluginConfigurationTest {
                 ShenyuPlugin plugin = context.getBean("oAuth2Plugin", ShenyuPlugin.class);
                 assertNotNull(plugin);
                 assertThat(plugin.named()).isEqualTo(PluginEnum.OAUTH2.getName());
-            }
-        );
-    }
-
-    @Test
-    public void testMapReactiveUserDetailsService() {
-        applicationContextRunner.run(context -> {
-                MapReactiveUserDetailsService service = context.getBean("userDetailsService", MapReactiveUserDetailsService.class);
-                assertNotNull(service);
-            }
-        );
-    }
-
-    @Test
-    public void testSecurityWebFilterChain() {
-        applicationContextRunner.run(context -> {
-                SecurityWebFilterChain chain = context.getBean("getSecurityWebFilterChain", SecurityWebFilterChain.class);
-                assertNotNull(chain);
-            }
-        );
-    }
-
-    @Test
-    public void testInMemoryReactiveClientRegistrationRepository() {
-        applicationContextRunner.run(context -> {
-                ReactiveClientRegistrationRepository repository = context.getBean(
-                    "org.apache.shenyu.springboot.starter.plugin.oauth2.defaultReactiveClientRegistrationRepository",
-                    ReactiveClientRegistrationRepository.class
-                );
-                assertNotNull(repository);
             }
         );
     }

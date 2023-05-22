@@ -40,7 +40,7 @@ services:
         limits:
           memory: 2048M
     environment:
-      - shenyu.sync.websocket.urls=ws://shenyu-admin:9095/websocket
+      - shenyu_sync_websocket_urls=ws://shenyu-admin:9095/websocket
     depends_on:
       shenyu-admin:
         condition: service_healthy
@@ -62,7 +62,7 @@ services:
     image: shenyu-examples-https:latest
     restart: always
     environment:
-      - shenyu.register.serverLists=http://shenyu-admin:9095
+      - shenyu_register_serverLists=http://shenyu-admin:9095
     healthcheck:
       test: [ "CMD", "wget", "http://shenyu-examples-https:8080/order/findById?id=3" ]
       timeout: 2s
@@ -76,26 +76,6 @@ services:
     networks:
       - shenyu
 
-  shenyu-examples-http:
-    deploy:
-      resources:
-        limits:
-          memory: 2048M
-    container_name: shenyu-examples-http
-    image: shenyu-examples-http:latest
-    restart: always
-    healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-examples-http:8189/test/path/123?name=tom" ]
-      timeout: 2s
-      retries: 30
-    ports:
-      - "8189:8189"
-    depends_on:
-      shenyu-integrated-test-https:
-        condition: service_healthy
-    networks:
-      - shenyu
-
 networks:
-  shenyu:
-    name: shenyu
+   shenyu:
+      name: shenyu

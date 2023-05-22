@@ -43,7 +43,7 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -63,7 +63,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.admin.utils.ListUtil.map;
+import static org.apache.shenyu.common.utils.ListUtil.map;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.RuleService}.
@@ -156,7 +156,7 @@ public class RuleServiceImpl implements RuleService {
 
         // need old data for cleaning
         List<RuleConditionDO> beforeRuleCondition = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
-        List<RuleConditionDTO> beforRuleCondition = beforeRuleCondition.stream().map(ruleConditionDO ->
+        List<RuleConditionDTO> beforeCondition = beforeRuleCondition.stream().map(ruleConditionDO ->
                 RuleConditionDTO.builder()
                         .ruleId(ruleConditionDO.getRuleId())
                         .operator(ruleConditionDO.getOperator())
@@ -164,7 +164,7 @@ public class RuleServiceImpl implements RuleService {
                         .paramType(ruleConditionDO.getParamType())
                         .paramValue(ruleConditionDO.getParamValue())
                         .build()).collect(Collectors.toList());
-        List<RuleConditionDTO> currentRuleCondition = ruleDTO.getRuleConditions().stream().map(ruleConditionDTO ->
+        List<RuleConditionDTO> currentCondition = ruleDTO.getRuleConditions().stream().map(ruleConditionDTO ->
                 RuleConditionDTO.builder()
                         .ruleId(ruleConditionDTO.getRuleId())
                         .operator(ruleConditionDTO.getOperator())
@@ -172,7 +172,7 @@ public class RuleServiceImpl implements RuleService {
                         .paramType(ruleConditionDTO.getParamType())
                         .paramValue(ruleConditionDTO.getParamValue())
                         .build()).collect(Collectors.toList());
-        if (CollectionUtils.isEqualCollection(beforRuleCondition, currentRuleCondition)) {
+        if (CollectionUtils.isEqualCollection(beforeCondition, currentCondition)) {
             beforeRuleCondition = Collections.emptyList();
         }
         //delete rule condition then add
