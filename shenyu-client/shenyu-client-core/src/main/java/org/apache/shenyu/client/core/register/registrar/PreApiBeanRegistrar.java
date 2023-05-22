@@ -17,20 +17,20 @@
 
 package org.apache.shenyu.client.core.register.registrar;
 
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.Matcher;
 import org.apache.shenyu.client.core.register.parser.Parser;
-import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
-public class PreApiBeanRegistrar<T, D extends DataTypeParent> extends AbstractRegistrar<ApiBean<T>> {
+public class PreApiBeanRegistrar<D extends DataTypeParent> extends AbstractRegistrar<ApiBean> {
 
     private final ShenyuClientRegisterEventPublisher publisher;
 
-    private final Parser<? extends D, ApiBean<T>> parser;
+    private final Parser<? extends D, ApiBean> parser;
 
-    public PreApiBeanRegistrar(final Matcher<ApiBean<T>> matcher,
-                               final Parser<? extends D, ApiBean<T>> parser,
+    public PreApiBeanRegistrar(final Matcher<ApiBean> matcher,
+                               final Parser<? extends D, ApiBean> parser,
                                final ShenyuClientRegisterEventPublisher publisher) {
         super(matcher);
         this.parser = parser;
@@ -38,7 +38,7 @@ public class PreApiBeanRegistrar<T, D extends DataTypeParent> extends AbstractRe
     }
 
     @Override
-    protected void doRegister(final ApiBean<T> element) {
+    protected void doRegister(final ApiBean element) {
         D d = parser.parse(element);
         publisher.publishEvent(d);
     }

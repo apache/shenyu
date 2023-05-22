@@ -22,19 +22,19 @@ import org.apache.shenyu.client.core.register.matcher.Matcher;
 
 import java.util.List;
 
-public final class ApiBeanRegistrar<T> extends AbstractRegistrar<ApiBean<T>> {
+public final class ApiBeanRegistrar extends AbstractRegistrar<ApiBean> {
 
-    private final AbstractRegistrar<ApiBean<T>.ApiDefinition> apiRegistrar;
+    private final AbstractRegistrar<ApiBean.ApiDefinition> apiRegistrar;
 
-    public ApiBeanRegistrar(final Matcher<ApiBean<T>> matcher,
-                            final AbstractRegistrar<ApiBean<T>.ApiDefinition> apiRegistrar) {
+    public ApiBeanRegistrar(final Matcher<ApiBean> matcher,
+                            final AbstractRegistrar<ApiBean.ApiDefinition> apiRegistrar) {
         super(matcher);
         this.apiRegistrar = apiRegistrar;
     }
 
     @Override
-    protected void doRegister(final ApiBean<T> element) {
-        List<ApiBean<T>.ApiDefinition> apiDefinition = element.getApiDefinitions();
+    protected void doRegister(final ApiBean element) {
+        List<ApiBean.ApiDefinition> apiDefinition = element.getApiDefinitions();
         apiDefinition.forEach(api -> apiRegistrar.register(api));
     }
 }
