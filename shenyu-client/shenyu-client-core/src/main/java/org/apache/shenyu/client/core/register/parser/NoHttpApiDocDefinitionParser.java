@@ -25,14 +25,14 @@ import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 
 import java.util.List;
 
-public class NoHttpApiDocDefinitionParser extends AbstractApiDocDefinitionParser<Object> {
+public class NoHttpApiDocDefinitionParser extends AbstractApiDocDefinitionParser {
 
     public NoHttpApiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
         super(clientRegisterConfig);
     }
 
     @Override
-    protected HttpApiSpecificInfo doParse(final ApiBean<Object>.ApiDefinition apiDefinition) {
+    protected HttpApiSpecificInfo doParse(final ApiBean.ApiDefinition apiDefinition) {
 
         String produce = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
 

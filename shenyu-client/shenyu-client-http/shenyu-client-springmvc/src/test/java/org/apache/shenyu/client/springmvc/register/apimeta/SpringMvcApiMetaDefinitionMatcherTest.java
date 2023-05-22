@@ -36,7 +36,7 @@ public class SpringMvcApiMetaDefinitionMatcherTest {
     @Test
     public void testMatchAnnotatedClass() throws Exception {
         Method method = TestBeanMatchAnnotatedClass.class.getMethod("testMethod");
-        ApiBean<Object>.ApiDefinition apiDefinition =
+        ApiBean.ApiDefinition apiDefinition =
                 createApiDefinition(TestBeanMatchAnnotatedClass.class, method, "/testMethod");
         boolean result = apiDefinitionMetaMatcher.match(apiDefinition);
 
@@ -46,7 +46,7 @@ public class SpringMvcApiMetaDefinitionMatcherTest {
     @Test
     public void testMatchAnnotatedMethod() throws Exception {
         Method method = TestBeanMatchClass.class.getMethod("testAnnotatedMethod");
-        ApiBean<Object>.ApiDefinition apiDefinition =
+        ApiBean.ApiDefinition apiDefinition =
                 createApiDefinition(TestBeanMatchClass.class, method, "/testAnnotatedMethod");
         boolean result = apiDefinitionMetaMatcher.match(apiDefinition);
 
@@ -56,16 +56,16 @@ public class SpringMvcApiMetaDefinitionMatcherTest {
     @Test
     public void tesMatchWithoutAnnotation() throws Exception {
         Method method = TestBeanMatchClass.class.getMethod("testMethod");
-        ApiBean<Object>.ApiDefinition apiDefinition =
+        ApiBean.ApiDefinition apiDefinition =
                 createApiDefinition(TestBeanMatchClass.class, method, "/testMethod");
         boolean result = apiDefinitionMetaMatcher.match(apiDefinition);
 
         assertThat(result, is(false));
     }
 
-    private ApiBean<Object>.ApiDefinition createApiDefinition(final Class<?> beanClass, final Method method,
-                                                              final String methodPath) throws Exception {
-        ApiBean<Object> apiBean = new ApiBean<>("/http",
+    private ApiBean.ApiDefinition createApiDefinition(final Class<?> beanClass, final Method method,
+                                                      final String methodPath) throws Exception {
+        ApiBean apiBean = new ApiBean("/http",
                 "testBeanMatchClass", beanClass.getDeclaredConstructor().newInstance(),
                 "/testClass", beanClass);
 

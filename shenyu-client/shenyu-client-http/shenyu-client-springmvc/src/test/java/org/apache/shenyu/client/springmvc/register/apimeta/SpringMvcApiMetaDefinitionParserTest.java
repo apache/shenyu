@@ -55,7 +55,7 @@ public class SpringMvcApiMetaDefinitionParserTest {
     public void testParse() throws Exception {
         Method method = TestBeanMatchClass.class.getMethod("testMethod");
 
-        ApiBean<Object>.ApiDefinition apiDefinition =
+        ApiBean.ApiDefinition apiDefinition =
                 createApiDefinition(TestBeanMatchClass.class, method, "/testMethod");
 
         List<MetaDataRegisterDTO> apiMetas = apiMetaDefinitionParser.parse(apiDefinition);
@@ -68,7 +68,7 @@ public class SpringMvcApiMetaDefinitionParserTest {
     @Test
     public void testParseWithPathVariable() throws Exception {
         Method method = TestBeanMatchClass.class.getMethod("testMethod", Integer.class);
-        ApiBean<Object>.ApiDefinition apiDefinition =
+        ApiBean.ApiDefinition apiDefinition =
                 createApiDefinition(TestBeanMatchClass.class, method, "/testMethod/{id}/info");
 
         List<MetaDataRegisterDTO> apiMetas = apiMetaDefinitionParser.parse(apiDefinition);
@@ -78,9 +78,9 @@ public class SpringMvcApiMetaDefinitionParserTest {
         assertThat(apiMeta.getPath(), is("/http/testClass/testMethod/**/info"));
     }
 
-    private ApiBean<Object>.ApiDefinition createApiDefinition(final Class<?> beanClass, final Method method,
-                                                              final String methodPath) throws Exception {
-        ApiBean<Object> apiBean = new ApiBean<>("/http",
+    private ApiBean.ApiDefinition createApiDefinition(final Class<?> beanClass, final Method method,
+                                                      final String methodPath) throws Exception {
+        ApiBean apiBean = new ApiBean("/http",
                 "testBeanMatchClass", beanClass.getDeclaredConstructor().newInstance(),
                 "/testClass", beanClass);
 

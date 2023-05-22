@@ -22,7 +22,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 
-public interface ApiBeansExtractor<T> {
+public interface ApiBeansExtractor {
 
     /**
      * Extract apiBeans from applicationContext.
@@ -30,5 +30,5 @@ public interface ApiBeansExtractor<T> {
      * @param applicationContext applicationContext
      * @return apiBeans
      */
-    List<ApiBean<T>> extract(ApplicationContext applicationContext);
+    List<ApiBean> extract(ApplicationContext applicationContext);
 }
