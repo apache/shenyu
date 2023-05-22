@@ -79,7 +79,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public ApiBeansExtractor<Object> apiBeansExtractor(final ClientRegisterConfig clientRegisterConfig) {
+    public ApiBeansExtractor apiBeansExtractor(final ClientRegisterConfig clientRegisterConfig) {
         return new SpringMvcApiBeansExtractor(clientRegisterConfig.getContextPath());
     }
 
@@ -90,7 +90,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      */
     @Bean(name = API_META_BEAN_MATCHER)
     @ConditionalOnMissingBean(name = API_META_BEAN_MATCHER)
-    public Matcher<ApiBean<Object>> apiMetaBeanMatcher() {
+    public Matcher<ApiBean> apiMetaBeanMatcher() {
         return new SpringMvcApiMetaBeanMatcher();
     }
 
@@ -101,7 +101,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      */
     @Bean(name = API_META_DEFINITION_MATCHER)
     @ConditionalOnMissingBean(name = API_META_DEFINITION_MATCHER)
-    public Matcher<ApiBean<Object>.ApiDefinition> apiMetaDefinitionMatcher() {
+    public Matcher<ApiBean.ApiDefinition> apiMetaDefinitionMatcher() {
         return new SpringMvcApiMetaDefinitionMatcher();
     }
 
@@ -112,7 +112,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      * @return apiMetaParser
      */
     @Bean
-    public ApiMetaDefinitionParser<Object> apiMetaDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
+    public ApiMetaDefinitionParser apiMetaDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
         return new SpringMvcApiMetaDefinitionParser(clientRegisterConfig);
     }
 
@@ -123,7 +123,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      */
     @Bean(name = PRE_API_META_BEAN_MATCHER)
     @ConditionalOnMissingBean(name = PRE_API_META_BEAN_MATCHER)
-    public Matcher<ApiBean<Object>> preApiMetaBeanMatcher() {
+    public Matcher<ApiBean> preApiMetaBeanMatcher() {
         return new SpringMvcPreApiMetaBeanMatcher();
     }
 
@@ -134,7 +134,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      * @return apiBeanMetaParser
      */
     @Bean
-    public PreApiMetaBeanParser<Object> apiBeanMetaParser(final ClientRegisterConfig clientRegisterConfig) {
+    public PreApiMetaBeanParser apiBeanMetaParser(final ClientRegisterConfig clientRegisterConfig) {
         return new SpringMvcPreApiMetaBeanParser(clientRegisterConfig);
     }
 
@@ -145,7 +145,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      */
     @Bean(name = API_DOC_BEAN_MATCHER)
     @ConditionalOnMissingBean(name = API_DOC_BEAN_MATCHER)
-    public Matcher<ApiBean<Object>> apiDocBeanMatcher() {
+    public Matcher<ApiBean> apiDocBeanMatcher() {
         return new ApiDocBeanMatcher();
     }
 
@@ -156,7 +156,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      */
     @Bean(name = API_DOC_DEFINITION_MATCHER)
     @ConditionalOnMissingBean(name = API_DOC_DEFINITION_MATCHER)
-    public Matcher<ApiBean<Object>.ApiDefinition> apiDocDefinitionMatcher() {
+    public Matcher<ApiBean.ApiDefinition> apiDocDefinitionMatcher() {
         return new ApiDocDefinitionMatcher();
     }
 
@@ -168,7 +168,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public ApiDocDefinitionParser<Object> apiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
+    public ApiDocDefinitionParser apiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
         return new HttpApiDocDefinitionParser(clientRegisterConfig);
     }
 

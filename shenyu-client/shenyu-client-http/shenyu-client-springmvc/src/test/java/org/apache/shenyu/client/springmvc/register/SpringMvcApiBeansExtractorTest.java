@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.is;
 
 public class SpringMvcApiBeansExtractorTest {
 
-    private final ApiBeansExtractor<Object> extractor = new SpringMvcApiBeansExtractor("/http");
+    private final ApiBeansExtractor extractor = new SpringMvcApiBeansExtractor("/http");
 
     @Test
     public void testExtractBeans() throws NoSuchMethodException {
@@ -42,16 +42,16 @@ public class SpringMvcApiBeansExtractorTest {
         applicationContext.registerBean(ExtractorTestBean.class);
         applicationContext.registerBean(ExtractorTestWithoutControllerBean.class);
 
-        List<ApiBean<Object>> apiBeans = extractor.extract(applicationContext);
+        List<ApiBean> apiBeans = extractor.extract(applicationContext);
 
         assertThat(apiBeans.size(), is(1));
-        ApiBean<Object> apiBean = apiBeans.get(0);
+        ApiBean apiBean = apiBeans.get(0);
         assertThat(apiBean.getBeanClass(), is(ExtractorTestBean.class));
         assertThat(apiBean.getBeanPath(), is("/testBean"));
         assertThat(apiBean.getContextPath(), is("/http"));
         assertThat(apiBean.getApiDefinitions().size(), is(1));
 
-        ApiBean<?>.ApiDefinition apiDefinition = apiBean.getApiDefinitions().get(0);
+        ApiBean.ApiDefinition apiDefinition = apiBean.getApiDefinitions().get(0);
         assertThat(apiDefinition.getApiMethod(), is(ExtractorTestBean.class.getMethod("test")));
         assertThat(apiDefinition.getMethodPath(), is("/testMethod"));
     }

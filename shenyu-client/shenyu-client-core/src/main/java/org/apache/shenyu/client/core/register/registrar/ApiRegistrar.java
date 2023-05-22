@@ -17,22 +17,22 @@
 
 package org.apache.shenyu.client.core.register.registrar;
 
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.Matcher;
 import org.apache.shenyu.client.core.register.parser.Parser;
-import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.List;
 
-public class ApiRegistrar<T, D extends DataTypeParent> extends AbstractRegistrar<ApiBean<T>.ApiDefinition> {
+public class ApiRegistrar<D extends DataTypeParent> extends AbstractRegistrar<ApiBean.ApiDefinition> {
 
     private final ShenyuClientRegisterEventPublisher publisher;
 
-    private final Parser<List<D>, ApiBean<T>.ApiDefinition> parser;
+    private final Parser<List<D>, ApiBean.ApiDefinition> parser;
 
-    public ApiRegistrar(final Matcher<ApiBean<T>.ApiDefinition> matcher,
-                        final Parser<List<D>, ApiBean<T>.ApiDefinition> parser,
+    public ApiRegistrar(final Matcher<ApiBean.ApiDefinition> matcher,
+                        final Parser<List<D>, ApiBean.ApiDefinition> parser,
                         final ShenyuClientRegisterEventPublisher publisher) {
         super(matcher);
         this.publisher = publisher;
@@ -40,7 +40,7 @@ public class ApiRegistrar<T, D extends DataTypeParent> extends AbstractRegistrar
     }
 
     @Override
-    protected final void doRegister(final ApiBean<T>.ApiDefinition element) {
+    protected final void doRegister(final ApiBean.ApiDefinition element) {
 
         List<? extends D> datas = parser.parse(element);
 
