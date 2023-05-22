@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.MapUtils;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 
@@ -65,6 +66,20 @@ public final class MatchDataCache {
      */
     public void removeSelectorData(final String pluginName) {
         SELECTOR_DATA_MAP.remove(pluginName);
+    }
+    
+    /**
+     * remove selector data.
+     *
+     * @param pluginName plugin name
+     * @param selectorId selector id
+     */
+    public void removeSelectorData(final String pluginName, final String selectorId) {
+        Map<String, SelectorData> pathSelectorCache = SELECTOR_DATA_MAP.get(pluginName);
+        if (Objects.isNull(pathSelectorCache) || pathSelectorCache.isEmpty()) {
+            return;
+        }
+        pathSelectorCache.entrySet().removeIf(entry -> entry.getValue().getId().equals(selectorId));
     }
 
     /**
@@ -120,6 +135,35 @@ public final class MatchDataCache {
     public void removeRuleData(final String pluginName) {
         RULE_DATA_MAP.remove(pluginName);
     }
+    
+    /**
+     * remove rule data.
+     *
+     * @param pluginName pluginName
+     * @param ruleId ruleId
+     */
+    public void removeRuleData(final String pluginName, final String ruleId) {
+        Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
+        if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
+            return;
+        }
+        pathRuleDataCache.entrySet().removeIf(entry -> entry.getValue().getId().equals(ruleId));
+    }
+    
+    /**
+     * remove rule data by selector.
+     *
+     * @param pluginName pluginName
+     * @param selectorId selectorId
+     */
+    public void removeRuleDataBySelector(final String pluginName, final String selectorId) {
+        Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
+        if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
+            return;
+        }
+        pathRuleDataCache.entrySet().removeIf(entry -> entry.getValue().getSelectorId().equals(selectorId));
+    }
+    
     
     /**
      * clear the cache.

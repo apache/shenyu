@@ -18,6 +18,9 @@
 package org.apache.shenyu.plugin.base.cache;
 
 import com.google.common.collect.Lists;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
+import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.common.config.ShenyuConfig.ShenyuTrieConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -76,7 +79,7 @@ public final class CommonPluginDataSubscriberTest {
     public void setup() {
         this.mockShenyuTrieConfig();
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
-        commonPluginDataSubscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new ShenyuTrieConfig(), new ShenyuTrieConfig());
+        commonPluginDataSubscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new SelectorMatchCache(), new RuleMatchCache());
         baseDataCache = BaseDataCache.getInstance();
     }
 

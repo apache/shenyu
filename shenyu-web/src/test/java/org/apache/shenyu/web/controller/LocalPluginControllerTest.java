@@ -20,7 +20,8 @@ package org.apache.shenyu.web.controller;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.config.ShenyuConfig.ShenyuTrieConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
+import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -94,7 +95,7 @@ public final class LocalPluginControllerTest {
     public void setup() {
         this.mockShenyuTrieConfig();
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
-        subscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new ShenyuTrieConfig(), new ShenyuTrieConfig());
+        subscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new SelectorMatchCache(), new RuleMatchCache());
         mockMvc = MockMvcBuilders.standaloneSetup(new LocalPluginController(subscriber))
                 .build();
         baseDataCache = BaseDataCache.getInstance();
