@@ -40,7 +40,11 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.*;
+import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_DOC_BEAN_MATCHER;
+import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_DOC_DEFINITION_MATCHER;
+import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_META_BEAN_MATCHER;
+import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.API_META_DEFINITION_MATCHER;
+import static org.apache.shenyu.client.core.constant.ShenyuClientConstants.PRE_API_META_BEAN_MATCHER;
 
 @Configuration(proxyBeanMethods = false)
 public class ClientRegisterConfiguration {
