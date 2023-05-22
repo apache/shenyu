@@ -46,7 +46,7 @@ public class NacosSyncDataService extends NacosCacheHandler implements SyncDataS
                                 final List<AuthDataSubscriber> authDataSubscribers,
                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
 
-        super(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,proxySelectorDataSubscribers);
+        super(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers);
         start();
     }
 
