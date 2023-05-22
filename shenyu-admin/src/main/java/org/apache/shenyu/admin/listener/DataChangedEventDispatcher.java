@@ -72,6 +72,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                 case PROXY_SELECTOR:
                     listener.onProxySelectorChanged((List<ProxySelectorData>) event.getSource(), event.getEventType());
                     break;
+
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getGroupKey());
             }
