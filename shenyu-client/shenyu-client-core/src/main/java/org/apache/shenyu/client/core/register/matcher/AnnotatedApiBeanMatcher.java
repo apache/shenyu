@@ -22,7 +22,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.annotation.Annotation;
 
-public final class AnnotatedApiBeanMatcher<T> extends ApiBeanMatcher<T> {
+public final class AnnotatedApiBeanMatcher extends ApiBeanMatcher {
 
     private final Class<? extends Annotation> aClass;
 
@@ -31,7 +31,7 @@ public final class AnnotatedApiBeanMatcher<T> extends ApiBeanMatcher<T> {
     }
 
     @Override
-    public boolean match(final ApiBean<T> apiBean) {
+    public boolean match(final ApiBean apiBean) {
         return AnnotationUtils
                 .isAnnotationDeclaredLocally(aClass, apiBean.getBeanClass());
     }

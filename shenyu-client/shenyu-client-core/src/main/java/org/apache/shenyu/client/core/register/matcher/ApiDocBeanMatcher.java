@@ -20,16 +20,16 @@ package org.apache.shenyu.client.core.register.matcher;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.register.ApiBean;
 
-public class ApiDocBeanMatcher implements Matcher<ApiBean<Object>> {
+public class ApiDocBeanMatcher implements Matcher<ApiBean> {
 
-    private final Matcher<ApiBean<Object>> matcher;
+    private final Matcher<ApiBean> matcher;
 
     public ApiDocBeanMatcher() {
-        matcher = new AnnotatedApiBeanMatcher<>(ApiModule.class);
+        matcher = new AnnotatedApiBeanMatcher(ApiModule.class);
     }
 
     @Override
-    public boolean match(final ApiBean<Object> element) {
+    public boolean match(final ApiBean element) {
         return matcher.match(element);
     }
 }

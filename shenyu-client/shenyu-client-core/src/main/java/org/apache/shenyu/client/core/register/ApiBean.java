@@ -28,11 +28,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class ApiBean<T> {
+public class ApiBean {
 
     private final String beanName;
 
-    private final T beanInstance;
+    private final Object beanInstance;
 
     private final String beanPath;
 
@@ -44,7 +44,7 @@ public class ApiBean<T> {
 
     private final String serviceName;
 
-    public ApiBean(final String contextPath, final String beanName, final T beanInstance, final String beanPath, final Class<?> beanClass) {
+    public ApiBean(final String contextPath, final String beanName, final Object beanInstance, final String beanPath, final Class<?> beanClass) {
 
         this.contextPath = contextPath;
 
@@ -96,7 +96,7 @@ public class ApiBean<T> {
      *
      * @return bean Instance
      */
-    public T getBeanInstance() {
+    public Object getBeanInstance() {
         return beanInstance;
     }
 
@@ -238,7 +238,7 @@ public class ApiBean<T> {
          *
          * @return api bean
          */
-        public ApiBean<T> getApiBean() {
+        public ApiBean getApiBean() {
             return ApiBean.this;
         }
 
