@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SpringMvcApiBeansExtractor implements ApiBeansExtractor<Object> {
+public class SpringMvcApiBeansExtractor implements ApiBeansExtractor {
 
     private final String contextPath;
 
@@ -44,10 +44,10 @@ public class SpringMvcApiBeansExtractor implements ApiBeansExtractor<Object> {
     }
 
     @Override
-    public List<ApiBean<Object>> extract(final ApplicationContext applicationContext) {
+    public List<ApiBean> extract(final ApplicationContext applicationContext) {
         Map<String, Object> beanMap = applicationContext.getBeansWithAnnotation(Controller.class);
 
-        List<ApiBean<Object>> apiBeans = new ArrayList<>();
+        List<ApiBean> apiBeans = new ArrayList<>();
 
         beanMap.forEach((k, v) -> {
             bean2ApiBean(k, v).ifPresent(apiBeans::add);
@@ -55,7 +55,7 @@ public class SpringMvcApiBeansExtractor implements ApiBeansExtractor<Object> {
         return apiBeans;
     }
 
-    private Optional<ApiBean<Object>> bean2ApiBean(final String beanName, final Object bean) {
+    private Optional<ApiBean> bean2ApiBean(final String beanName, final Object bean) {
 
         Class<?> targetClass = getCorrectedClass(bean);
 
@@ -63,7 +63,7 @@ public class SpringMvcApiBeansExtractor implements ApiBeansExtractor<Object> {
 
         String beanPath = Objects.isNull(classRequestMapping) ? "" : getPath(classRequestMapping);
 
-        ApiBean<Object> apiBean = new ApiBean<>(contextPath, beanName, bean, beanPath, targetClass);
+        ApiBean apiBean = new ApiBean(contextPath, beanName, bean, beanPath, targetClass);
 
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(targetClass);
 

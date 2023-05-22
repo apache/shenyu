@@ -30,7 +30,7 @@ public class SpringMvcApiMetaBeanMatcherTest {
 
     @Test
     public void testBeanMatch() throws Exception {
-        ApiBean<Object> apiBean = createSimpleApiBean(TestBeanMatchClass.class);
+        ApiBean apiBean = createSimpleApiBean(TestBeanMatchClass.class);
         boolean result = beanMatcher.match(apiBean);
         assertThat(result, is(true));
     }
@@ -38,7 +38,7 @@ public class SpringMvcApiMetaBeanMatcherTest {
     @Test
     public void testBeanMatchWithoutAnnotation() throws Exception {
 
-        ApiBean<Object> apiBean = createSimpleApiBean(TestBeanMatchWithoutAnnotationClass.class);
+        ApiBean apiBean = createSimpleApiBean(TestBeanMatchWithoutAnnotationClass.class);
         boolean result = beanMatcher.match(apiBean);
         assertThat(result, is(true));
     }
@@ -46,13 +46,13 @@ public class SpringMvcApiMetaBeanMatcherTest {
     @Test
     public void testBeanMatchWithStarAnnotation() throws Exception {
 
-        ApiBean<Object> apiBean = createSimpleApiBean(TestBeanMatchWithStarAnnotationClass.class);
+        ApiBean apiBean = createSimpleApiBean(TestBeanMatchWithStarAnnotationClass.class);
         boolean result = beanMatcher.match(apiBean);
         assertThat(result, is(false));
     }
 
-    private static ApiBean<Object> createSimpleApiBean(final Class<?> beanClass) throws Exception {
-        ApiBean<Object> apiBean = new ApiBean<>("",
+    private static ApiBean createSimpleApiBean(final Class<?> beanClass) throws Exception {
+        ApiBean apiBean = new ApiBean("",
                 "", beanClass.getDeclaredConstructor().newInstance(), "", beanClass);
         return apiBean;
     }

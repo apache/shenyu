@@ -19,6 +19,6 @@ package org.apache.shenyu.client.core.register.matcher;
 
 import org.apache.shenyu.client.core.register.ApiBean;
 
-public abstract class ApiDefinitionMatcher<T> implements Matcher<ApiBean<T>.ApiDefinition> {
+public abstract class ApiDefinitionMatcher implements Matcher<ApiBean.ApiDefinition> {
 
 }

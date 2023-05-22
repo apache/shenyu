@@ -50,7 +50,7 @@ public class SpringMvcPreApiMetaBeanParserTest {
 
     @Test
     public void testParse() throws Exception {
-        ApiBean<Object> apiBean = new ApiBean<>("/http",
+        ApiBean apiBean = new ApiBean("/http",
                 "testClass", TestBeanMatchClass.class.getDeclaredConstructor().newInstance(),
                 "/testClass", TestBeanMatchClass.class);
 
