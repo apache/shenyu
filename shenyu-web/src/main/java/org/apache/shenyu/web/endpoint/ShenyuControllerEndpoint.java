@@ -17,11 +17,14 @@
 
 package org.apache.shenyu.web.endpoint;
 
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.MatchDataCache;
+import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -90,5 +93,45 @@ public class ShenyuControllerEndpoint {
     @GetMapping("/ruleData")
     public Flux<Map<String, List<RuleData>>> ruleData() {
         return Flux.just(BaseDataCache.getInstance().getRuleMap());
+    }
+    
+    /**
+     * selector match cache flux.
+     *
+     * @return the flux
+     */
+    @GetMapping("/selectorMatchCache")
+    public Flux<Map<String, Map<String, SelectorData>>> getSelectorMatchCache() {
+        return Flux.just(MatchDataCache.getInstance().getSelectorMatchCache());
+    }
+    
+    /**
+     * rule match cache flux.
+     *
+     * @return the flux
+     */
+    @GetMapping("/ruleMatchCache")
+    public Flux<Map<String, Map<String, RuleData>>> getRuleMatchCache() {
+        return Flux.just(MatchDataCache.getInstance().getRuleMatchCache());
+    }
+    
+    /**
+     * get metadata map.
+     *
+     * @return metadata map
+     */
+    @GetMapping("/metadata")
+    public Flux<Map<String, MetaData>> getMetadata() {
+        return Flux.just(MetaDataCache.getInstance().getMetaDataMap());
+    }
+    
+    /**
+     * get metadata cache.
+     *
+     * @return metadata cache
+     */
+    @GetMapping("/metadataCache")
+    public Flux<Map<String, MetaData>> getMetaDataCache() {
+        return Flux.just(MetaDataCache.getInstance().getMetaDataCache());
     }
 }

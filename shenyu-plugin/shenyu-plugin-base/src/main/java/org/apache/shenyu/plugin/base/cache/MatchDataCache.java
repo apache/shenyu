@@ -184,4 +184,22 @@ public final class MatchDataCache {
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
     }
     
+    /**
+     * get selector match cache.
+     *
+     * @return selector match cache
+     */
+    public ConcurrentMap<String, Map<String, SelectorData>> getSelectorMatchCache() {
+        return SELECTOR_DATA_MAP;
+    }
+    
+    /**
+     * get rule match cache.
+     *
+     * @return rule match cache
+     */
+    public ConcurrentMap<String, Map<String, RuleData>> getRuleMatchCache() {
+        return RULE_DATA_MAP;
+    }
+    
 }
