@@ -58,6 +58,7 @@ public class NacosSyncDataConfiguration {
      * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers   the meta subscribers
      * @param authSubscribers   the auth subscribers
+     * @param proxySlectorSubscribers   the auth subscribers
      * @return the sync data service
      */
     @Bean
