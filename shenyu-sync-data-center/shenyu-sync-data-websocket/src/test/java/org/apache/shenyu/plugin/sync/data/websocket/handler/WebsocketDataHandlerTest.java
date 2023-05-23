@@ -30,6 +30,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -45,7 +46,8 @@ public final class WebsocketDataHandlerTest {
         pluginDataSubscriber = mock(PluginDataSubscriber.class);
         List<AuthDataSubscriber> authDataSubscribers = new LinkedList<>();
         List<MetaDataSubscriber> metaDataSubscribers = new LinkedList<>();
-        websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers = new LinkedList<>();
+        websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers);
     }
 
     @Test

@@ -29,6 +29,7 @@ import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -67,10 +68,11 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
      */
     public ShenyuWebsocketClient(final URI serverUri, final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
-                                 final List<AuthDataSubscriber> authDataSubscribers
+                                 final List<AuthDataSubscriber> authDataSubscribers,
+                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers
     ) {
         super(serverUri);
-        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }
@@ -86,9 +88,11 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     public ShenyuWebsocketClient(final URI serverUri, final Map<String, String> headers,
                                  final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
-                                 final List<AuthDataSubscriber> authDataSubscribers) {
+                                 final List<AuthDataSubscriber> authDataSubscribers,
+                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
         super(serverUri, headers);
-        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
+                proxySelectorDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }

@@ -115,7 +115,7 @@ public class ProxySelectorVO implements Serializable {
      *
      * @param id id
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -133,7 +133,7 @@ public class ProxySelectorVO implements Serializable {
      *
      * @param pluginName plugin name
      */
-    public void setPluginName(String pluginName) {
+    public void setPluginName(final String pluginName) {
         this.pluginName = pluginName;
     }
 
@@ -151,7 +151,7 @@ public class ProxySelectorVO implements Serializable {
      *
      * @param type type of selector
      */
-    public void setType(String type) {
+    public void setType(final String type) {
         this.type = type;
     }
 
@@ -169,7 +169,7 @@ public class ProxySelectorVO implements Serializable {
      *
      * @param props props of selector
      */
-    public void setProps(String props) {
+    public void setProps(final String props) {
         this.props = props;
     }
 
