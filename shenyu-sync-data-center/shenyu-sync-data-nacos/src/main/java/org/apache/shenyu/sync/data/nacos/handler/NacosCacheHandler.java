@@ -154,9 +154,7 @@ public class NacosCacheHandler {
 
     protected void updateProxySelectorMap(final String configInfo) {
         try {
-            ProxySelectorData data = GsonUtils.getInstance().fromJson(configInfo, ProxySelectorData.class);
-            List<ProxySelectorData> proxySelectorDataList = new ArrayList<>();
-            proxySelectorDataList.add(data);
+            List<ProxySelectorData> proxySelectorDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, ProxySelectorData.class).values());
             proxySelectorDataList.forEach(proxySelectorData -> proxySelectorDataSubscribers.forEach(subscriber -> {
                 subscriber.unSubscribe(proxySelectorData);
                 subscriber.onSubscribe(proxySelectorData, proxySelectorData.getDiscoveryUpstreamList());
