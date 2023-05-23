@@ -39,7 +39,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractApiDocDefinitionParser<T> implements ApiDocDefinitionParser<T> {
+public abstract class AbstractApiDocDefinitionParser implements ApiDocDefinitionParser {
 
     private static final String API_DOC_VERSION = "v0.01";
 
@@ -59,7 +59,7 @@ public abstract class AbstractApiDocDefinitionParser<T> implements ApiDocDefinit
     }
 
     @Override
-    public List<ApiDocRegisterDTO> parse(final ApiBean<T>.ApiDefinition apiDefinition) {
+    public List<ApiDocRegisterDTO> parse(final ApiBean.ApiDefinition apiDefinition) {
 
         ApiDoc apiDoc = apiDefinition.getAnnotation(ApiDoc.class);
 
@@ -109,7 +109,7 @@ public abstract class AbstractApiDocDefinitionParser<T> implements ApiDocDefinit
         return GsonUtils.getInstance().toJson(documentMap);
     }
 
-    private String buildExtJson(final ApiBean<T>.ApiDefinition apiDefinition) {
+    private String buildExtJson(final ApiBean.ApiDefinition apiDefinition) {
 
         ApiDocRegisterDTO.ApiExt ext = new ApiDocRegisterDTO.ApiExt();
 
@@ -132,7 +132,7 @@ public abstract class AbstractApiDocDefinitionParser<T> implements ApiDocDefinit
         return GsonUtils.getInstance().toJson(ext);
     }
 
-    protected abstract HttpApiSpecificInfo doParse(ApiBean<T>.ApiDefinition apiDefinition);
+    protected abstract HttpApiSpecificInfo doParse(ApiBean.ApiDefinition apiDefinition);
 
     public static class HttpApiSpecificInfo {
 
