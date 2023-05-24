@@ -22,7 +22,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 
 import java.lang.annotation.Annotation;
 
-public final class AnnotatedApiDefinitionMatcher<T> extends ApiDefinitionMatcher<T> {
+public final class AnnotatedApiDefinitionMatcher extends ApiDefinitionMatcher {
 
     private final Class<? extends Annotation> aClass;
 
@@ -31,7 +31,7 @@ public final class AnnotatedApiDefinitionMatcher<T> extends ApiDefinitionMatcher
     }
 
     @Override
-    public boolean match(final ApiBean<T>.ApiDefinition apiDefinition) {
+    public boolean match(final ApiBean.ApiDefinition apiDefinition) {
         return AnnotatedElementUtils
                 .isAnnotated(apiDefinition.getApiMethod(), aClass);
     }

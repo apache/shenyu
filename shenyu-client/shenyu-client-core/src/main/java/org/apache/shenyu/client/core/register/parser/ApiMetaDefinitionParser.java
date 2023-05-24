@@ -22,6 +22,6 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
 import java.util.List;
 
-public interface ApiMetaDefinitionParser<T> extends Parser<List<MetaDataRegisterDTO>, ApiBean<T>.ApiDefinition> {
+public interface ApiMetaDefinitionParser extends Parser<List<MetaDataRegisterDTO>, ApiBean.ApiDefinition> {
 
 }
