@@ -303,8 +303,7 @@ public class ShenyuConfiguration {
         RuleMatchCache ruleMatchCache = shenyuConfig.getRuleMatchCache();
         return new ShenyuTrie(ruleMatchCache.getTrie().getCacheSize(), ruleMatchCache.getTrie().getMatchMode());
     }
-   
-
+    
     /**
      * shenyu trie listener.
      *
