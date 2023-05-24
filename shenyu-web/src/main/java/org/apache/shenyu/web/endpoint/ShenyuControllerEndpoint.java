@@ -21,10 +21,13 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
+import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +37,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -134,4 +138,27 @@ public class ShenyuControllerEndpoint {
     public Flux<Map<String, MetaData>> getMetaDataCache() {
         return Flux.just(MetaDataCache.getInstance().getMetaDataCache());
     }
+    
+    /**
+     * get selector trie cache key set.
+     *
+     * @return trie cache key sets
+     */
+    @GetMapping("selectorTrie")
+    public Flux<Set<String>> getSelectorTrieKeys() {
+        ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
+        return Flux.just(selectorTrie.getKeyRootKeys());
+    }
+    
+    /**
+     * get rule trie cache key set.
+     *
+     * @return trie cache key sets
+     */
+    @GetMapping("ruleTrie")
+    public Flux<Set<String>> getRuleTrieKeys() {
+        ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
+        return Flux.just(ruleTrie.getKeyRootKeys());
+    }
+
 }
