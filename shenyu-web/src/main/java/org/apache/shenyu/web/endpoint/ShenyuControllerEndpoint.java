@@ -144,7 +144,7 @@ public class ShenyuControllerEndpoint {
      *
      * @return trie cache key sets
      */
-    @GetMapping("selectorTrie")
+    @GetMapping("/selectorTrie")
     public Flux<Set<String>> getSelectorTrieKeys() {
         ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
         return Flux.just(selectorTrie.getKeyRootKeys());
@@ -155,7 +155,7 @@ public class ShenyuControllerEndpoint {
      *
      * @return trie cache key sets
      */
-    @GetMapping("ruleTrie")
+    @GetMapping("/ruleTrie")
     public Flux<Set<String>> getRuleTrieKeys() {
         ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
         return Flux.just(ruleTrie.getKeyRootKeys());
