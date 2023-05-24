@@ -296,7 +296,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             BaseDataCache.getInstance().removeRuleData(ruleData);
             Optional.ofNullable(handlerMap.get(ruleData.getPluginName()))
                     .ifPresent(handler -> handler.removeRule(ruleData));
-            if (selectorMatchConfig.getCache().getEnabled()) {
+            if (ruleMatchCacheConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
             }
             if (ruleMatchCacheConfig.getTrie().getEnabled()) {
