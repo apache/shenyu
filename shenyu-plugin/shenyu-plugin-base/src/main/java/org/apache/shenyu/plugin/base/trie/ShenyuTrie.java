@@ -427,6 +427,15 @@ public class ShenyuTrie {
     }
     
     /**
+     * remove trie cache by key.
+     *
+     * @param key key
+     */
+    public void removeByKey(final String key) {
+        keyRootMap.remove(key);
+    }
+    
+    /**
      * getNode.
      *
      * @param uriPath uriPath
