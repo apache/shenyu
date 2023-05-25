@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.plugin.oauth2;
 
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -34,7 +36,7 @@ import java.util.Objects;
 /**
  * The OAuth2 Plugin.
  */
-public class OAuth2Plugin implements ShenyuPlugin {
+public class OAuth2Plugin extends AbstractShenyuPlugin {
 
     private static final String BEARER = "Bearer ";
 
@@ -48,16 +50,16 @@ public class OAuth2Plugin implements ShenyuPlugin {
     public OAuth2Plugin(final ObjectProvider<ReactiveOAuth2AuthorizedClientService> authorizedClientServiceProvider) {
         this.authorizedClientServiceProvider = authorizedClientServiceProvider;
     }
-
+    
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         return exchange.getPrincipal()
-            .filter(OAuth2AuthenticationToken.class::isInstance)
-            .cast(OAuth2AuthenticationToken.class)
-            .flatMap(this::buildAuthorizedClient)
-            .flatMap(client -> chain.execute(this.writeToken(exchange, client)));
+                .filter(OAuth2AuthenticationToken.class::isInstance)
+                .cast(OAuth2AuthenticationToken.class)
+                .flatMap(this::buildAuthorizedClient)
+                .flatMap(client -> chain.execute(this.writeToken(exchange, client)));
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.OAUTH2.getCode();

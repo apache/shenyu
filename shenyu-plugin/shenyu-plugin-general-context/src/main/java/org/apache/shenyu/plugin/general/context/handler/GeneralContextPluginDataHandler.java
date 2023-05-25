@@ -36,8 +36,8 @@ import java.util.function.Supplier;
  */
 public class GeneralContextPluginDataHandler implements PluginDataHandler {
 
-    public static final Supplier<CommonHandleCache<String, Map<String, List<GeneralContextHandle>>>> CACHED_HANDLE = new BeanHolder(CommonHandleCache::new);
-
+    public static final Supplier<CommonHandleCache<String, Map<String, List<GeneralContextHandle>>>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+    
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(handleData -> {

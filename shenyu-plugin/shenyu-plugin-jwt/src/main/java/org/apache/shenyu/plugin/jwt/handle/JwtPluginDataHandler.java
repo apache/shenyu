@@ -49,7 +49,12 @@ public class JwtPluginDataHandler implements PluginDataHandler {
         jwtConfig.setSecretKey(secretKey);
         Singleton.INST.single(JwtConfig.class, jwtConfig);
     }
-
+    
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+    }
+    
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(ruleHandle -> {

@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.plugin.resilience4j.handler;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.Resilience4JHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -36,7 +38,19 @@ import java.util.function.Supplier;
 public class Resilience4JHandler implements PluginDataHandler {
 
     public static final Supplier<CommonHandleCache<String, Resilience4JHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
-
+    
+    @Override
+    public void handlerSelector(final SelectorData selectorData) {
+        if (!selectorData.getContinued()) {
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), Resilience4JHandle.newDefaultInstance());
+        }
+    }
+    
+    @Override
+    public void removeSelector(final SelectorData selectorData) {
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
+    }
+    
     @Override
     public void handlerRule(final RuleData ruleData) {
         String key = CacheKeyUtils.INST.getKey(ruleData);
