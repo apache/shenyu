@@ -83,6 +83,8 @@ public final class NacosCacheHandlerTest {
 
     private static final String META_DATA_ID = "shenyu.meta.json";
 
+    private static final String PROXY_SELECTOR_DATA_ID = "shenyu.proxy.selector.json";
+
     private NacosCacheHandler nacosCacheHandlerService;
 
     private ConfigService configService;
@@ -120,7 +122,7 @@ public final class NacosCacheHandlerTest {
                 unsubscribeList.add(pluginData);
                 latch.countDown();
             }
-        }, Collections.emptyList(), Collections.emptyList());
+        }, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         nacosCacheHandlerService.updatePluginMap(pluginData);
         assertEquals(2, onSubscribeList.size());
         assertEquals(2, unsubscribeList.size());
@@ -167,7 +169,7 @@ public final class NacosCacheHandlerTest {
                 unsubscribeList.add(selectorData);
                 latch.countDown();
             }
-        }, Collections.emptyList(), Collections.emptyList());
+        }, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         nacosCacheHandlerService.updateSelectorMap(selectorDataParam);
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
@@ -213,7 +215,7 @@ public final class NacosCacheHandlerTest {
                 unsubscribeList.add(ruleData);
                 latch.countDown();
             }
-        }, Collections.emptyList(), Collections.emptyList());
+        }, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         nacosCacheHandlerService.updateRuleMap(ruleDataParam);
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
@@ -255,7 +257,7 @@ public final class NacosCacheHandlerTest {
             }
         };
         nacosCacheHandlerService = new NacosCacheHandler(configService, null, Lists.newArrayList(metaDataSubscriber),
-                Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList());
         nacosCacheHandlerService.updateMetaDataMap(metaDataParam);
         assertEquals(2, subscribeList.size());
         assertEquals(2, unsubscribeList.size());
@@ -296,7 +298,7 @@ public final class NacosCacheHandlerTest {
             }
         };
         nacosCacheHandlerService = new NacosCacheHandler(configService, null,
-                Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
+                Collections.emptyList(), Lists.newArrayList(authDataSubscriber), null);
 
         nacosCacheHandlerService.updateAuthMap(appAuthDataParam);
         assertEquals(2, subscribeList.size());
@@ -332,7 +334,7 @@ public final class NacosCacheHandlerTest {
             }
         };
         nacosCacheHandlerService = new NacosCacheHandler(configService, null,
-                Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
+                Collections.emptyList(), Lists.newArrayList(authDataSubscriber), null);
 
         NacosCacheHandler.OnChange oc = nacosCacheHandlerService::updateAuthMap;
         nacosCacheHandlerService.watcherData(AUTH_DATA_ID, oc);
