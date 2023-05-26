@@ -230,12 +230,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             Optional.ofNullable(handlerMap.get(selectorData.getPluginName()))
                     .ifPresent(handler -> handler.handlerSelector(selectorData));
             // remove match cache
-            if (selectorMatchConfig.getCache().getEnabled()) {
-                MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
-            }
-            if (ruleMatchCacheConfig.getCache().getEnabled()) {
-                MatchDataCache.getInstance().removeRuleDataBySelector(selectorData.getPluginName(), selectorData.getId());
-            }
+            //if (selectorMatchConfig.getCache().getEnabled()) {
+            //    MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
+            //}
+            //if (ruleMatchCacheConfig.getCache().getEnabled()) {
+            //    MatchDataCache.getInstance().removeRuleDataBySelector(selectorData.getPluginName(), selectorData.getId());
+            //}
             updateSelectorTrieCache(selectorData);
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
@@ -278,10 +278,6 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             Optional.ofNullable(handlerMap.get(pluginData.getName()))
                     .ifPresent(handler -> handler.removePlugin(pluginData));
             eventPublisher.publishEvent(new PluginHandlerEvent(PluginHandlerEventEnum.DELETE, pluginData));
-            // remove selector and rule match cache
-            //List<SelectorData> selectorDataList = Optional.ofNullable(BaseDataCache.getInstance().obtainSelectorData(pluginData.getName()))
-            //        .map(Collections::unmodifiableList).orElse(Collections.emptyList());
-            //removeAllMatchCache(pluginData.getName(), selectorDataList);
         } else if (data instanceof SelectorData) {
             SelectorData selectorData = (SelectorData) data;
             BaseDataCache.getInstance().removeSelectData(selectorData);
@@ -338,23 +334,6 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             }
         } else {
             eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.REMOVE, TrieCacheTypeEnum.RULE, ruleData));
-        }
-    }
-    
-    private void removeAllMatchCache(final String pluginName, final List<SelectorData> selectorDataList) {
-        if (selectorMatchConfig.getCache().getEnabled()) {
-            MatchDataCache.getInstance().removeSelectorData(pluginName);
-        }
-        if (ruleMatchCacheConfig.getCache().getEnabled()) {
-            MatchDataCache.getInstance().removeRuleData(pluginName);
-        }
-        if (selectorMatchConfig.getTrie().getEnabled()) {
-            ShenyuTrie selectorTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.SELECTOR.getTrieType());
-            selectorTrie.removeByKey(pluginName);
-        }
-        if (ruleMatchCacheConfig.getTrie().getEnabled() && CollectionUtils.isNotEmpty(selectorDataList)) {
-            ShenyuTrie ruleTrie = SpringBeanUtils.getInstance().getBean(TrieCacheTypeEnum.RULE.getTrieType());
-            selectorDataList.forEach(selectorData -> ruleTrie.removeByKey(selectorData.getId()));
         }
     }
 }
