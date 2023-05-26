@@ -378,22 +378,22 @@ public interface Constants {
     String FILTER_PATH = "filterPath";
     
     /**
-     *  Disable flow control rules
+     *  Disable flow control rules.
      */
     int FLOW_RULE_ENABLE_OFF = 0;
 
     /**
-     *  Enable flow control rules
+     *  Enable flow control rules.
      */
     int FLOW_RULE_ENABLE_ON = 1;
 
     /**
-     *  Disable flow degrade rules
+     *  Disable flow degrade rules.
      */
     int DEGRADE_RULE_ENABLE_OFF = 0;
 
     /**
-     *  Enable flow degrade rules
+     *  Enable flow degrade rules.
      */
     int DEGRADE_RULE_ENABLE_ON = 1;
 
