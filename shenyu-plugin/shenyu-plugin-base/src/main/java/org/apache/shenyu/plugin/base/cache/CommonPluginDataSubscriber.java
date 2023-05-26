@@ -233,9 +233,9 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             if (selectorMatchConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
             }
-            //if (ruleMatchCacheConfig.getCache().getEnabled()) {
-            //    MatchDataCache.getInstance().removeRuleDataBySelector(selectorData.getPluginName(), selectorData.getId());
-            //}
+            if (ruleMatchCacheConfig.getCache().getEnabled()) {
+                MatchDataCache.getInstance().removeRuleDataBySelector(selectorData.getPluginName(), selectorData.getId());
+            }
             updateSelectorTrieCache(selectorData);
         } else if (data instanceof RuleData) {
             RuleData ruleData = (RuleData) data;
