@@ -54,7 +54,7 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
         assert shenyuContext != null;
         String resourceName = CacheKeyUtils.INST.getKey(rule);
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SentinelHandle.class);
-        sentinelHandle.checkData(sentinelHandle);
+        sentinelHandle.checkData();
         exchange.getAttributes().put(Constants.WATCHER_HTTP_STATUS, (Consumer<HttpStatus>) status -> {
             if (status == null || !status.is2xxSuccessful()) {
                 throw new SentinelFallbackException(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);

@@ -411,13 +411,11 @@ public class SentinelHandle {
 
     /**
      * check filed default value.
-     *
-     * @param sentinelHandle {@linkplain SentinelHandle}
      */
-    public void checkData(final SentinelHandle sentinelHandle) {
-        sentinelHandle.setFlowRuleEnable((sentinelHandle.getFlowRuleEnable() == 1 || sentinelHandle.getFlowRuleEnable() == 0)
-                ? sentinelHandle.getFlowRuleEnable() : Constants.SENTINEL_ENABLE_FLOW_RULE);
-        sentinelHandle.setDegradeRuleEnable((sentinelHandle.getDegradeRuleEnable() == 1 || sentinelHandle.getDegradeRuleEnable() == 0)
-                ? sentinelHandle.getDegradeRuleEnable() : Constants.SENTINEL_ENABLE_DEGRADE_RULE);
+    public void checkData() {
+        this.setFlowRuleEnable((this.getFlowRuleEnable() == Constants.FLOW_RULE_ENABLE_ON || this.getFlowRuleEnable() == Constants.FLOW_RULE_ENABLE_OFF)
+                ? this.getFlowRuleEnable() : Constants.SENTINEL_ENABLE_FLOW_RULE);
+        this.setDegradeRuleEnable((this.getDegradeRuleEnable() == Constants.DEGRADE_RULE_ENABLE_ON || this.getDegradeRuleEnable() == Constants.DEGRADE_RULE_ENABLE_OFF)
+                ? this.getDegradeRuleEnable() : Constants.SENTINEL_ENABLE_DEGRADE_RULE);
     }
 }
