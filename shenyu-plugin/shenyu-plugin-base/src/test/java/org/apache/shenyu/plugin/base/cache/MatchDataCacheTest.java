@@ -52,7 +52,7 @@ public final class MatchDataCacheTest {
     public void testObtainSelectorData() throws NoSuchFieldException, IllegalAccessException {
         SelectorData firstSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
         ConcurrentHashMap<String, WindowTinyLFUMap<String, SelectorData>> selectorMap = getFieldByName(selectorMapStr);
-        selectorMap.put(mockPluginName1, new WindowTinyLFUMap<>(100, 100, Boolean.TRUE));
+        selectorMap.put(mockPluginName1, new WindowTinyLFUMap<>(100, 100, Boolean.FALSE));
         selectorMap.get(mockPluginName1).put(path1, firstSelectorData);
         SelectorData firstSelectorDataCache = MatchDataCache.getInstance().obtainSelectorData(mockPluginName1, path1);
         assertEquals(firstSelectorData, firstSelectorDataCache);
@@ -90,7 +90,7 @@ public final class MatchDataCacheTest {
     public void testObtainRuleData() throws NoSuchFieldException, IllegalAccessException {
         RuleData cacheRuleData = RuleData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
         ConcurrentHashMap<String, WindowTinyLFUMap<String, RuleData>> ruleMap = getFieldByName(ruleMapStr);
-        ruleMap.put(mockPluginName1, new WindowTinyLFUMap<>(100, 100, Boolean.TRUE));
+        ruleMap.put(mockPluginName1, new WindowTinyLFUMap<>(100, 100, Boolean.FALSE));
         ruleMap.get(mockPluginName1).put(path1, cacheRuleData);
         RuleData firstRuleDataCache = MatchDataCache.getInstance().obtainRuleData(mockPluginName1, path1);
         assertEquals(cacheRuleData, firstRuleDataCache);

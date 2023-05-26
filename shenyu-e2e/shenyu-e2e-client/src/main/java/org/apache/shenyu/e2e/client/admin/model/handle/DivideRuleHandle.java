@@ -17,25 +17,21 @@
 
 package org.apache.shenyu.e2e.client.admin.model.handle;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.type.ReferenceType;
 import com.fasterxml.jackson.databind.type.SimpleType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.databind.util.Converter;
-import lombok.Builder;
-import lombok.Data;
-import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
 
-@Data
-@Builder(toBuilder = true)
+/**
+ * Divide rule handle.
+ */
 public class DivideRuleHandle implements RuleHandle {
     
-    private String loadBalance; // todo enhancement, change to enum
+    private String loadBalance;
     
-    private String retryStrategy; // todo enhancement, change to enum
+    private String retryStrategy;
     
     @JsonSerialize(converter = IntConverter.class)
     private int retry;
@@ -54,7 +50,7 @@ public class DivideRuleHandle implements RuleHandle {
         public String convert(Integer integer) {
             return String.valueOf(integer);
         }
-        
+
         @Override
         public JavaType getInputType(TypeFactory typeFactory) {
             return _IN;
@@ -65,5 +61,236 @@ public class DivideRuleHandle implements RuleHandle {
             return _OUT;
         }
     }
-    
+
+    /**
+     * builder constructor.
+     *
+     * @param builder builder
+     */
+    private DivideRuleHandle(Builder builder) {
+        this.loadBalance = builder.loadBalance;
+        this.retryStrategy = builder.retryStrategy;
+        this.retry = builder.retry;
+        this.timeout = builder.timeout;
+        this.headerMaxSize = builder.headerMaxSize;
+        this.requestMaxSize = builder.requestMaxSize;
+    }
+
+    /**
+     * class builder.
+     *
+     * @return Builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * get loadBalance.
+     *
+     * @return loadBalance
+     */
+    public String getLoadBalance() {
+        return loadBalance;
+    }
+
+    /**
+     * set loadBalance.
+     *
+     * @param loadBalance loadBalance
+     */
+    public void setLoadBalance(String loadBalance) {
+        this.loadBalance = loadBalance;
+    }
+
+    /**
+     * get retryStrategy.
+     *
+     * @return retryStrategy
+     */
+    public String getRetryStrategy() {
+        return retryStrategy;
+    }
+
+    /**
+     * set retryStrategy.
+     *
+     * @param retryStrategy retryStrategy
+     */
+    public void setRetryStrategy(String retryStrategy) {
+        this.retryStrategy = retryStrategy;
+    }
+
+    /**
+     * get retry.
+     *
+     * @return retry
+     */
+    public int getRetry() {
+        return retry;
+    }
+
+    /**
+     * set retry.
+     *
+     * @param retry retry
+     */
+    public void setRetry(int retry) {
+        this.retry = retry;
+    }
+
+    /**
+     * get timeout.
+     *
+     * @return timeout
+     */
+    public long getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * set timeout.
+     *
+     * @param timeout timeout
+     */
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
+    }
+
+    /**
+     * get headerMaxSize.
+     *
+     * @return headerMaxSize
+     */
+    public long getHeaderMaxSize() {
+        return headerMaxSize;
+    }
+
+    /**
+     * set headerMaxSize.
+     *
+     * @param headerMaxSize
+     */
+    public void setHeaderMaxSize(long headerMaxSize) {
+        this.headerMaxSize = headerMaxSize;
+    }
+
+    /**
+     * get requestMaxSize.
+     *
+     * @return requestMaxSize
+     */
+    public long getRequestMaxSize() {
+        return requestMaxSize;
+    }
+
+    /**
+     * set requestMaxSize.
+     *
+     * @param requestMaxSize requestMaxSize
+     */
+    public void setRequestMaxSize(long requestMaxSize) {
+        this.requestMaxSize = requestMaxSize;
+    }
+
+    /**
+     * class builder.
+     */
+    public static final class Builder {
+
+        private String loadBalance;
+
+        private String retryStrategy;
+
+        @JsonSerialize(converter = IntConverter.class)
+        private int retry;
+
+        private long timeout;
+
+        private long headerMaxSize;
+
+        private long requestMaxSize;
+
+        /**
+         * no args constructor.
+         */
+        private Builder() {
+
+        }
+
+        /**
+         * build new Object.
+         *
+         * @return DivideRuleHandle
+         */
+        public DivideRuleHandle build() {
+            return new DivideRuleHandle(this);
+        }
+
+        /**
+         * build loadBalance.
+         *
+         * @param loadBalance loadBalance
+         * @return this
+         */
+        public Builder loadBalance(String loadBalance) {
+            this.loadBalance = loadBalance;
+            return this;
+        }
+
+        /**
+         * build retryStrategy.
+         *
+         * @param retryStrategy retryStrategy
+         * @return this
+         */
+        public Builder retryStrategy(String retryStrategy) {
+            this.retryStrategy = retryStrategy;
+            return this;
+        }
+
+        /**
+         * build retry.
+         *
+         * @param retry retry
+         * @return this
+         */
+        public Builder retry(int retry) {
+            this.retry = retry;
+            return this;
+        }
+
+        /**
+         * build timeout.
+         *
+         * @param timeout timeout
+         * @return this
+         */
+        public Builder timeout(long timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        /**
+         * build headerMaxSize.
+         *
+         * @param headerMaxSize headerMaxSize
+         * @return this
+         */
+        public Builder headerMaxSize(long headerMaxSize) {
+            this.headerMaxSize = headerMaxSize;
+            return this;
+        }
+
+        /**
+         * build requestMaxSize.
+         *
+         * @param requestMaxSize requestMaxSize
+         * @return this
+         */
+        public Builder requestMaxSize(long requestMaxSize) {
+            this.requestMaxSize = requestMaxSize;
+            return this;
+        }
+    }
 }

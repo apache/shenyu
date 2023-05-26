@@ -19,8 +19,6 @@ package org.apache.shenyu.e2e.engine.service;
 
 import com.google.common.collect.Lists;
 import junit.framework.AssertionFailedError;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.apache.shenyu.e2e.client.ExternalServiceClient;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
@@ -30,12 +28,26 @@ import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.HostConfigure.H
 import java.util.List;
 import java.util.Objects;
 
-@Getter
-@AllArgsConstructor
+/**
+ * Start host environment.
+ */
 public class HostServiceCompose implements ServiceCompose {
     
     private HostConfigure configure;
-    
+
+    public HostServiceCompose(HostConfigure configure) {
+        this.configure = configure;
+    }
+
+    /**
+     * get configure.
+     *
+     * @return configure
+     */
+    public HostConfigure getConfigure() {
+        return configure;
+    }
+
     public void start() {
         List<HostServiceConfigure> configures = Lists.newArrayList(configure.getExternalServices());
         if (Objects.nonNull(configure.getAdmin())) {

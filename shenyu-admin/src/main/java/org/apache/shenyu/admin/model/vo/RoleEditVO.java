@@ -106,7 +106,10 @@ public class RoleEditVO implements Serializable {
     public void setAllPermissionInfo(final PermissionInfo allPermissionInfo) {
         this.allPermissionInfo = allPermissionInfo;
     }
-
+    
+    /**
+     * PermissionInfo.
+     */
     public static class PermissionInfo {
 
         /**
@@ -171,7 +174,10 @@ public class RoleEditVO implements Serializable {
         public static PermissionInfo.PermissionInfoBuilder builder() {
             return new PermissionInfo.PermissionInfoBuilder();
         }
-
+        
+        /**
+         * PermissionInfoBuilder.
+         */
         public static final class PermissionInfoBuilder {
 
             /**
@@ -219,7 +225,10 @@ public class RoleEditVO implements Serializable {
             }
         }
     }
-
+    
+    /**
+     * ResourceInfo.
+     */
     public static class ResourceInfo {
 
         /**
@@ -402,7 +411,10 @@ public class RoleEditVO implements Serializable {
         public static ResourceInfo.ResourceInfoBuilder builder() {
             return new ResourceInfo.ResourceInfoBuilder();
         }
-
+        
+        /**
+         * ResourceInfoBuilder.
+         */
         public static final class ResourceInfoBuilder {
 
             /**

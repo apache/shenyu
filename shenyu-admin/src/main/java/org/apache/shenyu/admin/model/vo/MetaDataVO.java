@@ -20,6 +20,9 @@ package org.apache.shenyu.admin.model.vo;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * MetaDataVO.
+ */
 public class MetaDataVO implements Serializable {
 
     private static final long serialVersionUID = -2658925954317878033L;

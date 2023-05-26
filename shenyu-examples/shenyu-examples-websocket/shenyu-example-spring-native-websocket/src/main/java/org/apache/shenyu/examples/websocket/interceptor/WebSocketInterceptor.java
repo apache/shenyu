@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.nio.charset.Charset;
 import java.util.Map;
 
 /**
@@ -52,7 +53,7 @@ public class WebSocketInterceptor implements HandshakeInterceptor {
                                    final WebSocketHandler wsHandler, 
                                    final Map<String, Object> attributes) throws Exception {
         LOG.info("Shake hands.");
-        Map<String, String> paramMap = HttpUtil.decodeParamMap(request.getURI().getQuery(), "utf-8");
+        Map<String, String> paramMap = HttpUtil.decodeParamMap(request.getURI().getQuery(), Charset.defaultCharset());
         String uid = paramMap.get("token");
         if (StrUtil.isNotBlank(uid)) {
             attributes.put("token", uid);

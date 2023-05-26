@@ -19,23 +19,38 @@ package org.apache.shenyu.e2e.client.admin.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
 import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
 import org.apache.shenyu.e2e.client.admin.model.data.SelectorData;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@ToString
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * ResourcesData.
+ */
 public class ResourcesData {
     
     private final List<Resource> resources;
-    
+
+    private ResourcesData(List<Resource> resources) {
+        this.resources = resources;
+    }
+
+    /**
+     * get resources.
+     *
+     * @return
+     */
+    public List<Resource> getResources() {
+        return resources;
+    }
+
+    @Override
+    public String toString() {
+        return "ResourcesData{" +
+                "resources=" + resources +
+                '}';
+    }
+
     public static ResourcesDataBuilder builder() {
         return new ResourcesDataBuilder();
     }
@@ -53,13 +68,44 @@ public class ResourcesData {
         }
     }
     
-    @Getter
-    @ToString
-    @AllArgsConstructor
+
     public static class Resource {
         
         private final SelectorData selector;
         
         private final List<RuleData> rules; // todo
+
+        private Resource(SelectorData selector, List<RuleData> rules) {
+            this.selector = selector;
+            this.rules = rules;
+        }
+
+        /**
+         * get selector.
+         *
+         * @return selector
+         */
+        public SelectorData getSelector() {
+            return selector;
+        }
+
+        /**
+         * get rules.
+         *
+         * @return rules
+         */
+        public List<RuleData> getRules() {
+            return rules;
+        }
+
+        @Override
+        public String toString() {
+            return "Resource{"
+                    + "selector="
+                    + selector
+                    + ", rules="
+                    + rules
+                    + '}';
+        }
     }
 }

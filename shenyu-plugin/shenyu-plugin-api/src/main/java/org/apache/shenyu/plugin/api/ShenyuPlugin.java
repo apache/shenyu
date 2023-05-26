@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -93,13 +94,7 @@ public interface ShenyuPlugin {
         }
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        String rpcType = shenyuContext.getRpcType();
-        for (final RpcTypeEnum type : rpcTypes) {
-            if (Objects.equals(rpcType, type.getName())) {
-                return true;
-            }
-        }
-        return false;
+        return Arrays.stream(rpcTypes).anyMatch(type -> Objects.equals(shenyuContext.getRpcType(), type.getName()));
     }
 
     /**

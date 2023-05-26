@@ -29,9 +29,9 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
 import org.apache.shenyu.plugin.logging.console.handler.LoggingConsolePluginDataHandler;
-import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
-import org.apache.shenyu.plugin.logging.mask.api.utils.DataMaskUtils;
-import org.apache.shenyu.plugin.logging.mask.api.enums.DataMaskEnums;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.desensitize.api.utils.DataDesensitizeUtils;
+import org.apache.shenyu.plugin.logging.desensitize.api.enums.DataDesensitizeEnum;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,9 +69,9 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(LoggingConsolePlugin.class);
 
-    private static String dataMaskAlg = DataMaskEnums.CHARACTER_REPLACE.getDataMaskAlg();
+    private static String dataDesensitizeAlg = DataDesensitizeEnum.CHARACTER_REPLACE.getDataDesensitizeAlg();
 
-    private static boolean maskFlag;
+    private static boolean desensitized;
 
     private static KeyWordMatch keyWordMatch;
 
@@ -82,12 +82,12 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         Set<String> keywordSets = Sets.newHashSet();
         if (Objects.nonNull(commonLoggingRuleHandle)) {
             String keywords = commonLoggingRuleHandle.getKeyword();
-            maskFlag = StringUtils.isNotBlank(keywords) && commonLoggingRuleHandle.getMaskStatus();
-            if (maskFlag) {
+            desensitized = StringUtils.isNotBlank(keywords) && commonLoggingRuleHandle.getMaskStatus();
+            if (desensitized) {
                 Collections.addAll(keywordSets, keywords.split(";"));
-                dataMaskAlg = Optional.ofNullable(commonLoggingRuleHandle.getMaskType()).orElse(DataMaskEnums.MD5_ENCRYPT.getDataMaskAlg());
+                dataDesensitizeAlg = Optional.ofNullable(commonLoggingRuleHandle.getMaskType()).orElse(DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg());
                 keyWordMatch = new KeyWordMatch(keywordSets);
-                LOG.info("current plugin:{}, keyword:{}, dataMaskAlg:{}", this.named(), keywords, dataMaskAlg);
+                LOG.info("current plugin:{}, keyword:{}, dataDesensitizedAlg:{}", this.named(), keywords, dataDesensitizeAlg);
             }
         }
         ServerHttpRequest request = exchange.getRequest();
@@ -111,19 +111,19 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
     }
 
     private String getRequestMethod(final ServerHttpRequest request) {
-        // mask request method
+        // desensitize request method
         String requestMethod = "";
         if (Objects.nonNull(request.getMethod())) {
-            requestMethod = DataMaskUtils.maskSingleKeyword(maskFlag, GenericLoggingConstant.REQUEST_METHOD,
-                    request.getMethod().toString(), keyWordMatch, dataMaskAlg);
+            requestMethod = DataDesensitizeUtils.desensitizeSingleKeyword(desensitized, GenericLoggingConstant.REQUEST_METHOD,
+                    request.getMethod().toString(), keyWordMatch, dataDesensitizeAlg);
         }
         return "Request Method: " + requestMethod + System.lineSeparator();
     }
 
     private String getRequestUri(final ServerHttpRequest request) {
-        // mask request uri
-        String requestUri = DataMaskUtils.maskSingleKeyword(maskFlag, GenericLoggingConstant.REQUEST_URI,
-                request.getURI().toString(), keyWordMatch, dataMaskAlg);
+        // desensitize request uri
+        String requestUri = DataDesensitizeUtils.desensitizeSingleKeyword(desensitized, GenericLoggingConstant.REQUEST_URI,
+                request.getURI().toString(), keyWordMatch, dataDesensitizeAlg);
         return "Request Uri: " + requestUri + System.lineSeparator();
     }
 
@@ -133,9 +133,9 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         if (!params.isEmpty()) {
             logInfo.append("[Query Params Start]").append(System.lineSeparator());
             params.forEach((key, value) -> {
-                // mask query parameters
+                // desensitized query parameters
                 value = Lists.newArrayList(value);
-                DataMaskUtils.maskList(maskFlag, key, value, keyWordMatch, dataMaskAlg);
+                DataDesensitizeUtils.desensitizeList(desensitized, key, value, keyWordMatch, dataDesensitizeAlg);
                 logInfo.append(key).append(": ")
                         .append(StringUtils.join(value, ",")).append(System.lineSeparator());
             });
@@ -165,9 +165,9 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
         entrySet.forEach(entry -> {
             String key = entry.getKey();
             List<String> value = entry.getValue();
-            // mask headers
+            // desensitize headers
             value = Lists.newArrayList(value);
-            DataMaskUtils.maskList(maskFlag, key, value, keyWordMatch, dataMaskAlg);
+            DataDesensitizeUtils.desensitizeList(desensitized, key, value, keyWordMatch, dataDesensitizeAlg);
             logInfo.append(key).append(": ").append(StringUtils.join(value, ",")).append(System.lineSeparator());
         });
         return logInfo.toString();
@@ -189,8 +189,8 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             return super.getBody().doOnNext(dataBuffer -> writer.write(dataBuffer.asByteBuffer().asReadOnlyBuffer())).doFinally(signal -> {
                 if (!writer.isEmpty()) {
                     logInfo.append("[Request Body Start]").append(System.lineSeparator());
-                    // mask data
-                    String requestBody = DataMaskUtils.maskBody(maskFlag, writer.output(), keyWordMatch, dataMaskAlg);
+                    // desensitize data
+                    String requestBody = DataDesensitizeUtils.desensitizeBody(desensitized, writer.output(), keyWordMatch, dataDesensitizeAlg);
                     logInfo.append(requestBody).append(System.lineSeparator());
                     logInfo.append("[Request Body End]").append(System.lineSeparator());
                 } else {
@@ -228,8 +228,8 @@ public class LoggingConsolePlugin extends AbstractShenyuPlugin {
             BodyWriter writer = new BodyWriter();
             return Flux.from(body).doOnNext(buffer -> writer.write(buffer.asByteBuffer().asReadOnlyBuffer())).doFinally(signal -> {
                 logInfo.append("[Response Body Start]").append(System.lineSeparator());
-                // mask data
-                String responseBody = DataMaskUtils.maskBody(maskFlag, writer.output(), keyWordMatch, dataMaskAlg);
+                // desensitize data
+                String responseBody = DataDesensitizeUtils.desensitizeBody(desensitized, writer.output(), keyWordMatch, dataDesensitizeAlg);
                 logInfo.append(responseBody).append(System.lineSeparator());
                 logInfo.append("[Response Body End]").append(System.lineSeparator());
                 // when response, print all request info.

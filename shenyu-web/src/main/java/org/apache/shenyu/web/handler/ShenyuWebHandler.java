@@ -38,7 +38,6 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +67,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     private final boolean scheduled;
 
     private Scheduler scheduler;
-
+    
     /**
      * Instantiates a new shenyu web handler.
      *
@@ -105,7 +104,16 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         }
         return execute;
     }
-
+    
+    /**
+     * Gets plugins.
+     *
+     * @return the plugins
+     */
+    public List<ShenyuPlugin> getPlugins() {
+        return plugins;
+    }
+    
     /**
      * Put ext plugins.
      *
@@ -115,18 +123,37 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         if (CollectionUtils.isEmpty(extPlugins)) {
             return;
         }
-        final List<ShenyuPlugin> shenyuPlugins = extPlugins.stream()
+        final List<ShenyuPlugin> shenyuAddPlugins = extPlugins.stream()
                 .filter(e -> plugins.stream().noneMatch(plugin -> plugin.named().equals(e.named())))
                 .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(shenyuPlugins)) {
-            shenyuPlugins.forEach(plugin -> LOG.info("shenyu auto add extends plugins:{}", plugin.named()));
-            // copy new list
-            List<ShenyuPlugin> newPluginList = new ArrayList<>(plugins);
-            newPluginList.addAll(shenyuPlugins);
-            plugins = sortPlugins(newPluginList);
+
+        final List<ShenyuPlugin> shenyuUpdatePlugins = extPlugins.stream()
+                .filter(e -> plugins.stream().anyMatch(plugin -> plugin.named().equals(e.named())))
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(shenyuAddPlugins) && CollectionUtils.isEmpty(shenyuUpdatePlugins)) {
+            return;
         }
+        // copy new list
+        List<ShenyuPlugin> newPluginList = new ArrayList<>(plugins);
+
+        if (CollectionUtils.isNotEmpty(shenyuAddPlugins)) {
+            shenyuAddPlugins.forEach(plugin -> LOG.info("shenyu auto add extends plugins:{}", plugin.named()));
+            newPluginList.addAll(shenyuAddPlugins);
+        }
+        if (CollectionUtils.isNotEmpty(shenyuUpdatePlugins)) {
+            shenyuUpdatePlugins.forEach(plugin -> LOG.info("shenyu auto update extends plugins:{}", plugin.named()));
+            for (ShenyuPlugin updatePlugin : shenyuUpdatePlugins) {
+                for (int i = 0; i < newPluginList.size(); i++) {
+                    if (newPluginList.get(i).named().equals(updatePlugin.named())) {
+                        newPluginList.set(i, updatePlugin);
+                    }
+                }
+            }
+        }
+        plugins = sortPlugins(newPluginList);
     }
-    
+
     /**
      * listen plugin handler event and handle plugin.
      *
@@ -171,13 +198,14 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
 
     /**
      * handle enabled plugins.
+     *
      * @param pluginData plugin data
      */
     private synchronized void onPluginEnabled(final PluginData pluginData) {
         LOG.info("shenyu use plugin:[{}]", pluginData.getName());
         if (StringUtils.isNoneBlank(pluginData.getPluginJar())) {
             LOG.info("shenyu start load plugin [{}] from upload plugin jar", pluginData.getName());
-            shenyuLoaderService.loadUploadedJarPlugins(Collections.singletonList(pluginData.getPluginJar()));
+            shenyuLoaderService.loadUploadedJarPlugins(pluginData);
         }
         final List<ShenyuPlugin> enabledPlugins = this.sourcePlugins.stream().filter(plugin -> plugin.named().equals(pluginData.getName())
                 && pluginData.getEnabled()).collect(Collectors.toList());
@@ -190,6 +218,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
 
     /**
      * handle removed or disabled plugin.
+     *
      * @param pluginData plugin data
      */
     private synchronized void onPluginRemoved(final PluginData pluginData) {
@@ -204,7 +233,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         private int index;
 
         private final List<ShenyuPlugin> plugins;
-
+    
         /**
          * Instantiates a new Default shenyu plugin chain.
          *

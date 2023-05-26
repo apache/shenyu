@@ -60,26 +60,18 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         JwtConfig jwtConfig = Singleton.INST.get(JwtConfig.class);
         String authorization = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         String token = exchange.getRequest().getHeaders().getFirst(TOKEN);
-
         // check secreteKey
         if (StringUtils.isEmpty(jwtConfig.getSecretKey())) {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SECRET_KEY_MUST_BE_CONFIGURED);
             return WebFluxResultUtils.result(exchange, error);
         }
-
         // compatible processing
         String finalAuthorization = compatible(token, authorization);
         Map<String, Object> jwtBody = checkAuthorization(finalAuthorization, jwtConfig.getSecretKey());
-
         if (Objects.isNull(jwtBody)) {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN);
             return WebFluxResultUtils.result(exchange, error);
         }
-
-        if (Objects.isNull(rule) || Objects.isNull(rule.getHandle())) {
-            return chain.execute(exchange);
-        }
-
         return chain.execute(executeRuleHandle(rule, exchange, jwtBody));
     }
 
@@ -99,7 +91,6 @@ public class JwtPlugin extends AbstractShenyuPlugin {
             return exchange;
         }
         JwtConvertStrategy convertStrategy = JwtConvertStrategyFactory.newInstance(jwtRuleHandle.getHandleType());
-
         return convertStrategy.convert(jwtRuleHandle, exchange, jwtBody);
     }
 

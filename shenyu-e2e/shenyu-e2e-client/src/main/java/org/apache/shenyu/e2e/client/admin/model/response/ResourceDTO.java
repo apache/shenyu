@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.e2e.client.admin.model.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Date;

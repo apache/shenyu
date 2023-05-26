@@ -72,7 +72,7 @@ public class HystrixCommandOnThread extends HystrixCommand<Mono<Void>> implement
             LOG.error("hystrix execute have error: ", getExecutionException());
         }
         final Throwable exception = getExecutionException();
-        return doFallback(exchange, exception);
+        return fallback(exchange, getCallBackUri(), exception);
     }
 
     @Override

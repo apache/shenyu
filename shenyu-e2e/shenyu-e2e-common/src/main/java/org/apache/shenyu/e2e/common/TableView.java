@@ -21,10 +21,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Table view.
+ */
 public class TableView {
+
     private List<String[]> table = new ArrayList<>();
     
     private final int sizeOfColumnsInRow;
+
     private final String[] headers;
     
     private int[] maxContentLengthOfColumns;

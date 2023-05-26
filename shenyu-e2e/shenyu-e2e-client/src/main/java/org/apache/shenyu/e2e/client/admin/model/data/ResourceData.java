@@ -24,6 +24,9 @@ import org.apache.shenyu.e2e.common.IdManagers.Selectors;
 
 import java.io.IOException;
 
+/**
+ * Resource data.
+ */
 public interface ResourceData {
     
     String getId();
@@ -31,8 +34,7 @@ public interface ResourceData {
     String getName();
     
     void setName(String name);
-    
-    
+
     class IntToStringSerializer extends JsonSerializer<String> {
         
         @Override

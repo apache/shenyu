@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.springcloud.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
@@ -55,12 +56,16 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
             return;
         }
         UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(springCloudSelectorHandle.getDivideUpstreams()));
+        if (!selectorData.getContinued()) {
+            RULE_CACHED.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), SpringCloudRuleHandle.newDefaultInstance());
+        }
     }
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
         SELECTOR_CACHED.get().removeHandle(selectorData.getId());
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
+        RULE_CACHED.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
     }
 
     @Override

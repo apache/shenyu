@@ -101,7 +101,7 @@ public class WebClientMessageWriter implements MessageWriter {
 
     private void redrawResponseHeaders(final ServerHttpResponse response,
                                        final ClientResponse clientResponse) {
-        response.getCookies().putAll(clientResponse.cookies());
+        // cookies are also headers, and adding them will result in duplicate headers
         HttpHeaders httpHeaders = clientResponse.headers().asHttpHeaders();
         // if the client response has cors header remove cors header from response that crossfilter put
         if (CORS_HEADERS.stream().anyMatch(httpHeaders::containsKey)) {
