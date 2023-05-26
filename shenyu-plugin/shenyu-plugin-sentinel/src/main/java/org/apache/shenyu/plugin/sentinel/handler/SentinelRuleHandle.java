@@ -58,7 +58,7 @@ public class SentinelRuleHandle implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), SentinelHandle.class);
-        sentinelHandle.checkData(sentinelHandle);
+        sentinelHandle.checkData();
         String key = CacheKeyUtils.INST.getKey(ruleData);
         CACHED_HANDLE.get().cachedHandle(key, sentinelHandle);
         List<FlowRule> flowRules = FlowRuleManager.getRules()
