@@ -79,7 +79,7 @@ public final class MatchDataCache {
         if (Objects.isNull(pathSelectorCache) || pathSelectorCache.isEmpty()) {
             return;
         }
-        pathSelectorCache.entrySet().removeIf(entry -> entry.getValue().getId().equals(selectorId));
+        pathSelectorCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getId()));
     }
 
     /**
@@ -147,7 +147,7 @@ public final class MatchDataCache {
         if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
             return;
         }
-        pathRuleDataCache.entrySet().removeIf(entry -> entry.getValue().getId().equals(ruleId));
+        pathRuleDataCache.entrySet().removeIf(entry -> ruleId.equals(entry.getValue().getId()));
     }
     
     /**
@@ -161,7 +161,7 @@ public final class MatchDataCache {
         if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
             return;
         }
-        pathRuleDataCache.entrySet().removeIf(entry -> entry.getValue().getSelectorId().equals(selectorId));
+        pathRuleDataCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getSelectorId()));
     }
     
     
