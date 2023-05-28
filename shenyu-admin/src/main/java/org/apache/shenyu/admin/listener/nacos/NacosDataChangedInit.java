@@ -50,7 +50,7 @@ public class NacosDataChangedInit extends AbstractDataChangedInit {
 
     @Override
     protected boolean notExist() {
-        return Stream.of(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID).allMatch(
+        return Stream.of(NacosPathConstants.PLUGIN_DATA_ID, NacosPathConstants.AUTH_DATA_ID, NacosPathConstants.META_DATA_ID, NacosPathConstants.PROXY_SELECTOR_DATA_ID).allMatch(
             this::dataIdNotExist);
     }
 
