@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.lang.reflect.Type;
@@ -21,7 +22,7 @@ import java.util.Map;
  * You can define a custom map mapper if your custom upstream doesn't fit
  * <p/>
  */
-public class DiscoveryUpstreamParser implements JsonDeserializer<DiscoveryUpstreamDTO> {
+public class DiscoveryUpstreamParser implements JsonDeserializer<DiscoveryUpstreamData> {
 
     private final Map<String, String> conversion;
 
@@ -30,7 +31,7 @@ public class DiscoveryUpstreamParser implements JsonDeserializer<DiscoveryUpstre
     }
 
     @Override
-    public DiscoveryUpstreamDTO deserialize(final JsonElement jsonElement,
+    public DiscoveryUpstreamData deserialize(final JsonElement jsonElement,
                                             final Type type,
                                             final JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
         JsonObject asJsonObject = jsonElement.getAsJsonObject();
@@ -44,19 +45,19 @@ public class DiscoveryUpstreamParser implements JsonDeserializer<DiscoveryUpstre
                 afterJson.add(key, elementEntry.getValue());
             }
         }
-        return GsonUtils.getInstance().fromJson(afterJson, DiscoveryUpstreamDTO.class);
+        return GsonUtils.getInstance().fromJson(afterJson, DiscoveryUpstreamData.class);
     }
 
-    public DiscoveryUpstreamDTO parse(final String jsonString) {
-        GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(DiscoveryUpstreamDTO.class, this);
+    public DiscoveryUpstreamData parse(final String jsonString) {
+        GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(DiscoveryUpstreamData.class, this);
         Gson gson = gsonBuilder.create();
-        return gson.fromJson(jsonString, DiscoveryUpstreamDTO.class);
+        return gson.fromJson(jsonString, DiscoveryUpstreamData.class);
     }
 
-    public List<DiscoveryUpstreamDTO> parseList(final String jsonString) {
-        GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(DiscoveryUpstreamDTO.class, this);
+    public List<DiscoveryUpstreamData> parseList(final String jsonString) {
+        GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(DiscoveryUpstreamData.class, this);
         Gson gson = gsonBuilder.create();
-        return gson.fromJson(jsonString, new TypeToken<List<DiscoveryUpstreamDTO>>(){}.getType());
+        return gson.fromJson(jsonString, new TypeToken<List<DiscoveryUpstreamData>>(){}.getType());
     }
 
 }

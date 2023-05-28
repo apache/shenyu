@@ -51,11 +51,24 @@ public interface ShenyuDiscoveryService {
     void register(String key, String value);
 
     /**
+     *
+     * @param key
+     * @param value
+     */
+    void update(String key, String value);
+
+    /**
      * getData by key.
      *
      * @param key key
      * @return value
      */
     String getData(String key);
+
+
+    /**
+     * shutdown.
+     */
+    void shutdown();
 
 }

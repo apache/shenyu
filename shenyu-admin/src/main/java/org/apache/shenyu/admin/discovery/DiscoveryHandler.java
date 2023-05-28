@@ -20,19 +20,10 @@ public interface DiscoveryHandler {
      * 当然proxySelectorDTO 改变 不会update discoveryDO 监听
      *
      * @param discoveryDO
-     * @param proxySelectorDTO
      */
-    void update(DiscoveryDO discoveryDO, ProxySelectorDTO proxySelectorDTO);
+    void removeDiscovery(DiscoveryDO discoveryDO);
 
 
-    /**
-     * 当 discoveryDO 和 proxySelectorDTO 任意有新的 发生改变 都会触发
-     * 当然proxySelectorDTO 改变 不会update discoveryDO 监听
-     *
-     * @param discoveryDO
-     * @param proxySelectorDTO
-     */
-    void remove(DiscoveryDO discoveryDO, ProxySelectorDTO proxySelectorDTO);
-
+    void removeProxySelector(DiscoveryDO discoveryDO, ProxySelectorDTO proxySelectorDTO);
 
 }
