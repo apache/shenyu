@@ -16,6 +16,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ *一共有三类
+ * 1. tcp，upd ws 需要自己自定义的注册的 自己维护下游的 upstream 列表的 数据的
+ *          211.这样的数据需要自定义 proxySelector
+ * 2. dubbo， tars ， springcloud 的这样的 不需要 维护的 下游 upstream 数据的 因为 使用的 泛化 都是支持的 不需要手动维护下游的 upstream
+ *          222.这样的数据只有一个 proxySelector  更加的虚拟化
+ * 3. 最为特殊的 discovery 为 local的数据
+ *          需要手动为维护 下游的 upstream 和 proxySelector  通样的
+ *          upstream 也分为 自己维护下游的 upstream 列表的  (TCP) 和不需要手动维护的 DUBBO
+ *
  *
  */
 public class DefaultDiscoveryHandler implements DiscoveryHandler {
