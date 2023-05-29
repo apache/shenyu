@@ -45,4 +45,5 @@ public class EtcdDataDataChangedListener extends AbstractNodeDataChangedListener
     public void deletePathRecursive(final String selectorParentPath) {
         etcdClient.deleteEtcdPathRecursive(selectorParentPath);
     }
+
 }

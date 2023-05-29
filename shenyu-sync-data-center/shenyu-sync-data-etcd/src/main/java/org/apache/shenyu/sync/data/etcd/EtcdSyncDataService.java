@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -32,6 +33,7 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +69,9 @@ public class EtcdSyncDataService implements SyncDataService {
 
     private final List<AuthDataSubscriber> authDataSubscribers;
 
+    private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
+
+
     private Map<String, String> keysMap = new ConcurrentHashMap<>();
 
     /**
@@ -80,15 +85,18 @@ public class EtcdSyncDataService implements SyncDataService {
     public EtcdSyncDataService(final EtcdClient etcdClient,
                                final PluginDataSubscriber pluginDataSubscriber,
                                final List<MetaDataSubscriber> metaDataSubscribers,
-                               final List<AuthDataSubscriber> authDataSubscribers) {
+                               final List<AuthDataSubscriber> authDataSubscribers,
+                               final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
         this.etcdClient = etcdClient;
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
+        this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
         watchAllKeys();
         watcherData();
         watchAppAuth();
         watchMetaData();
+        watchProxySelector();
     }
 
     private void watchAllKeys() {
@@ -152,6 +160,19 @@ public class EtcdSyncDataService implements SyncDataService {
         subscribeChildChanges(ConfigGroupEnum.RULE, ruleParent);
     }
 
+    private void watchProxySelector() {
+        final String metaDataPath = DefaultPathConstants.PROXY_SELECTOR_DATA;
+        List<String> childrenList = etcdClientGetChildrenByMap(metaDataPath, keysMap);
+        if (CollectionUtils.isNotEmpty(childrenList)) {
+            childrenList.forEach(children -> {
+                String realPath = buildRealPath(metaDataPath, children);
+                cacheMetaData(keysMap.get(realPath));
+                subscribeProxySelectorDataChanges(realPath);
+            });
+        }
+        subscribeChildChanges(ConfigGroupEnum.PROXY_SELECTOR, metaDataPath);
+    }
+
     private void watchAppAuth() {
         final String appAuthParent = DefaultPathConstants.APP_AUTH_PARENT;
         List<String> childrenList = etcdClientGetChildrenByMap(appAuthParent, keysMap);
@@ -204,6 +225,12 @@ public class EtcdSyncDataService implements SyncDataService {
                     subscribeMetaDataChanges(updatePath);
                 }, null);
                 break;
+             case PROXY_SELECTOR:
+                etcdClient.watchChildChange(groupParentPath, (updatePath, updateValue) -> {
+                    cacheProxySelectorData(keysMap.get(updatePath));
+                    subscribePluginDataChanges(updatePath, updatePath);
+                }, null);
+                break;
             default:
                 throw new IllegalStateException("Unexpected groupKey: " + groupKey);
         }
@@ -228,6 +255,12 @@ public class EtcdSyncDataService implements SyncDataService {
     private void subscribeSelectorDataChanges(final String path) {
         etcdClient.watchDataChange(path, (updateNode, updateValue) -> cacheSelectorData(updateValue),
                 this::unCacheSelectorData);
+    }
+
+    private void subscribeProxySelectorDataChanges(String realPath) {
+        etcdClient.watchDataChange(realPath, (updateNode, updateValue) -> cacheProxySelectorData(updateValue),
+                this::unCacheProxySelectorData);
+
     }
 
     private void subscribeRuleDataChanges(final String path) {
@@ -270,6 +303,12 @@ public class EtcdSyncDataService implements SyncDataService {
                 .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(data)));
     }
 
+    private void cacheProxySelectorData(final String dataString) {
+        final ProxySelectorData proxySelectorData = GsonUtils.getInstance().fromJson(dataString, ProxySelectorData.class);
+        Optional.ofNullable(proxySelectorData)
+                .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.onSubscribe(data, data.getDiscoveryUpstreamList())));
+    }
+
     private void unCacheSelectorData(final String dataPath) {
         SelectorData selectorData = new SelectorData();
         final String selectorId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
@@ -280,6 +319,15 @@ public class EtcdSyncDataService implements SyncDataService {
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData));
         etcdClient.watchClose(dataPath);
     }
+
+    private void unCacheProxySelectorData(String dataPath) {
+        final String key = dataPath.substring(DefaultPathConstants.PROXY_SELECTOR_DATA.length() + 1);
+        ProxySelectorData proxySelectorData = new ProxySelectorData();
+        proxySelectorData.setId(key);
+        proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData));
+        etcdClient.watchClose(dataPath);
+    }
+
 
     private void cacheRuleData(final String dataString) {
         final RuleData ruleData = GsonUtils.getInstance().fromJson(dataString, RuleData.class);
@@ -325,6 +373,11 @@ public class EtcdSyncDataService implements SyncDataService {
     private void unCacheMetaData(final MetaData metaData) {
         Optional.ofNullable(metaData)
                 .ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
+    }
+
+    private void unProxySelectorData(final ProxySelectorData proxySelectorData) {
+        Optional.ofNullable(proxySelectorData)
+                .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData)));
     }
 
     private String buildRealPath(final String parent, final String children) {

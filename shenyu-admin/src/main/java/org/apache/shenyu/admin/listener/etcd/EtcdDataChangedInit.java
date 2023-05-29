@@ -42,6 +42,6 @@ public class EtcdDataChangedInit extends AbstractDataChangedInit {
 
     @Override
     protected boolean notExist() {
-        return Stream.of(DefaultPathConstants.PLUGIN_PARENT, DefaultPathConstants.APP_AUTH_PARENT, DefaultPathConstants.META_DATA).noneMatch(etcdClient::exists);
+        return Stream.of(DefaultPathConstants.PLUGIN_PARENT, DefaultPathConstants.APP_AUTH_PARENT, DefaultPathConstants.META_DATA, DefaultPathConstants.PROXY_SELECTOR_DATA).noneMatch(etcdClient::exists);
     }
 }

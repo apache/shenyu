@@ -23,6 +23,7 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -57,6 +58,23 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
             createOrUpdate(appAuthPath, data);
             LOG.debug("[DataChangedListener] change appKey {}", data.getAppKey());
         }
+    }
+
+    @Override
+    public void onProxySelectorChanged(List<ProxySelectorData> changed, DataEventTypeEnum eventType) {
+        for (ProxySelectorData data : changed) {
+            String proxySelectorPath = DefaultPathConstants.buildProxySelectorPath(data.getId());
+            // delete
+            if (eventType == DataEventTypeEnum.DELETE) {
+                deleteNode(proxySelectorPath);
+                LOG.debug("[DataChangedListener] delete proxySelectorPath {}", proxySelectorPath);
+                continue;
+            }
+            // create or update
+            createOrUpdate(proxySelectorPath, data);
+            LOG.debug("[DataChangedListener] change proxySelectorPath {}", proxySelectorPath);
+        }
+
     }
 
     @Override

@@ -22,6 +22,7 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.etcd.EtcdClient;
 import org.apache.shenyu.sync.data.etcd.EtcdSyncDataService;
 import org.slf4j.Logger;
@@ -60,10 +61,12 @@ public class EtcdSyncDataConfiguration {
     public SyncDataService syncDataService(final ObjectProvider<EtcdClient> etcdClients,
                                            final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
-                                           final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
+                                           final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
+                                           final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers) {
         LOGGER.info("you use etcd sync shenyu data.......");
         return new EtcdSyncDataService(etcdClients.getIfAvailable(), pluginSubscriber.getIfAvailable(),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
+                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList)
+                , proxySelectorSubscribers.getIfAvailable(Collections::emptyList));
     }
 
     /**

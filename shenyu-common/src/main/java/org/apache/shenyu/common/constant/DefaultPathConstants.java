@@ -138,4 +138,12 @@ public final class DefaultPathConstants implements Constants {
         return String.join(PATH_SEPARATOR, buildRuleParentPath(pluginName), String.join(SELECTOR_JOIN_RULE, selectorId, ruleId));
     }
 
+    /**
+     * buildRulePath.
+     * @param id id
+     * @return /shenyu/rule/pluginName/selectorId-ruleId
+     */
+    public static String buildProxySelectorPath(final String id) {
+        return String.join(PROXY_SELECTOR_DATA, id);
+    }
 }
