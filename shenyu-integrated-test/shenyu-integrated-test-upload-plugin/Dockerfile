@@ -16,7 +16,7 @@
 
 FROM openjdk:8-jre-alpine
 
-ENV APP_NAME shenyu-integrated-test-upload-plugin-application
+ENV APP_NAME shenyu-integrated-test-upload-plugin
 ENV LOCAL_PATH /opt/${APP_NAME}
 
 RUN mkdir -p ${LOCAL_PATH}

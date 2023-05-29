@@ -55,12 +55,12 @@
         <profile>
             <id>it</id>
             <properties>
-                <docker.buildArg.APP_NAME>shenyu-integrated-test-upload-plugin-application</docker.buildArg.APP_NAME>
-                <docker.image.tag.repo>apache/shenyu-integrated-test-upload-plugin-application</docker.image.tag.repo>
+                <docker.buildArg.APP_NAME>shenyu-integrated-test-upload-plugin</docker.buildArg.APP_NAME>
+                <docker.image.tag.repo>apache/shenyu-integrated-test-upload-plugin</docker.image.tag.repo>
                 <docker.image.tag.tagName>latest</docker.image.tag.tagName>
             </properties>
             <build>
-                <finalName>shenyu-integrated-test-upload-plugin-application</finalName>
+                <finalName>shenyu-integrated-test-upload-plugin</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
@@ -86,7 +86,7 @@
                         <configuration>
                             <images>
                                 <image>
-                                    <name>apache/shenyu-integrated-test-upload-plugin-application</name>
+                                    <name>apache/shenyu-integrated-test-upload-plugin</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                     </build>

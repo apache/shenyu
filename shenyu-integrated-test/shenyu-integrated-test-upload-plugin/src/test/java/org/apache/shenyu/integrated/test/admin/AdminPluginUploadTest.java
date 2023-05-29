@@ -36,26 +36,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AdminPluginUploadTest extends AbstractPluginDataInit {
 
-    static PluginData pluginData;
+    private PluginData pluginData;
 
-    static String JAR_TXT_16;
+    private String jarTxt16;
 
-    static String JAR_TXT_17;
+    private String jarTxt17;
 
     @BeforeAll
-    public static void setup() throws IOException {
+    public void setup() throws IOException {
         InputStream is = AdminPluginUploadTest.class.getResourceAsStream("/CustomPlugin-V1.6.txt");
         assert is != null;
-        JAR_TXT_16 = CharStreams.toString(new InputStreamReader(is, StandardCharsets.UTF_8));
+        jarTxt16 = CharStreams.toString(new InputStreamReader(is, StandardCharsets.UTF_8));
         is = AdminPluginUploadTest.class.getResourceAsStream("/CustomPlugin-V1.7.txt");
         assert is != null;
-        JAR_TXT_17 = CharStreams.toString(new InputStreamReader(is, StandardCharsets.UTF_8));
+        jarTxt17 = CharStreams.toString(new InputStreamReader(is, StandardCharsets.UTF_8));
         pluginData = new PluginData();
         pluginData.setEnabled(true);
         pluginData.setName("CustomPlugin");
         pluginData.setRole("Test");
         pluginData.setId("1");
-        pluginData.setPluginJar(JAR_TXT_16);
+        pluginData.setPluginJar(jarTxt16);
         HttpHelper.INSTANCE.postGateway("/shenyu/plugin/saveOrUpdate", pluginData, String.class);
         SelectorData selectorData = new SelectorData();
         selectorData.setPluginId("1");
@@ -78,7 +78,6 @@ public class AdminPluginUploadTest extends AbstractPluginDataInit {
         HttpHelper.INSTANCE.postGateway("/shenyu/plugin/selector/saveOrUpdate", selectorData, String.class);
     }
 
-
     @Test
     public void testPluginEnableByUpload() throws IOException {
         String responseStr = HttpHelper.INSTANCE.getHttpService("http://localhost:9195/http/test", null, String.class);
@@ -87,7 +86,7 @@ public class AdminPluginUploadTest extends AbstractPluginDataInit {
 
     @Test
     public void testPluginHotLoad() throws IOException {
-        pluginData.setPluginJar(JAR_TXT_17);
+        pluginData.setPluginJar(jarTxt17);
         HttpHelper.INSTANCE.postGateway("/shenyu/plugin/saveOrUpdate", pluginData, String.class);
         String responseStr = HttpHelper.INSTANCE.getHttpService("http://localhost:9195/http/test", null, String.class);
         assertEquals("CustomPlugin-version::2", responseStr);
