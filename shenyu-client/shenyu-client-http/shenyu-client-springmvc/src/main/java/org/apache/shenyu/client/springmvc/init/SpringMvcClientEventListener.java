@@ -21,6 +21,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
@@ -63,6 +64,8 @@ import java.util.stream.Stream;
 public class SpringMvcClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringMvcClient> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringMvcClientEventListener.class);
+    
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(3);
 
@@ -119,6 +122,8 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                     .enabled(true)
                     .ruleName(getContextPath())
                     .build());
+            LOG.info("init spring mvc client success with isFull mode");
+            publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap()));
             return Collections.emptyMap();
         }
         return context.getBeansWithAnnotation(Controller.class);
