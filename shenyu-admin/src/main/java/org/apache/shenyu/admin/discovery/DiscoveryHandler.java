@@ -14,6 +14,7 @@ public interface DiscoveryHandler {
      */
     void create(DiscoveryDO discoveryDO, ProxySelectorDTO proxySelectorDTO);
 
+    void update(ProxySelectorDTO proxySelectorDTO);
 
     /**
      * 当 discoveryDO 和 proxySelectorDTO 任意有新的 发生改变 都会触发
