@@ -21,22 +21,20 @@ services:
     restart: always
     networks:
       - shenyu
-    depends_on:
-      shenyu-redis:
-        condition: service_healthy
     ports:
       - "9095:9095"
     environment:
       - SPRING_PROFILES_ACTIVE=h2
       - shenyu.database.init_script=sql-script/h2/schema.sql
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1"]
+      test: [ "CMD-SHELL", "wget -q -O - http://shenyu-admin:9095/actuator/health | grep UP || exit 1" ]
       timeout: 2s
-      retries: 30
+      retries: 3
+      start_period: 5s
 
-  shenyu-integrated-test-combination:
-    container_name: shenyu-integrated-test-combination
-    image: apache/shenyu-integrated-test-combination:latest
+  shenyu-admin-integrated-application:
+    container_name: shenyu-integrated-test-upload-plugin-application
+    image: shenyu-integrated-test-upload-plugin-application:latest
     restart: always
     deploy:
       resources:
@@ -52,7 +50,7 @@ services:
     networks:
       - shenyu
     healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-integrated-test-combination:9195/actuator/health" ]
+      test: [ "CMD", "wget", "http://shenyu-integrated-test-upload-plugin-application:9195/actuator/health" ]
       timeout: 2s
       retries: 30
 

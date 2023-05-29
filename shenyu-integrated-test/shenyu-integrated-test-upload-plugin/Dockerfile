@@ -16,14 +16,14 @@
 
 FROM openjdk:8-jre-alpine
 
-ENV APP_NAME shenyu-admin
+ENV APP_NAME shenyu-integrated-test-upload-plugin-application
 ENV LOCAL_PATH /opt/${APP_NAME}
 
 RUN mkdir -p ${LOCAL_PATH}
 
-ADD ../../shenyu-admin/target/${APP_NAME}.jar ${LOCAL_PATH}
+ADD target/${APP_NAME}.jar ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}
-EXPOSE 9095
+EXPOSE 9195
 
 CMD java -jar ${APP_NAME}.jar
