@@ -71,7 +71,6 @@ public class EtcdSyncDataService implements SyncDataService {
 
     private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
 
-
     private Map<String, String> keysMap = new ConcurrentHashMap<>();
 
     /**
@@ -225,7 +224,7 @@ public class EtcdSyncDataService implements SyncDataService {
                     subscribeMetaDataChanges(updatePath);
                 }, null);
                 break;
-             case PROXY_SELECTOR:
+            case PROXY_SELECTOR:
                 etcdClient.watchChildChange(groupParentPath, (updatePath, updateValue) -> {
                     cacheProxySelectorData(keysMap.get(updatePath));
                     subscribePluginDataChanges(updatePath, updatePath);
@@ -257,7 +256,7 @@ public class EtcdSyncDataService implements SyncDataService {
                 this::unCacheSelectorData);
     }
 
-    private void subscribeProxySelectorDataChanges(String realPath) {
+    private void subscribeProxySelectorDataChanges(final String realPath) {
         etcdClient.watchDataChange(realPath, (updateNode, updateValue) -> cacheProxySelectorData(updateValue),
                 this::unCacheProxySelectorData);
 
@@ -320,14 +319,13 @@ public class EtcdSyncDataService implements SyncDataService {
         etcdClient.watchClose(dataPath);
     }
 
-    private void unCacheProxySelectorData(String dataPath) {
+    private void unCacheProxySelectorData(final String dataPath) {
         final String key = dataPath.substring(DefaultPathConstants.PROXY_SELECTOR_DATA.length() + 1);
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         proxySelectorData.setId(key);
         proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData));
         etcdClient.watchClose(dataPath);
     }
-
 
     private void cacheRuleData(final String dataString) {
         final RuleData ruleData = GsonUtils.getInstance().fromJson(dataString, RuleData.class);

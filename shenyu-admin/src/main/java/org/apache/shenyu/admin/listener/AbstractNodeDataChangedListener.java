@@ -61,7 +61,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
     }
 
     @Override
-    public void onProxySelectorChanged(List<ProxySelectorData> changed, DataEventTypeEnum eventType) {
+    public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
         for (ProxySelectorData data : changed) {
             String proxySelectorPath = DefaultPathConstants.buildProxySelectorPath(data.getId());
             // delete

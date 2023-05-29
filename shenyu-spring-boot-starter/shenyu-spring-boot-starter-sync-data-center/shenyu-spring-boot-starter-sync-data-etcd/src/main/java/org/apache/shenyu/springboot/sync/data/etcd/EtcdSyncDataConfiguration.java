@@ -55,6 +55,7 @@ public class EtcdSyncDataConfiguration {
      * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers the meta subscribers
      * @param authSubscribers the auth subscribers
+     * @param proxySelectorSubscribers the proxy selector subscribers
      * @return the sync data service
      */
     @Bean
@@ -65,8 +66,8 @@ public class EtcdSyncDataConfiguration {
                                            final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers) {
         LOGGER.info("you use etcd sync shenyu data.......");
         return new EtcdSyncDataService(etcdClients.getIfAvailable(), pluginSubscriber.getIfAvailable(),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList)
-                , proxySelectorSubscribers.getIfAvailable(Collections::emptyList));
+                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
+                proxySelectorSubscribers.getIfAvailable(Collections::emptyList));
     }
 
     /**
