@@ -100,8 +100,8 @@ public class LocalPluginController {
         LOG.info("clean apache shenyu local plugin for {}", name);
         BaseDataCache.getInstance().removePluginDataByPluginName(name);
         List<SelectorData> selectorData = Optional.ofNullable(BaseDataCache.getInstance().obtainSelectorData(name)).orElse(Collections.emptyList());
-        final List<String> selectorIds = selectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         final List<SelectorData> newSelectorData = CollectionUtils.isNotEmpty(selectorData) ? Lists.newArrayList(selectorData) : Collections.emptyList();
+        final List<String> selectorIds = newSelectorData.stream().map(SelectorData::getId).collect(Collectors.toList());
         BaseDataCache.getInstance().removeSelectDataByPluginName(name);
         // remove selector and rule l1 cache
         MatchDataCache.getInstance().removeSelectorData(name);
