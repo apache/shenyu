@@ -268,7 +268,7 @@ shenyu:
   health:
     enabled: true
     paths:
-      - s
+      - /actuator
       - /health_check
   extPlugin:
     path:
