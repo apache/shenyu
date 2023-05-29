@@ -51,7 +51,14 @@ public enum ConfigGroupEnum {
     /**
      * Meta data config group enum.
      */
-    META_DATA;
+    META_DATA,
+
+
+    /**
+     * proxy selector enum.
+     */
+    PROXY_SELECTOR;
+
 
     /**
      * Acquire by name config group enum.

@@ -20,6 +20,6 @@ package org.apache.shenyu.client.core.register.parser;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
-public interface PreApiMetaBeanParser<T> extends Parser<MetaDataRegisterDTO, ApiBean<T>> {
+public interface PreApiMetaBeanParser extends Parser<MetaDataRegisterDTO, ApiBean> {
 
 }
