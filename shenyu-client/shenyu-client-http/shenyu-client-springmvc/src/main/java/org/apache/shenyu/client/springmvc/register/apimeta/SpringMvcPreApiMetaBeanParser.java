@@ -26,7 +26,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
-public class SpringMvcPreApiMetaBeanParser implements PreApiMetaBeanParser<Object> {
+public class SpringMvcPreApiMetaBeanParser implements PreApiMetaBeanParser {
 
     private final Boolean addPrefixed;
 
@@ -44,11 +44,11 @@ public class SpringMvcPreApiMetaBeanParser implements PreApiMetaBeanParser<Objec
     }
 
     @Override
-    public MetaDataRegisterDTO parse(final ApiBean<Object> apiBean) {
+    public MetaDataRegisterDTO parse(final ApiBean apiBean) {
         return apiBean2ApiMeta(apiBean);
     }
 
-    private MetaDataRegisterDTO apiBean2ApiMeta(final ApiBean<Object> apiBean) {
+    private MetaDataRegisterDTO apiBean2ApiMeta(final ApiBean apiBean) {
 
         ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
         String apiPath = PathUtils.pathJoin(apiBean.getContextPath(), annotation.path());

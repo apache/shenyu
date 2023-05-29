@@ -132,7 +132,7 @@ public class ShenyuConfiguration {
                                                      final ObjectProvider<ApplicationEventPublisher> eventPublisher,
                                                      final ShenyuConfig shenyuConfig) {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList),
-                eventPublisher.getIfAvailable(), shenyuConfig.getSelectorMatchCache().getTrie(), shenyuConfig.getRuleMatchCache().getTrie());
+                eventPublisher.getIfAvailable(), shenyuConfig.getSelectorMatchCache(), shenyuConfig.getRuleMatchCache());
     }
     
     /**
@@ -303,8 +303,7 @@ public class ShenyuConfiguration {
         RuleMatchCache ruleMatchCache = shenyuConfig.getRuleMatchCache();
         return new ShenyuTrie(ruleMatchCache.getTrie().getCacheSize(), ruleMatchCache.getTrie().getMatchMode());
     }
-   
-
+    
     /**
      * shenyu trie listener.
      *

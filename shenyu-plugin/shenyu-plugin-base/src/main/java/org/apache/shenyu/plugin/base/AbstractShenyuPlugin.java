@@ -175,7 +175,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     private void cacheSelectorData(final String path, final SelectorData selectorData) {
         if (Boolean.FALSE.equals(selectorMatchConfig.getCache().getEnabled()) || Objects.isNull(selectorData)
-                || Boolean.FALSE.equals(selectorData.getMatchRestful())) {
+                || Boolean.TRUE.equals(selectorData.getMatchRestful())) {
             return;
         }
         int initialCapacity = selectorMatchConfig.getCache().getInitialCapacity();
@@ -196,7 +196,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     private void cacheRuleData(final String path, final RuleData ruleData) {
         // if the ruleCache is disabled or rule data is null, not cache rule data.
         if (Boolean.FALSE.equals(ruleMatchConfig.getCache().getEnabled()) || Objects.isNull(ruleData)
-                || Boolean.FALSE.equals(ruleData.getMatchRestful())) {
+                || Boolean.TRUE.equals(ruleData.getMatchRestful())) {
             return;
         }
         int initialCapacity = ruleMatchConfig.getCache().getInitialCapacity();
@@ -328,7 +328,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, SelectorData> selectorDataPair;
                 if (collection.size() > 1) {
-                    selectorDataPair = matchSelector(exchange, ListUtil.castLit(collection, SelectorData.class));
+                    selectorDataPair = matchSelector(exchange, ListUtil.castList(collection, SelectorData.class::cast));
                 } else {
                     Object selectorObj = collection.stream().findFirst().orElse(null);
                     SelectorData selector = Objects.nonNull(selectorObj) ? (SelectorData) selectorObj : null;
@@ -356,7 +356,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (CollectionUtils.isNotEmpty(collection)) {
                 Pair<Boolean, RuleData> ruleDataPair;
                 if (collection.size() > 1) {
-                    ruleDataPair = matchRule(exchange, ListUtil.castLit(collection, RuleData.class));
+                    ruleDataPair = matchRule(exchange, ListUtil.castList(collection, RuleData.class::cast));
                 } else {
                     Object ruleObj = collection.stream().findFirst().orElse(null);
                     RuleData rule = Objects.nonNull(ruleObj) ? (RuleData) ruleObj : null;

@@ -113,6 +113,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         this.httpServletRequest.setParameter(ConfigGroupEnum.APP_AUTH.name(), "F1887D3F9E6EE7A32FE5E76F4AB80D62,1607068124");
         this.httpServletRequest.setParameter(ConfigGroupEnum.SELECTOR.name(), "F1887D3F9E6EE7A32FE5E76F4AB80D61,1607068123");
         this.httpServletRequest.setParameter(ConfigGroupEnum.META_DATA.name(), "F1887D3F9E6EE7A32FE5E76F4AB80D60,1607068122");
+        this.httpServletRequest.setParameter(ConfigGroupEnum.PROXY_SELECTOR.name(), "F1887D3F9E6EE7A32FE5E76F4AB80D59,1607068121");
         assertEquals("E10ADC3949BA59ABBE56E057F20F883E,1607068125", this.httpServletRequest.getParameter(ConfigGroupEnum.RULE.name()));
         assertEquals("F1887D3F9E6EE7A32FE5E76F4AB80D63,1607068126", this.httpServletRequest.getParameter(ConfigGroupEnum.PLUGIN.name()));
         assertEquals("F1887D3F9E6EE7A32FE5E76F4AB80D62,1607068124", this.httpServletRequest.getParameter(ConfigGroupEnum.APP_AUTH.name()));
