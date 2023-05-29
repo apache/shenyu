@@ -22,6 +22,7 @@ import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -153,5 +154,23 @@ public final class MetaDataCache {
             paths = MAPPING.get(metaPath);
         }
         paths.add(path);
+    }
+    
+    /**
+     * get metaDataMap.
+     *
+     * @return metaDataMap
+     */
+    public Map<String, MetaData> getMetaDataMap() {
+        return META_DATA_MAP;
+    }
+    
+    /**
+     * get metadata cache.
+     *
+     * @return cache map
+     */
+    public Map<String, MetaData> getMetaDataCache() {
+        return CACHE;
     }
 }
