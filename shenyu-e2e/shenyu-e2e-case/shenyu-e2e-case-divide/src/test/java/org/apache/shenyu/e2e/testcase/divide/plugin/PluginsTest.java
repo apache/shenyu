@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.e2e.testcase.plugin;
+package org.apache.shenyu.e2e.testcase.divide.plugin;
 
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.admin.model.ResourcesData;
