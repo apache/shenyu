@@ -21,12 +21,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-e2e-case</artifactId>
+        <artifactId>shenyu-e2e-testcase</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
     <groupId>org.apache</groupId>
-    <artifactId>shenyu-e2e-case-common</artifactId>
+    <artifactId>shenyu-e2e-testcase-common</artifactId>
     <packaging>jar</packaging>
 
     <properties>

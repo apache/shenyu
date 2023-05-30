@@ -15,31 +15,18 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu-e2e-case</artifactId>
+        <artifactId>shenyu-e2e</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-
-    <groupId>org.apache</groupId>
-    <artifactId>shenyu-e2e-case-divide</artifactId>
-
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.apache</groupId>
-            <artifactId>shenyu-e2e-case-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
-
+    <artifactId>shenyu-e2e-testcase</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>shenyu-e2e-testcase-common</module>
+        <module>shenyu-e2e-testcase-divide</module>
+    </modules>
 </project>

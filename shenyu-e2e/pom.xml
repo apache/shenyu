@@ -60,7 +60,7 @@
         <module>shenyu-e2e-common</module>
         <module>shenyu-e2e-client</module>
         <module>shenyu-e2e-engine</module>
-        <module>shenyu-e2e-case</module>
+        <module>shenyu-e2e-testcase</module>
     </modules>
 
     <dependencies>
