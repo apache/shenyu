@@ -21,6 +21,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
@@ -64,6 +65,8 @@ import java.util.stream.Stream;
 public class SpringCloudClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringCloudClient> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientEventListener.class);
+    
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final Boolean isFull;
     
@@ -128,6 +131,8 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                     .enabled(true)
                     .ruleName(getContextPath())
                     .build());
+            LOG.info("init spring cloud client success with isFull mode");
+            publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap()));
             return Collections.emptyMap();
         }
         return context.getBeansWithAnnotation(Controller.class);
