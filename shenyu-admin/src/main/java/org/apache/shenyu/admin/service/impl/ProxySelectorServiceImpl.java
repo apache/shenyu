@@ -139,10 +139,10 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             DiscoveryDO discoveryDO = DiscoveryDO.builder()
                     .id(discoveryId)
                     .name(proxySelectorAddDTO.getName())
-                    .handler(proxySelectorAddDTO.getDiscovery().getHandler())
+                    .pluginName(proxySelectorAddDTO.getDiscovery().getHandler())
                     .type(proxySelectorAddDTO.getDiscovery().getDiscoveryType())
                     .serviceList(proxySelectorAddDTO.getDiscovery().getServiceList())
-                    .listenerNode(proxySelectorAddDTO.getDiscovery().getListenerNode())
+                    .level(proxySelectorAddDTO.getDiscovery().getListenerNode())
                     .dateCreated(currentTime)
                     .dateUpdated(currentTime)
                     .build();
@@ -150,9 +150,9 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 result += 1;
                 DiscoveryRelDO discoveryRelDO = DiscoveryRelDO.builder()
                         .id(UUIDUtils.getInstance().generateShortUuid())
-                        .discoveryId(discoveryId)
-                        .serviceId(proxySelectorId)
-                        .level("")
+                        .discoveryHandlerId(discoveryId)
+                        .proxySelectorId(proxySelectorId)
+                        .selectorId("")
                         .dateCreated(currentTime)
                         .dateUpdated(currentTime)
                         .build();
@@ -162,7 +162,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
                 DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
                         .id(UUIDUtils.getInstance().generateShortUuid())
-                        .discoveryId(discoveryId)
+                        .discoveryHandlerId(discoveryId)
                         .protocol(discoveryUpstream.getProtocol())
                         .url(discoveryUpstream.getUrl())
                         .status(discoveryUpstream.getStatus())

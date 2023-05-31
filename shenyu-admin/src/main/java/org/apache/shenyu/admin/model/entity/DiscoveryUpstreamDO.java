@@ -32,9 +32,9 @@ public class DiscoveryUpstreamDO extends BaseDO {
     private static final long serialVersionUID = 4636503463949130337L;
 
     /**
-     * discoveryId.
+     * discoveryHandlerId.
      */
-    private String discoveryId;
+    private String discoveryHandlerId;
 
     /**
      * protocol.
@@ -71,17 +71,17 @@ public class DiscoveryUpstreamDO extends BaseDO {
     /**
      * DiscoveryUpstreamDO.
      *
-     * @param discoveryId discoveryId
+     * @param discoveryHandlerId discoveryHandlerId
      * @param protocol    protocol
      * @param url         url
      * @param status      status
      * @param weight      weight
      * @param props       props
      */
-    public DiscoveryUpstreamDO(final String discoveryId, final String protocol, final String url, final int status,
+    public DiscoveryUpstreamDO(final String discoveryHandlerId, final String protocol, final String url, final int status,
                                final int weight, final String props) {
 
-        this.discoveryId = discoveryId;
+        this.discoveryHandlerId = discoveryHandlerId;
         this.protocol = protocol;
         this.url = url;
         this.status = status;
@@ -90,23 +90,23 @@ public class DiscoveryUpstreamDO extends BaseDO {
     }
 
     /**
-     * getDiscoveryId.
+     * getDiscoveryHandlerId.
      *
-     * @return discoveryId
+     * @return discoveryHandlerId
      */
-    public String getDiscoveryId() {
+    public String getDiscoveryHandlerId() {
 
-        return discoveryId;
+        return discoveryHandlerId;
     }
 
     /**
-     * setDiscoveryId.
+     * setDiscoveryHandlerId.
      *
-     * @param discoveryId discoveryId
+     * @param discoveryHandlerId discoveryHandlerId
      */
-    public void setDiscoveryId(final String discoveryId) {
+    public void setDiscoveryHandlerId(final String discoveryHandlerId) {
 
-        this.discoveryId = discoveryId;
+        this.discoveryHandlerId = discoveryHandlerId;
     }
 
     /**
@@ -230,7 +230,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
         return Optional.ofNullable(discoveryUpstreamDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
-                    .discoveryId(item.getDiscoveryId())
+                    .discoveryHandlerId(item.getDiscoveryHandlerId())
                     .protocol(item.getProtocol())
                     .status(item.getStatus())
                     .weight(item.getWeight())
@@ -267,9 +267,9 @@ public class DiscoveryUpstreamDO extends BaseDO {
         private Timestamp dateUpdated;
 
         /**
-         * discoveryId.
+         * discoveryHandlerId.
          */
-        private String discoveryId;
+        private String discoveryHandlerId;
 
         /**
          * protocol.
@@ -333,14 +333,14 @@ public class DiscoveryUpstreamDO extends BaseDO {
         }
 
         /**
-         * discoveryId.
+         * discoveryHandlerId.
          *
-         * @param discoveryId discoveryId
+         * @param discoveryHandlerId discoveryHandlerId
          * @return DiscoveryUpstreamBuilder
          */
-        public DiscoveryUpstreamBuilder discoveryId(final String discoveryId) {
+        public DiscoveryUpstreamBuilder discoveryHandlerId(final String discoveryHandlerId) {
 
-            this.discoveryId = discoveryId;
+            this.discoveryHandlerId = discoveryHandlerId;
             return this;
         }
 
@@ -413,7 +413,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
 
             DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
             discoveryUpstreamDO.setId(this.id);
-            discoveryUpstreamDO.setDiscoveryId(this.discoveryId);
+            discoveryUpstreamDO.setDiscoveryHandlerId(this.discoveryHandlerId);
             discoveryUpstreamDO.setProtocol(this.protocol);
             discoveryUpstreamDO.setUrl(this.url);
             discoveryUpstreamDO.setStatus(this.status);

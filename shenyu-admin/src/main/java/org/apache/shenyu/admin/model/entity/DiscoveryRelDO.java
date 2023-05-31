@@ -25,76 +25,95 @@ import java.util.Objects;
  */
 public final class DiscoveryRelDO extends BaseDO {
 
-    private String level;
+    private String pluginName;
 
-    private String discoveryId;
+    private String discoveryHandlerId;
 
-    private String serviceId;
+    private String selectorId;
+
+    private String proxySelectorId;
 
     public DiscoveryRelDO() {
 
     }
 
-    public DiscoveryRelDO(final String level, final String discoveryId, final String serviceId) {
-        this.level = level;
-        this.discoveryId = discoveryId;
-        this.serviceId = serviceId;
+    public DiscoveryRelDO(final String pluginName, final String discoveryHandlerId, final String selectorId, final String proxySelectorId) {
+        this.pluginName = pluginName;
+        this.discoveryHandlerId = discoveryHandlerId;
+        this.selectorId = selectorId;
+        this.proxySelectorId = proxySelectorId;
     }
 
-    public DiscoveryRelDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String level,
-                          final String discoveryId, final String serviceId) {
+    public DiscoveryRelDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String pluginName, final String discoveryHandlerId, final String selectorId, final String proxySelectorId) {
         super(id, dateCreated, dateUpdated);
-        this.level = level;
-        this.discoveryId = discoveryId;
-        this.serviceId = serviceId;
+        this.pluginName = pluginName;
+        this.discoveryHandlerId = discoveryHandlerId;
+        this.selectorId = selectorId;
+        this.proxySelectorId = proxySelectorId;
     }
 
     /**
-     * get level value.
-     * @return level value.
+     * get pluginName value.
+     * @return pluginName value.
      */
-    public String getLevel() {
-        return level;
+    public String getPluginName() {
+        return pluginName;
     }
 
     /**
-     * set level value.
-     * @param level level value.
+     * set pluginName value.
+     * @param pluginName pluginName value.
      */
-    public void setLevel(final String level) {
-        this.level = level;
+    public void setPluginName(final String pluginName) {
+        this.pluginName = pluginName;
     }
 
     /**
-     * get discovery id.
-     * @return discovery id.
+     * get discovery handler id.
+     * @return discovery handler id.
      */
-    public String getDiscoveryId() {
-        return discoveryId;
+    public String getDiscoveryHandlerId() {
+        return discoveryHandlerId;
     }
 
     /**
-     * set discovery id.
-     * @param discoveryId discovery id.
+     * set discovery handler id.
+     * @param discoveryHandlerId discovery handler id.
      */
-    public void setDiscoveryId(final String discoveryId) {
-        this.discoveryId = discoveryId;
+    public void setDiscoveryHandlerId(final String discoveryHandlerId) {
+        this.discoveryHandlerId = discoveryHandlerId;
     }
 
     /**
      * get selector id.
      * @return selector id.
      */
-    public String getServiceId() {
-        return serviceId;
+    public String getSelectorId() {
+        return selectorId;
     }
 
     /**
      * set selector id.
-     * @param serviceId service id.
+     * @param selectorId service id.
      */
-    public void setServiceId(final String serviceId) {
-        this.serviceId = serviceId;
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
+    }
+
+    /**
+     * get proxy selector id.
+     * @return proxy selector id.
+     */
+    public String getProxySelectorId() {
+        return proxySelectorId;
+    }
+
+    /**
+     * set proxy selector id.
+     * @param proxySelectorId proxy selector id
+     */
+    public void setProxySelectorId(final String proxySelectorId) {
+        this.proxySelectorId = proxySelectorId;
     }
 
     /**
@@ -107,7 +126,7 @@ public final class DiscoveryRelDO extends BaseDO {
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -118,14 +137,15 @@ public final class DiscoveryRelDO extends BaseDO {
             return false;
         }
         DiscoveryRelDO that = (DiscoveryRelDO) o;
-        return Objects.equals(level, that.level)
-                && Objects.equals(discoveryId, that.discoveryId)
-                && Objects.equals(serviceId, that.serviceId);
+        return Objects.equals(pluginName, that.pluginName)
+                && Objects.equals(discoveryHandlerId, that.discoveryHandlerId)
+                && Objects.equals(selectorId, that.selectorId)
+                && Objects.equals(proxySelectorId, that.proxySelectorId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), level, discoveryId, serviceId);
+        return Objects.hash(super.hashCode(), pluginName, discoveryHandlerId, selectorId, proxySelectorId);
     }
 
     public static final class DiscoveryRelDOBuilder {
@@ -136,11 +156,13 @@ public final class DiscoveryRelDO extends BaseDO {
 
         private Timestamp dateUpdated;
 
-        private String level;
+        private String pluginName;
 
-        private String discoveryId;
+        private String discoveryHandlerId;
 
-        private String serviceId;
+        private String selectorId;
+
+        private String proxySelectorId;
 
         private DiscoveryRelDOBuilder() {
 
@@ -182,33 +204,43 @@ public final class DiscoveryRelDO extends BaseDO {
         /**
          * level.
          *
-         * @param level the level.
+         * @param pluginName the plugin name.
          * @return DiscoveryRelDOBuilder.
          */
-        public DiscoveryRelDOBuilder level(final String level) {
-            this.level = level;
+        public DiscoveryRelDOBuilder pluginName(final String pluginName) {
+            this.pluginName = pluginName;
             return this;
         }
 
         /**
          * discoveryId.
          *
-         * @param discoveryId the discoveryId.
+         * @param discoveryHandlerId the discovery handler id.
          * @return DiscoveryRelDOBuilder.
          */
-        public DiscoveryRelDOBuilder discoveryId(final String discoveryId) {
-            this.discoveryId = discoveryId;
+        public DiscoveryRelDOBuilder discoveryHandlerId(final String discoveryHandlerId) {
+            this.discoveryHandlerId = discoveryHandlerId;
             return this;
         }
 
         /**
          * selectorId.
          *
-         * @param serviceId the selectorId.
+         * @param selectorId the selectorId.
          * @return DiscoveryRelDOBuilder.
          */
-        public DiscoveryRelDOBuilder serviceId(final String serviceId) {
-            this.serviceId = serviceId;
+        public DiscoveryRelDOBuilder selectorId(final String selectorId) {
+            this.selectorId = selectorId;
+            return this;
+        }
+
+        /**
+         * proxySelectorId.
+         * @param proxySelectorId the proxySelectorId.
+         * @return DiscoveryRelDOBuilder.
+         */
+        public DiscoveryRelDOBuilder proxySelectorId(final String proxySelectorId) {
+            this.proxySelectorId = proxySelectorId;
             return this;
         }
 
@@ -221,9 +253,10 @@ public final class DiscoveryRelDO extends BaseDO {
             discoveryRelDO.setId(id);
             discoveryRelDO.setDateCreated(dateCreated);
             discoveryRelDO.setDateUpdated(dateUpdated);
-            discoveryRelDO.setLevel(level);
-            discoveryRelDO.setDiscoveryId(discoveryId);
-            discoveryRelDO.setServiceId(serviceId);
+            discoveryRelDO.setPluginName(pluginName);
+            discoveryRelDO.setDiscoveryHandlerId(discoveryHandlerId);
+            discoveryRelDO.setSelectorId(selectorId);
+            discoveryRelDO.setProxySelectorId(proxySelectorId);
             return discoveryRelDO;
         }
     }
