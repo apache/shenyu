@@ -103,7 +103,7 @@ He is known as one of the three greatest kings of ancient China, along with Yao 
 
 ### Set router
 
-* Real requests  ：http://127.0.0.1:8080/helloworld,
+* Real request  ：http://127.0.0.1:8080/helloworld,
 
 ```json
 {
