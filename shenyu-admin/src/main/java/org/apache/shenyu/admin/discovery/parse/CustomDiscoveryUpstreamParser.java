@@ -37,11 +37,11 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
 
     private final Map<String, String> conversion;
 
+    private final ProxySelectorMapper proxySelectorMapper;
 
-    private ProxySelectorMapper proxySelectorMapper;
-
-    public CustomDiscoveryUpstreamParser(final Map<String, String> conversion) {
+    public CustomDiscoveryUpstreamParser(final Map<String, String> conversion, final ProxySelectorMapper proxySelectorMapper) {
         this.conversion = conversion;
+        this.proxySelectorMapper = proxySelectorMapper;
     }
 
     @Override

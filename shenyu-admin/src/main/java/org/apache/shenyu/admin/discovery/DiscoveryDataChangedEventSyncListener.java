@@ -36,21 +36,16 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
-
-    boolean needSync;
-
     boolean needPersistence;
 
 
     public DiscoveryDataChangedEventSyncListener(ApplicationEventPublisher eventPublisher,
                                                  DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                                  keyValueParser keyValueParser,
-                                                 boolean needSync,
                                                  boolean needPersistence) {
         this.eventPublisher = eventPublisher;
         this.keyValueParser = keyValueParser;
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
-        this.needSync = needSync;
         this.needPersistence = needPersistence;
     }
 
@@ -92,7 +87,8 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                     break;
             }
         }
-        if (Objects.nonNull(dataChangedEvent) && needSync) {
+        //FIXME: 2023/5/31  同步到 gateway
+        if (Objects.nonNull(dataChangedEvent)) {
             eventPublisher.publishEvent(dataChangedEvent);
         }
     }

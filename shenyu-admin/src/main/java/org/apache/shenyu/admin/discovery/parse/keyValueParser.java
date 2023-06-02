@@ -7,7 +7,6 @@ import java.util.List;
 
 /**
  * parse value to List<ProxySelectorData>
- * need to impl such as duubo, tars,....
  */
 public interface keyValueParser {
 
