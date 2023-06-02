@@ -4,32 +4,37 @@ import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 
+/**
+ * DiscoveryProcessor.
+ */
 public interface DiscoveryProcessor {
 
     /**
-     * @param discoveryDO
+     * createDiscovery.
+     *
+     * @param discoveryDO discoveryDO
      */
     void createDiscovery(DiscoveryDO discoveryDO);
 
-
     /**
-     * @param discoveryHandlerDTO
-     * @param proxySelectorDTO
+     * createProxySelector.
+     *
+     * @param discoveryHandlerDTO discoveryHandlerDTO
+     * @param proxySelectorDTO    proxySelectorDTO
      */
     void createProxySelector(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO);
 
     /**
-     * 当 discoveryDO 和 proxySelectorDTO 任意有新的 发生改变 都会触发
-     * 当然proxySelectorDTO 改变 不会update discoveryDO 监听
+     * removeDiscovery.
      *
-     * @param discoveryDO
+     * @param discoveryDO discoveryDO
      */
     void removeDiscovery(DiscoveryDO discoveryDO);
 
     /**
-     * 直接推送下游
+     * removeProxySelector.
      *
-     * @param proxySelectorDTO
+     * @param proxySelectorDTO proxySelectorDTO
      */
     void removeProxySelector(ProxySelectorDTO proxySelectorDTO);
 

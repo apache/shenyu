@@ -20,30 +20,42 @@ import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
+ * DefaultDiscoveryProcessor.
  */
-public class DefaultDiscoveryProcessor implements DiscoveryProcessor {
+public class DefaultDiscoveryProcessor implements DiscoveryProcessor, ApplicationEventPublisherAware {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultDiscoveryProcessor.class);
-
-    // /shenyu/discovery/{pluginName}/{selectorId}
     public static final String KEY_TEMPLATE = "%s/%s/%s";
 
     public static final String DEFAULT_LISTENER_NODE = "/shenyu/discovery";
 
-    Map<String, ShenyuDiscoveryService> discoveryServiceCache;
+    private final Map<String, ShenyuDiscoveryService> discoveryServiceCache;
 
     private ApplicationEventPublisher eventPublisher;
 
-    private DiscoveryUpstreamMapper discoveryUpstreamMapper;
+    private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
-    private ProxySelectorMapper proxySelectorMapper;
+    private final ProxySelectorMapper proxySelectorMapper;
+
+    /**
+     * DefaultDiscoveryProcessor.
+     *
+     * @param discoveryUpstreamMapper discoveryUpstreamMapper
+     * @param proxySelectorMapper     proxySelectorMapper
+     */
+    public DefaultDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper, final ProxySelectorMapper proxySelectorMapper) {
+        this.discoveryUpstreamMapper = discoveryUpstreamMapper;
+        this.proxySelectorMapper = proxySelectorMapper;
+        this.discoveryServiceCache = new ConcurrentHashMap<>();
+    }
 
     @Override
-    public void createDiscovery(DiscoveryDO discoveryDO) {
+    public void createDiscovery(final DiscoveryDO discoveryDO) {
         String type = discoveryDO.getType();
         ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(type);
         String props = discoveryDO.getProps();
@@ -55,7 +67,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor {
 
 
     @Override
-    public void createProxySelector(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO) {
+    public void createProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
         if (Objects.isNull(shenyuDiscoveryService)) {
             LOG.warn("before start ProxySelector you need init DiscoveryId={}", discoveryHandlerDTO.getDiscoveryId());
@@ -70,40 +82,59 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor {
         shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(proxySelectorDTO.getType(), discoveryHandlerDTO.getProps()));
     }
 
+
     /**
-     * 这边 是关闭 shenyuDiscoveryService 的整个监听服务
+     * removeDiscovery by ShenyuDiscoveryService#shutdown .
      *
-     * @param discoveryDO
+     * @param discoveryDO discoveryDO
      */
     @Override
-    public void removeDiscovery(DiscoveryDO discoveryDO) {
+    public void removeDiscovery(final DiscoveryDO discoveryDO) {
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryDO.getId());
         shenyuDiscoveryService.shutdown();
     }
 
     /**
-     * 这边只作为删除  proxySelector 使用
+     * removeProxySelector.
      *
-     * @param proxySelectorDTO
+     * @param proxySelectorDTO proxySelectorDTO
      */
     @Override
-    public void removeProxySelector(ProxySelectorDTO proxySelectorDTO) {
+    public void removeProxySelector(final ProxySelectorDTO proxySelectorDTO) {
         org.apache.shenyu.admin.listener.DataChangedEvent dataChangedEvent = new org.apache.shenyu.admin.listener.
                 DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(proxySelectorDTO));
         eventPublisher.publishEvent(dataChangedEvent);
     }
 
+
+    /**
+     * buildProxySelectorKey.
+     *
+     * @param listenerNode     listenerNode
+     * @param proxySelectorDTO proxySelectorDTO
+     * @return key
+     */
     private String buildProxySelectorKey(final String listenerNode, final ProxySelectorDTO proxySelectorDTO) {
         String key = StringUtils.isBlank(listenerNode) ?
                 DEFAULT_LISTENER_NODE : listenerNode;
         return String.format(KEY_TEMPLATE, key, proxySelectorDTO.getPluginName(), proxySelectorDTO.getId());
     }
 
-
-    private DataChangedEventListener getDiscoveryDataChangedEventListener(String discoveryType, String customProps) {
+    /**
+     * getDiscoveryDataChangedEventListener.
+     *
+     * @param discoveryType discoveryType
+     * @param customProps   customProps
+     * @return DataChangedEventListener
+     */
+    private DataChangedEventListener getDiscoveryDataChangedEventListener(final String discoveryType, final String customProps) {
         Map<String, String> customMap = GsonUtils.getInstance().toObjectMap(customProps, String.class);
         return new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper,
                 new CustomDiscoveryUpstreamParser(customMap, proxySelectorMapper), "local".equals(discoveryType));
     }
 
+    @Override
+    public void setApplicationEventPublisher(final ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 }
