@@ -22,6 +22,7 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Meta data dto.
@@ -453,6 +454,33 @@ public class MetaDataRegisterDTO implements DataTypeParent {
      */
     public void setAddPrefixed(final boolean prefixForwardEnable) {
         this.addPrefixed = prefixForwardEnable;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MetaDataRegisterDTO that = (MetaDataRegisterDTO) o;
+        return Objects.equals(appName, that.appName) && Objects.equals(contextPath, that.contextPath)
+                && Objects.equals(path, that.path) && Objects.equals(pathDesc, that.pathDesc)
+                && Objects.equals(rpcType, that.rpcType) && Objects.equals(serviceName, that.serviceName)
+                && Objects.equals(methodName, that.methodName) && Objects.equals(ruleName, that.ruleName)
+                && Objects.equals(parameterTypes, that.parameterTypes) && Objects.equals(rpcExt, that.rpcExt)
+                && Objects.equals(enabled, that.enabled) && Objects.equals(host, that.host)
+                && Objects.equals(port, that.port) && Objects.equals(pluginNames, that.pluginNames)
+                && Objects.equals(registerMetaData, that.registerMetaData) && Objects.equals(timeMillis, that.timeMillis)
+                && Objects.equals(addPrefixed, that.addPrefixed);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appName, contextPath, path, pathDesc, rpcType, serviceName, methodName,
+                ruleName, parameterTypes, rpcExt, enabled, host, port, pluginNames,
+                registerMetaData, timeMillis, addPrefixed);
     }
 
     @Override
