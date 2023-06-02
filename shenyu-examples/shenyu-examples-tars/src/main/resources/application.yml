@@ -41,4 +41,4 @@ shenyu:
         contextPath: /tars
         appName: tars
         port: 21715
-        host: 192.168.41.103
+        host: 127.0.0.1

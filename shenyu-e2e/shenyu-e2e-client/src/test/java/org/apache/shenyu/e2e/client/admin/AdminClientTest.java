@@ -19,20 +19,20 @@ package org.apache.shenyu.e2e.client.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
-import org.apache.shenyu.e2e.client.admin.model.MatchMode;
-import org.apache.shenyu.e2e.client.admin.model.Plugin;
-import org.apache.shenyu.e2e.client.admin.model.SelectorType;
-import org.apache.shenyu.e2e.client.admin.model.data.Condition;
-import org.apache.shenyu.e2e.client.admin.model.data.Condition.Operator;
-import org.apache.shenyu.e2e.client.admin.model.data.Condition.ParamType;
-import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
-import org.apache.shenyu.e2e.client.admin.model.data.SelectorData;
-import org.apache.shenyu.e2e.client.admin.model.handle.DivideRuleHandle;
-import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams;
-import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams.Upstream;
-import org.apache.shenyu.e2e.client.admin.model.response.RuleDTO;
-import org.apache.shenyu.e2e.client.admin.model.response.SearchedResources;
-import org.apache.shenyu.e2e.client.admin.model.response.SelectorDTO;
+import org.apache.shenyu.e2e.model.MatchMode;
+import org.apache.shenyu.e2e.model.Plugin;
+import org.apache.shenyu.e2e.model.SelectorType;
+import org.apache.shenyu.e2e.model.data.Condition;
+import org.apache.shenyu.e2e.model.data.Condition.Operator;
+import org.apache.shenyu.e2e.model.data.Condition.ParamType;
+import org.apache.shenyu.e2e.model.data.RuleData;
+import org.apache.shenyu.e2e.model.data.SelectorData;
+import org.apache.shenyu.e2e.model.handle.DivideRuleHandle;
+import org.apache.shenyu.e2e.model.handle.Upstreams;
+import org.apache.shenyu.e2e.model.handle.Upstreams.Upstream;
+import org.apache.shenyu.e2e.model.response.RuleDTO;
+import org.apache.shenyu.e2e.model.response.SearchedResources;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.apache.shenyu.e2e.matcher.RuleMatcher;
 import org.apache.shenyu.e2e.matcher.SelectorMatcher;
 import org.assertj.core.api.Assertions;
@@ -64,7 +64,7 @@ public class AdminClientTest {
 
     static AdminClient client;
 
-    static GenericContainer<?> container = new GenericContainer<>("shenyu/admin:latest")
+    static GenericContainer<?> container = new GenericContainer<>("apache/shenyu-admin:latest")
             .withExposedPorts(9095)
             .withLogConsumer(new Slf4jLogConsumer(log));
     

@@ -26,14 +26,25 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.common.TableView;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure.DockerServiceConfigure;
+import org.apache.shenyu.e2e.engine.handler.GatewayDataSynHandler;
 import org.apache.shenyu.e2e.engine.service.docker.DockerComposeFile;
 import org.apache.shenyu.e2e.engine.service.docker.ShenYuLogConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.shaded.org.yaml.snakeyaml.DumperOptions;
+import org.testcontainers.shaded.org.yaml.snakeyaml.Yaml;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -43,6 +54,10 @@ import java.util.Optional;
 public class DockerServiceCompose implements ServiceCompose {
 
     private static final Logger log = LoggerFactory.getLogger(DockerServiceCompose.class);
+
+    private static final String GATEWAY_YML_LOCATION = "../../../shenyu-bootstrap/target/classes/application.yml";
+
+    private static final String ADMIN_YML_LOCATION = "../../../shenyu-admin/target/classes/application.yml";
 
     private final DockerComposeContainer<?> container;
 
@@ -58,10 +73,11 @@ public class DockerServiceCompose implements ServiceCompose {
         this.configure = configure;
         this.adminConfigure = configure.getAdmin();
         this.gatewayConfigure = configure.getGateway();
-        
+//        modifyGatewayConfiguration(this.gatewayConfigure);
+//        chooseDataSyn(GATEWAY_YML_LOCATION, this.gatewayConfigure);
+//        chooseDataSyn(ADMIN_YML_LOCATION, this.adminConfigure);
         DockerComposeFile parsedDockerComposeFile = DockerComposeFile.parse(configure.getDockerComposeFile());
         container = new DockerComposeContainer<>("e2e", parsedDockerComposeFile.getFile());
-        
         List<String> services = parsedDockerComposeFile.getServices();
         services.forEach(name -> container.withLogConsumer(name, new ShenYuLogConsumer(name)));
     }
@@ -169,5 +185,84 @@ public class DockerServiceCompose implements ServiceCompose {
     
     public void stop() {
         container.stop();
+    }
+
+    private void modifyGatewayConfiguration(DockerServiceConfigure gatewayConfigure) {
+        String value = gatewayConfigure.getProperties().getProperty("application");
+        if (Objects.isNull(value)) {
+            return;
+        }
+        // 加载YAML文件
+        try (InputStream inputStream = new FileInputStream(GATEWAY_YML_LOCATION)) {
+            Yaml yaml = new Yaml();
+            Map<String, Object> yamlData = yaml.load(inputStream);
+            String[] sonValues = value.split(",");
+            for (String sonValue : sonValues) {
+                String[] subModule = sonValue.split("\\:");
+                // 获取要修改的子模块路径
+                String[] subModulePath = subModule[0].split("\\.");
+                // 修改子模块的值
+                modifyYamlValue(yamlData, subModulePath, subModule[1]);
+            }
+            // 保存修改后的YAML文件
+            DumperOptions options = new DumperOptions();
+            options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+            options.setExplicitStart(true);
+            options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
+            yaml = new Yaml(options);
+            try (OutputStream outputStream = new FileOutputStream(GATEWAY_YML_LOCATION)) {
+                yaml.dump(yamlData, new OutputStreamWriter(outputStream));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void modifyYamlValue(Map<String, Object> yamlData, String[] subModulePath, String newValue) {
+        if (subModulePath.length == 0) {
+            return;
+        }
+
+        Map<String, Object> currentMap = yamlData;
+        for (int i = 0; i < subModulePath.length - 1; i++) {
+            if (!currentMap.containsKey(subModulePath[i])) {
+                currentMap.put(subModulePath[i], new LinkedHashMap<>());
+            }
+            currentMap = (Map<String, Object>) currentMap.get(subModulePath[i]);
+        }
+
+        currentMap.put(subModulePath[subModulePath.length - 1], newValue);
+    }
+
+    private void chooseDataSyn(String path, DockerServiceConfigure dockerServiceConfigure) {
+        // 定义要修改的YAML文件路径
+        String yamlFilePath = path;
+
+        // 加载YAML文件
+        try (InputStream inputStream = new FileInputStream(yamlFilePath)) {
+            Yaml yaml = new Yaml();
+            Map<String, Object> yamlData = yaml.load(inputStream);
+
+            Map<String, Object> shenyuParameter = (Map<String, Object>) yamlData.get("shenyu");
+            Map<String, Object> parameter = (Map<String, Object>) shenyuParameter.get("sync");
+            // 创建子参数
+            String synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn");
+            Map<String, Object> subParameters = GatewayDataSynHandler.getDataSynMap(synMethod);
+            parameter.put(synMethod, subParameters);
+            parameter.keySet().removeIf(key -> !key.equals(synMethod));
+            // 保存修改后的YAML文件
+            DumperOptions options = new DumperOptions();
+            options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+            options.setExplicitStart(true);
+            options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
+            yaml = new Yaml(options);
+
+            try (OutputStream outputStream = new FileOutputStream(yamlFilePath)) {
+                yaml.dump(yamlData, new OutputStreamWriter(outputStream));
+                System.out.println("YAML file modified successfully.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
