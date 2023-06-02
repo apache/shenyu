@@ -192,19 +192,19 @@ public class DockerServiceCompose implements ServiceCompose {
         if (Objects.isNull(value)) {
             return;
         }
-        // 加载YAML文件
+
         try (InputStream inputStream = new FileInputStream(GATEWAY_YML_LOCATION)) {
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
             String[] sonValues = value.split(",");
             for (String sonValue : sonValues) {
                 String[] subModule = sonValue.split("\\:");
-                // 获取要修改的子模块路径
+
                 String[] subModulePath = subModule[0].split("\\.");
-                // 修改子模块的值
+
                 modifyYamlValue(yamlData, subModulePath, subModule[1]);
             }
-            // 保存修改后的YAML文件
+
             DumperOptions options = new DumperOptions();
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
             options.setExplicitStart(true);
@@ -235,22 +235,21 @@ public class DockerServiceCompose implements ServiceCompose {
     }
 
     private void chooseDataSyn(String path, DockerServiceConfigure dockerServiceConfigure) {
-        // 定义要修改的YAML文件路径
+
         String yamlFilePath = path;
 
-        // 加载YAML文件
         try (InputStream inputStream = new FileInputStream(yamlFilePath)) {
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
 
             Map<String, Object> shenyuParameter = (Map<String, Object>) yamlData.get("shenyu");
             Map<String, Object> parameter = (Map<String, Object>) shenyuParameter.get("sync");
-            // 创建子参数
+
             String synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn");
             Map<String, Object> subParameters = GatewayDataSynHandler.getDataSynMap(synMethod);
             parameter.put(synMethod, subParameters);
             parameter.keySet().removeIf(key -> !key.equals(synMethod));
-            // 保存修改后的YAML文件
+
             DumperOptions options = new DumperOptions();
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
             options.setExplicitStart(true);

@@ -64,7 +64,7 @@ public class AdminClientTest {
 
     static AdminClient client;
 
-    static GenericContainer<?> container = new GenericContainer<>("apache/shenyu-admin:latest")
+    static GenericContainer<?> container = new GenericContainer<>("shenyu/admin:latest")
             .withExposedPorts(9095)
             .withLogConsumer(new Slf4jLogConsumer(log));
     

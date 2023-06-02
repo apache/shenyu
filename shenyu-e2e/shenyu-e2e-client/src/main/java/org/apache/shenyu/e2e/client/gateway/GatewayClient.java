@@ -139,5 +139,4 @@ public class GatewayClient {
         }
         return ruleDataList;
     }
-    
 }

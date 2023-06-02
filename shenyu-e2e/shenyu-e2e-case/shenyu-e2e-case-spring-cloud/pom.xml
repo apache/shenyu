@@ -25,6 +25,7 @@
         <artifactId>shenyu-e2e-case</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
+
     <artifactId>shenyu-e2e-case-spring-cloud</artifactId>
 
     <dependencies>

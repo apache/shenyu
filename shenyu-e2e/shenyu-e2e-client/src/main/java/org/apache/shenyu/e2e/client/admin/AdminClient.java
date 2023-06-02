@@ -277,6 +277,7 @@ public class AdminClient {
         HttpEntity<SearchCondition> entity = new HttpEntity<>(searchCondition, basicAuth);
         ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + uri, entity, ShenYuResult.class);
         ShenYuResult rst = assertAndGet(response, "query success");
+
         return Assertions.assertDoesNotThrow(
                 () -> mapper.readValue(rst.getData().traverse(), valueType),
                 "checking cast to SearchedResources<T>"
@@ -450,7 +451,6 @@ public class AdminClient {
     }
 
     private <T extends ResourceDTO> T putResource(String uri, String id, Class<T> valueType, MultiValueMap<String, String> formData) {
-        //构造实体对象
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, basicAuth);
         ResponseEntity<ShenYuResult> response = template.exchange(baseURL + uri + "/" + id, HttpMethod.PUT, requestEntity, ShenYuResult.class);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode(), "checking http status");

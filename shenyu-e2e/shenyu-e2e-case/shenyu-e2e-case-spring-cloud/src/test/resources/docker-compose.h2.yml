@@ -71,7 +71,3 @@ services:
       - shenyu-zk
     volumes:
         - ../../../../../shenyu-bootstrap/target/classes/application.yml:/opt/shenyu-bootstrap/conf/application.yml
-
-
-
-

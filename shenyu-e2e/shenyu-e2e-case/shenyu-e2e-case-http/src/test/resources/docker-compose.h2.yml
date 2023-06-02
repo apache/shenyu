@@ -19,12 +19,12 @@ version: '2.3'
 
 services:
   admin:
-    image: apache/shenyu-admin:latest
+    image: shenyu/admin:latest
     expose:
       - 9095
 
   gateway:
-    image: apache/shenyu-bootstrap:latest
+    image: shenyu/bootstrap:latest
     environment:
       - shenyu.sync.websocket.urls=ws://admin:9095/websocket
     expose:

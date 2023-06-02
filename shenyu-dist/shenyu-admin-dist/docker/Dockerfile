@@ -16,7 +16,7 @@
 
 FROM openjdk:8-jre-alpine
 
-ARG APP_NAME=apache-shenyu-2.6.0-SNAPSHOT-admin-bin
+ARG APP_NAME
 
 ENV LOCAL_PATH /opt/shenyu-admin
 ENV ADMIN_JVM ""
