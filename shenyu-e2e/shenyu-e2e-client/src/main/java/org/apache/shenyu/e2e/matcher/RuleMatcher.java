@@ -19,8 +19,8 @@ package org.apache.shenyu.e2e.matcher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
-import org.apache.shenyu.e2e.client.admin.model.response.RuleDTO;
+import org.apache.shenyu.e2e.model.data.RuleData;
+import org.apache.shenyu.e2e.model.response.RuleDTO;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
