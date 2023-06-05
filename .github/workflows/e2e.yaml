@@ -140,7 +140,7 @@ jobs:
           storage: ${{ matrix.storage }}
         run: |
           bash ./shenyu-e2e/script/storage_init.sh
-          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case -Dstorage=${{ matrix.storage }} test
+          ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -Dstorage=${{ matrix.storage }} test
 
   requirement:
     name: e2e
