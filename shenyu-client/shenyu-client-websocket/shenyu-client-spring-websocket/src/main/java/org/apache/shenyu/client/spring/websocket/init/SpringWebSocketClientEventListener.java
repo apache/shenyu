@@ -33,6 +33,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -122,6 +123,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                     .host(super.getHost())
                     .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
+                    .eventType(EventType.REGISTER)
                     .build();
         } catch (ShenyuException e) {
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
