@@ -60,4 +60,14 @@ public final class ResultUtil {
     public static <T> AdminResult<T> ok(final T data, final String message) {
         return new AdminResult<>(CommonErrorCode.SUCCESSFUL, message, data);
     }
+    
+    /**
+     * error.
+     * @param message response message
+     * @param <T>     response body type
+     * @return admin result
+     */
+    public static <T> AdminResult<T> error(final String message) {
+        return new AdminResult<>(CommonErrorCode.ERROR, message, null);
+    }
 }
