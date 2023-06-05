@@ -20,7 +20,10 @@ package org.apache.shenyu.discovery.zookeeper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -30,7 +33,6 @@ import org.apache.shenyu.discovery.api.listener.DataChangedEvent;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.apache.shenyu.spi.Join;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.WatchedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +52,8 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     private CuratorFramework client;
 
     private final Map<String, String> nodeDataMap = new HashMap<>();
+
+    private final Map<String, TreeCache> cacheMap = new HashMap<>();
 
     @Override
     public void init(final DiscoveryConfig config) {
@@ -112,23 +116,40 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     @Override
     public void watcher(final String key, final DataChangedEventListener listener) {
         try {
-            this.client.getData().usingWatcher(new CuratorWatcher() {
-                @Override
-                public void process(final WatchedEvent watchedEvent) throws Exception {
-                    if (listener != null) {
-                        String path = Objects.isNull(watchedEvent.getPath()) ? "" : watchedEvent.getPath();
-                        if (StringUtils.isNoneBlank(path)) {
-                            client.getData().usingWatcher(this).forPath(path);
-                            byte[] ret = client.getData().forPath(key);
-                            String data = Objects.isNull(ret) ? null : new String(ret, StandardCharsets.UTF_8);
-                            LOGGER.info("shenyu ZookeeperDiscoveryService onChange key={}", path);
-                            listener.onChange(buildDataChangedEvent(path, data, watchedEvent));
-                        }
+            TreeCache treeCache = new TreeCache(client, key);
+            TreeCacheListener treeCacheListener = (curatorFramework, event) -> {
+                ChildData data = event.getData();
+                DataChangedEvent dataChangedEvent;
+                if (data != null) {
+                    switch (event.getType()) {
+                        case NODE_ADDED:
+                            dataChangedEvent = new DataChangedEvent(key, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.ADDED);
+                            break;
+                        case NODE_UPDATED:
+                            dataChangedEvent = new DataChangedEvent(key, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.UPDATED);
+                            break;
+                        case NODE_REMOVED:
+                            dataChangedEvent = new DataChangedEvent(key, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.DELETED);
+                            break;
+                        default:
+                            dataChangedEvent = new DataChangedEvent(key, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.IGNORED);
+                            break;
                     }
+                    listener.onChange(dataChangedEvent);
                 }
-            }).forPath(key);
+            };
+            treeCache.getListenable().addListener(treeCacheListener);
+            treeCache.start();
+            cacheMap.put(key, treeCache);
         } catch (Exception e) {
             throw new ShenyuException(e);
+        }
+    }
+
+    @Override
+    public void unWatcher(final String key) {
+        if (cacheMap.containsKey(key)) {
+            cacheMap.remove(key).close();
         }
     }
 
@@ -138,33 +159,33 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
+    public void update(final String key, final String value) {
+        this.createOrUpdate(key, value, CreateMode.EPHEMERAL);
+    }
+
+    @Override
     public String getData(final String key) {
         try {
-            byte[] ret = client.getData().forPath(key);
+            TreeCache treeCache = cacheMap.get(key);
+            ChildData currentData = treeCache.getCurrentData(key);
+            byte[] ret = currentData.getData();
             return Objects.isNull(ret) ? null : new String(ret, StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
     }
 
-    private DataChangedEvent buildDataChangedEvent(final String key, final String value, final WatchedEvent watchedEvent) {
-        DataChangedEvent.Event event = null;
-        switch (watchedEvent.getType()) {
-            case NodeCreated:
-                event = DataChangedEvent.Event.ADDED;
-                break;
-            case NodeDeleted:
-                event = DataChangedEvent.Event.DELETED;
-                break;
-            case NodeDataChanged:
-                event = DataChangedEvent.Event.UPDATED;
-                break;
-            case NodeChildrenChanged:
-            case DataWatchRemoved:
-            case ChildWatchRemoved:
-            default:
-                event = DataChangedEvent.Event.IGNORED;
+    @Override
+    public void shutdown() {
+        try {
+            //close treeCache
+            for (String key : cacheMap.keySet()) {
+                cacheMap.get(key).close();
+            }
+            client.close();
+        } catch (Exception e) {
+            throw new ShenyuException(e);
         }
-        return new DataChangedEvent(key, value, event);
+
     }
 }

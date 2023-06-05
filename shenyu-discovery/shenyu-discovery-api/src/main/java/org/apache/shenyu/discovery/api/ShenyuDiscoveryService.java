@@ -43,6 +43,13 @@ public interface ShenyuDiscoveryService {
     void watcher(String key, DataChangedEventListener listener);
 
     /**
+     * unWatcher path.
+     *
+     * @param key key
+     */
+    void unWatcher(String key);
+
+    /**
      * Register data.
      *
      * @param key   the key
@@ -51,7 +58,6 @@ public interface ShenyuDiscoveryService {
     void register(String key, String value);
 
     /**
-     *
      * @param key
      * @param value
      */

@@ -1,10 +1,13 @@
 package org.apache.shenyu.admin.discovery;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.parse.CustomDiscoveryUpstreamParser;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -14,7 +17,6 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
-import org.apache.shenyu.discovery.api.listener.DataChangedEvent;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
@@ -29,7 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * DefaultDiscoveryProcessor.
  */
 public class DefaultDiscoveryProcessor implements DiscoveryProcessor, ApplicationEventPublisherAware {
+
     private static final Logger LOG = LoggerFactory.getLogger(DefaultDiscoveryProcessor.class);
+
     public static final String KEY_TEMPLATE = "%s/%s/%s";
 
     public static final String DEFAULT_LISTENER_NODE = "/shenyu/discovery";
@@ -80,6 +84,8 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
             shenyuDiscoveryService.register(key, GsonUtils.getInstance().toJson(proxySelectorDTO));
         }
         shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(proxySelectorDTO.getType(), discoveryHandlerDTO.getProps()));
+        // TODO: 2023/6/5 need to
+        //DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, );
     }
 
 
@@ -100,10 +106,18 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
      * @param proxySelectorDTO proxySelectorDTO
      */
     @Override
-    public void removeProxySelector(final ProxySelectorDTO proxySelectorDTO) {
+    public void removeProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
+        ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
         org.apache.shenyu.admin.listener.DataChangedEvent dataChangedEvent = new org.apache.shenyu.admin.listener.
                 DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(proxySelectorDTO));
         eventPublisher.publishEvent(dataChangedEvent);
+        String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode(), proxySelectorDTO);
+        shenyuDiscoveryService.unWatcher(key);
+    }
+
+    @Override
+    public void changeUpstream(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO, List<DiscoveryUpstreamDTO> upstreamDTOS) {
+        throw new NotImplementedException("changeUpstream don't support in DefaultDiscoveryProcessor");
     }
 
 
