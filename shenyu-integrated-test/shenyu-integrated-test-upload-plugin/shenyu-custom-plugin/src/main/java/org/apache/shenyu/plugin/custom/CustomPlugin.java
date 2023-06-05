@@ -32,7 +32,7 @@ public class CustomPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(CustomPlugin.class);
 
-    protected Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selectorData, RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selectorData, final RuleData rule) {
         LOG.info(".......... function plugin start CustomPlugin............");
         byte[] bytes = "CustomPlugin jar version : 1.0".getBytes(StandardCharsets.UTF_8);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()

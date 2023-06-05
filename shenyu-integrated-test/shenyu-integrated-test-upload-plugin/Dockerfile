@@ -18,11 +18,10 @@ FROM maven:3.5-jdk-8-alpine
 ENV APP_NAME shenyu-integrated-test-upload-plugin
 ENV LOCAL_PATH /opt/${APP_NAME}
 
-COPY ./custom-plugin ${LOCAL_PATH}/custom-plugin
-RUN ls -l
-RUN mvn clean install -f ${LOCAL_PATH}/custom-plugin/pom.xml  -Dmaven.test.skip=true
-RUN mv ${LOCAL_PATH}/custom-plugin/target/custom-plugin-1.0.jar ${LOCAL_PATH}/custom-plugin-1.0.jar
-RUN chmod 755 ${LOCAL_PATH}/custom-plugin-1.0.jar
+COPY ./shenyu-custom-plugin ${LOCAL_PATH}/shenyu-custom-plugin
+RUN mvn clean install -f ${LOCAL_PATH}/shenyu-custom-plugin/pom.xml  -Dmaven.test.skip=true
+RUN mv ${LOCAL_PATH}/custom-plugin/target/custom-plugin-1.0.jar ${LOCAL_PATH}/shenyu-custom-plugin-1.0.jar
+RUN chmod 755 ${LOCAL_PATH}/shenyu-custom-plugin-1.0.jar
 ADD shenyu-integrated-test-upload-plugin-case/target/${APP_NAME}.jar ${LOCAL_PATH}
 
 WORKDIR ${LOCAL_PATH}

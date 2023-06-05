@@ -26,7 +26,7 @@
     </parent>
     <packaging>pom</packaging>
     <modules>
-        <module>custom-plugin</module>
+        <module>shenyu-custom-plugin</module>
         <module>shenyu-integrated-test-admin</module>
         <module>shenyu-integrated-test-upload-plugin-case</module>
     </modules>
