@@ -51,6 +51,10 @@ public final class DefaultPathConstants implements Constants {
      */
     public static final String META_DATA = PRE_FIX + "/metaData";
 
+    /**
+     * The constant PROXY_SELECTOR_DATA.
+     */
+    public static final String PROXY_SELECTOR_DATA = PRE_FIX + "/proxySelectorData";
 
     /**
      * acquire app_auth_path.

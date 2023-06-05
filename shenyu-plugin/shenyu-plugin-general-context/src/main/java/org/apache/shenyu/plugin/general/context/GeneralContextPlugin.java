@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.GeneralContextHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -44,6 +45,9 @@ public class GeneralContextPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         Map<String, List<GeneralContextHandle>> generalContextHandleMap = GeneralContextPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        if (generalContextHandleMap.isEmpty()) {
+            return chain.execute(exchange);
+        }
         Map<String, Map<String, String>> generalContextMap = new HashMap<>();
         HttpHeaders headers = exchange.getRequest().getHeaders();
         generalContextHandleMap.forEach((rpcType, v) -> {
@@ -86,7 +90,7 @@ public class GeneralContextPlugin extends AbstractShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        return false;
+        return skipExcept(exchange, RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.MOTAN, RpcTypeEnum.SOFA);
     }
 
 }

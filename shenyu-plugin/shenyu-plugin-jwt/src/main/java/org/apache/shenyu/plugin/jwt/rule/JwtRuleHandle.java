@@ -22,7 +22,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategy;
 import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategyFactory;
 
-import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
@@ -30,12 +29,8 @@ import java.util.Objects;
  * Jwt rule handle.
  */
 
-public class JwtRuleHandle implements RuleHandle, Serializable {
-
-    private static final long serialVersionUID = -3023493891692468701L;
-
-    private static final String DEFAULT_JWT_CONVERTER = "default";
-
+public class JwtRuleHandle implements RuleHandle {
+    
     private String handleType;
 
     /**
@@ -69,7 +64,7 @@ public class JwtRuleHandle implements RuleHandle, Serializable {
         Map<String, Object> handleMap = GsonUtils.getInstance().convertToMap(handleJson);
         String handleType = null;
         if (Objects.nonNull(handleMap)) {
-            handleType = handleMap.getOrDefault("handleType", DEFAULT_JWT_CONVERTER).toString();
+            handleType = handleMap.getOrDefault("handleType", "default").toString();
         }
         JwtConvertStrategy convertStrategy = JwtConvertStrategyFactory.newInstance(handleType);
         return convertStrategy.parseHandleJson(handleJson);

@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.MapUtils;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 
@@ -66,6 +67,20 @@ public final class MatchDataCache {
     public void removeSelectorData(final String pluginName) {
         SELECTOR_DATA_MAP.remove(pluginName);
     }
+    
+    /**
+     * remove selector data.
+     *
+     * @param pluginName plugin name
+     * @param selectorId selector id
+     */
+    public void removeSelectorData(final String pluginName, final String selectorId) {
+        Map<String, SelectorData> pathSelectorCache = SELECTOR_DATA_MAP.get(pluginName);
+        if (Objects.isNull(pathSelectorCache) || pathSelectorCache.isEmpty()) {
+            return;
+        }
+        pathSelectorCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getId()));
+    }
 
     /**
      * Clean selector data.
@@ -84,7 +99,7 @@ public final class MatchDataCache {
      */
     public void cacheSelectorData(final String path, final SelectorData selectorData, final int initialCapacity, final long maximumSize) {
         MapUtils.computeIfAbsent(SELECTOR_DATA_MAP, selectorData.getPluginName(), map ->
-                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.TRUE)).put(path, selectorData);
+                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.FALSE)).put(path, selectorData);
     }
 
     /**
@@ -109,7 +124,7 @@ public final class MatchDataCache {
      */
     public void cacheRuleData(final String path, final RuleData ruleData, final int initialCapacity, final long maximumSize) {
         MapUtils.computeIfAbsent(RULE_DATA_MAP, ruleData.getPluginName(), map ->
-                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.TRUE)).put(path, ruleData);
+                new WindowTinyLFUMap<>(initialCapacity, maximumSize, Boolean.FALSE)).put(path, ruleData);
     }
     
     /**
@@ -120,6 +135,35 @@ public final class MatchDataCache {
     public void removeRuleData(final String pluginName) {
         RULE_DATA_MAP.remove(pluginName);
     }
+    
+    /**
+     * remove rule data.
+     *
+     * @param pluginName pluginName
+     * @param ruleId ruleId
+     */
+    public void removeRuleData(final String pluginName, final String ruleId) {
+        Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
+        if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
+            return;
+        }
+        pathRuleDataCache.entrySet().removeIf(entry -> ruleId.equals(entry.getValue().getId()));
+    }
+    
+    /**
+     * remove rule data by selector.
+     *
+     * @param pluginName pluginName
+     * @param selectorId selectorId
+     */
+    public void removeRuleDataBySelector(final String pluginName, final String selectorId) {
+        Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
+        if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
+            return;
+        }
+        pathRuleDataCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getSelectorId()));
+    }
+    
     
     /**
      * clear the cache.
@@ -138,6 +182,24 @@ public final class MatchDataCache {
     public RuleData obtainRuleData(final String pluginName, final String path) {
         final Map<String, RuleData> lruMap = RULE_DATA_MAP.get(pluginName);
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
+    }
+    
+    /**
+     * get selector match cache.
+     *
+     * @return selector match cache
+     */
+    public ConcurrentMap<String, Map<String, SelectorData>> getSelectorMatchCache() {
+        return SELECTOR_DATA_MAP;
+    }
+    
+    /**
+     * get rule match cache.
+     *
+     * @return rule match cache
+     */
+    public ConcurrentMap<String, Map<String, RuleData>> getRuleMatchCache() {
+        return RULE_DATA_MAP;
     }
     
 }

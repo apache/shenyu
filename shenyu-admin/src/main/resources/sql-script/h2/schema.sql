@@ -986,3 +986,71 @@ CREATE TABLE IF NOT EXISTS `tag_relation`
     `date_updated` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
+
+-- ----------------------------
+-- Table structure for discovery
+-- ----------------------------
+CREATE TABLE `discovery`
+(
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `name`         varchar(255)  NOT NULL COMMENT 'the discovery name',
+    `type`         varchar(64)   NOT NULL COMMENT 'local,zookeeper,etcd,consul,nacos',
+    `server_list`  varchar(255)   COMMENT 'register server url (,)',
+    `listener_node` varchar(255)   COMMENT 'register server listener to node',
+    `props`     text  COMMENT 'the discovery pops (json) ',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+-- ----------------------------
+-- Table structure for discovery_upstream
+-- ----------------------------
+CREATE TABLE `discovery_upstream`
+(
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `discovery_id` varchar(128)  NOT NULL COMMENT 'the discovery id',
+    `protocol`     varchar(64)   COMMENT 'for http, https, tcp, ws',
+    `url`          varchar(64)   NOT NULL COMMENT 'ip:port',
+    `status`      int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)',
+    `weight`      int(0) NOT NULL COMMENT 'the weight for lists',
+    `props`      text  COMMENT 'the other field (json)',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+-- ----------------------------
+-- Table structure for proxy_selector
+-- ----------------------------
+CREATE TABLE `proxy_selector`
+(
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `name`         varchar(255)  NOT NULL COMMENT 'the proxy name',
+    `plugin_name`  varchar(255)  NOT NULL COMMENT 'the plugin name',
+    `type`         varchar(64)   NOT NULL COMMENT 'proxy type for tcp, upd, ws',
+    `forward_port` int(0) NOT NULL COMMENT 'the proxy forward port',
+    `props`      text  COMMENT 'the other field (json)',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+-- ----------------------------
+-- Table structure for discovery_rel
+-- ----------------------------
+CREATE TABLE `discovery_rel`
+(
+    `id`           varchar(128) NOT NULL COMMENT 'primary key id',
+    `level`        varchar(64)  NOT NULL COMMENT 'plugin or selector',
+    `discovery_id` varchar(128) NOT NULL COMMENT 'the discovery id',
+    `service_id` varchar(128)   NOT NULL COMMENT 'the selector id or proxy selector id',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+
+
+
+

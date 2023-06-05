@@ -62,29 +62,47 @@ eureka:
 
 management:
   health:
-    defaults:
+    redis:
       enabled: false
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*" # or health,info
+
 
 shenyu:
-  matchCache:
-    selector:
-      selectorEnabled: false
+  selectorMatchCache:
+    ## selector L1 cache
+    cache:
+      enabled: false
       initialCapacity: 10000 # initial capacity in cache
       maximumSize: 10000 # max size in cache
-    rule:
+    ## selector L2 cache, use trie as L2 cache
+    trie:
+      enabled: false
+      cacheSize: 128 # the number of plug-ins
+      matchMode: antPathMatch
+  ruleMatchCache:
+    ## rule L1 cache
+    cache:
+      enabled: true
       initialCapacity: 10000 # initial capacity in cache
-      maximumSize: 10000 # max size in cache
-  trie:
-    childrenSize: 10000
-    pathVariableSize: 1000
-    pathRuleCacheSize: 1000
-    matchMode: antPathMatch
+      maximumSize: 65536 # max size in cache
+    ## rule L2 cache, use trie as L2 cache
+    trie:
+      enabled: false
+      cacheSize: 1024 # the number of selectors
+      matchMode: antPathMatch
   netty:
     http:
       # set to false, user can custom the netty tcp server config.
       webServerFactoryEnabled: true
       selectCount: 1
-      workerCount: 4
+      workerCount: 8
       accessLog: false
       serverSocketChannel:
         soRcvBuf: 87380
@@ -115,8 +133,21 @@ shenyu:
         allocType: "pooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
+      sni:
+        enabled: false
+        mod: k8s #manul
+        defaultK8sSecretNamespace: shenyu-ingress
+        defaultK8sSecretName: default-cert
+#        mod: manual
+#        certificates:
+#          - domain: 'localhost'
+#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
+#          - domain: 'example.com'
+#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
 #  httpclient:
-#    strategy: webClient
+#    strategy: webClient # netty
 #    connectTimeout: 45000
 #    responseTimeout: 3000
 #    readerIdleTime: 3000
@@ -185,6 +216,7 @@ shenyu:
 
   switchConfig:
     local: true
+    collapseSlashes: false
   file:
     enabled: true
     maxSize : 10
@@ -192,6 +224,12 @@ shenyu:
 #    websocket:
 #      urls: ws://localhost:9095/websocket
 #      allowOrigin: ws://localhost:9195
+#    apollo:
+#      appId: shenyu
+#      meta: http://localhost:8080
+#      env: dev
+#      clusterName: test
+#      namespace: application
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000
@@ -202,7 +240,7 @@ shenyu:
 #      password:
 #    nacos:
 #      url: localhost:8848
-#      namespace: 609f6a25-3d1a-4616-9521-5e10faab5c1f
+#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
 #      username:
 #      password:
 #      acm:
@@ -229,10 +267,11 @@ shenyu:
     paths:
       - /fallback/hystrix
       - /fallback/resilience4j
+      - /fallback/sentinel
   health:
-    enabled: false
+    enabled: true
     paths:
-      - /actuator/health
+      - /actuator
       - /health_check
   extPlugin:
     path:

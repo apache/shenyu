@@ -75,7 +75,7 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
             LOG.error("hystrix execute have error: ", getExecutionException());
         }
         final Throwable exception = getExecutionException();
-        return doFallback(exchange, exception);
+        return fallback(exchange, getCallBackUri(), exception);
     }
 
     @Override

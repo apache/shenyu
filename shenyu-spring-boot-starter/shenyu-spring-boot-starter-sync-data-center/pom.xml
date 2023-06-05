@@ -33,6 +33,7 @@
         <module>shenyu-spring-boot-starter-sync-data-nacos</module>
         <module>shenyu-spring-boot-starter-sync-data-etcd</module>
         <module>shenyu-spring-boot-starter-sync-data-consul</module>
+        <module>shenyu-spring-boot-starter-sync-data-apollo</module>
         <module>shenyu-spring-boot-starter-sync-data-polaris</module>
     </modules>
     

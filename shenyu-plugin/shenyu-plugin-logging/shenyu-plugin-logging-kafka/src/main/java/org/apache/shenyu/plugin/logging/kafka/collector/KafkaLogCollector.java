@@ -22,7 +22,7 @@ import org.apache.shenyu.plugin.logging.common.collector.LogCollector;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.plugin.logging.kafka.client.KafkaLogCollectClient;
 import org.apache.shenyu.plugin.logging.kafka.handler.LoggingKafkaPluginDataHandler;
-import org.apache.shenyu.plugin.logging.mask.api.matcher.KeyWordMatch;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 
 /**
  * kafka log collector，depend a LogConsumeClient for consume logs.
@@ -46,6 +46,6 @@ public class KafkaLogCollector extends AbstractLogCollector<KafkaLogCollectClien
     }
 
     @Override
-    protected void maskLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String dataMaskAlg) {
+    protected void desensitizeLog(final ShenyuRequestLog log, final KeyWordMatch keyWordMatch, final String desensitizeAlg) {
     }
 }

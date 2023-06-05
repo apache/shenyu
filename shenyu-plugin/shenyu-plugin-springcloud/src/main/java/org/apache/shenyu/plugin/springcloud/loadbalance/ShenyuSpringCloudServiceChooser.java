@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.springcloud.loadbalance;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -113,11 +115,7 @@ public final class ShenyuSpringCloudServiceChooser {
      * @return {@linkplain ServiceInstance}
      */
     private List<ServiceInstance> getServiceInstance(final String serviceId) {
-        List<String> serviceNames = discoveryClient.getServices().stream().map(String::toUpperCase).collect(Collectors.toList());
-        if (!serviceNames.contains(serviceId.toUpperCase())) {
-            return Collections.emptyList();
-        }
-        return discoveryClient.getInstances(serviceId);
+        return Optional.ofNullable(discoveryClient.getInstances(serviceId)).orElse(Collections.emptyList());
     }
 
     /**
@@ -128,7 +126,7 @@ public final class ShenyuSpringCloudServiceChooser {
      */
     private List<Upstream> buildUpstream(final String serviceId) {
         List<ServiceInstance> serviceInstanceList = this.getServiceInstance(serviceId);
-        if (serviceInstanceList.isEmpty()) {
+        if (CollectionUtils.isEmpty(serviceInstanceList)) {
             return Collections.emptyList();
         }
         return serviceInstanceList.stream()
@@ -149,7 +147,7 @@ public final class ShenyuSpringCloudServiceChooser {
         return Upstream.builder().url(upstreamUrl)
                 .protocol(protocol)
                 .weight(50)
-                .warmup(10)
+                .warmup(Constants.WARMUP_TIME)
                 .timestamp(0)
                 .build();
     }

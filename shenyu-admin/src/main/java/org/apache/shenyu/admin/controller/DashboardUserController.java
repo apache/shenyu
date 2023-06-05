@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
@@ -26,11 +27,13 @@ import org.apache.shenyu.admin.model.dto.DashboardUserModifyPasswordDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
+import org.apache.shenyu.admin.model.result.AdminResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.ResultUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -158,7 +161,6 @@ public class DashboardUserController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/modify-password/{id}")
-    @RequiresPermissions("system:manager:edit")
     public ShenyuAdminResult modifyPassword(@PathVariable("id")
                                             @Existed(provider = DashboardUserMapper.class,
                                                     message = "user is not found") final String id,
@@ -172,7 +174,22 @@ public class DashboardUserController {
             return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_MODIFY_PASSWORD_ERROR);
         }
         dashboardUserModifyPasswordDTO.setPassword(DigestUtils.sha512Hex(dashboardUserModifyPasswordDTO.getPassword()));
+        dashboardUserModifyPasswordDTO.setOldPassword(DigestUtils.sha512Hex(dashboardUserModifyPasswordDTO.getOldPassword()));
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, dashboardUserService.modifyPassword(dashboardUserModifyPasswordDTO));
+    }
+    
+    /**
+     * check current user password.
+     *
+     * @return success
+     */
+    @GetMapping("check/password")
+    public AdminResult<Boolean> checkUserPassword() {
+        try {
+            return ResultUtil.ok(dashboardUserService.checkUserPassword(SessionUtil.visitor().getUserId()));            
+        } catch (ValidFailException exception) {
+            return ResultUtil.error(exception.getMessage());
+        }
     }
     
     /**

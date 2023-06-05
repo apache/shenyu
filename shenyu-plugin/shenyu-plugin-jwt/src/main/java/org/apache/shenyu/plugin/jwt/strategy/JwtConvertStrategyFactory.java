@@ -21,9 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
 
 public class JwtConvertStrategyFactory {
-
-    private static final String DEFAULT_JWT_CONVERTER = "default";
-
+    
     /**
      * new instance jwtConvertStrategy.
      *
@@ -33,7 +31,7 @@ public class JwtConvertStrategyFactory {
     public static JwtConvertStrategy newInstance(final String handleType) {
         String type = handleType;
         if (StringUtils.isBlank(type)) {
-            type = DEFAULT_JWT_CONVERTER;
+            type = "default";
         }
         return ExtensionLoader.getExtensionLoader(JwtConvertStrategy.class).getJoin(type);
     }

@@ -67,8 +67,6 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     
     private static final String SEC_WEB_SOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
     
-    private final WebSocketRuleHandle defaultRuleHandle = new WebSocketRuleHandle();
-    
     private final WebSocketClient webSocketClient;
     
     private final WebSocketService webSocketService;
@@ -109,11 +107,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     }
     
     private WebSocketRuleHandle buildRuleHandle(final RuleData rule) {
-        if (StringUtils.hasLength(rule.getId())) {
-            return WebSocketPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        } else {
-            return defaultRuleHandle;
-        }
+        return WebSocketPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
     
     private String buildWsRealPath(final ServerWebExchange exchange, final Upstream upstream, final ShenyuContext shenyuContext) {

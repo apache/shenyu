@@ -29,7 +29,6 @@ import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -155,7 +154,6 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
         String serviceName = clazz.getAnnotation(ShenyuTarsService.class).serviceName();
         String ipAndPort = this.ipAndPort;
         String desc = shenyuTarsClient.desc();
-        String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
         String configRuleName = shenyuTarsClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
@@ -168,7 +166,7 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
             .methodName(methodName)
             .contextPath(this.contextPath)
             .path(path)
-            .host(host)
+            .host(super.getHost())
             .port(Integer.parseInt(this.getPort()))
             .ruleName(ruleName)
             .pathDesc(desc)
