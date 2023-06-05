@@ -16,7 +16,7 @@
 version: "3.9"
 services:
   shenyu-admin:
-    image: apache/shenyu-admin:latest
+    image: apache/shenyu-integrated-test-admin:latest
     container_name: shenyu-admin
     restart: always
     networks:

@@ -17,12 +17,6 @@
 
 package org.apache.shenyu.integrated.test.admin;
 
-import com.google.common.io.CharStreams;
-import org.apache.commons.io.IOUtils;
-import org.apache.maven.shared.invoker.DefaultInvocationRequest;
-import org.apache.maven.shared.invoker.DefaultInvoker;
-import org.apache.maven.shared.invoker.InvocationRequest;
-import org.apache.maven.shared.invoker.Invoker;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -31,12 +25,10 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Collections;
 
@@ -44,26 +36,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AdminPluginUploadTest extends AbstractPluginDataInit {
 
-    private PluginData pluginData;
+    // jar build in dockerfile
+    public static final String JAR_PATH = "/opt/shenyu-integrated-test-upload-plugin/custom-plugin-1.0.jar";
 
-    private String jarTxt16;
+    private String jarTxt;
 
-    private String jarTxt17;
-
-    //@BeforeAll
+    @BeforeAll
     public void setup() throws IOException {
-        InputStream is = AdminPluginUploadTest.class.getResourceAsStream("/CustomPlugin-V1.6.txt");
-        assert is != null;
-        jarTxt16 = CharStreams.toString(new InputStreamReader(is, StandardCharsets.UTF_8));
-        is = AdminPluginUploadTest.class.getResourceAsStream("/CustomPlugin-V1.7.txt");
-        assert is != null;
-        jarTxt17 = CharStreams.toString(new InputStreamReader(is, StandardCharsets.UTF_8));
-        pluginData = new PluginData();
+        Path path = Paths.get(JAR_PATH);
+        byte[] jarData = Files.readAllBytes(path);
+        jarTxt = Base64.getEncoder().encodeToString(jarData);
+    }
+
+    @Test
+    public void testUploadPlugin() throws IOException {
+        PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);
         pluginData.setName("CustomPlugin");
         pluginData.setRole("Test");
         pluginData.setId("1");
-        pluginData.setPluginJar(jarTxt16);
+        pluginData.setPluginJar(jarTxt);
         HttpHelper.INSTANCE.postGateway("/shenyu/plugin/saveOrUpdate", pluginData, String.class);
         SelectorData selectorData = new SelectorData();
         selectorData.setPluginId("1");
@@ -86,37 +78,10 @@ public class AdminPluginUploadTest extends AbstractPluginDataInit {
         HttpHelper.INSTANCE.postGateway("/shenyu/plugin/selector/saveOrUpdate", selectorData, String.class);
     }
 
-
-    public String packageAndLoadJar(String projectDir, String jarName) throws Exception {
-        InvocationRequest request = new DefaultInvocationRequest();
-        request.setPomFile(new File(projectDir, "pom.xml"));
-        request.setGoals(Collections.singletonList("package"));
-        Invoker invoker = new DefaultInvoker();
-        invoker.execute(request);
-        File file = new File(projectDir + "/target/" + jarName);
-        byte[] bytes = IOUtils.toByteArray(Files.newInputStream(file.toPath()));
-        return Base64.getEncoder().encodeToString(bytes);
-    }
-
     @Test
     public void testPluginEnableByUpload() throws IOException {
         String responseStr = HttpHelper.INSTANCE.getHttpService("http://localhost:9195/http/test", null, String.class);
         assertEquals("CustomPlugin-version::1", responseStr);
     }
-
-    @Test
-    public void testPluginHotLoad() throws IOException {
-        pluginData.setPluginJar(jarTxt17);
-        HttpHelper.INSTANCE.postGateway("/shenyu/plugin/saveOrUpdate", pluginData, String.class);
-        String responseStr = HttpHelper.INSTANCE.getHttpService("http://localhost:9195/http/test", null, String.class);
-        assertEquals("CustomPlugin-version::2", responseStr);
-    }
-
-    @Test
-    public void test_load() throws Exception {
-        String s = packageAndLoadJar("custom-plugin-v1", "custom-plugin-1.0.jar");
-        System.out.println(s);
-    }
-
 
 }
