@@ -232,7 +232,6 @@ public class DataSyncConfiguration {
         public ConfigFileService polarisConfigFileService(final PolarisProperties polarisProperties) {
             com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.defaultConfig();
             configuration.getConfigFile().getServerConnector().setAddresses(Arrays.asList(polarisProperties.getUrl()));
-            configuration.getConfigFile().getServerConnector().setToken(polarisProperties.getToken());
             return ConfigFileServiceFactory.createConfigFileService(configuration);
         }
 
@@ -246,7 +245,6 @@ public class DataSyncConfiguration {
         public ConfigFilePublishService polarisConfigFilePublishService(final PolarisProperties polarisProperties) {
             com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.defaultConfig();
             configuration.getConfigFile().getServerConnector().setAddresses(Arrays.asList(polarisProperties.getUrl()));
-            configuration.getConfigFile().getServerConnector().setToken(polarisProperties.getToken());
             return ConfigFileServicePublishFactory.createConfigFilePublishService(configuration);
         }
 
