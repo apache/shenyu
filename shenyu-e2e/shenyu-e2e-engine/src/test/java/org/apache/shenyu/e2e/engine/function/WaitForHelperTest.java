@@ -33,7 +33,7 @@ public class WaitForHelperTest {
     
     @Test
     public void testSuccess() throws TimeoutException {
-        new WaitForHelper(3, Duration.ofSeconds(3), Duration.ofSeconds(3)).waitFor(
+        new WaitForHelper(30, Duration.ofSeconds(3), Duration.ofSeconds(60)).waitFor(
                 () -> given().baseUri("http://httpbin.org").when(),
                 Method.GET,
                 "/delay/0",
