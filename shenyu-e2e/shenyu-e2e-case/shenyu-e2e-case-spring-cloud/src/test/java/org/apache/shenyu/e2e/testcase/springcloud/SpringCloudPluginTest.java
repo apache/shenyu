@@ -44,6 +44,9 @@ import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.List;
 
+/**
+ * Testing spring-cloud plugin.
+ */
 @ShenYuTest(
         mode = ShenYuEngineConfigure.Mode.DOCKER,
         services = {
@@ -69,9 +72,6 @@ import java.util.List;
         },
         dockerComposeFile = "classpath:./docker-compose.{storage:h2}.yml"
 )
-/**
- * Testing spring-cloud plugin.
- */
 public class SpringCloudPluginTest {
     List<String> selectorIds = Lists.newArrayList();
 

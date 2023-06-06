@@ -36,10 +36,7 @@ public class ShenYuSpecTemplate {
      * @param afterEachSpec afterEachSpec
      * @return ShenYuScenarioSpec
      */
-    public static ShenYuScenarioSpec buildShenYuSpec(final String name,
-                                                     final ShenYuBeforeEachSpec beforeEachSpec,
-                                                     final ShenYuCaseSpec caseSpec,
-                                                     final ShenYuAfterEachSpec afterEachSpec) {
+    public static ShenYuScenarioSpec buildShenYuSpec(final String name, final ShenYuBeforeEachSpec beforeEachSpec, final ShenYuCaseSpec caseSpec, final ShenYuAfterEachSpec afterEachSpec) {
         return ShenYuScenarioSpec.builder()
                 .name(name)
                 .beforeEachSpec(beforeEachSpec)
@@ -47,6 +44,4 @@ public class ShenYuSpecTemplate {
                 .afterEachSpec(afterEachSpec)
                 .build();
     }
-    
-    
 }

@@ -32,7 +32,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 public class WaitForHelperTest {
     
     @Test
-    void testSuccess() throws TimeoutException {
+    public void testSuccess() throws TimeoutException {
         new WaitForHelper(3, Duration.ofSeconds(3), Duration.ofSeconds(3)).waitFor(
                 () -> given().baseUri("http://httpbin.org").when(),
                 Method.GET,
@@ -42,7 +42,7 @@ public class WaitForHelperTest {
     }
     
     @Test
-    void testTimeout() {
+    public void testTimeout() {
         Assertions.assertThrows(TimeoutException.class, () -> {
             new WaitForHelper(10, Duration.ofSeconds(1), Duration.ofMillis(500)).waitFor(
                     () -> given().baseUri("http://httpbin.org").when(),

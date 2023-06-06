@@ -71,7 +71,7 @@ public class WaitForHelper {
      * @param expected expected
      * @throws TimeoutException TimeoutException
      */
-    public void waitFor(Supplier<RequestSpecification> supplier, Method method, String endpoint, ResponseSpecification expected) throws TimeoutException {
+    public void waitFor(final Supplier<RequestSpecification> supplier, final Method method, final String endpoint, final ResponseSpecification expected) throws TimeoutException {
         final Map<String, String> contextMap = MDC.getCopyOfContextMap();
         Future<?> future = executor.submit(() -> {
             MDC.setContextMap(contextMap);
@@ -115,7 +115,7 @@ public class WaitForHelper {
      * @param checker checker
      * @throws TimeoutException TimeoutException
      */
-    public void waitFor(Supplier<RequestSpecification> supplier, HttpChecker checker) throws TimeoutException {
+    public void waitFor(final Supplier<RequestSpecification> supplier, final HttpChecker checker) throws TimeoutException {
         final Map<String, String> contextMap = MDC.getCopyOfContextMap();
         Future<?> future = executor.submit(() -> {
             MDC.setContextMap(contextMap);
@@ -145,15 +145,36 @@ public class WaitForHelper {
         }
     }
     
-    public static void waitForEffecting(Supplier<RequestSpecification> supplier, Method method, String endpoint, ResponseSpecification expected) {
+    /**
+     * wait for endpoint to take effect.
+     *
+     * @param supplier supplier
+     * @param method method
+     * @param endpoint endpoint
+     * @param expected expected value
+     */
+    public static void waitForEffecting(final Supplier<RequestSpecification> supplier, final Method method, final String endpoint, ResponseSpecification expected) {
         Assertions.assertDoesNotThrow(() -> new WaitForHelper().waitFor(supplier, method, endpoint, expected), "waiting for endpoint to take effect");
     }
     
-    public static void waitForEffecting(Supplier<RequestSpecification> supplier, String endpoint, ResponseSpecification expected) {
+    /**
+     * wait for endpoint to take effect.
+     *
+     * @param supplier supplier
+     * @param endpoint endpoint
+     * @param expected expected value
+     */
+    public static void waitForEffecting(final Supplier<RequestSpecification> supplier, final String endpoint, final ResponseSpecification expected) {
         Assertions.assertDoesNotThrow(() -> new WaitForHelper().waitFor(supplier, Method.GET, endpoint, expected), "waiting for endpoint to take effect");
     }
     
-    public static void waitForEffecting(Supplier<RequestSpecification> supplier, HttpChecker checker) {
+    /**
+     * Check if the endpoint is successful. If unsuccessful, retry until the maximum number of times is reached.
+     *
+     * @param supplier supplier
+     * @param checker the request checker
+     */
+    public static void waitForEffecting(final Supplier<RequestSpecification> supplier, final HttpChecker checker) {
         Assertions.assertDoesNotThrow(() -> new WaitForHelper().waitFor(supplier, checker), "waiting for endpoint to take effect");
     }
 }

@@ -39,6 +39,9 @@ import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import java.util.List;
 
+/**
+ * shenyu divide plugin test.
+ */
 @ShenYuTest(
         mode = Mode.DOCKER,
         services = {
@@ -55,7 +58,11 @@ import java.util.List;
                         serviceName = "gateway",
                         port = 9195,
                         baseUrl = "http://{hostname:localhost}:9195",
-                        type = ServiceType.SHENYU_GATEWAY
+                        type = ServiceType.SHENYU_GATEWAY,
+                        parameters = {
+                                @Parameter(key = "contextPath", value = "/shenyu"),
+                        }
+                        
                 )
         },
         dockerComposeFile = "classpath:./docker-compose.{storage:h2}.yml"
