@@ -35,6 +35,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -103,6 +104,7 @@ public class GrpcClientEventListener extends AbstractContextRefreshedEventListen
                 .contextPath(getContextPath())
                 .appName(getIpAndPort())
                 .rpcType(RpcTypeEnum.GRPC.getName())
+                .eventType(EventType.REGISTER)
                 .host(super.getHost())
                 .port(Integer.parseInt(getPort()))
                 .build();

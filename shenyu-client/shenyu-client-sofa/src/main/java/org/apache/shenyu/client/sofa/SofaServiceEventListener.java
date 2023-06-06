@@ -31,6 +31,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +74,7 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
                 .contextPath(this.getContextPath())
                 .appName(this.getAppName())
                 .rpcType(RpcTypeEnum.SOFA.getName())
+                .eventType(EventType.REGISTER)
                 .host(super.getHost())
                 .port(Integer.parseInt(getPort()))
                 .build();
