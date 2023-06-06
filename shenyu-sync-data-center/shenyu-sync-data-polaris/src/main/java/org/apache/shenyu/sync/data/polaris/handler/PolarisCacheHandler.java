@@ -24,16 +24,13 @@ import com.tencent.polaris.configuration.api.core.ConfigFile;
 import com.tencent.polaris.configuration.api.core.ConfigFileChangeListener;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.*;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,13 +59,17 @@ public class PolarisCacheHandler {
 
     private final List<AuthDataSubscriber> authDataSubscribers;
 
+    private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
+
     public PolarisCacheHandler(final ConfigFileService configFileService, final PluginDataSubscriber pluginDataSubscriber,
                                final List<MetaDataSubscriber> metaDataSubscribers,
-                               final List<AuthDataSubscriber> authDataSubscribers) {
+                               final List<AuthDataSubscriber> authDataSubscribers,
+                               final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
         this.configFileService = configFileService;
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
+        this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
     }
 
     /**
@@ -139,6 +140,18 @@ public class PolarisCacheHandler {
             }));
         } catch (JsonParseException e) {
             LOG.error("sync auth data have error:", e);
+        }
+    }
+
+    protected void updateProxySelectorMap(final String configInfo) {
+        try {
+            List<ProxySelectorData> proxySelectorDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, ProxySelectorData.class).values());
+            proxySelectorDataList.forEach(proxySelectorData -> proxySelectorDataSubscribers.forEach(subscriber -> {
+                subscriber.unSubscribe(proxySelectorData);
+                subscriber.onSubscribe(proxySelectorData, proxySelectorData.getDiscoveryUpstreamList());
+            }));
+        } catch (JsonParseException e) {
+            LOG.error("sync proxy selector data have error", e);
         }
     }
 

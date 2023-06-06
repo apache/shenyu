@@ -19,10 +19,7 @@ package org.apache.shenyu.sync.data.polaris;
 
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
-import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
-import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.api.*;
 import org.apache.shenyu.sync.data.polaris.handler.PolarisCacheHandler;
 
 import java.util.List;
@@ -33,9 +30,10 @@ import java.util.List;
 public class PolarisSyncDataService extends PolarisCacheHandler implements SyncDataService {
 
     public PolarisSyncDataService(final ConfigFileService configFileService, final PluginDataSubscriber pluginDataSubscriber,
-                                  final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
+                                  final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers,
+                                  final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
 
-        super(configFileService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        super(configFileService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers);
         start();
     }
 
@@ -48,6 +46,7 @@ public class PolarisSyncDataService extends PolarisCacheHandler implements SyncD
         watcherData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, this::updatePluginMap);
         watcherData(PolarisPathConstants.META_DATA_FILE_NAME, this::updateMetaDataMap);
         watcherData(PolarisPathConstants.SELECTOR_DATA_FILE_NAME, this::updateSelectorMap);
+        watcherData(PolarisPathConstants.PROXY_SELECTOR_DATA_ID, this::updateProxySelectorMap);
     }
 
     @Override

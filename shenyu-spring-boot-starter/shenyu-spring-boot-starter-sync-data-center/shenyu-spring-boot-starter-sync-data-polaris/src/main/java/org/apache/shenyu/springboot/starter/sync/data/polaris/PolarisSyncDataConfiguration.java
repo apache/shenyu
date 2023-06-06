@@ -19,10 +19,7 @@ package org.apache.shenyu.springboot.starter.sync.data.polaris;
 
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
-import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
-import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.api.*;
 import org.apache.shenyu.sync.data.polaris.PolarisSyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,14 +49,17 @@ public class PolarisSyncDataConfiguration {
      * @param pluginSubscriber  the plugin subscriber
      * @param metaSubscribers  the meta subscribers
      * @param authSubscribers  the auth subscribers
+     * @param proxySelectorSubscribers   the auth subscribers
      * @return the sync data service
      */
     @Bean
     public SyncDataService polarisSyncDataService(final ObjectProvider<ConfigFileService> configFileServices, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
-                                                  final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
+                                                  final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
+                                                  final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers) {
         LOGGER.info("you use polaris sync shenyu data.......");
         return new PolarisSyncDataService(configFileServices.getIfAvailable(), pluginSubscriber.getIfAvailable(),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
+                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
+                proxySelectorSubscribers.getIfAvailable());
     }
 
     /**
