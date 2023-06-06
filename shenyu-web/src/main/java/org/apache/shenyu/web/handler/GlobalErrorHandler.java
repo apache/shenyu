@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.handler;
 
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.slf4j.Logger;
@@ -29,17 +30,18 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.retry.RetryExhaustedException;
 
 /**
  * GlobalErrorHandler.
  */
 public class GlobalErrorHandler implements ErrorWebExceptionHandler {
-    
+
     /**
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(GlobalErrorHandler.class);
-    
+
     /**
      * handler error.
      *
@@ -51,19 +53,24 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     @NonNull
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
         LOG.error("handle error: {}{}", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
-        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-        String errMsg = httpStatus.getReasonPhrase();
+        HttpStatus httpStatus;
+        Object errorResult;
         if (throwable instanceof ResponseStatusException) {
             httpStatus = ((ResponseStatusException) throwable).getStatus();
-            if (StringUtils.hasLength(((ResponseStatusException) throwable).getReason())) {
-                errMsg = ((ResponseStatusException) throwable).getReason();
-            }
+            String errMsg = StringUtils.hasLength(((ResponseStatusException) throwable).getReason()) ?
+                ((ResponseStatusException) throwable).getReason() : httpStatus.getReasonPhrase();
+            errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), errMsg, null);
+        } else if (throwable instanceof RetryExhaustedException) {
+            httpStatus = HttpStatus.OK;
+            errorResult = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT);
+        } else {
+            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+            errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), httpStatus.getReasonPhrase(), null);
         }
         exchange.getResponse().setStatusCode(httpStatus);
-        Object error = ShenyuResultWrap.error(exchange, httpStatus.value(), errMsg, throwable);
-        return WebFluxResultUtils.result(exchange, error);
+        return WebFluxResultUtils.result(exchange, errorResult);
     }
-    
+
     /**
      * log error info.
      *
