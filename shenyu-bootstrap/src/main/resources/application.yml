@@ -16,9 +16,6 @@
 server:
   port: 9195
   address: 0.0.0.0
-  compression:
-    enabled: true
-    minResponseSize: 1048576
 
 spring:
   main:
@@ -225,8 +222,8 @@ shenyu:
     maxSize : 10
   sync:
     websocket:
-      urls: ws://139.199.37.58:9095/websocket
-#      allowOrigin: ws://localhost:9195
+      urls: ws://localhost:9095/websocket
+      allowOrigin: ws://localhost:9195
 #    apollo:
 #      appId: shenyu
 #      meta: http://localhost:8080

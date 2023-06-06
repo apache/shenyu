@@ -619,27 +619,6 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
-
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
-                <configuration>
-                    <mainClass>org.apache.shenyu.bootstrap.ShenyuBootstrapApplication</mainClass>
-                    <!--                    <finalName>${project.parent.artifactId}</finalName>-->
-                    <outputDirectory>../target</outputDirectory>
-                    <fork>true</fork>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>repackage</id>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
         </plugins>
     </build>
 </project>
