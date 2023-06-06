@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.springcloud.cache;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.client.ServiceInstance;
 
@@ -61,14 +60,5 @@ public class ServiceInstanceCache {
             return;
         }
         SERVICE_INSTANCE_MAP.remove(serviceId);
-    }
-    
-    /**
-     * judge service instance is empty.
-     *
-     * @return true is empty, false not empty
-     */
-    public static boolean isEmpty() {
-        return MapUtils.isEmpty(SERVICE_INSTANCE_MAP);
     }
 }

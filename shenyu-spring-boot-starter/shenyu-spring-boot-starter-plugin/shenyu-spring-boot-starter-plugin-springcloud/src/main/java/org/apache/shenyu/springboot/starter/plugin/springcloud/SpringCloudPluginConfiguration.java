@@ -18,7 +18,6 @@
 package org.apache.shenyu.springboot.starter.plugin.springcloud;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
-import org.apache.shenyu.common.config.ShenyuConfig.SpringCloudCacheConfig;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;

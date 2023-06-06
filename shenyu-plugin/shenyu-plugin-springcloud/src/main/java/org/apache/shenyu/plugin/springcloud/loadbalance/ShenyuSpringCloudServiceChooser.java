@@ -116,7 +116,7 @@ public final class ShenyuSpringCloudServiceChooser {
      * @return {@linkplain ServiceInstance}
      */
     private List<ServiceInstance> getServiceInstance(final String serviceId) {
-        if (ServiceInstanceCache.isEmpty()) {
+        if (CollectionUtils.isEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
             return Optional.ofNullable(discoveryClient.getInstances(serviceId)).orElse(Collections.emptyList());
         }
         return ServiceInstanceCache.getServiceInstance(serviceId);
