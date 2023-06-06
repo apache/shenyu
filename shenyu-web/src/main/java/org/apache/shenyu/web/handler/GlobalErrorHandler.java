@@ -63,6 +63,9 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
         } else if (throwable instanceof RetryExhaustedException) {
             httpStatus = HttpStatus.OK;
             errorResult = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT);
+        } else if (throwable instanceof IllegalArgumentException) {
+            httpStatus = HttpStatus.BAD_REQUEST;
+            errorResult = ShenyuResultWrap.error(exchange,httpStatus.value(), throwable.getMessage(),null);
         } else {
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
             errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), httpStatus.getReasonPhrase(), null);
