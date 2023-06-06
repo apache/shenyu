@@ -23,20 +23,25 @@ import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.ContextRefreshedEvent;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import static org.mockito.BDDMockito.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -58,6 +63,28 @@ public class SofaServiceEventListenerTest {
 
     private static final String PATH = "path";
 
+    private static final String APP_NAME = "appName";
+
+    private static final String SUPER_PATH_CONTAINS_STAR = "/demo/**";
+
+    private static final String SUPER_PATH_NOT_CONTAINS_STAR = "/findByIdsAndName";
+
+    private static final String METHOD_NAME = "buildURIRegisterDTO";
+
+    private static final String SERVICE_NAME = "java.lang.Comparable";
+
+    private static final String DESC = "desc";
+
+    private static final String CONFIG_RULE_NAME = "configRuleName";
+
+    private static final String LOAD_BALANCE = "loadBalance";
+
+    private static final int RETRY_TIME = 0;
+
+    private static final int TIME_OUT = 0;
+
+    private static final boolean ENABLED = true;
+
     @InjectMocks
     private SofaServiceEventListener sofaServiceEventListener = buildSofaServiceEventListener();
 
@@ -66,6 +93,15 @@ public class SofaServiceEventListenerTest {
 
     @Mock
     private ShenyuSofaClient shenyuSofaClient;
+
+    @Mock
+    private Method method;
+
+    @Mock
+    private ServiceFactoryBean serviceFactoryBean;
+
+    @Mock
+    private ContextRefreshedEvent contextRefreshedEvent;
 
     @Test
     public void testGetBeans() {
@@ -78,8 +114,9 @@ public class SofaServiceEventListenerTest {
     public void testBuildURIRegisterDTO() {
         URIRegisterDTO expectedURIRegisterDTO = URIRegisterDTO.builder()
                 .contextPath(CONTEXT_PATH)
-                .appName(null)
+                .appName(APP_NAME)
                 .rpcType(RpcTypeEnum.SOFA.getName())
+                .eventType(EventType.REGISTER)
                 .host(HOST)
                 .port(Integer.parseInt(PORT))
                 .build();
@@ -125,6 +162,72 @@ public class SofaServiceEventListenerTest {
         assertEquals(ShenyuSofaClient.class, clazz);
     }
 
+    @Test
+    public void testBuildApiPathSuperPathContainsStar() {
+        given(method.getName()).willReturn(METHOD_NAME);
+        String realApiPath = sofaServiceEventListener.buildApiPath(method, SUPER_PATH_CONTAINS_STAR, shenyuSofaClient);
+        String expectedApiPath = "/sofa/demo/buildURIRegisterDTO";
+
+        assertEquals(expectedApiPath, realApiPath);
+    }
+
+    @Test
+    public void testBuildApiPathSuperPathNotContainsStar() {
+        given(shenyuSofaClient.path()).willReturn(PATH);
+        String realApiPath = sofaServiceEventListener.buildApiPath(method, SUPER_PATH_NOT_CONTAINS_STAR, shenyuSofaClient);
+        String expectedApiPath = "/sofa/findByIdsAndName/path";
+
+        assertEquals(expectedApiPath, realApiPath);
+    }
+
+    @Test
+    public void testBuildMetaDataDTO() throws NoSuchMethodException {
+        Method method = SofaServiceEventListener
+                .class
+                .getDeclaredMethod(METHOD_NAME, ApplicationContext.class, Map.class);
+        given(shenyuSofaClient.path()).willReturn(PATH);
+        given(shenyuSofaClient.desc()).willReturn(DESC);
+        given(shenyuSofaClient.ruleName()).willReturn(CONFIG_RULE_NAME);
+        given(shenyuSofaClient.loadBalance()).willReturn(LOAD_BALANCE);
+        given(shenyuSofaClient.retries()).willReturn(RETRY_TIME);
+        given(shenyuSofaClient.timeout()).willReturn(TIME_OUT);
+        given(shenyuSofaClient.enabled()).willReturn(ENABLED);
+        // The willReturn method cannot have the class<?> type as an input parameter.
+        // Have raised the question in the Mockito community, will get back to this after getting answer
+        doReturn(Comparable.class).when(serviceFactoryBean).getInterfaceClass();
+
+        String expectedParameterTypes = "org.springframework.context.ApplicationContext,java.util.Map#java.lang.String#"
+                + "com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean";
+        String expectedPath = "/sofa/findByIdsAndName/path";
+        String expectedRpcExt = "{\"loadbalance\":\"loadBalance\",\"retries\":0,\"timeout\":0}";
+
+        MetaDataRegisterDTO realMetaDataRegisterDTO = sofaServiceEventListener
+                .buildMetaDataDTO(
+                        serviceFactoryBean,
+                        shenyuSofaClient,
+                        SUPER_PATH_NOT_CONTAINS_STAR,
+                        SofaServiceEventListener.class,
+                        method);
+        MetaDataRegisterDTO expectedMetaDataRegisterDTO = MetaDataRegisterDTO
+                .builder()
+                .appName(APP_NAME)
+                .serviceName(SERVICE_NAME)
+                .methodName(METHOD_NAME)
+                .contextPath(CONTEXT_PATH)
+                .host(HOST)
+                .port(Integer.parseInt(PORT))
+                .path(expectedPath)
+                .ruleName(CONFIG_RULE_NAME)
+                .pathDesc(DESC)
+                .parameterTypes(expectedParameterTypes)
+                .rpcType(RpcTypeEnum.SOFA.getName())
+                .rpcExt(expectedRpcExt)
+                .enabled(ENABLED)
+                .build();
+
+        assertEquals(expectedMetaDataRegisterDTO, realMetaDataRegisterDTO);
+    }
+
     private SofaServiceEventListener buildSofaServiceEventListener() {
         Properties properties = new Properties();
         properties.setProperty("contextPath", CONTEXT_PATH);
@@ -132,6 +235,7 @@ public class SofaServiceEventListenerTest {
         properties.setProperty("host", HOST);
         properties.setProperty("username", USERNAME);
         properties.setProperty("password", PASSWORD);
+        properties.setProperty("appName", APP_NAME);
         PropertiesConfig config = new PropertiesConfig();
         config.setProps(properties);
 
