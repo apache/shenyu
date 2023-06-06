@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.springmvc.register.apimeta;
 
+import java.util.Objects;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.matcher.Matcher;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
@@ -26,6 +27,6 @@ public class SpringMvcPreApiMetaBeanMatcher implements Matcher<ApiBean> {
     @Override
     public boolean match(final ApiBean element) {
         ShenyuSpringMvcClient annotation = element.getAnnotation(ShenyuSpringMvcClient.class);
-        return annotation != null && annotation.path().endsWith("/**");
+        return Objects.nonNull(annotation) && annotation.path().endsWith("/**");//todo
     }
 }
