@@ -43,7 +43,7 @@ public class PolarisProperties {
      *
      * @param url url
      */
-    public void setUrl(String url) {
+    public void setUrl(final String url) {
         this.url = url;
     }
 
@@ -61,7 +61,7 @@ public class PolarisProperties {
      *
      * @param namespace namespace
      */
-    public void setNamespace(String namespace) {
+    public void setNamespace(final String namespace) {
         this.namespace = namespace;
     }
 }

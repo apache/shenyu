@@ -19,7 +19,11 @@ package org.apache.shenyu.springboot.starter.sync.data.polaris;
 
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
-import org.apache.shenyu.sync.data.api.*;
+import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.polaris.PolarisSyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
