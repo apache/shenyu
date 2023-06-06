@@ -50,7 +50,7 @@
         <profile>
             <id>it</id>
             <build>
-                <finalName>shenyu-integrated-test-upload-plugin</finalName>
+                <finalName>shenyu-integrated-test-upload-plugin-case</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
@@ -69,29 +69,31 @@
                                 org.apache.shenyu.integrated.test.upload.plugin.ShenyuUploadPluginIntegratedApplication
                             </mainClass>
                             <executable>true</executable>
+                            <outputDirectory>${project.basedir}/target</outputDirectory>
                         </configuration>
                     </plugin>
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
                         <version>${docker-maven-plugin.version}</version>
-                        <configuration>
-                            <images>
-                                <image>
-                                    <name>apache/shenyu-integrated-test-upload-plugin-case</name>
-                                    <build>
-                                        <contextDir>${project.basedir}/..</contextDir>
-                                        <dockerFile>${project.basedir}/../Dockerfile</dockerFile>
-                                    </build>
-                                </image>
-                            </images>
-                        </configuration>
                         <executions>
                             <execution>
                                 <id>start</id>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
+                                <configuration>
+                                    <images>
+                                        <image>
+                                            <name>apache/shenyu-integrated-test-upload-plugin-case:latest</name>
+                                            <build>
+                                                <contextDir>${project.basedir}</contextDir>
+                                                <dockerFile>${project.basedir}/Dockerfile</dockerFile>
+                                            </build>
+                                        </image>
+                                    </images>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

@@ -27,8 +27,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>shenyu-custom-plugin</module>
-        <module>shenyu-integrated-test-admin</module>
         <module>shenyu-integrated-test-upload-plugin-case</module>
+        <module>shenyu-integrated-test-admin</module>
     </modules>
 
     <artifactId>shenyu-integrated-test-upload-plugin</artifactId>

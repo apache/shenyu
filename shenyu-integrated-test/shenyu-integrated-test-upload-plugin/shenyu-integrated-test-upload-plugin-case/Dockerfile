@@ -14,15 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM maven:3.5-jdk-8-alpine
-ENV APP_NAME shenyu-integrated-test-upload-plugin
+FROM openjdk:8-jre-alpine
+ENV APP_NAME shenyu-integrated-test-upload-plugin-case
 ENV LOCAL_PATH /opt/${APP_NAME}
+RUN mkdir -p ${LOCAL_PATH}
 
-COPY ./shenyu-custom-plugin ${LOCAL_PATH}/shenyu-custom-plugin
-RUN mvn clean install -f ${LOCAL_PATH}/shenyu-custom-plugin/pom.xml  -Dmaven.test.skip=true
-RUN mv ${LOCAL_PATH}/custom-plugin/target/custom-plugin-1.0.jar ${LOCAL_PATH}/shenyu-custom-plugin-1.0.jar
-RUN chmod 755 ${LOCAL_PATH}/shenyu-custom-plugin-1.0.jar
-ADD shenyu-integrated-test-upload-plugin-case/target/${APP_NAME}.jar ${LOCAL_PATH}
+ADD target/${APP_NAME}.jar ${LOCAL_PATH}
+
+COPY --from=apache/shenyu-integrated-test-custom /opt/shenyu-custom-plugin.jar  ${LOCAL_PATH}
+RUN chmod 755 ${LOCAL_PATH}/shenyu-custom-plugin.jar
 
 WORKDIR ${LOCAL_PATH}
 EXPOSE 9195

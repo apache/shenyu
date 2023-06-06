@@ -32,9 +32,9 @@ services:
       retries: 3
       start_period: 5s
 
-  shenyu-integrated-test-upload-plugin:
-    container_name: shenyu-integrated-test-upload-plugin
-    image: apache/shenyu-integrated-test-upload-plugin:latest
+  shenyu-integrated-test-upload-plugin-case:
+    container_name: shenyu-integrated-test-upload-plugin-case
+    image: apache/shenyu-integrated-test-upload-plugin-case:latest
     restart: always
     deploy:
       resources:
@@ -50,7 +50,7 @@ services:
     networks:
       - shenyu
     healthcheck:
-      test: [ "CMD", "wget", "http://shenyu-integrated-test-upload-plugin:9195/actuator/health" ]
+      test: [ "CMD", "wget", "http://shenyu-integrated-test-upload-plugin-case:9195/actuator/health" ]
       timeout: 2s
       retries: 30
 

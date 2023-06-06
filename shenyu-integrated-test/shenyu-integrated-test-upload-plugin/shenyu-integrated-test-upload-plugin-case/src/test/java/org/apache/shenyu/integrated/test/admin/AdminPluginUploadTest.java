@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class AdminPluginUploadTest extends AbstractPluginDataInit {
 
     // jar build in dockerfile
-    public static final String JAR_PATH = "/opt/shenyu-integrated-test-upload-plugin/custom-plugin-1.0.jar";
+    public static final String JAR_PATH = "/opt/shenyu-integrated-test-upload-plugin-case/shenyu-custom-plugin.jar";
 
     private String jarTxt;
 
