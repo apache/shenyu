@@ -206,7 +206,12 @@ public class SelectorServiceImpl implements SelectorService {
     
     @Override
     public int updateSelective(final SelectorDO selectorDO) {
-        return selectorMapper.updateSelective(selectorDO);
+        final SelectorDO before = selectorMapper.selectById(selectorDO.getId());
+        final int updateCount = selectorMapper.updateSelective(selectorDO);
+        if (updateCount > 0) {
+            selectorEventPublisher.onUpdated(selectorDO, before);
+        }
+        return updateCount;
     }
     
     /**
