@@ -62,7 +62,6 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
         return ShenyuResultMessage.SUCCESS;
     }
     
-    
     /**
      * Register uri string.
      *
@@ -88,4 +87,16 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
         return ShenyuResultMessage.SUCCESS;
     }
     
+    /**
+     * Offline result string.
+     *
+     * @param offlineDTO the offline dto
+     * @return the string
+     */
+    @PostMapping("/offline")
+    @ResponseBody
+    public String offline(@RequestBody final URIRegisterDTO offlineDTO) {
+        publisher.publish(offlineDTO);
+        return ShenyuResultMessage.SUCCESS;
+    }
 }
