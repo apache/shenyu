@@ -25,6 +25,7 @@ import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -115,6 +116,7 @@ public class SofaServiceEventListenerTest {
                 .contextPath(CONTEXT_PATH)
                 .appName(APP_NAME)
                 .rpcType(RpcTypeEnum.SOFA.getName())
+                .eventType(EventType.REGISTER)
                 .host(HOST)
                 .port(Integer.parseInt(PORT))
                 .build();
