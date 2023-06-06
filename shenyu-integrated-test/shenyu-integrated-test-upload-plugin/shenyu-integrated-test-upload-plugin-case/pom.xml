@@ -90,7 +90,7 @@
                             <execution>
                                 <id>start</id>
                                 <goals>
-                                    <goal>start</goal>
+                                    <goal>build</goal>
                                 </goals>
                             </execution>
                         </executions>
