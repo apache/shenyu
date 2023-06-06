@@ -26,7 +26,7 @@ spring:
     max-in-memory-size: 2MB
   cloud:
     discovery:
-      enabled: false
+      enabled: true
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848 # Spring Cloud Alibaba Dubbo use this.
@@ -40,7 +40,7 @@ spring:
 
 eureka:
   client:
-    enabled: false
+    enabled: true
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
   instance:
@@ -289,6 +289,8 @@ shenyu:
     interval: 5000
     printEnabled: true
     printInterval: 60000
+  springCloudCache:
+    enabled: false
   ribbon:
     serverListRefreshInterval: 10000
   metrics:
