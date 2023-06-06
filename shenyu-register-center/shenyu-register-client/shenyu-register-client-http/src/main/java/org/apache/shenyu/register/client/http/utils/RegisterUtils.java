@@ -67,6 +67,23 @@ public final class RegisterUtils {
     }
     
     /**
+     * Do register.
+     *
+     * @param json the json
+     * @param url  the url
+     * @param type the type
+     * @throws IOException the io exception
+     */
+    public static void doRegister(final String json, final String url, final String type) throws IOException {
+        String result = OkHttpTools.getInstance().post(url, json);
+        if (Objects.equals(SUCCESS, result)) {
+            LOGGER.info("{} client register success: {} ", type, json);
+        } else {
+            LOGGER.error("{} client register error: {} ", type, json);
+        }
+    }
+    
+    /**
      * Do unregister.
      *
      * @param json        the json
@@ -85,23 +102,6 @@ public final class RegisterUtils {
             LOGGER.info("{} client unregister success: {} ", Constants.URI, json);
         } else {
             LOGGER.error("{} client unregister error: {} ", Constants.URI, json);
-        }
-    }
-
-    /**
-     * Do register.
-     *
-     * @param json the json
-     * @param url  the url
-     * @param type the type
-     * @throws IOException the io exception
-     */
-    public static void doRegister(final String json, final String url, final String type) throws IOException {
-        String result = OkHttpTools.getInstance().post(url, json);
-        if (Objects.equals(SUCCESS, result)) {
-            LOGGER.info("{} client register success: {} ", type, json);
-        } else {
-            LOGGER.error("{} client register error: {} ", type, json);
         }
     }
 
