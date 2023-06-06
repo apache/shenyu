@@ -27,8 +27,6 @@ public class PolarisProperties {
 
     private String url;
 
-    private String token;
-
     private String namespace;
 
     /**
@@ -47,24 +45,6 @@ public class PolarisProperties {
      */
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    /**
-     * Gets the value of token.
-     *
-     * @return the value of token
-     */
-    public String getToken() {
-        return token;
-    }
-
-    /**
-     * Sets the token.
-     *
-     * @param token token
-     */
-    public void setToken(String token) {
-        this.token = token;
     }
 
     /**
