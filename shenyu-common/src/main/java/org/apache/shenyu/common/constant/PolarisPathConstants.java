@@ -58,6 +58,11 @@ public final class PolarisPathConstants {
     public static final String META_DATA_FILE_NAME = "shenyu/meta.json";
 
     /**
+     * proxy selector data id.
+     */
+    public static final String PROXY_SELECTOR_DATA_ID = "shenyu/proxy/selector.json";
+
+    /**
      * default value of get config.
      */
     public static final String EMPTY_CONFIG_DEFAULT_VALUE = "{}";
