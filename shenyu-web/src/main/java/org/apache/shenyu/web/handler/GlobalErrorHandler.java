@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.web.handler;
 
-import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.slf4j.Logger;
@@ -30,7 +29,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.retry.RetryExhaustedException;
 
 /**
  * GlobalErrorHandler.
@@ -55,17 +53,14 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
         LOG.error("handle error: {}{}", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
         HttpStatus httpStatus;
         Object errorResult;
-        if (throwable instanceof ResponseStatusException) {
+        if (throwable instanceof IllegalArgumentException) {
+            httpStatus = HttpStatus.BAD_REQUEST;
+            errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), throwable.getMessage(), null);
+        } else if (throwable instanceof ResponseStatusException) {
             httpStatus = ((ResponseStatusException) throwable).getStatus();
             String errMsg = StringUtils.hasLength(((ResponseStatusException) throwable).getReason()) ?
                 ((ResponseStatusException) throwable).getReason() : httpStatus.getReasonPhrase();
             errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), errMsg, null);
-        } else if (throwable instanceof RetryExhaustedException) {
-            httpStatus = HttpStatus.OK;
-            errorResult = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_TIMEOUT);
-        } else if (throwable instanceof IllegalArgumentException) {
-            httpStatus = HttpStatus.BAD_REQUEST;
-            errorResult = ShenyuResultWrap.error(exchange,httpStatus.value(), throwable.getMessage(),null);
         } else {
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
             errorResult = ShenyuResultWrap.error(exchange, httpStatus.value(), httpStatus.getReasonPhrase(), null);
