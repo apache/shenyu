@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.listener.polaris;
 import com.tencent.polaris.api.exception.PolarisException;
 import com.tencent.polaris.configuration.api.core.ConfigFile;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
-import com.tencent.polaris.configuration.client.internal.DefaultConfigFile;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,24 +55,19 @@ public class PolarisDataChangedInitTest {
         when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PLUGIN_DATA_FILE_NAME)).thenReturn(configFile);
         boolean pluginExist = polarisDataChangedInit.notExist();
         assertFalse(pluginExist, "plugin exist.");
+    }
 
-//        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, AUTH_DATA_ID_FILE_NAME)).thenReturn(configFile);
-//        boolean authExist = polarisDataChangedInit.notExist();
-//        assertFalse(authExist, "auth exist.");
+    @Test
+    public void testExist() throws PolarisException {
+        PolarisDataChangedInit polarisDataChangedInit = new PolarisDataChangedInit(polarisConfigFileService);
 
-//        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, META_DATA_FILE_NAME)
-//                .hasContent()).thenReturn(Boolean.TRUE);
-//        boolean metaExist = polarisDataChangedInit.notExist();
-//        assertFalse(metaExist, "meta exist.");
-//
-//        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PROXY_SELECTOR_FILE_NAME)
-//                .hasContent()).thenReturn(Boolean.TRUE);
-//        boolean proxyExist = polarisDataChangedInit.notExist();
-//        assertFalse(proxyExist, "proxy exist.");
-//
-//        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PROXY_SELECTOR_FILE_NAME)
-//                .hasContent()).thenReturn(Boolean.FALSE);
-//        boolean proxyNotExist = polarisDataChangedInit.notExist();
-//        assertTrue(proxyNotExist, "proxy not exist.");
+        when(configFile.hasContent()).thenReturn(false);
+
+        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PLUGIN_DATA_FILE_NAME)).thenReturn(configFile);
+        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, AUTH_DATA_ID_FILE_NAME)).thenReturn(configFile);
+        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PROXY_SELECTOR_FILE_NAME)).thenReturn(configFile);
+        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, META_DATA_FILE_NAME)).thenReturn(configFile);
+        boolean pluginExist = polarisDataChangedInit.notExist();
+        assertTrue(pluginExist, "plugin exist.");
     }
 }
