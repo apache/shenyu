@@ -66,6 +66,8 @@ public class ShenyuConfig {
     
     private RuleMatchCache ruleMatchCache = new RuleMatchCache();
     
+    private SpringCloudCacheConfig springCloudCache = new SpringCloudCacheConfig();
+    
     /**
      * Gets health.
      *
@@ -352,6 +354,24 @@ public class ShenyuConfig {
      */
     public void setRuleMatchCache(final RuleMatchCache ruleMatchCache) {
         this.ruleMatchCache = ruleMatchCache;
+    }
+    
+    /**
+     * get spring cloud cache config.
+     *
+     * @return {@linkplain SpringCloudCacheConfig}
+     */
+    public SpringCloudCacheConfig getSpringCloudCache() {
+        return springCloudCache;
+    }
+    
+    /**
+     * set spring cloud cache config.
+     *
+     * @param springCloudCache cache config
+     */
+    public void setSpringCloudCache(final SpringCloudCacheConfig springCloudCache) {
+        this.springCloudCache = springCloudCache;
     }
     
     /**
@@ -1909,6 +1929,28 @@ public class ShenyuConfig {
          */
         public void setMatchMode(final String matchMode) {
             this.matchMode = matchMode;
+        }
+    }
+    
+    public static class SpringCloudCacheConfig {
+        private Boolean enabled = Boolean.FALSE;
+        
+        /**
+         * get shenyu spring cloud cache status.
+         *
+         * @return the enabled status
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+        
+        /**
+         * set shenyu spring cloud cache status.
+         *
+         * @param enabled the status
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
         }
     }
 }
