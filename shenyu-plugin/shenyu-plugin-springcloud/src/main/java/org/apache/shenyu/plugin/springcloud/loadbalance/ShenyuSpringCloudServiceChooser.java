@@ -23,6 +23,7 @@ import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
+import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -115,7 +116,10 @@ public final class ShenyuSpringCloudServiceChooser {
      * @return {@linkplain ServiceInstance}
      */
     private List<ServiceInstance> getServiceInstance(final String serviceId) {
-        return Optional.ofNullable(discoveryClient.getInstances(serviceId)).orElse(Collections.emptyList());
+        if (CollectionUtils.isEmpty(ServiceInstanceCache.getServiceInstance(serviceId))) {
+            return Optional.ofNullable(discoveryClient.getInstances(serviceId)).orElse(Collections.emptyList());
+        }
+        return ServiceInstanceCache.getServiceInstance(serviceId);
     }
 
     /**

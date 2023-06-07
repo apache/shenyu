@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.springboot.starter.plugin.springcloud;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.SpringCloudPlugin;
 import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDecorator;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
+import org.apache.shenyu.plugin.springcloud.listener.SpringCloudHeartBeatListener;
 import org.apache.shenyu.plugin.springcloud.loadbalance.ShenyuSpringCloudServiceChooser;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -72,11 +74,28 @@ public class SpringCloudPluginConfiguration {
     /**
      * Spring cloud plugin data handler.
      *
+     * @param discoveryClient the discovery client
+     * @param shenyuConfig the shenyu config
+     *
      * @return the plugin data handler
      */
     @Bean
-    public PluginDataHandler springCloudPluginDataHandler() {
-        return new SpringCloudPluginDataHandler();
+    public PluginDataHandler springCloudPluginDataHandler(final ObjectProvider<DiscoveryClient> discoveryClient,
+                                                          final ShenyuConfig shenyuConfig) {
+        return new SpringCloudPluginDataHandler(discoveryClient.getIfAvailable(), shenyuConfig.getSpringCloudCache());
+    }
+    
+    /**
+     * Spring cloud heart beat listener.
+     *
+     * @param discoveryClient the discoveryClient
+     * @param shenyuConfig the shenyu config
+     * @return the spring cloud heartbeat listener {@linkplain SpringCloudHeartBeatListener}
+     */
+    @Bean
+    public SpringCloudHeartBeatListener springCloudHeartBeatListener(final ObjectProvider<DiscoveryClient> discoveryClient,
+                                                                     final ShenyuConfig shenyuConfig) {
+        return new SpringCloudHeartBeatListener(discoveryClient.getIfAvailable(), shenyuConfig.getSpringCloudCache());
     }
 
 }
