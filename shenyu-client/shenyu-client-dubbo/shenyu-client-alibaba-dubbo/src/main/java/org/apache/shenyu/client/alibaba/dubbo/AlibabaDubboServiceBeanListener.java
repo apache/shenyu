@@ -32,6 +32,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
@@ -111,6 +112,7 @@ public class AlibabaDubboServiceBeanListener extends AbstractContextRefreshedEve
                     .contextPath(getContextPath())
                     .appName(buildAppName(bean))
                     .rpcType(RpcTypeEnum.DUBBO.getName())
+                    .eventType(EventType.REGISTER)
                     .host(super.getHost())
                     .port(Integer.valueOf(getPort()))
                     .build();

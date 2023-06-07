@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.springcloud.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.config.ShenyuConfig.SpringCloudCacheConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -32,6 +33,9 @@ import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.springcloud.cache.ServiceInstanceCache;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +51,15 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
     
     public static final Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> RULE_CACHED = new BeanHolder<>(CommonHandleCache::new);
     
+    private final DiscoveryClient discoveryClient;
+    
+    private final SpringCloudCacheConfig springCloudCacheConfig;
+    
+    public SpringCloudPluginDataHandler(final DiscoveryClient discoveryClient, final SpringCloudCacheConfig springCloudCacheConfig) {
+        this.discoveryClient = discoveryClient;
+        this.springCloudCacheConfig = springCloudCacheConfig;
+    }
+    
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
@@ -54,6 +67,10 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
         if (CollectionUtils.isEmpty(springCloudSelectorHandle.getDivideUpstreams())) {
             UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
             return;
+        }
+        if (springCloudCacheConfig.getEnabled()) {
+            List<ServiceInstance> serviceInstances = discoveryClient.getInstances(springCloudSelectorHandle.getServiceId());
+            ServiceInstanceCache.cacheServiceInstance(springCloudSelectorHandle.getServiceId(), serviceInstances);
         }
         UpstreamCacheManager.getInstance().submit(selectorData.getId(), convertUpstreamList(springCloudSelectorHandle.getDivideUpstreams()));
         if (!selectorData.getContinued()) {
@@ -63,6 +80,10 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
+        if (springCloudCacheConfig.getEnabled()) {
+            SpringCloudSelectorHandle selectorHandle = SELECTOR_CACHED.get().obtainHandle(selectorData.getId());
+            ServiceInstanceCache.removeServiceInstance(selectorHandle.getServiceId());
+        }
         SELECTOR_CACHED.get().removeHandle(selectorData.getId());
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
         RULE_CACHED.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
