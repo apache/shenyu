@@ -40,18 +40,23 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 public class PolarisDataChangedInitTest {
+
+    @Mock
+    private ConfigFile configFile;
+
     @Mock
     private ConfigFileService polarisConfigFileService;
 
     @Test
     public void testNotExist() throws PolarisException {
-//        ConfigFile configFile = new DefaultConfigFile("namespace", "fileGroup", "fileName", "configFileRepo", "configFileConfig");
-//        PolarisDataChangedInit polarisDataChangedInit = new PolarisDataChangedInit(polarisConfigFileService);
-//
-//        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PLUGIN_DATA_FILE_NAME)).thenReturn(configFile);
-//        boolean pluginExist = polarisDataChangedInit.notExist();
-//        assertFalse(pluginExist, "plugin exist.");
-//
+        PolarisDataChangedInit polarisDataChangedInit = new PolarisDataChangedInit(polarisConfigFileService);
+
+        when(configFile.hasContent()).thenReturn(true);
+
+        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PLUGIN_DATA_FILE_NAME)).thenReturn(configFile);
+        boolean pluginExist = polarisDataChangedInit.notExist();
+        assertFalse(pluginExist, "plugin exist.");
+
 //        when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, AUTH_DATA_ID_FILE_NAME)).thenReturn(configFile);
 //        boolean authExist = polarisDataChangedInit.notExist();
 //        assertFalse(authExist, "auth exist.");
