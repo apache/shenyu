@@ -56,7 +56,7 @@ public class WaitForHelper {
     public WaitForHelper() {
     }
 
-    public WaitForHelper(int retryTimes, Duration timeInRetry, Duration timeout) {
+    public WaitForHelper(final int retryTimes, final Duration timeInRetry, final Duration timeout) {
         this.retryTimes = retryTimes;
         this.timeInRetry = timeInRetry;
         this.timeout = timeout;
