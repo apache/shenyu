@@ -88,7 +88,7 @@ shenyu:
 #          accessKey:
 #          secretKey:
     polaris:
-      url: 192.168.1.107:8080
+      url: 127.0.0.1:8093
       namespace: default # 设置配置中心命名空间
 #    etcd:
 #      url: http://localhost:2379

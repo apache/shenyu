@@ -450,18 +450,18 @@
         <!--shenyu motan plugin end-->
 
         <!--shenyu data sync start use zookeeper-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.shenyu</groupId>-->
-<!--            <artifactId>shenyu-spring-boot-starter-sync-data-zookeeper</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!--shenyu data sync start use websocket-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.shenyu</groupId>-->
-<!--            <artifactId>shenyu-spring-boot-starter-sync-data-websocket</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-websocket</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!--shenyu data sync start use apollo-->
         <dependency>
@@ -471,36 +471,36 @@
         </dependency>
 
         <!--shenyu data sync start use http-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.shenyu</groupId>-->
-<!--            <artifactId>shenyu-spring-boot-starter-sync-data-http</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-http</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!--shenyu data sync start use etcd-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.shenyu</groupId>-->
-<!--            <artifactId>shenyu-spring-boot-starter-sync-data-etcd</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>io.grpc</groupId>-->
-<!--                    <artifactId>grpc-grpclb</artifactId>-->
-<!--                </exclusion>-->
-<!--                <exclusion>-->
-<!--                    <groupId>io.grpc</groupId>-->
-<!--                    <artifactId>grpc-netty</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-etcd</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-grpclb</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-netty</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <!--shenyu debug plugin end-->
 
         <!--shenyu data sync start use consul-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.shenyu</groupId>-->
-<!--            <artifactId>shenyu-spring-boot-starter-sync-data-consul</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-consul</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- apache shenyu data sync start use polaris-->
         <dependency>
