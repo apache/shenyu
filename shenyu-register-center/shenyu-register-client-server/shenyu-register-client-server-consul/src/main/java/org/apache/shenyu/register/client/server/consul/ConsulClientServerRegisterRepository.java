@@ -78,7 +78,7 @@ public class ConsulClientServerRegisterRepository implements ShenyuClientServerR
         MapDifference<String, List<URIRegisterDTO>> difference = Maps.difference(uriMap, uriRegisterDTOMap);
         difference.entriesOnlyOnLeft().forEach(this::publishRegisterURI);
         difference.entriesOnlyOnRight().keySet().forEach(contextPath -> publishRegisterURI(contextPath, new ArrayList<>()));
-        difference.entriesDiffering().forEach((contextPath, listValueDifference) -> publishRegisterURI(contextPath, Objects.requireNonNull(listValueDifference.leftValue())));
+        difference.entriesDiffering().forEach((contextPath, listValueDifference) -> publishRegisterURI(contextPath, listValueDifference.leftValue()));
         uriRegisterDTOMap = uriMap;
     }
     

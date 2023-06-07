@@ -27,7 +27,6 @@ import org.apache.shenyu.common.constant.Constants;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -107,7 +106,7 @@ public final class OkHttpTools {
      */
     public String get(final String url, final Map<String, Object> query) throws IOException {
         Request.Builder reqBuild = new Request.Builder();
-        HttpUrl.Builder urlBuilder = Objects.requireNonNull(HttpUrl.parse(url)).newBuilder();
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
         query.forEach((k, v) -> urlBuilder.addQueryParameter(k, String.valueOf(v)));
         reqBuild.url(urlBuilder.build());
         Request request = reqBuild.build();
@@ -124,7 +123,7 @@ public final class OkHttpTools {
      */
     public String get(final String url, final String userName, final String passWord) throws IOException {
         Request.Builder reqBuild = new Request.Builder();
-        HttpUrl.Builder urlBuilder = Objects.requireNonNull(HttpUrl.parse(url)).newBuilder();
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
         urlBuilder.addQueryParameter(Constants.USER_NAME, userName);
         urlBuilder.addQueryParameter(Constants.PASS_WORD, passWord);
         reqBuild.url(urlBuilder.build());
