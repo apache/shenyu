@@ -5,6 +5,7 @@ import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -33,7 +34,7 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
 
     @Override
     public void createProxySelector(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO) {
-        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(covert(proxySelectorDTO)));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(covert(proxySelectorDTO, null)));
         eventPublisher.publishEvent(dataChangedEvent);
     }
 
@@ -44,22 +45,13 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
 
     @Override
     public void removeProxySelector(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO) {
-        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(covert(proxySelectorDTO)));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(covert(proxySelectorDTO, null)));
         eventPublisher.publishEvent(dataChangedEvent);
     }
 
-    //TODO: 2023/6/5
-    private ProxySelectorData covert(final ProxySelectorDTO proxySelectorDTO) {
-        ProxySelectorData proxySelectorData = new ProxySelectorData();
-        return proxySelectorData;
-    }
-
-
     @Override
     public void changeUpstream(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO, List<DiscoveryUpstreamDTO> upstreamDTOS) {
-        ProxySelectorData covert = covert(proxySelectorDTO);
-        covert.setDiscoveryUpstreamList(covert(upstreamDTOS));
-        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(covert));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(covert(proxySelectorDTO, upstreamDTOS)));
         eventPublisher.publishEvent(dataChangedEvent);
     }
 
@@ -69,8 +61,5 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
     }
 
 
-    //TODO: 2023/6/5
-    private List<DiscoveryUpstreamData> covert(List<DiscoveryUpstreamDTO> upstreamDTOS) {
-        return null;
-    }
+
 }

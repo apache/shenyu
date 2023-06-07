@@ -81,8 +81,7 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
         String[] subArray = key.split("/");
         String proxySelectorId = subArray[3];
         ProxySelectorData proxySelectorData = new ProxySelectorData();
-        List<ProxySelectorDO> proxySelectorDOS = proxySelectorMapper.selectByIds(Collections.singletonList(proxySelectorId));
-        ProxySelectorDO proxySelectorDO = proxySelectorDOS.get(0);
+        ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
         BeanUtils.copyProperties(proxySelectorDO, proxySelectorData);
         LOG.info("shenyu parseKey pluginName={}|proxySelectorName={}|type={}|forwardPort={}", proxySelectorData.getPluginName(), proxySelectorData.getName(), proxySelectorData.getType(), proxySelectorData.getForwardPort());
         return proxySelectorData;

@@ -1,9 +1,14 @@
 package org.apache.shenyu.admin.discovery;
 
+import com.alibaba.nacos.api.naming.NamingFactory;
+import com.alibaba.nacos.api.naming.NamingService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -30,8 +35,6 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private final keyValueParser keyValueParser;
 
-    private DiscoveryDO discoveryDO;
-
     private final ApplicationEventPublisher eventPublisher;
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
@@ -51,39 +54,42 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     @Override
     public void onChange(DataChangedEvent event) {
-        ProxySelectorData proxySelectorData = buildProxySelectorData(event.getKey(), event.getValue());
+        DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getKey(), event.getValue());
         //推送 gateway 数据|并且把数据 持久化到数据库(如果是 local 形式 就 不持久化了 因为本身就是 crud 数据库的)
         org.apache.shenyu.admin.listener.DataChangedEvent dataChangedEvent = null;
         DataChangedEvent.Event currentEvent = event.getEvent();
+        List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
         if (needPersistence) {
-            List<DiscoveryUpstreamData> discoveryUpstreamList = proxySelectorData.getDiscoveryUpstreamList();
-            if (CollectionUtils.isEmpty(discoveryUpstreamList)) {
+            if (CollectionUtils.isEmpty(upstreamDataList)) {
                 LOG.warn("shenyu proxySelectorData#discoveryUpstreamList is empty");
                 return;
             }
             switch (currentEvent) {
                 case ADDED:
-                    discoveryUpstreamList.forEach(d -> {
+                    upstreamDataList.forEach(d -> {
                         DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
                         BeanUtils.copyProperties(d, discoveryUpstreamDO);
                         discoveryUpstreamMapper.insert(discoveryUpstreamDO);
                     });
-                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(proxySelectorData));
+                    fillFullyDiscoverySyncData(discoverySyncData);
+                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(discoverySyncData));
                     break;
                 case UPDATED:
-                    discoveryUpstreamList.forEach(d -> {
+                    upstreamDataList.forEach(d -> {
                         DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
                         BeanUtils.copyProperties(d, discoveryUpstreamDO);
                         discoveryUpstreamMapper.update(discoveryUpstreamDO);
                     });
-                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(proxySelectorData));
+                    fillFullyDiscoverySyncData(discoverySyncData);
+                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
                     break;
                 case DELETED:
-                    if (CollectionUtils.isNotEmpty(discoveryUpstreamList)) {
-                        List<String> upstreamIds = discoveryUpstreamList.stream().map(DiscoveryUpstreamData::getId).collect(Collectors.toList());
+                    if (CollectionUtils.isNotEmpty(upstreamDataList)) {
+                        List<String> upstreamIds = upstreamDataList.stream().map(DiscoveryUpstreamData::getId).collect(Collectors.toList());
                         discoveryUpstreamMapper.deleteByIds(upstreamIds);
                     }
-                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(proxySelectorData));
+                    fillFullyDiscoverySyncData(discoverySyncData);
+                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(discoverySyncData));
                     break;
             }
         }
@@ -93,12 +99,24 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         }
     }
 
+    private void fillFullyDiscoverySyncData(DiscoverySyncData discoverySyncData) {
+        ProxySelectorData proxySelectorData = discoverySyncData.getProxySelectorData();
+        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByProxySelectorId(proxySelectorData.getId());
+        List<DiscoveryUpstreamData> collect = discoveryUpstreamDOS.stream().map(discoveryUpstreamDO -> {
+            DiscoveryUpstreamData discoveryUpstreamDTO = new DiscoveryUpstreamData();
+            BeanUtils.copyProperties(discoveryUpstreamDO, discoveryUpstreamDTO);
+            return discoveryUpstreamDTO;
+        }).collect(Collectors.toList());
+        discoverySyncData.setUpstreamDataList(collect);
+    }
 
-    private ProxySelectorData buildProxySelectorData(String key, String value) {
+    private DiscoverySyncData buildProxySelectorData(String key, String value) {
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
         ProxySelectorData proxySelectorData = keyValueParser.parseKey(key);
-        proxySelectorData.setDiscoveryUpstreamList(discoveryUpstreamDTOS);
-        return proxySelectorData;
+        DiscoverySyncData data = new DiscoverySyncData();
+        data.setUpstreamDataList(discoveryUpstreamDTOS);
+        data.setProxySelectorData(proxySelectorData);
+        return data;
     }
 
 }

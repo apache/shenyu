@@ -21,7 +21,7 @@ import com.google.common.eventbus.EventBus;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
-import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.protocol.tcp.connection.Bridge;
 import org.apache.shenyu.protocol.tcp.connection.ConnectionContext;
 import org.apache.shenyu.protocol.tcp.connection.DefaultConnectionConfigProvider;
@@ -105,7 +105,7 @@ public class TcpBootstrapServer implements BootstrapServer {
      * @param removeList removeList
      */
     @Override
-    public void removeCommonUpstream(final List<DiscoveryUpstream> removeList) {
+    public void removeCommonUpstream(final List<DiscoveryUpstreamData> removeList) {
         eventBus.post(removeList);
     }
 

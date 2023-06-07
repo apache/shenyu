@@ -18,12 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.*;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -82,9 +77,9 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
     }
 
     @Override
-    public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
-        for (ProxySelectorData data : changed) {
-            String proxySelectorPath = DefaultPathConstants.buildProxySelectorPath(data.getPluginName(), data.getName());
+    public void onProxySelectorChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+        for (DiscoverySyncData data : changed) {
+            String proxySelectorPath = DefaultPathConstants.buildProxySelectorPath(data.getProxySelectorData().getPluginName(), data.getProxySelectorData().getName());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteNode(proxySelectorPath);
