@@ -21,12 +21,12 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.client.config.NacosConfigService;
 import com.ecwid.consul.v1.ConsulClient;
+import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
+import com.tencent.polaris.configuration.api.core.ConfigFileService;
+import com.tencent.polaris.specification.api.v1.config.manage.PolarisConfigGRPCService;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
-import org.apache.shenyu.admin.config.properties.ConsulProperties;
-import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
-import org.apache.shenyu.admin.config.properties.NacosProperties;
-import org.apache.shenyu.admin.config.properties.ZookeeperProperties;
+import org.apache.shenyu.admin.config.properties.*;
 import org.apache.shenyu.admin.listener.etcd.EtcdClient;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
@@ -188,6 +188,31 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
             nacosACMProperties.setSecretKey("secretKey");
             Assertions.assertDoesNotThrow(() -> nacosListener.nacosConfigService(nacosProperties));
         }
+    }
+
+    @Test
+    public void testPolarisDataChangedListener() {
+        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        ConfigFileService polarisConfigFileService = mock(ConfigFileService.class);
+        ConfigFilePublishService polarisConfigFilePublishService = mock(ConfigFilePublishService.class);
+        assertNotNull(polarisListener.polarisDataChangedListener(polarisConfigFileService, polarisConfigFilePublishService));
+    }
+
+    @Test
+    public void testPolarisDataInit() {
+        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        ConfigFileService polarisConfigFileService = mock(ConfigFileService.class);
+        assertNotNull(polarisListener.polarisDataChangedInit(polarisConfigFileService));
+    }
+
+    @Test
+    public void polarisConfigServiceTest() {
+        final PolarisProperties polarisProperties = new PolarisProperties();
+        polarisProperties.setUrl("127.0.0.1:8093");
+        polarisProperties.setNamespace("namespace");
+        DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        assertNotNull(polarisListener.polarisConfigFileService(polarisProperties));
+        assertNotNull(polarisListener.polarisConfigFilePublishService(polarisProperties));
     }
 
     @Test

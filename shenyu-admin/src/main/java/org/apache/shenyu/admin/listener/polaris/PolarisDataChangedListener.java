@@ -42,7 +42,7 @@ public class PolarisDataChangedListener extends AbstractListDataChangedListener 
 
     public PolarisDataChangedListener(final ConfigFileService configFileService, final ConfigFilePublishService configFilePublishService) {
         super(new ChangeData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, PolarisPathConstants.SELECTOR_DATA_FILE_NAME,
-                PolarisPathConstants.RULE_DATA_FILE_NAME, PolarisPathConstants.AUTH_DATA_ID_FILE_NAME, PolarisPathConstants.META_DATA_FILE_NAME, PolarisPathConstants.PROXY_SELECTOR_DATA_ID));
+                PolarisPathConstants.RULE_DATA_FILE_NAME, PolarisPathConstants.AUTH_DATA_ID_FILE_NAME, PolarisPathConstants.META_DATA_FILE_NAME, PolarisPathConstants.PROXY_SELECTOR_FILE_NAME));
         this.configFileService = configFileService;
         this.configFilePublishService = configFilePublishService;
     }

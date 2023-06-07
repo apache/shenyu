@@ -50,7 +50,7 @@ public class PolarisSyncDataService extends PolarisCacheHandler implements SyncD
         watcherData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, this::updatePluginMap);
         watcherData(PolarisPathConstants.META_DATA_FILE_NAME, this::updateMetaDataMap);
         watcherData(PolarisPathConstants.SELECTOR_DATA_FILE_NAME, this::updateSelectorMap);
-        watcherData(PolarisPathConstants.PROXY_SELECTOR_DATA_ID, this::updateProxySelectorMap);
+        watcherData(PolarisPathConstants.PROXY_SELECTOR_FILE_NAME, this::updateProxySelectorMap);
     }
 
     @Override

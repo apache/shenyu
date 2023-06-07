@@ -48,7 +48,7 @@ public class PolarisDataChangedInit extends AbstractDataChangedInit {
     @Override
     protected boolean notExist() {
         return Stream.of(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, PolarisPathConstants.AUTH_DATA_ID_FILE_NAME,
-                PolarisPathConstants.META_DATA_FILE_NAME, PolarisPathConstants.PROXY_SELECTOR_DATA_ID).allMatch(
+                PolarisPathConstants.META_DATA_FILE_NAME, PolarisPathConstants.PROXY_SELECTOR_FILE_NAME).allMatch(
                 this::dataIdNotExist);
     }
 
