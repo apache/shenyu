@@ -74,7 +74,7 @@ public final class OkHttpTools {
                 .url(url)
                 .post(body)
                 .build();
-        return String.valueOf(client.newCall(request).execute().body());
+        return client.newCall(request).execute().body().string();
     }
 
     /**
@@ -93,7 +93,7 @@ public final class OkHttpTools {
                 .url(url)
                 .post(body)
                 .build();
-        return String.valueOf(client.newCall(request).execute().body());
+        return client.newCall(request).execute().body().string();
     }
 
     /**
@@ -110,7 +110,7 @@ public final class OkHttpTools {
         query.forEach((k, v) -> urlBuilder.addQueryParameter(k, String.valueOf(v)));
         reqBuild.url(urlBuilder.build());
         Request request = reqBuild.build();
-        return String.valueOf(client.newCall(request).execute().body());
+        return client.newCall(request).execute().body().string();
     }
 
     /**
@@ -128,7 +128,7 @@ public final class OkHttpTools {
         urlBuilder.addQueryParameter(Constants.PASS_WORD, passWord);
         reqBuild.url(urlBuilder.build());
         Request request = reqBuild.build();
-        return String.valueOf(client.newCall(request).execute().body());
+        return client.newCall(request).execute().body().string();
     }
 
 }
