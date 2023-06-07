@@ -44,7 +44,7 @@ import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString;
 
 public class DividePluginCases implements ShenYuScenarioProvider {
     private static final String ANYTHING = "/anything";
-
+    
     @Override
     public List<ScenarioSpec> get() {
         return Lists.newArrayList(
@@ -58,7 +58,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 testDivideWithMethodDelete()
         );
     }
-
+    
     private ShenYuScenarioSpec testDivideWithUriEquals() {
         ShenYuBeforeEachSpec beforeEachSpec = ShenYuBeforeEachSpec.builder()
                 .addSelectorAndRule(
@@ -83,7 +83,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         ShenYuAfterEachSpec afterEachSpec = ShenYuAfterEachSpec.DEFAULT;
         return ShenYuSpecTemplate.buildShenYuSpec("single-divide uri equals", beforeEachSpec, caseSpec, afterEachSpec);
     }
-
+    
     public ShenYuScenarioSpec testDivideWithUriPathPattern() {
         ShenYuBeforeEachSpec beforeEachSpec = ShenYuBeforeEachSpec.builder()
                 .addSelectorAndRule(
@@ -112,7 +112,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         return ShenYuSpecTemplate.buildShenYuSpec("single-divide uri path_pattern", beforeEachSpec,
                 caseSpec, afterEachSpec);
     }
-
+    
     public ShenYuScenarioSpec testDivideWithUriStartWith() {
         ShenYuBeforeEachSpec beforeEachSpec = ShenYuBeforeEachSpec.builder()
                 .addSelectorAndRule(
@@ -141,7 +141,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         return ShenYuSpecTemplate.buildShenYuSpec("single-divide uri starts_with", beforeEachSpec,
                 caseSpec, afterEachSpec);
     }
-
+    
     public ShenYuScenarioSpec testDivideWithEndWith() {
         ShenYuBeforeEachSpec beforeEachSpec = ShenYuBeforeEachSpec.builder()
                 .addSelectorAndRule(
@@ -171,7 +171,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         return ShenYuSpecTemplate.buildShenYuSpec("single-divide uri ends_with", beforeEachSpec,
                 caseSpec, afterEachSpec);
     }
-
+    
     public ShenYuScenarioSpec testDivideWithMethodGet() {
         ShenYuBeforeEachSpec beforeEachSpec = ShenYuBeforeEachSpec.builder()
                 .addSelectorAndRule(
@@ -206,7 +206,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         return ShenYuSpecTemplate.buildShenYuSpec("single-divide method GET", beforeEachSpec,
                 caseSpec, afterEachSpec);
     }
-
+    
     public ShenYuScenarioSpec testDivideWithMethodPost() {
         ShenYuBeforeEachSpec beforeEachSpec = ShenYuBeforeEachSpec.builder()
                 .addSelectorAndRule(
@@ -241,7 +241,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         return ShenYuSpecTemplate.buildShenYuSpec("single-divide method POST", beforeEachSpec,
                 caseSpec, afterEachSpec);
     }
-
+    
     public ShenYuScenarioSpec testDivideWithMethodPut() {
         ShenYuBeforeEachSpec beforeEachSpec = ShenYuBeforeEachSpec.builder()
                 .addSelectorAndRule(
@@ -276,7 +276,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         return ShenYuSpecTemplate.buildShenYuSpec("single-divide method PUT", beforeEachSpec,
                 caseSpec, afterEachSpec);
     }
-
+    
     public ShenYuScenarioSpec testDivideWithMethodDelete() {
         ShenYuBeforeEachSpec beforeEachSpec = ShenYuBeforeEachSpec.builder()
                 .addSelectorAndRule(

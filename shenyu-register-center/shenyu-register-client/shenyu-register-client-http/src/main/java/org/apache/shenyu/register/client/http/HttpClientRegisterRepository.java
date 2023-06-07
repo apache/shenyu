@@ -94,7 +94,12 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         doRegister(registerDTO, Constants.URI_PATH, Constants.URI);
         uriRegisterDTO = registerDTO;
     }
-
+    
+    @Override
+    public void offline(final URIRegisterDTO offlineDTO) {
+        doUnregister(offlineDTO);
+    }
+    
     /**
      * doPersistApiDoc.
      *
@@ -147,12 +152,30 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                     }
                 }
                 RegisterUtils.doRegister(GsonUtils.getInstance().toJson(t), concat, type, accessToken);
-                return;
+                // considering the situation of multiple clusters, we should continue to execute here
             } catch (Exception e) {
                 LOGGER.error("Register admin url :{} is fail, will retry. cause:{}", server, e.getMessage());
                 if (i == serverList.size()) {
                     throw new RuntimeException(e);
                 }
+            }
+        }
+    }
+    
+    private <T> void doUnregister(final T t) {
+        for (String server : serverList) {
+            String concat = server.concat(Constants.OFFLINE_PATH);
+            try {
+                if (StringUtils.isBlank(accessToken)) {
+                    this.setAccessToken();
+                    if (StringUtils.isBlank(accessToken)) {
+                        throw new NullPointerException("accessToken is null");
+                    }
+                }
+                RegisterUtils.doUnregister(GsonUtils.getInstance().toJson(t), concat, accessToken);
+                // considering the situation of multiple clusters, we should continue to execute here
+            } catch (Exception e) {
+                LOGGER.error("Unregister admin url :{} is fail. cause:{}", server, e.getMessage());
             }
         }
     }
