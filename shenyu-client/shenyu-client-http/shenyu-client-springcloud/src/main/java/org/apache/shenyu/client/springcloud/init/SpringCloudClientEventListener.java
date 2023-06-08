@@ -21,6 +21,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.exception.ShenyuClientIllegalArgumentException;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
@@ -32,6 +33,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +66,8 @@ import java.util.stream.Stream;
 public class SpringCloudClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringCloudClient> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpringCloudClientEventListener.class);
+    
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final Boolean isFull;
     
@@ -128,6 +132,8 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                     .enabled(true)
                     .ruleName(getContextPath())
                     .build());
+            LOG.info("init spring cloud client success with isFull mode");
+            publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap()));
             return Collections.emptyMap();
         }
         return context.getBeansWithAnnotation(Controller.class);
@@ -142,6 +148,7 @@ public class SpringCloudClientEventListener extends AbstractContextRefreshedEven
                     .host(super.getHost())
                     .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
+                    .eventType(EventType.REGISTER)
                     .build();
         } catch (ShenyuException e) {
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");

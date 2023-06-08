@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ShenyuTrie {
@@ -426,6 +427,15 @@ public class ShenyuTrie {
     }
     
     /**
+     * remove trie cache by key.
+     *
+     * @param key key
+     */
+    public void removeByKey(final String key) {
+        keyRootMap.remove(key);
+    }
+    
+    /**
      * getNode.
      *
      * @param uriPath uriPath
@@ -454,6 +464,15 @@ public class ShenyuTrie {
             }
         }
         return null;
+    }
+    
+    /**
+     * get key root map key set.
+     *
+     * @return key set
+     */
+    public Set<String> getKeyRootKeys() {
+        return keyRootMap.keySet();
     }
 
     /**

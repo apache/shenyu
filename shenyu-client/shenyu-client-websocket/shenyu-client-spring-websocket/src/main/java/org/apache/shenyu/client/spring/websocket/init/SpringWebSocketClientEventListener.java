@@ -21,6 +21,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
@@ -32,6 +33,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -58,7 +60,9 @@ import java.util.Properties;
  * The type Shenyu websocket client event listener.
  */
 public class SpringWebSocketClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringWebSocketClient> {
-
+    
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    
     private final String[] pathAttributeNames = new String[] {"path", "value"};
 
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(7);
@@ -100,6 +104,8 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     protected Map<String, Object> getBeans(final ApplicationContext context) {
         // Filter out is not controller out
         if (Boolean.TRUE.equals(isFull)) {
+            LOG.info("init spring websocket client success with isFull mode");
+            publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap()));
             return Collections.emptyMap();
         }
         Map<String, Object> endpointBeans = context.getBeansWithAnnotation(ShenyuServerEndpoint.class);
@@ -117,6 +123,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                     .host(super.getHost())
                     .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
+                    .eventType(EventType.REGISTER)
                     .build();
         } catch (ShenyuException e) {
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
