@@ -40,7 +40,7 @@ import static org.mockito.Answers.CALLS_REAL_METHODS;
         properties = {
                 "shenyu.sync.polaris.url=127.0.0.1:8093",
                 "shenyu.sync.polaris.namespace=default",
-                "shenyu.sync.polaris.fileGroup=fileGroup",
+                "shenyu.sync.polaris.fileGroup=fileGroup"
         })
 @EnableAutoConfiguration
 @MockBean(name = "polarisConfigService", value = PolarisMockConfigService.class, answer = CALLS_REAL_METHODS)
