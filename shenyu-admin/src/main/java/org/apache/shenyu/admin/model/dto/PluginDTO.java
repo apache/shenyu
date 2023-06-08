@@ -62,7 +62,7 @@ public class PluginDTO implements Serializable {
      * plugin sort.
      */
     @NotNull
-    @Min(0)
+    @Min(-2)
     private Integer sort;
 
     /**

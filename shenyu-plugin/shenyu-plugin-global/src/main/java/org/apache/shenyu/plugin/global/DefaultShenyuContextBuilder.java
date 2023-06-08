@@ -58,7 +58,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
     @Override
     public ShenyuContext build(final ServerWebExchange exchange) {
         Pair<String, MetaData> buildData = buildData(exchange);
-        return decoratorMap.get(buildData.getLeft()).decorator(buildDefaultContext(exchange.getRequest()), buildData.getRight());
+        return decoratorMap.get(buildData.getLeft()).decorator(buildDefaultContext(exchange), buildData.getRight());
     }
     
     private Pair<String, MetaData> buildData(final ServerWebExchange exchange) {
@@ -72,7 +72,9 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
             return Pair.of(RpcTypeEnum.WEB_SOCKET.getName(), new MetaData());
         }
-        MetaData metaData = MetaDataCache.getInstance().obtain(request.getURI().getPath());
+        String rewriteURI = exchange.getAttribute(Constants.REWRITE_URI) == null ? request.getURI().getPath() :
+                exchange.getAttribute(Constants.REWRITE_URI);
+        MetaData metaData = MetaDataCache.getInstance().obtain(rewriteURI);
         if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
             return Pair.of(metaData.getRpcType(), metaData);
@@ -81,12 +83,13 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         }
     }
 
-    private ShenyuContext buildDefaultContext(final ServerHttpRequest request) {
+    private ShenyuContext buildDefaultContext(final ServerWebExchange exchange) {
         ShenyuContext shenyuContext = new ShenyuContext();
-        String path = request.getURI().getPath();
-        shenyuContext.setPath(path);
+        String rewriteURI = exchange.getAttribute(Constants.REWRITE_URI) == null ? exchange.getRequest().getURI().getPath() :
+                exchange.getAttribute(Constants.REWRITE_URI);
+        shenyuContext.setPath(rewriteURI);
         shenyuContext.setStartDateTime(LocalDateTime.now());
-        Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
+        Optional.ofNullable(exchange.getRequest().getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
         return shenyuContext;
     }
 }
