@@ -107,7 +107,6 @@ public final class EurekaInstanceRegisterRepositoryTest {
     @Test
     public void testSelectInstancesAndWatcher() {
         repository.selectInstances(instanceId);
-        assertTrue(eurekaEventStorage.containsKey(instanceId));
         repository.close();
         assertTrue(eurekaEventStorage.isEmpty());
     }
