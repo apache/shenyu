@@ -22,7 +22,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -120,19 +119,20 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
             TreeCacheListener treeCacheListener = (curatorFramework, event) -> {
                 ChildData data = event.getData();
                 DataChangedEvent dataChangedEvent;
-                if (data != null) {
+                if (Objects.nonNull(data) && Objects.nonNull(data.getData())) {
+                    String currentPath = data.getPath();
                     switch (event.getType()) {
                         case NODE_ADDED:
-                            dataChangedEvent = new DataChangedEvent(key, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.ADDED);
+                            dataChangedEvent = new DataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.ADDED);
                             break;
                         case NODE_UPDATED:
-                            dataChangedEvent = new DataChangedEvent(key, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.UPDATED);
+                            dataChangedEvent = new DataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.UPDATED);
                             break;
                         case NODE_REMOVED:
-                            dataChangedEvent = new DataChangedEvent(key, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.DELETED);
+                            dataChangedEvent = new DataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.DELETED);
                             break;
                         default:
-                            dataChangedEvent = new DataChangedEvent(key, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.IGNORED);
+                            dataChangedEvent = new DataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.IGNORED);
                             break;
                     }
                     listener.onChange(dataChangedEvent);

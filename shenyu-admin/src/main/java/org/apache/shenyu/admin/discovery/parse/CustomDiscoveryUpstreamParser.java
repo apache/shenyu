@@ -71,7 +71,7 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
     }
 
     /**
-     * /shenyu/discovery/{pluginName}/{selectorId}
+     * /shenyu/discovery/{pluginName}/{selectorId}/{upstream_suq}
      *
      * @param key
      * @return
