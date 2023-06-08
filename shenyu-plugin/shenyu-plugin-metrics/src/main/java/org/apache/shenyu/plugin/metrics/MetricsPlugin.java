@@ -42,7 +42,9 @@ public class MetricsPlugin implements ShenyuPlugin {
         MetricsReporter.counterIncrement(LabelNames.REQUEST_TOTAL);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        MetricsReporter.counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{exchange.getRequest().getURI().getPath(), shenyuContext.getRpcType()});
+        String rewriteURI = exchange.getAttribute(Constants.REWRITE_URI) == null ? exchange.getRequest().getURI().getPath() :
+                exchange.getAttribute(Constants.REWRITE_URI);
+        MetricsReporter.counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{rewriteURI, shenyuContext.getRpcType()});
         LocalDateTime startDateTime = Optional.of(shenyuContext).map(ShenyuContext::getStartDateTime).orElseGet(LocalDateTime::now);
         return chain.execute(exchange).doOnSuccess(e -> responseCommitted(exchange, startDateTime))
                 .doOnError(throwable -> {
