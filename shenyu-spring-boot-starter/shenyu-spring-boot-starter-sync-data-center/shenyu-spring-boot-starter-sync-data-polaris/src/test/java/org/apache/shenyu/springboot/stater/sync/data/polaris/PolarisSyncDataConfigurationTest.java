@@ -53,12 +53,12 @@ public final class PolarisSyncDataConfigurationTest {
         private PolarisConfig polarisConfig;
 
         @Test
-        public void nacosSyncDataServiceTest() {
+        public void polarisSyncDataServiceTest() {
                 assertNotNull(syncDataService);
         }
 
         @Test
-        public void nacosConfigTest() {
+        public void polarisConfigTest() {
                 assertNotNull(polarisConfig);
         }
 }
