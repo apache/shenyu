@@ -20,6 +20,7 @@ package org.apache.shenyu.springboot.stater.sync.data.polaris;
 import org.apache.shenyu.springboot.starter.sync.data.polaris.PolarisSyncDataConfiguration;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.polaris.config.PolarisConfig;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,5 +61,11 @@ public final class PolarisSyncDataConfigurationTest {
     @Test
     public void polarisConfigTest() {
         assertNotNull(polarisConfig);
+    }
+
+    @Test
+    public void polarisConfigServiceTest() {
+        final PolarisSyncDataConfiguration polarisSyncDataConfiguration = new PolarisSyncDataConfiguration();
+        Assertions.assertDoesNotThrow(() -> polarisSyncDataConfiguration.polarisConfigServices(polarisConfig));
     }
 }

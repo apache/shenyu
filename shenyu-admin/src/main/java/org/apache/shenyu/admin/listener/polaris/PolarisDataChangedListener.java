@@ -58,7 +58,11 @@ public class PolarisDataChangedListener extends AbstractListDataChangedListener 
                     polarisProperties.getNamespace(),
                     polarisProperties.getFileGroup(),
                     dataId);
-            configFilePublishService.createConfigFile(metadata, GsonUtils.getInstance().toJson(data));
+            if (isReleased(dataId)) {
+                configFilePublishService.updateConfigFile(metadata, GsonUtils.getInstance().toJson(data));
+            } else {
+                configFilePublishService.createConfigFile(metadata, GsonUtils.getInstance().toJson(data));
+            }
             configFilePublishService.releaseConfigFile(metadata);
         } catch (PolarisException e) {
             LOG.error("Publish data to polaris error.", e);
@@ -71,6 +75,18 @@ public class PolarisDataChangedListener extends AbstractListDataChangedListener 
         try {
             ConfigFile configFile = configFileService.getConfigFile(polarisProperties.getNamespace(), polarisProperties.getFileGroup(), dataId);
             return configFile.hasContent() ? configFile.getContent() : PolarisPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+        } catch (PolarisException e) {
+            LOG.error("Get data from polaris error.", e);
+            throw new ShenyuException(e.getMessage());
+        }
+    }
+
+    private boolean isReleased(final String pluginDataId) {
+        try {
+            return configFileService.getConfigFile(
+                    polarisProperties.getNamespace(),
+                    polarisProperties.getFileGroup(),
+                    pluginDataId).hasContent();
         } catch (PolarisException e) {
             LOG.error("Get data from polaris error.", e);
             throw new ShenyuException(e.getMessage());
