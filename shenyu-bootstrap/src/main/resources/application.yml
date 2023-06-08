@@ -250,8 +250,9 @@ shenyu:
 #        accessKey:
 #        secretKey:
     polaris:
-      address: grpc://127.0.0.1:8093
-      namespace: default # 设置配置中心命名空间
+      url: 127.0.0.1:8093
+      namespace:
+      fileGroup:
 #    etcd:
 #      url: http://localhost:2379
 #    consul:

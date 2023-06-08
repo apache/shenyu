@@ -25,11 +25,13 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.apache.shenyu.sync.data.polaris.PolarisSyncDataService;
+import org.apache.shenyu.sync.data.polaris.config.PolarisConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,7 +43,7 @@ import java.util.List;
  */
 @Configuration
 @ConditionalOnClass(PolarisSyncDataService.class)
-@ConditionalOnProperty(prefix = "shenyu.sync.polaris", name = "address")
+@ConditionalOnProperty(prefix = "shenyu.sync.polaris", name = "url")
 public class PolarisSyncDataConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PolarisSyncDataConfiguration.class);
@@ -49,6 +51,7 @@ public class PolarisSyncDataConfiguration {
     /**
      * Polaris sync data service.
      *
+     * @param polarisConfig the polaris config
      * @param configFileServices the config service
      * @param pluginSubscriber  the plugin subscriber
      * @param metaSubscribers  the meta subscribers
@@ -57,23 +60,38 @@ public class PolarisSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService polarisSyncDataService(final ObjectProvider<ConfigFileService> configFileServices, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
-                                                  final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
+    public SyncDataService polarisSyncDataService(final PolarisConfig polarisConfig, final ObjectProvider<ConfigFileService> configFileServices,
+                                                  final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
+                                                  final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers,
+                                                  final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
                                                   final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers) {
         LOGGER.info("you use polaris sync shenyu data.......");
-        return new PolarisSyncDataService(configFileServices.getIfAvailable(), pluginSubscriber.getIfAvailable(),
+        return new PolarisSyncDataService(polarisConfig, configFileServices.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
                 proxySelectorSubscribers.getIfAvailable());
     }
 
     /**
-     * Polaris config service.
+     * Polaris configFileService.
+     *
+     * @param polarisConfig the polaris config
      *
      * @return the config service
      */
     @Bean
-    public ConfigFileService polarisConfigServices() {
+    public ConfigFileService polarisConfigServices(final PolarisConfig polarisConfig) {
         return ConfigFileServiceFactory.createConfigFileService();
+    }
+
+    /**
+     * Polaris config service.
+     *
+     * @return the config.
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu.sync.polaris")
+    public PolarisConfig polarisConfig() {
+        return new PolarisConfig();
     }
 
 }

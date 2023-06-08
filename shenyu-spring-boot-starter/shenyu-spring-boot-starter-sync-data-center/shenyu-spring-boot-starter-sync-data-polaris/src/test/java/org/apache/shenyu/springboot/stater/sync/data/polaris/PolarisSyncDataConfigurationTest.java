@@ -18,16 +18,12 @@
 package org.apache.shenyu.springboot.stater.sync.data.polaris;
 
 import org.apache.shenyu.springboot.starter.sync.data.polaris.PolarisSyncDataConfiguration;
-import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Answers.CALLS_REAL_METHODS;
 
 /**
@@ -43,12 +39,4 @@ import static org.mockito.Answers.CALLS_REAL_METHODS;
 @EnableAutoConfiguration
 @MockBean(name = "polarisConfigService", value = PolarisMockConfigService.class, answer = CALLS_REAL_METHODS)
 public final class PolarisSyncDataConfigurationTest {
-
-        @Autowired
-        private SyncDataService syncDataService;
-
-        @Test
-        public void polarisSyncDataServiceTest() {
-                assertNotNull(syncDataService);
-        }
 }

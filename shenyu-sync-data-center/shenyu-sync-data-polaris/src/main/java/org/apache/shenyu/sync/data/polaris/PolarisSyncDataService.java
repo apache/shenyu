@@ -24,6 +24,7 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.polaris.config.PolarisConfig;
 import org.apache.shenyu.sync.data.polaris.handler.PolarisCacheHandler;
 
 import java.util.List;
@@ -33,11 +34,14 @@ import java.util.List;
  */
 public class PolarisSyncDataService extends PolarisCacheHandler implements SyncDataService {
 
-    public PolarisSyncDataService(final ConfigFileService configFileService, final PluginDataSubscriber pluginDataSubscriber,
+    private final PolarisConfig polarisConfig;
+
+    public PolarisSyncDataService(final PolarisConfig polarisConfig, final ConfigFileService configFileService, final PluginDataSubscriber pluginDataSubscriber,
                                   final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers,
                                   final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
 
         super(configFileService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers);
+        this.polarisConfig = polarisConfig;
         start();
     }
 
@@ -57,7 +61,7 @@ public class PolarisSyncDataService extends PolarisCacheHandler implements SyncD
     public void close() {
         LISTENERS.forEach((dataId, lss) -> {
             lss.forEach(listener -> getConfigFileService()
-                    .getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, dataId)
+                    .getConfigFile(polarisConfig.getNamespace(), polarisConfig.getFileGroup(), dataId)
                     .removeChangeListener(listener));
             lss.clear();
         });

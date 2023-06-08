@@ -502,7 +502,14 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- apache shenyu data sync start use polaris-->
+        <!--shenyu data sync start use nacos-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-nacos</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!--shenyu data sync start use polaris-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-sync-data-polaris</artifactId>
