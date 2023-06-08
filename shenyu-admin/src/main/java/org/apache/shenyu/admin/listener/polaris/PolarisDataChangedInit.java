@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.listener.polaris;
 
 import com.tencent.polaris.api.exception.PolarisException;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
+import org.apache.shenyu.admin.config.properties.PolarisProperties;
 import org.apache.shenyu.admin.listener.AbstractDataChangedInit;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -34,14 +35,18 @@ public class PolarisDataChangedInit extends AbstractDataChangedInit {
 
     private static final Logger LOG = LoggerFactory.getLogger(PolarisDataChangedInit.class);
 
+    private final PolarisProperties polarisProperties;
+
     private final ConfigFileService configFileService;
 
     /**
      * Instantiates a new Polaris data changed init.
      *
+     * @param polarisProperties polarisProperties
      * @param configFileService the configFileService
      */
-    public PolarisDataChangedInit(final ConfigFileService configFileService) {
+    public PolarisDataChangedInit(final PolarisProperties polarisProperties, final ConfigFileService configFileService) {
+        this.polarisProperties = polarisProperties;
         this.configFileService = configFileService;
     }
 
@@ -55,8 +60,8 @@ public class PolarisDataChangedInit extends AbstractDataChangedInit {
     private boolean dataIdNotExist(final String pluginDataId) {
         try {
             return !configFileService.getConfigFile(
-                    PolarisPathConstants.NAMESPACE,
-                    PolarisPathConstants.FILE_GROUP,
+                    polarisProperties.getNamespace(),
+                    polarisProperties.getFileGroup(),
                     pluginDataId).hasContent();
         } catch (PolarisException e) {
             LOG.error("Get data from polaris error.", e);

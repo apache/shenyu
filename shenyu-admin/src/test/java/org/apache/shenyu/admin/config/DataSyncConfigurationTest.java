@@ -196,16 +196,18 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     @Test
     public void testPolarisDataChangedListener() {
         DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        PolarisProperties polarisProperties = mock(PolarisProperties.class);
         ConfigFileService polarisConfigFileService = mock(ConfigFileService.class);
         ConfigFilePublishService polarisConfigFilePublishService = mock(ConfigFilePublishService.class);
-        assertNotNull(polarisListener.polarisDataChangedListener(polarisConfigFileService, polarisConfigFilePublishService));
+        assertNotNull(polarisListener.polarisDataChangedListener(polarisProperties, polarisConfigFileService, polarisConfigFilePublishService));
     }
 
     @Test
     public void testPolarisDataInit() {
         DataSyncConfiguration.PolarisListener polarisListener = new DataSyncConfiguration.PolarisListener();
+        PolarisProperties polarisProperties = mock(PolarisProperties.class);
         ConfigFileService polarisConfigFileService = mock(ConfigFileService.class);
-        assertNotNull(polarisListener.polarisDataChangedInit(polarisConfigFileService));
+        assertNotNull(polarisListener.polarisDataChangedInit(polarisProperties, polarisConfigFileService));
     }
 
     @Test

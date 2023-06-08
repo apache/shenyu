@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.config.properties;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -28,6 +30,8 @@ public class PolarisProperties {
     private String url;
 
     private String namespace;
+
+    private String fileGroup;
 
     /**
      * Gets the value of url.
@@ -62,6 +66,24 @@ public class PolarisProperties {
      * @param namespace namespace
      */
     public void setNamespace(final String namespace) {
-        this.namespace = namespace;
+        this.namespace = StringUtils.isNotBlank(namespace) ? namespace : PolarisPathConstants.NAMESPACE;
+    }
+
+    /**
+     * Gets the value of fileGroup.
+     *
+     * @return the value of fileGroup.
+     */
+    public String getFileGroup() {
+        return fileGroup;
+    }
+
+    /**
+     * Sets the value of fileGroup.
+     *
+     * @param fileGroup fileGroup
+     */
+    public void setFileGroup(final String fileGroup) {
+        this.fileGroup = StringUtils.isNotBlank(fileGroup) ? fileGroup : PolarisPathConstants.FILE_GROUP;
     }
 }

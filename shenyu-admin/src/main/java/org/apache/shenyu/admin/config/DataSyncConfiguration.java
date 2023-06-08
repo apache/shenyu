@@ -256,8 +256,9 @@ public class DataSyncConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean(PolarisDataChangedListener.class)
-        public DataChangedListener polarisDataChangedListener(final ConfigFileService configFileService, final ConfigFilePublishService configFilePublishService) {
-            return new PolarisDataChangedListener(configFileService, configFilePublishService);
+        public DataChangedListener polarisDataChangedListener(final PolarisProperties polarisProperties, final ConfigFileService configFileService,
+                                                              final ConfigFilePublishService configFilePublishService) {
+            return new PolarisDataChangedListener(polarisProperties, configFileService, configFilePublishService);
         }
 
         /**
@@ -268,8 +269,8 @@ public class DataSyncConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean(PolarisDataChangedInit.class)
-        public DataChangedInit polarisDataChangedInit(final ConfigFileService configFileService) {
-            return new PolarisDataChangedInit(configFileService);
+        public DataChangedInit polarisDataChangedInit(final PolarisProperties polarisProperties, final ConfigFileService configFileService) {
+            return new PolarisDataChangedInit(polarisProperties, configFileService);
         }
 
     }

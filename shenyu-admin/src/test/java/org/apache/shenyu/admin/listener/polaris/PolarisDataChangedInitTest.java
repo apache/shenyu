@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.listener.polaris;
 import com.tencent.polaris.api.exception.PolarisException;
 import com.tencent.polaris.configuration.api.core.ConfigFile;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
+import org.apache.shenyu.admin.config.properties.PolarisProperties;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,13 +45,18 @@ public class PolarisDataChangedInitTest {
     private ConfigFile configFile;
 
     @Mock
+    private PolarisProperties polarisProperties;
+
+    @Mock
     private ConfigFileService polarisConfigFileService;
 
     @Test
     public void testNotExist() throws PolarisException {
-        PolarisDataChangedInit polarisDataChangedInit = new PolarisDataChangedInit(polarisConfigFileService);
+        PolarisDataChangedInit polarisDataChangedInit = new PolarisDataChangedInit(polarisProperties, polarisConfigFileService);
 
         when(configFile.hasContent()).thenReturn(true);
+        when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
+        when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
 
         when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PLUGIN_DATA_FILE_NAME)).thenReturn(configFile);
         boolean pluginExist = polarisDataChangedInit.notExist();
@@ -59,9 +65,11 @@ public class PolarisDataChangedInitTest {
 
     @Test
     public void testExist() throws PolarisException {
-        PolarisDataChangedInit polarisDataChangedInit = new PolarisDataChangedInit(polarisConfigFileService);
+        PolarisDataChangedInit polarisDataChangedInit = new PolarisDataChangedInit(polarisProperties, polarisConfigFileService);
 
         when(configFile.hasContent()).thenReturn(false);
+        when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
+        when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
 
         when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PLUGIN_DATA_FILE_NAME)).thenReturn(configFile);
         when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, AUTH_DATA_ID_FILE_NAME)).thenReturn(configFile);

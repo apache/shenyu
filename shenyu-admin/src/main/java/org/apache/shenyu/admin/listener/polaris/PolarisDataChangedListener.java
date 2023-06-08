@@ -22,6 +22,7 @@ import com.tencent.polaris.configuration.api.core.ConfigFile;
 import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.client.internal.DefaultConfigFileMetadata;
+import org.apache.shenyu.admin.config.properties.PolarisProperties;
 import org.apache.shenyu.admin.listener.AbstractListDataChangedListener;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -36,13 +37,16 @@ public class PolarisDataChangedListener extends AbstractListDataChangedListener 
 
     private static final Logger LOG = LoggerFactory.getLogger(PolarisDataChangedListener.class);
 
+    private final PolarisProperties polarisProperties;
+
     private final ConfigFileService configFileService;
 
     private final ConfigFilePublishService configFilePublishService;
 
-    public PolarisDataChangedListener(final ConfigFileService configFileService, final ConfigFilePublishService configFilePublishService) {
+    public PolarisDataChangedListener(final PolarisProperties polarisProperties, final ConfigFileService configFileService, final ConfigFilePublishService configFilePublishService) {
         super(new ChangeData(PolarisPathConstants.PLUGIN_DATA_FILE_NAME, PolarisPathConstants.SELECTOR_DATA_FILE_NAME,
                 PolarisPathConstants.RULE_DATA_FILE_NAME, PolarisPathConstants.AUTH_DATA_ID_FILE_NAME, PolarisPathConstants.META_DATA_FILE_NAME, PolarisPathConstants.PROXY_SELECTOR_FILE_NAME));
+        this.polarisProperties = polarisProperties;
         this.configFileService = configFileService;
         this.configFilePublishService = configFilePublishService;
     }
@@ -51,8 +55,8 @@ public class PolarisDataChangedListener extends AbstractListDataChangedListener 
     public void publishConfig(final String dataId, final Object data) {
         try {
             DefaultConfigFileMetadata metadata = new DefaultConfigFileMetadata(
-                    PolarisPathConstants.NAMESPACE,
-                    PolarisPathConstants.FILE_GROUP,
+                    polarisProperties.getNamespace(),
+                    polarisProperties.getFileGroup(),
                     dataId);
             configFilePublishService.createConfigFile(metadata, GsonUtils.getInstance().toJson(data));
             configFilePublishService.releaseConfigFile(metadata);
@@ -65,7 +69,7 @@ public class PolarisDataChangedListener extends AbstractListDataChangedListener 
     @Override
     public String getConfig(final String dataId) {
         try {
-            ConfigFile configFile = configFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, dataId);
+            ConfigFile configFile = configFileService.getConfigFile(polarisProperties.getNamespace(), polarisProperties.getFileGroup(), dataId);
             return configFile.hasContent() ? configFile.getContent() : PolarisPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
         } catch (PolarisException e) {
             LOG.error("Get data from polaris error.", e);

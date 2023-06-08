@@ -23,6 +23,7 @@ import com.tencent.polaris.configuration.api.core.ConfigFile;
 import com.tencent.polaris.configuration.api.core.ConfigFilePublishService;
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.client.internal.DefaultConfigFileMetadata;
+import org.apache.shenyu.admin.config.properties.PolarisProperties;
 import org.apache.shenyu.common.constant.PolarisPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -69,6 +70,9 @@ public class PolarisDataChangedListenerTest {
     private ConfigFile configFile;
 
     @Mock
+    private PolarisProperties polarisProperties;
+
+    @Mock
     private ConfigFileService polarisConfigFileService;
 
     @Mock
@@ -79,6 +83,10 @@ public class PolarisDataChangedListenerTest {
 
     @Test
     public void testOnAppAuthChanged() throws PolarisException {
+
+        when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
+        when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
+
         AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_KEY).appSecret(MOCK_APP_SECRET).build();
 
         when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PolarisPathConstants.AUTH_DATA_ID_FILE_NAME)).thenReturn(configFile);
@@ -100,6 +108,10 @@ public class PolarisDataChangedListenerTest {
 
     @Test
     public void testOnPluginChanged() throws PolarisException {
+
+        when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
+        when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
+
         PluginData pluginData = PluginData.builder().id(MOCK_ID).name(MOCK_NAME).config(MOCK_CONFIG).build();
 
         when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PolarisPathConstants.PLUGIN_DATA_FILE_NAME)).thenReturn(configFile);
@@ -121,6 +133,10 @@ public class PolarisDataChangedListenerTest {
 
     @Test
     public void testOnSelectorChanged() throws PolarisException {
+
+        when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
+        when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
+
         SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
 
         when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PolarisPathConstants.SELECTOR_DATA_FILE_NAME)).thenReturn(configFile);
@@ -142,6 +158,10 @@ public class PolarisDataChangedListenerTest {
 
     @Test
     public void testOnMetaDataChanged() throws PolarisException {
+
+        when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
+        when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
+
         MetaData metaData = MetaData.builder().id(MOCK_ID).path(MOCK_PATH).appName(MOCK_APP_NAME).build();
 
         when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PolarisPathConstants.META_DATA_FILE_NAME)).thenReturn(configFile);
@@ -163,6 +183,10 @@ public class PolarisDataChangedListenerTest {
 
     @Test
     public void testOnRuleChanged() throws PolarisException {
+
+        when(polarisProperties.getNamespace()).thenReturn(PolarisPathConstants.NAMESPACE);
+        when(polarisProperties.getFileGroup()).thenReturn(PolarisPathConstants.FILE_GROUP);
+
         RuleData ruleData = RuleData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).selectorId(MOCK_SELECTOR_ID).build();
 
         when(polarisConfigFileService.getConfigFile(PolarisPathConstants.NAMESPACE, PolarisPathConstants.FILE_GROUP, PolarisPathConstants.RULE_DATA_FILE_NAME)).thenReturn(configFile);

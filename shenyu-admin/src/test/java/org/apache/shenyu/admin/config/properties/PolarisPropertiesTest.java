@@ -30,7 +30,9 @@ public class PolarisPropertiesTest {
         final PolarisProperties polarisProperties = new PolarisProperties();
         polarisProperties.setUrl("url");
         polarisProperties.setNamespace("namespace");
+        polarisProperties.setFileGroup("fileGroup");
         Assertions.assertEquals(polarisProperties.getUrl(), "url");
         Assertions.assertEquals(polarisProperties.getNamespace(), "namespace");
+        Assertions.assertEquals(polarisProperties.getFileGroup(), "fileGroup");
     }
 }
