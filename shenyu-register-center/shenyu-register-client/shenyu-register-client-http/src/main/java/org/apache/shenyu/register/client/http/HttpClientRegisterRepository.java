@@ -92,7 +92,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
                 .expireAfterWrite(24L, TimeUnit.HOURS)
                 .build(new CacheLoader<String, String>() {
                     @Override
-                    public @Nullable String load(@NonNull String server) throws Exception {
+                    public @Nullable String load(@NonNull final String server) throws Exception {
                         try {
                             Optional<?> login = RegisterUtils.doLogin(username, password, server.concat(Constants.LOGIN_PATH));
                             return login.map(String::valueOf).orElse(null);
