@@ -72,8 +72,8 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
             return Pair.of(RpcTypeEnum.WEB_SOCKET.getName(), new MetaData());
         }
-        String rewriteURI = exchange.getAttribute(Constants.REWRITE_URI) == null ? request.getURI().getPath() :
-                exchange.getAttribute(Constants.REWRITE_URI);
+        String rewriteURI = exchange.getAttribute(Constants.REWRITE_URI) == null ? request.getURI().getPath()
+                : exchange.getAttribute(Constants.REWRITE_URI);
         MetaData metaData = MetaDataCache.getInstance().obtain(rewriteURI);
         if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
@@ -85,8 +85,8 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
 
     private ShenyuContext buildDefaultContext(final ServerWebExchange exchange) {
         ShenyuContext shenyuContext = new ShenyuContext();
-        String rewriteURI = exchange.getAttribute(Constants.REWRITE_URI) == null ? exchange.getRequest().getURI().getPath() :
-                exchange.getAttribute(Constants.REWRITE_URI);
+        String rewriteURI = exchange.getAttribute(Constants.REWRITE_URI) == null ? exchange.getRequest().getURI().getPath()
+                : exchange.getAttribute(Constants.REWRITE_URI);
         shenyuContext.setPath(rewriteURI);
         shenyuContext.setStartDateTime(LocalDateTime.now());
         Optional.ofNullable(exchange.getRequest().getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
