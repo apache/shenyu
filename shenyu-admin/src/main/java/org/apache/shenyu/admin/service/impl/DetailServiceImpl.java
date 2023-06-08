@@ -105,7 +105,7 @@ public class DetailServiceImpl implements DetailService {
     }
 
     private int update(final DetailDTO detailDTO) {
-        if (Objects.isNull(detailDTO) ||  Objects.isNull(detailDTO.getId())) {
+        if (Objects.isNull(detailDTO) || Objects.isNull(detailDTO.getId())) {
             return 0;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
