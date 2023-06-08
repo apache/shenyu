@@ -46,19 +46,19 @@ import static org.mockito.Answers.CALLS_REAL_METHODS;
 @MockBean(name = "polarisConfigService", value = PolarisMockConfigService.class, answer = CALLS_REAL_METHODS)
 public final class PolarisSyncDataConfigurationTest {
 
-        @Autowired
-        private SyncDataService syncDataService;
+    @Autowired
+    private SyncDataService syncDataService;
 
-        @Autowired
-        private PolarisConfig polarisConfig;
+    @Autowired
+    private PolarisConfig polarisConfig;
 
-        @Test
-        public void polarisSyncDataServiceTest() {
-                assertNotNull(syncDataService);
-        }
+    @Test
+    public void polarisSyncDataServiceTest() {
+        assertNotNull(syncDataService);
+    }
 
-        @Test
-        public void polarisConfigTest() {
-                assertNotNull(polarisConfig);
-        }
+    @Test
+    public void polarisConfigTest() {
+        assertNotNull(polarisConfig);
+    }
 }
