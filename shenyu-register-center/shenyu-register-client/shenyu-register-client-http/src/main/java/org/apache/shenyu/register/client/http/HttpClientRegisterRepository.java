@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.register.client.http;
 
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -31,12 +34,15 @@ import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.apache.shenyu.spi.Join;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Http client register repository.
@@ -56,7 +62,10 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
     
     private List<String> serverList;
     
-    private String accessToken;
+    /**
+     * server -> accessToken.
+     */
+    private LoadingCache<String, String> accessToken;
     
     /**
      * Instantiates a new Http client register repository.
@@ -78,7 +87,21 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         this.username = config.getProps().getProperty(Constants.USER_NAME);
         this.password = config.getProps().getProperty(Constants.PASS_WORD);
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
-        this.setAccessToken();
+        this.accessToken = Caffeine.newBuilder()
+                //see org.apache.shenyu.admin.config.properties.JwtProperties#expiredSeconds
+                .expireAfterWrite(24L, TimeUnit.HOURS)
+                .build(new CacheLoader<String, String>() {
+                    @Override
+                    public @Nullable String load(@NonNull String server) throws Exception {
+                        try {
+                            Optional<?> login = RegisterUtils.doLogin(username, password, server.concat(Constants.LOGIN_PATH));
+                            return login.map(String::valueOf).orElse(null);
+                        } catch (Exception e) {
+                            LOGGER.error("Login admin url :{} is fail, will retry. cause: {} ", server, e.getMessage());
+                            return null;
+                        }
+                    }
+                });
     }
     
     /**
@@ -127,17 +150,6 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             doRegister(apiDocRegisterDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
         }
     }
-
-    private void setAccessToken() {
-        for (String server : serverList) {
-            try {
-                Optional<?> login = RegisterUtils.doLogin(username, password, server.concat(Constants.LOGIN_PATH));
-                login.ifPresent(v -> this.accessToken = String.valueOf(v));
-            } catch (Exception e) {
-                LOGGER.error("Login admin url :{} is fail, will retry. cause: {} ", server, e.getMessage());
-            }
-        }
-    }
     
     private <T> void doRegister(final T t, final String path, final String type) {
         int i = 0;
@@ -145,11 +157,9 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
             i++;
             String concat = server.concat(path);
             try {
+                String accessToken = this.accessToken.get(server);
                 if (StringUtils.isBlank(accessToken)) {
-                    this.setAccessToken();
-                    if (StringUtils.isBlank(accessToken)) {
-                        throw new NullPointerException("accessToken is null");
-                    }
+                    throw new NullPointerException("accessToken is null");
                 }
                 RegisterUtils.doRegister(GsonUtils.getInstance().toJson(t), concat, type, accessToken);
                 // considering the situation of multiple clusters, we should continue to execute here
@@ -166,11 +176,9 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
         for (String server : serverList) {
             String concat = server.concat(Constants.OFFLINE_PATH);
             try {
+                String accessToken = this.accessToken.get(server);
                 if (StringUtils.isBlank(accessToken)) {
-                    this.setAccessToken();
-                    if (StringUtils.isBlank(accessToken)) {
-                        throw new NullPointerException("accessToken is null");
-                    }
+                    throw new NullPointerException("accessToken is null");
                 }
                 RegisterUtils.doUnregister(GsonUtils.getInstance().toJson(t), concat, accessToken);
                 // considering the situation of multiple clusters, we should continue to execute here
