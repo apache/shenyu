@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.starter.sync.data.polaris;
 
 import com.tencent.polaris.configuration.api.core.ConfigFileService;
 import com.tencent.polaris.configuration.factory.ConfigFileServiceFactory;
+import com.tencent.polaris.factory.ConfigAPIFactory;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -35,6 +36,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -80,7 +82,9 @@ public class PolarisSyncDataConfiguration {
      */
     @Bean
     public ConfigFileService polarisConfigServices(final PolarisConfig polarisConfig) {
-        return ConfigFileServiceFactory.createConfigFileService();
+        com.tencent.polaris.api.config.Configuration configuration = ConfigAPIFactory.defaultConfig();
+        configuration.getConfigFile().getServerConnector().setAddresses(Collections.singletonList(polarisConfig.getUrl()));
+        return ConfigFileServiceFactory.createConfigFileService(configuration);
     }
 
     /**
