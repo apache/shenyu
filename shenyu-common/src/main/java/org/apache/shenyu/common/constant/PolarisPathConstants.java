@@ -23,12 +23,12 @@ package org.apache.shenyu.common.constant;
 public final class PolarisPathConstants {
 
     /**
-     * Polaris config default group.
+     * Polaris config default namespace.
      */
     public static final String NAMESPACE = "default";
 
     /**
-     * Polaris data id.
+     * Polaris file group.
      */
     public static final String FILE_GROUP = "shenyu";
 
