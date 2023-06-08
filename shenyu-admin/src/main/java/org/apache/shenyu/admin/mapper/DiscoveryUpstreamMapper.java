@@ -46,7 +46,7 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     List<DiscoveryUpstreamDO> selectByIds(@Param("ids") List<String> ids);
 
     /**
-     *insert.
+     * insert.
      *
      * @param discoveryUpstreamDO discoveryUpstreamDO
      * @return rows int
