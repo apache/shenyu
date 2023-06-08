@@ -27,7 +27,6 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +53,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     public void init(final RegisterConfig config) {
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
-        this.groupName = properties.getProperty("groupName", "DEFAULT_GROUP");
+        this.groupName = properties.getProperty("groupName", "SHENYU_GROUP");
         String serverAddr = config.getServerLists();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
         nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(NAMESPACE, ""));
@@ -87,13 +86,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     }
 
     @Override
-    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
-        try {
-            namingService.subscribe(selectKey, event -> watcherListener.listener(getInstanceRegisterDTOS(selectKey)));
-        } catch (Exception e) {
-            LOGGER.error("selectInstancesAndWatcher error", e);
-        }
-
+    public List<InstanceEntity> selectInstances(final String selectKey) {
         return getInstanceRegisterDTOS(selectKey);
     }
 
@@ -117,7 +110,7 @@ public class NacosInstanceRegisterRepository implements ShenyuInstanceRegisterRe
     private InstanceEntity convertFromInstance(final Instance instance) {
         InstanceEntity instanceEntity = new InstanceEntity();
         instanceEntity.setPort(instance.getPort());
-        instanceEntity.setHost(instance.getInstanceId());
+        instanceEntity.setHost(instance.getIp());
         instanceEntity.setAppName(instance.getServiceName());
         return instanceEntity;
     }
