@@ -80,7 +80,7 @@ public final class WebFluxResultUtils {
      * @return the mono
      */
     public static Mono<Void> noSelectorResult(final String pluginName, final ServerWebExchange exchange) {
-        LOG.error("can not match selector data: {}", pluginName);
+        LOG.error("can not match selector data: {} , path is {}", pluginName, exchange.getRequest().getURI().getPath());
         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SELECTOR_NOT_FOUND.getCode(), pluginName + ":" + ShenyuResultEnum.SELECTOR_NOT_FOUND.getMsg(), null);
         return WebFluxResultUtils.result(exchange, error);
     }
@@ -93,7 +93,7 @@ public final class WebFluxResultUtils {
      * @return the mono
      */
     public static Mono<Void> noRuleResult(final String pluginName, final ServerWebExchange exchange) {
-        LOG.error("can not match rule data: {}", pluginName);
+        LOG.error("can not match rule data: {} , path is {}", pluginName, exchange.getRequest().getURI().getPath());
         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.RULE_NOT_FOUND.getCode(), pluginName + ":" + ShenyuResultEnum.RULE_NOT_FOUND.getMsg(), null);
         return WebFluxResultUtils.result(exchange, error);
     }
