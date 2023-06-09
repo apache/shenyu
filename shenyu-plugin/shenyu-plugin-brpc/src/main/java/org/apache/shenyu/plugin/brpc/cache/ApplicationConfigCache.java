@@ -174,8 +174,9 @@ public final class ApplicationConfigCache {
                         PARAM_MAP.put(methodInfo.getMethodName(), new BrpcParamInfo(paramTypes, paramNames));
                     }
                 } catch (Exception e) {
+                    e.printStackTrace();
                     LOG.error("failed to init brpc, {}", e.getMessage());
-                    throw new ShenyuBrpcPluginException(e.getCause());
+                    //throw new ShenyuBrpcPluginException(e.getCause());
                 }
             }
         });

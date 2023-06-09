@@ -22,19 +22,17 @@ package org.apache.shenyu.examples.brpc.api.entity;
  */
 public class BigObject {
 
-    public static final int MB = 1024 * 1024;
+    private String[] obj;
 
-    public static final int GB = 1024 * 1024 * 1024;
+    private Integer id;
 
-    private Byte[] obj;
 
-    /**
-     * constructor.
-     *
-     * @param obj obj
-     */
-    public BigObject(final Byte[] obj) {
-        this.obj = obj;
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
 
@@ -43,7 +41,7 @@ public class BigObject {
      *
      * @return Byte[]
      */
-    public Byte[] getObj() {
+    public String[] getObj() {
         return obj;
     }
 
@@ -52,7 +50,7 @@ public class BigObject {
      *
      * @param obj obj
      */
-    public void setObj(final Byte[] obj) {
+    public void setObj(final String[] obj) {
         this.obj = obj;
     }
 

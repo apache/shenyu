@@ -18,6 +18,7 @@
 package org.apache.shenyu.examples.brpc.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.client.brpc.common.annotation.ShenyuBrpcClient;
 import org.apache.shenyu.client.brpc.common.annotation.ShenyuBrpcService;
 import org.apache.shenyu.examples.brpc.api.entity.BigObject;
 import org.apache.shenyu.examples.brpc.api.entity.ComplexObjects;
@@ -34,13 +35,17 @@ import java.util.Optional;
 @ShenyuBrpcService
 public class BrpcTestServiceImpl implements BrpcTestService {
 
+    private static final Integer SIZE = 1024 * 1024;
+
     @Override
+    @ShenyuBrpcClient("/getArray")
     public String[] getArray(final String[] param) {
         return param;
     }
 
     @Override
-    public List<User> getUsers(final List<User> inputUsers) {
+    @ShenyuBrpcClient("/getUsersList0")
+    public List<User> getUsersList0(final List<User> inputUsers) {
         if (CollectionUtils.isNotEmpty(inputUsers)) {
             return inputUsers;
         } else {
@@ -49,7 +54,8 @@ public class BrpcTestServiceImpl implements BrpcTestService {
     }
 
     @Override
-    public List<User> getUsers(final List<User> inputUsers, final String[] param) {
+    @ShenyuBrpcClient("/getUsersList1")
+    public List<User> getUsersList1(final List<User> inputUsers, final String[] param) {
         if (CollectionUtils.isNotEmpty(inputUsers)) {
             return inputUsers;
         } else {
@@ -58,23 +64,34 @@ public class BrpcTestServiceImpl implements BrpcTestService {
     }
 
     @Override
-    public BigObject bigObject() {
-        return new BigObject(new Byte[BigObject.MB * 100]);
+    @ShenyuBrpcClient("/bigObject0")
+    public BigObject bigObject0() {
+        BigObject bigObject = new BigObject();
+        bigObject.setId(1);
+        String[] obj = new String[SIZE];
+        for (int i = 0; i < SIZE; i++) {
+            obj[i] = String.valueOf(i);
+        }
+        bigObject.setObj(obj);
+        return bigObject;
     }
 
     @Override
-    public BigObject bigObject(final BigObject bigObject) {
-        return new BigObject(new Byte[BigObject.GB]);
-    }
-
-    @Override
+    @ShenyuBrpcClient("/complexObjects")
     public ComplexObjects complexObjects(final User user) {
         User newUser = Optional.ofNullable(user).orElse(new User());
-        newUser.setUserId(100L);
+        newUser.setUserId(1L);
         newUser.setUserName("new user");
         ComplexObjects complexObjects = new ComplexObjects();
         complexObjects.setUser(user);
-        complexObjects.setBigObject(new BigObject(new Byte[BigObject.GB]));
+        BigObject bigObject = new BigObject();
+        bigObject.setId(1);
+        String[] obj = new String[SIZE];
+        for (int i = 0; i < SIZE; i++) {
+            obj[i] = String.valueOf(i);
+        }
+        bigObject.setObj(obj);
+        complexObjects.setBigObject(bigObject);
         return complexObjects;
     }
 
