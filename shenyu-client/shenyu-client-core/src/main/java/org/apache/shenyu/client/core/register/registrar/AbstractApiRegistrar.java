@@ -27,23 +27,53 @@ public abstract class AbstractApiRegistrar<D extends DataTypeParent> implements 
 
     private final ShenyuClientRegisterEventPublisher publisher;
 
-    protected AbstractApiRegistrar(ShenyuClientRegisterEventPublisher publisher) {
+    protected AbstractApiRegistrar(final ShenyuClientRegisterEventPublisher publisher) {
         this.publisher = publisher;
     }
 
-    protected abstract Boolean match(ApiBean apiBean);
-
-    protected abstract Boolean match(ApiBean.ApiDefinition apiDefinition);
-
-    protected abstract List<D> parse(ApiBean.ApiDefinition apiDefinition);
-
-    protected D preParse(ApiBean apiBean) {
-        throw new UnsupportedOperationException("If the preMatch method was implemented ,the preParse method should be implmented.");
-    }
-
-    protected Boolean preMatch(ApiBean apiBean) {
+    /**
+     * Determines whether the apiBean can be registered in advance.
+     *
+     * @param apiBean apiBean to be registered
+     * @return true or false
+     */
+    protected Boolean preMatch(final ApiBean apiBean) {
         return false;
     }
+
+    /**
+     * Parses the apiBean as a registrable object.
+     *
+     * @param apiBean apiBean to be parsed
+     * @return registrable object
+     */
+    protected D preParse(final ApiBean apiBean) {
+        throw new UnsupportedOperationException("If the preMatch method was implemented ,the preParse method should be implemented.");
+    }
+
+    /**
+     * Determines whether apiDefinitions of apiBean can be filtered.
+     *
+     * @param apiBean apiBean to be registered
+     * @return true or false
+     */
+    protected abstract Boolean match(ApiBean apiBean);
+
+    /**
+     * Determines whether the apiDefinition can be registered.
+     *
+     * @param apiDefinition apiDefinition to be registered
+     * @return true or false
+     */
+    protected abstract Boolean match(ApiBean.ApiDefinition apiDefinition);
+
+    /**
+     * Parses the apiDefinition as a registrable objects.
+     *
+     * @param apiDefinition apiDefinition to be parsed
+     * @return
+     */
+    protected abstract List<D> parse(ApiBean.ApiDefinition apiDefinition);
 
     @Override
     public void register(final ApiBean apiBean) {

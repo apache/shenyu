@@ -46,7 +46,7 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
      * ClientInfoRefreshedEventListener Bean.
      *
      * @param clientRegisterConfig clientRegisterConfig
-     * @param publisher publisher
+     * @param publisher            publisher
      * @return clientInfoRefreshedEventListener
      */
     @Bean
@@ -56,35 +56,39 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     }
 
     /**
-     * Builds ApiMetaRegistrar  Bean.
-     * @param publisher               publisher
-     * @return apiMetaRegistrar
+     * Builds ApiMetaRegistrar Bean.
+     *
+     * @param publisher            publisher
+     * @param clientRegisterConfig clientRegisterConfig
+     * @return ApiMetaRegistrar
      */
     @Bean(name = "ApiMetaRegistrar")
     @ConditionalOnProperty(value = "shenyu.register.api.meta.enabled", matchIfMissing = true, havingValue = "true")
     public AbstractApiMetaRegistrar buildApiMetaRegistrar(final ShenyuClientRegisterEventPublisher publisher,
-                                                              final ClientRegisterConfig clientRegisterConfig) {
+                                                          final ClientRegisterConfig clientRegisterConfig) {
 
-        return new SpringMvcApiMetaRegister(publisher,clientRegisterConfig);
+        return new SpringMvcApiMetaRegister(publisher, clientRegisterConfig);
     }
 
     /**
      * Builds ApiMetaRegistrar  Bean.
-     * @param publisher               publisher
-     * @return apiMetaRegistrar
+     * @param publisher publisher
+     * @param clientRegisterConfig clientRegisterConfig
+     * @return ApiMetaRegistrar
      */
     @Bean(name = "ApiMetaRegistrar")
     @ConditionalOnProperty(value = "shenyu.register.api.data.enabled", matchIfMissing = true, havingValue = "true")
     public AbstractApiDocRegistrar buildApiDocRegistrar(final ShenyuClientRegisterEventPublisher publisher,
                                                         final ClientRegisterConfig clientRegisterConfig) {
-        return new HttpApiDocRegistrar(publisher,clientRegisterConfig);
+        return new HttpApiDocRegistrar(publisher, clientRegisterConfig);
     }
 
     /**
      * ClientRegisterConfig Bean.
+     *
      * @param shenyuClientConfig shenyuClientConfig
      * @param applicationContext applicationContext
-     * @param env env
+     * @param env                env
      * @return clientRegisterConfig
      */
     @Bean
