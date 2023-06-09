@@ -56,7 +56,7 @@ class DiscoveryUpstreamServiceTest {
     void createOrUpdate() {
 
         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
-        discoveryUpstreamDTO.setDiscoveryId("1");
+        discoveryUpstreamDTO.setDiscoveryHandlerId("1");
         discoveryUpstreamDTO.setProps("test");
         discoveryUpstreamDTO.setProtocol("test");
         discoveryUpstreamDTO.setUrl("test");
