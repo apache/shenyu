@@ -22,13 +22,16 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.core.register.ClientInfoRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
+import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiDocRegistrar;
 import org.apache.shenyu.client.core.register.registrar.AbstractApiMetaRegistrar;
 import org.apache.shenyu.client.core.register.registrar.HttpApiDocRegistrar;
+import org.apache.shenyu.client.springmvc.register.SpringMvcApiBeansExtractor;
 import org.apache.shenyu.client.springmvc.register.SpringMvcApiMetaRegister;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -56,6 +59,18 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     }
 
     /**
+     * ApiBeansExtractor Bean.
+     *
+     * @param clientRegisterConfig clientRegisterConfig
+     * @return apiBeansExtractor
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ApiBeansExtractor apiBeansExtractor(final ClientRegisterConfig clientRegisterConfig) {
+        return new SpringMvcApiBeansExtractor(clientRegisterConfig.getContextPath());
+    }
+
+    /**
      * Builds ApiMetaRegistrar Bean.
      *
      * @param publisher            publisher
@@ -71,12 +86,13 @@ public class ShenyuSpringMvcClientInfoRegisterConfiguration {
     }
 
     /**
-     * Builds ApiMetaRegistrar  Bean.
-     * @param publisher publisher
+     * Builds ApiDocRegistrar  Bean.
+     *
+     * @param publisher            publisher
      * @param clientRegisterConfig clientRegisterConfig
-     * @return ApiMetaRegistrar
+     * @return ApiDocRegistrar
      */
-    @Bean(name = "ApiMetaRegistrar")
+    @Bean(name = "ApiDocRegistrar")
     @ConditionalOnProperty(value = "shenyu.register.api.data.enabled", matchIfMissing = true, havingValue = "true")
     public AbstractApiDocRegistrar buildApiDocRegistrar(final ShenyuClientRegisterEventPublisher publisher,
                                                         final ClientRegisterConfig clientRegisterConfig) {
