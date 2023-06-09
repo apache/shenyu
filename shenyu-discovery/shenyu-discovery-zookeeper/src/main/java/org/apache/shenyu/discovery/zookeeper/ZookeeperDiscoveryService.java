@@ -94,7 +94,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
 
     private boolean isExist(final String key) {
         try {
-            return null != client.checkExists().forPath(key);
+            return Objects.nonNull(client.checkExists().forPath(key));
         } catch (Exception e) {
             throw new ShenyuException(e);
         }
@@ -115,7 +115,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
             this.client.getData().usingWatcher(new CuratorWatcher() {
                 @Override
                 public void process(final WatchedEvent watchedEvent) throws Exception {
-                    if (listener != null) {
+                    if (Objects.nonNull(listener)) {
                         String path = Objects.isNull(watchedEvent.getPath()) ? "" : watchedEvent.getPath();
                         if (StringUtils.isNoneBlank(path)) {
                             client.getData().usingWatcher(this).forPath(path);

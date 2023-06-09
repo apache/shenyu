@@ -22,6 +22,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.TagDO;
@@ -75,7 +76,7 @@ public final class TagMapperTest extends AbstractSpringIntegrationTest {
         int count = tagMapper.insertSelective(record);
         assertThat(count, greaterThan(0));
         TagDO tagDO = tagMapper.selectByPrimaryKey(record.getId());
-        assertThat(tagDO != null, equalTo(true));
+        assertThat(Objects.nonNull(tagDO), equalTo(true));
         int delete = tagMapper.deleteByPrimaryKey(record.getId());
         assertEquals(delete, 1);
     }
