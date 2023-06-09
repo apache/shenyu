@@ -71,7 +71,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
     /**
      * DiscoveryUpstreamDO.
      *
-     * @param discoveryHandlerId discoveryHandlerId
+     * @param discoveryHandlerId  discoveryHandlerId
      * @param protocol    protocol
      * @param url         url
      * @param status      status
