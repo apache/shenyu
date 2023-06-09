@@ -44,6 +44,7 @@
         <module>shenyu-integrated-test-sdk-apache-dubbo</module>
         <module>shenyu-integrated-test-sdk-alibaba-dubbo</module>
         <module>shenyu-integrated-test-sdk-http</module>
+        <module>shenyu-integrated-test-upload-plugin</module>
     </modules>
 
     <properties>

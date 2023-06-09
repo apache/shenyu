@@ -141,7 +141,7 @@ public class EtcdClient {
         return keyValues.stream()
                 .map(e -> getSubNodeKeyName(prefix, e.getKey().toString(UTF_8), separator))
                 .distinct()
-                .filter(e -> Objects.nonNull(e))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -159,7 +159,7 @@ public class EtcdClient {
                 .filter(e -> e.getKey().contains(prefix))
                 .map(e -> getSubNodeKeyName(prefix, e.getKey(), separator))
                 .distinct()
-                .filter(e -> Objects.nonNull(e))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 

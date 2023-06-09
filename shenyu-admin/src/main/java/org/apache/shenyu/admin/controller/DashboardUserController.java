@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
@@ -184,7 +185,11 @@ public class DashboardUserController {
      */
     @GetMapping("check/password")
     public AdminResult<Boolean> checkUserPassword() {
-        return ResultUtil.ok(dashboardUserService.checkUserPassword(SessionUtil.visitor().getUserId()));
+        try {
+            return ResultUtil.ok(dashboardUserService.checkUserPassword(SessionUtil.visitor().getUserId()));            
+        } catch (ValidFailException exception) {
+            return ResultUtil.error(exception.getMessage());
+        }
     }
     
     /**
