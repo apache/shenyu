@@ -27,6 +27,6 @@ public class SpringMvcPreApiMetaBeanMatcher implements Matcher<ApiBean> {
     @Override
     public boolean match(final ApiBean element) {
         ShenyuSpringMvcClient annotation = element.getAnnotation(ShenyuSpringMvcClient.class);
-        return Objects.nonNull(annotation) && annotation.path().endsWith("/**");//todo
+        return Objects.nonNull(annotation) && annotation.path().endsWith("/**");
     }
 }

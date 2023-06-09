@@ -82,19 +82,19 @@ public class IngressReconciler implements Reconciler {
     /**
      * IngressReconciler Constructor.
      *
-     * @param ingressInformer ingressInformer
-     * @param secretInformer secretInformer
+     * @param ingressInformer       ingressInformer
+     * @param secretInformer        secretInformer
      * @param shenyuCacheRepository shenyuCacheRepository
      * @param shenyuSniAsyncMapping shenyuSniAsyncMapping
-     * @param ingressParser ingressParser
-     * @param apiClient apiClient
+     * @param ingressParser         ingressParser
+     * @param apiClient             apiClient
      */
     public IngressReconciler(final SharedIndexInformer<V1Ingress> ingressInformer,
-                             final SharedIndexInformer<V1Secret> secretInformer,
-                             final ShenyuCacheRepository shenyuCacheRepository,
-                             final ShenyuSniAsyncMapping shenyuSniAsyncMapping,
-                             final IngressParser ingressParser,
-                             final ApiClient apiClient) {
+        final SharedIndexInformer<V1Secret> secretInformer,
+        final ShenyuCacheRepository shenyuCacheRepository,
+        final ShenyuSniAsyncMapping shenyuSniAsyncMapping,
+        final IngressParser ingressParser,
+        final ApiClient apiClient) {
         this.ingressLister = new Lister<>(ingressInformer.getIndexer());
         this.secretLister = new Lister<>(secretInformer.getIndexer());
         this.shenyuCacheRepository = shenyuCacheRepository;
@@ -198,53 +198,53 @@ public class IngressReconciler implements Reconciler {
     private void initPlugins(final ShenyuCacheRepository shenyuCacheRepository) {
         //GLOBAL
         PluginData globalPlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.GLOBAL.getCode()))
-                .name(PluginEnum.GLOBAL.getName())
-                .config("")
-                .role(PluginRoleEnum.SYS.getName())
-                .enabled(true)
-                .sort(PluginEnum.GLOBAL.getCode())
-                .build();
+            .id(String.valueOf(PluginEnum.GLOBAL.getCode()))
+            .name(PluginEnum.GLOBAL.getName())
+            .config("")
+            .role(PluginRoleEnum.SYS.getName())
+            .enabled(true)
+            .sort(PluginEnum.GLOBAL.getCode())
+            .build();
         shenyuCacheRepository.saveOrUpdatePluginData(globalPlugin);
         //uri
         PluginData uriPlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.URI.getCode()))
-                .name(PluginEnum.URI.getName())
-                .config("")
-                .role(PluginRoleEnum.SYS.getName())
-                .enabled(true)
-                .sort(PluginEnum.URI.getCode())
-                .build();
+            .id(String.valueOf(PluginEnum.URI.getCode()))
+            .name(PluginEnum.URI.getName())
+            .config("")
+            .role(PluginRoleEnum.SYS.getName())
+            .enabled(true)
+            .sort(PluginEnum.URI.getCode())
+            .build();
         shenyuCacheRepository.saveOrUpdatePluginData(uriPlugin);
         //nettyHttpClient
         PluginData webclientPlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.NETTY_HTTP_CLIENT.getCode()))
-                .config("")
-                .name(PluginEnum.NETTY_HTTP_CLIENT.getName())
-                .role(PluginRoleEnum.SYS.getName())
-                .enabled(true)
-                .sort(PluginEnum.NETTY_HTTP_CLIENT.getCode())
-                .build();
+            .id(String.valueOf(PluginEnum.NETTY_HTTP_CLIENT.getCode()))
+            .config("")
+            .name(PluginEnum.NETTY_HTTP_CLIENT.getName())
+            .role(PluginRoleEnum.SYS.getName())
+            .enabled(true)
+            .sort(PluginEnum.NETTY_HTTP_CLIENT.getCode())
+            .build();
         shenyuCacheRepository.saveOrUpdatePluginData(webclientPlugin);
         //divide
         PluginData dividePlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.DIVIDE.getCode()))
-                .name(PluginEnum.DIVIDE.getName())
-                .config("{multiSelectorHandle: 1, multiRuleHandle:0}")
-                .role(PluginRoleEnum.SYS.getName())
-                .enabled(true)
-                .sort(PluginEnum.DIVIDE.getCode())
-                .build();
+            .id(String.valueOf(PluginEnum.DIVIDE.getCode()))
+            .name(PluginEnum.DIVIDE.getName())
+            .config("{multiSelectorHandle: 1, multiRuleHandle:0}")
+            .role(PluginRoleEnum.SYS.getName())
+            .enabled(true)
+            .sort(PluginEnum.DIVIDE.getCode())
+            .build();
         shenyuCacheRepository.saveOrUpdatePluginData(dividePlugin);
         //GeneralContextPlugin
         PluginData generalContextPlugin = PluginData.builder()
-                .id(String.valueOf(PluginEnum.GENERAL_CONTEXT.getCode()))
-                .config("")
-                .name(PluginEnum.GENERAL_CONTEXT.getName())
-                .role(PluginRoleEnum.SYS.getName())
-                .enabled(true)
-                .sort(PluginEnum.GENERAL_CONTEXT.getCode())
-                .build();
+            .id(String.valueOf(PluginEnum.GENERAL_CONTEXT.getCode()))
+            .config("")
+            .name(PluginEnum.GENERAL_CONTEXT.getName())
+            .role(PluginRoleEnum.SYS.getName())
+            .enabled(true)
+            .sort(PluginEnum.GENERAL_CONTEXT.getCode())
+            .build();
         shenyuCacheRepository.saveOrUpdatePluginData(generalContextPlugin);
     }
 
@@ -258,17 +258,18 @@ public class IngressReconciler implements Reconciler {
         if (Objects.nonNull(v1Ingress.getMetadata())) {
             Map<String, String> annotations = v1Ingress.getMetadata().getAnnotations();
             if (Objects.nonNull(annotations)
-                    &&  Objects.nonNull(annotations.get(IngressConstants.K8S_INGRESS_CLASS_ANNOTATION_KEY))) {
+                && Objects.nonNull(annotations.get(IngressConstants.K8S_INGRESS_CLASS_ANNOTATION_KEY))) {
                 return IngressConstants.SHENYU_INGRESS_CLASS.equals(annotations.get(IngressConstants.K8S_INGRESS_CLASS_ANNOTATION_KEY));
             } else {
-                return  Objects.nonNull(v1Ingress.getSpec()) && IngressConstants.SHENYU_INGRESS_CLASS.equals(v1Ingress.getSpec().getIngressClassName());
+                return Objects.nonNull(v1Ingress.getSpec()) && IngressConstants.SHENYU_INGRESS_CLASS.equals(v1Ingress.getSpec().getIngressClassName());
             }
         } else {
             return false;
         }
     }
 
-    private List<String> deleteSelectorByIngressName(final String namespace, final String name, final String pluginName) {
+    private List<String> deleteSelectorByIngressName(final String namespace, final String name,
+        final String pluginName) {
         final List<String> selectorList = IngressSelectorCache.getInstance().get(namespace, name, pluginName);
         if (Objects.nonNull(selectorList) && !selectorList.isEmpty()) {
             for (String selectorId : selectorList) {
@@ -312,15 +313,15 @@ public class IngressReconciler implements Reconciler {
             return res;
         }
         for (V1IngressRule rule : ingress.getSpec().getRules()) {
-            if (Objects.nonNull(rule.getHttp()) &&  Objects.nonNull(rule.getHttp().getPaths())) {
+            if (Objects.nonNull(rule.getHttp()) && Objects.nonNull(rule.getHttp().getPaths())) {
                 for (V1HTTPIngressPath path : rule.getHttp().getPaths()) {
-                    if ( Objects.nonNull(path.getBackend()) &&  Objects.nonNull(path.getBackend().getService())) {
+                    if (Objects.nonNull(path.getBackend()) && Objects.nonNull(path.getBackend().getService())) {
                         if (!deduplicateSet.contains(path.getBackend().getService().getName())) {
                             res.add(Pair.of(namespace, path.getBackend().getService().getName()));
                             deduplicateSet.add(path.getBackend().getService().getName());
                         }
                     } else {
-                        if ( Objects.nonNull(defaultService) && !deduplicateSet.contains(defaultService)) {
+                        if (Objects.nonNull(defaultService) && !deduplicateSet.contains(defaultService)) {
                             res.add(Pair.of(namespace, defaultService));
                             deduplicateSet.add(defaultService);
                         }
@@ -356,7 +357,7 @@ public class IngressReconciler implements Reconciler {
                             ruleData.setSort(100);
                             shenyuCacheRepository.saveOrUpdateRuleData(ruleData);
                             IngressSelectorCache.getInstance().put(Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
-                                    v1Ingress.getMetadata().getName(), PluginEnum.DIVIDE.getName(), selectorData.getId());
+                                v1Ingress.getMetadata().getName(), PluginEnum.DIVIDE.getName(), selectorData.getId());
                         } else {
                             shenyuCacheRepository.deleteSelectorData(selectorData.getPluginName(), selectorData.getId());
                         }
@@ -372,7 +373,7 @@ public class IngressReconciler implements Reconciler {
                         shenyuCacheRepository.saveOrUpdateRuleData(shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getRight());
                         globalDefaultBackend = shenyuMemoryConfig.getGlobalDefaultBackend();
                         IngressSelectorCache.getInstance().put(Objects.requireNonNull(v1Ingress.getMetadata()).getNamespace(),
-                                v1Ingress.getMetadata().getName(), PluginEnum.DIVIDE.getName(), shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getLeft().getId());
+                            v1Ingress.getMetadata().getName(), PluginEnum.DIVIDE.getName(), shenyuMemoryConfig.getGlobalDefaultBackend().getRight().getLeft().getId());
                     }
                 }
             }
