@@ -49,7 +49,7 @@ public class MapUtils {
      */
     public static <K, V> V computeIfAbsent(final Map<K, V> map, final K key, final Function<? super K, ? extends V> mappingFunction) {
         V v = map.get(key);
-        if (v != null) {
+        if (Objects.nonNull(v)) {
             return v;
         }
         return map.computeIfAbsent(key, mappingFunction);

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.DetailMapper;
@@ -62,7 +63,7 @@ public class DetailServiceImpl implements DetailService {
     public DetailVO findById(final String id) {
         DetailDO detailDO = detailMapper.selectByPrimaryKey(id);
         DetailVO.DetailVOBuilder builder = DetailVO.builder();
-        if (detailDO != null) {
+        if (Objects.nonNull(detailDO)) {
             builder.id(detailDO.getId())
                     .example(detailDO.getExample())
                     .valueDesc(detailDO.getValueDesc())
@@ -84,7 +85,7 @@ public class DetailServiceImpl implements DetailService {
     }
 
     private int create(final DetailDTO detailDTO) {
-        if (detailDTO == null) {
+        if (Objects.isNull(detailDTO)) {
             return 0;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
@@ -104,7 +105,7 @@ public class DetailServiceImpl implements DetailService {
     }
 
     private int update(final DetailDTO detailDTO) {
-        if (detailDTO == null || detailDTO.getId() == null) {
+        if (Objects.isNull(detailDTO) || Objects.isNull(detailDTO.getId())) {
             return 0;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
