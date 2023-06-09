@@ -55,7 +55,7 @@ class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
 
         List<DiscoveryUpstreamDO> dos = discoveryUpstreamMapper.selectByIds(Arrays.asList(discoveryUpstreamDO.getId()));
         assertEquals(1, dos.size());
-        assertEquals("1", dos.get(0).getDiscoveryId());
+        assertEquals("1", dos.get(0).getDiscoveryHandlerId());
     }
 
     void insert() {
@@ -67,10 +67,10 @@ class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
     @Test
     void update() {
 
-        discoveryUpstreamDO.setDiscoveryId("2");
+        discoveryUpstreamDO.setDiscoveryHandlerId("2");
         discoveryUpstreamMapper.update(discoveryUpstreamDO);
         List<DiscoveryUpstreamDO> dos = discoveryUpstreamMapper.selectByIds(Arrays.asList(discoveryUpstreamDO.getId()));
-        assertEquals("2", dos.get(0).getDiscoveryId());
+        assertEquals("2", dos.get(0).getDiscoveryHandlerId());
     }
 
     @Test
@@ -85,7 +85,7 @@ class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
 
         DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
         discoveryUpstreamDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        discoveryUpstreamDO.setDiscoveryId("1");
+        discoveryUpstreamDO.setDiscoveryHandlerId("1");
         discoveryUpstreamDO.setStatus(1);
         discoveryUpstreamDO.setWeight(1);
         discoveryUpstreamDO.setProps("test");
