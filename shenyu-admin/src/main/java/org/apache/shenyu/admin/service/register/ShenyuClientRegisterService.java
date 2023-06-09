@@ -63,6 +63,17 @@ public interface ShenyuClientRegisterService {
     }
     
     /**
+     * offline.
+     *
+     * @param selectorName the selector name
+     * @param uriList the uri list
+     * @return the string
+     */
+    default String offline(final String selectorName, final List<URIRegisterDTO> uriList) {
+        return Constants.SUCCESS;
+    }
+    
+    /**
      * Register context path.
      *
      * @param metaDataRegisterDTO the meta data register dto

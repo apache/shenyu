@@ -34,6 +34,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -98,6 +99,7 @@ public class MotanServiceEventListener extends AbstractContextRefreshedEventList
                 .contextPath(this.getContextPath())
                 .appName(this.getAppName())
                 .rpcType(RpcTypeEnum.MOTAN.getName())
+                .eventType(EventType.REGISTER)
                 .host(this.getHost())
                 .port(Integer.parseInt(this.getPort()))
                 .build();

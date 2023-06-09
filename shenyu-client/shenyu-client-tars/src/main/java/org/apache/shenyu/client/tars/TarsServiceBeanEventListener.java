@@ -33,6 +33,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
@@ -104,6 +105,7 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
                 .contextPath(this.contextPath)
                 .appName(this.ipAndPort)
                 .rpcType(RpcTypeEnum.TARS.getName())
+                .eventType(EventType.REGISTER)
                 .host(this.getHost())
                 .port(Integer.parseInt(this.getPort()))
                 .build();

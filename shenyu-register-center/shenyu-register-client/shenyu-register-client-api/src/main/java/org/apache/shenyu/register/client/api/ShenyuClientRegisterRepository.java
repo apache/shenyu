@@ -53,6 +53,14 @@ public interface ShenyuClientRegisterRepository {
     }
 
     /**
+     * Node active offline when shutdown.
+     *
+     * @param offlineDTO the offline dto
+     */
+    default void offline(URIRegisterDTO offlineDTO) {
+    }
+
+    /**
      * persistApiDoc.
      * @param apiDocRegisterDTO apiDocRegisterDTO
      */

@@ -577,6 +577,10 @@ public interface Constants {
      */
     String URI_PATH = "/shenyu-client/register-uri";
     
+    /**
+     * When register by http, the offline path.
+     */
+    String OFFLINE_PATH = "/shenyu-client/offline";
     
     /**
      * The constant API_DOC_TYPE.
