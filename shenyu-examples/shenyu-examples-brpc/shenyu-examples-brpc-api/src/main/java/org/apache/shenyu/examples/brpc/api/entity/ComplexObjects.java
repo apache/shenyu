@@ -18,28 +18,47 @@
 package org.apache.shenyu.examples.brpc.api.entity;
 
 /**
- * @author zhengpeng
- * @date 2023/6/9 09:45
- **/
+ * ComplexObjects.
+ */
 public class ComplexObjects {
 
     private BigObject bigObject;
 
     private User user;
 
+    /**
+     * getBigObject.
+     *
+     * @return BigObject
+     */
     public BigObject getBigObject() {
         return bigObject;
     }
 
-    public void setBigObject(BigObject bigObject) {
+    /**
+     * setBigObject.
+     *
+     * @param bigObject big object
+     */
+    public void setBigObject(final BigObject bigObject) {
         this.bigObject = bigObject;
     }
 
+    /**
+     * getUser.
+     *
+     * @return User
+     */
     public User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    /**
+     * setUser.
+     *
+     * @param user User
+     */
+    public void setUser(final User user) {
         this.user = user;
     }
 }

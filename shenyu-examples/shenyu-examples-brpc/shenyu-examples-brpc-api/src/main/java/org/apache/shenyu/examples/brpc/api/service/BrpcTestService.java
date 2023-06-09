@@ -28,6 +28,7 @@ public interface BrpcTestService {
 
     /**
      * get array.
+     *
      * @param param param
      * @return array
      */
@@ -35,6 +36,7 @@ public interface BrpcTestService {
 
     /**
      * get users.
+     *
      * @param inputUsers input users
      * @return users
      */
@@ -42,30 +44,34 @@ public interface BrpcTestService {
 
     /**
      * get users.
+     *
      * @param inputUsers input users
-     * @param param param
+     * @param param      param
      * @return users
      */
-    List<User> getUsers(List<User> inputUsers,String[] param);
+    List<User> getUsers(List<User> inputUsers, String[] param);
 
     /**
      * big objects.
+     *
      * @return big objects
      */
     BigObject bigObject();
 
     /**
      * big objects.
-     * @param user user
-     * @return big objects
-     */
-    ComplexObjects complexObjects(User user);
-
-    /**
-     * big objects.
+     *
      * @param bigObject big objects
      * @return big objects
      */
     BigObject bigObject(BigObject bigObject);
+
+    /**
+     * big objects.
+     *
+     * @param user user
+     * @return big objects
+     */
+    ComplexObjects complexObjects(User user);
 
 }

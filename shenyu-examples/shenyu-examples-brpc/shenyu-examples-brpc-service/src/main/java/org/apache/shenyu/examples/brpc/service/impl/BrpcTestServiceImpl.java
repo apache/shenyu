@@ -23,8 +23,6 @@ import org.apache.shenyu.examples.brpc.api.entity.BigObject;
 import org.apache.shenyu.examples.brpc.api.entity.ComplexObjects;
 import org.apache.shenyu.examples.brpc.api.entity.User;
 import org.apache.shenyu.examples.brpc.api.service.BrpcTestService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,24 +35,24 @@ import java.util.Optional;
 public class BrpcTestServiceImpl implements BrpcTestService {
 
     @Override
-    public String[] getArray(String[] param) {
+    public String[] getArray(final String[] param) {
         return param;
     }
 
     @Override
-    public List<User> getUsers(List<User> inputUsers) {
-        if(CollectionUtils.isNotEmpty(inputUsers)){
+    public List<User> getUsers(final List<User> inputUsers) {
+        if (CollectionUtils.isNotEmpty(inputUsers)) {
             return inputUsers;
-        }else {
+        } else {
             return Collections.emptyList();
         }
     }
 
     @Override
-    public List<User> getUsers(List<User> inputUsers, String[] param) {
-        if(CollectionUtils.isNotEmpty(inputUsers)){
+    public List<User> getUsers(final List<User> inputUsers, final String[] param) {
+        if (CollectionUtils.isNotEmpty(inputUsers)) {
             return inputUsers;
-        }else {
+        } else {
             return Collections.emptyList();
         }
     }
@@ -65,7 +63,12 @@ public class BrpcTestServiceImpl implements BrpcTestService {
     }
 
     @Override
-    public ComplexObjects complexObjects(User user) {
+    public BigObject bigObject(final BigObject bigObject) {
+        return new BigObject(new Byte[BigObject.GB]);
+    }
+
+    @Override
+    public ComplexObjects complexObjects(final User user) {
         User newUser = Optional.ofNullable(user).orElse(new User());
         newUser.setUserId(100L);
         newUser.setUserName("new user");
@@ -75,8 +78,4 @@ public class BrpcTestServiceImpl implements BrpcTestService {
         return complexObjects;
     }
 
-    @Override
-    public BigObject bigObject(BigObject bigObject) {
-        return new BigObject(new Byte[BigObject.GB]);
-    }
 }
