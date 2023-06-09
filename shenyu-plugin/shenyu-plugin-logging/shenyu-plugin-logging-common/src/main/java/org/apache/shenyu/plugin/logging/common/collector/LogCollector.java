@@ -18,11 +18,12 @@
 package org.apache.shenyu.plugin.logging.common.collector;
 
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
+import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 
 /**
  * Collect logs and put into buffer queue.
  */
-public interface LogCollector extends AutoCloseable {
+public interface LogCollector<L extends ShenyuRequestLog> extends AutoCloseable {
 
     /**
      * start log collector.
@@ -30,9 +31,18 @@ public interface LogCollector extends AutoCloseable {
     void start();
 
     /**
+     * desensitize log.
+     *
+     * @param log log
+     * @param keyWordMatch keyWordMatch
+     * @param desensitizeAlg data desensitize algorithm
+     */
+    void desensitize(L log, KeyWordMatch keyWordMatch, String desensitizeAlg);
+
+    /**
      * collect log.
      *
      * @param log access log
      */
-    void collect(ShenyuRequestLog log);
+    void collect(L log);
 }

@@ -58,7 +58,7 @@ public class WebSocketPluginDataHandlerTest {
         selectorData.setId("1");
         ruleData.setSelectorId("1");
         ruleData.setHandle("{\"urlPath\":\"test\"}");
-        ruleData.setName("test");
+        ruleData.setId("test");
     }
 
     @Test

@@ -26,6 +26,7 @@
         <result column="config" jdbcType="VARCHAR" property="config"/>
         <result column="role" jdbcType="VARCHAR" property="role"/>
         <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="plugin_jar" property="pluginJar"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
@@ -37,6 +38,7 @@
         config,
         role,
         sort,
+        plugin_jar,
         enabled
     </sql>
 
@@ -154,7 +156,7 @@
         from plugin p
                  left join plugin_handle ph on p.id = ph.plugin_id
                  left join selector s on p.id = s.plugin_id
-        where p.enabled = true
+        where p.enabled = 1
         <if test="userId != null">
             and p.name in (
                 select r.name
@@ -234,7 +236,8 @@
                     config,
                     role,
                     sort,
-                    enabled)
+                    enabled,
+                    plugin_jar)
              VALUES (#{id, jdbcType=VARCHAR},
                     #{dateCreated, jdbcType=TIMESTAMP},
                     #{dateUpdated, jdbcType=TIMESTAMP},
@@ -242,7 +245,8 @@
                     #{config, jdbcType=VARCHAR},
                     #{role, jdbcType=VARCHAR},
                     #{sort, jdbcType=INTEGER},
-                    #{enabled, jdbcType=TINYINT})
+                    #{enabled, jdbcType=TINYINT},
+                    #{pluginJar, jdbcType=BLOB})
     </insert>
 
     <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
@@ -270,6 +274,9 @@
             <if test="enabled != null">
                 enabled,
             </if>
+            <if test="pluginJar != null">
+                plugin_jar,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id, jdbcType=VARCHAR},
@@ -293,6 +300,9 @@
             </if>
             <if test="enabled != null">
                 #{enabled, jdbcType=TINYINT},
+            </if>
+            <if test="pluginJar != null">
+                #{pluginJar, jdbcType=BLOB},
             </if>
         </trim>
     </insert>

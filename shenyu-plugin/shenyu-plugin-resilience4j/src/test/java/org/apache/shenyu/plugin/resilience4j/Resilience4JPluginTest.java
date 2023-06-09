@@ -133,7 +133,7 @@ public final class Resilience4JPluginTest {
         when(data.getHandle()).thenReturn(HANDLER);
         when(chain.execute(exchange)).thenReturn(mono);
         when(data.getSelectorId()).thenReturn("circuitBreaker");
-        when(data.getName()).thenReturn("ruleData");
+        when(data.getId()).thenReturn("ruleData");
         Resilience4JHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(data), resilience4JHandle);
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(resilience4JPlugin.doExecute(exchange, chain, selectorData, data))

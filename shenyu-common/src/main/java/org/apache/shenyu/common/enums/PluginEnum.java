@@ -26,17 +26,20 @@ import java.util.stream.Collectors;
  * PluginEnum.
  */
 public enum PluginEnum {
-    
+
+    /**
+     * Global plugin enum.
+     */
+    GLOBAL(-1, 0, "global"),
+    /**
+     * Tcp plugin enum.
+     */
+    TCP(0, 0, "tcp"),
     /**
      * Mqtt plugin enum.
      */
     MQTT(0, 0, "mqtt"),
-    
-    /**
-     * Global plugin enum.
-     */
-    GLOBAL(5, 0, "global"),
-    
+
     /**
      * the mock plugin enum.
      */
@@ -66,7 +69,12 @@ public enum PluginEnum {
      * OAuth2 plugin enum.
      */
     OAUTH2(40, 0, "oauth2"),
-    
+
+    /**
+     * Casdoor plugin enum.
+     */
+    CASDOOR(40, 0, "casdoor"),
+
     /**
      * Waf plugin enum.
      */
@@ -106,6 +114,8 @@ public enum PluginEnum {
      * Request plugin enum.
      */
     REQUEST(120, 0, "request"),
+
+
     
     /**
      * GeneralContext plugin enum.
@@ -143,14 +153,29 @@ public enum PluginEnum {
     LOGGING_ALIYUN_SLS(175, 0, "loggingAliyunSls"),
 
     /**
+     * Logging Tencent cls enums.
+     */
+    LOGGING_TENCENT_CLS(176, 0, "loggingTencentCls"),
+
+    /**
      * Logging Kafka plugin enum.
      */
     LOGGING_KAFKA(180, 0, "loggingKafka"),
 
     /**
+     * Logging Pulsar plugin enum.
+     */
+    LOGGING_PULSAR(185, 0, "loggingPulsar"),
+
+    /**
      * Logging ElasticSearch plugin enum.
      */
     LOGGING_ELASTIC_SEARCH(190, 0, "loggingElasticSearch"),
+
+    /**
+     * Logging ClickHouse plugin enum.
+     */
+    LOGGING_CLICK_HOUSE(195, 0, "loggingClickHouse"),
     
     /**
      * Divide plugin enum.
@@ -218,6 +243,11 @@ public enum PluginEnum {
     MOTAN(310, 0, "motan"),
 
     /**
+     * Motan plugin enum.
+     */
+    BRPC(310, 0, "brpc"),
+
+    /**
      * Cryptor response plugin enum.
      */
     CRYPTOR_RESPONSE(410, 0, "cryptorResponse"),
@@ -225,7 +255,12 @@ public enum PluginEnum {
     /**
      * Response plugin enum.
      */
-    RESPONSE(420, 0, "response");
+    RESPONSE(420, 0, "response"),
+
+    /**
+     * Key-auth plugin enum.
+     */
+    KEY_AUTH(430, 0, "keyAuth");
     
     /**
      * When the application starts, the plugin is cached and we can obtained by name.

@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.bean;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -74,14 +75,8 @@ public class DocItem {
      */
     public boolean isUploadRequest() {
         boolean upload = false;
-        if (requestParameters != null) {
-            for (DocParameter requestParameter : requestParameters) {
-                String type = requestParameter.getType();
-                if ("file".equalsIgnoreCase(type)) {
-                    upload = true;
-                    break;
-                }
-            }
+        if (Objects.nonNull(requestParameters)) {
+            upload = requestParameters.stream().map(DocParameter::getType).anyMatch("file"::equalsIgnoreCase);
         }
         return multiple || upload;
     }
@@ -268,6 +263,7 @@ public class DocItem {
 
     /**
      * getRequestHeaders.
+     *
      * @return request headers
      */
     public List<DocParameter> getRequestHeaders() {

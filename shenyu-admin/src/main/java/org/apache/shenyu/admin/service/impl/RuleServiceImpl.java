@@ -43,7 +43,8 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
-import org.apache.shenyu.admin.utils.ListUtil;
+import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -53,6 +54,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +63,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.apache.shenyu.admin.utils.ListUtil.map;
+import static org.apache.shenyu.common.utils.ListUtil.map;
 
 /**
  * Implementation of the {@link org.apache.shenyu.admin.service.RuleService}.
@@ -89,6 +91,13 @@ public class RuleServiceImpl implements RuleService {
         this.selectorMapper = selectorMapper;
         this.pluginMapper = pluginMapper;
         this.ruleEventPublisher = ruleEventPublisher;
+    }
+    
+    @Override
+    public void doConditionPreProcessing(final RuleQueryCondition condition) {
+        if (SessionUtil.isAdmin()) {
+            condition.setUserId(null);
+        }
     }
     
     @Override
@@ -144,11 +153,35 @@ public class RuleServiceImpl implements RuleService {
         Assert.notNull(before, "the updated rule is not found");
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
+
+        // need old data for cleaning
+        List<RuleConditionDO> beforeRuleCondition = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
+        List<RuleConditionDTO> beforeCondition = beforeRuleCondition.stream().map(ruleConditionDO ->
+                RuleConditionDTO.builder()
+                        .ruleId(ruleConditionDO.getRuleId())
+                        .operator(ruleConditionDO.getOperator())
+                        .paramName(ruleConditionDO.getParamName())
+                        .paramType(ruleConditionDO.getParamType())
+                        .paramValue(ruleConditionDO.getParamValue())
+                        .build()).collect(Collectors.toList());
+        List<RuleConditionDTO> currentCondition = ruleDTO.getRuleConditions().stream().map(ruleConditionDTO ->
+                RuleConditionDTO.builder()
+                        .ruleId(ruleConditionDTO.getRuleId())
+                        .operator(ruleConditionDTO.getOperator())
+                        .paramName(ruleConditionDTO.getParamName())
+                        .paramType(ruleConditionDTO.getParamType())
+                        .paramValue(ruleConditionDTO.getParamValue())
+                        .build()).collect(Collectors.toList());
+        if (CollectionUtils.isEqualCollection(beforeCondition, currentCondition)) {
+            beforeRuleCondition = Collections.emptyList();
+        }
         //delete rule condition then add
         ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
+
+        // insert new condition
         addCondition(ruleDO, ruleDTO.getRuleConditions());
         if (ruleCount > 0) {
-            ruleEventPublisher.onUpdated(ruleDO, before, ruleDTO.getRuleConditions());
+            ruleEventPublisher.onUpdated(ruleDO, before, ruleDTO.getRuleConditions(), beforeRuleCondition);
         }
         return ruleCount;
     }
@@ -209,9 +242,9 @@ public class RuleServiceImpl implements RuleService {
     public int delete(final List<String> ids) {
         List<RuleDO> rules = ruleMapper.selectByIds(ids);
         final int deleteCount = ruleMapper.deleteByIds(ids);
-        ruleConditionMapper.deleteByRuleIds(ids);
         if (deleteCount > 0) {
             ruleEventPublisher.onDeleted(rules);
+            ruleConditionMapper.deleteByRuleIds(ids);
         }
         return deleteCount;
     }
@@ -265,7 +298,7 @@ public class RuleServiceImpl implements RuleService {
                 .orElseGet(ArrayList::new)
                 .stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toMap(RuleConditionDO::getRuleId, ruleConditionDO -> ListUtil.of(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO)), ListUtil::merge));
+                .collect(Collectors.toMap(RuleConditionDO::getRuleId, ruleConditionDO -> ListUtil.list(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO)), ListUtil::merge));
         
         return ruleDOList.stream()
                 .filter(Objects::nonNull)

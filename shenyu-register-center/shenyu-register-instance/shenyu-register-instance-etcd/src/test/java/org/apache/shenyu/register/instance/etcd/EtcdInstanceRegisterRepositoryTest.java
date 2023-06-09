@@ -17,27 +17,52 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.ClientBuilder;
+import io.etcd.jetcd.Lease;
+import io.etcd.jetcd.lease.LeaseGrantResponse;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
+/**
+ * The type Etcd instance register repository test.
+ */
 public final class EtcdInstanceRegisterRepositoryTest {
 
     private EtcdInstanceRegisterRepository repository;
 
     private final Map<String, String> etcdBroker = new HashMap<>();
-
+    
+    /**
+     * Sets up.
+     *
+     * @throws NoSuchFieldException the no such field exception
+     * @throws IllegalAccessException the illegal access exception
+     */
     @BeforeEach
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
         this.repository = new EtcdInstanceRegisterRepository();
@@ -67,19 +92,70 @@ public final class EtcdInstanceRegisterRepositoryTest {
         }).when(etcdClient).close();
         return etcdClient;
     }
-
+    
+    /**
+     * Test persist instance.
+     */
     @Test
     public void testPersistInstance() {
-        InstanceRegisterDTO data = InstanceRegisterDTO.builder()
+        InstanceEntity data = InstanceEntity.builder()
                 .appName("shenyu-test")
                 .host("shenyu-host")
                 .port(9195)
                 .build();
 
-        final String realNode = "/shenyu/register/instance/shenyu-host:9195";
+        final String realNode = "/shenyu/register/instance/shenyu-test/shenyu-host:9195";
         repository.persistInstance(data);
         assertTrue(etcdBroker.containsKey(realNode));
         assertEquals(GsonUtils.getInstance().toJson(data), etcdBroker.get(realNode));
         repository.close();
+    }
+    
+    /**
+     * Init test.
+     */
+    @Test
+    public void initTest() {
+        try (MockedStatic<Client> clientMockedStatic = mockStatic(Client.class)) {
+            final ClientBuilder clientBuilder = mock(ClientBuilder.class);
+            clientMockedStatic.when(Client::builder).thenReturn(clientBuilder);
+            when(clientBuilder.endpoints(anyString())).thenReturn(clientBuilder);
+            final Client client = mock(Client.class);
+            when(clientBuilder.endpoints(anyString()).build()).thenReturn(client);
+            final Lease lease = mock(Lease.class);
+            when(client.getLeaseClient()).thenReturn(lease);
+            final CompletableFuture<LeaseGrantResponse> completableFuture = mock(CompletableFuture.class);
+            final LeaseGrantResponse leaseGrantResponse = mock(LeaseGrantResponse.class);
+
+            when(client.getLeaseClient().grant(anyLong())).thenReturn(completableFuture);
+            when(completableFuture.get()).thenReturn(leaseGrantResponse);
+            RegisterConfig config = new RegisterConfig();
+            config.setServerLists("url");
+            Assertions.assertDoesNotThrow(() -> repository.init(config));
+        } catch (Exception e) {
+            throw new ShenyuException(e);
+        }
+    }
+    
+    /**
+     * Test select instances and watcher.
+     */
+    @Test
+    public void testSelectInstancesAndWatcher() {
+        InstanceEntity data = InstanceEntity.builder()
+                .appName("shenyu-test")
+                .host("shenyu-host")
+                .port(9195)
+                .build();
+
+        try (MockedConstruction<EtcdClient> construction = mockConstruction(EtcdClient.class, (mock, context) -> {
+        })) {
+            final EtcdInstanceRegisterRepository repository = new EtcdInstanceRegisterRepository();
+            RegisterConfig config = new RegisterConfig();
+            repository.init(config);
+            repository.persistInstance(data);
+            repository.selectInstancesAndWatcher(InstancePathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+            repository.close();
+        }
     }
 }

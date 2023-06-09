@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.jwt.handle;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.impl.JwtRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
@@ -28,8 +27,6 @@ import org.apache.shenyu.plugin.jwt.config.JwtConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,23 +38,14 @@ public final class JwtPluginDataHandlerTest {
 
     private JwtPluginDataHandler jwtPluginDataHandlerUnderTest;
 
-    private List<JwtRuleHandle.Convert> converts;
-
-    private JwtRuleHandle.Convert convert;
-
-    private JwtRuleHandle jwtRuleHandle;
-
     @BeforeEach
     public void setUp() {
         jwtPluginDataHandlerUnderTest = new JwtPluginDataHandler();
-        converts = new ArrayList<>();
-        convert = new JwtRuleHandle.Convert();
-        jwtRuleHandle = new JwtRuleHandle();
     }
 
     @Test
     public void testHandlerPlugin() {
-        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu\"}", "0", false);
+        final PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu\"}", "0", false, null);
         jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData);
         JwtConfig jwtConfig = Singleton.INST.get(JwtConfig.class);
         Map<String, String> map = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
@@ -69,14 +57,10 @@ public final class JwtPluginDataHandlerTest {
         RuleData ruleData = new RuleData();
         ruleData.setId("jwtRule");
         ruleData.setSelectorId("jwt");
-        convert.setJwtVal("userId");
-        convert.setHeaderVal("userId");
-        converts.add(convert);
-        jwtRuleHandle.setConverter(converts);
-
-        ruleData.setHandle(GsonUtils.getGson().toJson(jwtRuleHandle));
+        String handleJson = "{\"converter\":[{\"jwtVal\":\"sub\",\"headerVal\":\"id\"}]}";
+        ruleData.setHandle(handleJson);
         jwtPluginDataHandlerUnderTest.handlerRule(ruleData);
-        assertEquals(jwtRuleHandle.getConverter().toString(), JwtPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)).getConverter().toString());
+        assertEquals(handleJson, JwtPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)).toJson());
     }
 
     @Test

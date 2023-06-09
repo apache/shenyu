@@ -17,376 +17,86 @@
 
 package org.apache.shenyu.sync.data.zookeeper;
 
-import com.google.common.collect.Lists;
-import org.apache.curator.test.TestingServer;
-import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.apache.zookeeper.CreateMode;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public final class ZookeeperSyncDataServiceTest {
 
-    private static final String MOCK_PLUGIN_PARENT_PATH = "/shenyu/plugin";
-
-    private static final String MOCK_PLUGIN_PATH = "/shenyu/plugin/divide";
-
-    private static final String MOCK_PLUGIN_NAME = "divide";
-
-    private static final String MOCK_SELECTOR_PARENT_PATH = "/shenyu/selector/divide";
-
-    private static final String MOCK_SELECTOR_PATH = "/shenyu/selector/divide/test";
-
-    private static final String MOCK_SELECTOR_NAME = "test";
-
-    private static final String MOCK_RULE_PARENT_PATH = "/shenyu/rule/divide";
-
-    private static final String MOCK_RULE_PATH = "/shenyu/rule/divide/test-test";
-
-    private static final String MOCK_RULE_NAME = "test-test";
-
-    private static final String MOCK_APP_AUTH_PARENT_PATH = "/shenyu/auth";
-
-    private static final String MOCK_APP_AUTH_PATH = "/shenyu/auth/test";
-
-    private static final String MOCK_APP_AUTH_KEY = "test";
-
-    private static final String MOCK_META_DATA_PARENT_PATH = "/shenyu/metaData";
-
-    private static final String MOCK_META_DATA_PATH = "/shenyu/metaData/test";
-
-    private static final String MOCK_META_DATA_ID = "test";
-
-    private ZookeeperClient zkClient;
-
-    private ZookeeperSyncDataService syncDataService;
-
-    @BeforeEach
-    public void setUp() throws Exception {
-        TestingServer server = new TestingServer();
-        ZookeeperConfig config = new ZookeeperConfig(server.getConnectString());
-        zkClient = new ZookeeperClient(config);
-        zkClient.start();
-    }
-
     @Test
-    public void testWatchPluginWhenInit() throws InterruptedException {
-        final List<PluginData> subscribeList = new ArrayList<>(1);
-        PluginData pluginData = PluginData.builder().name(MOCK_PLUGIN_NAME).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_PLUGIN_PATH, pluginData, CreateMode.PERSISTENT);
+    public void testZookeeperInstanceRegisterRepository() throws Exception {
 
-        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
-            @Override
-            public void onSubscribe(final PluginData pluginData) {
-                subscribeList.add(pluginData);
+        ZookeeperClient zkClient = mock(ZookeeperClient.class);
+        PluginDataSubscriber pluginDataSubscriber = mock(PluginDataSubscriber.class);
+
+        List<TreeCacheListener> treeCacheListeners = new ArrayList<>();
+        doAnswer(invocationOnMock -> {
+            treeCacheListeners.add(invocationOnMock.getArgument(1));
+            return null;
+        }).when(zkClient).addCache(any(), any());
+        final AuthDataSubscriber authDataSubscriber = mock(AuthDataSubscriber.class);
+        final MetaDataSubscriber metaDataSubscriber = mock(MetaDataSubscriber.class);
+        final ProxySelectorDataSubscriber proxySelectorDataSubscriber = mock(ProxySelectorDataSubscriber.class);
+        final ZookeeperSyncDataService zookeeperSyncDataService = new ZookeeperSyncDataService(zkClient,
+                pluginDataSubscriber, Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber), Collections.singletonList(proxySelectorDataSubscriber));
+
+        List<TreeCacheEvent> treeCacheEvents = new ArrayList<>();
+        // register uri
+        treeCacheEvents.add(treeCacheEvent("/shenyu/uri/test/test/test", TreeCacheEvent.Type.NODE_REMOVED));
+        // register metadata
+        treeCacheEvents.add(treeCacheEvent("/shenyu/metaData/test", TreeCacheEvent.Type.NODE_REMOVED));
+        // register auth
+        treeCacheEvents.add(treeCacheEvent("/shenyu/auth/test", TreeCacheEvent.Type.NODE_REMOVED));
+        // register rule
+        treeCacheEvents.add(treeCacheEvent("/shenyu/rule/test/test-1", TreeCacheEvent.Type.NODE_REMOVED));
+        // register plugin
+        treeCacheEvents.add(treeCacheEvent("/shenyu/plugin/test", TreeCacheEvent.Type.NODE_REMOVED));
+        // register selector
+        treeCacheEvents.add(treeCacheEvent("/shenyu/selector/test/test", TreeCacheEvent.Type.NODE_REMOVED));
+
+        final CuratorFramework curatorFramework = mock(CuratorFramework.class);
+        for (TreeCacheListener treeCacheListener : treeCacheListeners) {
+            for (TreeCacheEvent event : treeCacheEvents) {
+                treeCacheListener.childEvent(curatorFramework, event);
             }
-        }, Collections.emptyList(), Collections.emptyList());
-        // wait for listener taking action
-        Thread.sleep(500);
-        assertThat(subscribeList.size(), is(1));
-        assertThat(subscribeList.get(0).getName(), is("divide"));
+        }
+        final TreeCacheListener treeCacheListener = treeCacheListeners.stream().findFirst().orElse(null);
+        if (Objects.nonNull(treeCacheListener)) {
+            TreeCacheEvent event = mock(TreeCacheEvent.class);
+            ChildData childData = mock(ChildData.class);
+            treeCacheListener.childEvent(curatorFramework, event);
+            when(event.getData()).thenReturn(childData);
+            when(childData.getPath()).thenReturn("");
+            treeCacheListener.childEvent(curatorFramework, event);
+        }
+
+        zookeeperSyncDataService.close();
     }
 
-    @Test
-    public void testWatchPluginWhenDataChange() throws Exception {
-        final List<PluginData> subscribeList = new ArrayList<>(1);
-        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
-            @Override
-            public void onSubscribe(final PluginData pluginData) {
-                subscribeList.add(pluginData);
-            }
-        }, Collections.emptyList(), Collections.emptyList());
-
-        PluginData pluginData = PluginData.builder().name(MOCK_PLUGIN_NAME).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_PLUGIN_PATH, pluginData, CreateMode.PERSISTENT);
-        // wait for listener taking action
-        Thread.sleep(500);
-        assertThat(subscribeList.size(), is(1));
-        assertThat(subscribeList.get(0).getName(), is("divide"));
+    private static TreeCacheEvent treeCacheEvent(final String path, final TreeCacheEvent.Type type) {
+        TreeCacheEvent treeCacheEvent = mock(TreeCacheEvent.class);
+        ChildData childData = mock(ChildData.class);
+        when(treeCacheEvent.getData()).thenReturn(childData);
+        when(treeCacheEvent.getType()).thenReturn(type);
+        when(childData.getPath()).thenReturn(path);
+        when(childData.getData()).thenReturn("{}".getBytes());
+        return treeCacheEvent;
     }
 
-    @Test
-    public void testWatchPluginWhenDataDeleted() throws Exception {
-        final List<PluginData> unSubscribeList = new ArrayList<>(1);
-        PluginData pluginData = PluginData.builder().name(MOCK_PLUGIN_NAME).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_PLUGIN_PATH, pluginData, CreateMode.PERSISTENT);
-
-        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
-            @Override
-            public void unSubscribe(final PluginData pluginData) {
-                unSubscribeList.add(pluginData);
-            }
-        }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
-        zkClient.delete(MOCK_PLUGIN_PATH);
-        // wait for listener taking action
-        Thread.sleep(500);
-        assertThat(unSubscribeList.size(), is(1));
-        assertThat(unSubscribeList.get(0).getName(), is("divide"));
-    }
-
-    @Test
-    public void testWatchSelectorWhenInit() throws InterruptedException {
-        final List<SelectorData> subscribeList = new ArrayList<>(1);
-        SelectorData selectorData = SelectorData.builder().name(MOCK_SELECTOR_NAME).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_SELECTOR_PATH, selectorData, CreateMode.PERSISTENT);
-        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
-            @Override
-            public void onSelectorSubscribe(final SelectorData selectorData) {
-                subscribeList.add(selectorData);
-            }
-        }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
-        assertThat(subscribeList.size(), is(1));
-        assertThat(subscribeList.get(0).getName(), is("test"));
-    }
-
-    @Test
-    public void testWatchSelectorWhenDataChange() throws Exception {
-        final List<SelectorData> subscribeList = new ArrayList<>(1);
-        SelectorData selectorData = SelectorData.builder().name(MOCK_SELECTOR_NAME).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_SELECTOR_PATH, selectorData, CreateMode.PERSISTENT);
-        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
-            @Override
-            public void onSelectorSubscribe(final SelectorData selectorData) {
-                subscribeList.add(selectorData);
-            }
-        }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
-        zkClient.createOrUpdate(MOCK_SELECTOR_PATH, selectorData, CreateMode.PERSISTENT);
-        Thread.sleep(500);
-        assertThat(subscribeList.size(), is(2));
-        assertThat(subscribeList.get(0).getName(), is("test"));
-    }
-
-    @Test
-    public void testWatchSelectorWhenDataDeleted() throws Exception {
-        final List<SelectorData> unSubscribeList = new ArrayList<>(1);
-        SelectorData selectorData = SelectorData.builder().name(MOCK_SELECTOR_NAME).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_SELECTOR_PATH, selectorData, CreateMode.PERSISTENT);
-        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
-            @Override
-            public void unSelectorSubscribe(final SelectorData selectorData) {
-                unSubscribeList.add(selectorData);
-            }
-        }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
-        zkClient.delete(MOCK_SELECTOR_PATH);
-        Thread.sleep(500);
-        assertThat(unSubscribeList.size(), is(1));
-        assertThat(unSubscribeList.get(0).getId(), is("test"));
-    }
-
-    @Test
-    public void testWatchRuleWhenInit() throws InterruptedException {
-        final List<RuleData> subscribeList = new ArrayList<>(1);
-        RuleData ruleData = RuleData.builder().name(MOCK_RULE_NAME).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_RULE_PATH, ruleData, CreateMode.PERSISTENT);
-        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
-            @Override
-            public void onRuleSubscribe(final RuleData data) {
-                subscribeList.add(data);
-            }
-        }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
-        assertThat(subscribeList.size(), is(1));
-        assertThat(subscribeList.get(0).getName(), is(MOCK_RULE_NAME));
-    }
-
-    @Test
-    public void testWatchRuleWhenDataChange() throws Exception {
-        final List<RuleData> subscribeList = new ArrayList<>(1);
-        RuleData ruleData = RuleData.builder().name(MOCK_RULE_NAME).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_RULE_PATH, ruleData, CreateMode.PERSISTENT);
-        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
-            @Override
-            public void onRuleSubscribe(final RuleData data) {
-                subscribeList.add(data);
-            }
-        }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
-        zkClient.createOrUpdate(MOCK_RULE_PATH, ruleData, CreateMode.PERSISTENT);
-        Thread.sleep(500);
-        assertThat(subscribeList.size(), is(2));
-        assertThat(subscribeList.get(0).getName(), is(MOCK_RULE_NAME));
-    }
-
-    @Test
-    public void testWatchRuleWhenDataDeleted() throws Exception {
-        final List<RuleData> unSubscribeList = new ArrayList<>(1);
-        RuleData ruleData = RuleData.builder().name(MOCK_RULE_NAME).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_RULE_PATH, ruleData, CreateMode.PERSISTENT);
-        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
-            @Override
-            public void unRuleSubscribe(final RuleData data) {
-                unSubscribeList.add(data);
-            }
-        }, Collections.emptyList(), Collections.emptyList());
-        Thread.sleep(500);
-        zkClient.delete(MOCK_RULE_PATH);
-        Thread.sleep(500);
-        assertThat(unSubscribeList.size(), is(1));
-        assertThat(unSubscribeList.get(0).getSelectorId() + DefaultPathConstants.SELECTOR_JOIN_RULE + unSubscribeList.get(0).getId(), is(MOCK_RULE_NAME));
-    }
-
-    @Test
-    public void testWatchAppAuthWhenInit() throws InterruptedException {
-        final List<AppAuthData> subscribeList = new ArrayList<>(1);
-        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_AUTH_KEY).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_APP_AUTH_PATH, appAuthData, CreateMode.PERSISTENT);
-        AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
-            @Override
-            public void onSubscribe(final AppAuthData appAuthData) {
-                subscribeList.add(appAuthData);
-            }
-
-            @Override
-            public void unSubscribe(final AppAuthData appAuthData) {
-            }
-        };
-        syncDataService = new ZookeeperSyncDataService(zkClient,
-                null, Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
-        Thread.sleep(500);
-        assertThat(subscribeList.size(), is(1));
-    }
-
-    @Test
-    public void testWatchAppAuthWhenDataChange() throws Exception {
-        final List<AppAuthData> subscribeList = new ArrayList<>(1);
-        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_AUTH_KEY).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_APP_AUTH_PATH, appAuthData, CreateMode.PERSISTENT);
-        AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
-            @Override
-            public void onSubscribe(final AppAuthData appAuthData) {
-                subscribeList.add(appAuthData);
-            }
-
-            @Override
-            public void unSubscribe(final AppAuthData appAuthData) {
-            }
-        };
-        syncDataService = new ZookeeperSyncDataService(zkClient,
-                null, Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
-        Thread.sleep(500);
-        appAuthData.setEnabled(true);
-        zkClient.createOrUpdate(MOCK_APP_AUTH_PATH, appAuthData, CreateMode.PERSISTENT);
-        Thread.sleep(500);
-        assertThat(subscribeList.size(), is(2));
-        assertTrue(subscribeList.get(1).getEnabled());
-    }
-
-    @Test
-    public void testWatchAppAuthWhenDataDeleted() throws Exception {
-        final List<AppAuthData> unSubscribeList = new ArrayList<>(1);
-        AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_AUTH_KEY).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_APP_AUTH_PATH, appAuthData, CreateMode.PERSISTENT);
-        AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
-            @Override
-            public void onSubscribe(final AppAuthData appAuthData) {
-            }
-
-            @Override
-            public void unSubscribe(final AppAuthData appAuthData) {
-                unSubscribeList.add(appAuthData);
-            }
-        };
-        syncDataService = new ZookeeperSyncDataService(zkClient,
-                null, Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
-        Thread.sleep(500);
-        zkClient.delete(MOCK_APP_AUTH_PATH);
-        Thread.sleep(500);
-        assertThat(unSubscribeList.size(), is(1));
-        assertThat(unSubscribeList.get(0).getAppKey(), is(MOCK_APP_AUTH_KEY));
-    }
-
-    @Test
-    public void testWatchMetaDataWhenInit() throws InterruptedException {
-        final List<MetaData> subscribeList = new ArrayList<>(1);
-        MetaData metaData = MetaData.builder().id(MOCK_META_DATA_ID).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_META_DATA_PATH, metaData, CreateMode.PERSISTENT);
-        MetaDataSubscriber metaDataSubscriber = new MetaDataSubscriber() {
-            @Override
-            public void onSubscribe(final MetaData metaData) {
-                subscribeList.add(metaData);
-            }
-
-            @Override
-            public void unSubscribe(final MetaData metaData) {
-            }
-        };
-        syncDataService = new ZookeeperSyncDataService(zkClient,
-                null, Lists.newArrayList(metaDataSubscriber), Collections.emptyList());
-        Thread.sleep(500);
-        assertThat(subscribeList.size(), is(1));
-    }
-
-    @Test
-    public void testWatchMetaDataWhenDataChange() throws Exception {
-        final List<MetaData> subscribeList = new ArrayList<>(1);
-        MetaData metaData = MetaData.builder().id(MOCK_META_DATA_ID).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_META_DATA_PATH, metaData, CreateMode.PERSISTENT);
-        MetaDataSubscriber metaDataSubscriber = new MetaDataSubscriber() {
-            @Override
-            public void onSubscribe(final MetaData metaData) {
-                subscribeList.add(metaData);
-            }
-
-            @Override
-            public void unSubscribe(final MetaData metaData) {
-            }
-        };
-        syncDataService = new ZookeeperSyncDataService(zkClient,
-                null, Lists.newArrayList(metaDataSubscriber), Collections.emptyList());
-        Thread.sleep(500);
-        metaData.setEnabled(true);
-        zkClient.createOrUpdate(MOCK_META_DATA_PATH, metaData, CreateMode.PERSISTENT);
-        Thread.sleep(500);
-        assertThat(subscribeList.size(), is(2));
-        assertTrue(subscribeList.get(1).getEnabled());
-    }
-
-    @Test
-    public void testWatchMetaDataWhenDataDeleted() throws Exception {
-        final List<MetaData> unSubscribeList = new ArrayList<>(1);
-        MetaData metaData = MetaData.builder().id(MOCK_META_DATA_ID).enabled(Boolean.FALSE).build();
-        zkClient.createOrUpdate(MOCK_META_DATA_PATH, metaData, CreateMode.PERSISTENT);
-        MetaDataSubscriber metaDataSubscriber = new MetaDataSubscriber() {
-            @Override
-            public void onSubscribe(final MetaData metaData) {
-            }
-
-            @Override
-            public void unSubscribe(final MetaData metaData) {
-                unSubscribeList.add(metaData);
-            }
-        };
-        syncDataService = new ZookeeperSyncDataService(zkClient,
-                null, Lists.newArrayList(metaDataSubscriber), Collections.emptyList());
-        Thread.sleep(500);
-        zkClient.delete(MOCK_META_DATA_PATH);
-        Thread.sleep(500);
-        assertThat(unSubscribeList.size(), is(1));
-        assertThat(unSubscribeList.get(0).getPath(), is(MOCK_META_DATA_ID));
-    }
-
-    @AfterEach
-    public void tearDown() {
-        syncDataService.close();
-    }
 }

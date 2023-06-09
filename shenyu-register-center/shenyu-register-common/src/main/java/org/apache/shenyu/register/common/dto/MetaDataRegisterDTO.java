@@ -22,6 +22,7 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Meta data dto.
@@ -60,6 +61,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
 
     private long timeMillis;
 
+    private boolean addPrefixed;
+
     /**
      * Instantiates a new Meta data register dto.
      *
@@ -78,6 +81,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
      * @param port the port
      * @param pluginNames the plugin names
      * @param registerMetaData the register meta data
+     * @param addPrefixed the prefix forward status
      */
     public MetaDataRegisterDTO(final String appName, final String contextPath,
                                final String path, final String pathDesc,
@@ -86,7 +90,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                                final String parameterTypes, final String rpcExt,
                                final boolean enabled, final String host,
                                final Integer port, final List<String> pluginNames,
-                               final boolean registerMetaData) {
+                               final boolean registerMetaData, final boolean addPrefixed) {
         this.appName = appName;
         this.contextPath = contextPath;
         this.path = path;
@@ -103,6 +107,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         this.pluginNames = pluginNames;
         this.registerMetaData = registerMetaData;
         this.timeMillis = System.currentTimeMillis();
+        this.addPrefixed = addPrefixed;
     }
     
     /**
@@ -128,6 +133,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         pluginNames = builder.pluginNames;
         registerMetaData = builder.registerMetaData;
         timeMillis = System.currentTimeMillis();
+        addPrefixed = builder.addPrefixed;
     }
     
     /**
@@ -432,6 +438,51 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         this.timeMillis = timeMillis;
     }
 
+    /**
+     * get prefix forward status.
+     *
+     * @return prefix forward status
+     */
+    public boolean getAddPrefixed() {
+        return addPrefixed;
+    }
+
+    /**
+     * set prefix forward status.
+     *
+     * @param prefixForwardEnable prefixForwardEnabled
+     */
+    public void setAddPrefixed(final boolean prefixForwardEnable) {
+        this.addPrefixed = prefixForwardEnable;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MetaDataRegisterDTO that = (MetaDataRegisterDTO) o;
+        return Objects.equals(appName, that.appName) && Objects.equals(contextPath, that.contextPath)
+                && Objects.equals(path, that.path) && Objects.equals(pathDesc, that.pathDesc)
+                && Objects.equals(rpcType, that.rpcType) && Objects.equals(serviceName, that.serviceName)
+                && Objects.equals(methodName, that.methodName) && Objects.equals(ruleName, that.ruleName)
+                && Objects.equals(parameterTypes, that.parameterTypes) && Objects.equals(rpcExt, that.rpcExt)
+                && Objects.equals(enabled, that.enabled) && Objects.equals(host, that.host)
+                && Objects.equals(port, that.port) && Objects.equals(pluginNames, that.pluginNames)
+                && Objects.equals(registerMetaData, that.registerMetaData) && Objects.equals(timeMillis, that.timeMillis)
+                && Objects.equals(addPrefixed, that.addPrefixed);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(appName, contextPath, path, pathDesc, rpcType, serviceName, methodName,
+                ruleName, parameterTypes, rpcExt, enabled, host, port, pluginNames,
+                registerMetaData, timeMillis, addPrefixed);
+    }
+
     @Override
     public String toString() {
         return "MetaDataRegisterDTO{" 
@@ -467,6 +518,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
                 + registerMetaData
                 + ", timeMillis="
                 + timeMillis
+                + ", addPrefixed="
+                + addPrefixed
                 + '}';
     }
     
@@ -506,6 +559,8 @@ public class MetaDataRegisterDTO implements DataTypeParent {
         private boolean registerMetaData;
 
         private long timeMillis;
+
+        private boolean addPrefixed;
 
         private Builder() {
         }
@@ -683,6 +738,17 @@ public class MetaDataRegisterDTO implements DataTypeParent {
          */
         public Builder timeMillis(final long timeMillis) {
             this.timeMillis = timeMillis;
+            return this;
+        }
+
+        /**
+         * prefixForward status.
+         *
+         * @param addPrefixed addPrefixed
+         * @return Builder builder
+         */
+        public Builder addPrefixed(final boolean addPrefixed) {
+            this.addPrefixed = addPrefixed;
             return this;
         }
 

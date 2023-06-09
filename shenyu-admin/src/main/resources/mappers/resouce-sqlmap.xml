@@ -139,6 +139,28 @@
         select true from resource where id = #{id} limit 1
     </select>
 
+    <select id="nameExisted" resultType="java.lang.Boolean">
+        SELECT true
+        FROM resource
+        WHERE name = #{name} LIMIT 1
+    </select>
+
+    <select id="selectByUserName" resultType="org.apache.shenyu.admin.model.entity.ResourceDO">
+        select
+            <include refid="Base_Column_List"/>
+        from resource r
+        where exists(select 1
+                     from permission p
+                     where r.id = p.resource_id
+                       and object_id in (select role_id
+                                         from user_role r
+                                         where exists(select 1
+                                                      from dashboard_user u
+                                                      where u.id = r.user_id
+                                                        and u.user_name = #{userName}))
+                  )
+    </select>
+
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ResourceDO">
         INSERT INTO resource
                     (id,

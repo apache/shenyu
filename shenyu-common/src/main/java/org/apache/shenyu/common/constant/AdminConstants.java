@@ -33,6 +33,11 @@ public final class AdminConstants {
     public static final String PLUGIN_NAME_IS_EXIST = "The plugin name already exists and can't be added repeatedly!";
 
     /**
+     * The constant RESOURCE_NAME_IS_EXIST.
+     */
+    public static final String RESOURCE_NAME_IS_EXIST = "The resource name already exists and can't be added repeatedly!";
+
+    /**
      * The constant ID_NOT_EXIST.
      */
     public static final String ID_NOT_EXIST = "ID NOT EXIST!";
@@ -51,6 +56,11 @@ public final class AdminConstants {
      * The constant SYS_PLUGIN_ID_NOT_EXIST.
      */
     public static final String SYS_PLUGIN_ID_NOT_EXIST = "The plugin(s) does not exist！";
+
+    /**
+     * The constant SYS_API_ID_NOT_EXIST.
+     */
+    public static final String SYS_API_ID_NOT_EXIST = "The api(s) does not exist！";
 
     /**
      * The constant DATA_PATH_IS_EXIST.
@@ -233,6 +243,11 @@ public final class AdminConstants {
     public static final String URI_SLASH_SUFFIX = "/";
 
     /**
+     * The constant URI_VARIABLE_SUFFIX.
+     */
+    public static final String URI_VARIABLE_SUFFIX = "{";
+
+    /**
      * the constant api document global flag dict code.
      */
     public static final String DICT_API_DOC_FLAG_DICTCODE = "API_DOC_GLOBAL_FLAG";
@@ -247,4 +262,16 @@ public final class AdminConstants {
      */
     public static final String DICT_TYPE_API_DOC_ENV = "apidocEnv";
 
+    public static final String TAG_ROOT_PARENT_ID = "0";
+
+    public static final String PLUGIN_JAR_IS_NOT_RIGHT = "The plugin jar is not right!";
+
+    public static final String PLUGIN_INTERFACE_PATH = "org.apache.shenyu.plugin.api.ShenyuPlugin";
+
+    public static final String PLUGIN_ABSTRACR_PATH = "org.apache.shenyu.plugin.base.AbstractShenyuPlugin";
+
+    public static final String PROXY_SELECTOR_NAME_IS_EXIST = "The proxy selector name already exists and can't be added repeatedly!";
+
+    public static final String PROXY_SELECTOR_ID_IS_NOT_EXIST = "The proxy selector(s) does not exist";
 }
+

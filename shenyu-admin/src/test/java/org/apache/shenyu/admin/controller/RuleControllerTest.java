@@ -20,15 +20,16 @@ package org.apache.shenyu.admin.controller;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
-import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -52,6 +53,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -85,13 +87,9 @@ public final class RuleControllerTest {
 
     private final List<RuleConditionVO> rcList = new ArrayList<>(Collections.singletonList(rCondition1));
 
-    private final RuleVO ruleVO = new RuleVO("666", "168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}",
+    private final RuleVO ruleVO = new RuleVO("666", "168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}", false,
             rcList, DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
-
-    private final PageParameter pageParameter = new PageParameter();
-
-    private final RuleQuery tRuleQuery = new RuleQuery("168", "/http/test/**", pageParameter);
-
+    
     private final CommonPager<RuleVO> commonPager = new CommonPager<>(new PageParameter(), Collections.singletonList(ruleVO));
 
     @BeforeEach
@@ -99,17 +97,23 @@ public final class RuleControllerTest {
         this.mockMvc = MockMvcBuilders.standaloneSetup(ruleController)
                 .setControllerAdvice(new ExceptionHandlers())
                 .build();
+        // mock login user
+        final UserInfo mockLoginUser = new UserInfo();
+        mockLoginUser.setUserId("1");
+        mockLoginUser.setUserName("admin");
+        SessionUtil.setLocalVisitor(mockLoginUser);
     }
 
     @Test
     public void testQueryRules() throws Exception {
-        given(this.ruleService.listByPage(tRuleQuery)).willReturn(commonPager);
+        given(this.ruleService.searchByPageToPager(any())).willReturn(commonPager);
         String urlTemplate = "/rule?selectorId={selectorId}&name={name}&currentPage={currentPage}&pageSize={pageSize}";
         this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "168", "/http/test/**", 1, 12))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].id", is(ruleVO.getId())))
                 .andReturn();
+
     }
 
     @Test
@@ -143,6 +147,7 @@ public final class RuleControllerTest {
                 .name("/http/order/save")
                 .enabled(true)
                 .loged(true)
+                .matchRestful(false)
                 .sort(1)
                 .handle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}")
                 .ruleConditions(conList)
@@ -182,6 +187,7 @@ public final class RuleControllerTest {
                 .name("/http/order/update")
                 .enabled(true)
                 .loged(true)
+                .matchRestful(false)
                 .sort(1)
                 .handle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}")
                 .ruleConditions(conList)

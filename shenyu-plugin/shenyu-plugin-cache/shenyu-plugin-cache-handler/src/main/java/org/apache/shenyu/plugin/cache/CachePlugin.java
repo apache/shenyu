@@ -61,11 +61,11 @@ public class CachePlugin extends AbstractShenyuPlugin {
                             return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes))
                                     .doOnNext(data -> exchange.getResponse().getHeaders().setContentLength(data.readableByteCount())));
                         }
-                        CacheRuleHandle cacheRuleHandle = CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+                        CacheRuleHandle cacheRuleHandle = buildRuleHandle(rule);
                         return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle)).build());
                     });
         }
-        CacheRuleHandle cacheRuleHandle = CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        CacheRuleHandle cacheRuleHandle = buildRuleHandle(rule);
         return chain.execute(exchange.mutate().response(new CacheHttpResponse(exchange, cacheRuleHandle)).build());
     }
 
@@ -77,6 +77,10 @@ public class CachePlugin extends AbstractShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.CACHE.getName();
+    }
+    
+    private CacheRuleHandle buildRuleHandle(final RuleData rule) {
+        return CachePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
 
     static class CacheHttpResponse extends ServerHttpResponseDecorator {

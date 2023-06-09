@@ -18,7 +18,6 @@
 package org.apache.springboot.starter.client.grpc;
 
 import org.apache.shenyu.client.grpc.GrpcClientEventListener;
-import org.apache.shenyu.client.grpc.GrpcContextRefreshedEventListener;
 import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +66,7 @@ public class ShenyuGrpcClientConfigurationTest {
     @Test
     public void testGrpcClientBeanPostProcessor() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
-        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         applicationContextRunner.run(context -> {
             GrpcClientEventListener listener = context.getBean("grpcClientEventListener", GrpcClientEventListener.class);
             assertNotNull(listener);
@@ -78,9 +77,9 @@ public class ShenyuGrpcClientConfigurationTest {
     @Test
     public void testGrpcContextRefreshedEventListener() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
-        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         applicationContextRunner.run(context -> {
-            GrpcContextRefreshedEventListener listener = context.getBean("grpcContextRefreshedEventListener", GrpcContextRefreshedEventListener.class);
+            GrpcClientEventListener listener = context.getBean("grpcClientEventListener", GrpcClientEventListener.class);
             assertNotNull(listener);
         });
         registerUtilsMockedStatic.close();
@@ -89,7 +88,7 @@ public class ShenyuGrpcClientConfigurationTest {
     @Test
     public void testGrpcServerRunner() {
         MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
-        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.ofNullable("token"));
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         applicationContextRunner.run(context -> {
             GrpcServerRunner runner = context.getBean("grpcServer", GrpcServerRunner.class);
             assertNotNull(runner);

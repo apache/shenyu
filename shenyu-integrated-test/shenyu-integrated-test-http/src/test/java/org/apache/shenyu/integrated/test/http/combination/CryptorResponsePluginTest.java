@@ -17,30 +17,38 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.enums.OperatorEnum;
-import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
+import org.apache.shenyu.integratedtest.common.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.Matchers.is;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.ruleLocalData;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonRuleLocalDataList;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonURIEqConditionList;
+import static org.apache.shenyu.plugin.api.result.ShenyuResultEnum.DECRYPTION_ERROR;
+import static org.apache.shenyu.plugin.api.result.ShenyuResultEnum.ENCRYPTION_ERROR;
+import static org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum.ALL;
+import static org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum.FIELD;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class CryptorResponsePluginTest extends AbstractPluginDataInit {
 
@@ -58,6 +66,10 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
 
     private static final RsaStrategy RSA_STRATEGY = new RsaStrategy();
 
+    private static final List<ConditionData> SINGLETON_CONDITION_LIST = singletonURIEqConditionList(TEST_PATH);
+
+    private final UserDTO originalBody = new UserDTO(TEST_USER_ID, TEST_USER_NAME);
+
     @BeforeEach
     public void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.CRYPTOR_RESPONSE.getName(), null);
@@ -65,10 +77,12 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     }
 
     @Test
+    @DisplayName("decrypt")
     public void testDecryptResponse() throws Exception {
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
-                "", buildSelectorConditionList(), buildRuleLocalDataList("userId", "decrypt"));
-        assertThat(selectorAndRulesResult, is("success"));
+        initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
+                "",
+                SINGLETON_CONDITION_LIST,
+                buildRuleLocalDataList("userId", "decrypt", FIELD.getMapType()));
 
         JsonObject request = new JsonObject();
         request.addProperty("userId", RSA_STRATEGY.encrypt(RSA_PUBLIC_KEY, TEST_USER_ID));
@@ -78,10 +92,10 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
     }
 
     @Test
+    @DisplayName("encrypt")
     public void testEncryptResponse() throws Exception {
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
-                "", buildSelectorConditionList(), buildRuleLocalDataList("userName", "encrypt"));
-        assertThat(selectorAndRulesResult, is("success"));
+        initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
+                "", SINGLETON_CONDITION_LIST, buildRuleLocalDataList("userName", "encrypt", ALL.getMapType()));
 
         JsonObject request = new JsonObject();
         request.addProperty("userId", TEST_USER_ID);
@@ -91,37 +105,114 @@ public class CryptorResponsePluginTest extends AbstractPluginDataInit {
         assertThat(RSA_STRATEGY.decrypt(RSA_PRIVATE_KEY, inputByte), is(TEST_USER_NAME));
     }
 
-    private List<ConditionData> buildSelectorConditionList() {
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue(TEST_PATH);
-        return Collections.singletonList(conditionData);
+    @Test
+    @DisplayName("skip this plugin when rule handle is null")
+    public void testWhenRuleHandleIsNull() throws Exception {
+        initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
+                "", SINGLETON_CONDITION_LIST, singletonRuleLocalDataList(null, SINGLETON_CONDITION_LIST));
+
+        UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, originalBody, UserDTO.class);
+
+        assertThat(actualUser.getUserId(), is(originalBody.getUserId()));
+        assertThat(actualUser.getUserName(), is(originalBody.getUserName()));
+
     }
 
-    private List<RuleLocalData> buildRuleLocalDataList(final String fieldNames, final String way) {
-        List<RuleLocalData> ruleLocalDataList = new ArrayList<>();
-        ruleLocalDataList.add(buildRuleLocalData(fieldNames, way));
-        return ruleLocalDataList;
+    @Test
+    @DisplayName("return original message when request doesnt exist filed")
+    public void testWhenDoesntExistFiled() throws Exception {
+        initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
+                "", SINGLETON_CONDITION_LIST, buildRuleLocalDataList("data", "decrypt", FIELD.getMapType()));
+
+        UserDTO actualUser = HttpHelper.INSTANCE.postGateway(TEST_PATH, originalBody, UserDTO.class);
+
+        assertThat(actualUser.getUserId(), is(originalBody.getUserId()));
+        assertThat(actualUser.getUserName(), is(originalBody.getUserName()));
+
     }
 
-    private RuleLocalData buildRuleLocalData(final String fieldNames, final String way) {
-        final RuleLocalData ruleLocalData = new RuleLocalData();
+    @DisplayName("return failed message when decrypt or encrypt failed")
+    @ParameterizedTest(name = "return failed message when {0} failed")
+    @ValueSource(strings = {"decrypt", "encrypt"})
+    public void testWhenDecryptionOrEncryptionIsFailed(final String way) throws Exception {
 
+        CryptorRuleHandler handler = buildRuleHandler("rsa", 
+                way, 
+                "wrong_encrypt_key", 
+                "wrong_decrypt_key", 
+                "userId", 
+                ALL.getMapType());
+        RuleLocalData ruleLocalData = ruleLocalData(handler, SINGLETON_CONDITION_LIST);
+
+        initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(), "", SINGLETON_CONDITION_LIST, Lists.newArrayList(ruleLocalData));
+
+        AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, originalBody, AdminResponse.class);
+        ShenyuResultEnum resultEnum = "decrypt".equals(way) ? DECRYPTION_ERROR : ENCRYPTION_ERROR;
+        assertThat(response.getCode(), is(resultEnum.getCode()));
+        assertThat(response.getMessage(), is(resultEnum.getMsg()));
+    }
+
+    @DisplayName("return failed message when key is null")
+    @ParameterizedTest(name = "return failed message when {0}-key is null")
+    @ValueSource(strings = {"decrypt", "encrypt"})
+    public void testWhenKeyIsNull(final String way) throws Exception {
+
+        CryptorRuleHandler handler = buildRuleHandler("rsa", 
+                way, 
+                null, 
+                null, 
+                "data", 
+                ALL.getMapType());
+
+        initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(),
+                "", SINGLETON_CONDITION_LIST, singletonRuleLocalDataList(handler, SINGLETON_CONDITION_LIST));
+
+        JsonObject request = new JsonObject();
+        AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, AdminResponse.class);
+
+        String keyName = "decrypt".equals(way) ? "decryptKey" : "encryptKey";
+        assertThat(response.getMessage(), is(String.format("Please check Cryptor response plugin's [%s]", keyName)));
+    }
+
+    @DisplayName("return failed message when fieldNames is null")
+    @Test
+    public void testWhenFieldNamesIsNull() throws Exception {
+
+        CryptorRuleHandler handler = buildRuleHandler("rsa", 
+                "decrypt", 
+                RSA_PUBLIC_KEY, 
+                RSA_PRIVATE_KEY, 
+                null, 
+                ALL.getMapType());
+
+        initSelectorAndRules(PluginEnum.CRYPTOR_RESPONSE.getName(), "", SINGLETON_CONDITION_LIST,
+                singletonRuleLocalDataList(handler, SINGLETON_CONDITION_LIST));
+
+        JsonObject request = new JsonObject();
+        AdminResponse response = HttpHelper.INSTANCE.postGateway(TEST_PATH, request, AdminResponse.class);
+
+        assertThat(response.getMessage(), is(String.format("Please check Cryptor response plugin's [%s]", "fieldNames")));
+    }
+
+    private List<RuleLocalData> buildRuleLocalDataList(final String fieldNames, final String way, final String mapType) {
+        CryptorRuleHandler cryptorRuleHandler = buildRuleHandler("rsa", way, RSA_PUBLIC_KEY, RSA_PRIVATE_KEY, fieldNames, mapType);
+        return singletonRuleLocalDataList(cryptorRuleHandler, SINGLETON_CONDITION_LIST);
+    }
+
+    private CryptorRuleHandler buildRuleHandler(final String strategyName, 
+                                                final String way, 
+                                                final String encryptKey, 
+                                                final String decryptKey, 
+                                                final String fieldNames,
+                                                final String mapType) {
         CryptorRuleHandler cryptorRuleHandler = new CryptorRuleHandler();
-        cryptorRuleHandler.setDecryptKey(RSA_PRIVATE_KEY);
-        cryptorRuleHandler.setEncryptKey(RSA_PUBLIC_KEY);
-        cryptorRuleHandler.setStrategyName("rsa");
+        cryptorRuleHandler.setDecryptKey(decryptKey);
+        cryptorRuleHandler.setEncryptKey(encryptKey);
+        cryptorRuleHandler.setStrategyName(strategyName);
         cryptorRuleHandler.setFieldNames(fieldNames);
         cryptorRuleHandler.setWay(way);
-
-        ruleLocalData.setRuleHandler(JsonUtils.toJson(cryptorRuleHandler));
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue(TEST_PATH);
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        return ruleLocalData;
+        cryptorRuleHandler.setMapType(mapType);
+        return cryptorRuleHandler;
     }
 
     @AfterEach

@@ -26,19 +26,48 @@ import java.util.Objects;
  */
 public class ContextMappingRuleHandle implements RuleHandle {
 
+    private boolean addPrefixed;
+
     private String contextPath;
 
     private String addPrefix;
-
+    
+    /**
+     * New instance context mapping rule handle.
+     *
+     * @return the context mapping rule handle
+     */
+    public static ContextMappingRuleHandle newInstance() {
+        return new ContextMappingRuleHandle();
+    }
+    
+    /**
+     * get prefix forward status.
+     *
+     * @return prefix -forward status
+     */
+    public boolean getAddPrefixed() {
+        return addPrefixed;
+    }
+    
+    /**
+     * set prefix forward.
+     *
+     * @param addPrefixed status
+     */
+    public void setAddPrefixed(final boolean addPrefixed) {
+        this.addPrefixed = addPrefixed;
+    }
+    
     /**
      * get contextPath.
      *
-     * @return contextPath
+     * @return contextPath context path
      */
     public String getContextPath() {
         return contextPath;
     }
-
+    
     /**
      * set contextPath.
      *
@@ -47,14 +76,23 @@ public class ContextMappingRuleHandle implements RuleHandle {
     public void setContextPath(final String contextPath) {
         this.contextPath = contextPath;
     }
-
+    
     /**
      * get addPrefix.
      *
-     * @return addPrefix
+     * @return addPrefix add prefix
      */
     public String getAddPrefix() {
         return addPrefix;
+    }
+    
+    /**
+     * set addPrefix.
+     *
+     * @param addPrefix addPrefix
+     */
+    public void setAddPrefix(final String addPrefix) {
+        this.addPrefix = addPrefix;
     }
 
     @Override
@@ -66,7 +104,8 @@ public class ContextMappingRuleHandle implements RuleHandle {
             return false;
         }
         ContextMappingRuleHandle that = (ContextMappingRuleHandle) o;
-        return Objects.equals(contextPath, that.contextPath) && Objects.equals(addPrefix, that.addPrefix);
+        return Objects.equals(contextPath, that.contextPath) && Objects.equals(addPrefix, that.addPrefix)
+                && Objects.equals(addPrefixed, that.addPrefixed);
     }
 
     @Override
@@ -78,20 +117,14 @@ public class ContextMappingRuleHandle implements RuleHandle {
                 + ", addPrefix='"
                 + addPrefix
                 + '\''
+                + "addPrefixed='"
+                + addPrefixed
+                + '\''
                 + '}';
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contextPath, addPrefix);
-    }
-
-    /**
-     * set addPrefix.
-     *
-     * @param addPrefix addPrefix
-     */
-    public void setAddPrefix(final String addPrefix) {
-        this.addPrefix = addPrefix;
+        return Objects.hash(contextPath, addPrefix, addPrefixed);
     }
 }

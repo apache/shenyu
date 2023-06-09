@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.plugin.apache.dubbo.proxy;
 
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -33,9 +36,6 @@ import org.apache.shenyu.plugin.apache.dubbo.cache.ApacheDubboConfigCache;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * dubbo proxy service is  use GenericService.
@@ -63,14 +63,20 @@ public class ApacheDubboProxyService {
      * @throws ShenyuException the shenyu exception
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
-        ReferenceConfig<GenericService> reference = ApacheDubboConfigCache.getInstance().get(metaData.getPath());
-        if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
-            ApacheDubboConfigCache.getInstance().invalidate(metaData.getPath());
-            reference = ApacheDubboConfigCache.getInstance().initRef(metaData);
+        String referenceKey = metaData.getPath();
+        String namespace = "";
+        if (CollectionUtils.isNotEmpty(exchange.getRequest().getHeaders().get(Constants.NAMESPACE))) {
+            namespace = exchange.getRequest().getHeaders().get(Constants.NAMESPACE).get(0);
+            referenceKey = namespace + ":" + referenceKey;
+        }
+        ReferenceConfig<GenericService> reference = ApacheDubboConfigCache.getInstance().get(referenceKey);
+        if (StringUtils.isEmpty(reference.getInterface())) {
+            ApacheDubboConfigCache.getInstance().invalidate(referenceKey);
+            reference = ApacheDubboConfigCache.getInstance().initRefN(metaData, namespace);
         }
         GenericService genericService = reference.get();
         Pair<String[], Object[]> pair;
-        if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.dubboBodyIsEmpty(body)) {
+        if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.bodyIsEmpty(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
             pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());

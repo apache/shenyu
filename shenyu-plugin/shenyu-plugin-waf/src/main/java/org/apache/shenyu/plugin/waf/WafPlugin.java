@@ -25,12 +25,12 @@ import org.apache.shenyu.common.dto.convert.rule.WafHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.WafEnum;
 import org.apache.shenyu.common.enums.WafModelEnum;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.waf.config.WafConfig;
 import org.apache.shenyu.plugin.waf.handler.WafPluginDataHandler;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ import java.util.Objects;
 public class WafPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(WafPlugin.class);
-
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         WafConfig wafConfig = Singleton.INST.get(WafConfig.class);
@@ -59,10 +59,9 @@ public class WafPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, HttpStatus.FORBIDDEN.value(), Constants.REJECT_MSG, null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        String handle = rule.getHandle();
-        WafHandle wafHandle = WafPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        WafHandle wafHandle = buildRuleHandle(rule);
         if (Objects.isNull(wafHandle) || StringUtils.isBlank(wafHandle.getPermission())) {
-            LOG.error("waf handler can not configuration：{}", handle);
+            LOG.error("waf handler can not configuration：{}", wafHandle);
             return chain.execute(exchange);
         }
         if (WafEnum.REJECT.getName().equals(wafHandle.getPermission())) {
@@ -91,5 +90,9 @@ public class WafPlugin extends AbstractShenyuPlugin {
     @Override
     public int getOrder() {
         return PluginEnum.WAF.getCode();
+    }
+    
+    private WafHandle buildRuleHandle(final RuleData rule) {
+        return WafPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
 }

@@ -15,8 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache</groupId>
         <artifactId>apache</artifactId>
@@ -26,7 +25,7 @@
     <groupId>org.apache.shenyu</groupId>
     <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
-    <version>2.5.0-SNAPSHOT</version>
+    <version>2.6.0-SNAPSHOT</version>
     <name>shenyu</name>
     <modules>
         <module>shenyu-admin</module>
@@ -44,6 +43,9 @@
         <module>shenyu-loadbalancer</module>
         <module>shenyu-dist</module>
         <module>shenyu-alert</module>
+        <module>shenyu-sdk</module>
+        <module>shenyu-discovery</module>
+        <module>shenyu-kubernetes-controller</module>
     </modules>
 
     <licenses>
@@ -58,7 +60,7 @@
         <url>https://github.com/apache/shenyu</url>
         <connection>scm:git:https://github.com/apache/shenyu.git</connection>
         <developerConnection>scm:git:https://github.com/apache/shenyu.git</developerConnection>
-        <tag>v2.4.3</tag>
+        <tag>v2.5.0</tag>
     </scm>
 
     <mailingLists>
@@ -77,7 +79,7 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <hutool.version>4.0.8</hutool.version>
+        <hutool.version>5.8.18</hutool.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jasypt.version>1.9.2</jasypt.version>
         <springfox.version>2.6.1</springfox.version>
@@ -95,11 +97,11 @@
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>
-        <pagehelper.version>5.3.0</pagehelper.version>
+        <pagehelper.version>5.3.1</pagehelper.version>
         <alibaba.dubbo.version>2.6.12</alibaba.dubbo.version>
-        <apache.dubbo.version>2.7.15</apache.dubbo.version>
+        <apache.dubbo.version>3.1.1</apache.dubbo.version>
         <gson.version>2.9.0</gson.version>
-        <okhttp.version>3.7.0</okhttp.version>
+        <okhttp.version>3.12.1</okhttp.version>
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
         <swagger.version>2.9.2</swagger.version>
@@ -113,11 +115,11 @@
         <zkclient.version>0.10</zkclient.version>
         <shiro.version>1.8.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
-        <motan.version>1.1.10</motan.version>
+        <motan.version>1.2.0</motan.version>
         <spring-boot.version>2.6.8</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
-        <jetcd-core.version>0.5.0</jetcd-core.version>
+        <jetcd-core.version>0.7.3</jetcd-core.version>
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>3.5.15</mockito.version>
         <awaitility.version>4.0.3</awaitility.version>
@@ -125,13 +127,19 @@
         <nacos-client.version>2.0.4</nacos-client.version>
         <spring-security.version>5.3.10.RELEASE</spring-security.version>
         <grpc.version>1.33.1</grpc.version>
+        <brpc.version>2022.2.0</brpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
+        <pulsar-client.version>2.10.1</pulsar-client.version>
         <lz4-java.version>1.8.0</lz4-java.version>
         <elasticsearch-java.version>8.2.3</elasticsearch-java.version>
         <jackson-databind.version>2.12.3</jackson-databind.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
         <kafka-clients.version>3.2.0</kafka-clients.version>
+        <clickhouse-http-client.version>0.3.2-patch11</clickhouse-http-client.version>
+        <eureka.version>1.10.17</eureka.version>
+        <javatuples.version>1.2</javatuples.version>
+        <k8s-client.version>17.0.2</k8s-client.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -153,11 +161,17 @@
         <jaxb.api.version>2.3.1</jaxb.api.version>
         <mail.version>1.6.2</mail.version>
         <docker-maven-plugin.version>0.40.1</docker-maven-plugin.version>
+        <maven-assembly-plugin.version>3.5.0</maven-assembly-plugin.version>
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
         <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
         <spring-cloud-netflix-ribbon.version>2.2.10.RELEASE</spring-cloud-netflix-ribbon.version>
         <spring-cloud-commons.version>3.1.2</spring-cloud-commons.version>
         <spring-cloud.version>3.1.2</spring-cloud.version>
+        <log4j-1.2-api.vetsion>2.17.2</log4j-1.2-api.vetsion>
+        <caffeine.version>2.9.3</caffeine.version>
+        <httpasyncclient.version>4.1.5</httpasyncclient.version>
+        <asm.version>9.2</asm.version>
+        <apollo.version>2.1.0</apollo.version>
     </properties>
 
     <dependencyManagement>
@@ -172,6 +186,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-tree</artifactId>
+                <version>${asm.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-dependencies</artifactId>
                 <version>${spring-cloud-alibaba.version}</version>
@@ -183,24 +203,6 @@
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
                 <version>${bytebuddy.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-config</artifactId>
-                <version>${spring-security.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-oauth2-client</artifactId>
-                <version>${spring-security.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-test</artifactId>
-                <version>${spring-security.version}</version>
             </dependency>
 
             <dependency>
@@ -376,6 +378,18 @@
             </dependency>
 
             <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-client</artifactId>
+                <version>${apollo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.ctrip.framework.apollo</groupId>
+                <artifactId>apollo-openapi</artifactId>
+                <version>${apollo.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.github.pagehelper</groupId>
                 <artifactId>pagehelper</artifactId>
                 <version>${pagehelper.version}</version>
@@ -442,6 +456,7 @@
                 <groupId>com.oracle.ojdbc</groupId>
                 <artifactId>ojdbc8</artifactId>
                 <version>${ojdbc8.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
@@ -474,6 +489,29 @@
                 <version>${jakarta.json-api.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>io.etcd</groupId>
+                <artifactId>jetcd-core</artifactId>
+                <version>${jetcd-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.netflix.eureka</groupId>
+                <artifactId>eureka-client</artifactId>
+                <version>${eureka.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.kubernetes</groupId>
+                <artifactId>client-java-spring-integration</artifactId>
+                <version>${k8s-client.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -574,6 +612,7 @@
                 <configuration>
                     <sourcepath>src/main/java</sourcepath>
                     <detectJavaApiLink>false</detectJavaApiLink>
+                    <detectOfflineLinks>false</detectOfflineLinks>
                 </configuration>
                 <executions>
                     <execution>
@@ -593,6 +632,9 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>

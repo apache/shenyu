@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.examples.http.controller;
 
-import io.swagger.annotations.ApiOperation;
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  * ShenyuClientPathController.
  */
 @RestController
+@ApiModule(value = "shenyuClientPathController")
 public class ShenyuClientPathController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientPathController.class);
@@ -42,6 +44,7 @@ public class ShenyuClientPathController {
      */
     @RequestMapping("shenyu/client/hello")
     @ShenyuSpringMvcClient("shenyu/client/hello")
+    @ApiDoc(desc = "shenyu/client/hello")
     public String hello() {
         return "hello! " + HELLO_SUFFIX;
     }
@@ -53,9 +56,9 @@ public class ShenyuClientPathController {
      * @param name say hello user name
      * @return result
      */
-    @ApiOperation(value = "hello", notes = "Shenyu-Gateway System said hello to you.")
     @RequestMapping("shenyu/client/hi")
     @ShenyuSpringMvcClient("shenyu/client/hi")
+    @ApiDoc(desc = "shenyu/client/hi")
     public String hello(final String name) {
         return "hi! " + name + "! " + HELLO_SUFFIX;
     }
@@ -67,6 +70,7 @@ public class ShenyuClientPathController {
      */
     @RequestMapping("shenyu/client/timeout")
     @ShenyuSpringMvcClient("shenyu/client/timeout")
+    @ApiDoc(desc = "shenyu/client/timeout")
     public String timeout() {
         LOG.info("timeout");
         try {
@@ -84,6 +88,7 @@ public class ShenyuClientPathController {
      */
     @PostMapping("shenyu/client/post/hi")
     @ShenyuSpringMvcClient(desc = "shenyu client annotation register")
+    @ApiDoc(desc = "shenyu/client/post/hi")
     public String post(final String name) {
         return "[post method result]:hi! " + name + "! " + HELLO_SUFFIX;
     }

@@ -32,12 +32,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 public class HttpUtils {
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
 
-    private Map<String, List<Cookie>> cookieStore = new HashMap<String, List<Cookie>>();
+    private Map<String, List<Cookie>> cookieStore = new HashMap<>();
 
     private OkHttpClient httpClient;
 
@@ -109,7 +109,7 @@ public class HttpUtils {
     /**
      * buildHttpUrl.
      *
-     * @param url  url
+     * @param url url
      * @return HttpUrl
      */
     public static HttpUrl buildHttpUrl(final String url) {
@@ -161,7 +161,7 @@ public class HttpUtils {
                 @Override
                 public List<Cookie> loadForRequest(final HttpUrl httpUrl) {
                     List<Cookie> cookies = cookieStore.get(httpUrl.host());
-                    return cookies != null ? cookies : new ArrayList<Cookie>();
+                    return Objects.nonNull(cookies) ? cookies : new ArrayList<>();
                 }
             }).build();
     }
@@ -199,13 +199,10 @@ public class HttpUtils {
         addHeader(requestBuilder, header);
 
         Request request = requestBuilder.build();
-        Response response = httpClient
+        try (Response response = httpClient
             .newCall(request)
-            .execute();
-        try {
+            .execute()) {
             return response.body().string();
-        } finally {
-            response.close();
         }
     }
 
@@ -227,13 +224,10 @@ public class HttpUtils {
         addHeader(requestBuilder, header);
 
         Request request = requestBuilder.build();
-        Response response = httpClient
+        try (Response response = httpClient
             .newCall(request)
-            .execute();
-        try {
+            .execute()) {
             return response.body().string();
-        } finally {
-            response.close();
         }
     }
 
@@ -302,7 +296,7 @@ public class HttpUtils {
      */
     public Response requestCall(final String url, final Map<String, ?> form, final Map<String, String> header,
         final HTTPMethod method, final List<UploadFile> files) throws IOException {
-        if (Objects.nonNull(files) && files.size() > 0) {
+        if (Objects.nonNull(files) && !files.isEmpty()) {
             return requestFile(url, form, header, files);
         } else {
             return requestForResponse(url, form, header, method);
@@ -373,7 +367,7 @@ public class HttpUtils {
     }
 
     private void addHeader(final Request.Builder builder, final Map<String, String> header) {
-        if (header != null) {
+        if (Objects.nonNull(header)) {
             Set<Map.Entry<String, String>> entrySet = header.entrySet();
             for (Map.Entry<String, String> entry : entrySet) {
                 builder.addHeader(entry.getKey(), String.valueOf(entry.getValue()));
@@ -491,6 +485,7 @@ public class HttpUtils {
 
         /**
          * Upload File.
+         *
          * @param name The form name cannot be duplicate.
          * @param file file
          * @throws IOException IOException
@@ -646,11 +641,11 @@ public class HttpUtils {
             }
             InputStream input = null;
             try {
-                input = new FileInputStream(file);
+                input = Files.newInputStream(file.toPath());
                 return toBytes(input);
             } finally {
                 try {
-                    if (input != null) {
+                    if (Objects.nonNull(input)) {
                         input.close();
                     }
                 } catch (IOException ioe) {

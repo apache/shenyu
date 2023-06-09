@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.client.server.api.ShenyuClientServerRegisterPublisher;
@@ -61,7 +62,6 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
         return ShenyuResultMessage.SUCCESS;
     }
     
-    
     /**
      * Register uri string.
      *
@@ -74,5 +74,29 @@ public class ShenyuClientHttpRegistryController implements ShenyuClientServerReg
         publisher.publish(uriRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
+
+    /**
+     * registerApiDoc.
+     * @param apiDocRegisterDTO apiDocRegisterDTO
+     * @return String
+     */
+    @PostMapping("/register-apiDoc")
+    @ResponseBody
+    public String registerApiDoc(@RequestBody final ApiDocRegisterDTO apiDocRegisterDTO) {
+        publisher.publish(apiDocRegisterDTO);
+        return ShenyuResultMessage.SUCCESS;
+    }
     
+    /**
+     * Offline result string.
+     *
+     * @param offlineDTO the offline dto
+     * @return the string
+     */
+    @PostMapping("/offline")
+    @ResponseBody
+    public String offline(@RequestBody final URIRegisterDTO offlineDTO) {
+        publisher.publish(offlineDTO);
+        return ShenyuResultMessage.SUCCESS;
+    }
 }

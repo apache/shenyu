@@ -17,18 +17,20 @@
 
 package org.apache.shenyu.plugin.cryptor.utils;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * json util.
@@ -41,14 +43,14 @@ public final class JsonUtil {
     /**
      * parser JSON.
      * @param json json Map
-     * @param fieldNames params
+     * @param fieldName fieldName
      * @return str.
      */
-    public static String parser(final String json, final String fieldNames) {
+    public static String parser(final String json, final String fieldName) {
         Map<String, Object> map = GsonUtils.getInstance().toObjectMap(json);
         String str = null;
-        if (fieldNames.contains(".")) {
-            String[] split = fieldNames.split("\\.");
+        if (fieldName.contains(".")) {
+            String[] split = fieldName.split("\\.");
             JsonObject jsonObject = (JsonObject) map.get(split[0]);
             for (int i = 1; i < split.length; i++) {
                 if (i == split.length - 1) {
@@ -58,25 +60,25 @@ public final class JsonUtil {
                 }
             }
         } else {
-            return map.get(fieldNames) == null ? null : map.get(fieldNames).toString();
+            return map.get(fieldName) == null ? null : map.get(fieldName).toString();
         }
         return str;
     }
 
     /**
-     * check param.
-     * @param ruleHandle ruleHandle
-     * @return is null
+     * parser JSON.
+     * @param json json Map
+     * @param fieldNames params
+     * @return str.
      */
-    public static Pair<Boolean, String> checkParam(final CryptorRuleHandler ruleHandle) {
-        String json = GsonUtils.getGson().toJson(ruleHandle);
-        Map<String, String> map = GsonUtils.getInstance().toObjectMap(json, String.class);
-        for (Map.Entry<String, String> entry : map.entrySet()) {
-            if (StringUtils.isEmpty(map.get(entry.getKey()))) {
-                return Pair.of(true, entry.getKey());
-            }
+    public static List<Pair<String, String>> parser(final String json, final Set<String> fieldNames) {
+        if (CollectionUtils.isEmpty(fieldNames) || StringUtils.isBlank(json)) {
+            return Lists.newArrayList();
         }
-        return Pair.of(false, "");
+        return fieldNames.stream().filter(StringUtils::isNoneBlank)
+                .map(field -> Pair.of(field, parser(json, field)))
+                .filter(pair -> StringUtils.isNoneBlank(pair.getRight()))
+                .collect(Collectors.toList());
     }
 
     /**

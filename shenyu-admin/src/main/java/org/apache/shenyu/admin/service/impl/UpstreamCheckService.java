@@ -47,6 +47,7 @@ import org.apache.shenyu.common.dto.convert.selector.ZombieUpstream;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.slf4j.Logger;
@@ -64,9 +65,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -96,6 +99,8 @@ public class UpstreamCheckService {
 
     private final boolean checked;
 
+    private final Integer scheduledThreads;
+
     private final SelectorMapper selectorMapper;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -109,6 +114,10 @@ public class UpstreamCheckService {
     private ScheduledThreadPoolExecutor executor;
 
     private ScheduledFuture<?> scheduledFuture;
+
+    private ScheduledThreadPoolExecutor invokeExecutor;
+
+    private final List<CompletableFuture<Void>> futures = Lists.newArrayList();
 
     /**
      * Instantiates a new Upstream check service.
@@ -133,6 +142,7 @@ public class UpstreamCheckService {
         this.converterFactor = converterFactor;
         Properties props = shenyuRegisterCenterConfig.getProps();
         this.checked = Boolean.parseBoolean(props.getProperty(Constants.IS_CHECKED, Constants.DEFAULT_CHECK_VALUE));
+        this.scheduledThreads = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_THREADS, Constants.ZOMBIE_CHECK_THREADS_VALUE));
         this.zombieCheckTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_TIMES, Constants.ZOMBIE_CHECK_TIMES_VALUE));
         this.scheduledTime = Integer.parseInt(props.getProperty(Constants.SCHEDULED_TIME, Constants.SCHEDULED_TIME_VALUE));
         this.registerType = shenyuRegisterCenterConfig.getRegisterType();
@@ -150,6 +160,9 @@ public class UpstreamCheckService {
             this.fetchUpstreamData();
             executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
             scheduledFuture = executor.scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
+
+            ThreadFactory requestFactory = ShenyuThreadFactory.create("upstream-health-check-request", true);
+            invokeExecutor = new ScheduledThreadPoolExecutor(this.scheduledThreads, requestFactory);
         }
     }
 
@@ -185,7 +198,7 @@ public class UpstreamCheckService {
             return false;
         }
 
-        List<CommonUpstream> upstreams = UPSTREAM_MAP.computeIfAbsent(selectorId, k -> new CopyOnWriteArrayList<>());
+        List<CommonUpstream> upstreams = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> new CopyOnWriteArrayList<>());
         if (commonUpstream.isStatus()) {
             Optional<CommonUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
                     && item.getUpstreamUrl().equals(commonUpstream.getUpstreamUrl())).findFirst();
@@ -202,7 +215,7 @@ public class UpstreamCheckService {
         executor.execute(() -> updateHandler(selectorId, upstreams, upstreams));
         return true;
     }
-    
+
     /**
      * If the health check passes, the service will be added to
      * the normal service list; if the health check fails, the service
@@ -212,7 +225,7 @@ public class UpstreamCheckService {
      * that do not register with the gateway by listening to
      * {@link org.springframework.context.event.ContextRefreshedEvent},
      * which will cause some problems,
-     * check https://github.com/apache/shenyu/issues/3484 for more details.
+     * check <a href="https://github.com/apache/shenyu/issues/3484">...</a> for more details.
      *
      * @param selectorId     the selector id
      * @param commonUpstream the common upstream
@@ -243,18 +256,37 @@ public class UpstreamCheckService {
 
     private void scheduled() {
         try {
-            if (ZOMBIE_SET.size() > 0) {
-                ZOMBIE_SET.parallelStream().forEach(this::checkZombie);
-            }
-            if (UPSTREAM_MAP.size() > 0) {
-                UPSTREAM_MAP.forEach(this::check);
-            }
+            doCheck();
+            waitFinish();
         } catch (Exception e) {
             LOG.error("upstream scheduled check error -------- ", e);
         }
     }
 
+    private void doCheck() {
+        // check zombie
+        if (!ZOMBIE_SET.isEmpty()) {
+            ZOMBIE_SET.forEach(this::checkZombie);
+        }
+        // check up
+        if (!UPSTREAM_MAP.isEmpty()) {
+            UPSTREAM_MAP.forEach(this::check);
+        }
+    }
+
+    private void waitFinish() {
+        // wait all check success
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        // clear, for next time
+        futures.clear();
+    }
+
     private void checkZombie(final ZombieUpstream zombieUpstream) {
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> checkZombie0(zombieUpstream), invokeExecutor);
+        futures.add(future);
+    }
+
+    private void checkZombie0(final ZombieUpstream zombieUpstream) {
         ZOMBIE_SET.remove(zombieUpstream);
         String selectorId = zombieUpstream.getSelectorId();
         CommonUpstream commonUpstream = zombieUpstream.getCommonUpstream();
@@ -276,32 +308,46 @@ public class UpstreamCheckService {
     }
 
     private void check(final String selectorId, final List<CommonUpstream> upstreamList) {
-        List<CommonUpstream> successList = Lists.newArrayListWithCapacity(upstreamList.size());
+        final List<CompletableFuture<CommonUpstream>> checkFutures = new ArrayList<>(upstreamList.size());
         for (CommonUpstream commonUpstream : upstreamList) {
-            final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
-            if (pass) {
-                if (!commonUpstream.isStatus()) {
-                    commonUpstream.setTimestamp(System.currentTimeMillis());
-                    commonUpstream.setStatus(true);
-                    LOG.info("UpstreamCacheManager check success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
+            checkFutures.add(CompletableFuture.supplyAsync(() -> {
+                final boolean pass = UpstreamCheckUtils.checkUrl(commonUpstream.getUpstreamUrl());
+                if (pass) {
+                    if (!commonUpstream.isStatus()) {
+                        commonUpstream.setTimestamp(System.currentTimeMillis());
+                        commonUpstream.setStatus(true);
+                        PENDING_SYNC.add(commonUpstream.hashCode());
+                        LOG.info("UpstreamCacheManager check success the url: {}, host: {} ", commonUpstream.getUpstreamUrl(), commonUpstream.getUpstreamHost());
+                    }
+                    return commonUpstream;
+                } else {
+                    commonUpstream.setStatus(false);
+                    ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
+                    LOG.error("check the url={} is fail ", commonUpstream.getUpstreamUrl());
                 }
-                successList.add(commonUpstream);
-            } else {
-                commonUpstream.setStatus(false);
-                ZOMBIE_SET.add(ZombieUpstream.transform(commonUpstream, zombieCheckTimes, selectorId));
-                LOG.error("check the url={} is fail ", commonUpstream.getUpstreamUrl());
-            }
+                return null;
+            }, invokeExecutor).exceptionally(ex -> {
+                LOG.error("An exception occurred during the check of url {}: {}", commonUpstream.getUpstreamUrl(), ex);
+                return null;
+            }));
         }
-        updateHandler(selectorId, upstreamList, successList);
+
+        this.futures.add(CompletableFuture.runAsync(() -> {
+            List<CommonUpstream> successList = checkFutures.stream()
+                    .map(CompletableFuture::join)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            updateHandler(selectorId, upstreamList, successList);
+        }));
     }
 
     private void updateHandler(final String selectorId, final List<CommonUpstream> upstreamList, final List<CommonUpstream> successList) {
         //No node changes, including zombie node resurrection and live node death
-        if (successList.size() == upstreamList.size() && PENDING_SYNC.size() == 0) {
+        if (successList.size() == upstreamList.size() && PENDING_SYNC.isEmpty()) {
             return;
         }
         removePendingSync(successList);
-        if (successList.size() > 0) {
+        if (!successList.isEmpty()) {
             UPSTREAM_MAP.put(selectorId, successList);
             updateSelectorHandler(selectorId, successList);
         } else {
@@ -361,7 +407,7 @@ public class UpstreamCheckService {
                     }
                 });
     }
-    
+
     /**
      * listen {@link SelectorCreatedEvent} add data permission.
      *
@@ -375,7 +421,7 @@ public class UpstreamCheckService {
             replace(event.getSelector().getId(), CommonUpstreamUtils.convertCommonUpstreamList(existDivideUpstreams));
         }
     }
-    
+
     /**
      * listen {@link SelectorCreatedEvent} add data permission.
      *

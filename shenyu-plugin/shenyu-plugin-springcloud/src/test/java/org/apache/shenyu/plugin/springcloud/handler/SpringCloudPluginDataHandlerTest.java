@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.springcloud.handler;
 
+import org.apache.shenyu.common.config.ShenyuConfig.SpringCloudCacheConfig;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
@@ -25,10 +26,16 @@ import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClient;
+import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryProperties;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -51,7 +58,11 @@ public final class SpringCloudPluginDataHandlerTest {
 
     @BeforeEach
     public void setUp() {
-        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler();
+        this.mockSpringCloudConfig();
+        SimpleDiscoveryProperties simpleDiscoveryProperties = new SimpleDiscoveryProperties();
+        SimpleDiscoveryClient discoveryClient = new SimpleDiscoveryClient(simpleDiscoveryProperties);
+        SpringCloudCacheConfig springCloudCacheConfig = SpringBeanUtils.getInstance().getBean(SpringCloudCacheConfig.class);
+        this.springCloudPluginDataHandler = new SpringCloudPluginDataHandler(discoveryClient, springCloudCacheConfig);
         this.selectorData = new SelectorData();
     }
 
@@ -97,7 +108,7 @@ public final class SpringCloudPluginDataHandlerTest {
     public void testHandlerRule() {
         ruleData.setSelectorId("1");
         ruleData.setHandle("{\"urlPath\":\"test\"}");
-        ruleData.setName("test");
+        ruleData.setId("test");
         springCloudPluginDataHandler.handlerRule(ruleData);
         Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> cache = SpringCloudPluginDataHandler.RULE_CACHED;
         Assertions.assertNotEquals(cache.get().obtainHandle("1_test"), null);
@@ -107,16 +118,22 @@ public final class SpringCloudPluginDataHandlerTest {
     public void testRemoveRule() {
         ruleData.setSelectorId("1");
         ruleData.setHandle("{\"urlPath\":\"test\"}");
-        ruleData.setName("test");
+        ruleData.setId("test");
         Supplier<CommonHandleCache<String, SpringCloudRuleHandle>> cache = SpringCloudPluginDataHandler.RULE_CACHED;
         cache.get().cachedHandle("1_test", new SpringCloudRuleHandle());
         Assertions.assertNotEquals(cache.get().obtainHandle("1_test"), null);
         springCloudPluginDataHandler.removeRule(ruleData);
-        Assertions.assertEquals(cache.get().obtainHandle("1_test"), null);
+        Assertions.assertNull(cache.get().obtainHandle("1_test"));
     }
 
     @Test
     public void testPluginNamed() {
         Assertions.assertEquals(springCloudPluginDataHandler.pluginNamed(), "springCloud");
+    }
+    
+    private void mockSpringCloudConfig() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(SpringCloudCacheConfig.class)).thenReturn(new SpringCloudCacheConfig());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 }

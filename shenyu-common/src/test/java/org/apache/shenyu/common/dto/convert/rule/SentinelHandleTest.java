@@ -46,7 +46,9 @@ public class SentinelHandleTest {
         handle.setDegradeRuleSlowRatioThreshold(Double.valueOf(10));
         handle.setDegradeRuleStatIntervals(100);
         handle.setFallbackUri("fallbackUri");
-        
+        handle.setFlowRuleMaxQueueingTimeMs(500);
+        handle.setFlowRuleWarmUpPeriodSec(10);
+
         assertThat(handle.getFlowRuleEnable(), is(0));
         assertThat(handle.getFlowRuleGrade(), is(2));
         assertThat(handle.getFlowRuleCount(), is(10));
@@ -59,6 +61,8 @@ public class SentinelHandleTest {
         assertThat(handle.getDegradeRuleSlowRatioThreshold(), closeTo(10, 0.1));
         assertThat(handle.getDegradeRuleStatIntervals(), is(100));
         assertThat(handle.getFallbackUri(), is("fallbackUri"));
+        assertThat(handle.getFlowRuleMaxQueueingTimeMs(), is(500));
+        assertThat(handle.getFlowRuleWarmUpPeriodSec(), is(10));
     }
     
     @Test
@@ -75,7 +79,7 @@ public class SentinelHandleTest {
         handle.setFlowRuleEnable(0);
         handle.setDegradeRuleEnable(1);
         
-        handle.checkData(handle);
+        handle.checkData();
         
         assertThat(handle.getFlowRuleEnable(), is(0));
         assertThat(handle.getDegradeRuleEnable(), is(1));
@@ -83,7 +87,7 @@ public class SentinelHandleTest {
         handle.setFlowRuleEnable(-1);
         handle.setDegradeRuleEnable(3);
     
-        handle.checkData(handle);
+        handle.checkData();
         
         assertThat(handle.getFlowRuleEnable(), is(Constants.SENTINEL_ENABLE_FLOW_RULE));
         assertThat(handle.getDegradeRuleEnable(), is(Constants.SENTINEL_ENABLE_DEGRADE_RULE));

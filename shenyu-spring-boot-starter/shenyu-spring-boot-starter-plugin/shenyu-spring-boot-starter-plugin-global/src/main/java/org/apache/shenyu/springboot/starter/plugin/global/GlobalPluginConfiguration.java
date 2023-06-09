@@ -20,10 +20,13 @@ package org.apache.shenyu.springboot.starter.plugin.global;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.cache.CommonProxySelectorDataSubscriber;
+import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
 import org.apache.shenyu.plugin.global.DefaultShenyuContextBuilder;
 import org.apache.shenyu.plugin.global.GlobalPlugin;
 import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -42,7 +45,7 @@ import java.util.stream.Collectors;
 @Configuration
 @ConditionalOnClass(GlobalPlugin.class)
 public class GlobalPluginConfiguration {
-    
+
     /**
      * Global plugin shenyu plugin.
      *
@@ -53,7 +56,7 @@ public class GlobalPluginConfiguration {
     public ShenyuPlugin globalPlugin(final ShenyuContextBuilder shenyuContextBuilder) {
         return new GlobalPlugin(shenyuContextBuilder);
     }
-    
+
     /**
      * Shenyu context builder.
      *
@@ -67,7 +70,7 @@ public class GlobalPluginConfiguration {
         Map<String, ShenyuContextDecorator> decoratorMap = decoratorList.stream().collect(Collectors.toMap(ShenyuContextDecorator::rpcType, e -> e));
         return new DefaultShenyuContextBuilder(decoratorMap);
     }
-    
+
     /**
      * Cache meta data subscriber.
      *
@@ -77,4 +80,17 @@ public class GlobalPluginConfiguration {
     public MetaDataSubscriber metaDataCacheSubscriber() {
         return new MetaDataCacheSubscriber();
     }
+
+    /**
+     * Common proxy Selector  subscriber.
+     *
+     * @param proxySelectorDataHandlers proxySelectorDataHandlers
+     * @return ProxySelectorDataSubscriber
+     */
+    @Bean
+    public ProxySelectorDataSubscriber proxySelectorDataSubscriber(final ObjectProvider<List<ProxySelectorDataHandler>> proxySelectorDataHandlers) {
+        List<ProxySelectorDataHandler> proxySelectorDataHandlerList = proxySelectorDataHandlers.getIfAvailable(Collections::emptyList);
+        return new CommonProxySelectorDataSubscriber(proxySelectorDataHandlerList);
+    }
+
 }

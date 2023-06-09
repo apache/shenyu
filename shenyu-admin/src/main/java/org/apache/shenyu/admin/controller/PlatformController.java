@@ -56,7 +56,7 @@ public class PlatformController {
         LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password);
         return Optional.ofNullable(loginVO)
                 .map(loginStatus -> {
-                    if (loginStatus.getEnabled()) {
+                    if (Boolean.TRUE.equals(loginStatus.getEnabled())) {
                         return ShenyuAdminResult.success(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
                     }
                     return ShenyuAdminResult.error(ShenyuResultMessage.LOGIN_USER_DISABLE_ERROR);

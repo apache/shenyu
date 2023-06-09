@@ -48,6 +48,15 @@ public class PageCondition<T> {
     @NotNull
     private T condition;
     
+    public PageCondition() {
+    }
+    
+    public PageCondition(final Integer pageNum, final Integer pageSize, final T condition) {
+        this.pageNum = pageNum;
+        this.pageSize = pageSize;
+        this.condition = condition;
+    }
+    
     /**
      * get page num.
      *

@@ -36,14 +36,15 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -110,7 +111,7 @@ public class PluginController implements PagedController<PluginQueryCondition, P
         PluginVO pluginVO = pluginService.findById(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, pluginVO);
     }
-    
+
     /**
      * create plugin.
      *
@@ -119,9 +120,10 @@ public class PluginController implements PagedController<PluginQueryCondition, P
      */
     @PostMapping("")
     @RequiresPermissions("system:plugin:add")
-    public ShenyuAdminResult createPlugin(@Valid @RequestBody final PluginDTO pluginDTO) {
+    public ShenyuAdminResult createPlugin(@Valid @ModelAttribute final PluginDTO pluginDTO) {
         return ShenyuAdminResult.success(pluginService.createOrUpdate(pluginDTO));
     }
+
     
     /**
      * update plugin.
@@ -135,11 +137,27 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     public ShenyuAdminResult updatePlugin(@PathVariable("id")
                                           @Existed(message = "plugin is not existed",
                                                   provider = PluginMapper.class) final String id,
-                                          @Valid @RequestBody final PluginDTO pluginDTO) {
+                                          @Valid @ModelAttribute final PluginDTO pluginDTO) {
         pluginDTO.setId(id);
         return createPlugin(pluginDTO);
     }
-    
+
+    /**
+     * create plugin resource.
+     * @param id primary key
+     * @param pluginDTO plugin
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PutMapping("/createPluginResource/{id}")
+    @RequiresPermissions("system:plugin:resource")
+    public ShenyuAdminResult createPluginResource(@PathVariable("id")
+                                                  @Existed(message = "plugin is not existed",
+                                                          provider = PluginMapper.class) final String id,
+                                                  @Valid @RequestBody final PluginDTO pluginDTO) {
+        pluginDTO.setId(id);
+        return ShenyuAdminResult.success(pluginService.createPluginResource(pluginDTO));
+    }
+
     /**
      * delete plugins.
      *

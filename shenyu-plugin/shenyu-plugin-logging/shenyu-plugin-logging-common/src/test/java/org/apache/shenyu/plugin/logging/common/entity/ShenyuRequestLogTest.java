@@ -110,7 +110,7 @@ public class ShenyuRequestLogTest {
 
     @Test
     public void testUpstreamResponseTime() {
-        shenyuRequestLog.setUpstreamResponseTime(111111);
+        shenyuRequestLog.setUpstreamResponseTime(111111L);
         Assertions.assertEquals(shenyuRequestLog.getUpstreamResponseTime(), 111111);
     }
 

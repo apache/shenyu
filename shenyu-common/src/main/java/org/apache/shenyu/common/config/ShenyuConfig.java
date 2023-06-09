@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.common.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.MemoryLimitCalculator;
-import org.springframework.util.StringUtils;
+import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,16 +45,12 @@ public class ShenyuConfig {
     private FallbackPath fallback = new FallbackPath();
     
     private ExtPlugin extPlugin = new ExtPlugin();
-
-    private MatchCache matchCache = new MatchCache();
     
     private Scheduler scheduler = new Scheduler();
     
     private UpstreamCheck upstreamCheck = new UpstreamCheck();
 
     private CrossFilterConfig cross = new CrossFilterConfig();
-    
-    private InstanceConfig instance = new InstanceConfig();
 
     private RibbonConfig ribbon = new RibbonConfig();
     
@@ -64,6 +61,12 @@ public class ShenyuConfig {
     private SharedPool sharedPool = new SharedPool();
     
     private MetricsConfig metrics = new MetricsConfig();
+
+    private SelectorMatchCache selectorMatchCache = new SelectorMatchCache();
+    
+    private RuleMatchCache ruleMatchCache = new RuleMatchCache();
+    
+    private SpringCloudCacheConfig springCloudCache = new SpringCloudCacheConfig();
     
     /**
      * Gets health.
@@ -154,25 +157,7 @@ public class ShenyuConfig {
     public void setRibbon(final RibbonConfig ribbon) {
         this.ribbon = ribbon;
     }
-    
-    /**
-     * Gets instance.
-     *
-     * @return the instance
-     */
-    public InstanceConfig getInstance() {
-        return instance;
-    }
-    
-    /**
-     * Sets instance.
-     *
-     * @param instance the instance
-     */
-    public void setInstance(final InstanceConfig instance) {
-        this.instance = instance;
-    }
-    
+
     /**
      * Gets switch config.
      *
@@ -225,24 +210,6 @@ public class ShenyuConfig {
      */
     public void setExtPlugin(final ExtPlugin extPlugin) {
         this.extPlugin = extPlugin;
-    }
-
-    /**
-     * Gets match cache.
-     *
-     * @return the match cache
-     */
-    public MatchCache getMatchCache() {
-        return matchCache;
-    }
-
-    /**
-     * Sets match cache.
-     *
-     * @param matchCache the match cache
-     */
-    public void setMatchCache(final MatchCache matchCache) {
-        this.matchCache = matchCache;
     }
     
     /**
@@ -351,6 +318,60 @@ public class ShenyuConfig {
      */
     public void setCross(final CrossFilterConfig cross) {
         this.cross = cross;
+    }
+    
+    /**
+     * get selector match cache.
+     *
+     * @return selector match cache
+     */
+    public SelectorMatchCache getSelectorMatchCache() {
+        return selectorMatchCache;
+    }
+    
+    /**
+     * set selector match cache.
+     *
+     * @param selectorMatchCache selector match cache
+     */
+    public void setSelectorMatchCache(final SelectorMatchCache selectorMatchCache) {
+        this.selectorMatchCache = selectorMatchCache;
+    }
+    
+    /**
+     * get rule match cache.
+     *
+     * @return rule match cache
+     */
+    public RuleMatchCache getRuleMatchCache() {
+        return ruleMatchCache;
+    }
+    
+    /**
+     * set rule match cache.
+     *
+     * @param ruleMatchCache rule match cache
+     */
+    public void setRuleMatchCache(final RuleMatchCache ruleMatchCache) {
+        this.ruleMatchCache = ruleMatchCache;
+    }
+    
+    /**
+     * get spring cloud cache config.
+     *
+     * @return {@linkplain SpringCloudCacheConfig}
+     */
+    public SpringCloudCacheConfig getSpringCloudCache() {
+        return springCloudCache;
+    }
+    
+    /**
+     * set spring cloud cache config.
+     *
+     * @param springCloudCache cache config
+     */
+    public void setSpringCloudCache(final SpringCloudCacheConfig springCloudCache) {
+        this.springCloudCache = springCloudCache;
     }
     
     /**
@@ -525,53 +546,168 @@ public class ShenyuConfig {
             this.scheduleDelay = scheduleDelay;
         }
     }
-
-    /**
-     * the match cache.
-     */
-    public static class MatchCache {
-
-        private boolean enabled;
-
+    
+    public static class SelectorMatchCache {
+        
         /**
-         * Max free memory, unit mb.
+         * the match cache, L1 cache.
          */
-        private Integer maxFreeMemory = 256;
-
+        private MatchCacheConfig cache = new MatchCacheConfig();
+        
         /**
-         * Gets enabled.
+         * the trie cache, L2 cache.
+         */
+        private ShenyuTrieConfig trie = new ShenyuTrieConfig();
+        
+/**
+         * get selector cache config.
          *
-         * @return the enabled
+         * @return {@linkplain MatchCacheConfig}
          */
-        public boolean getEnabled() {
+        public MatchCacheConfig getCache() {
+            return cache;
+        }
+        
+        /**
+         * set selector cache config.
+         *
+         * @param cache SelectorCacheConfig
+         */
+        public void setCache(final MatchCacheConfig cache) {
+            this.cache = cache;
+        }
+        
+        /**
+         * get rule cache Config.
+         *
+         * @return rule cache config
+         */
+        public ShenyuTrieConfig getTrie() {
+            return trie;
+        }
+        
+        /**
+         * set rule cache config.
+         *
+         * @param trie rule cache
+         */
+        public void setTrie(final ShenyuTrieConfig trie) {
+            this.trie = trie;
+        }
+    }
+    
+    public static class RuleMatchCache {
+        
+        /**
+         * the match cache, L1 cache.
+         */
+        private MatchCacheConfig cache = new MatchCacheConfig();
+        
+        /**
+         * the trie cache, L2 cache.
+         */
+        private ShenyuTrieConfig trie = new ShenyuTrieConfig();
+        
+        /**
+         * get selector cache config.
+         *
+         * @return {@linkplain MatchCacheConfig}
+         */
+        public MatchCacheConfig getCache() {
+            return cache;
+        }
+        
+        /**
+         * set selector cache config.
+         *
+         * @param cache SelectorCacheConfig
+         */
+        public void setCache(final MatchCacheConfig cache) {
+            this.cache = cache;
+        }
+        
+        /**
+         * get rule cache Config.
+         *
+         * @return rule cache config
+         */
+        public ShenyuTrieConfig getTrie() {
+            return trie;
+        }
+        
+        /**
+         * set rule cache config.
+         *
+         * @param trie rule cache
+         */
+        public void setTrie(final ShenyuTrieConfig trie) {
+            this.trie = trie;
+        }
+    }
+    
+    /**
+     * rule cache config.
+     */
+    public static class MatchCacheConfig {
+        
+        private Boolean enabled = Boolean.TRUE;
+
+        private int initialCapacity = 10000;
+        
+        private long maximumSize = 10000L;
+        
+        /**
+         * get rule cache enabled.
+         *
+         * @return rule cache enabled
+         */
+        public Boolean getEnabled() {
             return enabled;
         }
-
+        
         /**
-         * Sets enabled.
+         * set rule cache enabled.
          *
-         * @param enabled the enabled
+         * @param enabled rule cache enabled
          */
-        public void setEnabled(final boolean enabled) {
+        public void setEnabled(final Boolean enabled) {
             this.enabled = enabled;
         }
-
+        
         /**
-         * Gets maxFreeMemory.
+         * get initial capacity.
          *
-         * @return the maxFreeMemory
+         * @return initial capacity
          */
-        public Integer getMaxFreeMemory() {
-            return maxFreeMemory;
+        public int getInitialCapacity() {
+            return initialCapacity;
         }
-
+        
         /**
-         * Sets maxFreeMemory.
+         * set initial capacity.
          *
-         * @param maxFreeMemory the maxFreeMemory
+         * @param initialCapacity initialCapacity
          */
-        public void setMaxFreeMemory(final Integer maxFreeMemory) {
-            this.maxFreeMemory = maxFreeMemory;
+        public void setInitialCapacity(final int initialCapacity) {
+            this.initialCapacity = initialCapacity;
+        }
+    
+        /**
+         * get maximum size.
+         *
+         * @return rule cache maximumSize
+         */
+        public long getMaximumSize() {
+            return maximumSize;
+        }
+    
+        /**
+         * set rule cache maximumSize.
+         *
+         * @param maximumSize rule cache maximumSize
+         */
+        public void setMaximumSize(final long maximumSize) {
+            this.maximumSize = maximumSize;
         }
     }
     
@@ -765,6 +901,8 @@ public class ShenyuConfig {
     public static class SwitchConfig {
         
         private boolean local = true;
+
+        private boolean collapseSlashes = true;
     
         /**
          * Gets local.
@@ -783,7 +921,24 @@ public class ShenyuConfig {
         public void setLocal(final boolean local) {
             this.local = local;
         }
-        
+
+        /**
+         * get collapseSlashes.
+         *
+         * @return collapseSlashes
+         */
+        public boolean getCollapseSlashes() {
+            return collapseSlashes;
+        }
+
+        /**
+         * set collapseSlashes.
+         *
+         * @param collapseSlashes collapseSlashes
+         */
+        public void setCollapseSlashes(final boolean collapseSlashes) {
+            this.collapseSlashes = collapseSlashes;
+        }
     }
     
     /**
@@ -792,6 +947,8 @@ public class ShenyuConfig {
     public static class UpstreamCheck {
     
         private boolean enabled;
+
+        private Integer poolSize = 10;
         
         private Integer timeout = 3000;
         
@@ -822,7 +979,25 @@ public class ShenyuConfig {
         public void setEnabled(final boolean enabled) {
             this.enabled = enabled;
         }
-    
+
+        /**
+         * get checkThreadPoolSize.
+         *
+         * @return checkThreadPoolSize
+         */
+        public Integer getPoolSize() {
+            return poolSize;
+        }
+
+        /**
+         * set checkThreadPoolSize.
+         *
+         * @param poolSize checkThreadPoolSize
+         */
+        public void setPoolSize(final Integer poolSize) {
+            this.poolSize = poolSize;
+        }
+
         /**
          * Gets timeout.
          *
@@ -985,7 +1160,7 @@ public class ShenyuConfig {
          */
         private String wrapperHeaders(final String headers) {
             final Set<String> headerSet = DEFAULT_ALLOWED_HEADERS;
-            if (StringUtils.hasText(headers)) {
+            if (StringUtils.isNotEmpty(headers)) {
                 headerSet.addAll(Stream.of(headers.split(",")).collect(Collectors.toSet()));
             }
             return String.join(",", headerSet);
@@ -1239,112 +1414,6 @@ public class ShenyuConfig {
             public void setOriginRegex(final String originRegex) {
                 this.originRegex = originRegex;
             }
-        }
-    }
-    
-    /**
-     * The type Instance config.
-     */
-    public static class InstanceConfig {
-    
-        private boolean enabled;
-    
-        private String registerType;
-    
-        private String serverLists;
-    
-        private Properties props = new Properties();
-    
-        /**
-         * Instantiates a new Instance config.
-         */
-        public InstanceConfig() {
-        
-        }
-    
-        /**
-         * Instantiates a new Instance config.
-         *
-         * @param registerType the register type
-         * @param serverLists the server lists
-         * @param props the props
-         */
-        public InstanceConfig(final String registerType, final String serverLists, final Properties props) {
-            this.registerType = registerType;
-            this.serverLists = serverLists;
-            this.props = props;
-        }
-    
-        /**
-         * Gets enabled.
-         *
-         * @return the enabled
-         */
-        public boolean getEnabled() {
-            return enabled;
-        }
-    
-        /**
-         * Sets enabled.
-         *
-         * @param enabled the enabled
-         */
-        public void setEnabled(final boolean enabled) {
-            this.enabled = enabled;
-        }
-    
-        /**
-         * getRegisterType.
-         *
-         * @return String register type
-         */
-        public String getRegisterType() {
-            return registerType;
-        }
-    
-        /**
-         * setRegisterType.
-         *
-         * @param registerType registerType
-         */
-        public void setRegisterType(final String registerType) {
-            this.registerType = registerType;
-        }
-    
-        /**
-         * getServerLists.
-         *
-         * @return String server lists
-         */
-        public String getServerLists() {
-            return serverLists;
-        }
-    
-        /**
-         * setServerLists.
-         *
-         * @param serverLists serverLists
-         */
-        public void setServerLists(final String serverLists) {
-            this.serverLists = serverLists;
-        }
-    
-        /**
-         * getProps.
-         *
-         * @return String props
-         */
-        public Properties getProps() {
-            return props;
-        }
-    
-        /**
-         * setProps.
-         *
-         * @param props props
-         */
-        public void setProps(final Properties props) {
-            this.props = props;
         }
     }
     
@@ -1790,6 +1859,98 @@ public class ShenyuConfig {
          */
         public void setProps(final Properties props) {
             this.props = props;
+        }
+    }
+
+    /**
+     * shenyu trie config.
+     */
+    public static class ShenyuTrieConfig {
+        
+        private Boolean enabled = Boolean.FALSE;
+        
+        private Long cacheSize = 512L;
+
+        /**
+         * match mode.
+         * @see TrieMatchModeEnum
+         */
+        private String matchMode = TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode();
+    
+        /**
+         * get match enabled.
+         *
+         * @return Boolean
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+    
+        /**
+         * set match enabled.
+         *
+         * @param enabled enabled
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
+        }
+    
+        /**
+         * get cache size.
+         *
+         * @return cache size
+         */
+        public Long getCacheSize() {
+            return cacheSize;
+        }
+
+        /**
+         * set cache size.
+         *
+         * @param cacheSize cache size
+         */
+        public void setCacheSize(final Long cacheSize) {
+            this.cacheSize = cacheSize;
+        }
+    
+        /**
+         * get match mode.
+         *
+         * @return motch mode
+         */
+        public String getMatchMode() {
+            return matchMode;
+        }
+
+        /**
+         * set match mode.
+         *
+         * @param matchMode match mode
+         */
+        public void setMatchMode(final String matchMode) {
+            this.matchMode = matchMode;
+        }
+    }
+    
+    public static class SpringCloudCacheConfig {
+        private Boolean enabled = Boolean.FALSE;
+        
+        /**
+         * get shenyu spring cloud cache status.
+         *
+         * @return the enabled status
+         */
+        public Boolean getEnabled() {
+            return enabled;
+        }
+        
+        /**
+         * set shenyu spring cloud cache status.
+         *
+         * @param enabled the status
+         */
+        public void setEnabled(final Boolean enabled) {
+            this.enabled = enabled;
         }
     }
 }

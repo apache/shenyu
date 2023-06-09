@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -25,6 +27,8 @@ import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 import java.util.List;
 
@@ -48,6 +52,16 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return rows int
      */
     default int createOrUpdate(final RuleDTO ruleDTO) {
+        // check rule uri condition
+        try {
+            final List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
+            ruleConditions.stream()
+                    .filter(conditionData -> ParamTypeEnum.URI.getName().equals(conditionData.getParamType()))
+                    .map(RuleConditionDTO::getParamValue)
+                    .forEach(PathPatternParser.defaultInstance::parse);
+        } catch (Exception e) {
+            throw new ShenyuAdminException("uri validation of Condition failed, please check.");
+        }
         return StringUtils.isBlank(ruleDTO.getId()) ? create(ruleDTO) : update(ruleDTO);
     }
     

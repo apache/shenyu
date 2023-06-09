@@ -55,11 +55,17 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(DividePlugin.class);
 
+    private static final String P2C = "p2c";
+
+    private static final String SHORTEST_RESPONSE = "shortestResponse";
+
+    private Long beginTime;
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        DivideRuleHandle ruleHandle = buildRuleHandle(rule);
         if (ruleHandle.getHeaderMaxSize() > 0) {
             long headerSize = exchange.getRequest().getHeaders().values()
                     .stream()
@@ -81,7 +87,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         List<Upstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
-            LOG.error("divide upstream configuration error： {}", rule);
+            LOG.error("divide upstream configuration error： {}", selector);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
@@ -93,6 +99,10 @@ public class DividePlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         // set the http url
+        if (CollectionUtils.isNotEmpty(exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN))) {
+            upstream.setUrl(exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN).get(0));
+        }
+        // set domain
         String domain = upstream.buildDomain();
         exchange.getAttributes().put(Constants.HTTP_DOMAIN, domain);
         // set the http timeout
@@ -102,6 +112,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultString(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultString(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
+        if (ruleHandle.getLoadBalance().equals(P2C)) {
+            return chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
+            )).doOnError(throwable -> responseTrigger(upstream));
+        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
+            beginTime = System.currentTimeMillis();
+            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream
+            ));
+        }
         return chain.execute(exchange);
     }
 
@@ -128,5 +146,37 @@ public class DividePlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return WebFluxResultUtils.noRuleResult(pluginName, exchange);
+    }
+    
+    private DivideRuleHandle buildRuleHandle(final RuleData rule) {
+        return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+    }
+
+    private void responseTrigger(final Upstream upstream) {
+        long now = System.currentTimeMillis();
+        upstream.getInflight().decrementAndGet();
+        upstream.setResponseStamp(now);
+        long stamp = upstream.getResponseStamp();
+        long td = now - stamp;
+        if (td < 0) {
+            td = 0;
+        }
+        double w = Math.exp((double) -td / (double) 600);
+
+        long lag = now - upstream.getLastPicked();
+        if (lag < 0) {
+            lag = 0;
+        }
+        long oldLag = upstream.getLag();
+        if (oldLag == 0) {
+            w = 0;
+        }
+        lag = (int) ((double) oldLag * w + (double) lag * (1.0 - w));
+        upstream.setLag(lag);
+    }
+
+    private void successResponseTrigger(final Upstream upstream) {
+        upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
+        upstream.getSucceeded().incrementAndGet();
     }
 }

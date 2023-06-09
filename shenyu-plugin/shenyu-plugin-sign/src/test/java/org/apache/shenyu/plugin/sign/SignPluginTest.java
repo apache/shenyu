@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.sign;
 
-import com.google.common.collect.Maps;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -26,7 +24,8 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.sign.api.SignService;
+import org.apache.shenyu.plugin.sign.service.SignService;
+import org.apache.shenyu.plugin.sign.api.VerifyResult;
 import org.apache.shenyu.plugin.sign.handler.SignPluginDataHandler;
 import org.apache.shenyu.plugin.sign.handler.SignRuleHandler;
 import org.junit.jupiter.api.AfterEach;
@@ -43,12 +42,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.io.IOException;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -83,7 +82,7 @@ public final class SignPluginTest {
         this.ruleData.setName("test-sign-plugin");
         this.signPluginDataHandler = new SignPluginDataHandler();
         signService = mock(SignService.class);
-        this.signPlugin = new SignPlugin(signService);
+        this.signPlugin = new SignPlugin(HandlerStrategies.builder().build().messageReaders(), signService);
 
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
@@ -102,7 +101,7 @@ public final class SignPluginTest {
     public void testSignPluginSimple() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
 
-        when(signService.signVerify(exchange)).thenReturn(Pair.of(true, ""));
+        when(signService.signatureVerify(exchange)).thenReturn(VerifyResult.success());
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
@@ -113,7 +112,7 @@ public final class SignPluginTest {
     public void testSignPluginSimple2() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
 
-        when(signService.signVerify(exchange)).thenReturn(Pair.of(false, ""));
+        when(signService.signatureVerify(exchange)).thenReturn(VerifyResult.fail(""));
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
@@ -123,15 +122,12 @@ public final class SignPluginTest {
     @Test
     public void testSignPluginSignBody() {
         this.ruleData.setHandle("{\"signRequestBody\": true}");
+        String requestBody = "{\"data\": \"3\"}";
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .method(HttpMethod.POST, "/test")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"data\": "
-                        + "\"3\""
-                        + "}"));
-        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
-        requestBody.put("data", "3");
-        when(signService.signVerify(exchange, requestBody)).thenReturn(Pair.of(true, ""));
+                .body(requestBody));
+        when(signService.signatureVerify(exchange, requestBody)).thenReturn(VerifyResult.success());
         when(this.chain.execute(any())).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         signPluginDataHandler.handlerRule(ruleData);
@@ -142,16 +138,14 @@ public final class SignPluginTest {
     @Test
     public void testSignPluginSignBody2() {
         this.ruleData.setHandle("{\"signRequestBody\": true}");
+        String requestBody = "{\"data\": \"4\"}";
 
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest
-                .method(HttpMethod.POST, "/test")
+                .method(HttpMethod.POST, "/test?data2=3")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"data\": "
-                        + "\"4\""
-                        + "}"));
-        Map<String, Object> requestBody = Maps.newHashMapWithExpectedSize(1);
-        requestBody.put("data", "4");
-        when(signService.signVerify(exchange, requestBody)).thenReturn(Pair.of(false, ""));
+                .body(requestBody));
+
+        when(signService.signatureVerify(exchange, requestBody)).thenReturn(VerifyResult.fail(""));
         when(this.chain.execute(any())).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         signPluginDataHandler.handlerRule(ruleData);

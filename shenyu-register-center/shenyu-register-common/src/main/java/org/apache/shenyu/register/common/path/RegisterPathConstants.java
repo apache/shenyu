@@ -100,7 +100,18 @@ public class RegisterPathConstants {
      * @return the string
      */
     public static String buildInstanceParentPath() {
-        return String.join(SEPARATOR, ROOT_PATH, "instance");
+        return buildInstanceParentPath("instance");
+    }
+
+    /**
+     * Build instance parent path string.
+     * build child path of "/shenyu/register/instance/
+     *
+     * @param registerServiceName registerServiceName
+     * @return the string
+     */
+    public static String buildInstanceParentPath(final String registerServiceName) {
+        return String.join(SEPARATOR, ROOT_PATH, registerServiceName);
     }
     
     /**
@@ -153,5 +164,30 @@ public class RegisterPathConstants {
      */
     public static String buildNodeName(final String serviceName, final String methodName) {
         return String.join(DOT_SEPARATOR, serviceName, methodName);
+    }
+
+    /**
+     * Build apollo config uri parent path string.
+     * build child path of "shenyu.register.uri.{rpcType}.{contextPath}".
+     *
+     * @param rpcType the rpc type
+     * @param contextPath the context path
+     * @return the string
+     */
+    public static String buildURIParentKey(final String rpcType, final String contextPath) {
+        return String.join(DOT_SEPARATOR, "shenyu.register", "uri", rpcType, contextPath);
+    }
+
+
+    /**
+     * Build apollo config metadata parent path string.
+     * build child path of "shenyu.register.metadata.{rpcType}.{contextPath}".
+     *
+     * @param rpcType the rpc type
+     * @param contextPath the context path
+     * @return the string
+     */
+    public static String buildMetadataParentKey(final String rpcType, final String contextPath) {
+        return String.join(DOT_SEPARATOR, "shenyu.register", "metadata", rpcType, contextPath);
     }
 }

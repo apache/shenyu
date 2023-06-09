@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.base;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.HttpParamConverter;
+import org.apache.shenyu.plugin.base.utils.HttpParamConverter;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -113,7 +113,8 @@ public class RpcParamTransformPlugin implements ShenyuPlugin {
                 RpcTypeEnum.GRPC,
                 RpcTypeEnum.TARS,
                 RpcTypeEnum.MOTAN,
-                RpcTypeEnum.SOFA);
+                RpcTypeEnum.SOFA,
+                RpcTypeEnum.BRPC);
     }
 
     @NonNull

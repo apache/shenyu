@@ -22,6 +22,7 @@ import com.alibaba.dubbo.common.bytecode.ClassGenerator;
 import com.alibaba.dubbo.common.utils.ReflectUtils;
 import com.alibaba.dubbo.validation.MethodValidated;
 import com.alibaba.dubbo.validation.Validator;
+import java.util.Objects;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
@@ -87,7 +88,7 @@ public class AlibabaDubboClientValidator implements Validator {
         this.clazz = ReflectUtils.forName(url.getServiceInterface());
         String shenyuValidation = url.getParameter("shenyuValidation");
         ValidatorFactory factory;
-        if (shenyuValidation != null && shenyuValidation.length() > 0) {
+        if (Objects.nonNull(shenyuValidation) && shenyuValidation.length() > 0) {
             factory = Validation.byProvider((Class) ReflectUtils.forName(shenyuValidation)).configure().buildValidatorFactory();
         } else {
             factory = Validation.buildDefaultValidatorFactory();
@@ -262,7 +263,7 @@ public class AlibabaDubboClientValidator implements Validator {
         Class<?>[] classGroups = groups.toArray(new Class<?>[0]);
 
         Object parameterBean = getMethodParameterBean(clazz, method, arguments);
-        if (parameterBean != null) {
+        if (Objects.nonNull(parameterBean)) {
             violations.addAll(validator.validate(parameterBean, classGroups));
         }
 
@@ -279,7 +280,7 @@ public class AlibabaDubboClientValidator implements Validator {
     }
 
     private void validate(final Set<ConstraintViolation<?>> violations, final Object arg, final Class<?>... groups) {
-        if (arg != null && !isPrimitives(arg.getClass())) {
+        if (Objects.nonNull(arg) && !isPrimitives(arg.getClass())) {
             if (arg instanceof Object[]) {
                 for (Object item : (Object[]) arg) {
                     validate(violations, item, groups);

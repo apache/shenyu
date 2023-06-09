@@ -17,17 +17,25 @@
 
 package org.apache.shenyu.register.instance.etcd;
 
-import org.apache.shenyu.common.config.ShenyuConfig.InstanceConfig;
+import io.etcd.jetcd.Watch;
+import io.etcd.jetcd.watch.WatchEvent;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.InstanceRegisterDTO;
-import org.apache.shenyu.register.common.path.RegisterPathConstants;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
+import org.apache.shenyu.register.instance.api.config.RegisterConfig;
+import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
+import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * The type Etcd instance register repository.
@@ -40,7 +48,7 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     private EtcdClient client;
 
     @Override
-    public void init(final InstanceConfig config) {
+    public void init(final RegisterConfig config) {
         Properties props = config.getProps();
         long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
         long ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
@@ -48,16 +56,43 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     }
 
     @Override
-    public void persistInstance(final InstanceRegisterDTO instance) {
+    public void persistInstance(final InstanceEntity instance) {
         String instanceNodeName = buildInstanceNodeName(instance);
-        String instancePath = RegisterPathConstants.buildInstanceParentPath();
-        String realNode = RegisterPathConstants.buildRealNode(instancePath, instanceNodeName);
+        String instancePath = InstancePathConstants.buildInstanceParentPath(instance.getAppName());
+        String realNode = InstancePathConstants.buildRealNode(instancePath, instanceNodeName);
         String nodeData = GsonUtils.getInstance().toJson(instance);
         client.putEphemeral(realNode, nodeData);
         LOGGER.info("etcd client register success: {}", nodeData);
     }
 
-    private String buildInstanceNodeName(final InstanceRegisterDTO instance) {
+    @Override
+    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+        final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
+        final Function<Map<String, String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList ->
+                childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceEntity.class)).collect(Collectors.toList());
+        Map<String, String> serverNodes = client.getKeysMapByPrefix(watchKey);
+        this.client.watchKeyChanges(watchKey, Watch.listener(response -> {
+            for (WatchEvent event : response.getEvents()) {
+                String value = event.getKeyValue().getValue().toString(StandardCharsets.UTF_8);
+                String path = event.getKeyValue().getKey().toString(StandardCharsets.UTF_8);
+                switch (event.getEventType()) {
+                    case PUT:
+                        serverNodes.put(path, value);
+                        LOGGER.info("watch key {} updated, value is {}", watchKey, value);
+                        continue;
+                    case DELETE:
+                        serverNodes.remove(path);
+                        LOGGER.info("watch key {} deleted, key is {}", watchKey, path);
+                        continue;
+                    default:
+                }
+            }
+            watcherListener.listener(getInstanceRegisterFun.apply(serverNodes));
+        }));
+        return getInstanceRegisterFun.apply(serverNodes);
+    }
+
+    private String buildInstanceNodeName(final InstanceEntity instance) {
         String host = instance.getHost();
         int port = instance.getPort();
         return String.join(Constants.COLONS, host, Integer.toString(port));

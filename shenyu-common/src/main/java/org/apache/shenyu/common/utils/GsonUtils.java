@@ -38,7 +38,6 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.LinkedMultiValueMap;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -51,6 +50,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -265,18 +265,7 @@ public class GsonUtils {
         return GSON_MAP.fromJson(json, new TypeToken<ConcurrentSkipListMap<String, Object>>() {
         }.getType());
     }
-
-    /**
-     * To linked multiValue map.
-     *
-     * @param json the json
-     * @return the linked multiValue map
-     */
-    public LinkedMultiValueMap<String, String> toLinkedMultiValueMap(final String json) {
-        return GSON.fromJson(json, new TypeToken<LinkedMultiValueMap<String, String>>() {
-        }.getType());
-    }
-
+    
     /**
      * Convert to map.
      *
@@ -326,7 +315,13 @@ public class GsonUtils {
                 list.add(null);
                 continue;
             }
-            String objStr = jsonElement.getAsString();
+            String objStr;
+            if (jsonElement instanceof JsonObject) {
+                JsonObject asJsonObject = jsonElement.getAsJsonObject();
+                objStr = toJson(asJsonObject);
+            } else {
+                objStr = jsonElement.getAsString();
+            }
             if (objStr.startsWith(LEFT_ANGLE_BRACKETS) && objStr.endsWith(RIGHT_ANGLE_BRACKETS)) {
                 list.add(convertToMap(jsonElement.toString()));
             } else {
@@ -344,10 +339,6 @@ public class GsonUtils {
             if (!json.isJsonObject()) {
                 return null;
             }
-
-            JsonObject jsonObject = json.getAsJsonObject();
-            Set<Map.Entry<String, JsonElement>> jsonEntrySet = jsonObject.entrySet();
-
             String className = ((ParameterizedType) type).getRawType().getTypeName();
             Class<Map<?, ?>> mapClass = null;
             try {
@@ -357,7 +348,8 @@ public class GsonUtils {
             }
 
             Map<T, U> resultMap = null;
-            if (mapClass.isInterface()) {
+            assert mapClass != null;
+            if (Objects.requireNonNull(mapClass).isInterface()) {
                 resultMap = new LinkedHashMap<>();
             } else {
                 try {
@@ -366,16 +358,20 @@ public class GsonUtils {
                     LOG.error("failed to get constructor", e);
                 }
             }
-
+            JsonObject jsonObject = json.getAsJsonObject();
+            Set<Map.Entry<String, JsonElement>> jsonEntrySet = jsonObject.entrySet();
             for (Map.Entry<String, JsonElement> entry : jsonEntrySet) {
                 if (entry.getValue().isJsonNull()) {
-                    resultMap.put((T) entry.getKey(), null);
+                    if (Objects.nonNull(resultMap)) {
+                        resultMap.put((T) entry.getKey(), null);
+                    }
                 } else {
                     U value = context.deserialize(entry.getValue(), this.getType(entry.getValue()));
-                    resultMap.put((T) entry.getKey(), value);
+                    if (Objects.nonNull(resultMap)) {
+                        resultMap.put((T) entry.getKey(), value);
+                    }
                 }
             }
-
             return resultMap;
         }
 

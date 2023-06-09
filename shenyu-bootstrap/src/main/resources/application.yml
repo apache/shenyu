@@ -16,11 +16,13 @@
 server:
   port: 9195
   address: 0.0.0.0
+  compression:
+    enabled: true
+    minResponseSize: 1048576
 
 spring:
   main:
     allow-bean-definition-overriding: true
-    allow-circular-references: true
   application:
     name: shenyu-bootstrap
   codec:
@@ -63,19 +65,47 @@ eureka:
 
 management:
   health:
-    defaults:
+    redis:
       enabled: false
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*" # or health,info
+        
 
 shenyu:
-  matchCache:
-    enabled: false
-    maxFreeMemory: 256 # 256MB
+  selectorMatchCache:
+    ## selector L1 cache
+    cache:
+      enabled: false
+      initialCapacity: 10000 # initial capacity in cache
+      maximumSize: 10000 # max size in cache
+    ## selector L2 cache, use trie as L2 cache
+    trie:
+      enabled: false
+      cacheSize: 128 # the number of plug-ins
+      matchMode: antPathMatch
+  ruleMatchCache:
+    ## rule L1 cache
+    cache:
+      enabled: true
+      initialCapacity: 10000 # initial capacity in cache
+      maximumSize: 65536 # max size in cache
+    ## rule L2 cache, use trie as L2 cache
+    trie:
+      enabled: false
+      cacheSize: 1024 # the number of selectors
+      matchMode: antPathMatch
   netty:
     http:
       # set to false, user can custom the netty tcp server config.
       webServerFactoryEnabled: true
       selectCount: 1
-      workerCount: 4
+      workerCount: 8
       accessLog: false
       serverSocketChannel:
         soRcvBuf: 87380
@@ -106,8 +136,21 @@ shenyu:
         allocType: "pooled"
         messageSizeEstimator: 8
         singleEventExecutorPerGroup: true
+      sni:
+        enabled: false
+        mod: k8s #manul
+        defaultK8sSecretNamespace: shenyu-ingress
+        defaultK8sSecretName: default-cert
+#        mod: manual
+#        certificates:
+#          - domain: 'localhost'
+#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
+#          - domain: 'example.com'
+#            keyCertChainFile: '/Users/zhukunshuai/Desktop/cert/example.com+1.pem'
+#            keyFile: '/Users/zhukunshuai/Desktop/cert/example.com+1-key.pem'
 #  httpclient:
-#    strategy: webClient
+#    strategy: webClient # netty
 #    connectTimeout: 45000
 #    responseTimeout: 3000
 #    readerIdleTime: 3000
@@ -147,7 +190,7 @@ shenyu:
 #      selectCount: 1
 #      workerCount: 8
 #      daemon: true
-  instance:
+  register:
     enabled: false
     registerType: zookeeper #etcd #consul
     serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
@@ -176,6 +219,7 @@ shenyu:
 
   switchConfig:
     local: true
+    collapseSlashes: false
   file:
     enabled: true
     maxSize : 10
@@ -183,6 +227,12 @@ shenyu:
     websocket:
       urls: ws://localhost:9095/websocket
       allowOrigin: ws://localhost:9195
+#    apollo:
+#      appId: shenyu
+#      meta: http://localhost:8080
+#      env: dev
+#      clusterName: test
+#      namespace: application
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeout: 5000
@@ -217,10 +267,11 @@ shenyu:
     paths:
       - /fallback/hystrix
       - /fallback/resilience4j
+      - /fallback/sentinel
   health:
-    enabled: false
+    enabled: true
     paths:
-      - /actuator/health
+      - /actuator
       - /health_check
   extPlugin:
     path:
@@ -234,12 +285,15 @@ shenyu:
     threads: 16
   upstreamCheck:
     enabled: false
+    poolSize: 10
     timeout: 3000
     healthyThreshold: 1
     unhealthyThreshold: 1
     interval: 5000
     printEnabled: true
     printInterval: 60000
+  springCloudCache:
+    enabled: false
   ribbon:
     serverListRefreshInterval: 10000
   metrics:

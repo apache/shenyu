@@ -20,15 +20,15 @@ package org.apache.shenyu.plugin.jwt.handle;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.impl.JwtRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.jwt.config.JwtConfig;
+import org.apache.shenyu.plugin.jwt.rule.JwtRuleHandle;
 
 import java.util.Map;
 import java.util.Optional;
@@ -49,12 +49,17 @@ public class JwtPluginDataHandler implements PluginDataHandler {
         jwtConfig.setSecretKey(secretKey);
         Singleton.INST.single(JwtConfig.class, jwtConfig);
     }
-
+    
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData));
+    }
+    
     @Override
     public void handlerRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            JwtRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(s, JwtRuleHandle.class);
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), ruleHandle);
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(ruleHandle -> {
+            JwtRuleHandle jwtRuleHandle = JwtRuleHandle.newInstance(ruleHandle);
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), jwtRuleHandle);
         });
     }
 

@@ -199,6 +199,7 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
                 .loged(true)
                 .matchMode(1)
                 .selectorId("test-selector-1")
+                .matchRestful(false)
                 .sort(1)
                 .dateCreated(now)
                 .dateUpdated(now)

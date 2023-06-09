@@ -29,6 +29,17 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  jackson:
+    time-zone: GMT+8 # GMT , Asia/Shanghai
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - 'health'
+          - 'prometheus'
+    enabled-by-default: true
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
@@ -42,6 +53,7 @@ shenyu:
       sessionTimeout: 5000
       connectionTimeout: 2000
       checked: true
+      zombieCheckThreads: 10
       zombieCheckTimes: 5
       scheduledTime: 10
       nacosNameSpace: ShenyuRegisterCenter
@@ -50,6 +62,14 @@ shenyu:
       enabled: true
       messageMaxSize: 10240
       allowOrigins: ws://localhost:9095;ws://localhost:9195;
+#    apollo:
+#      meta: http://localhost:8080
+#      appId: shenyu
+#      portalUrl: http://localhost:8070
+#      env: dev
+#      clusterName: test
+#      namespace: application
+#      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
 #      zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000
@@ -91,6 +111,8 @@ shenyu:
       - /websocket
       - /error
       - /actuator/health
+      - /actuator/health/** # /actuator/health/readiness /actuator/health/liveness
+      - /actuator/prometheus
       - /swagger-ui.html
       - /webjars/**
       - /swagger-resources/**
@@ -98,15 +120,21 @@ shenyu:
       - /csrf
   swagger:
     enable: true
-  apidoc:
-    gatewayUrl: http://127.0.0.1:9195
-    envProps:
-      - envLabel: Test environment
-        addressLabel: Request Address
-        addressUrl: http://127.0.0.1:9195
-      - envLabel: Prod environment
-        addressLabel: Request Address
-        addressUrl: http://127.0.0.1:9195
+  dashboard:
+    core:
+      onlySuperAdminPermission:
+        - system:manager:add
+        - system:manager:edit
+        - system:manager:delete
+        - system:role:add
+        - system:role:edit
+        - system:role:delete
+        - system:resource:addButton
+        - system:resource:addMenu
+        - system:resource:editButton
+        - system:resource:editMenu
+        - system:resource:deleteButton
+        - system:resource:deleteMenu
 
 logging:
   level:

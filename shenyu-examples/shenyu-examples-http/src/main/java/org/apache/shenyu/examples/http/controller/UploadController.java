@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.examples.http.controller;
 
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/upload")
 @ShenyuSpringMvcClient("/upload/**")
+@ApiModule(value = "upload")
 public class UploadController {
 
     /**
@@ -43,6 +46,7 @@ public class UploadController {
      * @return  response
      */
     @PostMapping(value = "/webFluxSingle", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.TEXT_PLAIN_VALUE})
+    @ApiDoc(desc = "webFluxSingle")
     public Mono<String> webFluxSingle(@RequestPart("file") final FilePart file) {
         return Mono.just(file.filename());
     }
@@ -53,6 +57,7 @@ public class UploadController {
      * @return response
      */
     @PostMapping(value = "/webFluxFiles", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.TEXT_PLAIN_VALUE})
+    @ApiDoc(desc = "webFluxFiles")
     public Mono<String> webFluxFiles(@RequestPart(value = "files", required = false) final Flux<FilePart> files) {
         return files.map(FilePart::filename).collect(Collectors.joining(","));
     }

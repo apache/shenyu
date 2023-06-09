@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.converter.GrpcSelectorHandleConverter;
 import org.apache.shenyu.admin.service.impl.MetaDataServiceImpl;
 import org.apache.shenyu.admin.utils.CommonUpstreamUtils;
+import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.common.dto.convert.selector.TarsUpstream;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -40,6 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
+import com.google.gson.JsonParser;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -114,7 +116,7 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         when(selectorDO.getHandle()).thenReturn(returnStr);
         doReturn(false).when(shenyuClientRegisterGrpcService).doSubmit(any(), any());
         String actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
-        assertEquals(actual, expected);
+        assertEquals(JsonParser.parseString(expected), JsonParser.parseString(actual));
         List<GrpcUpstream> resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(resultList.size(), 2);
     
@@ -126,7 +128,7 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         actual = shenyuClientRegisterGrpcService.buildHandle(list, selectorDO);
         resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(resultList.size(), 3);
-        assertEquals(resultList.stream().anyMatch(r -> r.isStatus()), true);
+        assertEquals(resultList.stream().anyMatch(CommonUpstream::isStatus), true);
 
         list.clear();
         list.add(URIRegisterDTO.builder().appName("test1").rpcType(RpcTypeEnum.GRPC.getName()).host("localhost").port(8090).build());
@@ -137,7 +139,7 @@ public final class ShenyuClientRegisterGrpcServiceImplTest {
         resultList = GsonUtils.getInstance().fromCurrentList(actual, GrpcUpstream.class);
         assertEquals(resultList.size(), 2);
         assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
-                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> r.isStatus()), true);
+                .anyMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(CommonUpstream::isStatus), true);
         assertEquals(resultList.stream().filter(r -> list.stream().map(dto -> CommonUpstreamUtils.buildUrl(dto.getHost(), dto.getPort()))
                 .noneMatch(url -> url.equals(r.getUpstreamUrl()))).allMatch(r -> !r.isStatus()), true);
 

@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.starter.gateway;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
+import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.RpcParamTransformPlugin;
@@ -25,11 +27,14 @@ import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
+import org.apache.shenyu.plugin.base.trie.ShenyuTrieListener;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.configuration.ErrorHandlerConfiguration;
 import org.apache.shenyu.web.configuration.ShenyuExtConfiguration;
 import org.apache.shenyu.web.configuration.SpringExtConfiguration;
+import org.apache.shenyu.web.filter.CollapseSlashesFilter;
 import org.apache.shenyu.web.filter.CrossFilter;
 import org.apache.shenyu.web.filter.ExcludeFilter;
 import org.apache.shenyu.web.filter.FallbackFilter;
@@ -52,6 +57,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.WebFilter;
@@ -81,15 +87,16 @@ public class ShenyuConfiguration {
      *
      * @param plugins this plugins is All impl ShenyuPlugin.
      * @param config the config
+     * @param shenyuLoaderService theLoaderServer
      * @return {@linkplain ShenyuWebHandler}
      */
     @Bean("webHandler")
-    public ShenyuWebHandler shenyuWebHandler(final ObjectProvider<List<ShenyuPlugin>> plugins, final ShenyuConfig config) {
+    public ShenyuWebHandler shenyuWebHandler(final ObjectProvider<List<ShenyuPlugin>> plugins, final ShenyuConfig config, @Lazy final ShenyuLoaderService shenyuLoaderService) {
         List<ShenyuPlugin> pluginList = plugins.getIfAvailable(Collections::emptyList);
         List<ShenyuPlugin> shenyuPlugins = pluginList.stream()
                 .sorted(Comparator.comparingInt(ShenyuPlugin::getOrder)).collect(Collectors.toList());
         shenyuPlugins.forEach(shenyuPlugin -> LOG.info("load plugin:[{}] [{}]", shenyuPlugin.named(), shenyuPlugin.getClass().getName()));
-        return new ShenyuWebHandler(shenyuPlugins, config);
+        return new ShenyuWebHandler(shenyuPlugins, shenyuLoaderService, config);
     }
     
     /**
@@ -117,14 +124,17 @@ public class ShenyuConfiguration {
      *
      * @param pluginDataHandlerList the plugin data handler list
      * @param eventPublisher event publisher
+     * @param shenyuConfig shenyu config
      * @return the plugin data subscriber
      */
     @Bean
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList,
-                                                     final ApplicationEventPublisher eventPublisher) {
-        return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList), eventPublisher);
+                                                     final ObjectProvider<ApplicationEventPublisher> eventPublisher,
+                                                     final ShenyuConfig shenyuConfig) {
+        return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList),
+                eventPublisher.getIfAvailable(), shenyuConfig.getSelectorMatchCache(), shenyuConfig.getRuleMatchCache());
     }
-
+    
     /**
      * common meta data subscriber.
      *
@@ -160,6 +170,18 @@ public class ShenyuConfiguration {
     @ConditionalOnMissingBean(RemoteAddressResolver.class)
     public RemoteAddressResolver remoteAddressResolver() {
         return new ForwardedRemoteAddressResolver(1);
+    }
+    
+    /**
+     * Collapse slashes filter web filter.
+     *
+     * @return the web filter
+     */
+    @Bean
+    @Order(-300)
+    @ConditionalOnProperty(value = "shenyu.switchConfig.collapseSlashes", havingValue = "true")
+    public WebFilter collapseSlashesFilter() {
+        return new CollapseSlashesFilter();
     }
     
     /**
@@ -236,14 +258,15 @@ public class ShenyuConfiguration {
     /**
      * Health filter.
      *
+     * @param dispatcherHandler the dispatcher handler
      * @param shenyuConfig the shenyu config
      * @return the web filter
      */
     @Bean
     @Order(-99)
     @ConditionalOnProperty(name = "shenyu.health.enabled", havingValue = "true")
-    public WebFilter healthFilter(final ShenyuConfig shenyuConfig) {
-        return new HealthFilter(shenyuConfig.getHealth().getPaths());
+    public WebFilter healthFilter(final DispatcherHandler dispatcherHandler, final ShenyuConfig shenyuConfig) {
+        return new HealthFilter(dispatcherHandler, shenyuConfig.getHealth().getPaths());
     }
     
     /**
@@ -255,5 +278,39 @@ public class ShenyuConfiguration {
     @ConfigurationProperties(prefix = "shenyu")
     public ShenyuConfig shenyuConfig() {
         return new ShenyuConfig();
+    }
+    
+    /**
+     * shenyu selector trie config.
+     *
+     * @param shenyuConfig shenyu config
+     * @return {@linkplain ShenyuTrie}
+     */
+    @Bean(name = "shenyuSelectorTrie")
+    public ShenyuTrie shenyuSelectorTrie(final ShenyuConfig shenyuConfig) {
+        SelectorMatchCache selectorMatchCache = shenyuConfig.getSelectorMatchCache();
+        return new ShenyuTrie(selectorMatchCache.getTrie().getCacheSize(), selectorMatchCache.getTrie().getMatchMode());
+    }
+
+    /**
+     * shenyu rule trie config.
+     *
+     * @param shenyuConfig shenyu trie config
+     * @return {@linkplain ShenyuTrie}
+     */
+    @Bean(name = "shenyuRuleTrie")
+    public ShenyuTrie shenyuRuleTrie(final ShenyuConfig shenyuConfig) {
+        RuleMatchCache ruleMatchCache = shenyuConfig.getRuleMatchCache();
+        return new ShenyuTrie(ruleMatchCache.getTrie().getCacheSize(), ruleMatchCache.getTrie().getMatchMode());
+    }
+    
+    /**
+     * shenyu trie listener.
+     *
+     * @return ShenyuTrieListener
+     */
+    @Bean
+    public ShenyuTrieListener shenyuTrieListener() {
+        return new ShenyuTrieListener();
     }
 }

@@ -17,18 +17,18 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.util.List;
-
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
-import org.apache.shenyu.admin.model.page.PageParameter;
-import org.apache.shenyu.admin.model.query.RuleQuery;
+import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
+import org.apache.shenyu.admin.model.result.AdminResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
@@ -46,6 +46,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * this is rule controller.
@@ -71,12 +72,14 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public ShenyuAdminResult queryRules(final String selectorId, final String name,
-                                        @RequestParam @NotNull final Integer currentPage,
-                                        @RequestParam @NotNull final Integer pageSize) {
-        CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, name, new PageParameter(currentPage, pageSize)));
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
-        
+    public AdminResult<CommonPager<RuleVO>> queryRules(final String selectorId, final String name,
+                                                       @RequestParam @NotNull final Integer currentPage,
+                                                       @RequestParam @NotNull final Integer pageSize) {
+        final RuleQueryCondition condition = new RuleQueryCondition();
+        condition.setUserId(SessionUtil.visitor().getUserId());
+        condition.setSelectors(ListUtil.of(selectorId));
+        condition.setKeyword(name);
+        return searchAdaptor(new PageCondition<>(currentPage, pageSize, condition));
     }
     
     /**

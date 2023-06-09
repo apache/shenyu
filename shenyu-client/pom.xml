@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.5.0-SNAPSHOT</version>
+        <version>2.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-client</artifactId>
@@ -35,6 +35,9 @@
         <module>shenyu-client-grpc</module>
         <module>shenyu-client-motan</module>
         <module>shenyu-client-websocket</module>
+        <module>shenyu-client-brpc</module>
+        <module>shenyu-client-api-docs-annotations</module>
+        <module>shenyu-client-autoconfig</module>
     </modules>
 
     <dependencies>
@@ -47,6 +50,11 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.javatuples</groupId>
+            <artifactId>javatuples</artifactId>
+            <version>${javatuples.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

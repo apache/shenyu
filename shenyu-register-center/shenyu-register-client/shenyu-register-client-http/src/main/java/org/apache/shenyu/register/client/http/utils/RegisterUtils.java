@@ -18,12 +18,12 @@
 package org.apache.shenyu.register.client.http.utils;
 
 import okhttp3.Headers;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -53,7 +53,7 @@ public final class RegisterUtils {
      * @throws IOException the io exception
      */
     public static void doRegister(final String json, final String url, final String type, final String accessToken) throws IOException {
-        if (!StringUtils.hasLength(accessToken)) {
+        if (StringUtils.isBlank(accessToken)) {
             LOGGER.error("{} client register error accessToken is null, please check the config : {} ", type, json);
             return;
         }
@@ -65,7 +65,7 @@ public final class RegisterUtils {
             LOGGER.error("{} client register error: {} ", type, json);
         }
     }
-
+    
     /**
      * Do register.
      *
@@ -80,6 +80,28 @@ public final class RegisterUtils {
             LOGGER.info("{} client register success: {} ", type, json);
         } else {
             LOGGER.error("{} client register error: {} ", type, json);
+        }
+    }
+    
+    /**
+     * Do unregister.
+     *
+     * @param json        the json
+     * @param url         the url
+     * @param accessToken the token
+     * @throws IOException the io exception
+     */
+    public static void doUnregister(final String json, final String url, final String accessToken) throws IOException {
+        if (StringUtils.isBlank(accessToken)) {
+            LOGGER.error("{} client unregister error accessToken is null, please check the config : {} ", Constants.URI, json);
+            return;
+        }
+        Headers headers = new Headers.Builder().add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        String result = OkHttpTools.getInstance().post(url, json, headers);
+        if (Objects.equals(SUCCESS, result)) {
+            LOGGER.info("{} client unregister success: {} ", Constants.URI, json);
+        } else {
+            LOGGER.error("{} client unregister error: {} ", Constants.URI, json);
         }
     }
 

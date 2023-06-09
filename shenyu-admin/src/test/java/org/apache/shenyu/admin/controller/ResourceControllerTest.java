@@ -17,8 +17,15 @@
 
 package org.apache.shenyu.admin.controller;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
+import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -30,6 +37,10 @@ import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.GsonUtils;
+
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,14 +52,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.util.Collections;
-import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 /**
  * test for {@linkplain ResourceController}.
@@ -171,13 +174,13 @@ public class ResourceControllerTest {
 
     @Test
     public void testCreateResource() throws Exception {
-        final ResourceDTO resourceDTO = new ResourceDTO();
-        fill(resourceDTO);
-        given(resourceService.createOrUpdate(resourceDTO)).willReturn(1);
+        final CreateResourceDTO createResourceDTO = new CreateResourceDTO();
+        fill(createResourceDTO);
+        given(resourceService.create(any())).willReturn(1);
 
         this.mockMvc.perform(MockMvcRequestBuilders.post("/resource")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(resourceDTO)))
+                .content(GsonUtils.getInstance().toJson(createResourceDTO)))
                 .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, 1))))
                 .andReturn();
     }
@@ -189,7 +192,7 @@ public class ResourceControllerTest {
         resourceDTO.setId(mockId);
         fill(resourceDTO);
         SpringBeanUtils.getInstance().setApplicationContext(mock(ConfigurableApplicationContext.class));
-        given(resourceService.createOrUpdate(resourceDTO)).willReturn(1);
+        given(resourceService.update(resourceDTO)).willReturn(1);
 
         this.mockMvc.perform(MockMvcRequestBuilders.put("/resource/" + mockId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -223,5 +226,20 @@ public class ResourceControllerTest {
         resourceDTO.setResourceType(1);
         resourceDTO.setStatus(1);
         resourceDTO.setSort(1);
+    }
+
+    private void fill(final CreateResourceDTO createResourceDTO) {
+        createResourceDTO.setTitle("test");
+        createResourceDTO.setName("test");
+        createResourceDTO.setParentId("test");
+        createResourceDTO.setUrl("test");
+        createResourceDTO.setComponent("test");
+        createResourceDTO.setIcon("test");
+        createResourceDTO.setPerms("test");
+        createResourceDTO.setIsLeaf(true);
+        createResourceDTO.setIsRoute(1);
+        createResourceDTO.setResourceType(1);
+        createResourceDTO.setStatus(1);
+        createResourceDTO.setSort(1);
     }
 }

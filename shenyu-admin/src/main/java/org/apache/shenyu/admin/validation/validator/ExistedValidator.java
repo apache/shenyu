@@ -21,12 +21,13 @@ import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.validation.ExistProvider;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shenyu.common.utils.MapUtils;
+import org.apache.shenyu.common.utils.ReflectUtils;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.shenyu.common.utils.ReflectUtils;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -66,13 +67,7 @@ public class ExistedValidator implements ConstraintValidator<Existed, Serializab
     }
 
     private ExistProvider getExistProvider() {
-        ExistProvider provider = providerCacheMap.get(annotation.provider().getName());
-        if (!Objects.isNull(provider)) {
-            return provider;
-        }
-        provider = SpringBeanUtils.getInstance().getBean(annotation.provider());
-        providerCacheMap.put(annotation.provider().getName(), provider);
-        return provider;
+        return MapUtils.computeIfAbsent(providerCacheMap, annotation.provider().getName(), key -> SpringBeanUtils.getInstance().getBean(annotation.provider()));
     }
     
     private Boolean doValid(final Serializable value) {

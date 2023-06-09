@@ -23,17 +23,19 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.common.utils.UriUtils;
+import org.apache.shenyu.plugin.sentinel.handler.SentinelRuleHandle;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.function.Consumer;
 
 /**
  * Sentinel Plugin.
@@ -51,15 +53,14 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         String resourceName = CacheKeyUtils.INST.getKey(rule);
-        SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SentinelHandle.class);
-        sentinelHandle.checkData(sentinelHandle);
-        return chain.execute(exchange).doOnSuccess(v -> {
-            HttpStatus status = exchange.getResponse().getStatusCode();
+        SentinelHandle sentinelHandle = SentinelRuleHandle.CACHED_HANDLE.get().obtainHandle(resourceName);
+        sentinelHandle.checkData();
+        exchange.getAttributes().put(Constants.WATCHER_HTTP_STATUS, (Consumer<HttpStatus>) status -> {
             if (status == null || !status.is2xxSuccessful()) {
-                exchange.getResponse().setStatusCode(null);
                 throw new SentinelFallbackException(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);
             }
-        }).transform(new SentinelReactorTransformer<>(resourceName)).onErrorResume(throwable ->
+        });
+        return chain.execute(exchange).transform(new SentinelReactorTransformer<>(resourceName)).onErrorResume(throwable ->
                 fallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable));
     }
 

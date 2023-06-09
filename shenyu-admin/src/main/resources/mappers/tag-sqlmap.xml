@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.TagMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.TagDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="tag_desc" jdbcType="VARCHAR" property="tagDesc"/>
+        <result column="parent_tag_id" jdbcType="VARCHAR" property="parentTagId"/>
+        <result column="ext" jdbcType="VARCHAR" property="ext"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,
+        date_created,
+        date_updated,
+        name,
+        tag_desc,
+        parent_tag_id,
+        ext
+    </sql>
+
+    <select id="existed" resultType="java.lang.Boolean">
+        SELECT TRUE
+        FROM tag
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM tag
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.TagQuery"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM tag
+        <where>
+            <if test="name != null">
+                name = #{name, jdbcType=VARCHAR}
+            </if>
+            <if test="parentTagId != null">
+                parent_tag_id = #{parentTagId, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByParentTagIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM tag
+        WHERE parent_tag_id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.TagDO">
+        INSERT INTO tag
+        (id,
+        date_created,
+        date_updated,
+        name,
+        tag_desc,
+        parent_tag_id,
+        ext)
+        VALUES
+        (#{id, jdbcType=VARCHAR},
+        #{dateCreated, jdbcType=TIMESTAMP},
+        #{dateUpdated, jdbcType=TIMESTAMP},
+        #{name, jdbcType=VARCHAR},
+        #{tagDesc, jdbcType=VARCHAR},
+        #{parentTagId, jdbcType=VARCHAR},
+        #{ext, jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.TagDO">
+        INSERT INTO tag
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="tagDesc != null">
+                tag_desc,
+            </if>
+            <if test="parentTagId != null">
+                parent_tag_id,
+            </if>
+            <if test="ext != null">
+                ext,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id, jdbcType=VARCHAR},
+            <if test="dateCreated != null">
+                #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="name != null">
+                #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="tagDesc != null">
+                #{tagDesc, jdbcType=VARCHAR},
+            </if>
+            <if test="parentTagId != null">
+                #{parentTagId, jdbcType=VARCHAR},
+            </if>
+            <if test="ext != null">
+                #{ext, jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.TagDO">
+        UPDATE tag
+        <set>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated, jdbcType=TIMESTAMP},
+            </if>
+            <if test="name != null">
+                name = #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="tagDesc != null">
+                tag_desc = #{tagDesc, jdbcType=VARCHAR},
+            </if>
+            <if test="parentTagId != null">
+                parent_tag_id = #{parentTagId, jdbcType=VARCHAR},
+            </if>
+            <if test="ext != null">
+                ext = #{ext, jdbcType=VARCHAR},
+            </if>
+        </set>
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.TagDO">
+        update tag
+        set
+        name = #{name,jdbcType=VARCHAR},
+        tag_desc = #{tagDesc,jdbcType=VARCHAR},
+        parent_tag_id = #{parentTagId,jdbcType=VARCHAR},
+        ext = #{ext,jdbcType=VARCHAR},
+        date_created = #{dateCreated,jdbcType=TIMESTAMP},
+        date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=VARCHAR}
+
+    </update>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        DELETE FROM tag
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM tag
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
+    <delete id="deleteAllData" >
+        delete from tag
+    </delete>
+
+    <select id="selectByIds" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM tag
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+</mapper>

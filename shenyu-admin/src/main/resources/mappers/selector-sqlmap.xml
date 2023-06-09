@@ -30,6 +30,7 @@
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="loged" jdbcType="TINYINT" property="loged"/>
         <result column="continued" jdbcType="TINYINT" property="continued"/>
+        <result column="match_restful" jdbcType="TINYINT" property="matchRestful"/>
         <result column="handle" jdbcType="VARCHAR" property="handle"/>
     </resultMap>
 
@@ -45,6 +46,7 @@
         enabled,
         loged,
         continued,
+        match_restful,
         handle
     </sql>
 
@@ -106,6 +108,7 @@
                 </foreach>
             </if>
         </where>
+        ORDER BY sort
     </select>
 
     <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -181,6 +184,12 @@
                     #{id, jdbcType=VARCHAR}
                 </foreach>
             </if>
+            <if test="condition.userId != null and condition.userId != ''">
+                AND exists(select true
+                    from data_permission
+                    where data_id = selector.id
+                        and user_id = #{condition.userId})
+            </if>
         </where>
     </select>
 
@@ -197,6 +206,7 @@
                     enabled,
                     loged,
                     continued,
+                    match_restful,
                     handle)
             VALUES
                     (#{id, jdbcType=VARCHAR},
@@ -210,6 +220,7 @@
                     #{enabled, jdbcType=TINYINT},
                     #{loged, jdbcType=TINYINT},
                     #{continued, jdbcType=TINYINT},
+                    #{matchRestful, jdbcType=TINYINT},
                     #{handle, jdbcType=VARCHAR})
     </insert>
 
@@ -247,6 +258,9 @@
             <if test="continued != null">
                 continued,
             </if>
+            <if test="matchRestful != null">
+                match_restful,
+            </if>
             <if test="handle != null">
                 handle,
             </if>
@@ -283,6 +297,9 @@
             <if test="continued != null">
                 #{continued, jdbcType=TINYINT},
             </if>
+            <if test="matchRestful != null">
+                #{matchRestful, jdbcType=TINYINT},
+            </if>
             <if test="handle != null">
                 #{handle, jdbcType=VARCHAR},
             </if>
@@ -302,6 +319,7 @@
                enabled = #{enabled, jdbcType=TINYINT},
                loged = #{loged, jdbcType=TINYINT},
                continued = #{continued, jdbcType=TINYINT},
+               match_restful = #{matchRestful, jdbcType=TINYINT},
                handle = #{handle, jdbcType=VARCHAR}
          WHERE id = #{id, jdbcType=VARCHAR}
     </update>
@@ -338,6 +356,9 @@
             </if>
             <if test="continued != null">
                 continued = #{continued, jdbcType=TINYINT},
+            </if>
+            <if test="matchRestful != null">
+                match_restful = #{matchRestful, jdbcType=TINYINT},
             </if>
             <if test="handle != null">
                 handle = #{handle, jdbcType=VARCHAR},

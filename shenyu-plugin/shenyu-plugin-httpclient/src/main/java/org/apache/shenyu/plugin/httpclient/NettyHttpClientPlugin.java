@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.handler.codec.http.HttpMethod;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -34,6 +35,8 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.net.URI;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * The type Netty http client plugin.
@@ -68,7 +71,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
                     }
                     HttpStatus status = HttpStatus.resolve(res.status().code());
-                    if (status != null) {
+                    if (Objects.nonNull(status)) {
                         response.setStatusCode(status);
                     } else if (response instanceof AbstractServerHttpResponse) {
                         response.setRawStatusCode(res.status().code());
@@ -76,6 +79,9 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                         throw new IllegalStateException("Unable to set status code on response: " + res.status().code() + ", " + response.getClass());
                     }
                     response.getHeaders().putAll(headers);
+                    // watcher httpStatus
+                    final Consumer<HttpStatus> consumer = exchange.getAttribute(Constants.WATCHER_HTTP_STATUS);
+                    Optional.ofNullable(consumer).ifPresent(c -> c.accept(response.getStatusCode()));
                     return Mono.just(res);
                 }));
     }

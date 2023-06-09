@@ -45,7 +45,7 @@ INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_va
 INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1529402613195784248', 'signRequestBody', 'SIGN_REQUEST_BODY', 'open', 'true', 'open', 0, 1);
 
 -- refactor logging name
-UPDATE plugin SET name = 'LoggingConsole' WHERE name = 'logging';
+UPDATE plugin SET name = 'loggingConsole' WHERE name = 'logging';
 
 -- new table operation_record_log
 -- ----------------------------
@@ -112,7 +112,6 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172903', '34', 'maxRequestBody
 INSERT INTO `plugin_handle` VALUES ('1529402613204172904', '34', 'maxResponseBody', 'maxResponseBody', 1, 3, 12, '{\"required\":\"0\",\"defaultValue\":524288}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172905', '34', 'bufferQueueSize', 'bufferQueueSize', 1, 3, 13, '{\"required\":\"0\",\"defaultValue\":50000}', '2022-06-30 21:00:00', '2022-06-30 21:00:00');
 
-
 /* insert plugin for loggingElasticSearch  */
 INSERT INTO `plugin` VALUES ('33', 'loggingKafka','{\"host\":\"localhost\", \"port\": \"9092\"}', 'Logging', 180, 0, '2022-07-04 22:00:00', '2022-07-02 22:00:00');
 
@@ -128,8 +127,8 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172890', '33', 'compressAlg', 
 INSERT INTO `plugin_handle` VALUES ('1529402613204172884', '1', 'signRequestBody', 'signRequestBody', 3, 2, 9, '{"required":"0","defaultValue":"false","placeholder":"signRequestBody","rule":""}', '2022-06-29 10:08:02', '2022-06-29 10:08:02');
 
 -- use shared thread pool as default
-UPDATE plugin SET config='{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}' WHERE "name" = 'grpc';
-UPDATE plugin SET config='{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}' WHERE "name" = 'tars';
+UPDATE plugin SET config='{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}' WHERE `name` = 'grpc';
+UPDATE plugin SET config='{"multiSelectorHandle":"1","multiRuleHandle":"0","threadpool":"shared"}' WHERE `name` = 'tars';
 -- Note: because most users have changed ZK configuration, the following SQLs are annotated to prevent erroneous execution
 -- UPDATE plugin SET config='{"register":"127.0.0.1:2181","threadpool":"shared"}' WHERE "name" = 'motan';
 -- UPDATE plugin SET config='{"protocol":"zookeeper","register":"127.0.0.1:2181","threadpool":"shared"}' WHERE "name" = 'sofa';

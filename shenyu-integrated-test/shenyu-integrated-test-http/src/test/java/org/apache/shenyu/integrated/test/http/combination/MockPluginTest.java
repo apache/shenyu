@@ -17,108 +17,85 @@
 
 package org.apache.shenyu.integrated.test.http.combination;
 
+import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.MockHandle;
-import org.apache.shenyu.common.enums.OperatorEnum;
-import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
-import org.apache.shenyu.web.controller.LocalPluginController;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
+import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.ruleLocalData;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonURIEqConditionList;
+import static org.apache.shenyu.integratedtest.common.utils.ConfUtils.singletonURIMatchConditionList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 
 public class MockPluginTest extends AbstractPluginDataInit {
-    
+
     private static final String TEST_FIXED_MOCK = "/http/mock/fix";
-    
+
     private static final String TEST_PLACEHOLDER_MOCK = "/http/mock/placeholder";
-    
+
+    private static final List<ConditionData> SELECTOR_CONDITION_LIST = singletonURIMatchConditionList("/http/mock/**");
+
     @BeforeEach
-    public static void setup() throws IOException {
+    public void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.MOCK.getName(), "");
         assertThat(pluginResult, is("success"));
-        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.MOCK.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList());
+        String selectorAndRulesResult = initSelectorAndRules(PluginEnum.MOCK.getName(), "", SELECTOR_CONDITION_LIST, buildRuleLocalDataList());
         assertThat(selectorAndRulesResult, is("success"));
     }
-    
+
     @Test
     public void testFixContentMock() throws IOException {
         Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(TEST_FIXED_MOCK, new HashMap<>(), Map.class);
-        assertThat(correctResponse.get("user"), is("test"));
+        assertThat(correctResponse.get("user"),
+                is("test"));
     }
-    
+
     @Test
     public void testPlaceholderContentMock() throws IOException {
-        Map<String, Object> correctResponse = HttpHelper.INSTANCE.getFromGateway(TEST_PLACEHOLDER_MOCK, new HashMap<>(), Map.class);
-        assertThat(correctResponse.get("number"), new BaseMatcher<Object>() {
-            @Override
-            public void describeTo(final Description description) {
-            
-            }
-            
-            @Override
-            public boolean matches(final Object o) {
-                if (!(o instanceof Integer)) {
-                    return false;
-                }
-                int result = (int) o;
-                return result >= 10 && result <= 20;
-            }
-        });
+        JsonObject correctResponse = HttpHelper.INSTANCE.getFromGateway(TEST_PLACEHOLDER_MOCK, new HashMap<>(), JsonObject.class);
+        assertThat(correctResponse.get("number").getAsInt(),
+                allOf(greaterThanOrEqualTo(10), lessThanOrEqualTo(20)));
     }
-    
-    private static List<ConditionData> buildSelectorConditionList() {
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.MATCH.getAlias());
-        conditionData.setParamValue("/http/mock/**");
-        return Collections.singletonList(conditionData);
+
+    private static List<RuleLocalData> buildRuleLocalDataList() {
+
+        MockHandle fixMockHandle = buildMockHandle(200, "{\"user\":\"test\"}");
+        RuleLocalData fixMockRule = ruleLocalData(JsonUtils.toJson(fixMockHandle),
+                singletonURIEqConditionList(TEST_FIXED_MOCK));
+
+        MockHandle placeholderMockHandle = buildMockHandle(200, "{\"number\":${expression|#int(10,20)}}");
+        RuleLocalData placeholderMockRule = ruleLocalData(JsonUtils.toJson(placeholderMockHandle),
+                singletonURIEqConditionList(TEST_PLACEHOLDER_MOCK));
+
+        return Lists.newArrayList(fixMockRule, placeholderMockRule);
     }
-    
-    private static List<LocalPluginController.RuleLocalData> buildRuleLocalDataList() {
-        List<LocalPluginController.RuleLocalData> ruleLocalDataList = new ArrayList<>();
-        
+
+    private static MockHandle buildMockHandle(final Integer httpStatusCode, final String responseContent) {
         MockHandle fixMockHandle = new MockHandle();
-        fixMockHandle.setHttpStatusCode(200);
-        fixMockHandle.setResponseContent("{\"user\":\"test\"}");
-        ruleLocalDataList.add(buildRuleLocalData(TEST_FIXED_MOCK, fixMockHandle));
-        
-        MockHandle placeholderMockHandler = new MockHandle();
-        placeholderMockHandler.setHttpStatusCode(200);
-        placeholderMockHandler.setResponseContent("{\"number\":${int|10-20}}");
-        ruleLocalDataList.add(buildRuleLocalData(TEST_PLACEHOLDER_MOCK, placeholderMockHandler));
-        
-        return ruleLocalDataList;
+        fixMockHandle.setHttpStatusCode(httpStatusCode);
+        fixMockHandle.setResponseContent(responseContent);
+        return fixMockHandle;
     }
-    
-    private static LocalPluginController.RuleLocalData buildRuleLocalData(final String paramValue, final MockHandle ruleHandle) {
-        ConditionData conditionData = new ConditionData();
-        conditionData.setParamType(ParamTypeEnum.URI.getName());
-        conditionData.setOperator(OperatorEnum.EQ.getAlias());
-        conditionData.setParamValue(paramValue);
-        LocalPluginController.RuleLocalData ruleLocalData = new LocalPluginController.RuleLocalData();
-        ruleLocalData.setConditionDataList(Collections.singletonList(conditionData));
-        ruleLocalData.setRuleHandler(JsonUtils.toJson(ruleHandle));
-        return ruleLocalData;
-    }
-    
+
     @AfterEach
-    public static void clean() throws IOException {
+    public void clean() throws IOException {
         cleanPluginData(PluginEnum.MOCK.getName());
     }
 }

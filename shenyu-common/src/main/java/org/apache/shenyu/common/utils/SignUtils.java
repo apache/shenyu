@@ -17,62 +17,51 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.constant.Constants;
-import org.springframework.util.DigestUtils;
+import com.google.common.collect.ImmutableMap;
 
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * SignUtils.
  */
 public final class SignUtils {
 
-    private static final SignUtils SIGN_UTILS = new SignUtils();
+    public static final String SIGN_MD5 = "MD5";
 
-    private SignUtils() {
-    }
+    public static final String SIGN_HMD5 = "HMD5";
 
-    /**
-     * getInstance.
-     *
-     * @return {@linkplain SignUtils}
-     */
-    public static SignUtils getInstance() {
-        return SIGN_UTILS;
-    }
+    public static final String SIGN_HS256 = "HS256";
 
-    /**
-     * acquired sign.
-     *
-     * @param signKey sign key
-     * @param params  params
-     * @return sign
-     */
-    public static String generateSign(final String signKey, final Map<String, String> params) {
-        final String sign = params.keySet().stream()
-                .sorted(Comparator.naturalOrder())
-                .filter(key -> !Objects.equals(key, Constants.SIGN))
-                .map(key -> String.join("", key, params.get(key)))
-                .collect(Collectors.joining()).trim()
-                .concat(signKey);
-        // TODO this is a risk for error charset coding with getBytes
-        return DigestUtils.md5DigestAsHex(sign.getBytes()).toUpperCase();
-    }
+    public static final String SIGN_HS512 = "HS512";
+
+    private static final Map<String, SignFunction> SIGN_FUNCTION_MAP = ImmutableMap.of(
+            SIGN_MD5, (key, data) -> DigestUtils.md5Hex(data + key),
+            SIGN_HMD5, HmacHexUtils::hmacMd5Hex,
+            SIGN_HS256, HmacHexUtils::hmacSha256Hex,
+            SIGN_HS512, HmacHexUtils::hmacSha512Hex
+    );
 
     /**
-     * isValid.
+     * Returns signature of data as hex string (lowercase).
      *
-     * @param sign    sign
-     * @param params  params
-     * @param signKey signKey
-     * @return boolean
+     * @param algorithmName the name of sign algorithm
+     * @param key           key
+     * @param data          data to sign
+     * @return signature
+     * @throws NullPointerException          if key or data is null
+     * @throws UnsupportedOperationException if algorithmName isn't supported
      */
-    public boolean isValid(final String sign, final Map<String, String> params, final String signKey) {
-        return Objects.equals(sign, generateSign(signKey, params));
+    public static String sign(final String algorithmName, final String key, final String data) {
+        if (Objects.isNull(key) || Objects.isNull(data)) {
+            throw new NullPointerException("Key or data is null.");
+        }
+
+        return Optional.ofNullable(SIGN_FUNCTION_MAP.get(algorithmName))
+                .orElseThrow(() -> new UnsupportedOperationException("unsupported sign algorithm:" + algorithmName))
+                .sign(key, data);
     }
 
     /**
@@ -80,8 +69,13 @@ public final class SignUtils {
      *
      * @return the string
      */
-    public String generateKey() {
+    public static String generateKey() {
         return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
+    }
+
+    @FunctionalInterface
+    private interface SignFunction {
+        String sign(String key, String data);
     }
 
 }

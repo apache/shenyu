@@ -24,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
@@ -34,6 +35,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -77,7 +79,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final Duration duration = Duration.ofMillis(timeout);
         final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(RetryEnum.CURRENT::getName);
-        LOG.info("The request urlPath is {}, retryTimes is {}, retryStrategy is {}", uri.toASCIIString(), retryTimes, retryStrategy);
+        LogUtils.debug(LOG, () -> String.format("The request urlPath is: %s, retryTimes is : %s, retryStrategy is : %s", uri, retryTimes, retryStrategy));
         final HttpHeaders httpHeaders = buildHttpHeaders(exchange);
         final Mono<R> response = doRequest(exchange, exchange.getRequest().getMethodValue(), uri, httpHeaders, exchange.getRequest().getBody())
                 .timeout(duration, Mono.error(new TimeoutException("Response took longer than timeout: " + duration)))
@@ -89,13 +91,19 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                     .transientErrors(true)
                     .jitter(0.5d)
                     .filter(t -> t instanceof TimeoutException || t instanceof ConnectTimeoutException
-                            || t instanceof ReadTimeoutException || t instanceof IllegalStateException);
+                            || t instanceof ReadTimeoutException || t instanceof IllegalStateException)
+                    .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
+                        throw new ShenyuTimeoutException("Request timeout, the maximum number of retry times has been exceeded");
+                    });
             return response.retryWhen(retryBackoffSpec)
+                    .onErrorMap(ShenyuTimeoutException.class, th -> new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, th.getMessage(), th))
                     .onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
                     .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
         }
         final Set<URI> exclude = Sets.newHashSet(uri);
         return resend(response, exchange, duration, httpHeaders, exclude, retryTimes)
+                .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                        ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
                 .onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th))
                 .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
     }
@@ -112,7 +120,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         }
         return result;
     }
-
+    
     private Mono<R> resend(final Mono<R> response,
                            final ServerWebExchange exchange,
                            final Duration duration,
@@ -169,6 +177,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             acceptEncoding.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
             headers.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
         }
+        headers.remove(HttpHeaders.HOST);
         return headers;
     }
 

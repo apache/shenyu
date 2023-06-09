@@ -19,6 +19,9 @@ package org.apache.shenyu.web.controller;
 
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
+import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -29,11 +32,15 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.TrieCacheTypeEnum;
+import org.apache.shenyu.common.enums.TrieMatchModeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.trie.ShenyuTrie;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.web.controller.LocalPluginController.SelectorRuleData;
 import org.junit.jupiter.api.Assertions;
@@ -45,6 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -52,6 +60,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,6 +70,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -81,8 +93,9 @@ public final class LocalPluginControllerTest {
 
     @BeforeEach
     public void setup() {
+        this.mockShenyuTrieConfig();
         ArrayList<PluginDataHandler> pluginDataHandlerList = Lists.newArrayList();
-        subscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher);
+        subscriber = new CommonPluginDataSubscriber(pluginDataHandlerList, eventPublisher, new SelectorMatchCache(), new RuleMatchCache());
         mockMvc = MockMvcBuilders.standaloneSetup(new LocalPluginController(subscriber))
                 .build();
         baseDataCache = BaseDataCache.getInstance();
@@ -126,7 +139,6 @@ public final class LocalPluginControllerTest {
     @Test
     public void testCleanPlugin() throws Exception {
         final String testCleanPluginName = "testCleanPluginName";
-        final String testCleanRuleName = "testCleanRuleName";
         subscribePluginForTest(testCleanPluginName);
         subscribeSelectorForTest(testCleanPluginName);
         final MockHttpServletResponse response = this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu/cleanPlugin")
@@ -159,7 +171,7 @@ public final class LocalPluginControllerTest {
     public void testDeleteAll() throws Exception {
         final String[] testPluginName = {"testDeleteAllPluginName", "testDeleteAllPluginName2"};
         Arrays.stream(testPluginName).map(s ->
-                new PluginData("id", s, null, null, null))
+                new PluginData("id", s, null, null, null, null))
                 .forEach(subscriber::onSubscribe);
         Arrays.stream(testPluginName)
                 .forEach(s -> assertThat(baseDataCache.obtainPluginData(s)).isNotNull());
@@ -191,6 +203,28 @@ public final class LocalPluginControllerTest {
         final List<String> ruleIds = list.stream().map(RuleData::getId).collect(Collectors.toList());
         assertThat(ruleSelectorIds).contains(testSelectorId);
         assertThat(ruleIds).contains(testId);
+
+        final Object result2 = this.mockMvc
+                .perform(MockMvcRequestBuilders.get("/shenyu/plugin/rule/findList")
+                        .param("selectorId", testSelectorId))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getAsyncResult();
+        assertThat(result).isInstanceOf(String.class);
+        @SuppressWarnings("UnstableApiUsage")
+        final List<RuleData> list2 = GsonUtils.getGson().fromJson((String) result2, new TypeToken<List<RuleData>>() {
+        }.getType());
+        final List<String> ruleSelectorIds2 = list2.stream().map(RuleData::getSelectorId).collect(Collectors.toList());
+        assertThat(ruleSelectorIds2).contains(testSelectorId);
+
+        final Object resultError = this.mockMvc
+                .perform(MockMvcRequestBuilders.get("/shenyu/plugin/rule/findList")
+                        .param("selectorId", "testSelectorIdError")
+                        .param("id", testId))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getAsyncResult();
+        assertThat(resultError).isEqualTo("Error: can not find rule data by selector id :testSelectorIdError");
     }
 
     @Test
@@ -213,8 +247,10 @@ public final class LocalPluginControllerTest {
     @Test
     public void testFindListSelector() throws Exception {
         final String selectorPluginName = "testFindListSelector";
+        final String testFindListSelectorId = "testFindListSelectorId";
         final SelectorData selectorData = new SelectorData();
         selectorData.setPluginName(selectorPluginName);
+        selectorData.setId(testFindListSelectorId);
         subscriber.onSelectorSubscribe(selectorData);
         final Object result = this.mockMvc
                 .perform(MockMvcRequestBuilders.get("/shenyu/plugin/selector/findList")
@@ -228,6 +264,26 @@ public final class LocalPluginControllerTest {
         }.getType());
         final List<String> idList = list.stream().map(SelectorData::getPluginName).collect(Collectors.toList());
         assertThat(idList).contains(selectorPluginName);
+
+        final Object resultError1 = this.mockMvc
+                .perform(MockMvcRequestBuilders.get("/shenyu/plugin/selector/findList")
+                        .param("pluginName", "testFindListSelectorError"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getAsyncResult();
+        assertThat(resultError1).isEqualTo("Error: can not find selector data by pluginName :testFindListSelectorError");
+
+        final Object result2 = this.mockMvc
+                .perform(MockMvcRequestBuilders.get("/shenyu/plugin/selector/findList")
+                        .param("id", "testFindListSelectorId")
+                        .param("pluginName", selectorPluginName))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getAsyncResult();
+        final List<SelectorData> list2 = GsonUtils.getGson().fromJson((String) result2, new TypeToken<List<SelectorData>>() {
+        }.getType());
+        final List<String> selectorDataIds = list2.stream().map(SelectorData::getId).collect(Collectors.toList());
+        assertThat(selectorDataIds).contains(testFindListSelectorId);
     }
 
     @Test
@@ -243,6 +299,14 @@ public final class LocalPluginControllerTest {
         assertThat(result).isInstanceOf(String.class);
         final PluginData pluginData = GsonUtils.getGson().fromJson((String) result, PluginData.class);
         assertThat(pluginData.getName()).isEqualTo(pluginName);
+
+        final Object resultErr = this.mockMvc
+                .perform(MockMvcRequestBuilders.get("/shenyu/plugin/findByName")
+                        .param("name", "testFindByNamePluginError"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getAsyncResult();
+        assertThat(resultErr).isEqualTo("can not find this plugin : testFindByNamePluginError");
     }
 
     @Test
@@ -258,6 +322,19 @@ public final class LocalPluginControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         assertThat(baseDataCache.obtainSelectorData(selectorPluginName)).isNotNull();
+
+        final String selectorPluginNameError = "testSaveSelectorError";
+        final SelectorData selectorDataError = new SelectorData();
+        selectorData.setPluginName(selectorPluginNameError);
+        final String jsonError = GsonUtils.getGson().toJson(selectorDataError);
+        final Object resultErr = this.mockMvc
+                .perform(MockMvcRequestBuilders.post("/shenyu/plugin/selector/saveOrUpdate")
+                        .content(jsonError)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getAsyncResult();
+        assertThat(resultErr).isEqualTo("Error: please add pluginName!");
     }
 
     @Test
@@ -288,6 +365,35 @@ public final class LocalPluginControllerTest {
 
         final List<RuleData> selectorId = baseDataCache.obtainRuleData(testSelectorId);
         assertThat(selectorId.get(0).getSelectorId()).isEqualTo(testSelectorId);
+
+        Object result = this.mockMvc
+                .perform(MockMvcRequestBuilders.post("/shenyu/plugin/rule/saveOrUpdate")
+                        .content("{}")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getAsyncResult();
+        assertThat(result).isEqualTo("Error: please add selectorId!");
+    }
+
+    @Test
+    public void testDeleteRule() throws Exception {
+        final String testSelectorId = "testSaveRuleId";
+        final String testRuleId = "ruleId";
+        final String pluginName = "pluginName";
+        final RuleData ruleData = createRuleData(testSelectorId, testRuleId);
+        subscriber.onRuleSubscribe(ruleData);
+        this.mockMvc
+                .perform(MockMvcRequestBuilders.get("/shenyu/plugin/rule/delete")
+                .param("selectorId", ruleData.getSelectorId())
+                .param("id", ruleData.getId())
+                .param("pluginName", pluginName)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        final List<RuleData> selectorId = baseDataCache.obtainRuleData(testSelectorId);
+        Assertions.assertTrue(selectorId.isEmpty());
     }
 
     @Test
@@ -311,6 +417,7 @@ public final class LocalPluginControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         Assertions.assertNotNull(baseDataCache.obtainSelectorData(selectorRulesData.getPluginName()));
+        Assertions.assertEquals(selectorRulesData.getSelectorName(), "selectorName");
     }
 
     private void subscribeRuleForTest(final String testSelectorId, final String testId) {
@@ -323,6 +430,7 @@ public final class LocalPluginControllerTest {
                 .selectorId(testSelectorId)
                 .pluginName("testPluginName")
                 .id(testId)
+                .enabled(true)
                 .build();
     }
 
@@ -349,6 +457,7 @@ public final class LocalPluginControllerTest {
         SelectorRuleData selectorRuleData = new SelectorRuleData();
         selectorRuleData.setPluginName(PluginEnum.DIVIDE.getName());
         selectorRuleData.setSelectorHandler(JsonUtils.toJson(collect));
+        selectorRuleData.setSelectorName("selectorName");
         List<ConditionData> dataList = Stream.of(1).map(weight -> {
             ConditionData data = new ConditionData();
             data.setParamType(ParamTypeEnum.URI.getName());
@@ -360,5 +469,35 @@ public final class LocalPluginControllerTest {
         DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
         divideRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
         selectorRuleData.setRuleHandler(JsonUtils.toJson(divideRuleHandle));
+        Assertions.assertEquals(selectorRuleData.getSelectorName(), "selectorName");
+    }
+
+    @Test
+    public void testBuildDefaultSelectorData() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method buildDefaultSelectorData = LocalPluginController.class.getDeclaredMethod("buildDefaultSelectorData", SelectorData.class);
+        buildDefaultSelectorData.setAccessible(true);
+        LocalPluginController localPluginController = mock(LocalPluginController.class);
+        SelectorData selectorData = SelectorData.builder().id("id").name("name").sort(1)
+                .enabled(true)
+                .logged(true)
+                .build();
+        buildDefaultSelectorData.invoke(localPluginController, selectorData);
+    }
+
+    @Test
+    public void testBuildDefaultRuleData() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method buildDefaultRuleData = LocalPluginController.class.getDeclaredMethod("buildDefaultRuleData", RuleData.class);
+        buildDefaultRuleData.setAccessible(true);
+        LocalPluginController localPluginController = mock(LocalPluginController.class);
+
+        buildDefaultRuleData.invoke(localPluginController, RuleData.builder().sort(1).enabled(true).loged(true).build());
+    }
+
+    private void mockShenyuTrieConfig() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuConfig.class)).thenReturn(new ShenyuConfig());
+        when(context.getBean(TrieCacheTypeEnum.RULE.getTrieType())).thenReturn(new ShenyuTrie(100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
+        when(context.getBean(TrieCacheTypeEnum.SELECTOR.getTrieType())).thenReturn(new ShenyuTrie(100L, TrieMatchModeEnum.ANT_PATH_MATCH.getMatchMode()));
+        SpringBeanUtils.getInstance().setApplicationContext(context);
     }
 }

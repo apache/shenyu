@@ -77,3 +77,10 @@ X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiw
   "password": "password-test-changed",
   "role": 0
 }
+
+### dashboard user check password
+GET http://localhost:9095/dashboardUser/check/password
+Accept: application/json
+Content-Type: application/json
+X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwiZXhwIjoxNjQ2NzQ1ODM0fQ.zf3EHlERZr4o-KcmhSfKa3hk5DV4vbS-naVUI074ii0
+

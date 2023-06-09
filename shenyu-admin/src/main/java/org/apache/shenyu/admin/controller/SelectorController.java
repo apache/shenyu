@@ -17,18 +17,18 @@
 
 package org.apache.shenyu.admin.controller;
 
-import java.util.List;
-
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
-import org.apache.shenyu.admin.model.page.PageParameter;
-import org.apache.shenyu.admin.model.query.SelectorQuery;
+import org.apache.shenyu.admin.model.page.PageCondition;
 import org.apache.shenyu.admin.model.query.SelectorQueryCondition;
+import org.apache.shenyu.admin.model.result.AdminResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
@@ -46,6 +46,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * this is selector controller.
@@ -71,11 +72,14 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public ShenyuAdminResult querySelectors(final String pluginId, final String name,
-                                            @RequestParam @NotNull final Integer currentPage,
-                                            @RequestParam @NotNull final Integer pageSize) {
-        CommonPager<SelectorVO> commonPager = selectorService.listByPageWithPermission(new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)));
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
+    public AdminResult<CommonPager<SelectorVO>> querySelectors(final String pluginId, final String name,
+                                                                @RequestParam @NotNull final Integer currentPage,
+                                                                @RequestParam @NotNull final Integer pageSize) {
+        final SelectorQueryCondition condition = new SelectorQueryCondition();
+        condition.setUserId(SessionUtil.visitor().getUserId());
+        condition.setPlugin(ListUtil.of(pluginId));
+        condition.setKeyword(name);
+        return searchAdaptor(new PageCondition<>(currentPage, pageSize, condition));
     }
     
     /**

@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.protocol.mqtt.utils;
 
-import org.springframework.util.DigestUtils;
+import org.apache.commons.codec.digest.DigestUtils;
+
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -32,13 +33,10 @@ public class EncryptUtil {
      * @return encrypt password.
      */
     public static String choose(final String encryptMode, final String password) {
-
-        switch (encryptMode) {
-            case "MD5":
-                return md5(password);
-            default:
-                return password;
+        if ("MD5".equals(encryptMode)) {
+            return md5(password);
         }
+        return password;
     }
 
     /**
@@ -47,6 +45,6 @@ public class EncryptUtil {
      * @return encrypt password
      */
     private static String md5(final String password) {
-        return DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
+        return DigestUtils.md5Hex(password.getBytes(StandardCharsets.UTF_8));
     }
 }

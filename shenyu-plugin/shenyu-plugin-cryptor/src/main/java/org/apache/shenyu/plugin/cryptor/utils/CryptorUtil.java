@@ -17,30 +17,39 @@
 
 package org.apache.shenyu.plugin.cryptor.utils;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.plugin.api.exception.ResponsiveException;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.cryptor.handler.CryptorRuleHandler;
 import org.apache.shenyu.plugin.cryptor.strategy.CryptorStrategyFactory;
+import org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum.ALL;
+import static org.apache.shenyu.plugin.cryptor.strategy.MapTypeEnum.FIELD;
 
 /**
  * cryptor util.
  */
 public final class CryptorUtil {
-    
+
     private CryptorUtil() {
     }
 
     /**
      * error handling.
-     * @param mode decrypt or encrypt
+     *
+     * @param mode     decrypt or encrypt
      * @param exchange exchange
      * @return Mono
      */
@@ -53,26 +62,88 @@ public final class CryptorUtil {
     }
 
     /**
-     * If it is decrypt mode, replace the original requestBody,
-     * if it is encrypt mode, it will replace the content of the fieldName configuration.
+     * check param.
      *
-     * @param originalBody original Body of data.
-     * @param modifiedBody modified body
-     * @param way mode decrypt or encrypt
-     * @param fieldNames fieldNames
-     * @return Mono
+     * @param ruleHandle ruleHandle
+     * @return is null
      */
-    public static Mono<String> success(final String originalBody, final String modifiedBody, final String way, final String fieldNames) {
-        if (CryptorStrategyFactory.DECRYPT.equals(way)) {
-            return Mono.just(modifiedBody);
+    public static Pair<Boolean, String> checkParam(final CryptorRuleHandler ruleHandle) {
+        if (StringUtils.isEmpty(ruleHandle.getWay())) {
+            return Pair.of(true, "way");
         }
-        AtomicInteger initDeep = new AtomicInteger();
-        initDeep.set(0);
-        JsonElement je = new JsonParser().parse(originalBody);
-        JsonElement resultJe = JsonUtil.replaceJsonNode(je,
-                initDeep,
-                modifiedBody,
-                Arrays.asList(fieldNames.split("\\.")));
-        return Mono.just(resultJe.toString());
+
+        if (StringUtils.isEmpty(ruleHandle.getStrategyName())) {
+            return Pair.of(true, "strategyName");
+        }
+
+        String fieldNames;
+        if (StringUtils.isEmpty(fieldNames = ruleHandle.getFieldNames())) {
+            return Pair.of(true, "fieldNames");
+        }
+
+        String mapType;
+        if (StringUtils.isEmpty(mapType = ruleHandle.getMapType())) {
+            ruleHandle.setMapType(ALL.getMapType());
+        }
+
+        if (ruleHandle.getWay().equals(CryptorStrategyFactory.DECRYPT) && StringUtils.isEmpty(ruleHandle.getDecryptKey())) {
+            return Pair.of(true, "decryptKey");
+        }
+        
+        if (ruleHandle.getWay().equals(CryptorStrategyFactory.ENCRYPT) && StringUtils.isEmpty(ruleHandle.getEncryptKey())) {
+            return Pair.of(true, "encryptKey");
+        }
+
+        if (fieldNames.contains(",") && FIELD.getMapType().equals(mapType)) {
+            ruleHandle.setMapType(ALL.getMapType());
+        }
+        
+        return Pair.of(false, "");
+    }
+
+    /**
+     * encrypt or decrypt the response body.
+     * @param ruleHandle ruleHandle
+     * @param originalData originalData
+     * @param originalBody originalBody
+     * @param exchange exchange
+     * @return new body
+     */
+    public static String crypt(final CryptorRuleHandler ruleHandle, final String originalData, final String originalBody, final ServerWebExchange exchange) {
+
+        String modifiedData = CryptorStrategyFactory.match(ruleHandle, originalData);
+
+        if (Objects.isNull(modifiedData)) {
+            throw Optional.ofNullable(ruleHandle.getWay())
+                    .filter(CryptorStrategyFactory.DECRYPT::equals)
+                    .map(data -> new ResponsiveException(ShenyuResultEnum.DECRYPTION_ERROR, exchange))
+                    .orElse(new ResponsiveException(ShenyuResultEnum.ENCRYPTION_ERROR, exchange));
+        }
+
+        return MapTypeEnum.mapType(ruleHandle.getMapType()).map(originalBody, modifiedData, ruleHandle.getFieldNames());
+    }
+
+    /**
+     * encrypt or decrypt the response body.
+     * @param ruleHandle ruleHandle
+     * @param pairs pairs
+     * @param originalBody originalBody
+     * @param exchange exchange
+     * @return new body
+     */
+    public static String crypt(final CryptorRuleHandler ruleHandle, final List<Pair<String, String>> pairs, final String originalBody, final ServerWebExchange exchange) {
+        List<Pair<String, String>> modifiedPairs = pairs.stream().map(pair -> Pair.of(pair.getLeft(), CryptorStrategyFactory.match(ruleHandle, pair.getRight())))
+                .filter(pair -> StringUtils.isNoneBlank(pair.getRight()))
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(modifiedPairs)) {
+            throw Optional.ofNullable(ruleHandle.getWay())
+                    .filter(CryptorStrategyFactory.DECRYPT::equals)
+                    .map(data -> new ResponsiveException(ShenyuResultEnum.DECRYPTION_ERROR, exchange))
+                    .orElse(new ResponsiveException(ShenyuResultEnum.ENCRYPTION_ERROR, exchange));
+        }
+
+        return MapTypeEnum.mapType(ruleHandle.getMapType()).map(originalBody, modifiedPairs);
+
     }
 }

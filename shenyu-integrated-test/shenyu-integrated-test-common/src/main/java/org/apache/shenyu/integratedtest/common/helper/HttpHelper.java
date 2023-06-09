@@ -58,7 +58,7 @@ public class HttpHelper {
     private static final Gson GSON = new Gson();
 
     private final OkHttpClient client = new OkHttpClient.Builder().build();
-    
+
     private final String localKey = "123456";
 
     /**
@@ -285,4 +285,34 @@ public class HttpHelper {
             return (S) respBody;
         }
     }
+
+    /**
+     * postHttpService.
+     *
+     * @param <S> response type
+     * @param <Q> request type
+     * @param url full url
+     * @param headers headers
+     * @param req request
+     * @param respType respTypeClass
+     * @return responseObject
+
+     * @throws IOException IO exception
+     */
+    public <S, Q> S postHttpService(final String url, final Map<String, Object> headers, final Q req, final Class<S> respType) throws IOException {
+        Request.Builder requestBuilder = new Request.Builder().post(RequestBody.create(GSON.toJson(req), JSON)).url(url).addHeader(Constants.LOCAL_KEY, localKey);
+        if (!CollectionUtils.isEmpty(headers)) {
+            headers.forEach((key, value) -> requestBuilder.addHeader(key, String.valueOf(value)));
+        }
+        Request request = requestBuilder.build();
+        Response response = client.newCall(request).execute();
+        String respBody = Objects.requireNonNull(response.body()).string();
+        LOG.info("postHttpService({}) resp({})", url, respBody);
+        try {
+            return GSON.fromJson(respBody, respType);
+        } catch (Exception e) {
+            return (S) respBody;
+        }
+    }
+
 }

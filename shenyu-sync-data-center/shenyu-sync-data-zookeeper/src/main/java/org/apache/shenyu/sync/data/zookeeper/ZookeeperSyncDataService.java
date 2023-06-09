@@ -25,20 +25,19 @@ import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.PathMatchUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -52,8 +51,6 @@ import java.util.Optional;
  */
 public class ZookeeperSyncDataService implements SyncDataService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperSyncDataService.class);
-
     private final ZookeeperClient zkClient;
 
     private final PluginDataSubscriber pluginDataSubscriber;
@@ -61,6 +58,9 @@ public class ZookeeperSyncDataService implements SyncDataService {
     private final List<MetaDataSubscriber> metaDataSubscribers;
 
     private final List<AuthDataSubscriber> authDataSubscribers;
+
+    private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
+
 
     /**
      * Instantiates a new Zookeeper cache manager.
@@ -73,11 +73,13 @@ public class ZookeeperSyncDataService implements SyncDataService {
     public ZookeeperSyncDataService(final ZookeeperClient zkClient,
                                     final PluginDataSubscriber pluginDataSubscriber,
                                     final List<MetaDataSubscriber> metaDataSubscribers,
-                                    final List<AuthDataSubscriber> authDataSubscribers) {
+                                    final List<AuthDataSubscriber> authDataSubscribers,
+                                    final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
         this.zkClient = zkClient;
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
+        this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
         watcherData();
         watchAppAuth();
         watchMetaData();
@@ -87,6 +89,7 @@ public class ZookeeperSyncDataService implements SyncDataService {
         zkClient.addCache(DefaultPathConstants.PLUGIN_PARENT, new PluginCacheListener());
         zkClient.addCache(DefaultPathConstants.SELECTOR_PARENT, new SelectorCacheListener());
         zkClient.addCache(DefaultPathConstants.RULE_PARENT, new RuleCacheListener());
+        zkClient.addCache(DefaultPathConstants.PROXY_SELECTOR_DATA, new ProxySelectorCacheListener());
     }
 
     private void watchAppAuth() {
@@ -159,9 +162,19 @@ public class ZookeeperSyncDataService implements SyncDataService {
                 .ifPresent(data -> metaDataSubscribers.forEach(e -> e.onSubscribe(metaData)));
     }
 
+    private void cacheProxySelectorData(final ProxySelectorData proxySelectorData) {
+        Optional.ofNullable(proxySelectorData)
+                .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.onSubscribe(proxySelectorData, proxySelectorData.getDiscoveryUpstreamList())));
+    }
+
     private void unCacheMetaData(final MetaData metaData) {
         Optional.ofNullable(metaData)
                 .ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
+    }
+
+    private void unCacheProxySelectorData(final ProxySelectorData proxySelectorData) {
+        Optional.ofNullable(proxySelectorData)
+                .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData)));
     }
 
     @Override
@@ -171,7 +184,7 @@ public class ZookeeperSyncDataService implements SyncDataService {
         }
     }
 
-    abstract class AbstractDataSyncListener implements TreeCacheListener {
+    abstract static class AbstractDataSyncListener implements TreeCacheListener {
         @Override
         public final void childEvent(final CuratorFramework client, final TreeCacheEvent event) {
             ChildData childData = event.getData();
@@ -197,12 +210,10 @@ public class ZookeeperSyncDataService implements SyncDataService {
 
     class PluginCacheListener extends AbstractDataSyncListener {
 
-        private static final String PLUGIN_PATH = DefaultPathConstants.PLUGIN_PARENT + "/*";
-
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(PLUGIN_PATH, path)) {
+            if (!path.contains(DefaultPathConstants.PLUGIN_PARENT)) {
                 return;
             }
 
@@ -213,6 +224,7 @@ public class ZookeeperSyncDataService implements SyncDataService {
                 final PluginData pluginData = new PluginData();
                 pluginData.setName(pluginName);
                 Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData));
+                return;
             }
 
             // create or update
@@ -223,19 +235,19 @@ public class ZookeeperSyncDataService implements SyncDataService {
 
     class SelectorCacheListener extends AbstractDataSyncListener {
 
-        // /shenyu/selector/{plugin}/{selector}
-        private static final String SELECTOR_PATH = DefaultPathConstants.SELECTOR_PARENT + "/*/*";
-
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
 
             // if not uri register path, return.
-            if (!PathMatchUtils.match(SELECTOR_PATH, path)) {
+            if (!path.contains(DefaultPathConstants.SELECTOR_PARENT)) {
                 return;
             }
-
+            if (!zkClient.getChildren(path).isEmpty()) {
+                return;
+            }
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheSelectorData(path);
+                return;
             }
 
             // create or update
@@ -246,12 +258,10 @@ public class ZookeeperSyncDataService implements SyncDataService {
 
     class MetadataCacheListener extends AbstractDataSyncListener {
 
-        private static final String META_DATA_PATH = DefaultPathConstants.META_DATA + "/*";
-
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(META_DATA_PATH, path)) {
+            if (!path.contains(DefaultPathConstants.META_DATA)) {
                 return;
             }
 
@@ -264,6 +274,7 @@ public class ZookeeperSyncDataService implements SyncDataService {
                     throw new ShenyuException(e);
                 }
                 unCacheMetaData(metaData);
+                return;
             }
 
             // create or update
@@ -274,17 +285,16 @@ public class ZookeeperSyncDataService implements SyncDataService {
 
     class AuthCacheListener extends AbstractDataSyncListener {
 
-        private static final String APP_AUTH_PATH = DefaultPathConstants.APP_AUTH_PARENT + "/*";
-
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(APP_AUTH_PATH, path)) {
+            if (!path.contains(DefaultPathConstants.APP_AUTH_PARENT)) {
                 return;
             }
 
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheAuthData(path);
+                return;
             }
 
             // create or update
@@ -295,18 +305,18 @@ public class ZookeeperSyncDataService implements SyncDataService {
 
     class RuleCacheListener extends AbstractDataSyncListener {
 
-        // /shenyu/rule/{plugin}/{rule}
-        private static final String RULE_PATH = DefaultPathConstants.RULE_PARENT + "/*/*";
-
         @Override
         public void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
             // if not uri register path, return.
-            if (!PathMatchUtils.match(RULE_PATH, path)) {
+            if (!path.contains(DefaultPathConstants.RULE_PARENT)) {
                 return;
             }
-
+            if (!zkClient.getChildren(path).isEmpty()) {
+                return;
+            }
             if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
                 unCacheRuleData(path);
+                return;
             }
 
             // create or update
@@ -315,4 +325,34 @@ public class ZookeeperSyncDataService implements SyncDataService {
         }
     }
 
+    class ProxySelectorCacheListener extends AbstractDataSyncListener {
+
+        @Override
+        protected void event(final TreeCacheEvent.Type type, final String path, final ChildData data) {
+            // if not uri register path, return.
+            if (!path.contains(DefaultPathConstants.PROXY_SELECTOR_DATA)) {
+                return;
+            }
+            String[] pathInfoArray = path.split("/");
+            if (pathInfoArray.length != 5) {
+                return;
+            }
+            String pluginName = pathInfoArray[pathInfoArray.length - 2];
+            String proxySelectorName = pathInfoArray[pathInfoArray.length - 1];
+            if (type.equals(TreeCacheEvent.Type.NODE_REMOVED)) {
+                ProxySelectorData proxySelectorData = new ProxySelectorData();
+                proxySelectorData.setPluginName(pluginName);
+                proxySelectorData.setName(proxySelectorName);
+                unCacheProxySelectorData(proxySelectorData);
+                return;
+            }
+            ProxySelectorData proxySelectorData = GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), ProxySelectorData.class);
+            proxySelectorData.setName(proxySelectorName);
+            proxySelectorData.setPluginName(pluginName);
+            // create or update
+            Optional.ofNullable(data)
+                    .ifPresent(e -> cacheProxySelectorData(proxySelectorData));
+
+        }
+    }
 }

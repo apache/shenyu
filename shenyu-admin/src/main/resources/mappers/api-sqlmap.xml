@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.ApiMapper">
+  <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.ApiDO">
+    <!--@mbg.generated-->
+    <!--@Table api-->
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="context_path" jdbcType="VARCHAR" property="contextPath" />
+    <result column="api_path" jdbcType="VARCHAR" property="apiPath" />
+    <result column="http_method" jdbcType="INTEGER" property="httpMethod" />
+    <result column="consume" jdbcType="VARCHAR" property="consume" />
+    <result column="produce" jdbcType="VARCHAR" property="produce" />
+    <result column="version" jdbcType="VARCHAR" property="version" />
+    <result column="rpc_type" jdbcType="VARCHAR" property="rpcType" />
+    <result column="state" jdbcType="TINYINT" property="state" />
+    <result column="ext" jdbcType="VARCHAR" property="ext" />
+    <result column="api_owner" jdbcType="VARCHAR" property="apiOwner" />
+    <result column="api_desc" jdbcType="VARCHAR" property="apiDesc" />
+    <result column="api_source" jdbcType="INTEGER" property="apiSource" />
+    <result column="document" jdbcType="LONGVARCHAR" property="document" />
+    <result column="document_md5" jdbcType="CHAR" property="documentMd5" />
+    <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated" />
+    <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    id, context_path, api_path, http_method, consume, produce, version, rpc_type, `state`, 
+    ext, api_owner, api_desc, api_source, document, document_md5, date_created, date_updated
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select 
+    <include refid="Base_Column_List" />
+    from api
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    <!--@mbg.generated-->
+    delete from api
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ApiDO">
+    <!--@mbg.generated-->
+    insert into api (id, context_path, api_path, 
+      http_method, consume, produce, 
+      version, rpc_type, `state`, 
+      ext, api_owner, api_desc, 
+      api_source, document, document_md5, 
+      date_created, date_updated)
+    values (#{id,jdbcType=VARCHAR}, #{contextPath,jdbcType=VARCHAR}, #{apiPath,jdbcType=VARCHAR}, 
+      #{httpMethod,jdbcType=INTEGER}, #{consume,jdbcType=VARCHAR}, #{produce,jdbcType=VARCHAR}, 
+      #{version,jdbcType=VARCHAR}, #{rpcType,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT}, 
+      #{ext,jdbcType=VARCHAR}, #{apiOwner,jdbcType=VARCHAR}, #{apiDesc,jdbcType=VARCHAR}, 
+      #{apiSource,jdbcType=INTEGER}, #{document,jdbcType=LONGVARCHAR}, #{documentMd5,jdbcType=CHAR}, 
+      #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ApiDO">
+    <!--@mbg.generated-->
+    insert into api
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="contextPath != null">
+        context_path,
+      </if>
+      <if test="apiPath != null">
+        api_path,
+      </if>
+      <if test="httpMethod != null">
+        http_method,
+      </if>
+      <if test="consume != null">
+        consume,
+      </if>
+      <if test="produce != null">
+        produce,
+      </if>
+      <if test="version != null">
+        version,
+      </if>
+      <if test="rpcType != null">
+        rpc_type,
+      </if>
+      <if test="state != null">
+        `state`,
+      </if>
+      <if test="ext != null">
+        ext,
+      </if>
+      <if test="apiOwner != null">
+        api_owner,
+      </if>
+      <if test="apiDesc != null">
+        api_desc,
+      </if>
+      <if test="apiSource != null">
+        api_source,
+      </if>
+      <if test="document != null">
+        document,
+      </if>
+      <if test="documentMd5 != null">
+        document_md5,
+      </if>
+      <if test="dateCreated != null">
+        date_created,
+      </if>
+      <if test="dateUpdated != null">
+        date_updated,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="contextPath != null">
+        #{contextPath,jdbcType=VARCHAR},
+      </if>
+      <if test="apiPath != null">
+        #{apiPath,jdbcType=VARCHAR},
+      </if>
+      <if test="httpMethod != null">
+        #{httpMethod,jdbcType=INTEGER},
+      </if>
+      <if test="consume != null">
+        #{consume,jdbcType=VARCHAR},
+      </if>
+      <if test="produce != null">
+        #{produce,jdbcType=VARCHAR},
+      </if>
+      <if test="version != null">
+        #{version,jdbcType=VARCHAR},
+      </if>
+      <if test="rpcType != null">
+        #{rpcType,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=TINYINT},
+      </if>
+      <if test="ext != null">
+        #{ext,jdbcType=VARCHAR},
+      </if>
+      <if test="apiOwner != null">
+        #{apiOwner,jdbcType=VARCHAR},
+      </if>
+      <if test="apiDesc != null">
+        #{apiDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="apiSource != null">
+        #{apiSource,jdbcType=INTEGER},
+      </if>
+      <if test="document != null">
+        #{document,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="documentMd5 != null">
+        #{documentMd5,jdbcType=CHAR},
+      </if>
+      <if test="dateCreated != null">
+        #{dateCreated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dateUpdated != null">
+        #{dateUpdated,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.ApiDO">
+    <!--@mbg.generated-->
+    update api
+    <set>
+      <if test="contextPath != null">
+        context_path = #{contextPath,jdbcType=VARCHAR},
+      </if>
+      <if test="apiPath != null">
+        api_path = #{apiPath,jdbcType=VARCHAR},
+      </if>
+      <if test="httpMethod != null">
+        http_method = #{httpMethod,jdbcType=INTEGER},
+      </if>
+      <if test="consume != null">
+        consume = #{consume,jdbcType=VARCHAR},
+      </if>
+      <if test="produce != null">
+        produce = #{produce,jdbcType=VARCHAR},
+      </if>
+      <if test="version != null">
+        version = #{version,jdbcType=VARCHAR},
+      </if>
+      <if test="rpcType != null">
+        rpc_type = #{rpcType,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        `state` = #{state,jdbcType=TINYINT},
+      </if>
+      <if test="ext != null">
+        ext = #{ext,jdbcType=VARCHAR},
+      </if>
+      <if test="apiOwner != null">
+        api_owner = #{apiOwner,jdbcType=VARCHAR},
+      </if>
+      <if test="apiDesc != null">
+        api_desc = #{apiDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="apiSource != null">
+        api_source = #{apiSource,jdbcType=INTEGER},
+      </if>
+      <if test="document != null">
+        document = #{document,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="documentMd5 != null">
+        document_md5 = #{documentMd5,jdbcType=CHAR},
+      </if>
+      <if test="dateCreated != null">
+        date_created = #{dateCreated,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dateUpdated != null">
+        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.ApiDO">
+    <!--@mbg.generated-->
+    update api
+    set context_path = #{contextPath,jdbcType=VARCHAR},
+      api_path = #{apiPath,jdbcType=VARCHAR},
+      http_method = #{httpMethod,jdbcType=INTEGER},
+      consume = #{consume,jdbcType=VARCHAR},
+      produce = #{produce,jdbcType=VARCHAR},
+      version = #{version,jdbcType=VARCHAR},
+      rpc_type = #{rpcType,jdbcType=VARCHAR},
+      `state` = #{state,jdbcType=TINYINT},
+      ext = #{ext,jdbcType=VARCHAR},
+      api_owner = #{apiOwner,jdbcType=VARCHAR},
+      api_desc = #{apiDesc,jdbcType=VARCHAR},
+      api_source = #{apiSource,jdbcType=INTEGER},
+      document = #{document,jdbcType=LONGVARCHAR},
+      document_md5 = #{documentMd5,jdbcType=CHAR},
+      date_created = #{dateCreated,jdbcType=TIMESTAMP},
+      date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+  <select id="existed" resultType="java.lang.Boolean">
+    select true
+    from api
+    where id = #{id} limit 1
+  </select>
+
+  <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ApiQuery"
+          resultMap="BaseResultMap">
+    select api.id,
+           api.context_path,
+           api.api_path,
+           api.http_method,
+           api.consume,
+           api.produce,
+           api.version,
+           api.rpc_type,
+           api.`state`,
+           api.ext,
+           api.api_owner,
+           api.api_desc,
+           api.api_source,
+           api.document,
+           api.document_md5,
+           api.date_created,
+           api.date_updated
+    from api
+    <if test="tagId != null and tagId != ''">
+        inner join tag_relation on api.id = tag_relation.api_id and tag_relation.tag_id = #{tagId,jdbcType=VARCHAR}
+    </if>
+    <where>
+      <if test="apiPath != null and apiPath != ''">
+        <bind name="nameLike" value="('%' + apiPath + '%')"/>
+        and api_path LIKE #{nameLike, jdbcType=VARCHAR}
+      </if>
+      <if test="state != null">
+        and state = #{state, jdbcType=TINYINT}
+      </if>
+    </where>
+    order by api.date_created desc
+  </select>
+
+  <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM api
+    WHERE id IN
+    <foreach item="id" collection="list" open="(" separator="," close=")">
+      #{id, jdbcType=VARCHAR}
+    </foreach>
+  </select>
+
+  <delete id="deleteByIds" parameterType="java.util.List">
+    DELETE FROM api
+    WHERE id IN
+    <foreach item="id" collection="list" open="(" separator="," close=")">
+      #{id, jdbcType=VARCHAR}
+    </foreach>
+  </delete>
+
+  <select id="selectByApiPathHttpMethodRpcType" resultMap="BaseResultMap">
+    SELECT
+        <include refid="Base_Column_List"/>
+    FROM api
+    WHERE api_path = #{apiPath,jdbcType=VARCHAR}
+    AND http_method = #{httpMethod,jdbcType=INTEGER}
+    AND rpc_type = #{rpcType,jdbcType=VARCHAR}
+  </select>
+
+  <update id="updateOfflineByContextPath">
+    UPDATE
+        api
+    SET state = 2
+    WHERE context_path = #{contextPath,jdbcType=VARCHAR}
+  </update>
+
+</mapper>

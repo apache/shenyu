@@ -61,6 +61,8 @@ public final class TarsServiceBeanPostProcessorTest {
 
     private final TarsDemoService2 tarsDemoService2 = new TarsDemoService2();
 
+    private final TarsDemoService3 tarsDemoService3 = new TarsDemoService3();
+
     @Mock
     private ApplicationContext applicationContext;
 
@@ -71,6 +73,7 @@ public final class TarsServiceBeanPostProcessorTest {
         Map<String, Object> results = new LinkedHashMap();
         results.put("tarsDemoService", tarsDemoService);
         results.put("tarsDemoService2", tarsDemoService2);
+        results.put("tarsDemoService3", tarsDemoService3);
         when(applicationContext.getBeansWithAnnotation(any())).thenReturn(results);
         contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
 
@@ -85,7 +88,7 @@ public final class TarsServiceBeanPostProcessorTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         TarsServiceBeanEventListener tarsServiceBeanEventListener = buildTarsServiceBeanEventListener(true);
         tarsServiceBeanEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
@@ -94,7 +97,7 @@ public final class TarsServiceBeanPostProcessorTest {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
         TarsServiceBeanEventListener tarsServiceBeanEventListener = buildTarsServiceBeanEventListener(false);
         tarsServiceBeanEventListener.onApplicationEvent(contextRefreshedEvent);
-        verify(applicationContext, times(1)).getBeansWithAnnotation(any());
+        verify(applicationContext, times(2)).getBeansWithAnnotation(any());
         registerUtilsMockedStatic.close();
     }
 
@@ -132,6 +135,14 @@ public final class TarsServiceBeanPostProcessorTest {
     @ShenyuTarsService(serviceName = "testObj2")
     @ShenyuTarsClient("hello2/*")
     static class TarsDemoService2 {
+        public String test(final String hello) {
+            return hello + "";
+        }
+    }
+
+    @ShenyuTarsService(serviceName = "testObj3")
+    @ShenyuTarsClient
+    static class TarsDemoService3 {
         public String test(final String hello) {
             return hello + "";
         }

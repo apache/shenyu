@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.tars.util;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.ParamCheckUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -143,6 +144,7 @@ public final class PrxInfoUtil {
      */
     public static Object[] getParamArray(final Class<?>[] paramTypes, final String[] paramNames, final String body) {
         Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
+        ParamCheckUtils.checkParamsLength(bodyMap.size(), paramNames.length);
         Object[] param = new Object[paramNames.length];
         for (int i = 0; i < paramNames.length; i++) {
             String paramName = paramNames[i];
