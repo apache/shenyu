@@ -232,9 +232,11 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             // remove match cache
             if (selectorMatchConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
+                MatchDataCache.getInstance().removeEmptySelectorData(selectorData.getPluginName());
             }
             if (ruleMatchCacheConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeRuleDataBySelector(selectorData.getPluginName(), selectorData.getId());
+                MatchDataCache.getInstance().removeEmptyRuleData(selectorData.getPluginName());
             }
             updateSelectorTrieCache(selectorData);
         } else if (data instanceof RuleData) {
@@ -244,6 +246,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                     .ifPresent(handler -> handler.handlerRule(ruleData));
             if (ruleMatchCacheConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
+                MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
             }
             updateRuleTrieCache(ruleData);
         }
@@ -286,6 +289,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             // remove selector match cache
             if (selectorMatchConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeSelectorData(selectorData.getPluginName(), selectorData.getId());
+                MatchDataCache.getInstance().removeEmptySelectorData(selectorData.getPluginName());
             }
             // remove selector trie cache
             if (selectorMatchConfig.getTrie().getEnabled()) {
@@ -298,6 +302,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
                     .ifPresent(handler -> handler.removeRule(ruleData));
             if (ruleMatchCacheConfig.getCache().getEnabled()) {
                 MatchDataCache.getInstance().removeRuleData(ruleData.getPluginName(), ruleData.getId());
+                MatchDataCache.getInstance().removeEmptyRuleData(ruleData.getPluginName());
             }
             if (ruleMatchCacheConfig.getTrie().getEnabled()) {
                 eventPublisher.publishEvent(new TrieEvent(TrieEventEnum.REMOVE, TrieCacheTypeEnum.RULE, ruleData));
