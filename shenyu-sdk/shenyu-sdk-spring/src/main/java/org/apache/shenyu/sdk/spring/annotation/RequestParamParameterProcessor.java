@@ -56,9 +56,7 @@ public class RequestParamParameterProcessor implements AnnotatedParameterProcess
             }
             pathResult.append(name).append("=").append(arg);
         } else if (arg instanceof Map) {
-            ((Map<?, ?>) arg).forEach((key, value) -> {
-                pathResult.append(key).append("=").append(value);
-            });
+            ((Map<?, ?>) arg).forEach((key, value) -> pathResult.append(key).append("=").append(value));
         }
         shenyuRequest.setUrl(requestTemplate.getUrl() + pathResult);
         return true;

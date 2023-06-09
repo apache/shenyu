@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.websocket.config;
 
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,7 @@ public class WsSessionManager {
      */
     public static void removeAndClose(final String key) {
         WebSocketSession session = remove(key);
-        if (session != null) {
+        if (Objects.nonNull(session)) {
             try {
                 session.close();
             } catch (IOException e) {

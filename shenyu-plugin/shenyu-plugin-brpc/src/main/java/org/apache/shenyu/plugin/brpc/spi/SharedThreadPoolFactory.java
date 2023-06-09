@@ -24,6 +24,7 @@ import com.baidu.cloud.starlight.api.rpc.threadpool.NamedThreadFactory;
 import com.baidu.cloud.starlight.api.rpc.threadpool.ThreadPoolFactory;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -53,15 +54,15 @@ public class SharedThreadPoolFactory implements ThreadPoolFactory {
 
     @Override
     public ThreadPoolExecutor getThreadPool(final RpcService rpcService) {
-        if (rpcService == null) {
+        if (Objects.isNull(rpcService)) {
             return this.defaultThreadPool;
-        } else if (this.threadPoolMap.get(rpcService) != null) {
+        } else if (Objects.nonNull(this.threadPoolMap.get(rpcService))) {
             return (ThreadPoolExecutor) this.threadPoolMap.get(rpcService);
         } else {
             ServiceConfig serviceConfig = rpcService.getServiceConfig();
             if (serviceConfig == null) {
                 return this.defaultThreadPool;
-            } else if (serviceConfig.getCustomizeThreadPool() != null && serviceConfig.getCustomizeThreadPool()) {
+            } else if (Objects.nonNull(serviceConfig.getCustomizeThreadPool()) && serviceConfig.getCustomizeThreadPool()) {
                 Integer corePoolSize = serviceConfig.getThreadPoolSize();
                 Integer maxThreadPoolSize = serviceConfig.getMaxThreadPoolSize();
                 Integer keepAliveTime = serviceConfig.getIdleThreadKeepAliveSecond();
@@ -108,7 +109,7 @@ public class SharedThreadPoolFactory implements ThreadPoolFactory {
         }
 
         this.threadPoolMap.clear();
-        if (this.defaultThreadPool != null) {
+        if (Objects.nonNull(this.defaultThreadPool)) {
             this.defaultThreadPool.shutdown();
         }
 

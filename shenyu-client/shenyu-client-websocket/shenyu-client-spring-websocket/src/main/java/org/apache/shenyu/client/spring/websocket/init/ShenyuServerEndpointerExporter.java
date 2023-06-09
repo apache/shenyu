@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.spring.websocket.init;
 
+import java.util.Objects;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -99,7 +100,7 @@ public class ShenyuServerEndpointerExporter extends WebApplicationObjectSupport 
 
     private void registerEndpoint(final ServerEndpointConfig endpointConfig) {
         ServerContainer serverContainer = this.getServerContainer();
-        Assert.state(serverContainer != null, "No ServerContainer set");
+        Assert.state(Objects.nonNull(serverContainer), "No ServerContainer set");
 
         try {
             if (this.logger.isDebugEnabled()) {
