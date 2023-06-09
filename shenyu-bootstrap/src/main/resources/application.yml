@@ -221,9 +221,9 @@ shenyu:
     enabled: true
     maxSize : 10
   sync:
-#    websocket:
-#      urls: ws://localhost:9095/websocket
-#      allowOrigin: ws://localhost:9195
+    websocket:
+      urls: ws://localhost:9095/websocket
+      allowOrigin: ws://localhost:9195
 #    apollo:
 #      appId: shenyu
 #      meta: http://localhost:8080
@@ -249,10 +249,10 @@ shenyu:
 #        namespace:
 #        accessKey:
 #        secretKey:
-    polaris:
-      url: 127.0.0.1:8093
-      namespace:
-      fileGroup:
+#    polaris:
+#      url: 127.0.0.1:8093
+#      namespace:
+#      fileGroup:
 #    etcd:
 #      url: http://localhost:2379
 #    consul:
