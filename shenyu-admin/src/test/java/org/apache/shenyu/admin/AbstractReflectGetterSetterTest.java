@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin;
 
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
 
 import java.beans.IntrospectionException;
@@ -107,7 +108,7 @@ public abstract class AbstractReflectGetterSetterTest {
                     if (f.isSynthetic()) {
                         return;
                     }
-                    if (excludeFields != null && excludeFields.contains(f.getName())) {
+                    if (Objects.nonNull(excludeFields) && excludeFields.contains(f.getName())) {
                         return;
                     }
                     try {
@@ -132,7 +133,7 @@ public abstract class AbstractReflectGetterSetterTest {
 
     private Object defaultValue(final Class<?> clazz) throws IllegalAccessException, InstantiationException {
         final Object obj = DEFAULT_MAPPERS.get(clazz);
-        if (obj != null) {
+        if (Objects.nonNull(obj)) {
             return obj;
         }
 

@@ -178,7 +178,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     private BrpcRpcExt.RpcExt build(final Method method) {
         String[] paramNames = localVariableTableParameterNameDiscoverer.getParameterNames(method);
         List<Pair<String, String>> params = new ArrayList<>();
-        if (paramNames != null && paramNames.length > 0) {
+        if (Objects.nonNull(paramNames) && paramNames.length > 0) {
             Class<?>[] paramTypes = method.getParameterTypes();
             for (int i = 0; i < paramNames.length; i++) {
                 params.add(Pair.of(paramTypes[i].getName(), paramNames[i]));

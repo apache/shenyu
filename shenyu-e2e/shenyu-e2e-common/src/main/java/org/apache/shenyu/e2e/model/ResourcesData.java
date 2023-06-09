@@ -73,7 +73,7 @@ public class ResourcesData {
         
         private final SelectorData selector;
         
-        private final List<RuleData> rules; // todo
+        private final List<RuleData> rules;
 
         private Resource(SelectorData selector, List<RuleData> rules) {
             this.selector = selector;

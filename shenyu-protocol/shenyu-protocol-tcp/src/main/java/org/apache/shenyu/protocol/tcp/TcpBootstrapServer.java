@@ -68,13 +68,9 @@ public class TcpBootstrapServer implements BootstrapServer {
                 tcpServerConfiguration.getWorkerGroupThreadCount(), true);
 
         TcpServer tcpServer = TcpServer.create()
-                .doOnChannelInit((connObserver, channel, remoteAddress) -> {
-                    channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO));
-                })
+                .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO)))
                 .wiretap(true)
-                .observe((c, s) -> {
-                    LOG.info("connection={}|status={}", c, s);
-                })
+                .observe((c, s) -> LOG.info("connection={}|status={}", c, s))
                 //.childObserve(connectionObserver)
                 .doOnConnection(this::bridgeConnections)
                 .port(tcpServerConfiguration.getPort())
