@@ -81,6 +81,19 @@ public final class MatchDataCache {
         }
         pathSelectorCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getId()));
     }
+    
+    /**
+     * remove empty selector data.
+     *
+     * @param pluginName plugin name
+     */
+    public void removeEmptySelectorData(final String pluginName) {
+        Map<String, SelectorData> pathSelectorCache = SELECTOR_DATA_MAP.get(pluginName);
+        if (Objects.isNull(pathSelectorCache) || pathSelectorCache.isEmpty()) {
+            return;
+        }
+        pathSelectorCache.entrySet().removeIf(entry -> Objects.isNull(entry.getValue().getId()));
+    }
 
     /**
      * Clean selector data.
@@ -164,6 +177,18 @@ public final class MatchDataCache {
         pathRuleDataCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getSelectorId()));
     }
     
+    /**
+     * remove empty rule data.
+     *
+     * @param pluginName plugin name
+     */
+    public void removeEmptyRuleData(final String pluginName) {
+        Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
+        if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
+            return;
+        }
+        pathRuleDataCache.entrySet().removeIf(entry -> Objects.isNull(entry.getValue().getId()));
+    }
     
     /**
      * clear the cache.
