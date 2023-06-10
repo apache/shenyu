@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import io.netty.handler.codec.http.HttpMethod;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -70,7 +71,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
                     }
                     HttpStatus status = HttpStatus.resolve(res.status().code());
-                    if (status != null) {
+                    if (Objects.nonNull(status)) {
                         response.setStatusCode(status);
                     } else if (response instanceof AbstractServerHttpResponse) {
                         response.setRawStatusCode(res.status().code());
