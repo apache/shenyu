@@ -17,59 +17,34 @@
 
 package org.apache.shenyu.examples.http.dto;
 
-import java.util.StringJoiner;
+import io.swagger.annotations.ApiModelProperty;
 
-/**
- * The type User dto.
- */
-public class UserDTO {
+public class OAuth2DTO {
 
-    private String userId;
-
-    private String userName;
+    @ApiModelProperty(value = "token", example = "afte6789try")
+    private String token;
 
     /**
-     * Get userId.
+     * Get token.
      *
-     * @return userId
+     * @return token
      */
-    public String getUserId() {
-        return userId;
+    public String getToken() {
+        return token;
     }
 
     /**
-     * Set userId.
+     * Set token.
      *
-     * @param userId userId
+     * @param token token
      */
-    public void setUserId(final String userId) {
-        this.userId = userId;
-    }
-
-    /**
-     * Get userName.
-     *
-     * @return userName
-     */
-    public String getUserName() {
-        return userName;
-    }
-
-    /**
-     * Set userName.
-     *
-     * @param userName userName
-     */
-    public void setUserName(final String userName) {
-        this.userName = userName;
+    public void setToken(final String token) {
+        this.token = token;
     }
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", UserDTO.class.getSimpleName() + "[", "]")
-                .add("userId='" + userId + "'")
-                .add("userName='" + userName + "'")
-                .toString();
+        return "OAuth2DTO{" + "token='" + token + '\'' + '}';
     }
 
 }

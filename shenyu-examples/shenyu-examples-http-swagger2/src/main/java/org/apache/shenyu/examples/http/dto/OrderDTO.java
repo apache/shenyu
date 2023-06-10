@@ -17,59 +17,63 @@
 
 package org.apache.shenyu.examples.http.dto;
 
+import io.swagger.annotations.ApiModelProperty;
+import java.io.Serializable;
 import java.util.StringJoiner;
 
 /**
- * The type User dto.
+ * The type Order dto.
  */
-public class UserDTO {
+public class OrderDTO implements Serializable {
 
-    private String userId;
+    @ApiModelProperty(value = "id", required = true, example = "100000")
+    private String id;
 
-    private String userName;
+    @ApiModelProperty(value = "name", required = true, example = "jack")
+    private String name;
 
     /**
-     * Get userId.
+     * Get id.
      *
-     * @return userId
+     * @return id
      */
-    public String getUserId() {
-        return userId;
+    public String getId() {
+        return id;
     }
 
     /**
-     * Set userId.
+     * Set id.
      *
-     * @param userId userId
+     * @param id id
      */
-    public void setUserId(final String userId) {
-        this.userId = userId;
+    public void setId(final String id) {
+        this.id = id;
     }
 
     /**
-     * Get userName.
+     * Get name.
      *
-     * @return userName
+     * @return name
      */
-    public String getUserName() {
-        return userName;
+    public String getName() {
+        return name;
     }
 
     /**
-     * Set userName.
+     * Set name.
      *
-     * @param userName userName
+     * @param name name
      */
-    public void setUserName(final String userName) {
-        this.userName = userName;
+    public void setName(final String name) {
+        this.name = name;
     }
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", UserDTO.class.getSimpleName() + "[", "]")
-                .add("userId='" + userId + "'")
-                .add("userName='" + userName + "'")
-                .toString();
+        return new StringJoiner(", ", OrderDTO.class.getSimpleName() + "[", "]")
+            .add("id='" + id + "'")
+            .add("name='" + name + "'")
+            .toString();
     }
 
 }

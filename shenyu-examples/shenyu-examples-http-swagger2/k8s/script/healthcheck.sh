@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,39 +14,35 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-server:
-  port: 8189
-  address: 0.0.0.0
-  tomcat:
-    max-http-form-post-size: 100MB
+PRGDIR=`dirname "$0"`
+for service in `grep -v -E "^$|^#" ${PRGDIR}/services.list`
+do
+    for loop in `seq 1 30`
+    do
+        status=`curl -o /dev/null -s -w %{http_code} $service`
+        echo -e "curl $service response $status"
 
-shenyu:
-  register:
-    registerType: http #zookeeper #etcd #nacos #consul
-    serverLists: http://139.199.37.58:9096 #localhost:2181 #http://localhost:2379 #localhost:8848
-    props:
-      username: admin
-      password: 123456
-  client:
-      http:
-        props:
-          contextPath: /http
-          appName: http
-#          port: 8189
+        if [ $status -eq 200  ]; then
+            break
+        fi
 
-spring:
-  servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
+        sleep 2
+    done
+done
 
-logging:
-  level:
-    root: info
-    org.springframework.boot: info
-    org.apache.ibatis: info
-    org.apache.shenyu.test.bonuspoint: info
-    org.apache.shenyu.test.lottery: debug
-    org.apache.shenyu.test: debug
+sleep 5
 
+status=`curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type:application/json" http://localhost:31195/http/order/save --data '{"name":"test", "id": 123}'`
+
+sleep 3
+
+if [ $status -eq 200 ]; then
+    echo -e "Success to send request: $status"
+    echo -e "\n-------------------"
+    exit 0
+fi
+echo -e "Failed to send request from shenyu-bootstrap to http example: $status"
+echo -e "\n-------------------"
+exit 1

@@ -14,7 +14,7 @@
 # limitations under the License.
 
 server:
-  port: 8189
+  port: 8190
   address: 0.0.0.0
   tomcat:
     max-http-form-post-size: 100MB
@@ -29,15 +29,18 @@ shenyu:
   client:
       http:
         props:
-          contextPath: /http
-          appName: http
-#          port: 8189
+          contextPath: /http-swagger2
+          appName: http-swagger2
+#          port: 8190
 
 spring:
   servlet:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 
 logging:
   level:

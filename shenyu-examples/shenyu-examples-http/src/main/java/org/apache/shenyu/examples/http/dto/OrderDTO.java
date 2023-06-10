@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.examples.http.dto;
 
-import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.util.StringJoiner;
 
@@ -26,10 +25,8 @@ import java.util.StringJoiner;
  */
 public class OrderDTO implements Serializable {
 
-    @ApiModelProperty(value = "id", required = true, example = "100000")
     private String id;
 
-    @ApiModelProperty(value = "name", required = true, example = "jack")
     private String name;
 
     /**
@@ -71,9 +68,9 @@ public class OrderDTO implements Serializable {
     @Override
     public String toString() {
         return new StringJoiner(", ", OrderDTO.class.getSimpleName() + "[", "]")
-            .add("id='" + id + "'")
-            .add("name='" + name + "'")
-            .toString();
+                .add("id='" + id + "'")
+                .add("name='" + name + "'")
+                .toString();
     }
 
 }

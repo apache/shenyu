@@ -15,33 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.examples.http.controller;
 
-public class OAuth2DTO {
+import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-    private String token;
+/**
+ * OauthController.
+ */
+@RestController
+@RequestMapping("/oauth")
+@ShenyuSpringMvcClient("/oauth")
+@ApiModule(value = "oauth")
+public class OauthController {
 
     /**
-     * Get token.
+     * Test oauth2 code request.
      *
-     * @return token
+     * @return String
      */
-    public String getToken() {
-        return token;
-    }
-
-    /**
-     * Set token.
-     *
-     * @param token token
-     */
-    public void setToken(final String token) {
-        this.token = token;
-    }
-
-    @Override
-    public String toString() {
-        return "OAuth2DTO{" + "token='" + token + '\'' + '}';
+    @GetMapping("/authorize")
+    @ApiDoc(desc = "authorize")
+    public String testCode() {
+        return "authorize";
     }
 
 }

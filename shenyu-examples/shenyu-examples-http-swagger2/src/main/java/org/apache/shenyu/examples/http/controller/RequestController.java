@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.http.controller;
 
+import io.swagger.annotations.ApiOperation;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,39 +43,44 @@ public class RequestController {
 
     /**
      * Test for header annotation.
-     * @param headerKey1  one RequestHeader key
-     * @param serverHttpRequest  request
+     *
+     * @param headerKey1        one RequestHeader key
+     * @param serverHttpRequest request
      * @return response
      */
+    @ApiOperation(value = "header", notes = "test request header.")
     @GetMapping(path = "/header")
     public Mono<String> testRequestHeader(@RequestHeader("header_key1") final String headerKey1,
-                                          final ServerHttpRequest serverHttpRequest) {
+        final ServerHttpRequest serverHttpRequest) {
         LOGGER.info("header_key1:{}, receive headers: {}", headerKey1, serverHttpRequest.getHeaders());
         return successMono(serverHttpRequest.getHeaders());
     }
 
     /**
      * Test for param annotation.
-     * @param parameterKey1  one RequestParam key
-     * @param serverHttpRequest  request
-     * @return  response
+     *
+     * @param parameterKey1     one RequestParam key
+     * @param serverHttpRequest request
+     * @return response
      */
+    @ApiOperation(value = "parameter", notes = "test request parameter.")
     @PostMapping(path = "/parameter")
     public Mono<String> testRequestParameter(@RequestParam("parameter_key1") final String parameterKey1,
-                                             final ServerHttpRequest serverHttpRequest) {
+        final ServerHttpRequest serverHttpRequest) {
         LOGGER.info("parameter_key1: {}, receive param: {}", parameterKey1, serverHttpRequest.getQueryParams());
         return successMono(serverHttpRequest.getQueryParams());
     }
 
     /**
      * Test for cookie annotation.
-     * @param userId  a cookie key with the name userId
-     * @param serverHttpRequest  request
-     * @return  response
+     *
+     * @param userId            a cookie key with the name userId
+     * @param serverHttpRequest request
+     * @return response
      */
     @GetMapping(path = "/cookie")
     public Mono<String> testRequestCookie(@CookieValue("userId") final String userId,
-                                          final ServerHttpRequest serverHttpRequest) {
+        final ServerHttpRequest serverHttpRequest) {
         LOGGER.info("userId:{}, receive Cookies: {}", userId, serverHttpRequest.getCookies());
         return successMono(serverHttpRequest.getCookies());
     }

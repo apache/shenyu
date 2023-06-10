@@ -15,33 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.examples.http;
 
-public class OAuth2DTO {
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-    private String token;
-
-    /**
-     * Get token.
-     *
-     * @return token
-     */
-    public String getToken() {
-        return token;
-    }
+/**
+ * ShenyuTestHttpApplication.
+ */
+@SpringBootApplication
+public class ShenyuTestHttpApplication {
 
     /**
-     * Set token.
+     * main.
      *
-     * @param token token
+     * @param args args
      */
-    public void setToken(final String token) {
-        this.token = token;
+    public static void main(final String[] args) {
+        SpringApplication.run(ShenyuTestHttpApplication.class, args);
     }
-
-    @Override
-    public String toString() {
-        return "OAuth2DTO{" + "token='" + token + '\'' + '}';
-    }
-
 }

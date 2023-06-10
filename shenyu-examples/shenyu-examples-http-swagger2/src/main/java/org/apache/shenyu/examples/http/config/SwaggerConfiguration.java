@@ -52,9 +52,9 @@ public class SwaggerConfiguration {
 
     private static final String DEFAULT_SWAGGER_API_VERSION = "2.3.0";
 
-    private static final String TITLE = "shenyu-examples-http API";
+    private static final String TITLE = "shenyu-examples-http-swagger2 API";
 
-    private static final String DESCRIPTION = "shenyu-examples-http API";
+    private static final String DESCRIPTION = "shenyu-examples-http-swagger2 API";
 
     private static final String CONTACT_NAME = "ShenYu";
 
@@ -104,23 +104,26 @@ public class SwaggerConfiguration {
 
     /**
      * use bean to be compatible with springboot 2.6.8.
+     *
      * @return BeanPostProcessor
      */
     @Bean
     public BeanPostProcessor springfoxBeanHandler() {
         return new BeanPostProcessor() {
             @Override
-            public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
+            public Object postProcessAfterInitialization(final Object bean,
+                final String beanName) throws BeansException {
                 if (bean instanceof WebMvcRequestHandlerProvider) {
                     customizeSpringfoxHandlerMappings(getHandlerMappings(bean));
                 }
                 return bean;
             }
 
-            private <T extends RequestMappingInfoHandlerMapping> void customizeSpringfoxHandlerMappings(final List<T> mappings) {
+            private <T extends RequestMappingInfoHandlerMapping> void customizeSpringfoxHandlerMappings(
+                final List<T> mappings) {
                 List<T> copy = mappings.stream()
-                        .filter(mapping -> mapping.getPatternParser() == null)
-                        .collect(Collectors.toList());
+                    .filter(mapping -> mapping.getPatternParser() == null)
+                    .collect(Collectors.toList());
                 mappings.clear();
                 mappings.addAll(copy);
             }
