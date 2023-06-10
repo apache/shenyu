@@ -33,6 +33,11 @@ public class RewriteHandle {
      * replace string.
      */
     private String replace;
+    
+    /**
+     * percentage of rewritten traffic
+     */
+    private Integer percentage;
 
     /**
      * get regex.
@@ -69,7 +74,25 @@ public class RewriteHandle {
     public void setReplace(final String replace) {
         this.replace = replace;
     }
-
+    
+    /**
+     * get percentage.
+     *
+     * @return percentage
+     */
+    public Integer getPercentage() {
+        return percentage;
+    }
+    
+    /**
+     * set percentage.
+     *
+     * @param percentage percentage
+     */
+    public void setPercentage(final Integer percentage) {
+        this.percentage = percentage;
+    }
+    
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -79,12 +102,13 @@ public class RewriteHandle {
             return false;
         }
         RewriteHandle that = (RewriteHandle) o;
-        return Objects.equals(regex, that.regex) && Objects.equals(replace, that.replace);
+        return Objects.equals(regex, that.regex) && Objects.equals(replace, that.replace)
+                && Objects.equals(percentage, that.percentage);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(regex, replace);
+        return Objects.hash(regex, replace, percentage);
     }
 
     @Override
@@ -95,6 +119,9 @@ public class RewriteHandle {
                 + '\''
                 + ", replace='"
                 + replace
+                + '\''
+                + ", percentage='"
+                + percentage
                 + '\''
                 + '}';
     }

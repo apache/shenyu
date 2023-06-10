@@ -25,6 +25,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -58,7 +59,8 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
     @Override
     public ShenyuContext build(final ServerWebExchange exchange) {
         Pair<String, MetaData> buildData = buildData(exchange);
-        return decoratorMap.get(buildData.getLeft()).decorator(buildDefaultContext(exchange.getRequest()), buildData.getRight());
+        return decoratorMap.get(buildData.getLeft())
+                .decorator(buildDefaultContext(exchange), buildData.getRight());
     }
     
     private Pair<String, MetaData> buildData(final ServerWebExchange exchange) {
@@ -72,7 +74,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
             return Pair.of(RpcTypeEnum.WEB_SOCKET.getName(), new MetaData());
         }
-        MetaData metaData = MetaDataCache.getInstance().obtain(request.getURI().getPath());
+        MetaData metaData = MetaDataCache.getInstance().obtain(RequestUrlUtils.getUri(exchange));
         if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
             return Pair.of(metaData.getRpcType(), metaData);
@@ -81,12 +83,12 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         }
     }
 
-    private ShenyuContext buildDefaultContext(final ServerHttpRequest request) {
+    private ShenyuContext buildDefaultContext(final ServerWebExchange exchange) {
         ShenyuContext shenyuContext = new ShenyuContext();
-        String path = request.getURI().getPath();
+        String path = RequestUrlUtils.getUri(exchange);
         shenyuContext.setPath(path);
         shenyuContext.setStartDateTime(LocalDateTime.now());
-        Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
+        Optional.ofNullable(exchange.getRequest().getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
         return shenyuContext;
     }
 }

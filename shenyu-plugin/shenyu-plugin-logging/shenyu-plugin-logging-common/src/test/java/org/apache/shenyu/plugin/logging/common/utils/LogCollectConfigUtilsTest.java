@@ -46,6 +46,8 @@ public class LogCollectConfigUtilsTest {
 
     private final GenericGlobalConfig config = new GenericGlobalConfig();
     
+    private ServerWebExchange exchange;
+    
     private ServerHttpRequest request;
 
     @BeforeEach
@@ -57,7 +59,7 @@ public class LogCollectConfigUtilsTest {
                 .header("X-source", "mock test")
                 .queryParam("queryParam", "Hello,World")
                 .build();
-        ServerWebExchange exchange = Mockito.spy(MockServerWebExchange.from(request));
+        this.exchange = Mockito.spy(MockServerWebExchange.from(request));
         ShenyuContext shenyuContext = Mockito.mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         this.request = exchange.getRequest();
@@ -91,11 +93,11 @@ public class LogCollectConfigUtilsTest {
 
     @Test
     public void testIsSampled() {
-        assertTrue(LogCollectConfigUtils.isSampled(request));
+        assertTrue(LogCollectConfigUtils.isSampled(exchange));
         Map<String, String> uriSampleMap = new HashMap<>();
         uriSampleMap.put("localhost", "1");
         LogCollectConfigUtils.setSampler(uriSampleMap);
-        assertTrue(LogCollectConfigUtils.isSampled(request));
+        assertTrue(LogCollectConfigUtils.isSampled(exchange));
     }
 
     @Test

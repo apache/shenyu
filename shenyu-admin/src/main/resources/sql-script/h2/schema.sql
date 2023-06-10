@@ -508,7 +508,7 @@ INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_v
 /*plugin*/
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`) VALUES ('1','sign','Authentication',  20, '0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`,`config`,`enabled`) VALUES ('2','waf', 'Authentication', 50,'{"model":"black"}','0');
-INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`) VALUES ('3','rewrite', 'HttpProcess', 90,'0');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`) VALUES ('3','rewrite', 'HttpProcess', -2,'0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`) VALUES ('4','rateLimiter','FaultTolerance', 60,'{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', '0');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`) VALUES ('5','divide', 'Proxy', 200,'{"multiSelectorHandle":"1","multiRuleHandle":"0"}','1');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `config`,`enabled`) VALUES ('6','dubbo','Proxy', 310,'{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', '0');

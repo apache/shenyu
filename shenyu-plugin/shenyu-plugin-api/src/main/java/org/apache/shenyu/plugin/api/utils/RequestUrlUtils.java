@@ -43,7 +43,7 @@ public final class RequestUrlUtils {
         String path = domain;
         final String rewriteUri = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
         if (StringUtils.isNoneBlank(rewriteUri)) {
-            path = path + rewriteUri;
+            path = rewriteUri;
         } else {
             ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
             assert shenyuContext != null;
@@ -56,5 +56,9 @@ public final class RequestUrlUtils {
             path = String.join("?", path, RequestQueryCodecUtil.getCodecQuery(exchange));
         }
         return URI.create(path);
+    }
+    
+    public static String getUri(final ServerWebExchange exchange) {
+        return exchange.getAttributeOrDefault(Constants.REWRITE_URI, exchange.getRequest().getURI().getPath());
     }
 }

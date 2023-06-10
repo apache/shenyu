@@ -23,6 +23,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
@@ -98,7 +99,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         }
         ServerHttpRequest request = exchange.getRequest();
         // control sampling
-        if (!LogCollectConfigUtils.isSampled(exchange.getRequest())) {
+        if (!LogCollectConfigUtils.isSampled(exchange)) {
             return chain.execute(exchange);
         }
         L requestInfo = this.doLogExecute(exchange, selector, rule);
@@ -109,7 +110,7 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
         requestInfo.setUserAgent(request.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
         requestInfo.setHost(request.getHeaders().getFirst(GenericLoggingConstant.HOST));
-        requestInfo.setPath(request.getURI().getPath());
+        requestInfo.setPath(RequestUrlUtils.getUri(exchange));
         LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo);
         LoggingServerHttpResponse<L> loggingServerHttpResponse = new LoggingServerHttpResponse<>(exchange.getResponse(),
                 requestInfo, this.logCollector(), desensitized, keywordSets, dataDesensitizeAlg);

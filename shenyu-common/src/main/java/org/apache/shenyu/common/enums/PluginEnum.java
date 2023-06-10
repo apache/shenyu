@@ -28,6 +28,11 @@ import java.util.stream.Collectors;
 public enum PluginEnum {
 
     /**
+     * Rewrite plugin enum.
+     */
+    REWRITE(-2, 0, "rewrite"),
+
+    /**
      * Global plugin enum.
      */
     GLOBAL(-1, 0, "global"),
@@ -94,11 +99,6 @@ public enum PluginEnum {
      * Context path plugin enum.
      */
     CONTEXT_PATH(80, 0, "contextPath"),
-    
-    /**
-     * Rewrite plugin enum.
-     */
-    REWRITE(90, 0, "rewrite"),
     
     /**
      * Cryptor request plugin enum.

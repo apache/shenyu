@@ -23,7 +23,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.base.utils.PathMatchUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
@@ -35,6 +34,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Rewrite Plugin.
@@ -52,7 +53,10 @@ public class RewritePlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         String rewriteUri = exchange.getRequest().getURI().getPath();
-        if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())) {
+        // the default percentage compatible with older versions is 100
+        final Integer percentage = Optional.ofNullable(rewriteHandle.getPercentage()).orElse(100);
+        if (StringUtils.isNoneBlank(rewriteHandle.getRegex(), rewriteHandle.getReplace())
+                && ThreadLocalRandom.current().nextInt(100) <= percentage) {
             rewriteUri = rewriteHandle.getReplace().contains("{")
                     ? PathMatchUtils.replaceAll(rewriteHandle.getReplace(), rewriteHandle.getRegex().substring(rewriteHandle.getRegex().indexOf("{")),
                             rewriteUri.substring(rewriteHandle.getRegex().indexOf("{") + 1))
@@ -60,17 +64,6 @@ public class RewritePlugin extends AbstractShenyuPlugin {
             exchange.getAttributes().put(Constants.REWRITE_URI, rewriteUri);
         }
         return chain.execute(exchange);
-    }
-
-    @Override
-    public boolean skip(final ServerWebExchange exchange) {
-        return skip(exchange,
-                RpcTypeEnum.DUBBO,
-                RpcTypeEnum.GRPC,
-                RpcTypeEnum.TARS,
-                RpcTypeEnum.MOTAN,
-                RpcTypeEnum.SOFA,
-                RpcTypeEnum.BRPC);
     }
 
     @Override
