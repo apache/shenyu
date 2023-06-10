@@ -1009,7 +1009,7 @@ CREATE TABLE `discovery`
 CREATE TABLE `discovery_upstream`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
-    `discovery_id` varchar(128)  NOT NULL COMMENT 'the discovery id',
+    `discovery_handler_id` varchar(128)  NOT NULL COMMENT 'the discovery handler id',
     `protocol`     varchar(64)   COMMENT 'for http, https, tcp, ws',
     `url`          varchar(64)   NOT NULL COMMENT 'ip:port',
     `status`      int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)',
