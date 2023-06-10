@@ -109,7 +109,7 @@ public class HttpUtils {
     /**
      * buildHttpUrl.
      *
-     * @param url  url
+     * @param url url
      * @return HttpUrl
      */
     public static HttpUrl buildHttpUrl(final String url) {
@@ -161,7 +161,7 @@ public class HttpUtils {
                 @Override
                 public List<Cookie> loadForRequest(final HttpUrl httpUrl) {
                     List<Cookie> cookies = cookieStore.get(httpUrl.host());
-                    return cookies != null ? cookies : new ArrayList<>();
+                    return Objects.nonNull(cookies) ? cookies : new ArrayList<>();
                 }
             }).build();
     }
@@ -367,7 +367,7 @@ public class HttpUtils {
     }
 
     private void addHeader(final Request.Builder builder, final Map<String, String> header) {
-        if (header != null) {
+        if (Objects.nonNull(header)) {
             Set<Map.Entry<String, String>> entrySet = header.entrySet();
             for (Map.Entry<String, String> entry : entrySet) {
                 builder.addHeader(entry.getKey(), String.valueOf(entry.getValue()));
@@ -485,6 +485,7 @@ public class HttpUtils {
 
         /**
          * Upload File.
+         *
          * @param name The form name cannot be duplicate.
          * @param file file
          * @throws IOException IOException
@@ -644,7 +645,7 @@ public class HttpUtils {
                 return toBytes(input);
             } finally {
                 try {
-                    if (input != null) {
+                    if (Objects.nonNull(input)) {
                         input.close();
                     }
                 } catch (IOException ioe) {
