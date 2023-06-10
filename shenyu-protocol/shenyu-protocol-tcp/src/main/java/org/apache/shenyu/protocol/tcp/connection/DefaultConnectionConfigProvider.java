@@ -48,9 +48,10 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
 
     @Override
     public URI getProxiedService(final String ip) {
-        List<Upstream> upstreamList = UpstreamProvider.getSingleton().provide(this.pluginSelectorName).stream().map(dp -> {
-            return Upstream.builder().url(dp.getUpstreamUrl()).status(dp.isStatus()).weight(dp.getWeight()).protocol(dp.getProtocol()).build();
-        }).collect(Collectors.toList());
+        List<Upstream> upstreamList = UpstreamProvider.getSingleton().provide(this.pluginSelectorName)
+                .stream()
+                .map(dp -> Upstream.builder().url(dp.getUpstreamUrl()).status(dp.isStatus()).weight(dp.getWeight()).protocol(dp.getProtocol()).build())
+                .collect(Collectors.toList());
         Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalanceAlgorithm, ip);
         return cover(upstream);
     }

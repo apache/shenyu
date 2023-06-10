@@ -107,7 +107,7 @@ public final class OkHttpTools {
     public String get(final String url, final Map<String, Object> query) throws IOException {
         Request.Builder reqBuild = new Request.Builder();
         HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
-        query.forEach((K, V) -> urlBuilder.addQueryParameter(K, String.valueOf(V)));
+        query.forEach((k, v) -> urlBuilder.addQueryParameter(k, String.valueOf(v)));
         reqBuild.url(urlBuilder.build());
         Request request = reqBuild.build();
         return client.newCall(request).execute().body().string();
