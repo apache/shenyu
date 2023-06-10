@@ -54,6 +54,12 @@ public class BrpcTestServiceImpl implements BrpcTestService {
     }
 
     @Override
+    @ShenyuBrpcClient("/getUserByObj")
+    public User getUserByObj(final User inputUser) {
+        return Optional.ofNullable(inputUser).orElse(new User());
+    }
+
+    @Override
     @ShenyuBrpcClient("/getUsersList1")
     public List<User> getUsersList1(final List<User> inputUsers, final String[] param) {
         if (CollectionUtils.isNotEmpty(inputUsers)) {

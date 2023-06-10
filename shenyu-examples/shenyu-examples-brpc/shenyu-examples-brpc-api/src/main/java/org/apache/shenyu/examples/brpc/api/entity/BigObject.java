@@ -26,12 +26,19 @@ public class BigObject {
 
     private Integer id;
 
-
+    /**
+     * get id.
+     * @return id
+     */
     public Integer getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    /**
+     * set id.
+     * @param id id
+     */
+    public void setId(final Integer id) {
         this.id = id;
     }
 
@@ -39,7 +46,7 @@ public class BigObject {
     /**
      * get obj.
      *
-     * @return Byte[]
+     * @return String[]
      */
     public String[] getObj() {
         return obj;

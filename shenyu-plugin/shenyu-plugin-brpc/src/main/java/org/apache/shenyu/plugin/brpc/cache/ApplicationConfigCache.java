@@ -59,6 +59,8 @@ public final class ApplicationConfigCache {
 
     private static final String BRPC_PROTOCOL = "brpc";
 
+    private static final String SUPER_CLASS_NAME = "java.lang.Object";
+
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
 
     private static final ConcurrentMap<ServiceConfig, AsyncGenericService> PROXY_CACHE = new ConcurrentHashMap<>();
@@ -169,14 +171,13 @@ public final class ApplicationConfigCache {
                     String[] paramNames = new String[methodInfo.getParamTypes().size()];
                     for (int i = 0; i < methodInfo.getParamTypes().size(); i++) {
                         Pair<String, String> pair = methodInfo.getParamTypes().get(i);
-                        paramTypes[i] = ProxyInfoUtil.getParamClass(pair.getKey());
+                        paramTypes[i] = ProxyInfoUtil.getParamClass(SUPER_CLASS_NAME);
                         paramNames[i] = pair.getValue();
                         PARAM_MAP.put(methodInfo.getMethodName(), new BrpcParamInfo(paramTypes, paramNames));
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
                     LOG.error("failed to init brpc, {}", e.getMessage());
-                    //throw new ShenyuBrpcPluginException(e.getCause());
+                    throw new ShenyuBrpcPluginException(e.getCause());
                 }
             }
         });

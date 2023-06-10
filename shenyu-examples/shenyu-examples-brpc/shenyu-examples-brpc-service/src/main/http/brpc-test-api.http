@@ -68,6 +68,19 @@ Content-Type: application/json
 }
 
 
+### shengyu getway proxy getUserByObj
+POST http://localhost:9195/brpc/getUserByObj
+Accept: application/json
+Content-Type: application/json
+
+{
+  "inputUser":
+    {
+      "userId": 127,
+      "userName": "zst"
+    }
+}
+
 ### shengyu getway proxy getUsersList0
 POST http://localhost:9195/brpc/getUsersList0
 Accept: application/json
@@ -77,7 +90,7 @@ Content-Type: application/json
   "inputUsers": [
     {
       "userId": 127,
-      "name": "zst"
+      "userName": "zst"
     }
   ]
 }

@@ -25,7 +25,6 @@ import java.util.List;
 
 public interface BrpcTestService {
 
-
     /**
      * get array.
      *
@@ -33,6 +32,15 @@ public interface BrpcTestService {
      * @return array
      */
     String[] getArray(String[] param);
+
+
+    /**
+     * getUserByObj.
+     *
+     * @param inputUser input user
+     * @return user
+     */
+    User getUserByObj(User inputUser);
 
     /**
      * get users.
