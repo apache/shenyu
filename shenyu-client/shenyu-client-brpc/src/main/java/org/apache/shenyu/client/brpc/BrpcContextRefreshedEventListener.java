@@ -31,6 +31,7 @@ import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -93,6 +94,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
                 .contextPath(this.getContextPath())
                 .appName(this.getAppName())
                 .rpcType(RpcTypeEnum.BRPC.getName())
+                .eventType(EventType.REGISTER)
                 .host(super.getHost())
                 .port(Integer.parseInt(this.getPort()))
                 .build();
@@ -176,7 +178,7 @@ public class BrpcContextRefreshedEventListener extends AbstractContextRefreshedE
     private BrpcRpcExt.RpcExt build(final Method method) {
         String[] paramNames = localVariableTableParameterNameDiscoverer.getParameterNames(method);
         List<Pair<String, String>> params = new ArrayList<>();
-        if (paramNames != null && paramNames.length > 0) {
+        if (Objects.nonNull(paramNames) && paramNames.length > 0) {
             Class<?>[] paramTypes = method.getParameterTypes();
             for (int i = 0; i < paramNames.length; i++) {
                 params.add(Pair.of(paramTypes[i].getName(), paramNames[i]));

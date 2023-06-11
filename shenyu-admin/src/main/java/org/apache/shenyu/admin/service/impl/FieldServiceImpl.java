@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.FieldMapper;
@@ -62,7 +63,7 @@ public class FieldServiceImpl implements FieldService {
     public FieldVO findById(final String id) {
         FieldDO fieldDO = fieldMapper.selectByPrimaryKey(id);
         FieldVO.FieldVOBuilder builder = FieldVO.builder();
-        if (fieldDO != null) {
+        if (Objects.nonNull(fieldDO)) {
             builder.id(fieldDO.getId())
                     .ext(fieldDO.getExt())
                     .fieldDesc(fieldDO.getFieldDesc())
@@ -84,7 +85,7 @@ public class FieldServiceImpl implements FieldService {
     }
 
     private int create(final FieldDTO fieldDTO) {
-        if (fieldDTO == null) {
+        if (Objects.isNull(fieldDTO)) {
             return 0;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
@@ -106,7 +107,7 @@ public class FieldServiceImpl implements FieldService {
     }
 
     private int update(final FieldDTO fieldDTO) {
-        if (fieldDTO == null || fieldDTO.getId() == null) {
+        if (Objects.isNull(fieldDTO) || Objects.isNull(fieldDTO.getId())) {
             return 0;
         }
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());

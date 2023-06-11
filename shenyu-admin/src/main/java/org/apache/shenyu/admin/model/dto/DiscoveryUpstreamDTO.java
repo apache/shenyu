@@ -38,7 +38,7 @@ public class DiscoveryUpstreamDTO implements Serializable {
     private String id;
 
     /**
-     * discovery id.
+     * discoveryHandler id.
      */
     @NotBlank(message = "discoveryHandlerId不能为空")
     private String discoveryHandlerId;

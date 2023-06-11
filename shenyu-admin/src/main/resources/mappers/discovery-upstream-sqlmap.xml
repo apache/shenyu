@@ -22,7 +22,7 @@
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
-        <result column="discovery_id" jdbcType="VARCHAR" property="discoveryId"/>
+        <result column="discovery_handler_id" jdbcType="VARCHAR" property="discoveryHandlerId"/>
         <result column="protocol" jdbcType="VARCHAR" property="protocol"/>
         <result column="url" jdbcType="VARCHAR" property="url"/>
         <result column="status" jdbcType="INTEGER" property="status"/>
@@ -34,7 +34,7 @@
         id,
         date_created,
         date_updated,
-        discovery_id,
+        discovery_handler_id,
         protocol,
         url,
         status,
@@ -51,7 +51,7 @@
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
         INSERT INTO discovery_upstream (
         id,
-        discovery_id,
+        discovery_handler_id,
         protocol,
         url,
         status,
@@ -61,7 +61,7 @@
         date_updated)
         VALUES (
         #{id, jdbcType=VARCHAR},
-        #{discoveryId,jdbcType=VARCHAR},
+        #{discoveryHandlerId,jdbcType=VARCHAR},
         #{protocol,jdbcType=VARCHAR},
         #{url,jdbcType=VARCHAR},
         #{status,jdbcType=INTEGER},
@@ -74,7 +74,7 @@
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
         UPDATE discovery_upstream
         SET
-        discovery_id=#{discoveryId, jdbcType=VARCHAR},
+        discovery_handler_id=#{discoveryHandlerId, jdbcType=VARCHAR},
         protocol=#{protocol,jdbcType=VARCHAR},
         url=#{url,jdbcType=VARCHAR},
         status=#{status,jdbcType=INTEGER},

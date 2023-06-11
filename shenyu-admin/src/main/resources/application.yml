@@ -135,6 +135,8 @@ shenyu:
         - system:resource:editMenu
         - system:resource:deleteButton
         - system:resource:deleteMenu
+
+logging:
   level:
     root: info
     org.springframework.boot: info
