@@ -61,6 +61,13 @@ public class DashboardUserModifyPasswordDTO implements Serializable {
         this.password = password;
     }
     
+    public DashboardUserModifyPasswordDTO(String id, String userName, String password, String oldPassword) {
+        this.id = id;
+        this.userName = userName;
+        this.password = password;
+        this.oldPassword = oldPassword;
+    }
+    
     /**
      * Gets the value of id.
      *
