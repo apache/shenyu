@@ -77,17 +77,17 @@ public class ProxySelectorController {
      * proxy selector add api.
      *
      * @param id the id
-     * @param proxySelectorDTO {@link ProxySelectorDTO}
+     * @param proxySelectorAddDTO {@link ProxySelectorAddDTO}
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
     public ShenyuAdminResult updateProxySelector(@PathVariable("id")
                                                  @Existed(message = "proxy selector is not existed",
                                                          provider = PluginMapper.class) final String id,
-                                                 @Valid @RequestBody final ProxySelectorDTO proxySelectorDTO) {
+                                                 @Valid @RequestBody final ProxySelectorAddDTO proxySelectorAddDTO) {
 
-        proxySelectorDTO.setId(id);
-        return ShenyuAdminResult.success(proxySelectorService.createOrUpdate(proxySelectorDTO));
+        proxySelectorAddDTO.setId(id);
+        return ShenyuAdminResult.success(proxySelectorService.createOrUpdate(proxySelectorAddDTO));
     }
 
     /**

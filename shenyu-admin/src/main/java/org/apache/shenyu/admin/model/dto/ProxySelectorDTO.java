@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.validation.annotation.Existed;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * proxy selector dto.
@@ -44,10 +45,10 @@ public class ProxySelectorDTO implements Serializable {
     private String name;
 
     /**
-     * plugin name.
+     * handler.
      */
     @NotBlank
-    private String pluginName;
+    private String handler;
 
     /**
      * proxy type for tcp, upd, ws.
@@ -68,8 +69,19 @@ public class ProxySelectorDTO implements Serializable {
     private String props;
 
     /**
-     * getId.
-     *
+     * discovery.
+     */
+    @NotNull
+    private ProxySelectorAddDTO.Discovery discovery;
+
+    /**
+     * discovery upstream list.
+     */
+    @NotNull
+    private List<ProxySelectorAddDTO.DiscoveryUpstream> discoveryUpstreams;
+
+    /**
+     * get id.
      * @return id
      */
     public String getId() {
@@ -77,8 +89,7 @@ public class ProxySelectorDTO implements Serializable {
     }
 
     /**
-     * setId.
-     *
+     * set id.
      * @param id id
      */
     public void setId(final String id) {
@@ -104,21 +115,21 @@ public class ProxySelectorDTO implements Serializable {
     }
 
     /**
-     * getPluginName.
+     * get handler.
      *
-     * @return pluginName
+     * @return handler
      */
-    public String getPluginName() {
-        return pluginName;
+    public String getHandler() {
+        return handler;
     }
 
     /**
-     * setPluginName.
+     * set handler.
      *
-     * @param pluginName pluginName
+     * @param handler handler
      */
-    public void setPluginName(final String pluginName) {
-        this.pluginName = pluginName;
+    public void setHandler(final String handler) {
+        this.handler = handler;
     }
 
     /**
@@ -173,5 +184,196 @@ public class ProxySelectorDTO implements Serializable {
      */
     public void setProps(final String props) {
         this.props = props;
+    }
+
+    /**
+     * get discovery.
+     *
+     * @return discovery
+     */
+    public ProxySelectorAddDTO.Discovery getDiscovery() {
+        return discovery;
+    }
+
+    /**
+     * set discovery.
+     *
+     * @param discovery discovery
+     */
+    public void setDiscovery(final ProxySelectorAddDTO.Discovery discovery) {
+        this.discovery = discovery;
+    }
+
+    /**
+     * get discovery upstream list.
+     *
+     * @return discovery upstream list
+     */
+    public List<ProxySelectorAddDTO.DiscoveryUpstream> getDiscoveryUpstreams() {
+        return discoveryUpstreams;
+    }
+
+    /**
+     * set discovery upstream list.
+     *
+     * @param discoveryUpstreams discovery upstream list
+     */
+    public void setDiscoveryUpstreams(final List<ProxySelectorAddDTO.DiscoveryUpstream> discoveryUpstreams) {
+        this.discoveryUpstreams = discoveryUpstreams;
+    }
+
+    /**
+     * get discovery.
+     */
+    public static class Discovery {
+
+        /**
+         * discovery type.
+         */
+        @NotNull(message = "discoveryType not null")
+        private String discoveryType;
+
+        /**
+         * serviceList.
+         */
+        @NotNull(message = "serverList not null")
+        private String serverList;
+
+        private String props;
+
+        /**
+         * get type.
+         *
+         * @return type
+         */
+        public String getDiscoveryType() {
+            return discoveryType;
+        }
+
+        /**
+         * set type.
+         *
+         * @param discoveryType type
+         */
+        public void setDiscoveryType(final String discoveryType) {
+            this.discoveryType = discoveryType;
+        }
+
+        /**
+         * get serviceList.
+         *
+         * @return serviceList
+         */
+        public String getServerList() {
+            return serverList;
+        }
+
+        /**
+         * set serverList.
+         *
+         * @param serverList serverList
+         */
+        public void setServerList(final String serverList) {
+            this.serverList = serverList;
+        }
+
+        /**
+         * get props.
+         * @return props
+         */
+        public String getProps() {
+            return props;
+        }
+
+        /**
+         * set props.
+         * @param props props
+         */
+        public void setProps(String props) {
+            this.props = props;
+        }
+    }
+
+    /**
+     * the discovery upstream.
+     */
+    public static class DiscoveryUpstream {
+
+        /**
+         * protocol.
+         */
+        @NotBlank(message = "protocol不能为空")
+        private String protocol;
+
+        /**
+         * url.
+         */
+        @NotBlank(message = "url不能为空")
+        private String url;
+
+        /**
+         * status.
+         */
+        @NotNull(message = "status不能为空")
+        private Integer status;
+
+        /**
+         * getProtocol.
+         *
+         * @return protocol
+         */
+        public String getProtocol() {
+
+            return protocol;
+        }
+
+        /**
+         * setProtocol.
+         *
+         * @param protocol protocol
+         */
+        public void setProtocol(final String protocol) {
+
+            this.protocol = protocol;
+        }
+
+        /**
+         * getUrl.
+         *
+         * @return url
+         */
+        public String getUrl() {
+
+            return url;
+        }
+
+        /**
+         * setUrl.
+         *
+         * @param url url
+         */
+        public void setUrl(final String url) {
+
+            this.url = url;
+        }
+
+        /**
+         * getStatus.
+         *
+         * @return status
+         */
+        public int getStatus() {
+            return status;
+        }
+
+        /**
+         * setStatus.
+         *
+         * @param status status
+         */
+        public void setStatus(final int status) {
+
+            this.status = status;
+        }
     }
 }

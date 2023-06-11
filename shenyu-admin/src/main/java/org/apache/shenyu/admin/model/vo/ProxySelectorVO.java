@@ -17,10 +17,11 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
-import org.apache.shenyu.common.utils.DateUtils;
+import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * this is proxy selector view to web front.
@@ -30,19 +31,9 @@ public class ProxySelectorVO implements Serializable {
     private static final long serialVersionUID = -1329374830009912963L;
 
     /**
-     * id.
-     */
-    private String id;
-
-    /**
      * proxy selector name.
      */
     private String name;
-
-    /**
-     * pluginName.
-     */
-    private String pluginName;
 
     /**
      * forward port.
@@ -55,19 +46,24 @@ public class ProxySelectorVO implements Serializable {
     private String type;
 
     /**
-     * props.
+     * listener node.
      */
-    private String props;
+    private String listenerNode;
 
     /**
-     * created time.
+     * handler.
      */
-    private String dateCreated;
+    private String handler;
 
     /**
-     * updated time.
+     * discovery.
      */
-    private String dateUpdated;
+    private DiscoveryDTO discovery;
+
+    /**
+     * discovery upstream list.
+     */
+    private List<DiscoveryUpstreamDTO> discoveryUpstreams;
 
     /**
      * ProxySelectorVO.
@@ -77,64 +73,24 @@ public class ProxySelectorVO implements Serializable {
     }
 
     /**
-     * ProxySelectorVO.
-     *
-     * @param id          id
-     * @param name        name
-     * @param pluginName  pluginName
-     * @param forwardPort forwardPort
-     * @param type        type
-     * @param props       props
-     * @param dateCreated dateCreated
-     * @param dateUpdated dateUpdated
+     * ProxySelectorVO
+     * @param name name of the proxy
+     * @param forwardPort forward port
+     * @param type type of the proxy
+     * @param listenerNode listener
+     * @param handler handler
+     * @param discovery discovery
+     * @param discoveryUpstreams discoveryUpstreams
      */
-    public ProxySelectorVO(final String id, final String name, final String pluginName, final Integer forwardPort,
-                           final String type, final String props, final String dateCreated, final String dateUpdated) {
-
-        this.id = id;
+    public ProxySelectorVO(final String name, final Integer forwardPort, final String type, final String listenerNode,
+                           final String handler, final DiscoveryDTO discovery, final List<DiscoveryUpstreamDTO> discoveryUpstreams) {
         this.name = name;
-        this.pluginName = pluginName;
         this.forwardPort = forwardPort;
         this.type = type;
-        this.props = props;
-        this.dateCreated = dateCreated;
-        this.dateUpdated = dateUpdated;
-    }
-
-    /**
-     * get id.
-     *
-     * @return id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * set id.
-     *
-     * @param id id
-     */
-    public void setId(final String id) {
-        this.id = id;
-    }
-
-    /**
-     * get plugin name.
-     *
-     * @return plugin name
-     */
-    public String getPluginName() {
-        return pluginName;
-    }
-
-    /**
-     * set plugin name.
-     *
-     * @param pluginName plugin name
-     */
-    public void setPluginName(final String pluginName) {
-        this.pluginName = pluginName;
+        this.listenerNode = listenerNode;
+        this.handler = handler;
+        this.discovery = discovery;
+        this.discoveryUpstreams = discoveryUpstreams;
     }
 
     /**
@@ -153,24 +109,6 @@ public class ProxySelectorVO implements Serializable {
      */
     public void setType(final String type) {
         this.type = type;
-    }
-
-    /**
-     * get props.
-     *
-     * @return props of selector
-     */
-    public String getProps() {
-        return props;
-    }
-
-    /**
-     * set props.
-     *
-     * @param props props of selector
-     */
-    public void setProps(final String props) {
-        this.props = props;
     }
 
     /**
@@ -214,56 +152,66 @@ public class ProxySelectorVO implements Serializable {
     }
 
     /**
-     * getDateCreated.
-     *
-     * @return dateCreated
+     * get listener node.
+     * @return listener node
      */
-    public String getDateCreated() {
-
-        return dateCreated;
+    public String getListenerNode() {
+        return listenerNode;
     }
 
     /**
-     * setDateCreated.
-     *
-     * @param dateCreated dateCreated
+     * set listener node.
+     * @param listenerNode listener node
      */
-    public void setDateCreated(final String dateCreated) {
-
-        this.dateCreated = dateCreated;
+    public void setListenerNode(String listenerNode) {
+        this.listenerNode = listenerNode;
     }
 
     /**
-     * getDateUpdated.
-     *
-     * @return dateUpdated
+     * get handler.
+     * @return handler
      */
-    public String getDateUpdated() {
-
-        return dateUpdated;
+    public String getHandler() {
+        return handler;
     }
 
     /**
-     * setDateUpdated.
-     *
-     * @param dateUpdated dateUpdated
+     * set handler.
+     * @param handler handler
      */
-    public void setDateUpdated(final String dateUpdated) {
-
-        this.dateUpdated = dateUpdated;
+    public void setHandler(String handler) {
+        this.handler = handler;
     }
 
     /**
-     * buildProxySelectorVO.
-     *
-     * @param proxySelectorDO proxySelectorDO
-     * @return ProxySelectorVO
+     * get discovery.
+     * @return discovery
      */
-    public static ProxySelectorVO buildProxySelectorVO(final ProxySelectorDO proxySelectorDO) {
+    public DiscoveryDTO getDiscovery() {
+        return discovery;
+    }
 
-        return new ProxySelectorVO(proxySelectorDO.getId(), proxySelectorDO.getName(), proxySelectorDO.getPluginName(),
-                proxySelectorDO.getForwardPort(), proxySelectorDO.getType(), proxySelectorDO.getProps(),
-                DateUtils.localDateTimeToString(proxySelectorDO.getDateCreated().toLocalDateTime()),
-                DateUtils.localDateTimeToString(proxySelectorDO.getDateUpdated().toLocalDateTime()));
+    /**
+     * set discovery.
+     * @param discovery discovery
+     */
+    public void setDiscovery(DiscoveryDTO discovery) {
+        this.discovery = discovery;
+    }
+
+    /**
+     * get discovery upstream list.
+     * @return upstream list
+     */
+    public List<DiscoveryUpstreamDTO> getDiscoveryUpstreams() {
+        return discoveryUpstreams;
+    }
+
+    /**
+     * set discovery upstream list.
+     * @param discoveryUpstreams discovery upstream list
+     */
+    public void setDiscoveryUpstreams(List<DiscoveryUpstreamDTO> discoveryUpstreams) {
+        this.discoveryUpstreams = discoveryUpstreams;
     }
 }

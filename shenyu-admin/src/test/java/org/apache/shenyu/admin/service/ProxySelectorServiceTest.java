@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -77,9 +78,8 @@ class ProxySelectorServiceTest {
     @Test
     void testCreateOrUpdate() {
 
-        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        ProxySelectorAddDTO proxySelectorDTO = new ProxySelectorAddDTO();
         proxySelectorDTO.setName("test");
-        proxySelectorDTO.setPluginName("test");
         proxySelectorDTO.setForwardPort(8080);
         proxySelectorDTO.setProps("test");
         given(proxySelectorMapper.nameExisted("test")).willReturn(null);

@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.model.dto;
 
+import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.validation.annotation.Existed;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -30,16 +33,16 @@ public class ProxySelectorAddDTO implements Serializable {
     private static final long serialVersionUID = 1970651564316607656L;
 
     /**
+     * id.
+     */
+    @Existed(provider = ProxySelectorMapper.class, nullOfIgnore = true, message = "proxy selector not exited")
+    private String id;
+
+    /**
      * proxy name.
      */
     @NotBlank
     private String name;
-
-    /**
-     * plugin name.
-     */
-    @NotBlank
-    private String pluginName;
 
     /**
      * proxy forward port.
@@ -57,6 +60,17 @@ public class ProxySelectorAddDTO implements Serializable {
     private String props;
 
     /**
+     * listenerNode.
+     */
+    @NotNull(message = "listenerNode not null")
+    private String listenerNode;
+
+    /**
+     * handler.
+     */
+    private String handler;
+
+    /**
      * discovery.
      */
     @NotNull
@@ -67,6 +81,22 @@ public class ProxySelectorAddDTO implements Serializable {
      */
     @NotNull
     private List<DiscoveryUpstream> discoveryUpstreams;
+
+    /**
+     * get id.
+     * @return id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     * @param id id
+     */
+    public void setId(final String id) {
+        this.id = id;
+    }
 
     /**
      * get name.
@@ -87,21 +117,21 @@ public class ProxySelectorAddDTO implements Serializable {
     }
 
     /**
-     * get plugin name.
+     * get listenerNode.
      *
-     * @return plugin name
+     * @return listenerNode
      */
-    public String getPluginName() {
-        return pluginName;
+    public String getListenerNode() {
+        return listenerNode;
     }
 
     /**
-     * set plugin name.
+     * set listenerNode.
      *
-     * @param pluginName plugin name
+     * @param listenerNode listenerNode
      */
-    public void setPluginName(final String pluginName) {
-        this.pluginName = pluginName;
+    public void setListenerNode(final String listenerNode) {
+        this.listenerNode = listenerNode;
     }
 
     /**
@@ -158,6 +188,22 @@ public class ProxySelectorAddDTO implements Serializable {
     }
 
     /**
+     * get handler.
+     * @return handler
+     */
+    public String getHandler() {
+        return handler;
+    }
+
+    /**
+     * set handler.
+     * @param handler handler
+     */
+    public void setHandler(String handler) {
+        this.handler = handler;
+    }
+
+    /**
      * get discovery.
      *
      * @return discovery
@@ -201,26 +247,16 @@ public class ProxySelectorAddDTO implements Serializable {
         /**
          * discovery type.
          */
-        @NotNull(message = "type not null")
+        @NotNull(message = "discoveryType not null")
         private String discoveryType;
-
-        /**
-         * handler.
-         */
-        @NotNull(message = "handler not null")
-        private String handler;
 
         /**
          * serviceList.
          */
-        @NotNull(message = "serviceList not null")
-        private String serviceList;
+        @NotNull(message = "serverList not null")
+        private String serverList;
 
-        /**
-         * listenerNode.
-         */
-        @NotNull(message = "listenerNode not null")
-        private String listenerNode;
+        private String props;
 
         /**
          * get type.
@@ -241,57 +277,37 @@ public class ProxySelectorAddDTO implements Serializable {
         }
 
         /**
-         * get handler.
-         *
-         * @return handler
-         */
-        public String getHandler() {
-            return handler;
-        }
-
-        /**
-         * set handler.
-         *
-         * @param handler handler
-         */
-        public void setHandler(final String handler) {
-            this.handler = handler;
-        }
-
-        /**
          * get serviceList.
          *
          * @return serviceList
          */
-        public String getServiceList() {
-            return serviceList;
+        public String getServerList() {
+            return serverList;
         }
 
         /**
-         * set serviceList.
+         * set serverList.
          *
-         * @param serviceList serviceList
+         * @param serverList serverList
          */
-        public void setServiceList(final String serviceList) {
-            this.serviceList = serviceList;
+        public void setServerList(final String serverList) {
+            this.serverList = serverList;
         }
 
         /**
-         * get listenerNode.
-         *
-         * @return listenerNode
+         * get props.
+         * @return props
          */
-        public String getListenerNode() {
-            return listenerNode;
+        public String getProps() {
+            return props;
         }
 
         /**
-         * set listenerNode.
-         *
-         * @param listenerNode listenerNode
+         * set props.
+         * @param props props
          */
-        public void setListenerNode(final String listenerNode) {
-            this.listenerNode = listenerNode;
+        public void setProps(String props) {
+            this.props = props;
         }
     }
 
@@ -317,12 +333,6 @@ public class ProxySelectorAddDTO implements Serializable {
          */
         @NotNull(message = "status不能为空")
         private Integer status;
-
-        /**
-         * weight.
-         */
-        @NotNull(message = "weight不能为空")
-        private Integer weight;
 
         /**
          * getProtocol.
@@ -381,26 +391,6 @@ public class ProxySelectorAddDTO implements Serializable {
         public void setStatus(final int status) {
 
             this.status = status;
-        }
-
-        /**
-         * getWeight.
-         *
-         * @return weight
-         */
-        public int getWeight() {
-
-            return weight;
-        }
-
-        /**
-         * setWeight.
-         *
-         * @param weight weight
-         */
-        public void setWeight(final int weight) {
-
-            this.weight = weight;
         }
     }
 }

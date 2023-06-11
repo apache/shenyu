@@ -38,10 +38,10 @@ public interface ProxySelectorService {
     /**
      * createOrUpdate.
      *
-     * @param proxySelectorDTO proxySelectorDTO
+     * @param proxySelectorAddDTO proxySelectorAddDTO
      * @return the string
      */
-    String createOrUpdate(ProxySelectorDTO proxySelectorDTO);
+    String createOrUpdate(ProxySelectorAddDTO proxySelectorAddDTO);
 
     /**
      * delete.

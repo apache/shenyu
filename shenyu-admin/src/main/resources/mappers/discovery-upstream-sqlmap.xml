@@ -94,6 +94,13 @@
         </foreach>
     </select>
 
+    <select id="selectByDiscoveryHandlerId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery_upstream
+        WHERE discovery_handler_id=#{discoveryHandlerId, jdbcType=VARCHAR}
+    </select>
+
     <delete id="deleteByIds" parameterType="java.util.List">
         DELETE FROM discovery_upstream WHERE id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">

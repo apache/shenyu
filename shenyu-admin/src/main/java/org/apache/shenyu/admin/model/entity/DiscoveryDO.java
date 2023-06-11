@@ -31,7 +31,7 @@ public final class DiscoveryDO extends BaseDO {
 
     private String level;
 
-    private String serviceList;
+    private String serverList;
 
     private String pluginName;
 
@@ -41,24 +41,24 @@ public final class DiscoveryDO extends BaseDO {
 
     }
 
-    public DiscoveryDO(final String name, final String type, final String level, final String serviceList,
+    public DiscoveryDO(final String name, final String type, final String level, final String serverList,
                        final String pluginName, final String props) {
         this.name = name;
         this.type = type;
         this.level = level;
-        this.serviceList = serviceList;
+        this.serverList = serverList;
         this.pluginName = pluginName;
         this.props = props;
     }
 
     public DiscoveryDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String name,
-                       final String type, final String level, final String serviceList, final String pluginName,
+                       final String type, final String level, final String serverList, final String pluginName,
                        final String props) {
         super(id, dateCreated, dateUpdated);
         this.name = name;
         this.type = type;
         this.level = level;
-        this.serviceList = serviceList;
+        this.serverList = serverList;
         this.pluginName = pluginName;
         this.props = props;
     }
@@ -112,19 +112,19 @@ public final class DiscoveryDO extends BaseDO {
     }
 
     /**
-     * get the service list value.
-     * @return the service list value
+     * get the server list value.
+     * @return the server list value
      */
     public String getServiceList() {
-        return serviceList;
+        return serverList;
     }
 
     /**
-     * set the service list.
-     * @param serviceList he service list
+     * set the server list.
+     * @param serverList the server list
      */
-    public void setServiceList(final String serviceList) {
-        this.serviceList = serviceList;
+    public void setServerList(final String serverList) {
+        this.serverList = serverList;
     }
 
     /**
@@ -183,14 +183,14 @@ public final class DiscoveryDO extends BaseDO {
         return Objects.equals(name, discoveryDO.name)
                 && Objects.equals(type, discoveryDO.type)
                 && Objects.equals(level, discoveryDO.level)
-                && Objects.equals(serviceList, discoveryDO.serviceList)
+                && Objects.equals(serverList, discoveryDO.serverList)
                 && Objects.equals(pluginName, discoveryDO.pluginName)
                 && Objects.equals(props, discoveryDO.props);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name, type, level, serviceList, pluginName, props);
+        return Objects.hash(super.hashCode(), name, type, level, serverList, pluginName, props);
     }
 
     public static final class DiscoveryDOBuilder {
@@ -207,7 +207,7 @@ public final class DiscoveryDO extends BaseDO {
 
         private String level;
 
-        private String serviceList;
+        private String serverList;
 
         private String pluginName;
 
@@ -285,11 +285,11 @@ public final class DiscoveryDO extends BaseDO {
         /**
          * service list.
          *
-         * @param serviceList the service list.
+         * @param serverList the server list.
          * @return DiscoveryDOBuilder.
          */
-        public DiscoveryDOBuilder serviceList(final String serviceList) {
-            this.serviceList = serviceList;
+        public DiscoveryDOBuilder serverList(final String serverList) {
+            this.serverList = serverList;
             return this;
         }
 
@@ -327,7 +327,7 @@ public final class DiscoveryDO extends BaseDO {
             discoveryDO.setName(name);
             discoveryDO.setType(type);
             discoveryDO.setLevel(level);
-            discoveryDO.setServiceList(serviceList);
+            discoveryDO.setServerList(serverList);
             discoveryDO.setPluginName(pluginName);
             discoveryDO.setProps(props);
             return discoveryDO;

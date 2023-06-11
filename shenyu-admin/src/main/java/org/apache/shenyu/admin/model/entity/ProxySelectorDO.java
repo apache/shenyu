@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.model.entity;
 
+import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.util.StringUtils;
@@ -72,13 +73,12 @@ public class ProxySelectorDO extends BaseDO {
      * @param proxySelectorDTO proxySelectorDTO
      * @return ProxySelectorDO
      */
-    public static ProxySelectorDO buildProxySelectorDO(final ProxySelectorDTO proxySelectorDTO) {
+    public static ProxySelectorDO buildProxySelectorDO(final ProxySelectorAddDTO proxySelectorDTO) {
 
         return Optional.ofNullable(proxySelectorDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             ProxySelectorDO proxySelectorDO = ProxySelectorDO.builder()
                     .name(item.getName())
-                    .pluginName(item.getPluginName())
                     .forwardPort(item.getForwardPort())
                     .type(item.getType())
                     .props(item.getProps())

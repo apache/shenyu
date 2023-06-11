@@ -43,22 +43,10 @@ public class DiscoveryDTO implements Serializable {
     private String type;
 
     /**
-     * handler.
-     */
-    @NotNull(message = "handler not null")
-    private String handler;
-
-    /**
      * serviceList.
      */
-    @NotNull(message = "serviceList not null")
-    private String serviceList;
-
-    /**
-     * listenerNode.
-     */
-    @NotNull(message = "listenerNode not null")
-    private String listenerNode;
+    @NotNull(message = "serverList not null")
+    private String serverList;
 
     /**
      * props.
@@ -121,57 +109,21 @@ public class DiscoveryDTO implements Serializable {
     }
 
     /**
-     * get handler.
+     * get serverList.
      *
-     * @return handler
+     * @return serverList
      */
-    public String getHandler() {
-        return handler;
+    public String getServerList() {
+        return serverList;
     }
 
     /**
-     * set handler.
+     * set serverList.
      *
-     * @param handler handler
+     * @param serverList serverList
      */
-    public void setHandler(final String handler) {
-        this.handler = handler;
-    }
-
-    /**
-     * get serviceList.
-     *
-     * @return serviceList
-     */
-    public String getServiceList() {
-        return serviceList;
-    }
-
-    /**
-     * set serviceList.
-     *
-     * @param serviceList serviceList
-     */
-    public void setServiceList(final String serviceList) {
-        this.serviceList = serviceList;
-    }
-
-    /**
-     * get listenerNode.
-     *
-     * @return listenerNode
-     */
-    public String getListenerNode() {
-        return listenerNode;
-    }
-
-    /**
-     * set listenerNode.
-     *
-     * @param listenerNode listenerNode
-     */
-    public void setListenerNode(final String listenerNode) {
-        this.listenerNode = listenerNode;
+    public void setServerList(final String serverList) {
+        this.serverList = serverList;
     }
 
     /**
@@ -203,12 +155,11 @@ public class DiscoveryDTO implements Serializable {
 
         DiscoveryDTO that = (DiscoveryDTO) o;
         return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(type, that.type)
-                && Objects.equals(handler, that.handler) && Objects.equals(serviceList, that.serviceList)
-                && Objects.equals(listenerNode, that.listenerNode) && Objects.equals(props, that.props);
+                && Objects.equals(serverList, that.serverList) && Objects.equals(props, that.props);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, type, handler, serviceList, listenerNode, props);
+        return Objects.hash(id, name, type, serverList, props);
     }
 }

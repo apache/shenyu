@@ -152,7 +152,7 @@ public class DiscoveryHandlerDO extends BaseDO {
      *
      * @return DiscoveryHandlerBuilder
      */
-    public DiscoveryHandlerDO.DiscoveryHandlerBuilder build() {
+    public static DiscoveryHandlerDO.DiscoveryHandlerBuilder builder() {
         return new DiscoveryHandlerDO.DiscoveryHandlerBuilder();
     }
 

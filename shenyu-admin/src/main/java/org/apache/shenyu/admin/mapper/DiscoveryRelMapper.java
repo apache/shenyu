@@ -35,6 +35,14 @@ public interface DiscoveryRelMapper {
     DiscoveryRelDO selectById(String id);
 
     /**
+     * select discoveryRel by proxy selector id.
+     *
+     * @param proxySelectorId proxy selector id.
+     * @return {@linkplain DiscoveryRelDO}
+     */
+    DiscoveryRelDO selectByProxySelectorId(String proxySelectorId);
+
+    /**
      * insert discoveryRelDO.
      * @param discoveryRelDO discoveryRelDO.
      * @return rows
