@@ -803,7 +803,7 @@ INSERT INTO `plugin` VALUES ('26', 'websocket', '{\"multiSelectorHandle\":\"1\"}
 INSERT INTO `plugin` VALUES ('27', 'generalContext', NULL, 'Common', 125, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('28', 'mqtt', '{\"port\": 9500,\"bossGroupThreadCount\": 1,\"maxPayloadSize\": 65536,\"workerGroupThreadCount\": 12,\"userName\": \"shenyu\",\"password\": \"shenyu\",\"isEncryptPassword\": false,\"encryptMode\": \"\",\"leakDetectorLevel\": \"DISABLED\"}', 'Proxy', 125, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('29', 'loggingRocketMQ', '{\"topic\":\"shenyu-access-logging\", \"namesrvAddr\": \"localhost:9876\",\"producerGroup\":\"shenyu-plugin-logging-rocketmq\"}', 'Logging', 170, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
-INSERT INTO `plugin` VALUES ('3', 'rewrite', NULL, 'HttpProcess', 90, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
+INSERT INTO `plugin` VALUES ('3', 'rewrite', NULL, 'HttpProcess', -2, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('30', 'cache', '{\"cacheType\":\"memory\"}', 'Cache', 10, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('4', 'rateLimiter', '{\"master\":\"mymaster\",\"mode\":\"standalone\",\"url\":\"192.168.1.1:6379\",\"password\":\"abc\"}', 'FaultTolerance', 60, 0, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);
 INSERT INTO `plugin` VALUES ('5', 'divide', '{\"multiSelectorHandle\":\"1\",\"multiRuleHandle\":\"0\"}', 'Proxy', 200, 1, '2022-05-25 18:02:53', '2022-05-25 18:02:53',null);

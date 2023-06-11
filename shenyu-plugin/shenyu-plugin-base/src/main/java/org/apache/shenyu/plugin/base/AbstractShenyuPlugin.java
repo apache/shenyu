@@ -33,6 +33,7 @@ import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
@@ -97,7 +98,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (Objects.isNull(pluginData) || !pluginData.getEnabled()) {
             return chain.execute(exchange);
         }
-        final String path = exchange.getRequest().getURI().getPath();
+        final String path = RequestUrlUtils.getUri(exchange);
         List<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
         if (CollectionUtils.isEmpty(selectors)) {
             return handleSelectorIfNull(pluginName, exchange, chain);

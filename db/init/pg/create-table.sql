@@ -934,7 +934,7 @@ INSERT INTO "public"."plugin" VALUES ('23', 'modifyResponse', '{"ruleHandlePageT
 INSERT INTO "public"."plugin" VALUES ('24', 'cryptorRequest', NULL, 'Cryptor', 100, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('25', 'cryptorResponse', NULL, 'Cryptor', 410, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('26', 'websocket', '{"multiSelectorHandle":"1"}', 'Proxy', 200, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
-INSERT INTO "public"."plugin" VALUES ('3', 'rewrite', NULL, 'HttpProcess', 90, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
+INSERT INTO "public"."plugin" VALUES ('3', 'rewrite', NULL, 'HttpProcess', -2, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('4', 'rateLimiter', '{"master":"mymaster","mode":"standalone","url":"192.168.1.1:6379","password":"abc"}', 'FaultTolerance', 60, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('5', 'divide', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', 'Proxy', 200, 1, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);
 INSERT INTO "public"."plugin" VALUES ('6', 'dubbo', '{"register":"zookeeper://localhost:2181","multiSelectorHandle":"1","threadpool":"shared","corethreads":0,"threads":2147483647,"queues":0}', 'Proxy', 310, 0, '2022-05-25 18:08:01', '2022-05-25 18:08:01', null);

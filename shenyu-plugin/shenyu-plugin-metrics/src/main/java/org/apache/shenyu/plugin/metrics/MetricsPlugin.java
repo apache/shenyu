@@ -23,6 +23,7 @@ import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.reporter.MetricsReporter;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -42,9 +43,7 @@ public class MetricsPlugin implements ShenyuPlugin {
         MetricsReporter.counterIncrement(LabelNames.REQUEST_TOTAL);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        String rewriteURI = exchange.getAttribute(Constants.REWRITE_URI) == null ? exchange.getRequest().getURI().getPath()
-                : exchange.getAttribute(Constants.REWRITE_URI);
-        MetricsReporter.counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{rewriteURI, shenyuContext.getRpcType()});
+        MetricsReporter.counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{RequestUrlUtils.getUri(exchange), shenyuContext.getRpcType()});
         LocalDateTime startDateTime = Optional.of(shenyuContext).map(ShenyuContext::getStartDateTime).orElseGet(LocalDateTime::now);
         return chain.execute(exchange).doOnSuccess(e -> responseCommitted(exchange, startDateTime))
                 .doOnError(throwable -> {

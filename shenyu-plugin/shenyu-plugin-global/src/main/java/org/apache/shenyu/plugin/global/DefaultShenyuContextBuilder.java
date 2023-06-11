@@ -25,6 +25,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -72,9 +73,7 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
         if (StringUtils.isNotEmpty(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
             return Pair.of(RpcTypeEnum.WEB_SOCKET.getName(), new MetaData());
         }
-        String rewriteURI = exchange.getAttribute(Constants.REWRITE_URI) == null ? request.getURI().getPath()
-                : exchange.getAttribute(Constants.REWRITE_URI);
-        MetaData metaData = MetaDataCache.getInstance().obtain(rewriteURI);
+        MetaData metaData = MetaDataCache.getInstance().obtain(RequestUrlUtils.getUri(exchange));
         if (Objects.nonNull(metaData) && Boolean.TRUE.equals(metaData.getEnabled())) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
             return Pair.of(metaData.getRpcType(), metaData);
@@ -85,9 +84,8 @@ public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
 
     private ShenyuContext buildDefaultContext(final ServerWebExchange exchange) {
         ShenyuContext shenyuContext = new ShenyuContext();
-        String rewriteURI = exchange.getAttribute(Constants.REWRITE_URI) == null ? exchange.getRequest().getURI().getPath()
-                : exchange.getAttribute(Constants.REWRITE_URI);
-        shenyuContext.setPath(rewriteURI);
+        String path = RequestUrlUtils.getUri(exchange);
+        shenyuContext.setPath(path);
         shenyuContext.setStartDateTime(LocalDateTime.now());
         Optional.ofNullable(exchange.getRequest().getMethod()).ifPresent(httpMethod -> shenyuContext.setHttpMethod(httpMethod.name()));
         return shenyuContext;

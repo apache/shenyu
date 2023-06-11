@@ -18,11 +18,12 @@
 package org.apache.shenyu.plugin.logging.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.sampler.CountSampler;
 import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.web.server.ServerWebExchange;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -81,19 +82,19 @@ public final class LogCollectConfigUtils {
     /**
      * judge whether sample.
      *
-     * @param request request
+     * @param exchange exchange
      * @return whether sample
      */
-    public static boolean isSampled(final ServerHttpRequest request) {
-        String path = request.getURI().getPath();
+    public static boolean isSampled(final ServerWebExchange exchange) {
+        String path = RequestUrlUtils.getUri(exchange);
         for (Map.Entry<String, Sampler> entry : apiSamplerMap.entrySet()) {
             String pattern = entry.getKey();
             if (MATCHER.match(pattern, path)) {
-                return entry.getValue().isSampled(request);
+                return entry.getValue().isSampled(exchange.getRequest());
             }
         }
         if (globalSampler != null) {
-            return globalSampler.isSampled(request);
+            return globalSampler.isSampled(exchange.getRequest());
         }
         return true;
     }
