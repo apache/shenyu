@@ -15,22 +15,30 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register.apimeta;
+package org.apache.shenyu.client.springmvc.register;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
-import org.apache.shenyu.client.core.register.parser.ApiMetaDefinitionParser;
+import org.apache.shenyu.client.core.register.matcher.AnnotatedApiDefinitionMatcher;
+import org.apache.shenyu.client.core.register.matcher.Matcher;
+import org.apache.shenyu.client.core.register.registrar.AbstractApiMetaRegistrar;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.springframework.core.annotation.AnnotationUtils;
 
 import java.util.List;
 import java.util.Objects;
 
-public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser {
+public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
+
+    private final Matcher<ApiBean.ApiDefinition> apiDefinitionMatcher =
+            new AnnotatedApiDefinitionMatcher(ShenyuSpringMvcClient.class)
+                    .or(api -> AnnotationUtils.isAnnotationDeclaredLocally(ShenyuSpringMvcClient.class, api.getBeanClass()));
 
     private final Boolean addPrefixed;
 
@@ -40,17 +48,64 @@ public class SpringMvcApiMetaDefinitionParser implements ApiMetaDefinitionParser
 
     private final Integer port;
 
-    public SpringMvcApiMetaDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
+    public SpringMvcApiMetaRegister(final ShenyuClientRegisterEventPublisher publisher,
+                                    final ClientRegisterConfig clientRegisterConfig) {
+        super(publisher);
 
         this.addPrefixed = clientRegisterConfig.getAddPrefixed();
         this.appName = clientRegisterConfig.getAppName();
         this.host = clientRegisterConfig.getHost();
         this.port = clientRegisterConfig.getPort();
-
     }
 
     @Override
-    public List<MetaDataRegisterDTO> parse(final ApiBean.ApiDefinition apiDefinition) {
+    protected Boolean preMatch(final ApiBean apiBean) {
+
+        ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
+
+        return annotation != null && annotation.path().endsWith("/**");
+    }
+
+    @Override
+    protected MetaDataRegisterDTO preParse(final ApiBean apiBean) {
+
+        ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
+        String apiPath = PathUtils.pathJoin(apiBean.getContextPath(), annotation.path());
+
+        return MetaDataRegisterDTO.builder()
+                .contextPath(apiBean.getContextPath())
+                .addPrefixed(addPrefixed)
+                .appName(appName)
+                .serviceName(apiBean.getBeanClass().getName())
+                .host(host)
+                .port(port)
+                .methodName(null)
+                .path(apiPath)
+                .pathDesc(annotation.desc())
+                .parameterTypes(null)
+                .rpcType(RpcTypeEnum.HTTP.getName())
+                .enabled(annotation.enabled())
+                .ruleName(StringUtils.defaultIfBlank(annotation.ruleName(), apiPath))
+                .registerMetaData(annotation.registerMetaData())
+                .build();
+    }
+
+    @Override
+    protected Boolean match(final ApiBean apiBean) {
+        ShenyuSpringMvcClient annotation = apiBean.getAnnotation(ShenyuSpringMvcClient.class);
+        if (annotation != null) {
+            return !annotation.path().endsWith("/**");
+        }
+        return true;
+    }
+
+    @Override
+    protected Boolean match(final ApiBean.ApiDefinition apiDefinition) {
+        return apiDefinitionMatcher.match(apiDefinition);
+    }
+
+    @Override
+    protected List<MetaDataRegisterDTO> parse(final ApiBean.ApiDefinition apiDefinition) {
 
         ShenyuSpringMvcClient methodAnnotation = apiDefinition.getAnnotation(ShenyuSpringMvcClient.class);
 
