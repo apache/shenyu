@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.discovery;
 
 import org.apache.commons.lang3.NotImplementedException;
@@ -33,11 +50,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultDiscoveryProcessor implements DiscoveryProcessor, ApplicationEventPublisherAware {
 
+    private static final String KEY_TEMPLATE = "%s/%s/%s";
+
+    private static final String DEFAULT_LISTENER_NODE = "/shenyu/discovery";
+
     private static final Logger LOG = LoggerFactory.getLogger(DefaultDiscoveryProcessor.class);
-
-    public static final String KEY_TEMPLATE = "%s/%s/%s";
-
-    public static final String DEFAULT_LISTENER_NODE = "/shenyu/discovery";
 
     private final Map<String, ShenyuDiscoveryService> discoveryServiceCache;
 
@@ -69,7 +86,6 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         discoveryService.init(discoveryConfig);
         discoveryServiceCache.put(discoveryDO.getId(), discoveryService);
     }
-
 
     @Override
     public void createProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
@@ -115,7 +131,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     }
 
     @Override
-    public void changeUpstream(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO, List<DiscoveryUpstreamDTO> upstreamDTOS) {
+    public void changeUpstream(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO, final List<DiscoveryUpstreamDTO> upstreamDTOS) {
         throw new NotImplementedException("shenyu discovery local mode do nothing in createDiscovery");
     }
 
@@ -127,8 +143,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
      * @return key
      */
     private String buildProxySelectorKey(final String listenerNode, final ProxySelectorDTO proxySelectorDTO) {
-        String key = StringUtils.isBlank(listenerNode) ?
-                DEFAULT_LISTENER_NODE : listenerNode;
+        String key = StringUtils.isBlank(listenerNode) ? DEFAULT_LISTENER_NODE : listenerNode;
         return String.format(KEY_TEMPLATE, key, proxySelectorDTO.getPluginName(), proxySelectorDTO.getId());
     }
 
@@ -142,7 +157,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     private DataChangedEventListener getDiscoveryDataChangedEventListener(final String discoveryType, final String customProps) {
         Map<String, String> customMap = GsonUtils.getInstance().toObjectMap(customProps, String.class);
         return new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper,
-                new CustomDiscoveryUpstreamParser(customMap, proxySelectorMapper), "local".equals(discoveryType));
+                new CustomDiscoveryUpstreamParser(customMap, proxySelectorMapper), DiscoveryMode.LOCAL.name().equalsIgnoreCase(discoveryType));
     }
 
     @Override

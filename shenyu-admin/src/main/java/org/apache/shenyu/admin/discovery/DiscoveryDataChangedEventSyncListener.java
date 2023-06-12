@@ -1,6 +1,24 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.admin.discovery;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -13,7 +31,6 @@ import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.apache.shenyu.admin.discovery.parse.keyValueParser;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Collections;
@@ -28,19 +45,18 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private static final Logger LOG = LoggerFactory.getLogger(DiscoveryDataChangedEventSyncListener.class);
 
-    private final keyValueParser keyValueParser;
+    private final KeyValueParser keyValueParser;
 
     private final ApplicationEventPublisher eventPublisher;
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
-    boolean needPersistence;
+    private Boolean needPersistence;
 
-
-    public DiscoveryDataChangedEventSyncListener(ApplicationEventPublisher eventPublisher,
-                                                 DiscoveryUpstreamMapper discoveryUpstreamMapper,
-                                                 keyValueParser keyValueParser,
-                                                 boolean needPersistence) {
+    public DiscoveryDataChangedEventSyncListener(final ApplicationEventPublisher eventPublisher,
+                                                 final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                                 final KeyValueParser keyValueParser,
+                                                 final Boolean needPersistence) {
         this.eventPublisher = eventPublisher;
         this.keyValueParser = keyValueParser;
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
@@ -48,7 +64,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     }
 
     @Override
-    public void onChange(DataChangedEvent event) {
+    public void onChange(final DataChangedEvent event) {
         DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getKey(), event.getValue());
         //推送 gateway 数据|并且把数据 持久化到数据库(如果是 local 形式 就 不持久化了 因为本身就是 crud 数据库的)
         org.apache.shenyu.admin.listener.DataChangedEvent dataChangedEvent = null;
@@ -86,6 +102,8 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                     fillFullyDiscoverySyncData(discoverySyncData);
                     dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(discoverySyncData));
                     break;
+                default:
+                    break;
             }
         }
         //FIXME: 2023/5/31  同步到 gateway
@@ -94,7 +112,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         }
     }
 
-    private void fillFullyDiscoverySyncData(DiscoverySyncData discoverySyncData) {
+    private void fillFullyDiscoverySyncData(final DiscoverySyncData discoverySyncData) {
         ProxySelectorData proxySelectorData = discoverySyncData.getProxySelectorData();
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByProxySelectorId(proxySelectorData.getId());
         List<DiscoveryUpstreamData> collect = discoveryUpstreamDOS.stream().map(discoveryUpstreamDO -> {
@@ -105,7 +123,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         discoverySyncData.setUpstreamDataList(collect);
     }
 
-    private DiscoverySyncData buildProxySelectorData(String key, String value) {
+    private DiscoverySyncData buildProxySelectorData(final String key, final String value) {
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
         ProxySelectorData proxySelectorData = keyValueParser.parseKey(key);
         DiscoverySyncData data = new DiscoverySyncData();

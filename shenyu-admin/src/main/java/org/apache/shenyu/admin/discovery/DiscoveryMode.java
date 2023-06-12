@@ -17,29 +17,9 @@
 
 package org.apache.shenyu.admin.discovery;
 
-public class DiscoveryProcessorHolder {
-
-    private final DiscoveryProcessor defaultDiscoveryProcessor;
-
-    private final DiscoveryProcessor localDiscoveryProcessor;
-
-    public DiscoveryProcessorHolder(final DiscoveryProcessor defaultDiscoveryProcessor, final DiscoveryProcessor localDiscoveryProcessor) {
-        this.defaultDiscoveryProcessor = defaultDiscoveryProcessor;
-        this.localDiscoveryProcessor = localDiscoveryProcessor;
-    }
-
-    /**
-     * chooseProcessor.
-     *
-     * @param mode mode
-     * @return DiscoveryProcessor
-     */
-    public DiscoveryProcessor chooseProcessor(final String mode) {
-        if (DiscoveryMode.LOCAL.name().equalsIgnoreCase(mode)) {
-            return localDiscoveryProcessor;
-        } else {
-            return defaultDiscoveryProcessor;
-        }
-    }
-
+public enum DiscoveryMode {
+    LOCAL,
+    ZOOKEEPER,
+    NACOS,
+    EUREKA
 }

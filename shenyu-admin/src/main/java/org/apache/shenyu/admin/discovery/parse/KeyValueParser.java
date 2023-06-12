@@ -15,31 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.discovery;
+package org.apache.shenyu.admin.discovery.parse;
 
-public class DiscoveryProcessorHolder {
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 
-    private final DiscoveryProcessor defaultDiscoveryProcessor;
+import java.util.List;
 
-    private final DiscoveryProcessor localDiscoveryProcessor;
-
-    public DiscoveryProcessorHolder(final DiscoveryProcessor defaultDiscoveryProcessor, final DiscoveryProcessor localDiscoveryProcessor) {
-        this.defaultDiscoveryProcessor = defaultDiscoveryProcessor;
-        this.localDiscoveryProcessor = localDiscoveryProcessor;
-    }
+/**
+ * parse value to ProxySelectorData list.
+ */
+public interface KeyValueParser {
 
     /**
-     * chooseProcessor.
+     * parseValue.
      *
-     * @param mode mode
-     * @return DiscoveryProcessor
+     * @param value value
+     * @return DiscoveryUpstreamData list
      */
-    public DiscoveryProcessor chooseProcessor(final String mode) {
-        if (DiscoveryMode.LOCAL.name().equalsIgnoreCase(mode)) {
-            return localDiscoveryProcessor;
-        } else {
-            return defaultDiscoveryProcessor;
-        }
-    }
+    List<DiscoveryUpstreamData> parseValue(String value);
+
+    /**
+     * parseKey.
+     *
+     * @param key discovery key
+     * @return ProxySelectorData.
+     */
+    ProxySelectorData parseKey(String key);
 
 }
