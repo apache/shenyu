@@ -64,9 +64,9 @@ public final class ApplicationConfigCacheTest {
     public void testBrpcParamInfo() {
         ApplicationConfigCache.BrpcParamInfo paramInfo = new ApplicationConfigCache.BrpcParamInfo(null, null);
         paramInfo.setParamNames(new String[]{"test"});
-        paramInfo.setParamTypes(new Class<?>[]{ApplicationConfigCache.class});
+        paramInfo.setParamTypes(new String[]{"org.apache.shenyu.plugin.brpc.cache.ApplicationConfigCache"});
         Assertions.assertEquals(paramInfo.getParamNames()[0], "test");
-        Assertions.assertEquals(paramInfo.getParamTypes()[0], ApplicationConfigCache.class);
+        Assertions.assertEquals(paramInfo.getParamTypes()[0], "org.apache.shenyu.plugin.brpc.cache.ApplicationConfigCache");
     }
 
     @Test
