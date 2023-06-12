@@ -18,24 +18,24 @@
 package org.apache.shenyu.client.core.register;
 
 import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
-import org.apache.shenyu.client.core.register.registrar.AbstractRegistrar;
+import org.apache.shenyu.client.core.register.registrar.ApiRegistrar;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.util.List;
 
-public final class ClientApiRefreshedEventListener<T> implements ApplicationListener<ContextRefreshedEvent> {
+public final class ClientApiRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
-    private final List<AbstractRegistrar<ApiBean<T>>> apiBeanRegistrars;
+    private final List<ApiRegistrar> apiRegistrars;
 
-    private final ApiBeansExtractor<T> apiBeanExtractor;
+    private final ApiBeansExtractor apiBeanExtractor;
 
-    public ClientApiRefreshedEventListener(final List<AbstractRegistrar<ApiBean<T>>> apiBeanRegistrars, final ApiBeansExtractor<T> apiBeanExtractor) {
+    public ClientApiRefreshedEventListener(final List<ApiRegistrar> apiRegistrars, final ApiBeansExtractor apiBeanExtractor) {
 
         this.apiBeanExtractor = apiBeanExtractor;
 
-        this.apiBeanRegistrars = apiBeanRegistrars;
+        this.apiRegistrars = apiRegistrars;
     }
 
     @Override
@@ -43,10 +43,10 @@ public final class ClientApiRefreshedEventListener<T> implements ApplicationList
 
         ApplicationContext applicationContext = event.getApplicationContext();
 
-        List<ApiBean<T>> apiBeans = apiBeanExtractor.extract(applicationContext);
+        List<ApiBean> apiBeans = apiBeanExtractor.extract(applicationContext);
 
         apiBeans.forEach(apiBean ->
-                apiBeanRegistrars.forEach(registrar -> registrar.register(apiBean))
+                apiRegistrars.forEach(registrar -> registrar.register(apiBean))
         );
     }
 }

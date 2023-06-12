@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.e2e.engine.scenario.specification;
 
-import org.apache.shenyu.e2e.client.admin.model.ResourcesData;
+import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenarioParameter;
 import org.apache.shenyu.e2e.engine.scenario.function.Checker;
 import org.apache.shenyu.e2e.engine.scenario.function.Waiting;

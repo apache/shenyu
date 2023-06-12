@@ -79,7 +79,7 @@ public class SentinelHandleTest {
         handle.setFlowRuleEnable(0);
         handle.setDegradeRuleEnable(1);
         
-        handle.checkData(handle);
+        handle.checkData();
         
         assertThat(handle.getFlowRuleEnable(), is(0));
         assertThat(handle.getDegradeRuleEnable(), is(1));
@@ -87,7 +87,7 @@ public class SentinelHandleTest {
         handle.setFlowRuleEnable(-1);
         handle.setDegradeRuleEnable(3);
     
-        handle.checkData(handle);
+        handle.checkData();
         
         assertThat(handle.getFlowRuleEnable(), is(Constants.SENTINEL_ENABLE_FLOW_RULE));
         assertThat(handle.getDegradeRuleEnable(), is(Constants.SENTINEL_ENABLE_DEGRADE_RULE));
