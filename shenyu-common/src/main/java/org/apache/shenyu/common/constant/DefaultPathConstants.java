@@ -52,7 +52,7 @@ public final class DefaultPathConstants implements Constants {
     public static final String META_DATA = PRE_FIX + "/metaData";
 
     /**
-     * The constant PROXY_SELECTOR
+     * The constant PROXY_SELECTOR.
      */
     public static final String PROXY_SELECTOR = PRE_FIX + "/proxySelectorData";
 
