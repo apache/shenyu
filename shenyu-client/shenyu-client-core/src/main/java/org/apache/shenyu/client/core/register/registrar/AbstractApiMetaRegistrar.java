@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.parser;
+package org.apache.shenyu.client.core.register.registrar;
 
-import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
-import java.util.List;
+public abstract class AbstractApiMetaRegistrar extends AbstractApiRegistrar<MetaDataRegisterDTO> {
 
-public interface ApiDocDefinitionParser extends Parser<List<ApiDocRegisterDTO>, ApiBean.ApiDefinition> {
-
+    protected AbstractApiMetaRegistrar(final ShenyuClientRegisterEventPublisher publisher) {
+        super(publisher);
+    }
 }

@@ -15,13 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.parser;
+package org.apache.shenyu.examples.brpc.api.entity;
 
-import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+/**
+ * ComplexObjects.
+ */
+public class ComplexObjects {
 
-import java.util.List;
+    private BigObject bigObject;
 
-public interface ApiMetaDefinitionParser extends Parser<List<MetaDataRegisterDTO>, ApiBean.ApiDefinition> {
+    private User user;
 
+    /**
+     * getBigObject.
+     *
+     * @return BigObject
+     */
+    public BigObject getBigObject() {
+        return bigObject;
+    }
+
+    /**
+     * setBigObject.
+     *
+     * @param bigObject big object
+     */
+    public void setBigObject(final BigObject bigObject) {
+        this.bigObject = bigObject;
+    }
+
+    /**
+     * getUser.
+     *
+     * @return User
+     */
+    public User getUser() {
+        return user;
+    }
+
+    /**
+     * setUser.
+     *
+     * @param user User
+     */
+    public void setUser(final User user) {
+        this.user = user;
+    }
 }
