@@ -21,12 +21,7 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.*;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
@@ -248,12 +243,14 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
         LOG.debug("[DataChangedListener] RuleChanged {}", changeData.getRuleDataId());
     }
 
+    //// TODO: 12/6/2023 需要 验证 暂时只是 编译不报错了
     @Override
-    public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
+    public void onProxySelectorChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
         updateProxySelectorMap(getConfig(changeData.getProxySelectorDataId()));
         switch (eventType) {
             case DELETE:
-                changed.forEach(proxySelectorData -> {
+                changed.forEach(discoverySyncData -> {
+                    ProxySelectorData proxySelectorData = discoverySyncData.getProxySelectorData();
                     List<ProxySelectorData> ls = PROXY_SELECTOR_MAP
                             .getOrDefault(proxySelectorData.getId(), new ArrayList<>())
                             .stream()
@@ -266,25 +263,27 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
             case MYSELF:
                 Set<String> selectIdSet = changed
                         .stream()
-                        .map(ProxySelectorData::getId)
+                        .map(discoverySyncData ->
+                                discoverySyncData.getProxySelectorData().getId()
+                        )
                         .collect(Collectors.toSet());
                 PROXY_SELECTOR_MAP.keySet().removeAll(selectIdSet);
-                changed.forEach(proxySelectorData -> {
-                    List<ProxySelectorData> ls = new ArrayList<>(PROXY_SELECTOR_MAP.getOrDefault(proxySelectorData.getId(),
+                changed.forEach(discoverySyncData -> {
+                    List<ProxySelectorData> ls = new ArrayList<>(PROXY_SELECTOR_MAP.getOrDefault(discoverySyncData.getProxySelectorData().getId(),
                             new ArrayList<>()));
-                    ls.add(proxySelectorData);
-                    PROXY_SELECTOR_MAP.put(proxySelectorData.getId(), ls);
+                    ls.add(discoverySyncData.getProxySelectorData());
+                    PROXY_SELECTOR_MAP.put(discoverySyncData.getProxySelectorData().getId(), ls);
                 });
                 break;
             default:
-                changed.forEach(proxySelectorData -> {
+                changed.forEach(discoverySyncData -> {
                     List<ProxySelectorData> ls = PROXY_SELECTOR_MAP
-                            .getOrDefault(proxySelectorData.getId(), new ArrayList<>())
+                            .getOrDefault(discoverySyncData.getProxySelectorData().getId(), new ArrayList<>())
                             .stream()
-                            .filter(s -> !s.getId().equals(proxySelectorData.getId()))
+                            .filter(s -> !s.getId().equals(discoverySyncData.getProxySelectorData().getId()))
                             .collect(Collectors.toList());
-                    ls.add(proxySelectorData);
-                    PROXY_SELECTOR_MAP.put(proxySelectorData.getId(), ls);
+                    ls.add(discoverySyncData.getProxySelectorData());
+                    PROXY_SELECTOR_MAP.put(discoverySyncData.getProxySelectorData().getId(), ls);
                 });
                 break;
         }
@@ -362,7 +361,7 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
      * publishConfig.
      *
      * @param dataId dataId
-     * @param data data
+     * @param data   data
      */
     public abstract void publishConfig(String dataId, Object data);
 
@@ -409,11 +408,11 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
         /**
          * ChangeData.
          *
-         * @param pluginDataId pluginDataId
+         * @param pluginDataId   pluginDataId
          * @param selectorDataId selectorDataId
-         * @param ruleDataId ruleDataId
-         * @param authDataId authDataId
-         * @param metaDataId metaDataId
+         * @param ruleDataId     ruleDataId
+         * @param authDataId     authDataId
+         * @param metaDataId     metaDataId
          */
         public ChangeData(final String pluginDataId, final String selectorDataId,
                           final String ruleDataId, final String authDataId,
@@ -473,6 +472,7 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
 
         /**
          * get proxySelectorDataId.
+         *
          * @return proxySelectorDataId
          */
         public String getProxySelectorDataId() {
