@@ -15,14 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.registrar;
+package org.apache.shenyu.examples.brpc.api.entity;
 
-public interface Registrar<T> {
+/**
+ * big object.
+ */
+public class BigObject {
+
+    private String[] obj;
+
+    private Integer id;
 
     /**
-     * Registers info.
-     *
-     * @param info info to register
+     * get id.
+     * @return id
      */
-    void register(T info);
+    public Integer getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     * @param id id
+     */
+    public void setId(final Integer id) {
+        this.id = id;
+    }
+
+
+    /**
+     * get obj.
+     *
+     * @return String[]
+     */
+    public String[] getObj() {
+        return obj;
+    }
+
+    /**
+     * set obj.
+     *
+     * @param obj obj
+     */
+    public void setObj(final String[] obj) {
+        this.obj = obj;
+    }
+
 }

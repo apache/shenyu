@@ -82,16 +82,4 @@ public final class ShenyuClientConstants {
      */
     public static final String MEDIA_TYPE_ALL_VALUE = "*/*";
 
-    public static final String API_META_BEAN_MATCHER = "API_META_BEAN_MATCHER";
-
-    public static final String PRE_API_META_BEAN_MATCHER = "PRE_API_META_BEAN_MATCHER";
-
-    public static final String API_DOC_BEAN_MATCHER = "API_DOC_BEAN_MATCHER";
-
-    public static final String API_META_DEFINITION_MATCHER = "API_META_MATCHER";
-
-    public static final String API_DOC_DEFINITION_MATCHER = "API_DOC_MATCHER";
-
-
-
 }

@@ -35,7 +35,6 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.BrpcRegisterConfig;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.brpc.exception.ShenyuBrpcPluginException;
-import org.apache.shenyu.plugin.brpc.util.ProxyInfoUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -165,11 +164,11 @@ public final class ApplicationConfigCache {
         brpcParamExtInfo.getMethodInfo().forEach(methodInfo -> {
             if (CollectionUtils.isNotEmpty(methodInfo.getParamTypes())) {
                 try {
-                    Class<?>[] paramTypes = new Class[methodInfo.getParamTypes().size()];
+                    String[] paramTypes = new String[methodInfo.getParamTypes().size()];
                     String[] paramNames = new String[methodInfo.getParamTypes().size()];
                     for (int i = 0; i < methodInfo.getParamTypes().size(); i++) {
                         Pair<String, String> pair = methodInfo.getParamTypes().get(i);
-                        paramTypes[i] = ProxyInfoUtil.getParamClass(pair.getKey());
+                        paramTypes[i] = pair.getLeft();
                         paramNames[i] = pair.getValue();
                         PARAM_MAP.put(methodInfo.getMethodName(), new BrpcParamInfo(paramTypes, paramNames));
                     }
@@ -373,21 +372,21 @@ public final class ApplicationConfigCache {
      */
     public static class BrpcParamInfo {
 
-        private Class<?>[] paramTypes;
+        private String[] paramTypes;
 
         private String[] paramNames;
 
-        BrpcParamInfo(final Class<?>[] paramTypes, final String[] paramNames) {
+        BrpcParamInfo(final String[] paramTypes, final String[] paramNames) {
             this.paramTypes = paramTypes;
             this.paramNames = paramNames;
         }
 
         /**
-         * Get param types class [ ].
+         * Get param types.
          *
-         * @return the class [ ]
+         * @return the param types []
          */
-        public Class<?>[] getParamTypes() {
+        public String[] getParamTypes() {
             return paramTypes;
         }
 
@@ -396,7 +395,7 @@ public final class ApplicationConfigCache {
          *
          * @param paramTypes the param types
          */
-        public void setParamTypes(final Class<?>[] paramTypes) {
+        public void setParamTypes(final String[] paramTypes) {
             this.paramTypes = paramTypes;
         }
 
