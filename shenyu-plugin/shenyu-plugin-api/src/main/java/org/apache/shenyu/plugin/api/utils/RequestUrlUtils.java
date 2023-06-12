@@ -43,7 +43,7 @@ public final class RequestUrlUtils {
         String path = domain;
         final String rewriteUri = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
         if (StringUtils.isNoneBlank(rewriteUri)) {
-            path = rewriteUri;
+            path = path + rewriteUri;
         } else {
             ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
             assert shenyuContext != null;
