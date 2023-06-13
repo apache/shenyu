@@ -15,24 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.registrar;
+package org.apache.shenyu.integratedtest.common.dto;
 
-import org.apache.shenyu.client.core.register.matcher.Matcher;
+/**
+ * ComplexObjects.
+ */
+public class ComplexObjects {
 
-public abstract class AbstractRegistrar<T> implements Registrar<T> {
+    private BigObject bigObject;
 
-    private final Matcher<T> matcher;
+    private BrpcTest user;
 
-    protected AbstractRegistrar(final Matcher<T> matcher) {
-        this.matcher = matcher;
+    /**
+     * getBigObject.
+     *
+     * @return BigObject
+     */
+    public BigObject getBigObject() {
+        return bigObject;
     }
 
-    @Override
-    public void register(final T element) {
-        if (matcher.match(element)) {
-            doRegister(element);
-        }
+    /**
+     * setBigObject.
+     *
+     * @param bigObject big object
+     */
+    public void setBigObject(final BigObject bigObject) {
+        this.bigObject = bigObject;
     }
 
-    protected abstract void doRegister(T element);
+    /**
+     * getUser.
+     *
+     * @return User
+     */
+    public BrpcTest getUser() {
+        return user;
+    }
+
+    /**
+     * setUser.
+     *
+     * @param user User
+     */
+    public void setUser(final BrpcTest user) {
+        this.user = user;
+    }
 }

@@ -52,3 +52,84 @@ Content-Type: application/json
 {
   "userId": 127
 }
+
+
+### shengyu getway proxy getArray
+POST http://localhost:9195/brpc/getArray
+Accept: application/json
+Content-Type: application/json
+
+{
+  "param": [
+    "aaa",
+    "bbb",
+    "cccc"
+  ]
+}
+
+
+### shengyu getway proxy getUserByObj
+POST http://localhost:9195/brpc/getUserByObj
+Accept: application/json
+Content-Type: application/json
+
+{
+  "inputUser":
+    {
+      "userId": 127,
+      "userName": "zst"
+    }
+}
+
+### shengyu getway proxy getUsersList0
+POST http://localhost:9195/brpc/getUsersList0
+Accept: application/json
+Content-Type: application/json
+
+{
+  "inputUsers": [
+    {
+      "userId": 127,
+      "userName": "zst"
+    }
+  ]
+}
+
+### shengyu getway proxy getUsersList1
+POST http://localhost:9195/brpc/getUsersList1
+Accept: application/json
+Content-Type: application/json
+
+{
+  "param": [
+    "aaa",
+    "bbb",
+    "cccc"
+  ],
+  "inputUsers": [
+    {
+      "userId": 127,
+      "userName": "zst"
+    }
+  ]
+}
+
+
+
+### shengyu getway proxy bigObject0
+POST http://localhost:9195/brpc/bigObject0
+Accept: application/json
+Content-Type: application/json
+
+
+### shengyu getway proxy complexObjects
+POST http://localhost:9195/brpc/complexObjects
+Accept: application/json
+Content-Type: application/json
+
+{
+"user": {
+  "userId": 127,
+  "name": "zst"
+}
+}

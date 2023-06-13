@@ -17,29 +17,31 @@
 
 package org.apache.shenyu.client.core.register.registrar;
 
+import com.google.common.collect.Lists;
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
-import org.apache.shenyu.client.core.register.matcher.Matcher;
-import org.apache.shenyu.client.core.register.parser.Parser;
-import org.apache.shenyu.register.common.type.DataTypeParent;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 
-public class PreApiBeanRegistrar<D extends DataTypeParent> extends AbstractRegistrar<ApiBean> {
+import java.util.List;
 
-    private final ShenyuClientRegisterEventPublisher publisher;
+public final class NoHttpApiDocRegistrar extends AbstractApiDocRegistrar {
 
-    private final Parser<? extends D, ApiBean> parser;
-
-    public PreApiBeanRegistrar(final Matcher<ApiBean> matcher,
-                               final Parser<? extends D, ApiBean> parser,
-                               final ShenyuClientRegisterEventPublisher publisher) {
-        super(matcher);
-        this.parser = parser;
-        this.publisher = publisher;
+    public NoHttpApiDocRegistrar(final ShenyuClientRegisterEventPublisher publisher,
+                                 final ClientRegisterConfig clientRegisterConfig) {
+        super(publisher, clientRegisterConfig);
     }
 
     @Override
-    protected void doRegister(final ApiBean element) {
-        D d = parser.parse(element);
-        publisher.publishEvent(d);
+    protected HttpApiSpecificInfo doParse(final ApiBean.ApiDefinition apiDefinition) {
+
+        String produce = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+
+        String consume = ShenyuClientConstants.MEDIA_TYPE_ALL_VALUE;
+
+        List<ApiHttpMethodEnum> apiHttpMethodEnums = Lists.newArrayList(ApiHttpMethodEnum.NOT_HTTP);
+
+        return new HttpApiSpecificInfo(produce, consume, apiHttpMethodEnums);
     }
 }

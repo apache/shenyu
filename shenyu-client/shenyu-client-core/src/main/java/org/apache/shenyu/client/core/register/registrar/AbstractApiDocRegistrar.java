@@ -15,15 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.parser;
+package org.apache.shenyu.client.core.register.registrar;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
+import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.client.core.register.matcher.AnnotatedApiBeanMatcher;
+import org.apache.shenyu.client.core.register.matcher.AnnotatedApiDefinitionMatcher;
+import org.apache.shenyu.client.core.register.matcher.Matcher;
 import org.apache.shenyu.client.core.utils.OpenApiUtils;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.ApiSourceEnum;
@@ -39,7 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractApiDocDefinitionParser implements ApiDocDefinitionParser {
+public abstract class AbstractApiDocRegistrar extends AbstractApiRegistrar<ApiDocRegisterDTO> {
 
     private static final String API_DOC_VERSION = "v0.01";
 
@@ -51,7 +56,13 @@ public abstract class AbstractApiDocDefinitionParser implements ApiDocDefinition
 
     private final Boolean addPrefixed;
 
-    public AbstractApiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
+    private final Matcher<ApiBean> apiBeanMatcher = new AnnotatedApiBeanMatcher(ApiModule.class);
+
+    private final Matcher<ApiBean.ApiDefinition> apiDefinitionMatcher = new AnnotatedApiDefinitionMatcher(ApiDoc.class);
+
+    protected AbstractApiDocRegistrar(final ShenyuClientRegisterEventPublisher publisher,
+                                      final ClientRegisterConfig clientRegisterConfig) {
+        super(publisher);
         this.rpcTypeEnum = clientRegisterConfig.getRpcTypeEnum();
         this.host = clientRegisterConfig.getHost();
         this.port = clientRegisterConfig.getPort();
@@ -59,7 +70,17 @@ public abstract class AbstractApiDocDefinitionParser implements ApiDocDefinition
     }
 
     @Override
-    public List<ApiDocRegisterDTO> parse(final ApiBean.ApiDefinition apiDefinition) {
+    protected Boolean match(final ApiBean apiBean) {
+        return apiBeanMatcher.match(apiBean);
+    }
+
+    @Override
+    protected Boolean match(final ApiBean.ApiDefinition apiDefinition) {
+        return apiDefinitionMatcher.match(apiDefinition);
+    }
+
+    @Override
+    protected List<ApiDocRegisterDTO> parse(final ApiBean.ApiDefinition apiDefinition) {
 
         ApiDoc apiDoc = apiDefinition.getAnnotation(ApiDoc.class);
 
@@ -97,6 +118,7 @@ public abstract class AbstractApiDocDefinitionParser implements ApiDocDefinition
                     .build();
             apiDocRegisters.add(build);
         }
+
         return apiDocRegisters;
     }
 
