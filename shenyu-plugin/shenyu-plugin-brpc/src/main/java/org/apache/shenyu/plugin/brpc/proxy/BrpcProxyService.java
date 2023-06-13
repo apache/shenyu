@@ -79,7 +79,7 @@ public class BrpcProxyService {
             params = new Object[num];
             Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
             for (int i = 0; i < num; i++) {
-                params[i] = bodyMap.get(brpcParamInfo.getParamNames()[i]).toString();
+                params[i] = bodyMap.get(brpcParamInfo.getParamNames()[i]);
             }
         }
         initThreadPool();
