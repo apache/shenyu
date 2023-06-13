@@ -480,7 +480,7 @@ public class MetaDataRegisterDTO implements DataTypeParent {
     public int hashCode() {
         return Objects.hash(appName, contextPath, path, pathDesc, rpcType, serviceName, methodName,
                 ruleName, parameterTypes, rpcExt, enabled, host, port, pluginNames,
-                registerMetaData, timeMillis, addPrefixed);
+                registerMetaData, addPrefixed);
     }
 
     @Override
