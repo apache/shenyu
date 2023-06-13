@@ -19,13 +19,11 @@ package org.apache.shenyu.admin.config.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Local DataSource configuration.
  */
 @Component
-@Transactional
 @ConfigurationProperties(prefix = "shenyu.database")
 public class DataBaseProperties {
 

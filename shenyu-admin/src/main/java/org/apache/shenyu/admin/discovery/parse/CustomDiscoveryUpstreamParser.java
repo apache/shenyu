@@ -25,6 +25,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -84,6 +86,9 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
 
     @Override
     public List<DiscoveryUpstreamData> parseValue(final String jsonString) {
+        if(StringUtils.isBlank(jsonString)){
+            return Collections.emptyList();
+        }
         GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(DiscoveryUpstreamData.class, this);
         Gson gson = gsonBuilder.create();
         return gson.fromJson(jsonString, new TypeToken<List<DiscoveryUpstreamData>>() {

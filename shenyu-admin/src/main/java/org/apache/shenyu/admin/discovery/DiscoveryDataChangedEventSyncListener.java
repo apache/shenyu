@@ -65,10 +65,14 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     @Override
     public void onChange(final DataChangedEvent event) {
+        DataChangedEvent.Event currentEvent = event.getEvent();
+        if(DataChangedEvent.Event.IGNORED.equals(currentEvent)){
+            //ignore
+            return;
+        }
         DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getKey(), event.getValue());
         //推送 gateway 数据|并且把数据 持久化到数据库(如果是 local 形式 就 不持久化了 因为本身就是 crud 数据库的)
         org.apache.shenyu.admin.listener.DataChangedEvent dataChangedEvent = null;
-        DataChangedEvent.Event currentEvent = event.getEvent();
         List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
         if (needPersistence) {
             if (CollectionUtils.isEmpty(upstreamDataList)) {

@@ -146,7 +146,7 @@ public final class DefaultPathConstants implements Constants {
      * @return /shenyu/proxySelectorData/pluginName/proxySelectorName
      */
     public static String buildProxySelectorPath(final String pluginName, final String proxySelectorName) {
-        return String.join(PATH_SEPARATOR, SELECTOR_PARENT, pluginName, proxySelectorName);
+        return String.join(PATH_SEPARATOR, PROXY_SELECTOR, pluginName, proxySelectorName);
     }
 
 }

@@ -18,7 +18,6 @@
 package org.apache.shenyu.protocol.tcp;
 
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
 
 import java.util.List;
 

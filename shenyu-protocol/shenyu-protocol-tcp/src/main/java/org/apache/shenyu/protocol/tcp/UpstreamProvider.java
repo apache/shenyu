@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -63,7 +64,8 @@ public final class UpstreamProvider {
      * @param upstreams          upstreams
      */
     public void createUpstreams(final String pluginSelectorName, final List<DiscoveryUpstreamData> upstreams) {
-        cache.put(pluginSelectorName, upstreams);
+        List<DiscoveryUpstreamData> discoveryUpstreamDataList = Optional.ofNullable(upstreams).orElseGet(ArrayList::new);
+        cache.put(pluginSelectorName, discoveryUpstreamDataList);
     }
 
     /**
