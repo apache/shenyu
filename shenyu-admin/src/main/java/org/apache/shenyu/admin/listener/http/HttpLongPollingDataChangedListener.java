@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener.http;
 
 import com.google.common.collect.Lists;
+import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -167,7 +168,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             // md5,lastModifyTime
             String[] params = StringUtils.split(request.getParameter(group.name()), ',');
-            if (params == null || params.length != 2) {
+            if (Objects.isNull(params) || params.length != 2) {
                 throw new ShenyuException("group param invalid:" + request.getParameter(group.name()));
             }
             String clientMd5 = params[0];
@@ -360,7 +361,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
          */
         void sendResponse(final List<ConfigGroupEnum> changedGroups) {
             // cancel scheduler
-            if (null != asyncTimeoutFuture) {
+            if (Objects.nonNull(asyncTimeoutFuture)) {
                 asyncTimeoutFuture.cancel(false);
             }
             generateResponse((HttpServletResponse) asyncContext.getResponse(), changedGroups);
