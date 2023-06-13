@@ -93,6 +93,24 @@
         </foreach>
     </select>
 
+    <select id="selectByProxySelectorId" resultMap="BaseResultMap">
+        SELECT
+            du.id,
+            du.date_created,
+            du.date_updated,
+            du.discovery_handler_id,
+            du.protocol,
+            du.url,
+            du.status,
+            du.weight,
+            du.props
+        FROM discovery_upstream du
+        INNER JOIN discovery_rel dr ON du.discovery_handler_id = dr.discovery_handler_id
+        <where>
+            dr.proxy_selector_id = #{proxySelectorId , jdbcType=VARCHAR}
+        </where>
+    </select>
+
     <delete id="deleteByIds" parameterType="java.util.List">
         DELETE FROM discovery_upstream WHERE id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">

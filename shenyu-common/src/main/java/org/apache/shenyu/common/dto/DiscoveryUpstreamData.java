@@ -38,9 +38,9 @@ public class DiscoveryUpstreamData {
 
 
     /**
-     * discoveryId.
+     * discoveryHandlerId.
      */
-    private String discoveryId;
+    private String discoveryHandlerId;
 
     /**
      * protocol.
@@ -68,23 +68,22 @@ public class DiscoveryUpstreamData {
     private String props;
 
 
-
     /**
-     * getDiscoveryId.
+     * getDiscoveryHandlerId.
      *
-     * @return discoveryId
+     * @return discoveryHandlerId
      */
-    public String getDiscoveryId() {
-        return discoveryId;
+    public String getDiscoveryHandlerId() {
+        return discoveryHandlerId;
     }
 
     /**
-     * setDiscoveryId.
+     * setDiscoveryHandlerId.
      *
-     * @param discoveryId discoveryId
+     * @param discoveryHandlerId discoveryHandlerId
      */
-    public void setDiscoveryId(final String discoveryId) {
-        this.discoveryId = discoveryId;
+    public void setDiscoveryHandlerId(final String discoveryHandlerId) {
+        this.discoveryHandlerId = discoveryHandlerId;
     }
 
     /**

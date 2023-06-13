@@ -93,7 +93,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
             }
             // create or update
             createOrUpdate(proxySelectorPath, data);
-            LOG.debug("[DataChangedListener] change proxySelector {}", data);
+            LOG.info("[DataChangedListener] change proxySelector path={}|data={}", proxySelectorPath, data);
         }
     }
 

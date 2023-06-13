@@ -22,6 +22,12 @@ import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -67,7 +73,22 @@ public class DiscoveryConfiguration {
     public DiscoveryProcessorHolder discoveryProcessorHolder(@Qualifier("DefaultDiscoveryProcessor") final DiscoveryProcessor defaultDiscoveryProcessor,
                                                              @Qualifier("LocalDiscoveryProcessor") final DiscoveryProcessor localDiscoveryProcessor
     ) {
-        return new DiscoveryProcessorHolder(defaultDiscoveryProcessor, localDiscoveryProcessor);
+        DiscoveryProcessorHolder discoveryProcessorHolder = new DiscoveryProcessorHolder(defaultDiscoveryProcessor, localDiscoveryProcessor);
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setType("zookeeper");
+        discoveryDO.setServiceList("127.0.0.1:2181");
+        discoveryDO.setProps("{}");
+        discoveryDO.setId("1");
+        defaultDiscoveryProcessor.createDiscovery(discoveryDO);
+        DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
+        discoveryHandlerDTO.setDiscoveryId("1");
+        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        proxySelectorDTO.setId("11");
+        proxySelectorDTO.setName("TcpProxySelector");
+        proxySelectorDTO.setForwardPort(9600);
+        proxySelectorDTO.setPluginName(PluginEnum.TCP.getName());
+        defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);
+        return discoveryProcessorHolder;
     }
 
 }

@@ -35,4 +35,7 @@ public class ShenyuAdminBootstrap {
     public static void main(final String[] args) {
         SpringApplication.run(ShenyuAdminBootstrap.class, args);
     }
+
+
+
 }

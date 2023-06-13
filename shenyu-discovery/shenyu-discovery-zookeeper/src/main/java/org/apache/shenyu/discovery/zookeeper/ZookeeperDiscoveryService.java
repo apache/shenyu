@@ -121,6 +121,9 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                 DataChangedEvent dataChangedEvent;
                 if (Objects.nonNull(data) && Objects.nonNull(data.getData())) {
                     String currentPath = data.getPath();
+                    if (currentPath.split("/").length != 6) {
+                        return;
+                    }
                     switch (event.getType()) {
                         case NODE_ADDED:
                             dataChangedEvent = new DataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.ADDED);
@@ -155,7 +158,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
 
     @Override
     public void register(final String key, final String value) {
-        this.createOrUpdate(key, value, CreateMode.EPHEMERAL);
+        this.createOrUpdate(key, value, CreateMode.PERSISTENT);
     }
 
     @Override
@@ -167,6 +170,9 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     public String getData(final String key) {
         try {
             TreeCache treeCache = cacheMap.get(key);
+            if (Objects.isNull(treeCache)) {
+                return null;
+            }
             ChildData currentData = treeCache.getCurrentData(key);
             byte[] ret = currentData.getData();
             return Objects.isNull(ret) ? null : new String(ret, StandardCharsets.UTF_8);
