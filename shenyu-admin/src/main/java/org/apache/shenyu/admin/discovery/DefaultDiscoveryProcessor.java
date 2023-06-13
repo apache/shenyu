@@ -157,7 +157,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     private DataChangedEventListener getDiscoveryDataChangedEventListener(final String discoveryType, final String customProps) {
         Map<String, String> customMap = GsonUtils.getInstance().toObjectMap(customProps, String.class);
         return new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper,
-                new CustomDiscoveryUpstreamParser(customMap, proxySelectorMapper), DiscoveryMode.LOCAL.name().equalsIgnoreCase(discoveryType));
+                new CustomDiscoveryUpstreamParser(customMap, proxySelectorMapper), !DiscoveryMode.LOCAL.name().equalsIgnoreCase(discoveryType));
     }
 
     @Override

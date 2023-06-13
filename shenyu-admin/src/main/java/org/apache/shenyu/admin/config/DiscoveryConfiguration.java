@@ -82,8 +82,9 @@ public class DiscoveryConfiguration {
         defaultDiscoveryProcessor.createDiscovery(discoveryDO);
         DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
         discoveryHandlerDTO.setDiscoveryId("1");
+        discoveryHandlerDTO.setProps("{}");
         ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
-        proxySelectorDTO.setId("11");
+        proxySelectorDTO.setId("1");
         proxySelectorDTO.setName("TcpProxySelector");
         proxySelectorDTO.setForwardPort(9600);
         proxySelectorDTO.setPluginName(PluginEnum.TCP.getName());

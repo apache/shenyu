@@ -86,13 +86,12 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
 
     @Override
     public List<DiscoveryUpstreamData> parseValue(final String jsonString) {
-        if(StringUtils.isBlank(jsonString)){
+        if (StringUtils.isBlank(jsonString)) {
             return Collections.emptyList();
         }
         GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(DiscoveryUpstreamData.class, this);
         Gson gson = gsonBuilder.create();
-        return gson.fromJson(jsonString, new TypeToken<List<DiscoveryUpstreamData>>() {
-        }.getType());
+        return Collections.singletonList(gson.fromJson(jsonString, DiscoveryUpstreamData.class));
     }
 
     /**
@@ -108,7 +107,7 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
     @Override
     public ProxySelectorData parseKey(final String key) {
         String[] subArray = key.split("/");
-        String proxySelectorId = subArray[3];
+        String proxySelectorId = subArray[4];
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
         BeanUtils.copyProperties(proxySelectorDO, proxySelectorData);

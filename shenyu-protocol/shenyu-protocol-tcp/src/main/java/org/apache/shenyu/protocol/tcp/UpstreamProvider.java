@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -77,7 +78,9 @@ public final class UpstreamProvider {
      */
     public List<DiscoveryUpstreamData> refreshCache(final String pluginSelectorName, final List<DiscoveryUpstreamData> upstreams) {
         List<DiscoveryUpstreamData> remove = cache.remove(pluginSelectorName);
-        cache.put(pluginSelectorName, upstreams);
-        return remove.stream().filter(r -> !upstreams.contains(r)).collect(Collectors.toList());
+        List<DiscoveryUpstreamData> discoveryUpstreamDataList = Optional.ofNullable(upstreams).orElse(new ArrayList<>());
+        cache.put(pluginSelectorName, discoveryUpstreamDataList);
+        Set<String> urlSet = discoveryUpstreamDataList.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
+        return remove.stream().filter(r -> !urlSet.contains(r.getUrl())).collect(Collectors.toList());
     }
 }

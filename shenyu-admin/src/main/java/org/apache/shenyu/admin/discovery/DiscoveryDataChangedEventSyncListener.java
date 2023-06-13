@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.discovery.api.listener.DataChangedEvent;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.slf4j.Logger;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -66,7 +68,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     @Override
     public void onChange(final DataChangedEvent event) {
         DataChangedEvent.Event currentEvent = event.getEvent();
-        if(DataChangedEvent.Event.IGNORED.equals(currentEvent)){
+        if (DataChangedEvent.Event.IGNORED.equals(currentEvent)) {
             //ignore
             return;
         }
@@ -84,6 +86,11 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                     upstreamDataList.forEach(d -> {
                         DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
                         BeanUtils.copyProperties(d, discoveryUpstreamDO);
+                        discoveryUpstreamDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                        //todo 这边 需要 通过 service 实现
+                        discoveryUpstreamDO.setDiscoveryHandlerId("1");
+                        discoveryUpstreamDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
+                        discoveryUpstreamDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
                         discoveryUpstreamMapper.insert(discoveryUpstreamDO);
                     });
                     fillFullyDiscoverySyncData(discoverySyncData);
