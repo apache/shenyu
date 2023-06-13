@@ -58,8 +58,10 @@ public interface ShenyuDiscoveryService {
     void register(String key, String value);
 
     /**
-     * @param key
-     * @param value
+     * update.
+     *
+     * @param key   key
+     * @param value value
      */
     void update(String key, String value);
 

@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.tcp.handler;
 
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
 import org.apache.shenyu.protocol.tcp.BootstrapServer;

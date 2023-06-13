@@ -53,7 +53,7 @@ public class DefaultConnectionConfigProvider implements ClientConnectionConfigPr
         List<Upstream> upstreamList = UpstreamProvider.getSingleton().provide(this.pluginSelectorName).stream().map(dp -> {
             return Upstream.builder().url(dp.getUrl()).status(Objects.equals(dp.getStatus(), 1)).weight(dp.getWeight()).protocol(dp.getProtocol()).build();
         }).collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(upstreamList)){
+        if (CollectionUtils.isEmpty(upstreamList)) {
             throw new ShenyuException("shenyu TcpProxy don't have any upstream");
         }
         Upstream upstream = LoadBalancerFactory.selector(upstreamList, loadBalanceAlgorithm, ip);
