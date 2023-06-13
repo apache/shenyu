@@ -38,10 +38,10 @@ public class DiscoveryUpstreamDTO implements Serializable {
     private String id;
 
     /**
-     * discovery id.
+     * discoveryHandler id.
      */
-    @NotBlank(message = "discoveryId不能为空")
-    private String discoveryId;
+    @NotBlank(message = "discoveryHandlerId不能为空")
+    private String discoveryHandlerId;
 
     /**
      * protocol.
@@ -94,23 +94,23 @@ public class DiscoveryUpstreamDTO implements Serializable {
     }
 
     /**
-     * getDiscoveryId.
+     * getDiscoveryHandlerId.
      *
-     * @return discoveryId
+     * @return discoveryHandlerId
      */
-    public String getDiscoveryId() {
+    public String getDiscoveryHandlerId() {
 
-        return discoveryId;
+        return discoveryHandlerId;
     }
 
     /**
-     * setDiscoveryId.
+     * setDiscoveryHandlerId.
      *
-     * @param discoveryId discoveryId
+     * @param discoveryHandlerId discoveryHandlerId
      */
-    public void setDiscoveryId(final String discoveryId) {
+    public void setDiscoveryHandlerId(final String discoveryHandlerId) {
 
-        this.discoveryId = discoveryId;
+        this.discoveryHandlerId = discoveryHandlerId;
     }
 
     /**

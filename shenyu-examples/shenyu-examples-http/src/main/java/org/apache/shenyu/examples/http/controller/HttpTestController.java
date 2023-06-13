@@ -18,6 +18,7 @@
 package org.apache.shenyu.examples.http.controller;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Objects;
 import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
 import org.apache.shenyu.client.apidocs.annotations.ApiModule;
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
@@ -325,7 +326,7 @@ public class HttpTestController {
         filePart.transferTo(tempFile.toFile());
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(tempFile.toFile()))) {
             String line = bufferedReader.readLine();
-            while (line != null) {
+            while (Objects.nonNull(line)) {
                 LOGGER.info(line);
                 line = bufferedReader.readLine();
             }
