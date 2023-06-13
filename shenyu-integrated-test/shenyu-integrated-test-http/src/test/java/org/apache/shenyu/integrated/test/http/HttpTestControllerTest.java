@@ -24,6 +24,7 @@ import okhttp3.Response;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.dto.BigObject;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
@@ -232,5 +234,11 @@ public final class HttpTestControllerTest extends AbstractTest {
         UserDTO userDTORet = GsonUtils.getInstance().fromJson(String.valueOf(resultBean.getData()), UserDTO.class);
         assertEquals(id, userDTORet.getUserId());
         assertEquals(name, userDTORet.getUserName());
+    }
+
+    @Test
+    public void testBigObject() throws IOException {
+        BigObject response = HttpHelper.INSTANCE.postGateway("/http/test/bigObject", BigObject.class);
+        assertNotNull(response);
     }
 }
