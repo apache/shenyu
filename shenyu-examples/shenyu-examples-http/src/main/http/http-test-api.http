@@ -178,6 +178,13 @@ Accept: application/json
 Content-Type: application/json
 
 
+
+### shengyu getway proxy bigObject
+POST http://localhost:9195/http/test/bigObject
+Accept: application/json
+Content-Type: application/json
+
+
 ### shengyu getway proxy example webFluxSingle
 POST http://localhost:9195/http/upload/webFluxSingle
 Cache-Control: no-cache

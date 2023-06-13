@@ -46,7 +46,7 @@ public class ApolloDataChangedInit extends AbstractDataChangedInit {
      */
     @Override
     protected boolean notExist() {
-        return Stream.of(ApolloPathConstants.PLUGIN_DATA_ID, ApolloPathConstants.AUTH_DATA_ID, ApolloPathConstants.META_DATA_ID).allMatch(
+        return Stream.of(ApolloPathConstants.PLUGIN_DATA_ID, ApolloPathConstants.AUTH_DATA_ID, ApolloPathConstants.META_DATA_ID, ApolloPathConstants.PROXY_SELECTOR_DATA_ID).allMatch(
             this::dataIdNotExist);
     }
 
