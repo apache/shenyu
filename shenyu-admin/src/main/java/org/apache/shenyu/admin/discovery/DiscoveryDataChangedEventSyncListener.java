@@ -111,6 +111,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                     dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
                     break;
                 default:
+                    LOGGER.info("shenyu DataChangedEventListener in IGNORED status = {}", currentEvent);
                     break;
             }
         }
