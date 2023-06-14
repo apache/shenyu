@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.parser;
+package org.apache.shenyu.client.core.register.registrar;
 
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
@@ -28,10 +29,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class HttpApiDocDefinitionParser extends AbstractApiDocDefinitionParser {
+public final class HttpApiDocRegistrar extends AbstractApiDocRegistrar {
 
-    public HttpApiDocDefinitionParser(final ClientRegisterConfig clientRegisterConfig) {
-        super(clientRegisterConfig);
+    public HttpApiDocRegistrar(final ShenyuClientRegisterEventPublisher publisher,
+                               final ClientRegisterConfig clientRegisterConfig) {
+        super(publisher, clientRegisterConfig);
     }
 
     @Override

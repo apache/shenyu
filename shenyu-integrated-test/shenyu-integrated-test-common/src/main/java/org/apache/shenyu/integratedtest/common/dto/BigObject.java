@@ -15,21 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.core.register.matcher;
+package org.apache.shenyu.integratedtest.common.dto;
 
-import org.apache.shenyu.client.apidocs.annotations.ApiDoc;
-import org.apache.shenyu.client.core.register.ApiBean;
+/**
+ * big object.
+ */
+public class BigObject {
 
-public class ApiDocDefinitionMatcher implements Matcher<ApiBean.ApiDefinition> {
+    private String[] obj;
 
-    private final Matcher<ApiBean.ApiDefinition> matcher;
+    private Integer id;
 
-    public ApiDocDefinitionMatcher() {
-        this.matcher = new AnnotatedApiDefinitionMatcher(ApiDoc.class);
+    /**
+     * get id.
+     * @return id
+     */
+    public Integer getId() {
+        return id;
     }
 
-    @Override
-    public boolean match(final ApiBean.ApiDefinition element) {
-        return matcher.match(element);
+    /**
+     * set id.
+     * @param id id
+     */
+    public void setId(final Integer id) {
+        this.id = id;
     }
+
+
+    /**
+     * get obj.
+     *
+     * @return String[]
+     */
+    public String[] getObj() {
+        return obj;
+    }
+
+    /**
+     * set obj.
+     *
+     * @param obj obj
+     */
+    public void setObj(final String[] obj) {
+        this.obj = obj;
+    }
+
 }

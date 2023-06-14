@@ -15,22 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.instance.api.watcher;
-
-import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-
-import java.util.List;
+package org.apache.shenyu.integratedtest.common.dto;
 
 /**
- * WatcherListener InstanceEntity.
+ * ComplexObjects.
  */
-@FunctionalInterface
-public interface WatcherListener {
+public class ComplexObjects {
+
+    private BigObject bigObject;
+
+    private BrpcTest user;
 
     /**
-     * listener InstanceEntity.
+     * getBigObject.
      *
-     * @param instanceRegisterDTOs instanceRegisterDTOs
+     * @return BigObject
      */
-    void listener(List<InstanceEntity> instanceRegisterDTOs);
+    public BigObject getBigObject() {
+        return bigObject;
+    }
+
+    /**
+     * setBigObject.
+     *
+     * @param bigObject big object
+     */
+    public void setBigObject(final BigObject bigObject) {
+        this.bigObject = bigObject;
+    }
+
+    /**
+     * getUser.
+     *
+     * @return User
+     */
+    public BrpcTest getUser() {
+        return user;
+    }
+
+    /**
+     * setUser.
+     *
+     * @param user User
+     */
+    public void setUser(final BrpcTest user) {
+        this.user = user;
+    }
 }

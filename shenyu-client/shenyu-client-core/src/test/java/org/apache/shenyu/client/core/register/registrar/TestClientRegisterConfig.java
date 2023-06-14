@@ -17,22 +17,42 @@
 
 package org.apache.shenyu.client.core.register.registrar;
 
-import org.apache.shenyu.client.core.register.matcher.Matcher;
+import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 
-public abstract class AbstractRegistrar<T> implements Registrar<T> {
-
-    private final Matcher<T> matcher;
-
-    protected AbstractRegistrar(final Matcher<T> matcher) {
-        this.matcher = matcher;
+public class TestClientRegisterConfig implements ClientRegisterConfig {
+    @Override
+    public Integer getPort() {
+        return -1;
     }
 
     @Override
-    public void register(final T element) {
-        if (matcher.match(element)) {
-            doRegister(element);
-        }
+    public String getHost() {
+        return "127.0.0.1";
     }
 
-    protected abstract void doRegister(T element);
+    @Override
+    public String getAppName() {
+        return "test";
+    }
+
+    @Override
+    public String getContextPath() {
+        return "testContext";
+    }
+
+    @Override
+    public String getIpAndPort() {
+        return "127.0.0.1:80";
+    }
+
+    @Override
+    public Boolean getAddPrefixed() {
+        return false;
+    }
+
+    @Override
+    public RpcTypeEnum getRpcTypeEnum() {
+        return RpcTypeEnum.HTTP;
+    }
 }
