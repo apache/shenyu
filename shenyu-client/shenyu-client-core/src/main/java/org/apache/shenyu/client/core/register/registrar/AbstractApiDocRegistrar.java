@@ -171,5 +171,30 @@ public abstract class AbstractApiDocRegistrar extends AbstractApiRegistrar<ApiDo
             this.consume = consume;
             this.apiHttpMethodEnums = apiHttpMethodEnums;
         }
+
+        /**
+         * Gets Produce.
+         * @return Produce
+         */
+        public String getProduce() {
+            return produce;
+        }
+
+        /**
+         * Gets Consume.
+         * @return Consume
+         */
+        public String getConsume() {
+            return consume;
+        }
+
+        /**
+         * Gets ApiHttpMethodEnums.
+         * @return ApiHttpMethodEnums
+         */
+        public List<ApiHttpMethodEnum> getApiHttpMethodEnums() {
+            return apiHttpMethodEnums;
+        }
+
     }
 }
