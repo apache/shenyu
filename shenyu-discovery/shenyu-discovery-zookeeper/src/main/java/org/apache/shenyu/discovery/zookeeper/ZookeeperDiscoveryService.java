@@ -166,11 +166,6 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
     }
 
     @Override
-    public void update(final String key, final String value) {
-        this.createOrUpdate(key, value, CreateMode.EPHEMERAL);
-    }
-
-    @Override
     public String getData(final String key) {
         try {
             TreeCache treeCache = cacheMap.get(key);
