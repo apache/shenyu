@@ -33,6 +33,7 @@ import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.UUIDUtils;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -158,6 +159,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                 .forwardPort(proxySelectorAddDTO.getForwardPort())
                 .type(proxySelectorAddDTO.getType())
                 .props(proxySelectorAddDTO.getProps())
+                .pluginName(PluginEnum.TCP.getName())
                 .dateCreated(currentTime)
                 .dateUpdated(currentTime)
                 .build();

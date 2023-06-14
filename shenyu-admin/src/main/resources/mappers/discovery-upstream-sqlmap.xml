@@ -111,7 +111,7 @@
     <insert id="saveBatch" parameterType="java.util.List">
         INSERT INTO discovery_upstream (
         id,
-        discovery_id,
+        discovery_handler_id,
         protocol,
         url,
         status,
@@ -122,7 +122,7 @@
         VALUES
         <foreach collection="list" separator="," item="item">
             (#{item.id, jdbcType=VARCHAR},
-            #{item.discoveryId,jdbcType=VARCHAR},
+            #{item.discoveryHandlerId,jdbcType=VARCHAR},
             #{item.protocol,jdbcType=VARCHAR},
             #{item.url,jdbcType=VARCHAR},
             #{item.status,jdbcType=INTEGER},
