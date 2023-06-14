@@ -1065,13 +1065,3 @@ CREATE TABLE `discovery_rel`
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
-
-INSERT INTO proxy_selector (id, name, plugin_name, type, forward_port, props, date_created, date_updated)
-VALUES ('1', 'TcpProxySelector', 'tcp', 'tcp', 9600, '{}', '2023-06-13 10:00:00', '2023-06-13 10:00:00');
-
-INSERT INTO discovery_rel (id, level, discovery_handler_id, selector_id, proxy_selector_id, date_created, date_updated)
-VALUES ('1', 'selector', '1', NULL, '1', '2023-06-13 10:00:00', '2023-06-13 10:00:00');
-
-INSERT INTO discovery_handler (id, discovery_id, handler, listener_node, props, date_created, date_updated)
-VALUES ('1', '1', '{}', null, '{}', '2023-06-13 10:00:00', '2023-06-13 10:00:00');
-
