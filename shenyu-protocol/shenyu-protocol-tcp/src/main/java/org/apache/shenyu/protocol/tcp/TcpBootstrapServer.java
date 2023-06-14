@@ -67,7 +67,7 @@ public class TcpBootstrapServer implements BootstrapServer {
         LoopResources loopResources = LoopResources.create("shenyu-tcp-bootstrap-server", tcpServerConfiguration.getBossGroupThreadCount(),
                 tcpServerConfiguration.getWorkerGroupThreadCount(), true);
         TcpServer tcpServer = TcpServer.create()
-                .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.DEBUG)))
+                .doOnChannelInit((connObserver, channel, remoteAddress) -> channel.pipeline().addFirst(new LoggingHandler(LogLevel.INFO)))
                 .wiretap(true)
                 .observe((c, s) -> LOG.info("connection={}|status={}", c, s))
                 //.childObserve(connectionObserver)
