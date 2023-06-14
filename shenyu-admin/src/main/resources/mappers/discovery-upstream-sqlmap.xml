@@ -117,4 +117,9 @@
             #{id, jdbcType=VARCHAR}
         </foreach>
     </delete>
+
+    <delete id="deleteByUrl">
+        DELETE FROM discovery_upstream WHERE url = #{url}
+    </delete>
+
 </mapper>

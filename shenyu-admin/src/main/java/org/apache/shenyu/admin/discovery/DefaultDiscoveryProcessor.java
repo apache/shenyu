@@ -50,7 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultDiscoveryProcessor implements DiscoveryProcessor, ApplicationEventPublisherAware {
 
-    private static final String KEY_TEMPLATE = "%s/%s/%s";
+    private static final String KEY_TEMPLATE = "%s/%s/%s/%s";
 
     private static final String DEFAULT_LISTENER_NODE = "/shenyu/discovery";
 
@@ -94,8 +94,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
             LOG.warn("before start ProxySelector you need init DiscoveryId={}", discoveryHandlerDTO.getDiscoveryId());
             return;
         }
-        String listenerNode = discoveryHandlerDTO.getListenerNode();
-        String key = buildProxySelectorKey(listenerNode, proxySelectorDTO);
+        String key = buildProxySelectorKey(discoveryHandlerDTO, proxySelectorDTO);
         if (StringUtils.isEmpty(shenyuDiscoveryService.getData(key))) {
             LOG.info("shenyu discovery {} is empty need register it ", key);
             shenyuDiscoveryService.register(key, GsonUtils.getInstance().toJson(proxySelectorDTO));
@@ -124,7 +123,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     @Override
     public void removeProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
-        String key = buildProxySelectorKey(discoveryHandlerDTO.getListenerNode(), proxySelectorDTO);
+        String key = buildProxySelectorKey(discoveryHandlerDTO, proxySelectorDTO);
         shenyuDiscoveryService.unWatcher(key);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(covert(proxySelectorDTO, null)));
         eventPublisher.publishEvent(dataChangedEvent);
@@ -138,13 +137,13 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     /**
      * buildProxySelectorKey.
      *
-     * @param listenerNode     listenerNode
-     * @param proxySelectorDTO proxySelectorDTO
+     * @param discoveryHandlerDTO discoveryHandlerDTO
+     * @param proxySelectorDTO    proxySelectorDTO
      * @return key
      */
-    private String buildProxySelectorKey(final String listenerNode, final ProxySelectorDTO proxySelectorDTO) {
-        String key = StringUtils.isBlank(listenerNode) ? DEFAULT_LISTENER_NODE : listenerNode;
-        return String.format(KEY_TEMPLATE, key, proxySelectorDTO.getPluginName(), proxySelectorDTO.getId());
+    private String buildProxySelectorKey(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
+        String key = StringUtils.isBlank(discoveryHandlerDTO.getListenerNode()) ? DEFAULT_LISTENER_NODE : discoveryHandlerDTO.getListenerNode();
+        return String.format(KEY_TEMPLATE, key, proxySelectorDTO.getPluginName(), proxySelectorDTO.getId(), discoveryHandlerDTO.getId());
     }
 
     /**

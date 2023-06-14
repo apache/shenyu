@@ -32,6 +32,7 @@ import org.apache.shenyu.discovery.api.listener.DataChangedEvent;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.apache.shenyu.spi.Join;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,7 +122,10 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                 DataChangedEvent dataChangedEvent;
                 if (Objects.nonNull(data) && Objects.nonNull(data.getData())) {
                     String currentPath = data.getPath();
-                    if (currentPath.split("/").length != 6) {
+                    Stat stat = data.getStat();
+                    boolean isEphemeral = stat != null && stat.getEphemeralOwner() > 0;
+                    if (!isEphemeral) {
+                        LOGGER.info("shenyu Ignore non-ephemeral node changes");
                         return;
                     }
                     switch (event.getType()) {

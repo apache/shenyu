@@ -77,4 +77,13 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(@Param("ids") List<String> ids);
+
+    /**
+     * deleteByUrl.
+     *
+     * @param url url
+     * @return rows int
+     */
+    int deleteByUrl(@Param("url") String url);
+
 }

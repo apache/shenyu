@@ -24,7 +24,6 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
@@ -98,7 +97,7 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
      * parseKey.
      *
      * <p>
-     * /shenyu/discovery/{pluginName}/{selectorId}/{upstream_suq}
+     * /.../{pluginName}/{selectorId}/{discoveryHandlerId}/{upstream_suq}
      * </p>
      *
      * @param key key
@@ -107,7 +106,7 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
     @Override
     public ProxySelectorData parseKey(final String key) {
         String[] subArray = key.split("/");
-        String proxySelectorId = subArray[4];
+        String proxySelectorId = subArray[subArray.length - 2];
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
         BeanUtils.copyProperties(proxySelectorDO, proxySelectorData);

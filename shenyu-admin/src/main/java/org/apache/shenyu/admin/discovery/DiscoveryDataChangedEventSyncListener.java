@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  */
 public class DiscoveryDataChangedEventSyncListener implements DataChangedEventListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DiscoveryDataChangedEventSyncListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DiscoveryDataChangedEventSyncListener.class);
 
     private final KeyValueParser keyValueParser;
 
@@ -53,7 +53,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
-    private Boolean needPersistence;
+    private final Boolean needPersistence;
 
     public DiscoveryDataChangedEventSyncListener(final ApplicationEventPublisher eventPublisher,
                                                  final DiscoveryUpstreamMapper discoveryUpstreamMapper,
@@ -69,16 +69,14 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     public void onChange(final DataChangedEvent event) {
         DataChangedEvent.Event currentEvent = event.getEvent();
         if (DataChangedEvent.Event.IGNORED.equals(currentEvent)) {
-            //ignore
             return;
         }
         DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getKey(), event.getValue());
-        //推送 gateway 数据|并且把数据 持久化到数据库(如果是 local 形式 就 不持久化了 因为本身就是 crud 数据库的)
         org.apache.shenyu.admin.listener.DataChangedEvent dataChangedEvent = null;
         List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
         if (needPersistence) {
             if (CollectionUtils.isEmpty(upstreamDataList)) {
-                LOG.warn("shenyu proxySelectorData#discoveryUpstreamList is empty");
+                LOGGER.warn("shenyu proxySelectorData#discoveryUpstreamList is empty");
                 return;
             }
             switch (currentEvent) {
@@ -87,11 +85,10 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                         DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
                         BeanUtils.copyProperties(d, discoveryUpstreamDO);
                         discoveryUpstreamDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                        //todo 这边 需要 通过 service 实现
-                        discoveryUpstreamDO.setDiscoveryHandlerId("1");
                         discoveryUpstreamDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
                         discoveryUpstreamDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
                         discoveryUpstreamMapper.insert(discoveryUpstreamDO);
+                        LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", discoveryUpstreamDO.getUrl());
                     });
                     fillFullyDiscoverySyncData(discoverySyncData);
                     dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(discoverySyncData));
@@ -101,23 +98,25 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                         DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
                         BeanUtils.copyProperties(d, discoveryUpstreamDO);
                         discoveryUpstreamMapper.update(discoveryUpstreamDO);
+                        LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}", discoveryUpstreamDO.getUrl());
                     });
                     fillFullyDiscoverySyncData(discoverySyncData);
                     dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
                     break;
                 case DELETED:
                     if (CollectionUtils.isNotEmpty(upstreamDataList)) {
-                        List<String> upstreamIds = upstreamDataList.stream().map(DiscoveryUpstreamData::getId).collect(Collectors.toList());
-                        discoveryUpstreamMapper.deleteByIds(upstreamIds);
+                        upstreamDataList.forEach(up -> {
+                            discoveryUpstreamMapper.deleteByUrl(up.getUrl());
+                            LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] DELETE Upstream {}", up.getUrl());
+                        });
                     }
                     fillFullyDiscoverySyncData(discoverySyncData);
-                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(discoverySyncData));
+                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
                     break;
                 default:
                     break;
             }
         }
-        //FIXME: 2023/5/31  同步到 gateway
         if (Objects.nonNull(dataChangedEvent)) {
             eventPublisher.publishEvent(dataChangedEvent);
         }
@@ -137,6 +136,9 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     private DiscoverySyncData buildProxySelectorData(final String key, final String value) {
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
         ProxySelectorData proxySelectorData = keyValueParser.parseKey(key);
+        String[] split = key.split("/");
+        String discoveryHandleId = split[split.length - 2];
+        discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandleId));
         DiscoverySyncData data = new DiscoverySyncData();
         data.setUpstreamDataList(discoveryUpstreamDTOS);
         data.setProxySelectorData(proxySelectorData);

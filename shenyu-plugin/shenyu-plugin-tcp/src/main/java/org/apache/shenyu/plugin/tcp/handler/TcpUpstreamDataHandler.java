@@ -57,7 +57,7 @@ public class TcpUpstreamDataHandler implements ProxySelectorDataHandler {
             List<DiscoveryUpstreamData> removed = UpstreamProvider.getSingleton().refreshCache(name, upstreamsList);
             BootstrapServer bootstrapServer = cache.get(name);
             bootstrapServer.removeCommonUpstream(removed);
-            LOG.info("shenyu update TcpBootstrapServer success remove is {}", removed);
+            LOG.info("shenyu update TcpBootstrapServer success upstream is {}", upstreamsList);
         }
     }
 
