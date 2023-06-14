@@ -123,7 +123,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                 if (Objects.nonNull(data) && Objects.nonNull(data.getData())) {
                     String currentPath = data.getPath();
                     Stat stat = data.getStat();
-                    boolean isEphemeral = stat != null && stat.getEphemeralOwner() > 0;
+                    boolean isEphemeral = Objects.nonNull(stat) && stat.getEphemeralOwner() > 0;
                     if (!isEphemeral) {
                         LOGGER.info("shenyu Ignore non-ephemeral node changes");
                         return;

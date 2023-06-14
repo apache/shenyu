@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
@@ -31,7 +32,6 @@ import org.apache.shenyu.discovery.api.listener.DataChangedEvent;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.sql.Timestamp;
@@ -82,21 +82,18 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             switch (currentEvent) {
                 case ADDED:
                     upstreamDataList.forEach(d -> {
-                        DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
-                        BeanUtils.copyProperties(d, discoveryUpstreamDO);
-                        discoveryUpstreamDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                        discoveryUpstreamDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
-                        discoveryUpstreamDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
-                        discoveryUpstreamMapper.insert(discoveryUpstreamDO);
-                        LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", discoveryUpstreamDO.getUrl());
+                        d.setId(UUIDUtils.getInstance().generateShortUuid());
+                        d.setDateCreated(new Timestamp(System.currentTimeMillis()));
+                        d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+                        discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
+                        LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
                     });
                     fillFullyDiscoverySyncData(discoverySyncData);
                     dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(discoverySyncData));
                     break;
                 case UPDATED:
                     upstreamDataList.forEach(d -> {
-                        DiscoveryUpstreamDO discoveryUpstreamDO = new DiscoveryUpstreamDO();
-                        BeanUtils.copyProperties(d, discoveryUpstreamDO);
+                        DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryTransfer.INSTANCE.mapToDo(d);
                         discoveryUpstreamMapper.update(discoveryUpstreamDO);
                         LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}", discoveryUpstreamDO.getUrl());
                     });
@@ -125,11 +122,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     private void fillFullyDiscoverySyncData(final DiscoverySyncData discoverySyncData) {
         ProxySelectorData proxySelectorData = discoverySyncData.getProxySelectorData();
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByProxySelectorId(proxySelectorData.getId());
-        List<DiscoveryUpstreamData> collect = discoveryUpstreamDOS.stream().map(discoveryUpstreamDO -> {
-            DiscoveryUpstreamData discoveryUpstreamDTO = new DiscoveryUpstreamData();
-            BeanUtils.copyProperties(discoveryUpstreamDO, discoveryUpstreamDTO);
-            return discoveryUpstreamDTO;
-        }).collect(Collectors.toList());
+        List<DiscoveryUpstreamData> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
         discoverySyncData.setUpstreamDataList(collect);
     }
 

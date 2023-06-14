@@ -221,4 +221,12 @@ public class DiscoveryUpstreamData {
         return dateUpdated;
     }
 
+    /**
+     * setDateUpdated.
+     *
+     * @param dateUpdated dateUpdated
+     */
+    public void setDateUpdated(Timestamp dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
 }

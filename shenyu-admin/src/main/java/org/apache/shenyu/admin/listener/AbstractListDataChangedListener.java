@@ -249,7 +249,6 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
         LOG.debug("[DataChangedListener] RuleChanged {}", changeData.getRuleDataId());
     }
 
-    // fixme: 12/6/2023 需要 验证 暂时只是 编译不报错了
     @Override
     public void onProxySelectorChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
         updateProxySelectorMap(getConfig(changeData.getProxySelectorDataId()));
