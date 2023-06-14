@@ -186,7 +186,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
         List<ConditionData> conditionList = selectorData.getConditionList();
         if (CollectionUtils.isNotEmpty(conditionList)) {
-            boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
+            boolean isUriCondition = conditionList.stream().anyMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
             if (isUriCondition) {
                 MatchDataCache.getInstance().cacheSelectorData(path, selectorData, initialCapacity, maximumSize);
             }
@@ -207,7 +207,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
         List<ConditionData> conditionList = ruleData.getConditionDataList();
         if (CollectionUtils.isNotEmpty(conditionList)) {
-            boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
+            boolean isUriCondition = conditionList.stream().anyMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
             if (isUriCondition) {
                 MatchDataCache.getInstance().cacheRuleData(path, ruleData, initialCapacity, maximumSize);
             }
@@ -332,7 +332,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 } else {
                     Object selectorObj = collection.stream().findFirst().orElse(null);
                     SelectorData selector = Objects.nonNull(selectorObj) ? (SelectorData) selectorObj : null;
-                    boolean cached = Objects.nonNull(selector) && selector.getConditionList().stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
+                    boolean cached = Objects.nonNull(selector) && selector.getConditionList().stream().anyMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
                     selectorDataPair = Pair.of(cached, selector);
                 }
                 selectorData = selectorDataPair.getRight();
@@ -360,7 +360,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 } else {
                     Object ruleObj = collection.stream().findFirst().orElse(null);
                     RuleData rule = Objects.nonNull(ruleObj) ? (RuleData) ruleObj : null;
-                    boolean cached = Objects.nonNull(rule) && rule.getConditionDataList().stream().allMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
+                    boolean cached = Objects.nonNull(rule) && rule.getConditionDataList().stream().anyMatch(condition -> URI_CONDITION_TYPE.equals(condition.getParamType()));
                     ruleDataPair = Pair.of(cached, rule);
                 }
                 ruleData = ruleDataPair.getRight();
