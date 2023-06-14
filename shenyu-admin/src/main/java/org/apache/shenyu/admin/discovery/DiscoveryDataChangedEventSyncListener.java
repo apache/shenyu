@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.discovery;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
@@ -28,7 +29,7 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
-import org.apache.shenyu.discovery.api.listener.DataChangedEvent;
+import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,9 +67,9 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     }
 
     @Override
-    public void onChange(final DataChangedEvent event) {
-        DataChangedEvent.Event currentEvent = event.getEvent();
-        if (DataChangedEvent.Event.IGNORED.equals(currentEvent)) {
+    public void onChange(final DiscoveryDataChangedEvent event) {
+        DiscoveryDataChangedEvent.Event currentEvent = event.getEvent();
+        if (DiscoveryDataChangedEvent.Event.IGNORED.equals(currentEvent)) {
             return;
         }
         DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getKey(), event.getValue());
@@ -89,7 +90,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                         LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
                     });
                     fillFullyDiscoverySyncData(discoverySyncData);
-                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(discoverySyncData));
+                    dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(discoverySyncData));
                     break;
                 case UPDATED:
                     upstreamDataList.forEach(d -> {
@@ -98,7 +99,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                         LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}", discoveryUpstreamDO.getUrl());
                     });
                     fillFullyDiscoverySyncData(discoverySyncData);
-                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
+                    dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
                     break;
                 case DELETED:
                     if (CollectionUtils.isNotEmpty(upstreamDataList)) {
@@ -108,11 +109,10 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                         });
                     }
                     fillFullyDiscoverySyncData(discoverySyncData);
-                    dataChangedEvent = new org.apache.shenyu.admin.listener.DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
+                    dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
                     break;
                 default:
-                    LOGGER.info("shenyu DataChangedEventListener in IGNORED status = {}", currentEvent);
-                    break;
+                    throw new IllegalStateException("shenyu DiscoveryDataChangedEventSyncListener find IllegalState");
             }
         }
         if (Objects.nonNull(dataChangedEvent)) {

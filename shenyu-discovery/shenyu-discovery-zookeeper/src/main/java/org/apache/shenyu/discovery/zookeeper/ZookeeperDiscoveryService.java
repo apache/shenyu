@@ -28,7 +28,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
-import org.apache.shenyu.discovery.api.listener.DataChangedEvent;
+import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
 import org.apache.shenyu.spi.Join;
 import org.apache.zookeeper.CreateMode;
@@ -119,7 +119,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
             TreeCache treeCache = new TreeCache(client, key);
             TreeCacheListener treeCacheListener = (curatorFramework, event) -> {
                 ChildData data = event.getData();
-                DataChangedEvent dataChangedEvent;
+                DiscoveryDataChangedEvent dataChangedEvent;
                 if (Objects.nonNull(data) && Objects.nonNull(data.getData())) {
                     String currentPath = data.getPath();
                     Stat stat = data.getStat();
@@ -130,16 +130,16 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                     }
                     switch (event.getType()) {
                         case NODE_ADDED:
-                            dataChangedEvent = new DataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.ADDED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.ADDED);
                             break;
                         case NODE_UPDATED:
-                            dataChangedEvent = new DataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.UPDATED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.UPDATED);
                             break;
                         case NODE_REMOVED:
-                            dataChangedEvent = new DataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.DELETED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.DELETED);
                             break;
                         default:
-                            dataChangedEvent = new DataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DataChangedEvent.Event.IGNORED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.IGNORED);
                             break;
                     }
                     listener.onChange(dataChangedEvent);
