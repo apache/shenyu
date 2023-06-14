@@ -22,7 +22,6 @@ import com.ecwid.consul.v1.agent.model.NewService;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
@@ -114,7 +113,7 @@ class ConsulInstanceRegisterRepositoryTest {
             properties.setProperty("enabledServerRebalance", "true");
             instanceConfig.setProps(properties);
             repository.init(instanceConfig);
-            repository.selectInstancesAndWatcher(InstancePathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+            repository.selectInstances(InstancePathConstants.buildInstanceParentPath());
             repository.close();
         }
     }

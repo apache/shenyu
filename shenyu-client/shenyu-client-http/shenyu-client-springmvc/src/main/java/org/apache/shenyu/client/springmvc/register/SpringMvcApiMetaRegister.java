@@ -115,10 +115,13 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
             methodPath = apiDefinition.getMethodPath();
         }
 
-        String apiPath = PathUtils.pathJoin(apiDefinition.getContextPath(), apiDefinition.getBeanPath(), methodPath);
-
         ShenyuSpringMvcClient classAnnotation = apiDefinition.getApiBean()
                 .getAnnotation(ShenyuSpringMvcClient.class);
+
+        String beanPath = Objects.isNull(classAnnotation) || StringUtils.isBlank(classAnnotation.path())
+                ? apiDefinition.getBeanPath() : classAnnotation.path();
+
+        String apiPath = PathUtils.pathJoin(apiDefinition.getContextPath(), beanPath, methodPath);
 
         String pathDesc = Objects.isNull(methodAnnotation) ? classAnnotation.desc() : methodAnnotation.desc();
 

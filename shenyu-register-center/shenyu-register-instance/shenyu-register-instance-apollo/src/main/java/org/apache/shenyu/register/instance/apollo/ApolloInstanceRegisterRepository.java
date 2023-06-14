@@ -28,17 +28,16 @@ import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Optional;
-import java.util.HashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -61,6 +60,8 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
     private ApolloClient apolloClient;
 
     private final Map<String, ConfigChangeListener> configChangeListenerMap = Maps.newConcurrentMap();
+
+    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
 
     private String namespace;
 
@@ -114,12 +115,17 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     @Override
-    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+    public List<InstanceEntity> selectInstances(final String selectKey) {
         final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
 
         final Function<Map<String, String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList ->
                 childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceEntity.class)).collect(Collectors.toList());
         Map<String, String> childrenList = new HashMap<>();
+
+        if (watcherInstanceRegisterMap.containsKey(selectKey)) {
+            return watcherInstanceRegisterMap.get(selectKey);
+        }
+
         configService.getPropertyNames().forEach(key -> {
             if (key.startsWith(watchKey)) {
                 String itemValue = apolloClient.getItemValue(key);
@@ -142,13 +148,15 @@ public class ApolloInstanceRegisterRepository implements ShenyuInstanceRegisterR
                         default:
                             break;
                     }
-                    watcherListener.listener(getInstanceRegisterFun.apply(childrenList));
+                    watcherInstanceRegisterMap.put(selectKey, getInstanceRegisterFun.apply(childrenList));
                 }
             });
         };
         configService.addChangeListener(configChangeListener);
         configChangeListenerMap.put(watchKey, configChangeListener);
-        return getInstanceRegisterFun.apply(childrenList);
+        final List<InstanceEntity> instanceEntities = getInstanceRegisterFun.apply(childrenList);
+        watcherInstanceRegisterMap.put(selectKey, instanceEntities);
+        return instanceEntities;
     }
 
     private String buildInstanceNodeName(final InstanceEntity instance) {

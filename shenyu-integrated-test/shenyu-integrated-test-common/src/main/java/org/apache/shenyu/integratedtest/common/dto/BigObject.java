@@ -15,49 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.instance.api;
-
-import org.apache.shenyu.register.instance.api.config.RegisterConfig;
-import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.spi.SPI;
-
-import java.util.Collections;
-import java.util.List;
+package org.apache.shenyu.integratedtest.common.dto;
 
 /**
- * Shenyu instance register repository.
+ * big object.
  */
-@SPI
-public interface ShenyuInstanceRegisterRepository {
+public class BigObject {
+
+    private String[] obj;
+
+    private Integer id;
 
     /**
-     * Init.
-     *
-     * @param config the config
+     * get id.
+     * @return id
      */
-    default void init(RegisterConfig config) {
-    }
-    
-    /**
-     * Persist instance.
-     *
-     * @param instance instance
-     */
-    void persistInstance(InstanceEntity instance);
-
-    /**
-     * selectInstances.
-     *
-     * @param selectKey selectKey
-     * @return {@link List}
-     */
-    default List<InstanceEntity> selectInstances(final String selectKey) {
-        return Collections.emptyList();
+    public Integer getId() {
+        return id;
     }
 
     /**
-     * Close.
+     * set id.
+     * @param id id
      */
-    default void close() {
+    public void setId(final Integer id) {
+        this.id = id;
     }
+
+
+    /**
+     * get obj.
+     *
+     * @return String[]
+     */
+    public String[] getObj() {
+        return obj;
+    }
+
+    /**
+     * set obj.
+     *
+     * @param obj obj
+     */
+    public void setObj(final String[] obj) {
+        this.obj = obj;
+    }
+
 }

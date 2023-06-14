@@ -15,49 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.instance.api;
-
-import org.apache.shenyu.register.instance.api.config.RegisterConfig;
-import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.spi.SPI;
-
-import java.util.Collections;
-import java.util.List;
+package org.apache.shenyu.integratedtest.common.dto;
 
 /**
- * Shenyu instance register repository.
+ * ComplexObjects.
  */
-@SPI
-public interface ShenyuInstanceRegisterRepository {
+public class ComplexObjects {
+
+    private BigObject bigObject;
+
+    private BrpcTest user;
 
     /**
-     * Init.
+     * getBigObject.
      *
-     * @param config the config
+     * @return BigObject
      */
-    default void init(RegisterConfig config) {
-    }
-    
-    /**
-     * Persist instance.
-     *
-     * @param instance instance
-     */
-    void persistInstance(InstanceEntity instance);
-
-    /**
-     * selectInstances.
-     *
-     * @param selectKey selectKey
-     * @return {@link List}
-     */
-    default List<InstanceEntity> selectInstances(final String selectKey) {
-        return Collections.emptyList();
+    public BigObject getBigObject() {
+        return bigObject;
     }
 
     /**
-     * Close.
+     * setBigObject.
+     *
+     * @param bigObject big object
      */
-    default void close() {
+    public void setBigObject(final BigObject bigObject) {
+        this.bigObject = bigObject;
+    }
+
+    /**
+     * getUser.
+     *
+     * @return User
+     */
+    public BrpcTest getUser() {
+        return user;
+    }
+
+    /**
+     * setUser.
+     *
+     * @param user User
+     */
+    public void setUser(final BrpcTest user) {
+        this.user = user;
     }
 }
