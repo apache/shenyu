@@ -29,11 +29,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +46,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -72,10 +69,6 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
 
     private final List<ScheduledFuture<?>> watchFutures = new ArrayList<>();
 
-    private final Map<String, Set<WatcherListener>> listenerMap = new ConcurrentHashMap<>();
-
-    private final Object lock = new Object();
-
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     private final Map<String, Long> consulIndexes = new HashMap<>();
@@ -91,6 +84,10 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
     private String checkTtl;
 
     private TtlScheduler ttlScheduler;
+
+    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
+
+    private final Set<String> watchSelectKeySet = new HashSet<>();
 
     @Override
     public void init(final RegisterConfig config) {
@@ -149,29 +146,26 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     @Override
-    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
-        this.watcherStart(selectKey, watcherListener);
-        return this.getHealthServices(selectKey, "-1");
+    public List<InstanceEntity> selectInstances(final String selectKey) {
+        if (watcherInstanceRegisterMap.containsKey(selectKey)) {
+            return watcherInstanceRegisterMap.get(selectKey);
+        }
+        this.watcherStart(selectKey);
+        final List<InstanceEntity> healthServices = this.getHealthServices(selectKey, "-1");
+        watcherInstanceRegisterMap.put(selectKey, healthServices);
+        return healthServices;
     }
 
     /**
      * async to watch data change.
      *
      * @param selectKey selectKey
-     * @param watcherListener watcherListener
      */
-    public void watcherStart(final String selectKey, final WatcherListener watcherListener) {
+    public void watcherStart(final String selectKey) {
         this.running.compareAndSet(false, true);
-        // avoid duplicate watchers
-        Set<WatcherListener> eventListeners = listenerMap.get(selectKey);
-        if (!ObjectUtils.isEmpty(eventListeners)) {
-            eventListeners.add(watcherListener);
+        if (!watchSelectKeySet.add(selectKey)) {
             return;
         }
-        synchronized (lock) {
-            eventListeners = MapUtils.computeIfAbsent(listenerMap, selectKey, s -> new HashSet<>());
-        }
-        eventListeners.add(watcherListener);
         watchFutures.add(this.executor.scheduleWithFixedDelay(() -> this.watchConfigKeyValues(selectKey),
                 5, Integer.parseInt(watchDelay), TimeUnit.SECONDS));
     }
@@ -186,9 +180,11 @@ public class ConsulInstanceRegisterRepository implements ShenyuInstanceRegisterR
             return;
         }
         final List<InstanceEntity> healthServices = this.getHealthServices(selectKey, waitTime);
-        Set<WatcherListener> eventListeners = Optional.ofNullable(listenerMap.get(selectKey)).orElse(Collections.emptySet());
-        // Long polling getHealthServices
-        eventListeners.forEach(eventListener -> eventListener.listener(healthServices));
+        if (!ObjectUtils.isEmpty(healthServices)) {
+            watcherInstanceRegisterMap.put(selectKey, healthServices);
+        } else {
+            watcherInstanceRegisterMap.remove(selectKey);
+        }
     }
 
     /**
