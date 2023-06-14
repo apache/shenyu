@@ -38,9 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
@@ -62,8 +60,6 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
     private ShenyuInstanceRegisterRepository registerRepository;
 
     private List<ShenyuSdkRequestInterceptor> requestInterceptors;
-
-    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
 
     private RegisterConfig registerConfig;
 
@@ -152,6 +148,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
      * @return {@linkplain String}
      */
     private String loadBalancerInstances(final ShenyuRequest request) {
+        // all addresses of registry
         final List<Upstream> upstreams;
         if (Objects.isNull(registerRepository)) {
             List<String> serverList = Arrays.asList(registerConfig.getServerLists().split(","));
@@ -162,12 +159,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
                     .map(serverAddress -> Upstream.builder().url(UriUtils.appendScheme(serverAddress, scheme)).build())
                     .collect(Collectors.toList());
         } else {
-            List<InstanceEntity> instanceRegisters = watcherInstanceRegisterMap.get(request.getName());
-            if (instanceRegisters == null) {
-                instanceRegisters = registerRepository.selectInstancesAndWatcher(request.getName(),
-                    instanceRegisterDTOs -> watcherInstanceRegisterMap.put(request.getName(), instanceRegisterDTOs));
-                watcherInstanceRegisterMap.put(request.getName(), instanceRegisters);
-            }
+            List<InstanceEntity> instanceRegisters = registerRepository.selectInstances(request.getName());
             if (ObjectUtils.isEmpty(instanceRegisters)) {
                 throw new ShenyuException("Gateway address not found from registry.");
             }
@@ -178,7 +170,7 @@ public abstract class AbstractShenyuSdkClient implements ShenyuSdkClient {
                     })
                     .collect(Collectors.toList());
         }
-        // loadBalancer
+        // loadBalancer upstreams
         final Upstream upstream = LoadBalancerFactory.selector(upstreams, algorithm, "");
         return replaceUrl(upstream.getUrl(), request.getUrl());
     }
