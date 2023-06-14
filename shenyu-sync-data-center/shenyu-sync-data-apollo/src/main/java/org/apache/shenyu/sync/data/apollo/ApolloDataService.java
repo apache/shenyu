@@ -25,10 +25,12 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.apache.shenyu.sync.data.api.SyncDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +58,8 @@ public class ApolloDataService implements SyncDataService {
 
     private final List<AuthDataSubscriber> authDataSubscribers;
 
+    private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
+
     private final Map<String, ConfigChangeListener> cache = new ConcurrentHashMap<>();
 
     /**
@@ -68,11 +72,13 @@ public class ApolloDataService implements SyncDataService {
      */
     public ApolloDataService(final Config configService, final PluginDataSubscriber pluginDataSubscriber,
                              final List<MetaDataSubscriber> metaDataSubscribers,
-                             final List<AuthDataSubscriber> authDataSubscribers) {
+                             final List<AuthDataSubscriber> authDataSubscribers,
+                             final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
         this.configService = configService;
         this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
+        this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
         subAllData();
         watchData();
 
@@ -87,6 +93,7 @@ public class ApolloDataService implements SyncDataService {
         subscriberPluginData();
         subscriberRuleData();
         subscriberSelectorData();
+        subscriberProxySelectorData();
     }
 
     /**
@@ -159,6 +166,20 @@ public class ApolloDataService implements SyncDataService {
     }
 
     /**
+     * subscriber proxy selector data.
+     * @return proxy selector data list
+     */
+    public List<ProxySelectorData> subscriberProxySelectorData() {
+        List<ProxySelectorData> proxySelectorDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.PROXY_SELECTOR_DATA_ID, "{}"),
+                ProxySelectorData.class).values());
+        proxySelectorDataList.forEach(proxySelectorData -> proxySelectorDataSubscribers.forEach(subscriber -> {
+            subscriber.unSubscribe(proxySelectorData);
+            subscriber.onSubscribe(proxySelectorData, proxySelectorData.getDiscoveryUpstreamList());
+        }));
+        return proxySelectorDataList;
+    }
+
+    /**
      * watch plugin data.
      */
     private void watchData() {
@@ -183,6 +204,10 @@ public class ApolloDataService implements SyncDataService {
                 case ApolloPathConstants.AUTH_DATA_ID:
                     List<AppAuthData> appAuthDataList = subscriberAuthData();
                     LOG.info("apollo listener authData: {}", appAuthDataList);
+                    break;
+                case ApolloPathConstants.PROXY_SELECTOR_DATA_ID:
+                    List<ProxySelectorData> proxySelectorDataList = subscriberProxySelectorData();
+                    LOG.info("apollo listener ProxySelectorData: {}", proxySelectorDataList);
                     break;
                 default:
                     break;

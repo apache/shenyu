@@ -26,7 +26,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.zookeeper.WatchedEvent;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
@@ -99,7 +98,7 @@ public final class ZookeeperInstanceRegisterRepositoryTest {
             final Properties configProps = config.getProps();
             configProps.setProperty("digest", "digest");
             repository.init(config);
-            repository.selectInstancesAndWatcher(InstancePathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+            repository.selectInstances(InstancePathConstants.buildInstanceParentPath());
             WatchedEvent mockEvent = mock(WatchedEvent.class);
             when(mockEvent.getPath()).thenReturn(InstancePathConstants.buildInstanceParentPath());
             watcherArr[0].process(mockEvent);

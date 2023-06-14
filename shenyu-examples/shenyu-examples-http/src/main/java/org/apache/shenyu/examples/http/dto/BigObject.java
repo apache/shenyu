@@ -15,22 +15,50 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.instance.api.watcher;
-
-import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-
-import java.util.List;
+package org.apache.shenyu.examples.http.dto;
 
 /**
- * WatcherListener InstanceEntity.
+ * big object.
  */
-@FunctionalInterface
-public interface WatcherListener {
+public class BigObject {
+
+    private String[] obj;
+
+    private Integer id;
 
     /**
-     * listener InstanceEntity.
-     *
-     * @param instanceRegisterDTOs instanceRegisterDTOs
+     * get id.
+     * @return id
      */
-    void listener(List<InstanceEntity> instanceRegisterDTOs);
+    public Integer getId() {
+        return id;
+    }
+
+    /**
+     * set id.
+     * @param id id
+     */
+    public void setId(final Integer id) {
+        this.id = id;
+    }
+
+
+    /**
+     * get obj.
+     *
+     * @return String[]
+     */
+    public String[] getObj() {
+        return obj;
+    }
+
+    /**
+     * set obj.
+     *
+     * @param obj obj
+     */
+    public void setObj(final String[] obj) {
+        this.obj = obj;
+    }
+
 }
