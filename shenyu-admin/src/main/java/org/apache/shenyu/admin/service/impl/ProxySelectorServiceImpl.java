@@ -82,6 +82,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         List<ProxySelectorDO> proxySelectorDOList = proxySelectorMapper.selectByQuery(query);
         proxySelectorDOList.forEach(proxySelectorDO -> {
             ProxySelectorVO vo = new ProxySelectorVO();
+            vo.setId(proxySelectorDO.getId());
             vo.setName(proxySelectorDO.getName());
             vo.setType(proxySelectorDO.getType());
             vo.setForwardPort(proxySelectorDO.getForwardPort());

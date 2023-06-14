@@ -31,6 +31,11 @@ public class ProxySelectorVO implements Serializable {
     private static final long serialVersionUID = -1329374830009912963L;
 
     /**
+     * proxy selector id.
+     */
+    private String id;
+
+    /**
      * proxy selector name.
      */
     private String name;
@@ -82,8 +87,9 @@ public class ProxySelectorVO implements Serializable {
      * @param discovery discovery
      * @param discoveryUpstreams discoveryUpstreams
      */
-    public ProxySelectorVO(final String name, final Integer forwardPort, final String type, final String listenerNode,
+    public ProxySelectorVO(final String id, final String name, final Integer forwardPort, final String type, final String listenerNode,
                            final String handler, final DiscoveryDTO discovery, final List<DiscoveryUpstreamDTO> discoveryUpstreams) {
+        this.id = id;
         this.name = name;
         this.forwardPort = forwardPort;
         this.type = type;
@@ -91,6 +97,24 @@ public class ProxySelectorVO implements Serializable {
         this.handler = handler;
         this.discovery = discovery;
         this.discoveryUpstreams = discoveryUpstreams;
+    }
+
+    /**
+     * getId.
+     *
+     * @return name
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * setId.
+     *
+     * @param id id
+     */
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**
