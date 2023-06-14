@@ -131,7 +131,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
 
     @Override
     public void changeUpstream(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO, final List<DiscoveryUpstreamDTO> upstreamDTOS) {
-        throw new NotImplementedException("shenyu discovery local mode do nothing in createDiscovery");
+        throw new NotImplementedException("shenyu discovery local mode do nothing in changeUpstream");
     }
 
     /**
