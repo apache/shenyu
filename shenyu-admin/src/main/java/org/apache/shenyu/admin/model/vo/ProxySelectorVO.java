@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -61,6 +62,18 @@ public class ProxySelectorVO implements Serializable {
     private String handler;
 
     /**
+     * createTime
+     */
+
+    private Timestamp createTime;
+
+    /**
+     * updateTime
+     */
+
+    private Timestamp updateTime;
+
+    /**
      * discovery.
      */
     private DiscoveryDTO discovery;
@@ -88,7 +101,7 @@ public class ProxySelectorVO implements Serializable {
      * @param discoveryUpstreams discoveryUpstreams
      */
     public ProxySelectorVO(final String id, final String name, final Integer forwardPort, final String type, final String listenerNode,
-                           final String handler, final DiscoveryDTO discovery, final List<DiscoveryUpstreamDTO> discoveryUpstreams) {
+                           final String handler, final Timestamp createTime, final Timestamp updateTime, final DiscoveryDTO discovery, final List<DiscoveryUpstreamDTO> discoveryUpstreams) {
         this.id = id;
         this.name = name;
         this.forwardPort = forwardPort;
@@ -97,6 +110,8 @@ public class ProxySelectorVO implements Serializable {
         this.handler = handler;
         this.discovery = discovery;
         this.discoveryUpstreams = discoveryUpstreams;
+        this.createTime = createTime;
+        this.updateTime = updateTime;
     }
 
     /**
@@ -205,6 +220,40 @@ public class ProxySelectorVO implements Serializable {
      */
     public void setHandler(String handler) {
         this.handler = handler;
+    }
+
+    /**
+     * set createTime.
+     * @param createTime createTime
+     */
+    public void setCreateTime(Timestamp createTime) {
+        this.createTime = createTime;
+    }
+
+    /**
+     * get createTime.
+     * @return createTime
+     */
+    public Timestamp getCreateTime() {
+        return createTime;
+    }
+
+    /**
+     * set updateTime.
+     * @param updateTime updateTime
+     */
+
+
+    public void setUpdateTime(Timestamp updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    /**
+     * get updateTime.
+     * @return updateTime
+     */
+    public Timestamp getUpdateTime() {
+        return updateTime;
     }
 
     /**

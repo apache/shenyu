@@ -80,12 +80,17 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public CommonPager<ProxySelectorVO> listByPage(final ProxySelectorQuery query) {
         List<ProxySelectorVO> result = Lists.newArrayList();
         List<ProxySelectorDO> proxySelectorDOList = proxySelectorMapper.selectByQuery(query);
+        // Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         proxySelectorDOList.forEach(proxySelectorDO -> {
             ProxySelectorVO vo = new ProxySelectorVO();
             vo.setId(proxySelectorDO.getId());
             vo.setName(proxySelectorDO.getName());
             vo.setType(proxySelectorDO.getType());
             vo.setForwardPort(proxySelectorDO.getForwardPort());
+            vo.setCreateTime(proxySelectorDO.getDateCreated());
+            vo.setUpdateTime(proxySelectorDO.getDateUpdated());
+
+
             DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
             if (!Objects.isNull(discoveryRelDO)) {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
