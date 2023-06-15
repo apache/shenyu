@@ -316,6 +316,12 @@ public class ProxySelectorAddDTO implements Serializable {
     public static class DiscoveryUpstream {
 
         /**
+         * id.
+         */
+        @NotBlank(message = "discovery upstream id不能为空")
+        private String id;
+
+        /**
          * protocol.
          */
         @NotBlank(message = "protocol不能为空")
@@ -332,6 +338,26 @@ public class ProxySelectorAddDTO implements Serializable {
          */
         @NotNull(message = "status不能为空")
         private Integer status;
+
+        private String props;
+
+        /**
+         * get id.
+         *
+         * @return id
+         */
+        public String getId() {
+            return id;
+        }
+
+        /**
+         * set id.
+         *
+         * @param id id
+         */
+        public void setId(final String id) {
+            this.id = id;
+        }
 
         /**
          * getProtocol.
@@ -378,7 +404,7 @@ public class ProxySelectorAddDTO implements Serializable {
          *
          * @return status
          */
-        public int getStatus() {
+        public Integer getStatus() {
             return status;
         }
 
@@ -387,9 +413,27 @@ public class ProxySelectorAddDTO implements Serializable {
          *
          * @param status status
          */
-        public void setStatus(final int status) {
+        public void setStatus(final Integer status) {
 
             this.status = status;
+        }
+
+        /**
+         * get props.
+         *
+         * @return props
+         */
+        public String getProps() {
+            return props;
+        }
+
+        /**
+         * set props.
+         *
+         * @param props props
+         */
+        public void setProps(final String props) {
+            this.props = props;
         }
     }
 }

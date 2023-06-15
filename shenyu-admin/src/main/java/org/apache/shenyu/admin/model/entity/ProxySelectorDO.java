@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.model.entity;
 
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.util.StringUtils;
 
@@ -79,6 +80,7 @@ public class ProxySelectorDO extends BaseDO {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             ProxySelectorDO proxySelectorDO = ProxySelectorDO.builder()
                     .name(item.getName())
+                    .pluginName(PluginEnum.TCP.getName())
                     .forwardPort(item.getForwardPort())
                     .type(item.getType())
                     .props(item.getProps())

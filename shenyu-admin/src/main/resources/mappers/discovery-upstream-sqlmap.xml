@@ -71,7 +71,7 @@
         #{dateUpdated, jdbcType=TIMESTAMP})
     </insert>
 
-    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
         UPDATE discovery_upstream
         SET
         discovery_handler_id=#{discoveryHandlerId, jdbcType=VARCHAR},
@@ -81,6 +81,33 @@
         weight=#{weight,jdbcType=INTEGER},
         props=#{props,jdbcType=VARCHAR},
         date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
+        WHERE id=#{id, jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO">
+        UPDATE discovery_upstream
+        SET
+        <if test="discoveryHandlerId != null">
+            discovery_handler_id=#{discoveryHandlerId, jdbcType=VARCHAR},
+        </if>
+        <if test="protocol != null">
+            protocol=#{protocol,jdbcType=VARCHAR},
+        </if>
+        <if test="url != null">
+            url=#{url,jdbcType=VARCHAR},
+        </if>
+        <if test="status != null">
+            status=#{status,jdbcType=INTEGER},
+        </if>
+        <if test="weight != null">
+            weight=#{weight,jdbcType=INTEGER},
+        </if>
+        <if test="props != null">
+            props=#{props,jdbcType=VARCHAR},
+        </if>
+        <if test="dateUpdated != null">
+            date_updated=#{dateUpdated, jdbcType=TIMESTAMP}
+        </if>
         WHERE id=#{id, jdbcType=VARCHAR}
     </update>
 
