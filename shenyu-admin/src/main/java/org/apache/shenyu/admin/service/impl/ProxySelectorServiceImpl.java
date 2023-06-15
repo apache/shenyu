@@ -80,7 +80,6 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     public CommonPager<ProxySelectorVO> listByPage(final ProxySelectorQuery query) {
         List<ProxySelectorVO> result = Lists.newArrayList();
         List<ProxySelectorDO> proxySelectorDOList = proxySelectorMapper.selectByQuery(query);
-        // Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         proxySelectorDOList.forEach(proxySelectorDO -> {
             ProxySelectorVO vo = new ProxySelectorVO();
             vo.setId(proxySelectorDO.getId());
@@ -89,8 +88,6 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             vo.setForwardPort(proxySelectorDO.getForwardPort());
             vo.setCreateTime(proxySelectorDO.getDateCreated());
             vo.setUpdateTime(proxySelectorDO.getDateUpdated());
-
-
             DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
             if (!Objects.isNull(discoveryRelDO)) {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
@@ -204,25 +201,23 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                         .dateUpdated(currentTime)
                         .build();
                 discoveryRelMapper.insertSelective(discoveryRelDO);
-                result += 2;
+                List<DiscoveryUpstreamDO> upstreamDOList = Lists.newArrayList();
+                proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
+                    DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
+                            .id(UUIDUtils.getInstance().generateShortUuid())
+                            .discoveryHandlerId(discoveryHandlerId)
+                            .protocol(discoveryUpstream.getProtocol())
+                            .url(discoveryUpstream.getUrl())
+                            .status(discoveryUpstream.getStatus())
+                            .props(proxySelectorAddDTO.getProps())
+                            .dateCreated(currentTime)
+                            .dateUpdated(currentTime)
+                            .build();
+                    upstreamDOList.add(discoveryUpstreamDO);
+                });
+                result = discoveryUpstreamMapper.saveBatch(upstreamDOList) + result + 2;
             }
-            List<DiscoveryUpstreamDO> upstreamDOList = Lists.newArrayList();
-            proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
-                DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
-                        .id(UUIDUtils.getInstance().generateShortUuid())
-                        .discoveryHandlerId(discoveryId)
-                        .protocol(discoveryUpstream.getProtocol())
-                        .url(discoveryUpstream.getUrl())
-                        .status(discoveryUpstream.getStatus())
-                        .props(proxySelectorAddDTO.getProps())
-                        .dateCreated(currentTime)
-                        .dateUpdated(currentTime)
-                        .build();
-                upstreamDOList.add(discoveryUpstreamDO);
-            });
-            result = discoveryUpstreamMapper.saveBatch(upstreamDOList) + result;
         }
-
         return result;
     }
 
@@ -240,7 +235,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         // update proxy selector
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
         proxySelectorMapper.update(proxySelectorDO);
-        // 获取DiscoveryRelDO
+        // DiscoveryRelDO
         DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
         String discoveryHandlerId = discoveryRelDO.getDiscoveryHandlerId();
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
@@ -251,7 +246,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         discoveryDO.setDateUpdated(currentTime);
         discoveryDO.setProps(discovery.getProps());
         discoveryMapper.updateSelective(discoveryDO);
-        // TODO update discovery upstream ?
+        // TODO how to update discovery upstream list?
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 }

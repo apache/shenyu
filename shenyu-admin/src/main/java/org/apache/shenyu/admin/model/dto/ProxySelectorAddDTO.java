@@ -56,7 +56,6 @@ public class ProxySelectorAddDTO implements Serializable {
     /**
      * other field.
      */
-    @NotBlank
     private String props;
 
     /**
