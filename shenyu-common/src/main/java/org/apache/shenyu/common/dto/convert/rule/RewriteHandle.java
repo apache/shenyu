@@ -35,7 +35,7 @@ public class RewriteHandle {
     private String replace;
     
     /**
-     * percentage of rewritten traffic
+     * percentage of rewritten traffic.
      */
     private Integer percentage;
 
