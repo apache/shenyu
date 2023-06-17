@@ -31,10 +31,22 @@ public class DiscoveryDTO implements Serializable {
     private String id;
 
     /**
+     * plugin level.
+     */
+    @NotNull(message = "level not null")
+    private String level;
+
+    /**
      * name.
      */
     @NotNull(message = "name not null")
     private String name;
+
+    /**
+     * plugin name.
+     */
+    @NotNull(message = "pluginName not null")
+    private String pluginName;
 
     /**
      * discovery type.
@@ -144,6 +156,42 @@ public class DiscoveryDTO implements Serializable {
         this.props = props;
     }
 
+    /**
+     * get level.
+     *
+     * @return level
+     */
+    public String getLevel() {
+        return level;
+    }
+
+    /**
+     * set level.
+     *
+     * @param level level
+     */
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
+    /**
+     * get plugin name.
+     *
+     * @return plugin name
+     */
+    public String getPluginName() {
+        return pluginName;
+    }
+
+    /**
+     * set plugin name.
+     *
+     * @param pluginName plugin name
+     */
+    public void setPluginName(String pluginName) {
+        this.pluginName = pluginName;
+    }
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -155,11 +203,12 @@ public class DiscoveryDTO implements Serializable {
 
         DiscoveryDTO that = (DiscoveryDTO) o;
         return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(type, that.type)
-                && Objects.equals(serverList, that.serverList) && Objects.equals(props, that.props);
+                && Objects.equals(serverList, that.serverList) && Objects.equals(props, that.props)
+                && Objects.equals(level, that.level) && Objects.equals(pluginName, that.pluginName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, type, serverList, props);
+        return Objects.hash(id, name, type, serverList, props, level, pluginName);
     }
 }

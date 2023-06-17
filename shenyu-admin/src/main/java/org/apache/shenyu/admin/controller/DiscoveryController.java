@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  * this is discovery controller.
@@ -52,6 +53,11 @@ public class DiscoveryController {
     @GetMapping("/typeEnums")
     public ShenyuAdminResult typeEnums() {
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.typeEnums());
+    }
+
+    @GetMapping("")
+    public ShenyuAdminResult discovery(final String pluginName, final String level) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.discovery(pluginName, level));
     }
 
     /**

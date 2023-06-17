@@ -115,7 +115,7 @@ public final class DiscoveryDO extends BaseDO {
      * get the server list value.
      * @return the server list value
      */
-    public String getServiceList() {
+    public String getServerList() {
         return serverList;
     }
 

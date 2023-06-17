@@ -32,6 +32,15 @@ public interface DiscoveryService {
     List<String> typeEnums();
 
     /**
+     * get the discovery by plugin and name.
+     *
+     * @param pluginName plugin name
+     * @param level level
+     * @return the discovery
+     */
+    DiscoveryVO discovery(String pluginName, String level);
+
+    /**
      * Create or update string.
      *
      * @param discoveryDTO the discovery dto

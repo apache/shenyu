@@ -45,20 +45,20 @@ public class DiscoveryVO implements Serializable {
     /**
      * handler.
      */
-    @NotNull(message = "handler not null")
-    private String handler;
+    @NotNull(message = "level not null")
+    private String level;
 
     /**
      * serviceList.
      */
-    @NotNull(message = "serviceList not null")
-    private String serviceList;
+    @NotNull(message = "serverList not null")
+    private String serverList;
 
     /**
      * listenerNode.
      */
-    @NotNull(message = "listenerNode not null")
-    private String listenerNode;
+    @NotNull(message = "pluginName not null")
+    private String pluginName;
 
     /**
      * props.
@@ -125,53 +125,53 @@ public class DiscoveryVO implements Serializable {
      *
      * @return handler
      */
-    public String getHandler() {
-        return handler;
+    public String getLevel() {
+        return level;
     }
 
     /**
-     * set handler.
+     * set level.
      *
-     * @param handler handler
+     * @param level level
      */
-    public void setHandler(final String handler) {
-        this.handler = handler;
+    public void setLevel(final String level) {
+        this.level = level;
     }
 
     /**
-     * get serviceList.
+     * get serverList.
      *
-     * @return serviceList
+     * @return serverList
      */
-    public String getServiceList() {
-        return serviceList;
+    public String getServerList() {
+        return serverList;
     }
 
     /**
-     * set serviceList.
+     * set serverList.
      *
-     * @param serviceList serviceList
+     * @param serverList serverList
      */
-    public void setServiceList(final String serviceList) {
-        this.serviceList = serviceList;
+    public void setServerList(final String serverList) {
+        this.serverList = serverList;
     }
 
     /**
-     * get listenerNode.
+     * get pluginName.
      *
-     * @return listenerNode
+     * @return pluginName
      */
-    public String getListenerNode() {
-        return listenerNode;
+    public String getPluginName() {
+        return pluginName;
     }
 
     /**
-     * set listenerNode.
+     * set pluginName.
      *
-     * @param listenerNode listenerNode
+     * @param pluginName pluginName
      */
-    public void setListenerNode(final String listenerNode) {
-        this.listenerNode = listenerNode;
+    public void setPluginName(final String pluginName) {
+        this.pluginName = pluginName;
     }
 
     /**
@@ -203,12 +203,12 @@ public class DiscoveryVO implements Serializable {
 
         DiscoveryVO that = (DiscoveryVO) o;
         return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(type, that.type)
-                && Objects.equals(handler, that.handler) && Objects.equals(serviceList, that.serviceList)
-                && Objects.equals(listenerNode, that.listenerNode) && Objects.equals(props, that.props);
+                && Objects.equals(level, that.level) && Objects.equals(serverList, that.serverList)
+                && Objects.equals(pluginName, that.pluginName) && Objects.equals(props, that.props);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, type, handler, serviceList, listenerNode, props);
+        return Objects.hash(id, name, type, level, serverList, pluginName, props);
     }
 }

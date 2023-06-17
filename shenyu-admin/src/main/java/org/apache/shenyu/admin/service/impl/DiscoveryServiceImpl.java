@@ -46,6 +46,11 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
+    public DiscoveryVO discovery(String pluginName, String level) {
+        return discoveryVO(discoveryMapper.selectByPluginNameAndLevel(pluginName, level));
+    }
+
+    @Override
     public DiscoveryVO createOrUpdate(final DiscoveryDTO discoveryDTO) {
         return StringUtils.isBlank(discoveryDTO.getId()) ? this.create(discoveryDTO) : this.update(discoveryDTO);
     }
@@ -58,7 +63,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         DiscoveryDO discoveryDO = DiscoveryDO.builder()
                 .id(discoveryDTO.getId())
                 .name(discoveryDTO.getName())
-                .level("2")
+                .pluginName(discoveryDTO.getPluginName())
+                .level(discoveryDTO.getLevel())
                 .type(discoveryDTO.getType())
                 .serverList(discoveryDTO.getServerList())
                 .props(discoveryDTO.getProps())

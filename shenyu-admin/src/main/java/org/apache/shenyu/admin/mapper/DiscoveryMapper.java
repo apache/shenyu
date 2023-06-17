@@ -48,6 +48,15 @@ public interface DiscoveryMapper extends ExistProvider {
     DiscoveryDO selectById(String id);
 
     /**
+     * select discovery by plugin name and level.
+     *
+     * @param pluginName plugin name
+     * @param level level
+     * @return {@linkplain DiscoveryDO}
+     */
+    DiscoveryDO selectByPluginNameAndLevel(@Param("pluginName") String pluginName, @Param("level") String level);
+
+    /**
      * insert discovery.
      * @param discovery discovery.
      * @return rows
