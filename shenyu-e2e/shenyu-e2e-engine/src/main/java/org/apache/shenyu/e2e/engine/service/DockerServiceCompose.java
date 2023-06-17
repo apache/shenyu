@@ -26,7 +26,7 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.common.TableView;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure;
 import org.apache.shenyu.e2e.engine.config.ShenYuEngineConfigure.DockerConfigure.DockerServiceConfigure;
-import org.apache.shenyu.e2e.engine.handler.GatewayDataSynHandler;
+import org.apache.shenyu.e2e.engine.handler.DataSynHandler;
 import org.apache.shenyu.e2e.engine.service.docker.DockerComposeFile;
 import org.apache.shenyu.e2e.engine.service.docker.ShenYuLogConsumer;
 import org.slf4j.Logger;
@@ -73,9 +73,10 @@ public class DockerServiceCompose implements ServiceCompose {
         this.configure = configure;
         this.adminConfigure = configure.getAdmin();
         this.gatewayConfigure = configure.getGateway();
-//        modifyGatewayConfiguration(this.gatewayConfigure);
-//        chooseDataSyn(GATEWAY_YML_LOCATION, this.gatewayConfigure);
-//        chooseDataSyn(ADMIN_YML_LOCATION, this.adminConfigure);
+        modifyGatewayConfiguration(this.gatewayConfigure);
+        DataSynHandler.init();
+        chooseDataSyn(GATEWAY_YML_LOCATION, this.gatewayConfigure);
+        chooseDataSyn(ADMIN_YML_LOCATION, this.adminConfigure);
         DockerComposeFile parsedDockerComposeFile = DockerComposeFile.parse(configure.getDockerComposeFile());
         container = new DockerComposeContainer<>("e2e", parsedDockerComposeFile.getFile());
         List<String> services = parsedDockerComposeFile.getServices();
@@ -187,12 +188,16 @@ public class DockerServiceCompose implements ServiceCompose {
         container.stop();
     }
 
+    /**
+     * Modify the application. yml file of the gateway.
+     *
+     * @param gatewayConfigure gatewayConfigure
+     */
     private void modifyGatewayConfiguration(DockerServiceConfigure gatewayConfigure) {
         String value = gatewayConfigure.getProperties().getProperty("application");
         if (Objects.isNull(value)) {
             return;
         }
-
         try (InputStream inputStream = new FileInputStream(GATEWAY_YML_LOCATION)) {
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
@@ -234,31 +239,37 @@ public class DockerServiceCompose implements ServiceCompose {
         currentMap.put(subModulePath[subModulePath.length - 1], newValue);
     }
 
+    /**
+     * Modify the data synchronization method in the application. yml file of gateway or admin.
+     *
+     * @param path path
+     * @param dockerServiceConfigure dockerServiceConfigure
+     */
     private void chooseDataSyn(String path, DockerServiceConfigure dockerServiceConfigure) {
-
         String yamlFilePath = path;
-
         try (InputStream inputStream = new FileInputStream(yamlFilePath)) {
             Yaml yaml = new Yaml();
             Map<String, Object> yamlData = yaml.load(inputStream);
-
             Map<String, Object> shenyuParameter = (Map<String, Object>) yamlData.get("shenyu");
             Map<String, Object> parameter = (Map<String, Object>) shenyuParameter.get("sync");
-
-            String synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn");
-            Map<String, Object> subParameters = GatewayDataSynHandler.getDataSynMap(synMethod);
+            Map<String, Object> subParameters = DataSynHandler.getDataSynMap(dockerServiceConfigure.getProperties().getProperty("dataSyn"));
+            String synMethod = "";
+            if (dockerServiceConfigure.getProperties().getProperty("dataSyn").contains("_")) {
+                synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn").split("_")[1];
+            } else {
+                synMethod = dockerServiceConfigure.getProperties().getProperty("dataSyn");
+            }
             parameter.put(synMethod, subParameters);
-            parameter.keySet().removeIf(key -> !key.equals(synMethod));
-
+            String finalSynMethod = synMethod;
+            parameter.keySet().removeIf(key -> !key.equals(finalSynMethod));
             DumperOptions options = new DumperOptions();
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
             options.setExplicitStart(true);
             options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
             yaml = new Yaml(options);
-
             try (OutputStream outputStream = new FileOutputStream(yamlFilePath)) {
                 yaml.dump(yamlData, new OutputStreamWriter(outputStream));
-                System.out.println("YAML file modified successfully.");
+                log.info("YAML file modified successfully.");
             }
         } catch (IOException e) {
             e.printStackTrace();
