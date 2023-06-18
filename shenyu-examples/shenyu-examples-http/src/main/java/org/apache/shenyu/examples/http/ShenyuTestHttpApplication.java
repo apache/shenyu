@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.examples.http;
 
+import org.apache.shenyu.client.auto.config.EnableClientRegister;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -24,6 +25,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * ShenyuTestHttpApplication.
  */
 @SpringBootApplication
+@EnableClientRegister
 public class ShenyuTestHttpApplication {
 
     /**
