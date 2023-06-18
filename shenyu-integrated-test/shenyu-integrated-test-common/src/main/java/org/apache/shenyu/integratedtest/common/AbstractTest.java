@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
  */
 public class AbstractTest {
 
-    private static final ExecutorService SERVICE = Executors.newCachedThreadPool();
+    private static final ExecutorService SERVICE = Executors.newFixedThreadPool(10);
     
     /**
      * Gets service.
