@@ -59,7 +59,7 @@ public final class RewritePluginTest extends AbstractPluginDataInit {
         String pluginResult = initPlugin(PluginEnum.REWRITE.getName(), "");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult =
-                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("/http/test/waf/pass", "/test/waf/deny"));
+                initSelectorAndRules(PluginEnum.REWRITE.getName(), "", buildSelectorConditionList(), buildRuleLocalDataList("/http/test/waf/pass", "/http/test/waf/deny"));
         assertThat(selectorAndRulesResult, is("success"));
         assertEquals(403, test());
         cleanPluginData(PluginEnum.REWRITE.getName());
