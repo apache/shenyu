@@ -32,6 +32,8 @@ import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,6 +48,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public final class RateLimiterPluginTest extends AbstractPluginDataInit {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(RateLimiterPluginTest.class);
     
     @BeforeEach
     public void setup() throws IOException {
@@ -140,7 +144,7 @@ public final class RateLimiterPluginTest extends AbstractPluginDataInit {
             assertTrue(errorCount > 0);
             assertTrue(correctCount > 0);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOG.error("error", ex);
         }
         
     }
