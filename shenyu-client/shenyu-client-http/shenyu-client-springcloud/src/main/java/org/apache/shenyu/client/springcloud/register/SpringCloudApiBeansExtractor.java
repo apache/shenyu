@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.springmvc.register;
+package org.apache.shenyu.client.springcloud.register;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shenyu.client.core.register.ApiBean;
@@ -36,11 +36,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SpringMvcApiBeansExtractor implements ApiBeansExtractor {
+public class SpringCloudApiBeansExtractor implements ApiBeansExtractor {
 
     private final String contextPath;
 
-    public SpringMvcApiBeansExtractor(final String contextPath) {
+    public SpringCloudApiBeansExtractor(final String contextPath) {
         this.contextPath = contextPath;
     }
 
