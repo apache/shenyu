@@ -43,7 +43,7 @@ import java.util.Map;
  * DiscoveryUpstreamParser.
  *
  * <p>
- * You can define a custom map mapper if your custom upstream doesn't fit
+ * You can define a custom map mapper if  your custom upstream doesn't fit
  * </p>
  */
 public class CustomDiscoveryUpstreamParser implements JsonDeserializer<DiscoveryUpstreamData>, KeyValueParser {
