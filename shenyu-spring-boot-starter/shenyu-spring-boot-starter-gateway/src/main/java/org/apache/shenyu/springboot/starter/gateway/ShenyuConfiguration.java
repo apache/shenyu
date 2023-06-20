@@ -315,15 +315,4 @@ public class ShenyuConfiguration {
     public ShenyuTrieListener shenyuTrieListener() {
         return new ShenyuTrieListener();
     }
-    
-    /**
-     * spring http message reader.
-     *
-     * @param codecConfigurer codecConfigurer
-     * @return  messageReaders
-     */
-    @Bean
-    public List<HttpMessageReader<?>> messageReaders(final ServerCodecConfigurer codecConfigurer) {
-        return codecConfigurer.getReaders();
-    }
 }
