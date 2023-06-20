@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Http helper.
@@ -57,7 +58,11 @@ public class HttpHelper {
 
     private static final Gson GSON = new Gson();
 
-    private final OkHttpClient client = new OkHttpClient.Builder().build();
+    private final OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build();
 
     private final String localKey = "123456";
 
