@@ -27,7 +27,6 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  */
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableClientRegister
 public class ShenyuTestSpringCloudApplication {
 
     /**
