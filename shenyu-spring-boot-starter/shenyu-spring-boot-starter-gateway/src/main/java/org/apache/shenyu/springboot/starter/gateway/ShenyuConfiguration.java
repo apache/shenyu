@@ -320,7 +320,7 @@ public class ShenyuConfiguration {
      * spring http message reader.
      *
      * @param codecConfigurer codecConfigurer
-     * @return List<HttpMessageReader<?>> messageReaders
+     * @return  messageReaders
      */
     @Bean
     public List<HttpMessageReader<?>> messageReaders(final ServerCodecConfigurer codecConfigurer) {
