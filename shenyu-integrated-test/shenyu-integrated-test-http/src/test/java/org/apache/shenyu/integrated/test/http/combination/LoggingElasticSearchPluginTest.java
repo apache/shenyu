@@ -74,7 +74,7 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
     public void testElasticSearchPlugin() throws Exception {
         String result = HttpHelper.INSTANCE.postGateway(LOGGING_ELASTIC_SEARCH_PATH, String.class);
         assertNotNull(result);
-        Thread.sleep(3000);
+        Thread.sleep(6000);
         BooleanResponse existsResponse = client.indices().exists(c -> c.index("shenyu-access-logging"));
         assertThat(String.valueOf(existsResponse.value()), is("true"));
         SearchResponse<ShenyuRequestLog> searchResponse = client.search(a -> a.index("shenyu-access-logging"), ShenyuRequestLog.class);
