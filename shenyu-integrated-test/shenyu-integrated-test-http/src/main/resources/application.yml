@@ -35,7 +35,7 @@ management:
       enabled: false
 
 shenyu:
-  httpClient:
+  httpclient:
     maxInMemorySize: 5
   metrics:
     enabled: true
