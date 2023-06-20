@@ -28,16 +28,17 @@ import java.util.concurrent.TimeoutException;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 public class WaitForHelperTest {
     
     @Test
     void testSuccess() throws TimeoutException {
         new WaitForHelper().waitFor(
-                () -> given().baseUri("http://httpbin.org").when(),
+                () -> given().baseUri("https://postman-echo.com").when(),
                 Method.GET,
-                "/delay/0",
-                new ResponseSpecBuilder().expectBody("url", containsString("/delay/0")).build()
+                "/get?foo1=bar1&foo2=bar2",
+                new ResponseSpecBuilder().expectBody("url", containsString("/get")).build()
         );
     }
     
@@ -45,10 +46,10 @@ public class WaitForHelperTest {
     void testTimeout() {
         Assertions.assertThrows(TimeoutException.class, () -> {
             new WaitForHelper(10, Duration.ofSeconds(1), Duration.ofMillis(500)).waitFor(
-                    () -> given().baseUri("http://httpbin.org").when(),
+                    () -> given().baseUri("https://postman-echo.com").when(),
                     Method.GET,
-                    "/delay/1x",
-                    new ResponseSpecBuilder().expectBody("message", containsString("/delay/1x")).build()
+                    "/delay/2",
+                    new ResponseSpecBuilder().expectBody("delay", equalTo(2)).build()
             );
         });
     }
