@@ -100,6 +100,9 @@ public class DiscoveryServiceImpl implements DiscoveryService {
      * @return {@link DiscoveryVO}
      */
     private DiscoveryVO discoveryVO(final DiscoveryDO discoveryDO) {
+        if (discoveryDO == null) {
+            return null;
+        }
         DiscoveryVO discoveryVO = new DiscoveryVO();
         BeanUtils.copyProperties(discoveryDO, discoveryVO);
         return discoveryVO;

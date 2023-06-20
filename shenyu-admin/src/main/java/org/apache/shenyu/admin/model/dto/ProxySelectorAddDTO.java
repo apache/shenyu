@@ -61,7 +61,6 @@ public class ProxySelectorAddDTO implements Serializable {
     /**
      * listenerNode.
      */
-    @NotNull(message = "listenerNode not null")
     private String listenerNode;
 
     /**

@@ -85,6 +85,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
             vo.setForwardPort(proxySelectorDO.getForwardPort());
             vo.setCreateTime(proxySelectorDO.getDateCreated());
             vo.setUpdateTime(proxySelectorDO.getDateUpdated());
+            vo.setProps(proxySelectorDO.getProps());
             DiscoveryRelDO discoveryRelDO = discoveryRelMapper.selectByProxySelectorId(proxySelectorDO.getId());
             if (!Objects.isNull(discoveryRelDO)) {
                 DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryRelDO.getDiscoveryHandlerId());
