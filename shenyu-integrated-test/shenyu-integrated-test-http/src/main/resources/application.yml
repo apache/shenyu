@@ -22,8 +22,6 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
-  codec:
-    max-in-memory-size: 2MB
 #  cloud:
 #    nacos:
 #      discovery:
