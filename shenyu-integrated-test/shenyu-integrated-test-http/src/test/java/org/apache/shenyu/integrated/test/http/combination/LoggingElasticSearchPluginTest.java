@@ -23,8 +23,10 @@ import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.apache.http.HttpHost;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -91,6 +93,16 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
                 .build();
         Response response2 = client.newCall(request2).execute();
         LOG.info("indices {},", response2.body().string());
+        MediaType mediaType = MediaType.parse("application/json");
+        RequestBody body = RequestBody.create(mediaType, "{\"number_of_replicas\":0}");
+        Request request3 = new Request.Builder()
+                .url("http://localhost:9200/_settings")
+                .put(body)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("cache-control", "no-cache")
+                .build();
+        Response response3 = client.newCall(request3).execute();
+        LOG.info("response3 {},", response3.body().string());
     }
 
     @Test
