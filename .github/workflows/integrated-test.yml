@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.repository == 'apache/shenyu')
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
         with:
           submodules: true
       - uses: dorny/paths-filter@v2
