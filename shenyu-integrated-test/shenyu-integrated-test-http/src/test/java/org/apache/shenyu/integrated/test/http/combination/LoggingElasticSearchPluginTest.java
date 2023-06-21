@@ -23,6 +23,9 @@ import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.http.HttpHost;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
@@ -36,6 +39,8 @@ import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -56,6 +61,8 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
 
     private static ElasticsearchClient client;
 
+    private static final Logger LOG = LoggerFactory.getLogger(LoggingElasticSearchPluginTest.class);
+
     @BeforeAll
     public static void setup() throws IOException {
         String pluginResult = initPlugin(PluginEnum.LOGGING_ELASTIC_SEARCH.getName(), "{\"host\":\"shenyu-elasticsearch\", \"port\": \"9200\"}");
@@ -68,6 +75,22 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
                 .build();
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url("localhost:9200/_cluster/health\\?pretty")
+                .build();
+        Response response = client.newCall(request).execute();
+        LOG.info("heath {},", String.valueOf(response.body()));
+        Request request1 = new Request.Builder()
+                .url("localhost:9200/_cluster/health/?level=shards")
+                .build();
+        Response response1 = client.newCall(request1).execute();
+        LOG.info("shards {},", String.valueOf(response1.body()));
+        Request request2 = new Request.Builder()
+                .url("localhost:9200/_cat/indices?v")
+                .build();
+        Response response2 = client.newCall(request2).execute();
+        LOG.info("indices {},", String.valueOf(response2.body()));
     }
 
     @Test
