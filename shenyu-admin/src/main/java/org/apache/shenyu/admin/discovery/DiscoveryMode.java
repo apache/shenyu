@@ -15,39 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.handler;
+package org.apache.shenyu.admin.discovery;
 
-import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
-
-import java.util.List;
-
-/**
- * ProxySelectorDataHandler.
- */
-public interface ProxySelectorDataHandler {
-
-    /**
-     * handlerProxySelector.
-     *
-     * @param selectorData  selectorData
-     * @param upstreamsList upstreamsList
-     */
-    void handlerProxySelector(ProxySelectorData selectorData, List<DiscoveryUpstreamData> upstreamsList);
-
-
-    /**
-     * removeProxySelector.
-     *
-     * @param proxySelectorName proxySelectorName
-     */
-    void removeProxySelector(String proxySelectorName);
-
-    /**
-     * pluginName.
-     *
-     * @return pluginName
-     */
-    String pluginName();
-
+public enum DiscoveryMode {
+    LOCAL,
+    ZOOKEEPER,
+    NACOS,
+    EUREKA
 }
