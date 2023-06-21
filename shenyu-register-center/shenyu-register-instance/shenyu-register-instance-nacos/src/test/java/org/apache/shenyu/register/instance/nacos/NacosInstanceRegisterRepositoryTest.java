@@ -21,7 +21,6 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -98,8 +97,7 @@ public final class NacosInstanceRegisterRepositoryTest {
     @Test
     public void testSelectInstancesAndWatcher() {
         String selectKey = "shenyu-instances";
-        WatcherListener watcherListener = mock(WatcherListener.class);
-        repository.selectInstancesAndWatcher(selectKey, watcherListener);
+        repository.selectInstances(selectKey);
         repository.close();
     }
 }

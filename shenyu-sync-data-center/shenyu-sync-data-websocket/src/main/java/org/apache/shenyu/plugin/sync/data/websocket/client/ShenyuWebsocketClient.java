@@ -171,7 +171,12 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             LOG.error("websocket connect is error :{}", e.getMessage());
         }
     }
-    
+
+    /**
+     * handle admin message.
+     *
+     * @param result result
+     */
     private void handleResult(final String result) {
         LOG.info("handleResult({})", result);
         WebsocketData<?> websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
