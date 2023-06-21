@@ -78,6 +78,16 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
         transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
         OkHttpClient client = new OkHttpClient();
+        MediaType mediaType = MediaType.parse("application/json");
+        RequestBody body = RequestBody.create(mediaType, "{\"number_of_replicas\":0}");
+        Request request3 = new Request.Builder()
+                .url("http://localhost:9200/_settings")
+                .put(body)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("cache-control", "no-cache")
+                .build();
+        Response response3 = client.newCall(request3).execute();
+        LOG.info("response3 {},", response3.body().string());
         Request request = new Request.Builder()
                 .url("http://localhost:9200/_cluster/health\\?pretty")
                 .build();
@@ -93,16 +103,6 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
                 .build();
         Response response2 = client.newCall(request2).execute();
         LOG.info("indices {},", response2.body().string());
-        MediaType mediaType = MediaType.parse("application/json");
-        RequestBody body = RequestBody.create(mediaType, "{\"number_of_replicas\":0}");
-        Request request3 = new Request.Builder()
-                .url("http://localhost:9200/_settings")
-                .put(body)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("cache-control", "no-cache")
-                .build();
-        Response response3 = client.newCall(request3).execute();
-        LOG.info("response3 {},", response3.body().string());
     }
 
     @Test
