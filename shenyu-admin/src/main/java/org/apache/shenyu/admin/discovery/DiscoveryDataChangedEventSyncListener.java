@@ -73,7 +73,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             return;
         }
         DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getKey(), event.getValue());
-        org.apache.shenyu.admin.listener.DataChangedEvent dataChangedEvent = null;
+        DataChangedEvent dataChangedEvent = null;
         List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
         if (needPersistence) {
             if (CollectionUtils.isEmpty(upstreamDataList)) {
