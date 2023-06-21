@@ -24,9 +24,11 @@ import okhttp3.Response;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.integratedtest.common.AbstractTest;
+import org.apache.shenyu.integratedtest.common.dto.BigObject;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -236,8 +238,7 @@ public final class HttpTestControllerTest extends AbstractTest {
 
     @Test
     public void testBigObject() throws IOException {
-        // TODO fix ci error
-        //BigObject response = HttpHelper.INSTANCE.postGateway("/http/test/bigObject", BigObject.class);
-        //assertNotNull(response);
+        BigObject response = HttpHelper.INSTANCE.postGateway("/http/test/bigObject", BigObject.class);
+        assertNotNull(response);
     }
 }
