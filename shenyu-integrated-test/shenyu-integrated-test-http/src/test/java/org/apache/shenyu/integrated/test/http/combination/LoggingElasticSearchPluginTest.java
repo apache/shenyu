@@ -77,20 +77,20 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
         client = new ElasticsearchClient(transport);
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .url("localhost:9200/_cluster/health\\?pretty")
+                .url("http://localhost:9200/_cluster/health\\?pretty")
                 .build();
         Response response = client.newCall(request).execute();
-        LOG.info("heath {},", String.valueOf(response.body()));
+        LOG.info("heath {},", response.body().string());
         Request request1 = new Request.Builder()
-                .url("localhost:9200/_cluster/health/?level=shards")
+                .url("http://localhost:9200/_cluster/health/?level=shards")
                 .build();
         Response response1 = client.newCall(request1).execute();
-        LOG.info("shards {},", String.valueOf(response1.body()));
+        LOG.info("shards {},", response1.body().string());
         Request request2 = new Request.Builder()
-                .url("localhost:9200/_cat/indices?v")
+                .url("http://localhost:9200/_cat/indices?v")
                 .build();
         Response response2 = client.newCall(request2).execute();
-        LOG.info("indices {},", String.valueOf(response2.body()));
+        LOG.info("indices {},", response2.body().string());
     }
 
     @Test
