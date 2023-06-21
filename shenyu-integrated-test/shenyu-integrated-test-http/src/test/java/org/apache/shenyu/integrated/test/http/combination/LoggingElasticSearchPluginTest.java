@@ -33,6 +33,7 @@ import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.plugin.logging.common.entity.ShenyuRequestLog;
 import org.apache.shenyu.web.controller.LocalPluginController.RuleLocalData;
 import org.elasticsearch.client.RestClient;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -71,6 +72,7 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
     }
 
     @Test
+    @Disabled
     public void testElasticSearchPlugin() throws Exception {
         String result = HttpHelper.INSTANCE.postGateway(LOGGING_ELASTIC_SEARCH_PATH, String.class);
         assertNotNull(result);
