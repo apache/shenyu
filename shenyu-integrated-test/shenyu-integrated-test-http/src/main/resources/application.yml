@@ -23,7 +23,7 @@ spring:
   application:
     name: shenyu-bootstrap
   codec:
-    max-in-memory-size: 5MB
+    max-in-memory-size: 64MB
 #  cloud:
 #    nacos:
 #      discovery:
