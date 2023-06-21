@@ -88,13 +88,6 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
                 .build();
         Response response3 = client.newCall(request3).execute();
         LOG.info("response3 {},", response3.body().string());
-        Request deleteRequest = new Request.Builder()
-                .url("http://localhost:9200/index_shenyu-access-logging")
-                .delete(null)
-                .addHeader("cache-control", "no-cache")
-                .build();
-        Response deleteResponse = client.newCall(deleteRequest).execute();
-        LOG.info("deleteResponse {},", deleteResponse.body().string());
         Request request = new Request.Builder()
                 .url("http://localhost:9200/_cluster/health\\?pretty")
                 .build();
