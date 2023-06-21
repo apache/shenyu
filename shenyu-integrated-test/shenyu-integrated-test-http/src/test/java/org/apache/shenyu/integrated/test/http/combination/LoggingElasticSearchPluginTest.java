@@ -88,6 +88,13 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
                 .build();
         Response response3 = client.newCall(request3).execute();
         LOG.info("response3 {},", response3.body().string());
+        Request balanceRequest = new Request.Builder()
+                .url("http://localhost:9200/_cluster/reroute?retry_failed=true")
+                .post(null)
+                .addHeader("cache-control", "no-cache")
+                .build();
+        Response balanceResponse = client.newCall(balanceRequest).execute();
+        LOG.info("balanceResponse {},", balanceResponse.body().string());
         Request request = new Request.Builder()
                 .url("http://localhost:9200/_cluster/health\\?pretty")
                 .build();
