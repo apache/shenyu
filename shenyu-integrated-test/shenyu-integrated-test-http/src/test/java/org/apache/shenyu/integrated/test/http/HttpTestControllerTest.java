@@ -28,6 +28,7 @@ import org.apache.shenyu.integratedtest.common.dto.BigObject;
 import org.apache.shenyu.integratedtest.common.dto.UserDTO;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.apache.shenyu.integratedtest.common.result.ResultBean;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -41,7 +42,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
