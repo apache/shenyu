@@ -17,11 +17,15 @@
 
 package org.apache.shenyu.protocol.tcp;
 
-import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * UpstreamProvider.
@@ -30,7 +34,7 @@ public final class UpstreamProvider {
 
     private static final UpstreamProvider SINGLETON = new UpstreamProvider();
 
-    private final Map<String, List<DiscoveryUpstream>> cache = new ConcurrentHashMap<>();
+    private final Map<String, List<DiscoveryUpstreamData>> cache = new ConcurrentHashMap<>();
 
     private UpstreamProvider() {
     }
@@ -50,8 +54,8 @@ public final class UpstreamProvider {
      * @param pluginSelectorName pluginSelectorName
      * @return UpstreamList
      */
-    public List<DiscoveryUpstream> provide(final String pluginSelectorName) {
-        return cache.get(pluginSelectorName);
+    public List<DiscoveryUpstreamData> provide(final String pluginSelectorName) {
+        return cache.getOrDefault(pluginSelectorName, new ArrayList<>());
     }
 
     /**
@@ -60,8 +64,9 @@ public final class UpstreamProvider {
      * @param pluginSelectorName pluginSelectorName
      * @param upstreams          upstreams
      */
-    public void createUpstreams(final String pluginSelectorName, final List<DiscoveryUpstream> upstreams) {
-        cache.put(pluginSelectorName, upstreams);
+    public void createUpstreams(final String pluginSelectorName, final List<DiscoveryUpstreamData> upstreams) {
+        List<DiscoveryUpstreamData> discoveryUpstreamDataList = Optional.ofNullable(upstreams).orElseGet(ArrayList::new);
+        cache.put(pluginSelectorName, discoveryUpstreamDataList);
     }
 
     /**
@@ -71,9 +76,11 @@ public final class UpstreamProvider {
      * @param upstreams          upstreams
      * @return removeList
      */
-    public List<DiscoveryUpstream> refreshCache(final String pluginSelectorName, final List<DiscoveryUpstream> upstreams) {
-        List<DiscoveryUpstream> remove = cache.remove(pluginSelectorName);
-        cache.put(pluginSelectorName, upstreams);
-        return remove;
+    public List<DiscoveryUpstreamData> refreshCache(final String pluginSelectorName, final List<DiscoveryUpstreamData> upstreams) {
+        List<DiscoveryUpstreamData> remove = cache.remove(pluginSelectorName);
+        List<DiscoveryUpstreamData> discoveryUpstreamDataList = Optional.ofNullable(upstreams).orElse(new ArrayList<>());
+        cache.put(pluginSelectorName, discoveryUpstreamDataList);
+        Set<String> urlSet = discoveryUpstreamDataList.stream().map(DiscoveryUpstreamData::getUrl).collect(Collectors.toSet());
+        return remove.stream().filter(r -> !urlSet.contains(r.getUrl())).collect(Collectors.toList());
     }
 }

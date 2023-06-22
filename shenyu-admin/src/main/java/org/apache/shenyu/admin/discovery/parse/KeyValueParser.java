@@ -15,22 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.register.instance.api.watcher;
+package org.apache.shenyu.admin.discovery.parse;
 
-import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 
 import java.util.List;
 
 /**
- * WatcherListener InstanceEntity.
+ * parse value to ProxySelectorData list.
  */
-@FunctionalInterface
-public interface WatcherListener {
+public interface KeyValueParser {
 
     /**
-     * listener InstanceEntity.
+     * parseValue.
      *
-     * @param instanceRegisterDTOs instanceRegisterDTOs
+     * @param value value
+     * @return DiscoveryUpstreamData list
      */
-    void listener(List<InstanceEntity> instanceRegisterDTOs);
+    List<DiscoveryUpstreamData> parseValue(String value);
+
+    /**
+     * parseKey.
+     *
+     * @param key discovery key
+     * @return ProxySelectorData.
+     */
+    ProxySelectorData parseKey(String key);
+
 }
