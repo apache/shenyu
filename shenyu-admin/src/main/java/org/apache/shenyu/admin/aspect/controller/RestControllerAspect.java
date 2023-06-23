@@ -59,7 +59,7 @@ public class RestControllerAspect {
      * @throws ShenyuException Throwable
      */
     @Around("controller()")
-    public Object logAround(final ProceedingJoinPoint point) throws ShenyuException {
+    public Object logAround(final ProceedingJoinPoint point) {
         final Stopwatch stopwatch = Stopwatch.createStarted();
         final Method method = ((MethodSignature) point.getSignature()).getMethod();
         final Object target = point.getTarget();
