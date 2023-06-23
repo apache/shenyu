@@ -19,7 +19,6 @@ package org.apache.shenyu.admin.aspect.controller;
 
 import com.google.common.base.Stopwatch;
 import org.apache.shenyu.admin.utils.SessionUtil;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -57,7 +56,7 @@ public class RestControllerAspect {
      * @return result {@link Object}
      */
     @Around("controller()")
-    public Object logAround(final ProceedingJoinPoint point) {
+    public Object logAround(final ProceedingJoinPoint point) throws Throwable{
         final Stopwatch stopwatch = Stopwatch.createStarted();
         final Method method = ((MethodSignature) point.getSignature()).getMethod();
         final Object target = point.getTarget();
@@ -66,7 +65,7 @@ public class RestControllerAspect {
             return point.proceed();
         } catch (final Throwable throwable) {
             doExec(a -> a.doThrowable(target, method, stopwatch, throwable));
-            throw new ShenyuException(throwable);
+            throw throwable;
         } finally {
             try {
                 doExec(a -> a.doFinally(target, method, stopwatch));
