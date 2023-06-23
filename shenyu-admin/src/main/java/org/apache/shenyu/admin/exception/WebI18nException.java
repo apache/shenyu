@@ -34,13 +34,12 @@ public class WebI18nException extends I18nException {
         super(LocaleContextHolder.getLocale(), message);
     }
     
-    public WebI18nException(final String message, Object... objects) {
+    public WebI18nException(final String message, final Object... objects) {
         super(LocaleContextHolder.getLocale(), message, objects);
     }
     
     public WebI18nException(final String message, final Throwable throwable) {
         super(LocaleContextHolder.getLocale(), message, throwable);
     }
-    
     
 }
