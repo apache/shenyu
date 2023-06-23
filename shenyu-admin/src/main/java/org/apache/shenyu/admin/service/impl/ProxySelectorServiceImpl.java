@@ -35,6 +35,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
@@ -165,6 +166,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                     .level("2")
                     .dateCreated(currentTime)
                     .dateUpdated(currentTime)
+                    .props(proxySelectorAddDTO.getDiscovery().getProps())
                     .build();
             if (discoveryMapper.insertSelective(discoveryDO) > 0) {
                 // insert discovery handler
@@ -190,20 +192,22 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                         .build();
                 discoveryRelMapper.insertSelective(discoveryRelDO);
                 List<DiscoveryUpstreamDO> upstreamDOList = Lists.newArrayList();
-                proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
-                    DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
-                            .id(UUIDUtils.getInstance().generateShortUuid())
-                            .discoveryHandlerId(discoveryHandlerId)
-                            .protocol(discoveryUpstream.getProtocol())
-                            .url(discoveryUpstream.getUrl())
-                            .status(discoveryUpstream.getStatus())
-                            .props(proxySelectorAddDTO.getProps())
-                            .dateCreated(currentTime)
-                            .dateUpdated(currentTime)
-                            .build();
-                    upstreamDOList.add(discoveryUpstreamDO);
-                });
-                result = discoveryUpstreamMapper.saveBatch(upstreamDOList) + result + 2;
+                if (!CollectionUtils.isEmpty(proxySelectorAddDTO.getDiscoveryUpstreams())) {
+                    proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
+                        DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
+                                .id(UUIDUtils.getInstance().generateShortUuid())
+                                .discoveryHandlerId(discoveryHandlerId)
+                                .protocol(discoveryUpstream.getProtocol())
+                                .url(discoveryUpstream.getUrl())
+                                .status(discoveryUpstream.getStatus())
+                                .props(discoveryUpstream.getProps())
+                                .dateCreated(currentTime)
+                                .dateUpdated(currentTime)
+                                .build();
+                        upstreamDOList.add(discoveryUpstreamDO);
+                    });
+                    result = discoveryUpstreamMapper.saveBatch(upstreamDOList) + result + 2;
+                }
             }
         }
         return result;
@@ -239,15 +243,30 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         discoveryMapper.updateSelective(discoveryDO);
         // update discovery upstream list
         proxySelectorAddDTO.getDiscoveryUpstreams().forEach(discoveryUpstream -> {
-            DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
-                  .id(discoveryUpstream.getId())
-                  .protocol(discoveryUpstream.getProtocol())
-                  .url(discoveryUpstream.getUrl())
-                  .status(discoveryUpstream.getStatus())
-                  .props(discoveryUpstream.getProps())
-                  .dateUpdated(currentTime)
-                  .build();
-            discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
+            if (org.apache.commons.lang3.StringUtils.isBlank(discoveryUpstream.getId())) {
+                DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
+                        .id(UUIDUtils.getInstance().generateShortUuid())
+                        .discoveryHandlerId(discoveryHandlerId)
+                        .protocol(discoveryUpstream.getProtocol())
+                        .url(discoveryUpstream.getUrl())
+                        .status(discoveryUpstream.getStatus())
+                        .weight(discoveryUpstream.getWeight())
+                        .props(discoveryUpstream.getProps())
+                        .dateUpdated(currentTime)
+                        .build();
+                discoveryUpstreamMapper.insert(discoveryUpstreamDO);
+            } else {
+                DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.builder()
+                        .id(discoveryUpstream.getId())
+                        .protocol(discoveryUpstream.getProtocol())
+                        .url(discoveryUpstream.getUrl())
+                        .status(discoveryUpstream.getStatus())
+                        .weight(discoveryUpstream.getWeight())
+                        .props(discoveryUpstream.getProps())
+                        .dateUpdated(currentTime)
+                        .build();
+                discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
+            }
         });
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }

@@ -338,6 +338,14 @@ public class ProxySelectorAddDTO implements Serializable {
         @NotNull(message = "status不能为空")
         private Integer status;
 
+        /**
+         * weight.
+         */
+        private Integer weight;
+
+        /**
+         * props.
+         */
         private String props;
 
         /**
@@ -415,6 +423,24 @@ public class ProxySelectorAddDTO implements Serializable {
         public void setStatus(final Integer status) {
 
             this.status = status;
+        }
+
+        /**
+         * getWeight.
+         *
+         * @return weight
+         */
+        public Integer getWeight() {
+            return weight;
+        }
+
+        /**
+         * setWeight.
+         *
+         * @param weight weight
+         */
+        public void setWeight(final Integer weight) {
+            this.weight = weight;
         }
 
         /**
