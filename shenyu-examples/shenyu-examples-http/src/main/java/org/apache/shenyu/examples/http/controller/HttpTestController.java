@@ -68,7 +68,7 @@ import java.util.Map;
 @ApiModule("/test")
 public class HttpTestController {
 
-    private static final Integer SIZE = 1024 * 1024;
+    private static final Integer SIZE = 20000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpTestController.class);
 

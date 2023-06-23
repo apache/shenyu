@@ -20,7 +20,7 @@ package org.apache.shenyu.discovery.api.listener;
 /**
  * Data changed event.
  */
-public final class DataChangedEvent {
+public final class DiscoveryDataChangedEvent {
     
     private final String key;
     
@@ -35,7 +35,7 @@ public final class DataChangedEvent {
      * @param value the value
      * @param event the event
      */
-    public DataChangedEvent(final String key, final String value, final Event event) {
+    public DiscoveryDataChangedEvent(final String key, final String value, final Event event) {
         this.key = key;
         this.value = value;
         this.event = event;
