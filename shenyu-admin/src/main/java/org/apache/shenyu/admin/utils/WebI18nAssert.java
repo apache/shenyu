@@ -38,6 +38,7 @@ public final class WebI18nAssert {
      *
      * @param obj     obj
      * @param message error message
+     * @param objects objects
      */
     public static void notNull(final Object obj, final String message, final Object... objects) {
         isTrue(Objects.nonNull(obj), message, objects);
@@ -48,6 +49,7 @@ public final class WebI18nAssert {
      *
      * @param obj     obj
      * @param message error message
+     * @param objects objects
      */
     public static void isNull(final Object obj, final String message, final Object... objects) {
         isTrue(Objects.isNull(obj), message, objects);
@@ -58,6 +60,7 @@ public final class WebI18nAssert {
      *
      * @param str     string
      * @param message error message
+     * @param objects objects
      */
     public static void notBlack(final String str, final String message, final Object... objects) {
         isTrue(StringUtils.isNoneBlank(str), message, objects);
@@ -68,6 +71,7 @@ public final class WebI18nAssert {
      *
      * @param collection obj
      * @param message    error message
+     * @param objects    objects
      */
     public static void notEmpty(final Collection<?> collection, final String message, final Object... objects) {
         isTrue(!CollectionUtils.isEmpty(collection), message, objects);
@@ -78,6 +82,7 @@ public final class WebI18nAssert {
      *
      * @param test    string
      * @param message error message
+     * @param objects objects
      */
     public static void isTrue(final Boolean test, final String message, final Object... objects) {
         if (!Boolean.TRUE.equals(test)) {
@@ -86,9 +91,10 @@ public final class WebI18nAssert {
     }
     
     /**
-     * fail
+     * fail.
      *
      * @param message message
+     * @param objects objects
      */
     public static void fail(final String message, final Object... objects) {
         throw new WebI18nException(message, objects);

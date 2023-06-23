@@ -26,7 +26,6 @@ import org.springframework.context.i18n.LocaleContextHolder;
  */
 public class WebI18nException extends I18nException {
     
-    
     public WebI18nException(final Throwable e) {
         super(e);
     }

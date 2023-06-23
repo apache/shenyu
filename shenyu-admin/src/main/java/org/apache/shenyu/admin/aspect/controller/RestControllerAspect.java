@@ -54,9 +54,10 @@ public class RestControllerAspect {
      *
      * @param point point {@link ProceedingJoinPoint}
      * @return result {@link Object}
+     * @throws Throwable Throwable
      */
     @Around("controller()")
-    public Object logAround(final ProceedingJoinPoint point) throws Throwable{
+    public Object logAround(final ProceedingJoinPoint point) throws Throwable {
         final Stopwatch stopwatch = Stopwatch.createStarted();
         final Method method = ((MethodSignature) point.getSignature()).getMethod();
         final Object target = point.getTarget();

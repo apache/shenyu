@@ -28,22 +28,24 @@ public class I18nException extends ShenyuAdminException {
     
     private final Locale locale;
     
-    private Object[] args;
+    private final Object[] args;
     
     public I18nException(final Throwable e) {
         super(e);
         locale = Locale.getDefault();
+        args = null;
     }
     
-    public I18nException(final Locale locale, final String message, Object... objects) {
+    public I18nException(final Locale locale, final String message, final Object... objects) {
         super(message);
         this.locale = locale;
         args = objects;
     }
     
-    public I18nException(final Locale locale, final String message, final Throwable throwable) {
+    public I18nException(final Locale locale, final String message, final Throwable throwable, final Object... objects) {
         super(message, throwable);
         this.locale = locale;
+        args = objects;
     }
     
     /**

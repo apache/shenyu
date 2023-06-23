@@ -51,6 +51,11 @@ public class ShenyuAdminConfiguration {
         return new SelectorHandleConverterFactor(converterMap);
     }
     
+    /**
+     * support I18n.
+     *
+     * @return LocaleResolver
+     */
     @Bean
     public LocaleResolver localeResolver() {
         final AcceptHeaderLocaleResolver localeResolver = new AcceptHeaderLocaleResolver();
