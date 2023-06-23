@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.handler;
+package org.apache.shenyu.admin.discovery.parse;
 
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
@@ -23,31 +23,24 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import java.util.List;
 
 /**
- * ProxySelectorDataHandler.
+ * parse value to ProxySelectorData list.
  */
-public interface ProxySelectorDataHandler {
+public interface KeyValueParser {
 
     /**
-     * handlerProxySelector.
+     * parseValue.
      *
-     * @param selectorData  selectorData
-     * @param upstreamsList upstreamsList
+     * @param value value
+     * @return DiscoveryUpstreamData list
      */
-    void handlerProxySelector(ProxySelectorData selectorData, List<DiscoveryUpstreamData> upstreamsList);
-
-
-    /**
-     * removeProxySelector.
-     *
-     * @param proxySelectorName proxySelectorName
-     */
-    void removeProxySelector(String proxySelectorName);
+    List<DiscoveryUpstreamData> parseValue(String value);
 
     /**
-     * pluginName.
+     * parseKey.
      *
-     * @return pluginName
+     * @param key discovery key
+     * @return ProxySelectorData.
      */
-    String pluginName();
+    ProxySelectorData parseKey(String key);
 
 }

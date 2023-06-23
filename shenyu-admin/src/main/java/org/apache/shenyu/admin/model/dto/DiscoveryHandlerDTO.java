@@ -15,26 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto;
+package org.apache.shenyu.admin.model.dto;
 
-import java.util.Properties;
-
-/**
- * ProxySelectorData.
- */
-public class ProxySelectorData {
+public class DiscoveryHandlerDTO {
 
     private String id;
 
-    private String name;
+    private String discoveryId;
 
-    private String pluginName;
+    private String handler;
 
-    private String type;
+    private String listenerNode;
 
-    private Integer forwardPort;
-
-    private Properties props = new Properties();
+    private String props;
 
     /**
      * getId.
@@ -55,75 +48,57 @@ public class ProxySelectorData {
     }
 
     /**
-     * getName.
+     * getDiscoveryId.
      *
-     * @return name
+     * @return discoveryId
      */
-    public String getName() {
-        return name;
+    public String getDiscoveryId() {
+        return discoveryId;
     }
 
     /**
-     * setName.
+     * setDiscoveryId.
      *
-     * @param name name
+     * @param discoveryId discoveryId
      */
-    public void setName(final String name) {
-        this.name = name;
+    public void setDiscoveryId(final String discoveryId) {
+        this.discoveryId = discoveryId;
     }
 
     /**
-     * getPluginName.
+     * getHandler.
      *
-     * @return pluginName
+     * @return handler
      */
-    public String getPluginName() {
-        return pluginName;
+    public String getHandler() {
+        return handler;
     }
 
     /**
-     * setPluginName.
+     * setHandler.
      *
-     * @param pluginName pluginName
+     * @param handler handler
      */
-    public void setPluginName(final String pluginName) {
-        this.pluginName = pluginName;
+    public void setHandler(final String handler) {
+        this.handler = handler;
     }
 
     /**
-     * getType.
+     * getListenerNode.
      *
-     * @return type
+     * @return listenerNode
      */
-    public String getType() {
-        return type;
+    public String getListenerNode() {
+        return listenerNode;
     }
 
     /**
-     * setType.
+     * setListenerNode.
      *
-     * @param type type
+     * @param listenerNode listenerNode
      */
-    public void setType(final String type) {
-        this.type = type;
-    }
-
-    /**
-     * getForwardPort.
-     *
-     * @return forwardPort
-     */
-    public Integer getForwardPort() {
-        return forwardPort;
-    }
-
-    /**
-     * setForwardPort.
-     *
-     * @param forwardPort forwardPort
-     */
-    public void setForwardPort(final Integer forwardPort) {
-        this.forwardPort = forwardPort;
+    public void setListenerNode(final String listenerNode) {
+        this.listenerNode = listenerNode;
     }
 
     /**
@@ -131,7 +106,7 @@ public class ProxySelectorData {
      *
      * @return props
      */
-    public Properties getProps() {
+    public String getProps() {
         return props;
     }
 
@@ -140,8 +115,7 @@ public class ProxySelectorData {
      *
      * @param props props
      */
-    public void setProps(final Properties props) {
+    public void setProps(final String props) {
         this.props = props;
     }
-
 }
