@@ -85,7 +85,7 @@ public final class ExceptionHandlersTest {
 
     @BeforeEach
     public void setUp() {
-        exceptionHandlersUnderTest = new ExceptionHandlers();
+        exceptionHandlersUnderTest = new ExceptionHandlers(null);
     }
 
     @Test

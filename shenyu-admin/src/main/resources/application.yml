@@ -31,6 +31,8 @@ spring:
       matching-strategy: ant_path_matcher
   jackson:
     time-zone: GMT+8 # GMT , Asia/Shanghai
+  messages:
+    basename: message/i18n
 
 management:
   endpoints:
