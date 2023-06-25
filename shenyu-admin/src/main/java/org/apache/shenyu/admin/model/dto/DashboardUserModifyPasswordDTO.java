@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.model.dto;
 
 import org.apache.shenyu.admin.model.constant.RegConstant;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.utils.FailI18nMessage;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -43,7 +43,7 @@ public class DashboardUserModifyPasswordDTO implements Serializable {
      * user password.
      */
     @NotBlank
-    @Pattern(regexp = RegConstant.PASSWORD_RULE, message = ShenyuResultMessage.PASSWORD_MUST)
+    @Pattern(regexp = RegConstant.PASSWORD_RULE, message = '{' + FailI18nMessage.PASSWORD_MUST + '}')
     private String password;
     
     /**

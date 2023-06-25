@@ -43,12 +43,13 @@ import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.publish.UserEventPublisher;
 import org.apache.shenyu.admin.transfer.DashboardUserTransfer;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.utils.FailI18nMessage;
 import org.apache.shenyu.admin.utils.JwtUtils;
-import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.admin.utils.SessionUtil;
-import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.utils.WebI18nAssert;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.DigestUtils;
+import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.NameNotFoundException;
@@ -309,10 +310,10 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public boolean checkUserPassword(final String userId) {
         final DashboardUserDO userDO = dashboardUserMapper.selectById(userId);
         
-        Assert.isTrue(!Objects.equals(userDO.getDateCreated(), userDO.getDateUpdated()), ShenyuResultMessage.PASSWORD_IS_DEFAULT);
+        WebI18nAssert.isTrue(!Objects.equals(userDO.getDateCreated(), userDO.getDateUpdated()), FailI18nMessage.PASSWORD_IS_DEFAULT);
         
         // The password has not been changed for a long time
-        Assert.isTrue(passwordUsedLongTime(userDO), ShenyuResultMessage.PASSWORD_USED_FOR_LONG_TIME);
+        WebI18nAssert.isTrue(passwordUsedLongTime(userDO), FailI18nMessage.PASSWORD_USED_FOR_LONG_TIME);
         
         // Weak password blacklist
         
