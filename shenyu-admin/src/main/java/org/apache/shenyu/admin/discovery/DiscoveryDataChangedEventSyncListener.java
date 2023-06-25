@@ -89,8 +89,6 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                         discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
                         LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
                     });
-                    fillFullyDiscoverySyncData(discoverySyncData);
-                    dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(discoverySyncData));
                     break;
                 case UPDATED:
                     upstreamDataList.forEach(d -> {
@@ -98,8 +96,6 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                         discoveryUpstreamMapper.update(discoveryUpstreamDO);
                         LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}", discoveryUpstreamDO.getUrl());
                     });
-                    fillFullyDiscoverySyncData(discoverySyncData);
-                    dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
                     break;
                 case DELETED:
                     if (CollectionUtils.isNotEmpty(upstreamDataList)) {
@@ -108,12 +104,12 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                             LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] DELETE Upstream {}", up.getUrl());
                         });
                     }
-                    fillFullyDiscoverySyncData(discoverySyncData);
-                    dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
                     break;
                 default:
                     throw new IllegalStateException("shenyu DiscoveryDataChangedEventSyncListener find IllegalState");
             }
+            fillFullyDiscoverySyncData(discoverySyncData);
+            dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
         }
         if (Objects.nonNull(dataChangedEvent)) {
             eventPublisher.publishEvent(dataChangedEvent);
@@ -121,21 +117,18 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     }
 
     private void fillFullyDiscoverySyncData(final DiscoverySyncData discoverySyncData) {
-        ProxySelectorData proxySelectorData = discoverySyncData.getProxySelectorData();
-        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByProxySelectorId(proxySelectorData.getId());
+        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByProxySelectorId(discoverySyncData.getSelectorId());
         List<DiscoveryUpstreamData> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
         discoverySyncData.setUpstreamDataList(collect);
     }
 
     private DiscoverySyncData buildProxySelectorData(final String key, final String value) {
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
-        ProxySelectorData proxySelectorData = keyValueParser.parseKey(key);
         String[] split = key.split("/");
         String discoveryHandleId = split[split.length - 2];
         discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandleId));
         DiscoverySyncData data = new DiscoverySyncData();
         data.setUpstreamDataList(discoveryUpstreamDTOS);
-        data.setProxySelectorData(proxySelectorData);
         return data;
     }
 

@@ -17,8 +17,13 @@
 
 package org.apache.shenyu.admin.transfer;
 
+import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
+import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
+
+import java.util.Properties;
 
 /**
  * DiscoveryTransfer.
@@ -66,6 +71,36 @@ public enum DiscoveryTransfer {
         discoveryUpstreamData.setDateUpdated(discoveryUpstreamDO.getDateUpdated());
         discoveryUpstreamData.setDateCreated(discoveryUpstreamDO.getDateCreated());
         return discoveryUpstreamData;
+    }
+
+
+    /**
+     * mapToData.
+     *
+     * @param discoveryUpstreamDTO discoveryUpstreamDTO
+     * @return DiscoveryUpstreamData
+     */
+    public DiscoveryUpstreamData mapToData(DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+        DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
+        discoveryUpstreamData.setId(discoveryUpstreamDTO.getId());
+        discoveryUpstreamData.setProtocol(discoveryUpstreamDTO.getProtocol());
+        discoveryUpstreamData.setUrl(discoveryUpstreamDTO.getUrl());
+        discoveryUpstreamData.setStatus(discoveryUpstreamDTO.getStatus());
+        discoveryUpstreamData.setDiscoveryHandlerId(discoveryUpstreamDTO.getDiscoveryHandlerId());
+        discoveryUpstreamData.setWeight(discoveryUpstreamDTO.getWeight());
+        discoveryUpstreamData.setProps(discoveryUpstreamDTO.getProps());
+        return discoveryUpstreamData;
+    }
+
+
+    public ProxySelectorData mapToData(ProxySelectorDTO proxySelectorDTO){
+        ProxySelectorData proxySelectorData = new ProxySelectorData();
+        proxySelectorData.setId(proxySelectorDTO.getId());
+        proxySelectorData.setName(proxySelectorDTO.getName());
+        proxySelectorData.setPluginName(proxySelectorDTO.getPluginName());
+        proxySelectorData.setType(proxySelectorDTO.getType());
+        proxySelectorData.setForwardPort(proxySelectorDTO.getForwardPort());
+        return proxySelectorData;
     }
 
 }

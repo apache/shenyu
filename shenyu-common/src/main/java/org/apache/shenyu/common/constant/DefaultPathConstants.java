@@ -57,6 +57,11 @@ public final class DefaultPathConstants implements Constants {
     public static final String PROXY_SELECTOR = PRE_FIX + "/proxySelectorData";
 
     /**
+     * The constant PROXY_SELECTOR.
+     */
+    public static final String DISCOVERY_UPSTREAM = PRE_FIX + "/discoveryUpstream";
+
+    /**
      * acquire app_auth_path.
      *
      * @param appKey appKey
@@ -149,4 +154,8 @@ public final class DefaultPathConstants implements Constants {
         return String.join(PATH_SEPARATOR, PROXY_SELECTOR, pluginName, proxySelectorName);
     }
 
+
+    public static String buildDiscoveryUpstreamPath(final String pluginName, final String proxySelectorName) {
+        return String.join(PATH_SEPARATOR, PROXY_SELECTOR, pluginName, proxySelectorName);
+    }
 }

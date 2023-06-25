@@ -21,27 +21,78 @@ import java.util.List;
 
 public class DiscoverySyncData {
 
-    private ProxySelectorData proxySelectorData;
+    /**
+     * selectorId.
+     */
+    private String selectorId;
+
+    /**
+     * pluginName.
+     */
+    private String pluginName;
+
+    /**
+     * selectorName.
+     */
+    private String selectorName;
+
 
     private List<DiscoveryUpstreamData> upstreamDataList;
 
     /**
-     * getProxySelectorData.
+     * getSelectorId.
      *
-     * @return proxySelectorData
+     * @return selectorId
      */
-    public ProxySelectorData getProxySelectorData() {
-        return proxySelectorData;
+    public String getSelectorId() {
+        return selectorId;
     }
 
     /**
-     * setProxySelectorData.
+     * setSelectorId.
      *
-     * @param proxySelectorData proxySelectorData
+     * @param selectorId selectorId
      */
-    public void setProxySelectorData(final ProxySelectorData proxySelectorData) {
-        this.proxySelectorData = proxySelectorData;
+    public void setSelectorId(final String selectorId) {
+        this.selectorId = selectorId;
     }
+
+    /**
+     * getPluginName.
+     *
+     * @return pluginName
+     */
+    public String getPluginName() {
+        return pluginName;
+    }
+
+    /**
+     * setPluginName.
+     *
+     * @param pluginName pluginName
+     */
+    public void setPluginName(final String pluginName) {
+        this.pluginName = pluginName;
+    }
+
+    /**
+     * getSelectorName.
+     *
+     * @return selectorName
+     */
+    public String getSelectorName() {
+        return selectorName;
+    }
+
+    /**
+     * setSelectorName.
+     *
+     * @param selectorName selectorName
+     */
+    public void setSelectorName(String selectorName) {
+        this.selectorName = selectorName;
+    }
+
 
     /**
      * getUpstreamDataList.

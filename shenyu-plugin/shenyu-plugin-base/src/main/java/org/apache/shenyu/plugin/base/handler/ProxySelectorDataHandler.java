@@ -30,10 +30,9 @@ public interface ProxySelectorDataHandler {
     /**
      * handlerProxySelector.
      *
-     * @param selectorData  selectorData
-     * @param upstreamsList upstreamsList
+     * @param selectorData selectorData
      */
-    void handlerProxySelector(ProxySelectorData selectorData, List<DiscoveryUpstreamData> upstreamsList);
+    void handlerProxySelector(ProxySelectorData selectorData);
 
 
     /**

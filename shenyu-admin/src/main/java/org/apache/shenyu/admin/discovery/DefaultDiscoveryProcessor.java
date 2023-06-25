@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -100,7 +101,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
             shenyuDiscoveryService.register(key, GsonUtils.getInstance().toJson(proxySelectorDTO));
         }
         shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(proxySelectorDTO.getType(), discoveryHandlerDTO.getProps()));
-        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(covert(proxySelectorDTO, null)));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         eventPublisher.publishEvent(dataChangedEvent);
     }
 
@@ -125,7 +126,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
         String key = buildProxySelectorKey(discoveryHandlerDTO, proxySelectorDTO);
         shenyuDiscoveryService.unWatcher(key);
-        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(covert(proxySelectorDTO, null)));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         eventPublisher.publishEvent(dataChangedEvent);
     }
 
