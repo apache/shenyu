@@ -17,9 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
-import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
@@ -27,7 +25,6 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -109,6 +106,6 @@ public class ProxySelectorController {
     @PostMapping("addProxySelector")
     public ShenyuAdminResult addProxySelector(@RequestBody @Valid final ProxySelectorAddDTO proxySelectorAddDTO) {
 
-        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, proxySelectorService.addProxySelector(proxySelectorAddDTO));
+        return ShenyuAdminResult.success(proxySelectorService.create(proxySelectorAddDTO), null);
     }
 }

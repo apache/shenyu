@@ -55,7 +55,7 @@ public interface ProxySelectorService {
      * addProxySelector.
      *
      * @param proxySelectorAddDTO {@link ProxySelectorAddDTO}
-     * @return the Integer
+     * @return the result
      */
-    Integer addProxySelector(ProxySelectorAddDTO proxySelectorAddDTO);
+    String create(ProxySelectorAddDTO proxySelectorAddDTO);
 }

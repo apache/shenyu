@@ -128,8 +128,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         if (StringUtils.hasLength(proxySelectorAddDTO.getId())) {
             return update(proxySelectorAddDTO);
         } else {
-            addProxySelector(proxySelectorAddDTO);
-            return ShenyuResultMessage.CREATE_SUCCESS;
+            return create(proxySelectorAddDTO);
         }
     }
 
@@ -153,14 +152,11 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      * @return insert data count
      */
     @Override
-    public Integer addProxySelector(final ProxySelectorAddDTO proxySelectorAddDTO) {
-
+    public String create(final ProxySelectorAddDTO proxySelectorAddDTO) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        int result = 0;
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
         String proxySelectorId = proxySelectorDO.getId();
         if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
-            result += 1;
             String discoveryId = UUIDUtils.getInstance().generateShortUuid();
             DiscoveryDO discoveryDO = DiscoveryDO.builder()
                     .id(discoveryId)
@@ -204,17 +200,18 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                                 .protocol(discoveryUpstream.getProtocol())
                                 .url(discoveryUpstream.getUrl())
                                 .status(discoveryUpstream.getStatus())
+                                .weight(discoveryUpstream.getWeight())
                                 .props(discoveryUpstream.getProps())
                                 .dateCreated(currentTime)
                                 .dateUpdated(currentTime)
                                 .build();
                         upstreamDOList.add(discoveryUpstreamDO);
                     });
-                    result = discoveryUpstreamMapper.saveBatch(upstreamDOList) + result + 2;
+                    discoveryUpstreamMapper.saveBatch(upstreamDOList);
                 }
             }
         }
-        return result;
+        return ShenyuResultMessage.CREATE_SUCCESS;
     }
 
     /**
