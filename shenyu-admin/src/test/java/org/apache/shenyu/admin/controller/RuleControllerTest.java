@@ -95,7 +95,7 @@ public final class RuleControllerTest {
     @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(ruleController)
-                .setControllerAdvice(new ExceptionHandlers())
+                .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
         // mock login user
         final UserInfo mockLoginUser = new UserInfo();

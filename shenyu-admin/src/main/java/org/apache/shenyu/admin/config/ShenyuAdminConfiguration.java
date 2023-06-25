@@ -22,11 +22,15 @@ import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The type Shenyu admin configuration.
@@ -45,5 +49,17 @@ public class ShenyuAdminConfiguration {
     public SelectorHandleConverterFactor selectorHandleConverterFactor(final List<SelectorHandleConverter> converterList) {
         Map<String, SelectorHandleConverter> converterMap = converterList.stream().collect(Collectors.toMap(SelectorHandleConverter::pluginName, Function.identity()));
         return new SelectorHandleConverterFactor(converterMap);
+    }
+    
+    /**
+     * support I18n.
+     *
+     * @return LocaleResolver
+     */
+    @Bean
+    public LocaleResolver localeResolver() {
+        final AcceptHeaderLocaleResolver localeResolver = new AcceptHeaderLocaleResolver();
+        localeResolver.setSupportedLocales(Stream.of(Locale.US, Locale.SIMPLIFIED_CHINESE).collect(Collectors.toList()));
+        return localeResolver;
     }
 }
