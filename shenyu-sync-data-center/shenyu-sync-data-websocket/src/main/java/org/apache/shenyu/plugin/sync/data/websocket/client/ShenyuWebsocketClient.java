@@ -29,6 +29,7 @@ import org.apache.shenyu.plugin.sync.data.websocket.handler.WebsocketDataHandler
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -43,52 +44,57 @@ import java.util.concurrent.TimeUnit;
  * The type shenyu websocket client.
  */
 public final class ShenyuWebsocketClient extends WebSocketClient {
-    
+
     /**
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuWebsocketClient.class);
-    
+
     private volatile boolean alreadySync = Boolean.FALSE;
-    
+
     private final WebsocketDataHandler websocketDataHandler;
-    
+
     private final Timer timer;
-    
+
     private TimerTask timerTask;
-    
+
     /**
      * Instantiates a new shenyu websocket client.
      *
-     * @param serverUri            the server uri
-     * @param pluginDataSubscriber the plugin data subscriber
-     * @param metaDataSubscribers  the meta data subscribers
-     * @param authDataSubscribers  the auth data subscribers
+     * @param serverUri                    the server uri
+     * @param pluginDataSubscriber         the plugin data subscriber
+     * @param metaDataSubscribers          the meta data subscribers
+     * @param authDataSubscribers          the auth data subscribers
+     * @param proxySelectorDataSubscribers the proxySelector data subscribers
      */
     public ShenyuWebsocketClient(final URI serverUri, final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
-                                 final List<AuthDataSubscriber> authDataSubscribers
+                                 final List<AuthDataSubscriber> authDataSubscribers,
+                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers
     ) {
         super(serverUri);
-        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }
 
     /**
      * Instantiates a new shenyu websocket client.
-     * @param serverUri the server uri
-     * @param headers the headers
-     * @param pluginDataSubscriber the plugin data subscriber
-     * @param metaDataSubscribers the meta data subscribers
-     * @param authDataSubscribers the auth data subscribers
+     *
+     * @param serverUri                    the server uri
+     * @param headers                      the headers
+     * @param pluginDataSubscriber         the plugin data subscriber
+     * @param metaDataSubscribers          the meta data subscribers
+     * @param authDataSubscribers          the auth data subscribers
+     * @param proxySelectorDataSubscribers the proxySelector data subscribers
      */
     public ShenyuWebsocketClient(final URI serverUri, final Map<String, String> headers,
                                  final PluginDataSubscriber pluginDataSubscriber,
                                  final List<MetaDataSubscriber> metaDataSubscribers,
-                                 final List<AuthDataSubscriber> authDataSubscribers) {
+                                 final List<AuthDataSubscriber> authDataSubscribers,
+                                 final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
         super(serverUri, headers);
-        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers);
         this.timer = WheelTimerFactory.getSharedTimer();
         this.connection();
     }
@@ -102,7 +108,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             }
         });
     }
-    
+
     @Override
     public boolean connectBlocking() {
         boolean success = false;
@@ -126,22 +132,22 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             alreadySync = true;
         }
     }
-    
+
     @Override
     public void onMessage(final String result) {
         handleResult(result);
     }
-    
+
     @Override
     public void onClose(final int i, final String s, final boolean b) {
         this.close();
     }
-    
+
     @Override
     public void onError(final Exception e) {
         LOG.error("websocket server[{}] is error.....", getURI(), e);
     }
-    
+
     @Override
     public void close() {
         alreadySync = false;
@@ -149,7 +155,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             super.close();
         }
     }
-    
+
     /**
      * Now close.
      * now close. will cancel the task execution.
@@ -158,7 +164,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         this.close();
         timerTask.cancel();
     }
-    
+
     private void healthCheck() {
         try {
             if (!this.isOpen()) {

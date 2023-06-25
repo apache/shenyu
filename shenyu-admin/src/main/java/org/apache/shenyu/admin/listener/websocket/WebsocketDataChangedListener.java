@@ -19,12 +19,7 @@ package org.apache.shenyu.admin.listener.websocket;
 
 import java.util.List;
 import org.apache.shenyu.admin.listener.DataChangedListener;
-import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.WebsocketData;
+import org.apache.shenyu.common.dto.*;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -68,6 +63,13 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     public void onMetaDataChanged(final List<MetaData> metaDataList, final DataEventTypeEnum eventType) {
         WebsocketData<MetaData> configData =
                 new WebsocketData<>(ConfigGroupEnum.META_DATA.name(), eventType.name(), metaDataList);
+        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
+    }
+
+    @Override
+    public void onProxySelectorChanged(List<DiscoverySyncData> discoverySyncDataList, DataEventTypeEnum eventType) {
+        WebsocketData<DiscoverySyncData> configData =
+                new WebsocketData<>(ConfigGroupEnum.PROXY_SELECTOR.name(), eventType.name(), discoverySyncDataList);
         WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
 }

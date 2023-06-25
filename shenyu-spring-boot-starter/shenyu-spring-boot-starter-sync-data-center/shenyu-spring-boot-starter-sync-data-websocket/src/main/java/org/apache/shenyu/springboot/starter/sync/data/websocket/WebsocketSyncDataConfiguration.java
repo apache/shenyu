@@ -19,10 +19,7 @@ package org.apache.shenyu.springboot.starter.sync.data.websocket;
 
 import org.apache.shenyu.plugin.sync.data.websocket.WebsocketSyncDataService;
 import org.apache.shenyu.plugin.sync.data.websocket.config.WebsocketConfig;
-import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
-import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
-import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.sync.data.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -48,18 +45,20 @@ public class WebsocketSyncDataConfiguration {
     /**
      * Websocket sync data service.
      *
-     * @param websocketConfig   the websocket config
+     * @param websocketConfig  the websocket config
      * @param pluginSubscriber the plugin subscriber
-     * @param metaSubscribers   the meta subscribers
-     * @param authSubscribers   the auth subscribers
+     * @param metaSubscribers  the meta subscribers
+     * @param authSubscribers  the auth subscribers
      * @return the sync data service
      */
     @Bean
     public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
-                                           final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
+                                                    final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers,
+                                                    final ObjectProvider<List<ProxySelectorDataSubscriber>> proxySelectorSubscribers) {
         LOGGER.info("you use websocket sync shenyu data.......");
         return new WebsocketSyncDataService(websocketConfig.getIfAvailable(WebsocketConfig::new), pluginSubscriber.getIfAvailable(),
-                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
+                metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList),
+                proxySelectorSubscribers.getIfAvailable(Collections::emptyList));
     }
 
     /**

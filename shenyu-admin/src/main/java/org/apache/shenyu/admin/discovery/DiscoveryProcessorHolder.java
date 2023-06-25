@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.discovery;
 
+import org.apache.commons.lang3.NotImplementedException;
+
 public class DiscoveryProcessorHolder {
 
     private final DiscoveryProcessor defaultDiscoveryProcessor;
@@ -37,8 +39,10 @@ public class DiscoveryProcessorHolder {
     public DiscoveryProcessor chooseProcessor(final String mode) {
         if (DiscoveryMode.LOCAL.name().equalsIgnoreCase(mode)) {
             return localDiscoveryProcessor;
-        } else {
+        } else if (DiscoveryMode.ZOOKEEPER.name().equalsIgnoreCase(mode)) {
             return defaultDiscoveryProcessor;
+        } else {
+            throw new NotImplementedException("current didn't support " + mode);
         }
     }
 
