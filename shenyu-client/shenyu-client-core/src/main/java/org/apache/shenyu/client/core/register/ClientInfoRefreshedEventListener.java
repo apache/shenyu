@@ -20,6 +20,7 @@ package org.apache.shenyu.client.core.register;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
@@ -62,6 +63,7 @@ public final class ClientInfoRefreshedEventListener implements ApplicationListen
                 .rpcType(rpcTypeEnum.getName())
                 .host(host)
                 .port(port)
+                .eventType(EventType.REGISTER)
                 .build();
 
         publisher.publishEvent(uriRegisterDTO);

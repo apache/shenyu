@@ -15,39 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.handler;
+package org.apache.shenyu.admin.discovery;
 
-import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
+public class DiscoveryProcessorHolder {
 
-import java.util.List;
+    private final DiscoveryProcessor defaultDiscoveryProcessor;
 
-/**
- * ProxySelectorDataHandler.
- */
-public interface ProxySelectorDataHandler {
+    private final DiscoveryProcessor localDiscoveryProcessor;
 
-    /**
-     * handlerProxySelector.
-     *
-     * @param selectorData  selectorData
-     * @param upstreamsList upstreamsList
-     */
-    void handlerProxySelector(ProxySelectorData selectorData, List<DiscoveryUpstreamData> upstreamsList);
-
+    public DiscoveryProcessorHolder(final DiscoveryProcessor defaultDiscoveryProcessor, final DiscoveryProcessor localDiscoveryProcessor) {
+        this.defaultDiscoveryProcessor = defaultDiscoveryProcessor;
+        this.localDiscoveryProcessor = localDiscoveryProcessor;
+    }
 
     /**
-     * removeProxySelector.
+     * chooseProcessor.
      *
-     * @param proxySelectorName proxySelectorName
+     * @param mode mode
+     * @return DiscoveryProcessor
      */
-    void removeProxySelector(String proxySelectorName);
-
-    /**
-     * pluginName.
-     *
-     * @return pluginName
-     */
-    String pluginName();
+    public DiscoveryProcessor chooseProcessor(final String mode) {
+        if (DiscoveryMode.LOCAL.name().equalsIgnoreCase(mode)) {
+            return localDiscoveryProcessor;
+        } else {
+            return defaultDiscoveryProcessor;
+        }
+    }
 
 }

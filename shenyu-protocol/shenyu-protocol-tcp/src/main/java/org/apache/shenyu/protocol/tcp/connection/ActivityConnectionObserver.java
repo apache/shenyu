@@ -19,7 +19,7 @@ package org.apache.shenyu.protocol.tcp.connection;
 
 import com.google.common.eventbus.Subscribe;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.netty.Connection;
@@ -67,7 +67,7 @@ public class ActivityConnectionObserver implements ConnectionObserver {
      * @param remove removeList
      */
     @Subscribe
-    public void onRemove(final List<DiscoveryUpstream> remove) {
+    public void onRemove(final List<DiscoveryUpstreamData> remove) {
         LOG.info("shenyu {} ConnectionObserver  do on remove upstreams", name);
         for (Connection connection : cache.keySet()) {
             SocketAddress socketAddress = connection.channel().remoteAddress();
@@ -85,10 +85,10 @@ public class ActivityConnectionObserver implements ConnectionObserver {
      * @param cacheSocketAddress cacheSocketAddress
      * @return boolean
      */
-    private boolean in(final List<DiscoveryUpstream> removeList, final SocketAddress cacheSocketAddress) {
+    private boolean in(final List<DiscoveryUpstreamData> removeList, final SocketAddress cacheSocketAddress) {
         return removeList.stream().anyMatch(u -> {
             String cacheUrl = cacheSocketAddress.toString().substring(1);
-            String removedUrl = u.getUpstreamUrl();
+            String removedUrl = u.getUrl();
             LOG.info("compare {} , {}", cacheUrl, removedUrl);
             return StringUtils.equals(cacheUrl, removedUrl);
         });
