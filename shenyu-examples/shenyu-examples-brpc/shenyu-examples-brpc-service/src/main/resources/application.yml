@@ -38,7 +38,6 @@ shenyu:
         ipAndPort: brpc
         appName: brpc
         port: 8005
-        host: 127.0.0.1
 
 # starlight
 starlight:

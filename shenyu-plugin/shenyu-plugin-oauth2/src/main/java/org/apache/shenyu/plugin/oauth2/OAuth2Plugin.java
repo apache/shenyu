@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.plugin.oauth2;
 
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -31,33 +34,32 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 
 /**
- * The OAuth2Plugin.
+ * The OAuth2 Plugin.
  */
-public class OAuth2Plugin implements ShenyuPlugin {
+public class OAuth2Plugin extends AbstractShenyuPlugin {
 
     private static final String BEARER = "Bearer ";
 
-    private static final String OAUTH2_ENABLE = "enable";
-
-    private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
-
-    public OAuth2Plugin(final ReactiveOAuth2AuthorizedClientService authorizedClientService) {
-        this.authorizedClientService = authorizedClientService;
+    private final ObjectProvider<ReactiveOAuth2AuthorizedClientService> authorizedClientServiceProvider;
+    
+    /**
+     * Instantiates a new oauth2 plugin.
+     *
+     * @param authorizedClientServiceProvider the authorized client service provider
+     */
+    public OAuth2Plugin(final ObjectProvider<ReactiveOAuth2AuthorizedClientService> authorizedClientServiceProvider) {
+        this.authorizedClientServiceProvider = authorizedClientServiceProvider;
     }
-
+    
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        Boolean skip = Objects.requireNonNull(exchange.<Boolean>getAttribute("skip"));
-        return Boolean.TRUE.equals(skip) ? chain.execute(exchange)
-            : exchange.getPrincipal()
-            .filter(OAuth2AuthenticationToken.class::isInstance)
-            .cast(OAuth2AuthenticationToken.class)
-            .flatMap(token ->
-                authorizedClientService.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
-            )
-            .flatMap(client -> chain.execute(this.handleToken(exchange, (OAuth2AuthorizedClient) client)));
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        return exchange.getPrincipal()
+                .filter(OAuth2AuthenticationToken.class::isInstance)
+                .cast(OAuth2AuthenticationToken.class)
+                .flatMap(this::buildAuthorizedClient)
+                .flatMap(client -> chain.execute(this.writeToken(exchange, client)));
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.OAUTH2.getCode();
@@ -70,11 +72,22 @@ public class OAuth2Plugin implements ShenyuPlugin {
 
     @Override
     public boolean skip(final ServerWebExchange exchange) {
-        Boolean skipStatus = exchange.<Boolean>getAttribute(OAUTH2_ENABLE);
-        return skipStatus == null || skipStatus;
+        return skipExceptHttpLike(exchange);
+    }
+    
+    private Mono<OAuth2AuthorizedClient> buildAuthorizedClient(final OAuth2AuthenticationToken oauth2Authentication) {
+        String clientRegistrationId = oauth2Authentication.getAuthorizedClientRegistrationId();
+        String name = oauth2Authentication.getName();
+        ReactiveOAuth2AuthorizedClientService clientService = authorizedClientServiceProvider.getIfAvailable();
+        if (Objects.isNull(clientService)) {
+            return Mono.error(new IllegalStateException(
+                    "ReactiveOAuth2AuthorizedClientService bean was found. you have to add "
+                            + " spring-boot-starter-oauth2-client dependency?"));
+        }
+        return clientService.loadAuthorizedClient(clientRegistrationId, name);
     }
 
-    private ServerWebExchange handleToken(final ServerWebExchange exchange, final OAuth2AuthorizedClient client) {
+    private ServerWebExchange writeToken(final ServerWebExchange exchange, final OAuth2AuthorizedClient client) {
         ServerHttpRequest.Builder mutate = exchange.getRequest().mutate();
         mutate.header(HttpHeaders.AUTHORIZATION, BEARER + client.getAccessToken().getTokenValue());
         return exchange.mutate().request(mutate.build()).build();

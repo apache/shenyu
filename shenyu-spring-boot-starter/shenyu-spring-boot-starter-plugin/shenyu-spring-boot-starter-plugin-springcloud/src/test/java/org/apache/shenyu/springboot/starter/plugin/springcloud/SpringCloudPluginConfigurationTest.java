@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.springcloud;
 
+import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
@@ -45,6 +46,7 @@ public class SpringCloudPluginConfigurationTest {
         applicationContextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(SpringCloudPluginConfiguration.class))
             .withBean(SpringCloudPluginConfigurationTest.class)
+            .withBean(ShenyuConfig.class)
             .withPropertyValues("debug=true");
     }
 

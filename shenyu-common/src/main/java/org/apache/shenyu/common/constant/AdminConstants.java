@@ -264,4 +264,14 @@ public final class AdminConstants {
 
     public static final String TAG_ROOT_PARENT_ID = "0";
 
+    public static final String PLUGIN_JAR_IS_NOT_RIGHT = "The plugin jar is not right!";
+
+    public static final String PLUGIN_INTERFACE_PATH = "org.apache.shenyu.plugin.api.ShenyuPlugin";
+
+    public static final String PLUGIN_ABSTRACR_PATH = "org.apache.shenyu.plugin.base.AbstractShenyuPlugin";
+
+    public static final String PROXY_SELECTOR_NAME_IS_EXIST = "The proxy selector name already exists and can't be added repeatedly!";
+
+    public static final String PROXY_SELECTOR_ID_IS_NOT_EXIST = "The proxy selector(s) does not exist";
 }
+

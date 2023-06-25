@@ -17,8 +17,7 @@
 
 package org.apache.shenyu.e2e.engine.scenario.specification;
 
-import lombok.AllArgsConstructor;
-import org.apache.shenyu.e2e.client.admin.model.ResourcesData;
+import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.engine.scenario.function.Checker;
 import org.apache.shenyu.e2e.engine.scenario.function.Deleter;
 import org.apache.shenyu.e2e.engine.scenario.function.Verifier;
@@ -27,10 +26,14 @@ import org.slf4j.MDC;
 
 import java.util.List;
 
-@AllArgsConstructor
 public class ScenarioSpecLogProxy implements ScenarioSpec {
+
     private final ScenarioSpec spec;
-    
+
+    public ScenarioSpecLogProxy(ScenarioSpec spec) {
+        this.spec = spec;
+    }
+
     @Override
     public BeforeEachSpec getBeforeEachSpec() {
         return new BeforeEachSpec() {

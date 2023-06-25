@@ -49,8 +49,8 @@ public final class SelectorDataHandlerTest {
         ConditionData conditionData = new ConditionData();
         conditionData.setParamName("conditionName-" + 0);
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
-        selectorDataList.add(SelectorData.builder().name("name1").enabled(true).conditionList(conditionDataList).build());
-        selectorDataList.add(SelectorData.builder().name("name2").build());
+        selectorDataList.add(SelectorData.builder().name("name1").enabled(true).continued(true).conditionList(conditionDataList).build());
+        selectorDataList.add(SelectorData.builder().name("name2").enabled(true).continued(true).build());
         Gson gson = new Gson();
         String json = gson.toJson(selectorDataList);
         List<SelectorData> convertedList = selectorDataHandler.convert(json);

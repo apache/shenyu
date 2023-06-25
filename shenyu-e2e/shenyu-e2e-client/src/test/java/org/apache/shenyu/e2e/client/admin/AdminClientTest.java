@@ -17,25 +17,26 @@
 
 package org.apache.shenyu.e2e.client.admin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.e2e.client.admin.model.MatchMode;
-import org.apache.shenyu.e2e.client.admin.model.Plugin;
-import org.apache.shenyu.e2e.client.admin.model.SelectorType;
-import org.apache.shenyu.e2e.client.admin.model.data.Condition;
-import org.apache.shenyu.e2e.client.admin.model.data.Condition.Operator;
-import org.apache.shenyu.e2e.client.admin.model.data.Condition.ParamType;
-import org.apache.shenyu.e2e.client.admin.model.data.RuleData;
-import org.apache.shenyu.e2e.client.admin.model.data.SelectorData;
-import org.apache.shenyu.e2e.client.admin.model.handle.DivideRuleHandle;
-import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams;
-import org.apache.shenyu.e2e.client.admin.model.handle.Upstreams.Upstream;
-import org.apache.shenyu.e2e.client.admin.model.response.RuleDTO;
-import org.apache.shenyu.e2e.client.admin.model.response.SearchedResources;
-import org.apache.shenyu.e2e.client.admin.model.response.SelectorDTO;
+import org.apache.shenyu.e2e.model.MatchMode;
+import org.apache.shenyu.e2e.model.Plugin;
+import org.apache.shenyu.e2e.model.SelectorType;
+import org.apache.shenyu.e2e.model.data.Condition;
+import org.apache.shenyu.e2e.model.data.Condition.Operator;
+import org.apache.shenyu.e2e.model.data.Condition.ParamType;
+import org.apache.shenyu.e2e.model.data.RuleData;
+import org.apache.shenyu.e2e.model.data.SelectorData;
+import org.apache.shenyu.e2e.model.handle.DivideRuleHandle;
+import org.apache.shenyu.e2e.model.handle.Upstreams;
+import org.apache.shenyu.e2e.model.handle.Upstreams.Upstream;
+import org.apache.shenyu.e2e.model.response.RuleDTO;
+import org.apache.shenyu.e2e.model.response.SearchedResources;
+import org.apache.shenyu.e2e.model.response.SelectorDTO;
 import org.apache.shenyu.e2e.matcher.RuleMatcher;
 import org.apache.shenyu.e2e.matcher.SelectorMatcher;
 import org.assertj.core.api.Assertions;
+import org.json.JSONException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,6 +45,8 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
@@ -53,10 +56,12 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 
-@Slf4j
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminClientTest {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminClientTest.class);
+
     static AdminClient client;
 
     static GenericContainer<?> container = new GenericContainer<>("shenyu/admin:latest")
@@ -64,6 +69,7 @@ public class AdminClientTest {
             .withLogConsumer(new Slf4jLogConsumer(log));
     
     SelectorDTO selector;
+
     RuleDTO rule;
     
     @BeforeAll
@@ -96,6 +102,7 @@ public class AdminClientTest {
                 .logged(true)
                 .enabled(true)
                 .continued(true)
+                .matchRestful(false)
                 .handle(Upstreams.builder().add(Upstream.builder().upstreamUrl("httpbin.org:80").build()).build())
                 .conditionList(
                         Lists.newArrayList(Condition.builder().paramType(ParamType.URI).operator(Operator.MATCH).paramName("/").paramValue("/**").build())
@@ -108,6 +115,7 @@ public class AdminClientTest {
                 .name("test-create-rule")
                 .enabled(true)
                 .logged(true)
+                .matchRestful(false)
                 .handle(DivideRuleHandle.builder()
                         .loadBalance("hash")
                         .retryStrategy("current")
@@ -130,7 +138,7 @@ public class AdminClientTest {
     }
     
     @Test
-    void testCreateSelector() {
+    void testCreateSelector() throws JSONException, JsonProcessingException {
         SelectorData selectorData = SelectorData.builder()
                 .name("test-create-selector")
                 .plugin(Plugin.DIVIDE)
@@ -139,6 +147,7 @@ public class AdminClientTest {
                 .logged(true)
                 .enabled(true)
                 .continued(true)
+                .matchRestful(false)
                 .handle(Upstreams.builder().add(Upstream.builder().upstreamUrl("httpbin.org:80").build()).build())
                 .conditionList(
                         Lists.newArrayList(Condition.builder().paramType(ParamType.URI).operator(Operator.MATCH).paramName("/").paramValue("/**").build())
@@ -155,7 +164,7 @@ public class AdminClientTest {
     }
     
     @Test
-    void testCreateRule() {
+    void testCreateRule() throws JSONException, JsonProcessingException {
         RuleData ruleData = RuleData.builder()
                 .name("test-create-rule")
                 .enabled(true)
@@ -169,6 +178,7 @@ public class AdminClientTest {
                         .requestMaxSize(10240)
                         .build())
                 .sort(1)
+                .matchRestful(false)
                 .matchMode(MatchMode.AND)
                 .selectorId(selector.getId())
                 .conditionList(Lists.newArrayList(Condition.builder()
@@ -194,6 +204,7 @@ public class AdminClientTest {
                     .logged(true)
                     .enabled(true)
                     .continued(true)
+                    .matchRestful(false)
                     .handle(Upstreams.builder().add(Upstream.builder().upstreamUrl("httpbin.org:80").build()).build())
                     .conditionList(
                             Lists.newArrayList(Condition.builder().paramType(ParamType.URI).operator(Operator.MATCH).paramName("/").paramValue("/**").build())

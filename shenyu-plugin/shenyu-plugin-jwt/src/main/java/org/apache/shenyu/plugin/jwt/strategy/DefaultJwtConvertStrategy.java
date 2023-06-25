@@ -54,7 +54,6 @@ public class DefaultJwtConvertStrategy implements JwtConvertStrategy {
         if (CollectionUtils.isEmpty(defaultJwtRuleHandle.getConverter())) {
             return exchange;
         }
-
         return convert(exchange, jwtBody, defaultJwtRuleHandle.getConverter());
     }
 
@@ -67,7 +66,6 @@ public class DefaultJwtConvertStrategy implements JwtConvertStrategy {
     private ServerWebExchange convert(final ServerWebExchange exchange,
                                       final Map<String, Object> jwtBody, final List<DefaultJwtRuleHandle.Convert> converters) {
         ServerHttpRequest modifiedRequest = exchange.getRequest().mutate().headers(httpHeaders -> this.addHeader(httpHeaders, jwtBody, converters)).build();
-
         return exchange.mutate().request(modifiedRequest).build();
     }
 

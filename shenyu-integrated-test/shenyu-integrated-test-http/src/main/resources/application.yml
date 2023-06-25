@@ -22,6 +22,8 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
+  codec:
+    max-in-memory-size: 64MB
 #  cloud:
 #    nacos:
 #      discovery:
@@ -33,6 +35,8 @@ management:
       enabled: false
 
 shenyu:
+  httpclient:
+    maxInMemorySize: 5
   metrics:
     enabled: true
     name: prometheus
@@ -88,8 +92,8 @@ logging:
     root: info
     org.springframework.boot: info
     org.apache.ibatis: info
-    org.apache.shenyu.bonuspoint: info
-    org.apache.shenyu.lottery: info
-    org.apache.shenyu: info
+    org.apache.shenyu.bonuspoint: debug
+    org.apache.shenyu.lottery: debug
+    org.apache.shenyu: debug
 
 

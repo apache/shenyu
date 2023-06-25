@@ -48,14 +48,6 @@ public class WafPlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(WafPlugin.class);
     
-    private final WafHandle defaultWafHandle;
-    
-    {
-        defaultWafHandle = new WafHandle();
-        defaultWafHandle.setStatusCode(String.valueOf(HttpStatus.FORBIDDEN.value()));
-        defaultWafHandle.setPermission(WafEnum.REJECT.getName());
-    }
-
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         WafConfig wafConfig = Singleton.INST.get(WafConfig.class);
@@ -101,10 +93,6 @@ public class WafPlugin extends AbstractShenyuPlugin {
     }
     
     private WafHandle buildRuleHandle(final RuleData rule) {
-        if (StringUtils.isNotEmpty(rule.getId())) {
-            return WafPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        } else {
-            return defaultWafHandle;
-        }
+        return WafPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
     }
 }

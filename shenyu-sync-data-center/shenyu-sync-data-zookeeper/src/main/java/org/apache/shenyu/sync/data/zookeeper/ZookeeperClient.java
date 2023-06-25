@@ -32,12 +32,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ZookeeperClient {
+public class ZookeeperClient implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClient.class);
 
@@ -81,6 +82,7 @@ public class ZookeeperClient {
     /**
      * start.
      */
+    @Override
     public void close() {
         // close all caches
         for (Map.Entry<String, TreeCache> cache : caches.entrySet()) {
@@ -201,7 +203,8 @@ public class ZookeeperClient {
         try {
             return client.getChildren().forPath(key);
         } catch (Exception e) {
-            throw new ShenyuException(e);
+            LOGGER.error("zookeeper get child error=", e);
+            return Collections.emptyList();
         }
     }
 

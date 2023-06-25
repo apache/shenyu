@@ -29,11 +29,11 @@ import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
@@ -105,6 +105,7 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
                 .contextPath(this.contextPath)
                 .appName(this.ipAndPort)
                 .rpcType(RpcTypeEnum.TARS.getName())
+                .eventType(EventType.REGISTER)
                 .host(this.getHost())
                 .port(Integer.parseInt(this.getPort()))
                 .build();
@@ -155,7 +156,6 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
         String serviceName = clazz.getAnnotation(ShenyuTarsService.class).serviceName();
         String ipAndPort = this.ipAndPort;
         String desc = shenyuTarsClient.desc();
-        String host = IpUtils.isCompleteHost(this.getHost()) ? this.getHost() : IpUtils.getHost(this.getHost());
         String configRuleName = shenyuTarsClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
@@ -168,7 +168,7 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
             .methodName(methodName)
             .contextPath(this.contextPath)
             .path(path)
-            .host(host)
+            .host(super.getHost())
             .port(Integer.parseInt(this.getPort()))
             .ruleName(ruleName)
             .pathDesc(desc)
@@ -189,7 +189,7 @@ public class TarsServiceBeanEventListener extends AbstractContextRefreshedEventL
     private TarsRpcExt.RpcExt buildRpcExt(final Method method) {
         String[] paramNames = localVariableTableParameterNameDiscoverer.getParameterNames(method);
         List<Pair<String, String>> params = new ArrayList<>();
-        if (paramNames != null && paramNames.length > 0) {
+        if (Objects.nonNull(paramNames) && paramNames.length > 0) {
             Class<?>[] paramTypes = method.getParameterTypes();
             for (int i = 0; i < paramNames.length; i++) {
                 params.add(Pair.of(paramTypes[i].getName(), paramNames[i]));

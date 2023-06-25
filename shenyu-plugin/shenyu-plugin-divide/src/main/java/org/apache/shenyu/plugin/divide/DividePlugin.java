@@ -54,8 +54,12 @@ import java.util.Objects;
 public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(DividePlugin.class);
-    
-    private final DivideRuleHandle defaultRuleHandle = new DivideRuleHandle();
+
+    private static final String P2C = "p2c";
+
+    private static final String SHORTEST_RESPONSE = "shortestResponse";
+
+    private Long beginTime;
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
@@ -108,6 +112,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultString(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultString(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
+        if (ruleHandle.getLoadBalance().equals(P2C)) {
+            return chain.execute(exchange).doOnSuccess(e -> responseTrigger(upstream
+            )).doOnError(throwable -> responseTrigger(upstream));
+        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
+            beginTime = System.currentTimeMillis();
+            return chain.execute(exchange).doOnSuccess(e -> successResponseTrigger(upstream
+            ));
+        }
         return chain.execute(exchange);
     }
 
@@ -137,10 +149,34 @@ public class DividePlugin extends AbstractShenyuPlugin {
     }
     
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
-        if (StringUtils.isNotEmpty(rule.getId())) {
-            return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        } else {
-            return defaultRuleHandle;
+        return DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+    }
+
+    private void responseTrigger(final Upstream upstream) {
+        long now = System.currentTimeMillis();
+        upstream.getInflight().decrementAndGet();
+        upstream.setResponseStamp(now);
+        long stamp = upstream.getResponseStamp();
+        long td = now - stamp;
+        if (td < 0) {
+            td = 0;
         }
+        double w = Math.exp((double) -td / (double) 600);
+
+        long lag = now - upstream.getLastPicked();
+        if (lag < 0) {
+            lag = 0;
+        }
+        long oldLag = upstream.getLag();
+        if (oldLag == 0) {
+            w = 0;
+        }
+        lag = (int) ((double) oldLag * w + (double) lag * (1.0 - w));
+        upstream.setLag(lag);
+    }
+
+    private void successResponseTrigger(final Upstream upstream) {
+        upstream.getSucceededElapsed().addAndGet(System.currentTimeMillis() - beginTime);
+        upstream.getSucceeded().incrementAndGet();
     }
 }

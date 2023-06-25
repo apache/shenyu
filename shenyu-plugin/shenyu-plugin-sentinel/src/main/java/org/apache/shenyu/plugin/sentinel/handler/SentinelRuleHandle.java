@@ -23,25 +23,44 @@ import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * Sentinel rule handle.
  */
 public class SentinelRuleHandle implements PluginDataHandler {
+    
+    public static final Supplier<CommonHandleCache<String, SentinelHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+    
+    @Override
+    public void handlerSelector(final SelectorData selectorData) {
+        if (!selectorData.getContinued()) {
+            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), SentinelHandle.newDefaultInstance());
+        }
+    }
+    
+    @Override
+    public void removeSelector(final SelectorData selectorData) {
+        CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
+    }
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), SentinelHandle.class);
-        sentinelHandle.checkData(sentinelHandle);
+        sentinelHandle.checkData();
         String key = CacheKeyUtils.INST.getKey(ruleData);
+        CACHED_HANDLE.get().cachedHandle(key, sentinelHandle);
         List<FlowRule> flowRules = FlowRuleManager.getRules()
                 .stream()
                 .filter(r -> !r.getResource().equals(key))
@@ -77,6 +96,7 @@ public class SentinelRuleHandle implements PluginDataHandler {
     @Override
     public void removeRule(final RuleData ruleData) {
         String key = CacheKeyUtils.INST.getKey(ruleData);
+        CACHED_HANDLE.get().removeHandle(key);
         FlowRuleManager.loadRules(FlowRuleManager.getRules()
                 .stream()
                 .filter(r -> !r.getResource().equals(key))

@@ -23,13 +23,13 @@ import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.PermissionService;
-import org.apache.shenyu.admin.shiro.bean.StatelessToken;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
+import org.apache.shiro.authc.BearerToken;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
@@ -59,7 +59,7 @@ public class ShiroRealm extends AuthorizingRealm {
 
     @Override
     public boolean supports(final AuthenticationToken token) {
-        return token instanceof StatelessToken;
+        return token instanceof BearerToken;
     }
 
     @Override

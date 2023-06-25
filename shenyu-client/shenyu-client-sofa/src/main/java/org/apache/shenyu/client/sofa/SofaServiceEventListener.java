@@ -27,11 +27,11 @@ import org.apache.shenyu.client.sofa.common.dto.SofaRpcExt;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,8 +74,9 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
                 .contextPath(this.getContextPath())
                 .appName(this.getAppName())
                 .rpcType(RpcTypeEnum.SOFA.getName())
-                .host(buildHost())
-                .port(buildPort())
+                .eventType(EventType.REGISTER)
+                .host(super.getHost())
+                .port(Integer.parseInt(getPort()))
                 .build();
     }
 
@@ -112,8 +113,6 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
         String contextPath = this.getContextPath();
         String path = pathJoin(contextPath, superPath, shenyuSofaClient.path());
         String serviceName = serviceBean.getInterfaceClass().getName();
-        String host = buildHost();
-        int port = buildPort();
         String desc = shenyuSofaClient.desc();
         String configRuleName = shenyuSofaClient.ruleName();
         String ruleName = StringUtils.isEmpty(configRuleName) ? path : configRuleName;
@@ -135,8 +134,8 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
                 .serviceName(serviceName)
                 .methodName(methodName)
                 .contextPath(contextPath)
-                .host(host)
-                .port(port)
+                .host(super.getHost())
+                .port(Integer.parseInt(getPort()))
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
@@ -208,15 +207,5 @@ public class SofaServiceEventListener extends AbstractContextRefreshedEventListe
             .timeout(shenyuSofaClient.timeout())
             .build();
         return GsonUtils.getInstance().toJson(build);
-    }
-
-    private String buildHost() {
-        final String host = this.getHost();
-        return IpUtils.isCompleteHost(host) ? host : IpUtils.getHost(host);
-    }
-
-    private int buildPort() {
-        final String port = this.getPort();
-        return StringUtils.isBlank(port) ? -1 : Integer.parseInt(port);
     }
 }

@@ -52,6 +52,7 @@ create table plugin
     enabled      NUMBER(3) default '0' not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null,
+    plugin_jar   BLOB,
     PRIMARY KEY (id)
 );
 -- Add comments to the columns
@@ -71,6 +72,9 @@ comment on column PLUGIN.date_created
   is 'create time';
 comment on column PLUGIN.date_updated
   is 'update time';
+comment on column PLUGIN.plugin_jar
+  is 'plugin jar';
+
 
 create table plugin_handle
 (
@@ -119,6 +123,7 @@ create table selector
     enabled      NUMBER(3) not null,
     loged        NUMBER(3) not null,
     continued    NUMBER(3) not null,
+    match_restful NUMBER(3) not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null
 );
@@ -143,6 +148,8 @@ comment on column SELECTOR.loged
   is 'whether to print the log (0 not print, 1 print)';
 comment on column SELECTOR.continued
   is 'whether to continue execution';
+comment on column SELECTOR.match_restful
+  is 'whether to match restful(0 cache, 1 not cache)';
 comment on column SELECTOR.date_created
   is 'create time';
 comment on column SELECTOR.date_updated
@@ -180,16 +187,17 @@ comment on column SELECTOR_CONDITION.date_updated
 
 create table rule
 (
-    id           VARCHAR2(128) not null PRIMARY KEY,
-    selector_id  VARCHAR2(128) not null,
-    match_mode   NUMBER(10) not null,
-    name         VARCHAR2(128) not null,
-    enabled      NUMBER(3) not null,
-    loged        NUMBER(3) not null,
-    sort         NUMBER(10) not null,
-    handle       VARCHAR2(1024),
-    date_created timestamp(3) default SYSDATE not null,
-    date_updated timestamp(3) default SYSDATE not null
+    id            VARCHAR2(128) not null PRIMARY KEY,
+    selector_id   VARCHAR2(128) not null,
+    match_mode    NUMBER(10) not null,
+    name          VARCHAR2(128) not null,
+    enabled       NUMBER(3) not null,
+    loged         NUMBER(3) not null,
+    match_restful NUMBER(3) not null,
+    sort          NUMBER(10) not null,
+    handle        VARCHAR2(1024),
+    date_created  timestamp(3) default SYSDATE not null,
+    date_updated  timestamp(3) default SYSDATE not null
 );
 -- Add comments to the columns
 comment on column RULE.id
@@ -204,6 +212,8 @@ comment on column RULE.enabled
   is 'whether to open (0 not open, 1 open)';
 comment on column RULE.loged
   is 'whether to log or not (0 not print, 1 print)';
+comment on column RULE.match_restful
+  is 'whether to match restful(0 cache, 1 not cache)';
 comment on column RULE.sort
   is 'sort';
 comment on column RULE.handle
@@ -1080,8 +1090,14 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) *
 VALUES ('1545812228228259842', 'engine', 'engine', 'MergeTree', 'MergeTree', '', 1, 1);
 
 
-insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
-values ('1545812228228259843', 'loadBalance', 'LOAD_BALANCE', 'leastActive', 'leastActive', 'leastActive', 1, 1);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+VALUES ('1545812228228259843', 'loadBalance', 'LOAD_BALANCE', 'leastActive', 'leastActive', 'leastActive', 3, 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+VALUES ('1545812228228259844', 'loadBalance', 'LOAD_BALANCE', 'p2c', 'p2c', 'p2c', 4, 1);
+
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+VALUES ('1545812228228259845', 'loadBalance', 'LOAD_BALANCE', 'shortestResponse', 'shortestResponse', 'shortestResponse', 5, 1);
 
 
 /*plugin*/
@@ -1123,7 +1139,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, conf
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('38', 'loggingClickHouse', '{"host":"127.0.0.1","port":"8123","databse":"shenyu-gateway","username":"foo","password":"bar"}', 'Logging', 195, '0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled) VALUES ('39', 'casdoor', '{"endpoint":"http://localhost:8000"}' ,'Authentication', 40, '0');
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, enabled) VALUES ('40', 'keyAuth', 'Authentication', 150, '0');
-INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES VALUES ('41', 'brpc', 'Proxy', 310,'{"address":"127.0.0.1","port":"8005","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}','0');
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, role, sort, config, enabled) VALUES ('41', 'brpc', 'Proxy', 310,'{"address":"127.0.0.1","port":"8005","corethreads":0,"threads":2147483647,"queues":0,"threadpool":"shared"}','0');
 
 
 
@@ -1570,6 +1586,9 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ 
 values ('1518229897214468109', '24', 'way', 'way', 3, 2, 3, null);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1630760188111376384', '24', 'mapType', 'mapType', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468110', '25', 'strategyName', 'strategyName', 3, 2, 2, null);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
@@ -1583,6 +1602,9 @@ values ('1518229897214468113', '25', 'fieldNames', 'fieldNames', 2, 2, 4, null);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468114', '25', 'way', 'way', 3, 2, 3, null);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1630768384280514560', '25', 'mapType', 'mapType', 3, 2, 4, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897214468115', '6', 'gray', 'gray', 3, 1, 9, '{"required":"0","defaultValue":"false","placeholder":"gray","rule":""}');
@@ -1995,6 +2017,12 @@ values ('1572621912915369984', 'maskStatus', 'MASK_STATUS_FALSE', 'notmask', 'fa
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
 values ('1572621976689762304', 'maskStatus', 'MASK_STATUS_TRUE', 'mask', 'true', '', 0, 1);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+values ('1630761573833920512', 'mapType', 'mapType', 'all', 'all', '', 1, 1);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+values ('1630761984393367552', 'mapType', 'mapType', 'field', 'field', '', 1, 1);
 
 /** insert resource for resource */
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource"   (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status) VALUES('1346775491550474240','','SHENYU.MENU.PLUGIN.LIST','plug','/plug','PluginList','0','0','dashboard','0','0','','1');

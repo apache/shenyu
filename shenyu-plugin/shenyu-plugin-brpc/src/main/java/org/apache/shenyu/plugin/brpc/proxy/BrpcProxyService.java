@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.plugin.brpc.proxy;
 
+import com.baidu.cloud.starlight.api.rpc.config.ServiceConfig;
 import com.baidu.cloud.starlight.core.rpc.generic.AsyncGenericService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.concurrent.ShenyuThreadPoolExecutor;
 import org.apache.shenyu.common.constant.Constants;
@@ -77,12 +79,11 @@ public class BrpcProxyService {
             params = new Object[num];
             Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
             for (int i = 0; i < num; i++) {
-                params[i] = bodyMap.get(brpcParamInfo.getParamNames()[i]).toString();
+                params[i] = bodyMap.get(brpcParamInfo.getParamNames()[i]);
             }
         }
         initThreadPool();
-        CompletableFuture<Object> future = null;
-        future = new CompletableFuture<>().supplyAsync(() -> getValue(metaData, params), threadPool);
+        CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> getValue(metaData, params), threadPool);
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.BRPC_RPC_RESULT_EMPTY;
@@ -95,13 +96,13 @@ public class BrpcProxyService {
 
     private Object getValue(final MetaData metaData, final Object[] params) {
         try {
-            AsyncGenericService service = ApplicationConfigCache.getInstance().get(metaData.getPath());
-            if (Objects.isNull(service)) {
+            ServiceConfig serviceConfig = ApplicationConfigCache.getInstance().get(metaData.getPath());
+            if (StringUtils.isBlank(serviceConfig.getServiceId())) {
                 ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
-                service = ApplicationConfigCache.getInstance().initService(metaData);
+                serviceConfig = ApplicationConfigCache.getInstance().initRef(metaData);
             }
-            Object result = service.$invokeFuture(metaData.getMethodName(), params).get();
-            return result;
+            AsyncGenericService service = ApplicationConfigCache.getInstance().buildService(serviceConfig, metaData);
+            return service.$invokeFuture(metaData.getMethodName(), params).get();
         } catch (Exception e) {
             LOG.error("Exception caught in BrpcProxyService#genericInvoker.", e);
             return null;

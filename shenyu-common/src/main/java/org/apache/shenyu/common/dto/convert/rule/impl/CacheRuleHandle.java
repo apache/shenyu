@@ -28,20 +28,31 @@ public class CacheRuleHandle implements RuleHandle {
      * the cache timeout seconds.
      */
     private Long timeoutSeconds = 60L;
-
+    
     /**
      * Get the timeout seconds.
+     *
      * @return the timeout seconds
      */
     public Long getTimeoutSeconds() {
         return timeoutSeconds;
     }
-
+    
     /**
      * Set timeout seconds.
+     *
      * @param timeoutSeconds the timeout seconds
      */
     public void setTimeoutSeconds(final Long timeoutSeconds) {
         this.timeoutSeconds = timeoutSeconds;
+    }
+    
+    /**
+     * New instance cache rule handle.
+     *
+     * @return the cache rule handle
+     */
+    public static CacheRuleHandle newInstance() {
+        return new CacheRuleHandle();
     }
 }

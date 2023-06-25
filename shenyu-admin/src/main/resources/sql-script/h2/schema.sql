@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS `plugin` (
   `enabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'whether to open (0, not open, 1 open)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+  `plugin_jar` mediumblob  DEFAULT NULL COMMENT 'plugin jar',
   PRIMARY KEY (`id`)
 );
 
@@ -66,6 +67,7 @@ CREATE TABLE IF NOT EXISTS `selector` (
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
   `loged` tinyint(4) NOT NULL COMMENT 'whether to print the log',
   `continued` tinyint(4) NOT NULL COMMENT 'whether to continue execution',
+  `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time'
 );
@@ -91,6 +93,7 @@ CREATE TABLE IF NOT EXISTS `rule` (
   `name` varchar(128) NOT NULL COMMENT 'rule name',
   `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
   `loged` tinyint(4) NOT NULL COMMENT 'whether to log or not',
+  `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `sort` int(4) NOT NULL COMMENT 'sort',
   `handle` varchar(1024) DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
@@ -497,6 +500,10 @@ INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_v
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1572621976689762305', 'engine', 'engine', 'ReplacingMergeTree', 'ReplacingMergeTree', '', 0, 1);
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1572621976689762306', 'engine', 'engine', 'MergeTree', 'MergeTree', '', 1, 1);
 INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1572621976689762307', 'loadBalance', 'LOAD_BALANCE', 'leastActive', 'leastActive', 'leastActive', 0, 1);
+INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1630761573833920512', 'mapType', 'mapType', 'all', 'all', '', 0, 1);
+INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1630761984393367552', 'mapType', 'mapType', 'field', 'field', '', 1, 1);
+INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1572621976689762308', 'loadBalance', 'LOAD_BALANCE', 'p2c', 'p2c', 'p2c', 0, 1);
+INSERT IGNORE INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`) VALUES ('1572621976689762309', 'loadBalance', 'LOAD_BALANCE', 'shortestResponse', 'shortestResponse', 'shortestResponse', 0, 1);
 
 /*plugin*/
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `sort`, `enabled`) VALUES ('1','sign','Authentication',  20, '0');
@@ -627,11 +634,13 @@ INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`) VALUES ('1529402613199978579', '24', 'decryptKey', 'decryptKey', 2, 2, 3);
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`) VALUES ('1529402613204172800', '24', 'encryptKey', 'encryptKey', 2, 2, 3);
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`) VALUES ('1529402613204172801', '24', 'way', 'way', 3, 2, 3);
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1630760188111376384', '24', 'mapType', 'mapType', 3, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`) VALUES ('1529402613204172802', '25', 'strategyName', 'strategyName', 3, 2, 2);
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`) VALUES ('1529402613204172803', '25', 'decryptKey', 'decryptKey', 2, 2, 3);
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`) VALUES ('1529402613204172804', '25', 'encryptKey', 'encryptKey', 2, 2, 3);
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`) VALUES ('1529402613204172805', '25', 'fieldNames', 'fieldNames', 2, 2, 4);
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`) VALUES ('1529402613204172806', '25', 'way', 'way', 3, 2, 3);
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1630768384280514560', '25', 'mapType', 'mapType', 3, 2, 4, '{\"required\":\"0\",\"defaultValue\":\"all\",\"rule\":\"\"}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172807', '6', 'gray', 'gray', 3, 1, 9, '{"required":"0","defaultValue":"false","placeholder":"gray","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172808', '6', 'group', 'group', 2, 1, 3, '{"required":"0","placeholder":"group","rule":""}');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`) VALUES ('1529402613204172809', '6', 'loadbalance', 'loadbalance', 3, 2, 0, '{"required":"0","placeholder":"loadbalance","rule":""}');
@@ -975,5 +984,84 @@ CREATE TABLE IF NOT EXISTS `tag_relation`
     `tag_id`       varchar(128) NOT NULL COMMENT 'tag id',
     `date_created` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     `date_updated` timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+-- ----------------------------
+-- Table structure for discovery
+-- ----------------------------
+CREATE TABLE `discovery`
+(
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `name`         varchar(255)  NOT NULL COMMENT 'the discovery name',
+    `type`         varchar(64)   NOT NULL COMMENT 'local,zookeeper,etcd,consul,nacos',
+    `server_list`  varchar(255)   COMMENT 'register server url (,)',
+    `listener_node` varchar(255)   COMMENT 'register server listener to node',
+    `props`     text  COMMENT 'the discovery pops (json) ',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+-- ----------------------------
+-- Table structure for discovery_upstream
+-- ----------------------------
+CREATE TABLE `discovery_upstream`
+(
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `discovery_handler_id` varchar(128)  NOT NULL COMMENT 'the discovery handler id',
+    `protocol`     varchar(64)   COMMENT 'for http, https, tcp, ws',
+    `url`          varchar(64)   NOT NULL COMMENT 'ip:port',
+    `status`      int(0) NOT NULL COMMENT 'type (0, healthy, 1 unhealthy)',
+    `weight`      int(0) NOT NULL COMMENT 'the weight for lists',
+    `props`      text  COMMENT 'the other field (json)',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+-- ----------------------------
+-- Table structure for proxy_selector
+-- ----------------------------
+CREATE TABLE `proxy_selector`
+(
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `name`         varchar(255)  NOT NULL COMMENT 'the proxy name',
+    `plugin_name`  varchar(255)  NOT NULL COMMENT 'the plugin name',
+    `type`         varchar(64)   NOT NULL COMMENT 'proxy type for tcp, upd, ws',
+    `forward_port` int(0) NOT NULL COMMENT 'the proxy forward port',
+    `props`      text  COMMENT 'the other field (json)',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);
+
+-- ----------------------------
+-- Table structure for discovery_handler
+-- ----------------------------
+CREATE TABLE `discovery_handler`
+(
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `discovery_id` varchar(128)  NOT NULL COMMENT 'the discovery id',
+    `handler`         varchar(255)  NOT NULL COMMENT 'the handler',
+    `listener_node` varchar(255)  COMMENT 'register server listener to node',
+    `props`     text COMMENT 'the discovery pops (json) ',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+) ;
+
+-- ----------------------------
+-- Table structure for discovery_rel
+-- ----------------------------
+CREATE TABLE `discovery_rel`
+(
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `level`        varchar(64)   NOT NULL COMMENT 'plugin or selector',
+    `discovery_handler_id` varchar(128)  NOT NULL COMMENT 'the discovery handler id',
+    `selector_id` varchar(128)  COMMENT 'the selector id ',
+    `proxy_selector_id` varchar(128)  COMMENT 'the proxy selector id',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
 );

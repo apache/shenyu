@@ -18,9 +18,6 @@
 package org.apache.shenyu.plugin.brpc.cache;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.common.dto.convert.plugin.BrpcRegisterConfig;
-import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,9 +64,9 @@ public final class ApplicationConfigCacheTest {
     public void testBrpcParamInfo() {
         ApplicationConfigCache.BrpcParamInfo paramInfo = new ApplicationConfigCache.BrpcParamInfo(null, null);
         paramInfo.setParamNames(new String[]{"test"});
-        paramInfo.setParamTypes(new Class<?>[]{ApplicationConfigCache.class});
+        paramInfo.setParamTypes(new String[]{"org.apache.shenyu.plugin.brpc.cache.ApplicationConfigCache"});
         Assertions.assertEquals(paramInfo.getParamNames()[0], "test");
-        Assertions.assertEquals(paramInfo.getParamTypes()[0], ApplicationConfigCache.class);
+        Assertions.assertEquals(paramInfo.getParamTypes()[0], "org.apache.shenyu.plugin.brpc.cache.ApplicationConfigCache");
     }
 
     @Test
@@ -81,21 +78,5 @@ public final class ApplicationConfigCacheTest {
         list.add(methodInfo);
         paramExtInfo.setMethodInfo(list);
         Assertions.assertEquals(paramExtInfo.getMethodInfo().get(0).getMethodName(), "methodName");
-    }
-
-    @Test
-    public void testApplicationConfigCache() {
-        ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
-        Assertions.assertEquals(applicationConfigCache.getInstance().getClass(), ApplicationConfigCache.class);
-        PluginData pluginData = new PluginData();
-        pluginData.setEnabled(true);
-        pluginData.setConfig("{\"address\" : \"127.0.0.1\", \"port\" : \"8005\"}");
-        BrpcRegisterConfig registerConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), BrpcRegisterConfig.class);
-        applicationConfigCache.init(registerConfig);
-        Assertions.assertNotNull(applicationConfigCache.getClientConfig());
-        Assertions.assertNotNull(applicationConfigCache.getProxyFactory());
-        Assertions.assertTrue(applicationConfigCache.getClientConfig().isActive());
-        applicationConfigCache.getClientConfig().destroy();
-        Assertions.assertFalse(applicationConfigCache.getClientConfig().isActive());
     }
 }

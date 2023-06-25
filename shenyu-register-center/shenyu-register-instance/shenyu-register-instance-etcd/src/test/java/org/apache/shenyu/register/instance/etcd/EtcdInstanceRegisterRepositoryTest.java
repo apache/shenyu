@@ -26,7 +26,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -154,7 +153,7 @@ public final class EtcdInstanceRegisterRepositoryTest {
             RegisterConfig config = new RegisterConfig();
             repository.init(config);
             repository.persistInstance(data);
-            repository.selectInstancesAndWatcher(InstancePathConstants.buildInstanceParentPath(), mock(WatcherListener.class));
+            repository.selectInstances(InstancePathConstants.buildInstanceParentPath());
             repository.close();
         }
     }

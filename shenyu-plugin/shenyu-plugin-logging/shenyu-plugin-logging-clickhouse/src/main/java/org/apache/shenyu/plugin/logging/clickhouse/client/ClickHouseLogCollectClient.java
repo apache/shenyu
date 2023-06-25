@@ -133,7 +133,7 @@ public class ClickHouseLogCollectClient extends AbstractLogConsumeClient<ClickHo
             request.query(String.format(ClickHouseLoggingConstant.CREATE_TABLE_SQL, database, config.getEngine())).executeAndWait();
             request.query(String.format(ClickHouseLoggingConstant.CREATE_DISTRIBUTED_TABLE_SQL, database, database, config.getClusterName(), database)).executeAndWait();
         } catch (Exception e) {
-            LOG.error("inti ClickHouseLogClient error" + e);
+            LOG.error("inti ClickHouseLogClient error", e);
         }
     }
 }

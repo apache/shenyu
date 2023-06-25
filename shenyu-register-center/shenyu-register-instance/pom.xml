@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-register-center</artifactId>
-        <version>${shenyu.version}</version>
+        <version>2.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-register-instance</artifactId>
@@ -33,6 +33,7 @@
         <module>shenyu-register-instance-etcd</module>
         <module>shenyu-register-instance-consul</module>
         <module>shenyu-register-instance-nacos</module>
+        <module>shenyu-register-instance-apollo</module>
         <module>shenyu-register-instance-eureka</module>
     </modules>
     

@@ -379,6 +379,8 @@ The text of each license is the standard Apache 2.0 license.
     curator-framework 4.3.0: https://github.com/apache/curator, Apache 2.0
     curator-recipes 4.3.0: https://github.com/apache/curator, Apache 2.0
     brpc 2022.2.0: https://github.com/baidu/starlight, Apache 2.0
+    apollo-client 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
+    apollo-openapi 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
 
 ========================================================================
 BSD licenses
@@ -477,6 +479,7 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
 
     qs 6.5.0: https://github.com/ljharb/qs, BSD 3-Clause
     react-intl-universal 2.4.2: https://github.com/alibaba/react-intl-universal, BSD 3-Clause
+    asm-tree 9.3: https://asm.ow2.io/, BSD 3-Clause
 
 ========================================================================
 ISC licenses

@@ -24,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
@@ -78,7 +79,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final Duration duration = Duration.ofMillis(timeout);
         final int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(RetryEnum.CURRENT::getName);
-        LOG.info("The request urlPath is {}, retryTimes is {}, retryStrategy is {}", uri.toASCIIString(), retryTimes, retryStrategy);
+        LogUtils.debug(LOG, () -> String.format("The request urlPath is: %s, retryTimes is : %s, retryStrategy is : %s", uri, retryTimes, retryStrategy));
         final HttpHeaders httpHeaders = buildHttpHeaders(exchange);
         final Mono<R> response = doRequest(exchange, exchange.getRequest().getMethodValue(), uri, httpHeaders, exchange.getRequest().getBody())
                 .timeout(duration, Mono.error(new TimeoutException("Response took longer than timeout: " + duration)))
@@ -119,7 +120,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         }
         return result;
     }
-
+    
     private Mono<R> resend(final Mono<R> response,
                            final ServerWebExchange exchange,
                            final Duration duration,
@@ -176,6 +177,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             acceptEncoding.remove(Constants.HTTP_ACCEPT_ENCODING_GZIP);
             headers.set(HttpHeaders.ACCEPT_ENCODING, String.join(",", acceptEncoding));
         }
+        headers.remove(HttpHeaders.HOST);
         return headers;
     }
 

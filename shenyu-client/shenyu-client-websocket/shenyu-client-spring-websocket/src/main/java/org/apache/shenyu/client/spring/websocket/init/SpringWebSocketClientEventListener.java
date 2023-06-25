@@ -21,18 +21,19 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.client.AbstractContextRefreshedEventListener;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuServerEndpoint;
 import org.apache.shenyu.client.spring.websocket.annotation.ShenyuSpringWebSocketClient;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.common.utils.PathUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.PropertiesConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.apache.shenyu.register.common.enums.EventType;
 import org.javatuples.Sextet;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -59,7 +60,9 @@ import java.util.Properties;
  * The type Shenyu websocket client event listener.
  */
 public class SpringWebSocketClientEventListener extends AbstractContextRefreshedEventListener<Object, ShenyuSpringWebSocketClient> {
-
+    
+    private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
+    
     private final String[] pathAttributeNames = new String[] {"path", "value"};
 
     private final List<Class<? extends Annotation>> mappingAnnotation = new ArrayList<>(7);
@@ -101,28 +104,26 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     protected Map<String, Object> getBeans(final ApplicationContext context) {
         // Filter out is not controller out
         if (Boolean.TRUE.equals(isFull)) {
+            LOG.info("init spring websocket client success with isFull mode");
+            publisher.publishEvent(buildURIRegisterDTO(context, Collections.emptyMap()));
             return Collections.emptyMap();
         }
         Map<String, Object> endpointBeans = context.getBeansWithAnnotation(ShenyuServerEndpoint.class);
         registerEndpointsBeans(context, endpointBeans);
-
-        Map<String, Object> clientBeans = context.getBeansWithAnnotation(ShenyuSpringWebSocketClient.class);
-        return clientBeans;
+        return context.getBeansWithAnnotation(ShenyuSpringWebSocketClient.class);
     }
 
     @Override
     protected URIRegisterDTO buildURIRegisterDTO(final ApplicationContext context, final Map<String, Object> beans) {
         try {
-            final String host = IpUtils.isCompleteHost(getHost()) ? getHost() : IpUtils.getHost(getHost());
-            final int port = Integer.parseInt(Optional.ofNullable(getPort()).orElseGet(() -> "-1"));
-            final int mergedPort = port <= 0 ? PortUtils.findPort(context.getAutowireCapableBeanFactory()) : port;
             return URIRegisterDTO.builder()
                     .contextPath(getContextPath())
                     .appName(getAppName())
                     .protocol(protocol)
-                    .host(host)
-                    .port(mergedPort)
+                    .host(super.getHost())
+                    .port(Integer.valueOf(getPort()))
                     .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
+                    .eventType(EventType.REGISTER)
                     .build();
         } catch (ShenyuException e) {
             throw new ShenyuException(e.getMessage() + "please config ${shenyu.client.http.props.port} in xml/yml !");
@@ -146,7 +147,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     }
 
     @Override
-    protected String buildApiSuperPath(final Class<?> clazz, @NonNull final ShenyuSpringWebSocketClient webSocketClient) {
+    protected String buildApiSuperPath(final Class<?> clazz, final ShenyuSpringWebSocketClient webSocketClient) {
         if (Objects.nonNull(webSocketClient) && StringUtils.isNotBlank(webSocketClient.path())) {
             return webSocketClient.path();
         }
@@ -160,7 +161,10 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                                final String superPath) {
         Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
         for (Method method : methods) {
-            getPublisher().publishEvent(buildMetaDataDTO(bean, beanShenyuClient, pathJoin(getContextPath(), superPath), clazz, method));
+            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, beanShenyuClient,
+                    pathJoin(getContextPath(), superPath), clazz, method);
+            getPublisher().publishEvent(metaData);
+            getMetaDataMap().put(method, metaData);
         }
     }
 
@@ -173,7 +177,10 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
         ShenyuSpringWebSocketClient methodShenyuClient = AnnotatedElementUtils.findMergedAnnotation(method, getAnnotationType());
         methodShenyuClient = Objects.isNull(methodShenyuClient) ? beanShenyuClient : methodShenyuClient;
         if (Objects.nonNull(methodShenyuClient)) {
-            getPublisher().publishEvent(buildMetaDataDTO(bean, methodShenyuClient, buildApiPath(method, superPath, methodShenyuClient), clazz, method));
+            final MetaDataRegisterDTO metaData = buildMetaDataDTO(bean, methodShenyuClient,
+                    buildApiPath(method, superPath, methodShenyuClient), clazz, method);
+            getPublisher().publishEvent(metaData);
+            getMetaDataMap().put(method, metaData);
         }
     }
 
@@ -183,7 +190,7 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
     }
 
     @Override
-    protected String buildApiPath(final Method method, final String superPath, @NonNull final ShenyuSpringWebSocketClient methodShenyuClient) {
+    protected String buildApiPath(final Method method, final String superPath, final ShenyuSpringWebSocketClient methodShenyuClient) {
         if (Objects.nonNull(methodShenyuClient) && StringUtils.isNotBlank(methodShenyuClient.path())) {
             return pathJoin(getContextPath(), superPath, methodShenyuClient.path());
         }
@@ -204,6 +211,13 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                 .enabled(true)
                 .ruleName(StringUtils.defaultIfBlank(webSocketClient.ruleName(), getContextPath()))
                 .build();
+    }
+    
+    @Override
+    public String getPort() {
+        final int port = Integer.parseInt(Optional.ofNullable(super.getPort()).orElseGet(() -> "-1"));
+        final int mergedPort = port <= 0 ? PortUtils.findPort(getContext().getAutowireCapableBeanFactory()) : port;
+        return String.valueOf(mergedPort);
     }
 
     private void registerEndpointsBeans(final ApplicationContext context, final Map<String, Object> endpointBeans) {
