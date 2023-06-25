@@ -19,10 +19,11 @@ package org.apache.shenyu.admin.listener;
 
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
-import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.slf4j.Logger;
@@ -77,6 +78,22 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
                 LOG.error("[DataChangedListener] url encode error.", e);
                 throw new ShenyuException(e.getMessage());
             }
+        }
+    }
+
+    @Override
+    public void onProxySelectorChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+        for (DiscoverySyncData data : changed) {
+            String proxySelectorPath = DefaultPathConstants.buildProxySelectorPath(data.getProxySelectorData().getPluginName(), data.getProxySelectorData().getName());
+            // delete
+            if (eventType == DataEventTypeEnum.DELETE) {
+                deleteNode(proxySelectorPath);
+                LOG.debug("[DataChangedListener] delete appKey {}", proxySelectorPath);
+                continue;
+            }
+            // create or update
+            createOrUpdate(proxySelectorPath, data);
+            LOG.info("[DataChangedListener] change proxySelector path={}|data={}", proxySelectorPath, data);
         }
     }
 
@@ -145,7 +162,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
      * createOrUpdate.
      *
      * @param pluginPath pluginPath
-     * @param data data
+     * @param data       data
      */
     public abstract void createOrUpdate(String pluginPath, Object data);
 

@@ -232,12 +232,12 @@
         <!--shenyu tars plugin end-->
 
         <!--Tcp Plugin Start-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.shenyu</groupId>-->
-<!--            <artifactId>shenyu-spring-boot-starter-plugin-tcp</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
-        <!--Tcp Plugin end-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-tcp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+<!--        Tcp Plugin end-->
 
         <!--shenyu sofa plugin start-->
         <dependency>
