@@ -24,6 +24,8 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -51,6 +53,12 @@ import java.util.stream.Collectors;
 public class ExceptionHandlers {
     
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionHandlers.class);
+    
+    private final MessageSource messageSource;
+    
+    public ExceptionHandlers(final MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
     
     @ExceptionHandler(Exception.class)
     protected ShenyuAdminResult handleExceptionHandler(final Exception exception) {
@@ -129,5 +137,11 @@ public class ExceptionHandlers {
     protected ShenyuAdminResult handleShenyuException(final ShenyuAdminException exception) {
         LOG.error("shenyu admin exception ", exception);
         return ShenyuAdminResult.error(CommonErrorCode.ERROR, exception.getMessage());
+    }
+    
+    @ExceptionHandler(WebI18nException.class)
+    protected ShenyuAdminResult webI18nException(final WebI18nException exception) {
+        final String message = messageSource.getMessage(exception.getMessage(), exception.getArgs(), LocaleContextHolder.getLocale());
+        return ShenyuAdminResult.error(CommonErrorCode.ERROR, message);
     }
 }
