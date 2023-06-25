@@ -45,6 +45,15 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      */
     List<DiscoveryUpstreamDO> selectByIds(@Param("ids") List<String> ids);
 
+
+    /**
+     * selectByProxySelectorId.
+     *
+     * @param proxySelectorId proxySelectorId
+     * @return DiscoveryUpstreamDO list
+     */
+    List<DiscoveryUpstreamDO> selectByProxySelectorId(@Param("proxySelectorId") String proxySelectorId);
+
     /**
      * insert.
      *
@@ -68,4 +77,13 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(@Param("ids") List<String> ids);
+
+    /**
+     * deleteByUrl.
+     *
+     * @param url url
+     * @return rows int
+     */
+    int deleteByUrl(@Param("url") String url);
+
 }

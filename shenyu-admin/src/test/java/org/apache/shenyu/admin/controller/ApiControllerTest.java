@@ -77,7 +77,7 @@ public final class ApiControllerTest {
     @BeforeEach
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(apiController)
-                .setControllerAdvice(new ExceptionHandlers())
+                .setControllerAdvice(new ExceptionHandlers(null))
                 .build();
         this.apiVO = ApiVO.builder()
                 .id("123")

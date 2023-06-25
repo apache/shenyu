@@ -31,6 +31,8 @@ spring:
       matching-strategy: ant_path_matcher
   jackson:
     time-zone: GMT+8 # GMT , Asia/Shanghai
+  messages:
+    basename: message/i18n
 
 management:
   endpoints:
@@ -70,10 +72,10 @@ shenyu:
 #      clusterName: test
 #      namespace: application
 #      token: 0fff5645fc74ee5e0d63a6389433c8c8afc0beea31eed0279ecc1c8961d12da9
-#      zookeeper:
-#        url: localhost:2181
-#        sessionTimeout: 5000
-#        connectionTimeout: 2000
+#    zookeeper:
+#      url: localhost:2181
+#      sessionTimeout: 5000
+#      connectionTimeout: 2000
 #      http:
 #        enabled: true
 #      nacos:
