@@ -92,4 +92,12 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @return result
      */
     int saveBatch(@Param("list") List<DiscoveryUpstreamDO> list);
+
+    /**
+     * delete discovery upstream by discovery handler id.
+     *
+     * @param discoveryHandlerId discovery handler id
+     * @return result
+     */
+    int deleteByDiscoveryHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
 }

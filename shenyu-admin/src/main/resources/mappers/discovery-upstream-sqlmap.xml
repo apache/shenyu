@@ -159,4 +159,9 @@
             #{item.dateUpdated, jdbcType=TIMESTAMP})
         </foreach>
     </insert>
+
+    <delete id="deleteByDiscoveryHandlerId" parameterType="java.lang.String">
+        DELETE FROM discovery_upstream
+        WHERE discovery_handler_id = #{discoveryHandlerId, jdbcType=VARCHAR}
+    </delete>
 </mapper>
