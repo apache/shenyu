@@ -27,5 +27,5 @@ public interface DataChangedEventListener {
      * 
      * @param event data changed event
      */
-    void onChange(DataChangedEvent event);
+    void onChange(DiscoveryDataChangedEvent event);
 }

@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.plugin.base.cache;
 
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
-import org.apache.shenyu.common.dto.convert.selector.DiscoveryUpstream;
 import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 
@@ -39,7 +39,7 @@ public class CommonProxySelectorDataSubscriber implements ProxySelectorDataSubsc
     }
 
     @Override
-    public void onSubscribe(final ProxySelectorData proxySelectorData, final List<DiscoveryUpstream> upstreamsList) {
+    public void onSubscribe(final ProxySelectorData proxySelectorData, final List<DiscoveryUpstreamData> upstreamsList) {
         Optional.ofNullable(handlerMap.get(proxySelectorData.getPluginName()))
                 .ifPresent(handler -> handler.handlerProxySelector(proxySelectorData, upstreamsList));
     }

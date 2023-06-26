@@ -109,6 +109,13 @@
         </foreach>
     </select>
 
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM proxy_selector
+        WHERE id  = #{id, jdbcType=VARCHAR}
+    </select>
+
     <delete id="deleteByIds" parameterType="java.util.List">
         DELETE FROM proxy_selector WHERE id IN
         <foreach item="id" collection="ids" open="(" separator="," close=")">

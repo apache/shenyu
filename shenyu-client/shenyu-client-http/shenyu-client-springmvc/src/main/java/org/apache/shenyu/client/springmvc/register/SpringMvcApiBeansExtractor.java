@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.springmvc.register;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.extractor.ApiBeansExtractor;
 import org.springframework.aop.support.AopUtils;
@@ -90,6 +91,9 @@ public class SpringMvcApiBeansExtractor implements ApiBeansExtractor {
     }
 
     private String getPath(@NonNull final RequestMapping requestMapping) {
-        return Optional.of(requestMapping.path()[0]).orElse("");
+        if (ArrayUtils.isEmpty(requestMapping.path())) {
+            return "";
+        }
+        return requestMapping.path()[0];
     }
 }
