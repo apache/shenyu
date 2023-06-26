@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Configuration
 @EnableConfigurationProperties
 public class TransformPluginConfigurationTest {
-
+    
     @Test
     public void testTransformPlugin() {
         new ApplicationContextRunner()
