@@ -99,7 +99,7 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
     }
 
     @Override
-    public void onDiscoveryUpstreamChanged(List<DiscoverySyncData> changed, DataEventTypeEnum eventType) {
+    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
         for (DiscoverySyncData data : changed) {
             String upstreamPath = DefaultPathConstants.buildDiscoveryUpstreamPath(data.getPluginName(), data.getSelectorName());
             // delete

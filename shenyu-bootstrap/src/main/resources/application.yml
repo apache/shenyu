@@ -221,19 +221,19 @@ shenyu:
     enabled: true
     maxSize : 10
   sync:
-#    websocket:
-#      urls: ws://localhost:9095/websocket
-#      allowOrigin: ws://localhost:9195
+    websocket:
+      urls: ws://localhost:9095/websocket
+      allowOrigin: ws://localhost:9195
 #    apollo:
 #      appId: shenyu
 #      meta: http://localhost:8080
 #      env: dev
 #      clusterName: test
 #      namespace: application
-    zookeeper:
-      url: localhost:2181
-      sessionTimeout: 5000
-      connectionTimeout: 2000
+#    zookeeper:
+#      url: localhost:2181
+#      sessionTimeout: 5000
+#      connectionTimeout: 2000
 #    http:
 #      url: http://localhost:9095
 #      username:

@@ -95,7 +95,7 @@ public interface DataChangedListener {
      * @param changed   the changed
      * @param eventType the event type
      */
-    default void onDiscoveryUpstreamChanged(List<DiscoverySyncData> changed, DataEventTypeEnum eventType){
+    default void onDiscoveryUpstreamChanged(List<DiscoverySyncData> changed, DataEventTypeEnum eventType) {
     }
 
 }

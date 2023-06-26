@@ -74,7 +74,6 @@ public class WebsocketDataChangedListener implements DataChangedListener {
         WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
 
-
     @Override
     public void onProxySelectorChanged(final List<ProxySelectorData> proxySelectorDataList, final DataEventTypeEnum eventType) {
         WebsocketData<ProxySelectorData> configData =
@@ -82,11 +81,10 @@ public class WebsocketDataChangedListener implements DataChangedListener {
         WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
 
-
     @Override
-    public void onDiscoveryUpstreamChanged(List<DiscoverySyncData> discoeryUpstreamList, DataEventTypeEnum eventType) {
+    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> discoeryUpstreamList, final DataEventTypeEnum eventType) {
         WebsocketData<DiscoverySyncData> configData =
-                new WebsocketData<>(ConfigGroupEnum.PROXY_SELECTOR.name(), eventType.name(), discoeryUpstreamList);
+                new WebsocketData<>(ConfigGroupEnum.DISCOVER_UPSTREAM.name(), eventType.name(), discoeryUpstreamList);
         WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
 

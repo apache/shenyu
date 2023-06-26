@@ -58,6 +58,7 @@ public class ZookeeperSyncDataConfiguration {
      * @param metaSubscribers              the meta subscribers
      * @param authSubscribers              the auth subscribers
      * @param proxySelectorDataSubscribers the proxySelector subscribers
+     * @param discoveryUpstreamDataSubscribers the discoveryUpstream subscribers
      * @return the sync data service
      */
     @Bean

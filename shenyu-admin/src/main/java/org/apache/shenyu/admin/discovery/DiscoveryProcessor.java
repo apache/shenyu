@@ -21,7 +21,6 @@ import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
-import org.apache.shenyu.common.dto.ProxySelectorData;
 
 import java.util.List;
 
@@ -60,14 +59,13 @@ public interface DiscoveryProcessor {
      */
     void removeProxySelector(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO);
 
-
     /**
      * only use in local mode to sync upstreamDTOS.
      *
      * @param discoveryHandlerDTO discoveryHandlerDTO
+     * @param proxySelectorDTO    proxySelectorDTO
      * @param upstreamDTOS        upstreamDTOS
      */
     void changeUpstream(DiscoveryHandlerDTO discoveryHandlerDTO, ProxySelectorDTO proxySelectorDTO, List<DiscoveryUpstreamDTO> upstreamDTOS);
-
 
 }

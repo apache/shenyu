@@ -101,7 +101,8 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
             shenyuDiscoveryService.register(key, GsonUtils.getInstance().toJson(proxySelectorDTO));
         }
         shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(proxySelectorDTO.getType(), discoveryHandlerDTO.getProps()));
-        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE,
+                Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         eventPublisher.publishEvent(dataChangedEvent);
     }
 
@@ -126,7 +127,8 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
         String key = buildProxySelectorKey(discoveryHandlerDTO, proxySelectorDTO);
         shenyuDiscoveryService.unWatcher(key);
-        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE,
+                Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         eventPublisher.publishEvent(dataChangedEvent);
     }
 

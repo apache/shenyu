@@ -108,5 +108,4 @@ public class GlobalPluginConfiguration {
         return new CommonDiscoveryUpstreamDataSubscriber(proxySelectorDataHandlerList);
     }
 
-
 }
