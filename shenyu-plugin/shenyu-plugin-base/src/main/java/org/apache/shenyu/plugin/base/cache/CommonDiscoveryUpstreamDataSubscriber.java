@@ -42,8 +42,7 @@ public class CommonDiscoveryUpstreamDataSubscriber implements DiscoveryUpstreamD
 
     @Override
     public void unSubscribe(final DiscoverySyncData upstreamDataList) {
-        Optional.ofNullable(handlerMap.get(upstreamDataList.getPluginName()))
-                .ifPresent(handler -> handler.handlerDiscoveryUpstreamData(upstreamDataList));
+        //ignore
     }
 
 }

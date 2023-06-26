@@ -106,7 +106,7 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
     @Override
     public ProxySelectorData parseKey(final String key) {
         String[] subArray = key.split("/");
-        String proxySelectorId = subArray[subArray.length - 2];
+        String proxySelectorId = subArray[subArray.length - 3];
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
         BeanUtils.copyProperties(proxySelectorDO, proxySelectorData);
