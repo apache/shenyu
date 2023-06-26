@@ -1037,20 +1037,31 @@ CREATE TABLE `proxy_selector`
 );
 
 -- ----------------------------
+-- Table structure for discovery_handler
+-- ----------------------------
+CREATE TABLE `discovery_handler`
+(
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `discovery_id` varchar(128)  NOT NULL COMMENT 'the discovery id',
+    `handler`         varchar(255)  NOT NULL COMMENT 'the handler',
+    `listener_node` varchar(255)  COMMENT 'register server listener to node',
+    `props`     text COMMENT 'the discovery pops (json) ',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+) ;
+
+-- ----------------------------
 -- Table structure for discovery_rel
 -- ----------------------------
 CREATE TABLE `discovery_rel`
 (
-    `id`           varchar(128) NOT NULL COMMENT 'primary key id',
-    `level`        varchar(64)  NOT NULL COMMENT 'plugin or selector',
-    `discovery_id` varchar(128) NOT NULL COMMENT 'the discovery id',
-    `service_id` varchar(128)   NOT NULL COMMENT 'the selector id or proxy selector id',
+    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
+    `level`        varchar(64)   NOT NULL COMMENT 'plugin or selector',
+    `discovery_handler_id` varchar(128)  NOT NULL COMMENT 'the discovery handler id',
+    `selector_id` varchar(128)  COMMENT 'the selector id ',
+    `proxy_selector_id` varchar(128)  COMMENT 'the proxy selector id',
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
-
-
-
-
-

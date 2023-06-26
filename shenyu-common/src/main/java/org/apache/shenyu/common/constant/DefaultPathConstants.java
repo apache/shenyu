@@ -52,9 +52,9 @@ public final class DefaultPathConstants implements Constants {
     public static final String META_DATA = PRE_FIX + "/metaData";
 
     /**
-     * The constant PROXY_SELECTOR_DATA.
+     * The constant PROXY_SELECTOR.
      */
-    public static final String PROXY_SELECTOR_DATA = PRE_FIX + "/proxySelectorData";
+    public static final String PROXY_SELECTOR = PRE_FIX + "/proxySelectorData";
 
     /**
      * acquire app_auth_path.
@@ -136,6 +136,17 @@ public final class DefaultPathConstants implements Constants {
      */
     public static String buildRulePath(final String pluginName, final String selectorId, final String ruleId) {
         return String.join(PATH_SEPARATOR, buildRuleParentPath(pluginName), String.join(SELECTOR_JOIN_RULE, selectorId, ruleId));
+    }
+
+    /**
+     * buildProxySelector.
+     *
+     * @param pluginName        pluginName
+     * @param proxySelectorName selectorId
+     * @return /shenyu/proxySelectorData/pluginName/proxySelectorName
+     */
+    public static String buildProxySelectorPath(final String pluginName, final String proxySelectorName) {
+        return String.join(PATH_SEPARATOR, PROXY_SELECTOR, pluginName, proxySelectorName);
     }
 
 }

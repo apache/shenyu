@@ -22,7 +22,6 @@ import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
 import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.base.RpcParamTransformPlugin;
 import org.apache.shenyu.plugin.base.cache.CommonMetaDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
@@ -107,16 +106,6 @@ public class ShenyuConfiguration {
     @Bean("dispatcherHandler")
     public DispatcherHandler dispatcherHandler() {
         return new DispatcherHandler();
-    }
-    
-    /**
-     * Param transform plugin.
-     *
-     * @return the shenyu plugin
-     */
-    @Bean
-    public ShenyuPlugin paramTransformPlugin() {
-        return new RpcParamTransformPlugin();
     }
     
     /**

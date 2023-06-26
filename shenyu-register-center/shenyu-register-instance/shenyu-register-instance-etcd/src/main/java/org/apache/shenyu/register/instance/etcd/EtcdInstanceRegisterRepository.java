@@ -25,12 +25,12 @@ import org.apache.shenyu.register.instance.api.ShenyuInstanceRegisterRepository;
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
 import org.apache.shenyu.register.instance.api.path.InstancePathConstants;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.Join;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -46,6 +46,8 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     private static final Logger LOGGER = LoggerFactory.getLogger(EtcdInstanceRegisterRepository.class);
 
     private EtcdClient client;
+
+    private final Map<String, List<InstanceEntity>> watcherInstanceRegisterMap = new HashMap<>();
 
     @Override
     public void init(final RegisterConfig config) {
@@ -66,10 +68,13 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
     }
 
     @Override
-    public List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+    public List<InstanceEntity> selectInstances(final String selectKey) {
         final String watchKey = InstancePathConstants.buildInstanceParentPath(selectKey);
         final Function<Map<String, String>, List<InstanceEntity>> getInstanceRegisterFun = childrenList ->
                 childrenList.values().stream().map(x -> GsonUtils.getInstance().fromJson(x, InstanceEntity.class)).collect(Collectors.toList());
+        if (watcherInstanceRegisterMap.containsKey(selectKey)) {
+            return getInstanceRegisterFun.apply(client.getKeysMapByPrefix(watchKey));
+        }
         Map<String, String> serverNodes = client.getKeysMapByPrefix(watchKey);
         this.client.watchKeyChanges(watchKey, Watch.listener(response -> {
             for (WatchEvent event : response.getEvents()) {
@@ -87,9 +92,11 @@ public class EtcdInstanceRegisterRepository implements ShenyuInstanceRegisterRep
                     default:
                 }
             }
-            watcherListener.listener(getInstanceRegisterFun.apply(serverNodes));
+            watcherInstanceRegisterMap.put(selectKey, getInstanceRegisterFun.apply(serverNodes));
         }));
-        return getInstanceRegisterFun.apply(serverNodes);
+        final List<InstanceEntity> instanceEntities = getInstanceRegisterFun.apply(serverNodes);
+        watcherInstanceRegisterMap.put(selectKey, instanceEntities);
+        return instanceEntities;
     }
 
     private String buildInstanceNodeName(final InstanceEntity instance) {

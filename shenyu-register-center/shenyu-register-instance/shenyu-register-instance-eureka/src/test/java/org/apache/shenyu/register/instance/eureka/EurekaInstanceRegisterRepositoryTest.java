@@ -25,7 +25,6 @@ import com.netflix.discovery.shared.transport.EurekaHttpClient;
 import com.netflix.discovery.shared.transport.EurekaHttpResponse;
 import com.netflix.discovery.shared.transport.jersey.JerseyApplicationClient;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -107,9 +106,7 @@ public final class EurekaInstanceRegisterRepositoryTest {
 
     @Test
     public void testSelectInstancesAndWatcher() {
-        WatcherListener watcherListener = mock(WatcherListener.class);
-        repository.selectInstancesAndWatcher(instanceId, watcherListener);
-        assertTrue(eurekaEventStorage.containsKey(instanceId));
+        repository.selectInstances(instanceId);
         repository.close();
         assertTrue(eurekaEventStorage.isEmpty());
     }
