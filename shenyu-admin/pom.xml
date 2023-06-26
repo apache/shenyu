@@ -88,6 +88,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-alert</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
