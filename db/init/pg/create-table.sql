@@ -2209,12 +2209,12 @@ COMMENT ON COLUMN "public"."tag_relation"."date_updated" IS 'update time';
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."alert_template";
 CREATE TABLE "public"."alert_template" (
-    `id`            varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    `name`          varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    `strategy_name` varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    `content`       varchar(1000) COLLATE "pg_catalog"."default" NOT NULL,
-    `date_created`  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-    `date_updated`  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+    "id"            varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name"          varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "strategy_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "content"       varchar(1000) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
 COMMENT ON COLUMN "public"."alert_template"."id" IS 'primary key id';
