@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.base.handler;
 
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 
-
 public interface DiscoveryUpstreamDataHandler {
 
     /**

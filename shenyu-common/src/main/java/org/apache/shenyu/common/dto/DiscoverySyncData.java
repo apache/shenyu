@@ -36,7 +36,9 @@ public class DiscoverySyncData {
      */
     private String selectorName;
 
-
+    /**
+     * upstreamDataList.
+     */
     private List<DiscoveryUpstreamData> upstreamDataList;
 
     /**
@@ -89,7 +91,7 @@ public class DiscoverySyncData {
      *
      * @param selectorName selectorName
      */
-    public void setSelectorName(String selectorName) {
+    public void setSelectorName(final String selectorName) {
         this.selectorName = selectorName;
     }
 

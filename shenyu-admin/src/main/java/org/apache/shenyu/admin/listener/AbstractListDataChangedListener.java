@@ -259,7 +259,7 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
                             .getOrDefault(proxySelectorData.getId(), new ArrayList<>())
                             .stream()
                             .filter(s -> !s.getId().equals(proxySelectorData.getId()))
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toList/**/());
                     PROXY_SELECTOR_MAP.put(proxySelectorData.getId(), ls);
                 });
                 break;

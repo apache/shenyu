@@ -124,11 +124,15 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private DiscoverySyncData buildProxySelectorData(final String key, final String value) {
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
+        ProxySelectorData proxySelectorData = keyValueParser.parseKey(key);
         String[] split = key.split("/");
         String discoveryHandleId = split[split.length - 2];
         discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandleId));
         DiscoverySyncData data = new DiscoverySyncData();
         data.setUpstreamDataList(discoveryUpstreamDTOS);
+        data.setSelectorId(proxySelectorData.getId());
+        data.setSelectorName(proxySelectorData.getName());
+        data.setPluginName(proxySelectorData.getPluginName());
         return data;
     }
 

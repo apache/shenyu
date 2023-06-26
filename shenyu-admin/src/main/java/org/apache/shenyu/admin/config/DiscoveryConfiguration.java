@@ -22,6 +22,9 @@ import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -67,6 +70,26 @@ public class DiscoveryConfiguration {
     public DiscoveryProcessorHolder discoveryProcessorHolder(@Qualifier("DefaultDiscoveryProcessor") final DiscoveryProcessor defaultDiscoveryProcessor,
                                                              @Qualifier("LocalDiscoveryProcessor") final DiscoveryProcessor localDiscoveryProcessor
     ) {
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setId("1");
+        discoveryDO.setServiceList("127.0.0.1:2181");
+        discoveryDO.setName("zk");
+        discoveryDO.setType("zookeeper");
+        discoveryDO.setProps("{}");
+        defaultDiscoveryProcessor.createDiscovery(discoveryDO);
+        DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
+        discoveryHandlerDTO.setId("1");
+        discoveryHandlerDTO.setDiscoveryId("1");
+        discoveryHandlerDTO.setProps("{}");
+        discoveryHandlerDTO.setHandler("{}");
+        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        proxySelectorDTO.setProps("{}");
+        proxySelectorDTO.setPluginName("tcp");
+        proxySelectorDTO.setForwardPort(9878);
+        proxySelectorDTO.setName("TCPSelectorName");
+        proxySelectorDTO.setId("1");
+        proxySelectorDTO.setType("zookeeper");
+        defaultDiscoveryProcessor.createProxySelector(discoveryHandlerDTO, proxySelectorDTO);
         return new DiscoveryProcessorHolder(defaultDiscoveryProcessor, localDiscoveryProcessor);
     }
 

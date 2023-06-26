@@ -19,69 +19,38 @@ package org.apache.shenyu.plugin.tcp.handler;
 
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
-import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
 import org.apache.shenyu.protocol.tcp.BootstrapServer;
-import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
 import org.apache.shenyu.protocol.tcp.UpstreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * upstreamList data change.
  */
-public class TcpUpstreamDataHandler implements ProxySelectorDataHandler, DiscoveryUpstreamDataHandler {
+public class TcpUpstreamDataHandler implements DiscoveryUpstreamDataHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(TcpUpstreamDataHandler.class);
-
-    private final Map<String, BootstrapServer> cache = new ConcurrentHashMap<>();
-
-    @Override
-    public synchronized void handlerProxySelector(final ProxySelectorData proxySelectorData) {
-        String name = proxySelectorData.getName();
-        if (!cache.containsKey(name)) {
-            Integer forwardPort = proxySelectorData.getForwardPort();
-            TcpServerConfiguration tcpServerConfiguration = new TcpServerConfiguration();
-            tcpServerConfiguration.setPort(forwardPort);
-            tcpServerConfiguration.setProps(proxySelectorData.getProps());
-            tcpServerConfiguration.setPluginSelectorName(name);
-            UpstreamProvider.getSingleton().createUpstreams(name, Collections.emptyList());
-            BootstrapServer bootstrapServer = TcpBootstrapFactory.getSingleton().createBootstrapServer(tcpServerConfiguration);
-            cache.put(name, bootstrapServer);
-            LOG.info("shenyu create TcpBootstrapServer success name is {} port is {}", proxySelectorData.getName(), forwardPort);
-        } else {
-            LOG.info("shenyu already created TcpBootstrapServer name is {} port is {}", proxySelectorData.getName(), proxySelectorData.getForwardPort());
-        }
-    }
-
-    @Override
-    public void removeProxySelector(final String proxySelectorName) {
-        if (cache.containsKey(proxySelectorName)) {
-            cache.remove(proxySelectorName).shutdown();
-            LOG.info("shenyu shutdown {}", proxySelectorName);
-        }
-    }
 
     @Override
     public String pluginName() {
         return PluginEnum.TCP.getName();
     }
 
-
     @Override
-    public void handlerDiscoveryUpstreamData(DiscoverySyncData discoverySyncData) {
+    public void handlerDiscoveryUpstreamData(final DiscoverySyncData discoverySyncData) {
         List<DiscoveryUpstreamData> removed = UpstreamProvider.getSingleton().refreshCache(discoverySyncData.getSelectorName(), discoverySyncData.getUpstreamDataList());
-        BootstrapServer bootstrapServer = cache.get(discoverySyncData.getSelectorName());
-        bootstrapServer.removeCommonUpstream(removed);
-        LOG.info("shenyu update TcpBootstrapServer success upstream is {}", discoverySyncData.getUpstreamDataList());
+        BootstrapServer bootstrapServer = TcpBootstrapFactory.getSingleton().getCache(discoverySyncData.getSelectorName());
+        if (Objects.nonNull(bootstrapServer)) {
+            bootstrapServer.removeCommonUpstream(removed);
+            LOG.info("shenyu update TcpBootstrapServer success upstream is {}", discoverySyncData.getUpstreamDataList());
+        } else {
+            LOG.warn("shenyu update TcpBootstrapServer don't find name is {}", discoverySyncData.getSelectorName());
+        }
     }
 
 }

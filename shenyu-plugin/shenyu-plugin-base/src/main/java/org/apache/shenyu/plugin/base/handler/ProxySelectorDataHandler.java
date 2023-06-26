@@ -17,10 +17,7 @@
 
 package org.apache.shenyu.plugin.base.handler;
 
-import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
-
-import java.util.List;
 
 /**
  * ProxySelectorDataHandler.

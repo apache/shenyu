@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.base.cache;
 
-import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;

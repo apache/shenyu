@@ -178,7 +178,6 @@ public class ZookeeperSyncDataService implements SyncDataService {
                 .ifPresent(data -> discoveryUpstreamDataSubscribers.forEach(e -> e.onSubscribe(upstreamDataList)));
     }
 
-
     private void unCacheMetaData(final MetaData metaData) {
         Optional.ofNullable(metaData)
                 .ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
@@ -368,7 +367,6 @@ public class ZookeeperSyncDataService implements SyncDataService {
         }
     }
 
-
     class DiscoveryUpstreamCacheListener extends AbstractDataSyncListener {
 
         @Override
@@ -381,11 +379,13 @@ public class ZookeeperSyncDataService implements SyncDataService {
             if (pathInfoArray.length != 5) {
                 return;
             }
-            DiscoverySyncData discoverySyncData = GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), DiscoverySyncData.class);
-            // create or update
-            Optional.ofNullable(data)
-                    .ifPresent(e -> cacheDiscoveryUpstreamData(discoverySyncData));
-
+            // only support update
+            if (type.equals(TreeCacheEvent.Type.NODE_UPDATED)) {
+                DiscoverySyncData discoverySyncData = GsonUtils.getInstance().fromJson(new String(data.getData(), StandardCharsets.UTF_8), DiscoverySyncData.class);
+                // create or update
+                Optional.ofNullable(data)
+                        .ifPresent(e -> cacheDiscoveryUpstreamData(discoverySyncData));
+            }
         }
     }
 
