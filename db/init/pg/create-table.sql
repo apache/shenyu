@@ -2207,7 +2207,7 @@ COMMENT ON COLUMN "public"."tag_relation"."date_updated" IS 'update time';
 -- ----------------------------
 -- Table structure for alert_template
 -- ----------------------------
-DROP TABLE IF EXISTS "public".`alert_template`;
+DROP TABLE IF EXISTS "public"."alert_template";
 CREATE TABLE "public"."alert_template" (
     `id`            varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     `name`          varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
