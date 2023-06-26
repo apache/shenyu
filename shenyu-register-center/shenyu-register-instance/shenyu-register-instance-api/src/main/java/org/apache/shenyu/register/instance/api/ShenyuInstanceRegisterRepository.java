@@ -19,7 +19,6 @@ package org.apache.shenyu.register.instance.api;
 
 import org.apache.shenyu.register.instance.api.config.RegisterConfig;
 import org.apache.shenyu.register.instance.api.entity.InstanceEntity;
-import org.apache.shenyu.register.instance.api.watcher.WatcherListener;
 import org.apache.shenyu.spi.SPI;
 
 import java.util.Collections;
@@ -47,13 +46,12 @@ public interface ShenyuInstanceRegisterRepository {
     void persistInstance(InstanceEntity instance);
 
     /**
-     * selectInstancesAndWatcher.
+     * selectInstances.
      *
      * @param selectKey selectKey
-     * @param watcherListener watcherListener
      * @return {@link List}
      */
-    default List<InstanceEntity> selectInstancesAndWatcher(final String selectKey, final WatcherListener watcherListener) {
+    default List<InstanceEntity> selectInstances(final String selectKey) {
         return Collections.emptyList();
     }
 
