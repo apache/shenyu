@@ -123,7 +123,7 @@ public class ExceptionHandlers {
     
     @ExceptionHandler(ShenyuException.class)
     protected ShenyuAdminResult handleShenyuException(final ShenyuException exception) {
-        String message = exception.getCause().getMessage();
+        String message = exception.getCause() == null ? null : exception.getCause().getMessage();
         if (!StringUtils.hasText(message)) {
             message = exception.getMessage();
         }
