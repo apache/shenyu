@@ -62,9 +62,13 @@ import java.util.stream.Collectors;
  * The type Web socket plugin.
  */
 public class WebSocketPlugin extends AbstractShenyuPlugin {
+    
     private static final Logger LOG = LoggerFactory.getLogger(WebSocketPlugin.class);
+    
     private static final String SEC_WEB_SOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
+    
     private final WebSocketClient webSocketClient;
+    
     private final WebSocketService webSocketService;
     
     /**
