@@ -68,7 +68,7 @@ public class ProxySelectorVO implements Serializable {
     private Timestamp createTime;
 
     /**
-     * updateTime
+     * updateTime.
      */
     private Timestamp updateTime;
 
@@ -96,7 +96,8 @@ public class ProxySelectorVO implements Serializable {
     }
 
     /**
-     * ProxySelectorVO
+     * ProxySelectorVO.
+     *
      * @param name name of the proxy
      * @param forwardPort forward port
      * @param type type of the proxy
@@ -136,7 +137,7 @@ public class ProxySelectorVO implements Serializable {
      *
      * @param id id
      */
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -210,7 +211,7 @@ public class ProxySelectorVO implements Serializable {
      * set listener node.
      * @param listenerNode listener node
      */
-    public void setListenerNode(String listenerNode) {
+    public void setListenerNode(final String listenerNode) {
         this.listenerNode = listenerNode;
     }
 
@@ -226,7 +227,7 @@ public class ProxySelectorVO implements Serializable {
      * set handler.
      * @param handler handler
      */
-    public void setHandler(String handler) {
+    public void setHandler(final String handler) {
         this.handler = handler;
     }
 
@@ -234,7 +235,7 @@ public class ProxySelectorVO implements Serializable {
      * set createTime.
      * @param createTime createTime
      */
-    public void setCreateTime(Timestamp createTime) {
+    public void setCreateTime(final Timestamp createTime) {
         this.createTime = createTime;
     }
 
@@ -250,9 +251,7 @@ public class ProxySelectorVO implements Serializable {
      * set updateTime.
      * @param updateTime updateTime
      */
-
-
-    public void setUpdateTime(Timestamp updateTime) {
+    public void setUpdateTime(final Timestamp updateTime) {
         this.updateTime = updateTime;
     }
 
@@ -278,7 +277,7 @@ public class ProxySelectorVO implements Serializable {
      *
      * @param props props
      */
-    public void setProps(String props) {
+    public void setProps(final String props) {
         this.props = props;
     }
 
@@ -294,7 +293,7 @@ public class ProxySelectorVO implements Serializable {
      * set discovery.
      * @param discovery discovery
      */
-    public void setDiscovery(DiscoveryDTO discovery) {
+    public void setDiscovery(final DiscoveryDTO discovery) {
         this.discovery = discovery;
     }
 
@@ -310,7 +309,7 @@ public class ProxySelectorVO implements Serializable {
      * set discovery upstream list.
      * @param discoveryUpstreams discovery upstream list
      */
-    public void setDiscoveryUpstreams(List<DiscoveryUpstreamDTO> discoveryUpstreams) {
+    public void setDiscoveryUpstreams(final List<DiscoveryUpstreamDTO> discoveryUpstreams) {
         this.discoveryUpstreams = discoveryUpstreams;
     }
 }

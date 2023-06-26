@@ -46,7 +46,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
-    public DiscoveryVO discovery(String pluginName, String level) {
+    public DiscoveryVO discovery(final String pluginName, final String level) {
         return discoveryVO(discoveryMapper.selectByPluginNameAndLevel(pluginName, level));
     }
 

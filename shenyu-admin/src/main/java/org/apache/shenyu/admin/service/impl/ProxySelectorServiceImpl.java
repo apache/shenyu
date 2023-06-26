@@ -19,11 +19,19 @@ package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.mapper.*;
+import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
-import org.apache.shenyu.admin.model.entity.*;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
@@ -34,7 +42,6 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -54,21 +61,23 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
 
     private final ProxySelectorMapper proxySelectorMapper;
 
-    @Autowired
-    private DiscoveryMapper discoveryMapper;
+    private final DiscoveryMapper discoveryMapper;
 
-    @Autowired
-    private DiscoveryRelMapper discoveryRelMapper;
+    private final DiscoveryRelMapper discoveryRelMapper;
 
-    @Autowired
-    private DiscoveryUpstreamMapper discoveryUpstreamMapper;
+    private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
-    @Autowired
-    private DiscoveryHandlerMapper discoveryHandlerMapper;
+    private final DiscoveryHandlerMapper discoveryHandlerMapper;
 
-    public ProxySelectorServiceImpl(final ProxySelectorMapper proxySelectorMapper) {
+    public ProxySelectorServiceImpl(final ProxySelectorMapper proxySelectorMapper, final DiscoveryMapper discoveryMapper,
+                                    final DiscoveryUpstreamMapper discoveryUpstreamMapper, final DiscoveryHandlerMapper discoveryHandlerMapper,
+                                    final DiscoveryRelMapper discoveryRelMapper) {
 
         this.proxySelectorMapper = proxySelectorMapper;
+        this.discoveryMapper = discoveryMapper;
+        this.discoveryRelMapper = discoveryRelMapper;
+        this.discoveryUpstreamMapper = discoveryUpstreamMapper;
+        this.discoveryHandlerMapper = discoveryHandlerMapper;
     }
 
     /**
@@ -101,17 +110,17 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                     DiscoveryDTO discoveryDTO = new DiscoveryDTO();
                     BeanUtils.copyProperties(discoveryDO, discoveryDTO);
                     vo.setDiscovery(discoveryDTO);
-                    List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
-                    List<DiscoveryUpstreamDTO> discoveryUpstreamDTOs = Lists.newArrayList();
-                    discoveryUpstreamDOS.forEach(e -> {
+                    List<DiscoveryUpstreamDO> discoveryUpstreamDOList = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryRelDO.getDiscoveryHandlerId());
+                    List<DiscoveryUpstreamDTO> discoveryUpstreamDTOList = Lists.newArrayList();
+                    discoveryUpstreamDOList.forEach(e -> {
                         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
                         BeanUtils.copyProperties(e, discoveryUpstreamDTO);
-                        discoveryUpstreamDTOs.add(discoveryUpstreamDTO);
+                        discoveryUpstreamDTOList.add(discoveryUpstreamDTO);
                     });
-                    vo.setDiscoveryUpstreams(discoveryUpstreamDTOs);
+                    vo.setDiscoveryUpstreams(discoveryUpstreamDTOList);
                 }
-                result.add(vo);
             }
+            result.add(vo);
         });
         return PageResultUtils.result(query.getPageParameter(), () -> result);
     }
@@ -221,7 +230,6 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      * @return the string
      */
     public String update(final ProxySelectorAddDTO proxySelectorAddDTO) {
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         // update proxy selector
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
         proxySelectorMapper.update(proxySelectorDO);
@@ -230,6 +238,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         String discoveryHandlerId = discoveryRelDO.getDiscoveryHandlerId();
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
         // update discovery handler
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         discoveryHandlerDO.setHandler(proxySelectorAddDTO.getHandler());
         discoveryHandlerDO.setListenerNode(proxySelectorAddDTO.getListenerNode());
         discoveryHandlerDO.setProps(proxySelectorAddDTO.getProps());

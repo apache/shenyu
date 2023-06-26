@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.model.entity;
 
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
-import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.util.StringUtils;

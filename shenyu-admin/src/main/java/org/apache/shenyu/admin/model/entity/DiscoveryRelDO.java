@@ -44,7 +44,8 @@ public final class DiscoveryRelDO extends BaseDO {
         this.proxySelectorId = proxySelectorId;
     }
 
-    public DiscoveryRelDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String pluginName, final String discoveryHandlerId, final String selectorId, final String proxySelectorId) {
+    public DiscoveryRelDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String pluginName,
+                          final String discoveryHandlerId, final String selectorId, final String proxySelectorId) {
         super(id, dateCreated, dateUpdated);
         this.pluginName = pluginName;
         this.discoveryHandlerId = discoveryHandlerId;
@@ -126,7 +127,7 @@ public final class DiscoveryRelDO extends BaseDO {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }

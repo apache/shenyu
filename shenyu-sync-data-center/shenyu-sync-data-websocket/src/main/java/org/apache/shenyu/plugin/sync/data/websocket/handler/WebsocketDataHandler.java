@@ -48,7 +48,7 @@ public class WebsocketDataHandler {
         ENUM_MAP.put(ConfigGroupEnum.RULE, new RuleDataHandler(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.APP_AUTH, new AuthDataHandler(authDataSubscribers));
         ENUM_MAP.put(ConfigGroupEnum.META_DATA, new MetaDataHandler(metaDataSubscribers));
-        ENUM_MAP.put(ConfigGroupEnum.PROXY_SELECTOR_DATA, new ProxySelectorDataHandler(proxySelectorDataSubscribers));
+        ENUM_MAP.put(ConfigGroupEnum.PROXY_SELECTOR, new ProxySelectorDataHandler(proxySelectorDataSubscribers));
     }
 
     /**

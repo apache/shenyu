@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
-import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
 import org.apache.shenyu.admin.model.vo.ProxySelectorVO;

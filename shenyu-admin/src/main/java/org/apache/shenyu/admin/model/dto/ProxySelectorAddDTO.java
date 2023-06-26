@@ -197,7 +197,7 @@ public class ProxySelectorAddDTO implements Serializable {
      * set handler.
      * @param handler handler
      */
-    public void setHandler(String handler) {
+    public void setHandler(final String handler) {
         this.handler = handler;
     }
 
@@ -304,7 +304,7 @@ public class ProxySelectorAddDTO implements Serializable {
          * set props.
          * @param props props
          */
-        public void setProps(String props) {
+        public void setProps(final String props) {
             this.props = props;
         }
     }

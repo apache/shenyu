@@ -170,7 +170,7 @@ public class DiscoveryDTO implements Serializable {
      *
      * @param level level
      */
-    public void setLevel(String level) {
+    public void setLevel(final String level) {
         this.level = level;
     }
 
@@ -188,7 +188,7 @@ public class DiscoveryDTO implements Serializable {
      *
      * @param pluginName plugin name
      */
-    public void setPluginName(String pluginName) {
+    public void setPluginName(final String pluginName) {
         this.pluginName = pluginName;
     }
 

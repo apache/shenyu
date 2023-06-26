@@ -44,7 +44,8 @@ public class DiscoveryHandlerDO extends BaseDO {
         this.props = props;
     }
 
-    public DiscoveryHandlerDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String discoveryId, final String handler, final String listenerNode, final String props) {
+    public DiscoveryHandlerDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String discoveryId,
+                              final String handler, final String listenerNode, final String props) {
         super(id, dateCreated, dateUpdated);
         this.discoveryId = discoveryId;
         this.handler = handler;
@@ -163,7 +164,6 @@ public class DiscoveryHandlerDO extends BaseDO {
         private Timestamp dateCreated;
 
         private Timestamp dateUpdated;
-
 
         private String discoveryId;
 
