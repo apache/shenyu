@@ -49,10 +49,6 @@ public class ProxySelectorDataHandler extends AbstractDataHandler<ProxySelectorD
     @Override
     protected void doUpdate(final List<ProxySelectorData> dataList) {
         // update and cache the data
-        dataList.forEach(proxySelectorData -> {
-            Optional.ofNullable(proxySelectorData)
-                    .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.onSubscribe(proxySelectorData, proxySelectorData.getDiscoveryUpstreamList())));
-        });
     }
 
     @Override
