@@ -78,6 +78,14 @@
         </dependency>
         <!--shenyu param uri end-->
 
+        <!-- shenyu transform plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-transform</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu transform plugin end-->
+        
         <!--shenyu plugin test-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
