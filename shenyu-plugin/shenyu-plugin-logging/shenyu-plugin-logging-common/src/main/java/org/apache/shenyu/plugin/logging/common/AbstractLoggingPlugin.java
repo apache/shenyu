@@ -54,9 +54,7 @@ import org.apache.shenyu.plugin.logging.common.constant.GenericLoggingConstant;
 public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends AbstractShenyuPlugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLoggingPlugin.class);
-
-    private static String dataDesensitizeAlg;
-
+    
     /**
      * LogCollector.
      *
@@ -85,8 +83,9 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
     public Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                 final SelectorData selector, final RuleData rule) {
         CommonLoggingRuleHandle commonLoggingRuleHandle = AbstractLogPluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        boolean desensitized = false;
+        boolean desensitized = Boolean.FALSE;
         Set<String> keywordSets = Sets.newHashSet();
+        String dataDesensitizeAlg = DataDesensitizeEnum.MD5_ENCRYPT.getDataDesensitizeAlg();
         if (Objects.nonNull(commonLoggingRuleHandle)) {
             String keywords = commonLoggingRuleHandle.getKeyword();
             desensitized = StringUtils.isNotBlank(keywords) && commonLoggingRuleHandle.getMaskStatus();
