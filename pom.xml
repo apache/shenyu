@@ -172,6 +172,8 @@
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
         <asm.version>9.2</asm.version>
         <apollo.version>2.1.0</apollo.version>
+        <resilience.version>1.7.1</resilience.version>
+        <sentinel.version>1.8.3</sentinel.version>
     </properties>
 
     <dependencyManagement>
