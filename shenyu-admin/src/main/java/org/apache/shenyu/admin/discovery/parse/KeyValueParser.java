@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.discovery.parse;
 
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
 
 import java.util.List;
 
@@ -34,6 +33,5 @@ public interface KeyValueParser {
      * @return DiscoveryUpstreamData list
      */
     List<DiscoveryUpstreamData> parseValue(String value);
-
 
 }

@@ -80,7 +80,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             discoveryDO.setId(UUIDUtils.getInstance().generateShortUuid());
         }
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
-        DiscoveryVO result =  discoveryMapper.insert(discoveryDO) > 0 ? discoveryVO(discoveryDO) : null;
+        DiscoveryVO result = discoveryMapper.insert(discoveryDO) > 0 ? discoveryVO(discoveryDO) : null;
         discoveryProcessor.createDiscovery(discoveryDO);
         return result;
     }
@@ -115,4 +115,5 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         BeanUtils.copyProperties(discoveryDO, discoveryVO);
         return discoveryVO;
     }
+
 }

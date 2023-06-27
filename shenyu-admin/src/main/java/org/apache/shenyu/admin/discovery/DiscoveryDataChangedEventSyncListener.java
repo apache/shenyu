@@ -27,7 +27,6 @@ import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -130,7 +129,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         DiscoveryHandlerDTO discoveryHandlerDTO = GsonUtils.getInstance().fromJson(splitArr[0], DiscoveryHandlerDTO.class);
         ProxySelectorDO proxySelectorDO = GsonUtils.getInstance().fromJson(splitArr[1], ProxySelectorDO.class);
         List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(splitArr[2]);
-        discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandlerDTO.getDiscoveryId()));
+        discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandlerDTO.getId()));
         DiscoverySyncData data = new DiscoverySyncData();
         data.setUpstreamDataList(discoveryUpstreamDTOS);
         data.setSelectorId(proxySelectorDO.getId());

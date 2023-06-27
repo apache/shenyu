@@ -23,9 +23,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
-import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
-import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
@@ -43,7 +41,9 @@ import java.util.stream.Collectors;
 public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
+
     private final DiscoveryHandlerMapper discoveryHandlerMapper;
+
     private final ProxySelectorMapper proxySelectorMapper;
 
     private final DiscoveryMapper discoveryMapper;
@@ -53,13 +53,12 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     public DiscoveryUpstreamServiceImpl(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                         final DiscoveryHandlerMapper discoveryHandlerMapper,
                                         final ProxySelectorMapper proxySelectorMapper,
-                                        final DiscoveryMapper DiscoveryMapper,
+                                        final DiscoveryMapper discoveryMapper,
                                         final DiscoveryProcessorHolder discoveryProcessorHolder) {
-
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
-        this.discoveryMapper = DiscoveryMapper;
+        this.discoveryMapper = discoveryMapper;
         this.proxySelectorMapper = proxySelectorMapper;
 
     }
@@ -116,8 +115,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 
-
-    private void fetchAll(String discoveryHandlerId) {
+    private void fetchAll(final String discoveryHandlerId) {
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
@@ -126,4 +124,5 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
         discoveryProcessor.changeUpstream(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO), collect);
     }
+
 }

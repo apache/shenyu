@@ -126,6 +126,7 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                     String parentData = this.getData(parentPath);
                     String currentData = new String(data.getData(), StandardCharsets.UTF_8);
                     String resultData = parentData + "|" + currentData;
+                    LOGGER.info("shenyu find resultData ={}" , resultData);
                     Stat stat = data.getStat();
                     boolean isEphemeral = Objects.nonNull(stat) && stat.getEphemeralOwner() > 0;
                     if (!isEphemeral) {
