@@ -36,5 +36,11 @@
             <artifactId>shenyu-spring-boot-starter-client-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.alipay.sofa</groupId>
+            <artifactId>runtime-sofa-boot-starter</artifactId>
+            <version>3.1.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

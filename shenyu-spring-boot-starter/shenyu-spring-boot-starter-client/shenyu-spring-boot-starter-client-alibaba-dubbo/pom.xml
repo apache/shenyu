@@ -36,5 +36,11 @@
             <artifactId>shenyu-spring-boot-starter-client-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>${alibaba.dubbo.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
