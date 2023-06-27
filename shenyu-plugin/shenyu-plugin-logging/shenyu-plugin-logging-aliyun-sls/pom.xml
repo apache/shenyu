@@ -25,12 +25,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-logging-aliyun-sls</artifactId>
 
-    <properties>
-        <aliyun-log.version>0.6.70</aliyun-log.version>
-        <protobuf-java.version>3.19.6</protobuf-java.version>
-        <aliyun-log-producer.version>0.3.10</aliyun-log-producer.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -39,21 +33,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>com.aliyun.openservices</groupId>
             <artifactId>aliyun-log-producer</artifactId>
             <version>${aliyun-log-producer.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-test</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
