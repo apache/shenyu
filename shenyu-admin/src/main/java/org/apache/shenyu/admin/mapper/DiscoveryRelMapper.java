@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
 
 /**
  * DiscoveryRelMapper.
  */
+@Mapper
 public interface DiscoveryRelMapper {
 
     /**
@@ -31,6 +33,14 @@ public interface DiscoveryRelMapper {
      * @return {@linkplain DiscoveryRelDO}
      */
     DiscoveryRelDO selectById(String id);
+
+    /**
+     * select discoveryRel by proxy selector id.
+     *
+     * @param proxySelectorId proxy selector id.
+     * @return {@linkplain DiscoveryRelDO}
+     */
+    DiscoveryRelDO selectByProxySelectorId(String proxySelectorId);
 
     /**
      * insert discoveryRelDO.
