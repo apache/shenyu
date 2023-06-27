@@ -82,12 +82,12 @@ public class SandboxServiceImpl implements SandboxService {
 
         String appKey = proxyGatewayDTO.getAppKey();
         UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(proxyGatewayDTO.getRequestUrl()).build();
-        String proxyIpPort = getHostPort(proxyGatewayDTO.getRequestUrl());
+        String proxyHostPort = getHostPort(proxyGatewayDTO.getRequestUrl());
 
-        Set<String> permitIpPorts = getPermitHostPorts();
-        if (!permitIpPorts.contains(proxyIpPort)) {
+        Set<String> permitHostPorts = getPermitHostPorts();
+        if (!permitHostPorts.contains(proxyHostPort)) {
             LOG.error("Unsecure access, details: {}", proxyGatewayDTO.getRequestUrl());
-            throw new ShenyuException(proxyIpPort + " is not allowed.");
+            throw new ShenyuException(proxyHostPort + " is not allowed.");
         }
 
         String signContent = null;
@@ -124,11 +124,11 @@ public class SandboxServiceImpl implements SandboxService {
 
     private Set<String> getPermitHostPorts() {
         List<ShenyuDictVO> dictVOList = shenyuDictService.list(AdminConstants.DICT_TYPE_API_DOC_ENV);
-        Set<String> whileIpPorts = dictVOList.stream()
+        Set<String> whileHostPorts = dictVOList.stream()
             .filter(ShenyuDictVO::getEnabled)
-            .map(dictVO -> getHostPort(dictVO.getDictValue())
-            ).collect(Collectors.toSet());
-        return whileIpPorts;
+            .map(dictVO -> getHostPort(dictVO.getDictValue()))
+            .collect(Collectors.toSet());
+        return whileHostPorts;
     }
 
     private String getHostPort(final String httpUrl) {
