@@ -17,9 +17,12 @@
 
 package org.apache.shenyu.admin.transfer;
 
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 
@@ -103,4 +106,35 @@ public enum DiscoveryTransfer {
         return proxySelectorData;
     }
 
+    public ProxySelectorDTO mapToDTO(ProxySelectorDO proxySelectorDO) {
+        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        proxySelectorDTO.setName(proxySelectorDO.getName());
+        proxySelectorDTO.setType(proxySelectorDO.getType());
+        proxySelectorDTO.setProps(proxySelectorDO.getProps());
+        proxySelectorDTO.setForwardPort(proxySelectorDO.getForwardPort());
+        proxySelectorDTO.setPluginName(proxySelectorDO.getPluginName());
+        return proxySelectorDTO;
+    }
+
+    public DiscoveryHandlerDTO mapToDTO(DiscoveryHandlerDO discoveryHandlerDO) {
+        DiscoveryHandlerDTO discoveryHandlerDTO = new DiscoveryHandlerDTO();
+        discoveryHandlerDTO.setDiscoveryId(discoveryHandlerDO.getDiscoveryId());
+        discoveryHandlerDTO.setHandler(discoveryHandlerDO.getHandler());
+        discoveryHandlerDTO.setProps(discoveryHandlerDO.getProps());
+        discoveryHandlerDTO.setListenerNode(discoveryHandlerDO.getListenerNode());
+        discoveryHandlerDTO.setId(discoveryHandlerDO.getId());
+        return discoveryHandlerDTO;
+    }
+
+    public DiscoveryUpstreamDTO mapToDTO(DiscoveryUpstreamDO discoveryUpstreamDO) {
+        DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
+        discoveryUpstreamDTO.setProps(discoveryUpstreamDO.getProps());
+        discoveryUpstreamDTO.setStatus(discoveryUpstreamDO.getStatus());
+        discoveryUpstreamDTO.setUrl(discoveryUpstreamDO.getUrl());
+        discoveryUpstreamDTO.setDiscoveryHandlerId(discoveryUpstreamDO.getDiscoveryHandlerId());
+        discoveryUpstreamDTO.setProtocol(discoveryUpstreamDO.getProtocol());
+        discoveryUpstreamDTO.setId(discoveryUpstreamDO.getId());
+        discoveryUpstreamDTO.setWeight(discoveryUpstreamDO.getWeight());
+        return discoveryUpstreamDTO;
+    }
 }

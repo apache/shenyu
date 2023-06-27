@@ -35,12 +35,5 @@ public interface KeyValueParser {
      */
     List<DiscoveryUpstreamData> parseValue(String value);
 
-    /**
-     * parseKey.
-     *
-     * @param key discovery key
-     * @return ProxySelectorData.
-     */
-    ProxySelectorData parseKey(String key);
 
 }

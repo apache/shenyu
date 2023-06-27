@@ -21,13 +21,16 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
@@ -72,7 +75,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         if (DiscoveryDataChangedEvent.Event.IGNORED.equals(currentEvent)) {
             return;
         }
-        DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getKey(), event.getValue());
+        DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getValue());
         DataChangedEvent dataChangedEvent = null;
         List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
         if (needPersistence) {
@@ -122,17 +125,17 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         discoverySyncData.setUpstreamDataList(collect);
     }
 
-    private DiscoverySyncData buildProxySelectorData(final String key, final String value) {
-        List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
-        ProxySelectorData proxySelectorData = keyValueParser.parseKey(key);
-        String[] split = key.split("/");
-        String discoveryHandleId = split[split.length - 2];
-        discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandleId));
+    private DiscoverySyncData buildProxySelectorData(final String value) {
+        String[] splitArr = value.split("[|]");
+        DiscoveryHandlerDTO discoveryHandlerDTO = GsonUtils.getInstance().fromJson(splitArr[0], DiscoveryHandlerDTO.class);
+        ProxySelectorDO proxySelectorDO = GsonUtils.getInstance().fromJson(splitArr[1], ProxySelectorDO.class);
+        List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(splitArr[2]);
+        discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandlerDTO.getDiscoveryId()));
         DiscoverySyncData data = new DiscoverySyncData();
         data.setUpstreamDataList(discoveryUpstreamDTOS);
-        data.setSelectorId(proxySelectorData.getId());
-        data.setSelectorName(proxySelectorData.getName());
-        data.setPluginName(proxySelectorData.getPluginName());
+        data.setSelectorId(proxySelectorDO.getId());
+        data.setSelectorName(proxySelectorDO.getName());
+        data.setPluginName(proxySelectorDO.getPluginName());
         return data;
     }
 

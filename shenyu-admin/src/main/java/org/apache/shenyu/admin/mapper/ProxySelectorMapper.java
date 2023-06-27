@@ -93,4 +93,14 @@ public interface ProxySelectorMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(@Param("ids") List<String> ids);
+
+
+    /**
+     * selectByHandlerId.
+     *
+     * @param discoveryHandlerId discoveryHandlerId.
+     * @return ProxySelectorDO
+     */
+    ProxySelectorDO selectByHandlerId(@Param("discoveryHandlerId") String discoveryHandlerId);
+
 }

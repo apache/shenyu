@@ -113,7 +113,13 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM proxy_selector
-        WHERE id  = #{id, jdbcType=VARCHAR}
+        WHERE id = #{id, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByHandlerId" resultType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
+        SELECT ps.id , ps.name, ps.plugin_name , ps.type, ps.forward_port , ps.props
+        FROM proxy_selector ps inner join discovery_rel dr on ps.id = dr.proxy_selector_id
+        where dr.discovery_handler_id = #{discoveryHandlerId}
     </select>
 
     <delete id="deleteByIds" parameterType="java.util.List">

@@ -52,17 +52,14 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
 
     private final Map<String, String> conversion;
 
-    private final ProxySelectorMapper proxySelectorMapper;
 
     /**
      * CustomDiscoveryUpstreamParser.
      *
      * @param conversion          conversion
-     * @param proxySelectorMapper proxySelectorMapper
      */
-    public CustomDiscoveryUpstreamParser(final Map<String, String> conversion, final ProxySelectorMapper proxySelectorMapper) {
+    public CustomDiscoveryUpstreamParser(final Map<String, String> conversion) {
         this.conversion = conversion;
-        this.proxySelectorMapper = proxySelectorMapper;
     }
 
     @Override
@@ -91,28 +88,6 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
         GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(DiscoveryUpstreamData.class, this);
         Gson gson = gsonBuilder.create();
         return Collections.singletonList(gson.fromJson(jsonString, DiscoveryUpstreamData.class));
-    }
-
-    /**
-     * parseKey.
-     *
-     * <p>
-     * /.../{pluginName}/{selectorId}/{discoveryHandlerId}/{upstream_suq}
-     * </p>
-     *
-     * @param key key
-     * @return ProxySelectorData
-     */
-    @Override
-    public ProxySelectorData parseKey(final String key) {
-        String[] subArray = key.split("/");
-        String proxySelectorId = subArray[subArray.length - 3];
-        ProxySelectorData proxySelectorData = new ProxySelectorData();
-        ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
-        BeanUtils.copyProperties(proxySelectorDO, proxySelectorData);
-        LOG.info("shenyu parseKey pluginName={}|proxySelectorName={}|type={}|forwardPort={}", proxySelectorData.getPluginName(),
-                proxySelectorData.getName(), proxySelectorData.getType(), proxySelectorData.getForwardPort());
-        return proxySelectorData;
     }
 
 }

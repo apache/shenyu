@@ -75,7 +75,7 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
         discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
         discoverySyncData.setSelectorId(proxySelectorDTO.getId());
         discoverySyncData.setSelectorName(proxySelectorDTO.getName());
-        List<DiscoveryUpstreamData> upstreamDataList = upstreamDTOS.stream().map(up -> DiscoveryTransfer.INSTANCE.mapToData(up)).collect(Collectors.toList());
+        List<DiscoveryUpstreamData> upstreamDataList = upstreamDTOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
         discoverySyncData.setUpstreamDataList(upstreamDataList);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.DELETE, Collections.singletonList(discoverySyncData));
         eventPublisher.publishEvent(dataChangedEvent);
