@@ -113,7 +113,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
             }
         });
     }
-
+    
     @Override
     public boolean connectBlocking() {
         boolean success = false;

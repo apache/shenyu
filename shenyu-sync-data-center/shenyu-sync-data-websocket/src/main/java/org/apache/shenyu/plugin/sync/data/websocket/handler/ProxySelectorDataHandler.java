@@ -22,7 +22,11 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 
 import java.util.List;
+import java.util.Optional;
 
+/**
+ * ProxySelectorDataHandler.
+ */
 public class ProxySelectorDataHandler extends AbstractDataHandler<ProxySelectorData> {
 
     private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
@@ -38,11 +42,8 @@ public class ProxySelectorDataHandler extends AbstractDataHandler<ProxySelectorD
 
     @Override
     protected void doRefresh(final List<ProxySelectorData> dataList) {
-        dataList.forEach(data -> {
-            proxySelectorDataSubscribers.forEach(p -> {
-                p.onSubscribe(data);
-            });
-        });
+        proxySelectorDataSubscribers.forEach(ProxySelectorDataSubscriber::refresh);
+        doUpdate(dataList);
     }
 
     @Override
@@ -56,11 +57,9 @@ public class ProxySelectorDataHandler extends AbstractDataHandler<ProxySelectorD
 
     @Override
     protected void doDelete(final List<ProxySelectorData> dataList) {
-        dataList.forEach(data -> {
-            proxySelectorDataSubscribers.forEach(p -> {
-                p.unSubscribe(data);
-            });
+        dataList.forEach(proxySelectorData -> {
+            Optional.ofNullable(proxySelectorData)
+                    .ifPresent(data -> proxySelectorDataSubscribers.forEach(e -> e.unSubscribe(proxySelectorData)));
         });
     }
-
 }
