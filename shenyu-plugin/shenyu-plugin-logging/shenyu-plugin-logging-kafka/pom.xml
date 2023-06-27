@@ -23,6 +23,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-logging-kafka</artifactId>
+    
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -38,16 +39,6 @@
             <groupId>org.lz4</groupId>
             <artifactId>lz4-java</artifactId>
             <version>${lz4-java.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-test</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
