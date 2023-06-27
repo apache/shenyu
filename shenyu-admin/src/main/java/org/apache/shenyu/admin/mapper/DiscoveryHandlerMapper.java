@@ -18,63 +18,68 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.shenyu.admin.model.entity.DiscoveryRelDO;
+import org.apache.ibatis.annotations.Param;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.validation.ExistProvider;
+
+import java.io.Serializable;
 
 /**
- * DiscoveryRelMapper.
+ * DiscoveryHandlerMapper.
  */
 @Mapper
-public interface DiscoveryRelMapper {
+public interface DiscoveryHandlerMapper extends ExistProvider {
 
     /**
-     * select discoveryRel by id.
+     * existed.
+     *
+     * @param id id
+     * @return existed
+     */
+    @Override
+    Boolean existed(@Param("id") Serializable id);
+
+    /**
+     * select discovery handler by id.
      *
      * @param id primary key.
-     * @return {@linkplain DiscoveryRelDO}
+     * @return {@linkplain DiscoveryHandlerDO}
      */
-    DiscoveryRelDO selectById(String id);
+    DiscoveryHandlerDO selectById(String id);
 
     /**
-     * select discoveryRel by proxy selector id.
-     *
-     * @param proxySelectorId proxy selector id.
-     * @return {@linkplain DiscoveryRelDO}
-     */
-    DiscoveryRelDO selectByProxySelectorId(String proxySelectorId);
-
-    /**
-     * insert discoveryRelDO.
-     * @param discoveryRelDO discoveryRelDO.
+     * insert discovery handler.
+     * @param discoveryHandlerDO discovery handler.
      * @return rows
      */
-    int insert(DiscoveryRelDO discoveryRelDO);
+    int insert(DiscoveryHandlerDO discoveryHandlerDO);
 
     /**
-     * insert discoveryRelDO.
+     * insert discovery handler.
      *
-     * @param discoveryRelDO discoveryRelDO.
+     * @param discoveryHandlerDO discovery handler.
      * @return rows
      */
-    int insertSelective(DiscoveryRelDO discoveryRelDO);
+    int insertSelective(DiscoveryHandlerDO discoveryHandlerDO);
 
     /**
-     * update discoveryRelDO.
+     * update discovery handler.
      *
-     * @param discoveryRelDO {@linkplain DiscoveryRelDO}
+     * @param discoveryHandlerDO {@linkplain DiscoveryHandlerDO}
      * @return rows
      */
-    int update(DiscoveryRelDO discoveryRelDO);
+    int update(DiscoveryHandlerDO discoveryHandlerDO);
 
     /**
-     * update discoveryRelDO.
+     * update discovery handler.
      *
-     * @param discoveryRelDO {@linkplain DiscoveryRelDO}
+     * @param discoveryHandlerDO {@linkplain DiscoveryHandlerDO}
      * @return rows
      */
-    int updateSelective(DiscoveryRelDO discoveryRelDO);
+    int updateSelective(DiscoveryHandlerDO discoveryHandlerDO);
 
     /**
-     * delete discoveryRel by id.
+     * delete discovery handler by id.
      * @param id primary key.
      * @return rows.
      */

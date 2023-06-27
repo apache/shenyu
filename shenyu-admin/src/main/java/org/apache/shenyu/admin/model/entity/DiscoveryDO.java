@@ -29,11 +29,11 @@ public final class DiscoveryDO extends BaseDO {
 
     private String type;
 
-    private String handler;
+    private String level;
 
-    private String serviceList;
+    private String serverList;
 
-    private String listenerNode;
+    private String pluginName;
 
     private String props;
 
@@ -41,25 +41,25 @@ public final class DiscoveryDO extends BaseDO {
 
     }
 
-    public DiscoveryDO(final String name, final String type, final String handler, final String serviceList,
-                       final String listenerNode, final String props) {
+    public DiscoveryDO(final String name, final String type, final String level, final String serverList,
+                       final String pluginName, final String props) {
         this.name = name;
         this.type = type;
-        this.handler = handler;
-        this.serviceList = serviceList;
-        this.listenerNode = listenerNode;
+        this.level = level;
+        this.serverList = serverList;
+        this.pluginName = pluginName;
         this.props = props;
     }
 
     public DiscoveryDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String name,
-                       final String type, final String handler, final String serviceList, final String listenerNode,
+                       final String type, final String level, final String serverList, final String pluginName,
                        final String props) {
         super(id, dateCreated, dateUpdated);
         this.name = name;
         this.type = type;
-        this.handler = handler;
-        this.serviceList = serviceList;
-        this.listenerNode = listenerNode;
+        this.level = level;
+        this.serverList = serverList;
+        this.pluginName = pluginName;
         this.props = props;
     }
 
@@ -96,51 +96,51 @@ public final class DiscoveryDO extends BaseDO {
     }
 
     /**
-     * get the handler.
-     * @return the handler.
+     * get the level.
+     * @return the level.
      */
-    public String getHandler() {
-        return handler;
+    public String getLevel() {
+        return level;
     }
 
     /**
-     * set the handler.
-     * @param handler the handler.
+     * set the level.
+     * @param level the level.
      */
-    public void setHandler(final String handler) {
-        this.handler = handler;
+    public void setLevel(final String level) {
+        this.level = level;
     }
 
     /**
-     * get the service list value.
-     * @return the service list value
+     * get the server list value.
+     * @return the server list value
      */
-    public String getServiceList() {
-        return serviceList;
+    public String getServerList() {
+        return serverList;
     }
 
     /**
-     * set the service list.
-     * @param serviceList he service list
+     * set the server list.
+     * @param serverList the server list
      */
-    public void setServiceList(final String serviceList) {
-        this.serviceList = serviceList;
+    public void setServerList(final String serverList) {
+        this.serverList = serverList;
     }
 
     /**
-     * get list node value.
-     * @return list node value
+     * get pluginName value.
+     * @return pluginName value
      */
-    public String getListenerNode() {
-        return listenerNode;
+    public String getPluginName() {
+        return pluginName;
     }
 
     /**
-     * set list node value.
-     * @param listenerNode list node value
+     * set pluginName value.
+     * @param pluginName pluginName value
      */
-    public void setListenerNode(final String listenerNode) {
-        this.listenerNode = listenerNode;
+    public void setPluginName(final String pluginName) {
+        this.pluginName = pluginName;
     }
 
     /**
@@ -182,15 +182,15 @@ public final class DiscoveryDO extends BaseDO {
         DiscoveryDO discoveryDO = (DiscoveryDO) o;
         return Objects.equals(name, discoveryDO.name)
                 && Objects.equals(type, discoveryDO.type)
-                && Objects.equals(handler, discoveryDO.handler)
-                && Objects.equals(serviceList, discoveryDO.serviceList)
-                && Objects.equals(listenerNode, discoveryDO.listenerNode)
+                && Objects.equals(level, discoveryDO.level)
+                && Objects.equals(serverList, discoveryDO.serverList)
+                && Objects.equals(pluginName, discoveryDO.pluginName)
                 && Objects.equals(props, discoveryDO.props);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name, type, handler, serviceList, listenerNode, props);
+        return Objects.hash(super.hashCode(), name, type, level, serverList, pluginName, props);
     }
 
     public static final class DiscoveryDOBuilder {
@@ -205,11 +205,11 @@ public final class DiscoveryDO extends BaseDO {
 
         private String type;
 
-        private String handler;
+        private String level;
 
-        private String serviceList;
+        private String serverList;
 
-        private String listenerNode;
+        private String pluginName;
 
         private String props;
 
@@ -272,35 +272,35 @@ public final class DiscoveryDO extends BaseDO {
         }
 
         /**
-         * handler.
+         * level.
          *
-         * @param handler the handler.
+         * @param level the level.
          * @return DiscoveryDOBuilder.
          */
-        public DiscoveryDOBuilder handler(final String handler) {
-            this.handler = handler;
+        public DiscoveryDOBuilder level(final String level) {
+            this.level = level;
             return this;
         }
 
         /**
          * service list.
          *
-         * @param serviceList the service list.
+         * @param serverList the server list.
          * @return DiscoveryDOBuilder.
          */
-        public DiscoveryDOBuilder serviceList(final String serviceList) {
-            this.serviceList = serviceList;
+        public DiscoveryDOBuilder serverList(final String serverList) {
+            this.serverList = serverList;
             return this;
         }
 
         /**
-         * listenerNode.
+         * pluginName.
          *
-         * @param listenerNode the listenerNode.
+         * @param pluginName the pluginName.
          * @return DiscoveryDOBuilder.
          */
-        public DiscoveryDOBuilder listenerNode(final String listenerNode) {
-            this.listenerNode = listenerNode;
+        public DiscoveryDOBuilder pluginName(final String pluginName) {
+            this.pluginName = pluginName;
             return this;
         }
 
@@ -326,9 +326,9 @@ public final class DiscoveryDO extends BaseDO {
             discoveryDO.setDateUpdated(dateUpdated);
             discoveryDO.setName(name);
             discoveryDO.setType(type);
-            discoveryDO.setHandler(handler);
-            discoveryDO.setServiceList(serviceList);
-            discoveryDO.setListenerNode(listenerNode);
+            discoveryDO.setLevel(level);
+            discoveryDO.setServerList(serverList);
+            discoveryDO.setPluginName(pluginName);
             discoveryDO.setProps(props);
             return discoveryDO;
         }
