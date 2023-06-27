@@ -29,32 +29,24 @@
     <modules>
         <module>shenyu-plugin-api</module>
         <module>shenyu-plugin-base</module>
-        <module>shenyu-plugin-ratelimiter</module>
-        <module>shenyu-plugin-sign</module>
-        <module>shenyu-plugin-hystrix</module>
         <module>shenyu-plugin-httpclient</module>
         <module>shenyu-plugin-rewrite</module>
         <module>shenyu-plugin-waf</module>
         <module>shenyu-plugin-global</module>
-        <module>shenyu-plugin-sentinel</module>
-        <module>shenyu-plugin-resilience4j</module>
         <module>shenyu-plugin-context-path</module>
         <module>shenyu-plugin-redirect</module>
         <module>shenyu-plugin-modify-response</module>
         <module>shenyu-plugin-request</module>
-        <module>shenyu-plugin-oauth2</module>
-        <module>shenyu-plugin-jwt</module>
         <module>shenyu-plugin-response</module>
         <module>shenyu-plugin-param-mapping</module>
-        <module>shenyu-plugin-cryptor</module>
         <module>shenyu-plugin-uri</module>
         <module>shenyu-plugin-metrics</module>
         <module>shenyu-plugin-cache</module>
         <module>shenyu-plugin-logging</module>
         <module>shenyu-plugin-mock</module>
-        <module>shenyu-plugin-casdoor</module>
-        <module>shenyu-plugin-key-auth</module>
         <module>shenyu-plugin-proxy</module>
+        <module>shenyu-plugin-security</module>
+        <module>shenyu-plugin-fault-tolerance</module>
     </modules>
 
     <dependencies>
