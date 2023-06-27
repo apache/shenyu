@@ -85,12 +85,5 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu transform plugin end-->
-        
-        <!--shenyu plugin test-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 </project>

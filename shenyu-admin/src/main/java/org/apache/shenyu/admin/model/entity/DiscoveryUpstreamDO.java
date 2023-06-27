@@ -333,7 +333,7 @@ public class DiscoveryUpstreamDO extends BaseDO {
         }
 
         /**
-         * discoveryId.
+         * discoveryHandlerId.
          *
          * @param discoveryHandlerId discoveryHandlerId
          * @return DiscoveryUpstreamBuilder
