@@ -17,44 +17,34 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
-import org.apache.shenyu.admin.model.page.CommonPager;
-import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
-import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
+import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 
 import java.util.List;
 
-public interface ProxySelectorService {
+public interface DiscoveryService {
 
     /**
-     * listByPage.
+     * the list of discovery type.
      *
-     * @param query query
-     * @return page
+     * @return the list of discovery type
      */
-    CommonPager<ProxySelectorVO> listByPage(ProxySelectorQuery query);
+    List<String> typeEnums();
 
     /**
-     * createOrUpdate.
+     * get the discovery by plugin and name.
      *
-     * @param proxySelectorAddDTO proxySelectorAddDTO
+     * @param pluginName plugin name
+     * @param level level
+     * @return the discovery
+     */
+    DiscoveryVO discovery(String pluginName, String level);
+
+    /**
+     * Create or update string.
+     *
+     * @param discoveryDTO the discovery dto
      * @return the string
      */
-    String createOrUpdate(ProxySelectorAddDTO proxySelectorAddDTO);
-
-    /**
-     * delete.
-     *
-     * @param ids id list
-     * @return the string
-     */
-    String delete(List<String> ids);
-
-    /**
-     * addProxySelector.
-     *
-     * @param proxySelectorAddDTO {@link ProxySelectorAddDTO}
-     * @return the result
-     */
-    String create(ProxySelectorAddDTO proxySelectorAddDTO);
+    DiscoveryVO createOrUpdate(DiscoveryDTO discoveryDTO);
 }

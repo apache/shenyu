@@ -90,7 +90,7 @@
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.ProxySelectorDO">
         UPDATE proxy_selector
         SET
-        name=#{id, jdbcType=VARCHAR},
+        name=#{name, jdbcType=VARCHAR},
         plugin_name=#{pluginName,jdbcType=VARCHAR},
         type=#{type,jdbcType=VARCHAR},
         forward_port=#{forwardPort,jdbcType=INTEGER},
