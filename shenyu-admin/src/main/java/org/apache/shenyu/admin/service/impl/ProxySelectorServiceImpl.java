@@ -177,18 +177,29 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         String proxySelectorId = proxySelectorDO.getId();
         if (proxySelectorMapper.insert(proxySelectorDO) > 0) {
             DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(proxySelectorAddDTO.getDiscovery().getDiscoveryType());
-            String discoveryId = UUIDUtils.getInstance().generateShortUuid();
-            DiscoveryDO discoveryDO = DiscoveryDO.builder()
-                    .id(discoveryId)
-                    .name(proxySelectorAddDTO.getName())
-                    .type(proxySelectorAddDTO.getDiscovery().getDiscoveryType())
-                    .serverList(proxySelectorAddDTO.getDiscovery().getServerList())
-                    .level("2")
-                    .dateCreated(currentTime)
-                    .dateUpdated(currentTime)
-                    .props(proxySelectorAddDTO.getDiscovery().getProps())
-                    .build();
-            if (discoveryMapper.insertSelective(discoveryDO) > 0) {
+            DiscoveryDO discoveryDO;
+            String discoveryId;
+            boolean fillDiscovery;
+            if (StringUtils.hasLength(proxySelectorAddDTO.getDiscovery().getId())) {
+                discoveryDO = discoveryMapper.selectById(proxySelectorAddDTO.getDiscovery().getId());
+                discoveryId = proxySelectorAddDTO.getDiscovery().getId();
+                fillDiscovery = Objects.nonNull(discoveryDO);
+            } else {
+                discoveryId = UUIDUtils.getInstance().generateShortUuid();
+                discoveryDO = DiscoveryDO.builder()
+                        .id(discoveryId)
+                        .name(proxySelectorAddDTO.getName())
+                        .type(proxySelectorAddDTO.getDiscovery().getDiscoveryType())
+                        .serverList(proxySelectorAddDTO.getDiscovery().getServerList())
+                        .level("2")
+                        .dateCreated(currentTime)
+                        .dateUpdated(currentTime)
+                        .props(proxySelectorAddDTO.getDiscovery().getProps())
+                        .build();
+                fillDiscovery = discoveryMapper.insertSelective(discoveryDO) > 0;
+                discoveryProcessor.createDiscovery(discoveryDO);
+            }
+            if (fillDiscovery) {
                 discoveryProcessor.createDiscovery(discoveryDO);
                 // insert discovery handler
                 String discoveryHandlerId = UUIDUtils.getInstance().generateShortUuid();
