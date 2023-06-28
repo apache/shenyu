@@ -124,11 +124,11 @@ public class SandboxServiceImpl implements SandboxService {
 
     private Set<String> getPermitHostPorts() {
         List<ShenyuDictVO> dictVOList = shenyuDictService.list(AdminConstants.DICT_TYPE_API_DOC_ENV);
-        Set<String> whileHostPorts = dictVOList.stream()
+        Set<String> hostPorts = dictVOList.stream()
             .filter(ShenyuDictVO::getEnabled)
             .map(dictVO -> getHostPort(dictVO.getDictValue()))
             .collect(Collectors.toSet());
-        return whileHostPorts;
+        return hostPorts;
     }
 
     private String getHostPort(final String httpUrl) {

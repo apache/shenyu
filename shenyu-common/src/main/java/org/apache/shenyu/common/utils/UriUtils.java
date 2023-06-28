@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.utils;
 
-import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
@@ -99,7 +98,7 @@ public class UriUtils {
      * @param port   port
      * @return {@link int}
      */
-    public static int getActualPort(@Nullable final String scheme, final Integer port) {
+    public static int getActualPort(final String scheme, final Integer port) {
         Integer actualPort = port;
         if (Objects.isNull(port) || port.intValue() < 0) {
             if (!"http".equals(scheme) && !"ws".equals(scheme)) {
