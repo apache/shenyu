@@ -17,13 +17,17 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
+import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +42,9 @@ import org.mockito.quality.Strictness;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -62,9 +68,19 @@ class DiscoveryUpstreamServiceTest {
     @Mock
     private DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    @Mock
+    private DiscoveryProcessor discoveryProcessor;
+
     @BeforeEach
     void setUp() {
-
+        DiscoveryHandlerDO discoveryHandlerDO = new DiscoveryHandlerDO();
+        discoveryHandlerDO.setDiscoveryId("1");
+        DiscoveryDO discoveryDO = new DiscoveryDO();
+        discoveryDO.setType("zookeeper");
+        when(discoveryHandlerMapper.selectById(anyString())).thenReturn(discoveryHandlerDO);
+        when(discoveryMapper.selectById(anyString())).thenReturn(discoveryDO);
+        when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
+        when(proxySelectorMapper.selectByHandlerId(anyString())).thenReturn(new ProxySelectorDO());
         discoveryUpstreamService = new DiscoveryUpstreamServiceImpl(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper, discoveryMapper, discoveryProcessorHolder);
     }
 
