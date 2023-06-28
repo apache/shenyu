@@ -17,8 +17,7 @@
 
 package org.apache.shenyu.examples.websocket.interceptor;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.server.ServerHttpRequest;
@@ -26,8 +25,9 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.nio.charset.Charset;
 import java.util.Map;
 
 /**
@@ -53,9 +53,10 @@ public class WebSocketInterceptor implements HandshakeInterceptor {
                                    final WebSocketHandler wsHandler, 
                                    final Map<String, Object> attributes) throws Exception {
         LOG.info("Shake hands.");
-        Map<String, String> paramMap = HttpUtil.decodeParamMap(request.getURI().getQuery(), Charset.defaultCharset());
+        UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(request.getURI().toString()).build();
+        Map<String, String> paramMap = uriComponents.getQueryParams().toSingleValueMap();
         String uid = paramMap.get("token");
-        if (StrUtil.isNotBlank(uid)) {
+        if (StringUtils.isNotBlank(uid)) {
             attributes.put("token", uid);
             LOG.info("user token " + uid + " shook hands successfully！");
             return true;
