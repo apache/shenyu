@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
@@ -46,10 +50,22 @@ class DiscoveryUpstreamServiceTest {
     @Mock
     private DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
+    @Mock
+    private DiscoveryHandlerMapper discoveryHandlerMapper;
+
+    @Mock
+    private ProxySelectorMapper proxySelectorMapper;
+
+    @Mock
+    private DiscoveryMapper discoveryMapper;
+
+    @Mock
+    private DiscoveryProcessorHolder discoveryProcessorHolder;
+
     @BeforeEach
     void setUp() {
 
-        discoveryUpstreamService = new DiscoveryUpstreamServiceImpl(discoveryUpstreamMapper);
+        discoveryUpstreamService = new DiscoveryUpstreamServiceImpl(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper, discoveryMapper, discoveryProcessorHolder);
     }
 
     @Test

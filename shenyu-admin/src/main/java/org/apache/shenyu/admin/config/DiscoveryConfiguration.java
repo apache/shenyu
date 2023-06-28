@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.config;
 import org.apache.shenyu.admin.discovery.DefaultDiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.discovery.LocalDiscoveryProcessor;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -50,7 +51,7 @@ public class DiscoveryConfiguration {
      */
     @Bean("LocalDiscoveryProcessor")
     public DiscoveryProcessor discoveryLocalProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
-        return new DefaultDiscoveryProcessor(discoveryUpstreamMapper);
+        return new LocalDiscoveryProcessor();
     }
 
     /**

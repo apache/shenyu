@@ -50,8 +50,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultDiscoveryProcessor implements DiscoveryProcessor, ApplicationEventPublisherAware {
 
-    private static final String KEY_TEMPLATE = "%s/%s/%s/%s";
-
     private static final String DEFAULT_LISTENER_NODE = "/shenyu/discovery";
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultDiscoveryProcessor.class);
@@ -75,6 +73,10 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
 
     @Override
     public void createDiscovery(final DiscoveryDO discoveryDO) {
+        if (discoveryServiceCache.containsKey(discoveryDO.getId())) {
+            LOG.info("shenyu DiscoveryProcessor {} discovery has been init", discoveryDO.getId());
+            return;
+        }
         String type = discoveryDO.getType();
         ShenyuDiscoveryService discoveryService = ExtensionLoader.getExtensionLoader(ShenyuDiscoveryService.class).getJoin(type);
         String props = discoveryDO.getProps();
