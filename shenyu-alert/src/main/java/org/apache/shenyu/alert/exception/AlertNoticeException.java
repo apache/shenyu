@@ -15,21 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.alert.strategy;
-
-import org.apache.shenyu.spi.SPI;
+package org.apache.shenyu.alert.exception;
 
 /**
- * alert strategy.
+ * alert notice send failed
+ * 告警通知发送异常
+ *
  */
-@SPI
-public interface AlertStrategy {
-
-    /**
-     * Alert executor.
-     *
-     * @param handle json handle
-     * @throws Exception Exception
-     */
-    void execute(String handle) throws Exception;
+public class AlertNoticeException extends RuntimeException {
+    public AlertNoticeException(String message) {
+        super(message);
+    }
 }

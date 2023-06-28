@@ -17,22 +17,29 @@
 
 package org.apache.shenyu.alert;
 
-import org.apache.shenyu.alert.strategy.AlertStrategy;
-import org.apache.shenyu.spi.ExtensionLoader;
+import org.apache.shenyu.alert.exception.AlertNoticeException;
+import org.apache.shenyu.alert.model.AlertContentDTO;
+import org.apache.shenyu.alert.model.AlertReceiverDTO;
 
 /**
- * The type alert strategy factory.
+ * alert notify handler
+ *
  */
-public class AlertStrategyFactory {
+public interface AlertNotifyHandler {
 
     /**
-     * New instance alert strategy.
+     * send alert
      *
-     * @param strategyName the strategy name
-     * @return the alert strategy
+     * @param receiver Notification configuration information   
+     * @param alert    Alarm information                        
+     * @throws AlertNoticeException when send receiver error
      */
-    public static AlertStrategy newInstance(final String strategyName) {
-        return ExtensionLoader.getExtensionLoader(AlertStrategy.class).getJoin(strategyName);
-    }
+    void send(AlertReceiverDTO receiver, AlertContentDTO alert) throws AlertNoticeException;
 
+    /**
+     * alert type
+     *
+     * @return type
+     */
+    byte type();
 }

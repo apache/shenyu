@@ -1065,3 +1065,36 @@ CREATE TABLE `discovery_rel`
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
+
+-- ----------------------------
+-- Table structure for alert_receiver
+-- ----------------------------
+CREATE TABLE `alert_receiver`
+(
+    `id`                   varchar(128)   NOT NULL COMMENT 'primary key id',
+    `name`                 varchar(255)   NOT NULL COMMENT 'name',
+    `enable`               tinyint(4)     NOT NULL COMMENT 'enable or not',
+    `type`                 tinyint(4)     NOT NULL COMMENT 'notice type 0-SMS 1-Email 2-webhook 3-WeChat Official Account 4-Enterprise WeChat Robot 5-DingTalk Robot 6-FeiShu Robot 7-Telegram Bot 8-SlackWebHook 9-Discord Bot 10-Enterprise WeChat',
+    `phone`                varchar(255)   COMMENT 'phone',
+    `email`                varchar(255)   COMMENT 'email',
+    `hook_url`             varchar(255)   COMMENT 'hook url',
+    `wechat_id`            varchar(255)   COMMENT 'wechat id',
+    `access_token`         varchar(255)   COMMENT 'access token',
+    `tg_bot_token`         varchar(255)   COMMENT 'tg bot token',
+    `tg_user_id`           varchar(255)   COMMENT 'tg user id',
+    `slack_web_hook_url`   varchar(255)   COMMENT 'slack web hook url',
+    `corp_id`              varchar(255)   COMMENT 'corp id',
+    `agent_id`             varchar(255)   COMMENT 'agent id',
+    `app_secret`           varchar(255)   COMMENT 'app secret',
+    `discord_channel_id`   varchar(255)   COMMENT 'discord channel id',
+    `discord_bot_token`    varchar(255)   COMMENT 'discord bot token',
+    `smn_ak`               varchar(255)   COMMENT 'smn ak',
+    `smn_sk`               varchar(255)   COMMENT 'smn sk',
+    `smn_project_id`       varchar(255)   COMMENT 'smn project id',
+    `smn_region`           varchar(255)   COMMENT 'smn region',
+    `smn_topic_urn`        varchar(255)   COMMENT 'smn topic urn',
+    `labels`               varchar(255)   COMMENT 'labels',
+    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+    PRIMARY KEY (`id`)
+);

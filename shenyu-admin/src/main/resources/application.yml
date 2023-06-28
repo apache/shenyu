@@ -44,6 +44,7 @@ management:
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
+  type-handlers-package: org.apache.shenyu.admin.mybatis.handler
 
 shenyu:
   register:
