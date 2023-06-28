@@ -38,4 +38,12 @@
         <module>shenyu-plugin-logging-clickhouse</module>
         <module>shenyu-plugin-logging-desensitize-api</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>

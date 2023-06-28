@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.client.core.utils;
 
-import cn.hutool.core.net.url.UrlPath;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -82,8 +80,7 @@ public class OpenApiUtils {
                 }
             }
         } else {
-            UrlPath urlPath = UrlPath.of(path, Charset.defaultCharset());
-            List<String> segments = urlPath.getSegments();
+            List<String> segments = UrlPathUtils.getSegments(path);
             for (String segment : segments) {
                 if (EVERY_PATH.equals(segment)) {
                     Parameter parameter = new Parameter();
