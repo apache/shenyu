@@ -23,7 +23,10 @@ import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
@@ -34,12 +37,13 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/alert/report")
 public class AlertReportController {
-
+    
     @Autowired
     private AlertDispatchService alertDispatchService;
-
+    
     /**
      * report new alert content.
+     *
      * @param alertContentDTO AlertContentDTO
      * @return row int
      */
@@ -48,5 +52,5 @@ public class AlertReportController {
         alertDispatchService.dispatchAlert(alertContentDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
     }
-	
+    
 }

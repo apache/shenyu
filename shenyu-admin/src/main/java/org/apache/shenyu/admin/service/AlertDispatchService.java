@@ -23,16 +23,17 @@ import org.apache.shenyu.alert.model.AlertContentDTO;
  * Alert template service.
  */
 public interface AlertDispatchService {
-
+    
     /**
      * Add alert content.
+     *
      * @param alertContentDTO alertContentDTO
      */
     void dispatchAlert(AlertContentDTO alertContentDTO);
-	
-	
-	/**
-	 * clear cache
-	 */
-	void clearCache();
+    
+    
+    /**
+     * clear cache.
+     */
+    void clearCache();
 }

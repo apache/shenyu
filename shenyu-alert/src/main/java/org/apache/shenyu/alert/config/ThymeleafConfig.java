@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.alert.config;
 
-import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
@@ -26,11 +25,15 @@ import org.thymeleaf.templatemode.TemplateMode;
 import java.nio.charset.StandardCharsets;
 
 /**
- * thymeleaf config
+ * thymeleaf config.
  */
 @Configuration
 public class ThymeleafConfig {
-
+    
+    /**
+     * Thymeleaf Config bean.
+     * @return SpringResourceTemplateResolver
+     */
     @Bean
     public SpringResourceTemplateResolver templateResolver() {
         SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
@@ -41,8 +44,8 @@ public class ThymeleafConfig {
         templateResolver.setOrder(2);
         templateResolver.setCheckExistence(true);
         templateResolver.setCacheable(true);
-
+        
         return templateResolver;
     }
-
+    
 }

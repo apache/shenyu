@@ -24,129 +24,164 @@ import java.util.Map;
 /**
  * AlertContent.
  */
-public class AlertContentDTO implements Serializable  {
-
+public class AlertContentDTO implements Serializable {
+    
     /**
      * primary key id.
      */
     private Long id;
-	
-	/**
-	 * alert title 
-	 */
-	private String title;
-
+    
     /**
-     * Alarm level 0: high-emergency-critical alarm-red 1: medium-critical-critical alarm-orange 2: low-warning-warning alarm-yellow
+     * alert title.
+     */
+    private String title;
+    
+    /**
+     * Alarm level.
+     * 0: high-emergency-critical alarm-red.
+     * 1: medium-critical-critical alarm-orange.
+     * 2: low-warning-warning alarm-yellow
      */
     private byte level;
-	
-	/**
-	 * alert labels
-	 */
-	private Map<String, String> labels;
-
+    
     /**
-     * The actual content of the alarm notification
+     * alert labels.
+     */
+    private Map<String, String> labels;
+    
+    /**
+     * The actual content of the alarm notification.
      */
     private String content;
-
+    
     /**
      * create time.
      */
     private Date dateCreated;
-
+    
     /**
      * update time.
      */
     private Date dateUpdated;
-
+    
     /**
      * get id.
+     *
      * @return id
      */
     public Long getId() {
         return id;
     }
-
+    
     /**
      * set id.
+     *
      * @param id id
      */
     public void setId(final Long id) {
         this.id = id;
     }
-	
-	public String getTitle() {
-		return title;
-	}
-	
-	public void setTitle(String title) {
-		this.title = title;
-	}
-	
-	public byte getLevel() {
-		return level;
-	}
-	
-	public void setLevel(byte level) {
-		this.level = level;
-	}
-	
-	public Map<String, String> getLabels() {
-		return labels;
-	}
-	
-	public void setLabels(Map<String, String> labels) {
-		this.labels = labels;
-	}
-	
-	/**
+    
+    /**
+     * get title.
+     * @return title
+     */
+    public String getTitle() {
+        return title;
+    }
+    
+    /**
+     * set title.
+     * @param title title
+     */
+    public void setTitle(final String title) {
+        this.title = title;
+    }
+    
+    /**
+     * get level.
+     * @return level
+     */
+    public byte getLevel() {
+        return level;
+    }
+    
+    /**
+     * set level.
+     * @param level level
+     */
+    public void setLevel(final byte level) {
+        this.level = level;
+    }
+    
+    /**
+     * get labels.
+     * @return labels
+     */
+    public Map<String, String> getLabels() {
+        return labels;
+    }
+    
+    /**
+     * set labels.
+     * @param labels labels
+     */
+    public void setLabels(final Map<String, String> labels) {
+        this.labels = labels;
+    }
+    
+    /**
      * get content.
+     *
      * @return content
      */
     public String getContent() {
         return content;
     }
-
+    
     /**
      * set content.
+     *
      * @param content content
      */
     public void setContent(final String content) {
         this.content = content;
     }
-
+    
     /**
      * get dateCreated.
+     *
      * @return dateCreated
      */
     public Date getDateCreated() {
         return dateCreated;
     }
-
+    
     /**
      * set dateCreated.
+     *
      * @param dateCreated dateCreated
      */
     public void setDateCreated(final Date dateCreated) {
         this.dateCreated = dateCreated;
     }
-
+    
     /**
      * get dateUpdated.
+     *
      * @return dateUpdated
      */
     public Date getDateUpdated() {
         return dateUpdated;
     }
-
+    
     /**
      * set dateUpdated.
+     *
      * @param dateUpdated dateUpdated
      */
     public void setDateUpdated(final Date dateUpdated) {
         this.dateUpdated = dateUpdated;
     }
-
+    
 }

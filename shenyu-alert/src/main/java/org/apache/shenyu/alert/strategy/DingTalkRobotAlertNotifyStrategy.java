@@ -22,20 +22,25 @@ import org.apache.shenyu.alert.model.AlertContentDTO;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 /**
- * Send alarm information through DingTalk robot
+ * Send alarm information through DingTalk robot.
  */
 @Service
 final class DingTalkRobotAlertNotifyStrategy extends AbstractAlertNotifyHandler {
-	
-	private static final String dingTalkWebHookUrl = "https://oapi.dingtalk.com/robot/send?access_token=";
-	private static final Logger log = LoggerFactory.getLogger(DingTalkRobotAlertNotifyStrategy.class);
-	
+    
+    private static final String DING_TALK_WEB_HOOK_URL = "https://oapi.dingtalk.com/robot/send?access_token=";
+    
+    private static final Logger log = LoggerFactory.getLogger(DingTalkRobotAlertNotifyStrategy.class);
+    
     @Override
-    public void send(AlertReceiverDTO receiver, AlertContentDTO alert) {
+    public void send(final AlertReceiverDTO receiver, final AlertContentDTO alert) {
         try {
             DingTalkWebHookDto dingTalkWebHookDto = new DingTalkWebHookDto();
             MarkdownDTO markdownDTO = new MarkdownDTO();
@@ -45,8 +50,8 @@ final class DingTalkRobotAlertNotifyStrategy extends AbstractAlertNotifyHandler 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<DingTalkWebHookDto> httpEntity = new HttpEntity<>(dingTalkWebHookDto, headers);
-            String webHookUrl = dingTalkWebHookUrl + receiver.getAccessToken();
-            ResponseEntity<CommonRobotNotifyResp> responseEntity = restTemplate.postForEntity(webHookUrl,
+            String webHookUrl = DING_TALK_WEB_HOOK_URL + receiver.getAccessToken();
+            ResponseEntity<CommonRobotNotifyResp> responseEntity = getRestTemplate().postForEntity(webHookUrl,
                     httpEntity, CommonRobotNotifyResp.class);
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 assert responseEntity.getBody() != null;
@@ -64,79 +69,117 @@ final class DingTalkRobotAlertNotifyStrategy extends AbstractAlertNotifyHandler 
             throw new AlertNoticeException("[DingTalk Notify Error] " + e.getMessage());
         }
     }
-
+    
     @Override
     public byte type() {
         return 5;
     }
-
+    
     @Override
     protected String templateName() {
         return "alertNotifyDingTalkRobot";
     }
-
+    
     /**
-     * 钉钉机器人请求消息体
-     *
-     * @author 花城
-     * @version 1.0
-     *
+     * DingDing body.
      */
     private static class DingTalkWebHookDto {
         private static final String MARKDOWN = "markdown";
-
+        
         /**
-         * 消息类型
+         * message type.
          */
         private String msgtype = MARKDOWN;
-
+        
         /**
-         * markdown消息
+         * markdown.
          */
         private MarkdownDTO markdown;
-	    
-	    public String getMsgtype() {
-		    return msgtype;
-	    }
-	    
-	    public void setMsgtype(String msgtype) {
-		    this.msgtype = msgtype;
-	    }
-	    
-	    public MarkdownDTO getMarkdown() {
-		    return markdown;
-	    }
-	    
-	    public void setMarkdown(MarkdownDTO markdown) {
-		    this.markdown = markdown;
-	    }
-    }
-	
-    private static class MarkdownDTO {
+        
         /**
-         * 消息内容
+         * get message type.
+         *
+         * @return type
+         */
+        public String getMsgtype() {
+            return msgtype;
+        }
+        
+        /**
+         * set message type.
+         *
+         * @param msgtype message type
+         */
+        public void setMsgtype(final String msgtype) {
+            this.msgtype = msgtype;
+        }
+        
+        /**
+         * get markdown.
+         *
+         * @return markdown
+         */
+        public MarkdownDTO getMarkdown() {
+            return markdown;
+        }
+        
+        /**
+         * set markdown.
+         *
+         * @param markdown markdown.
+         */
+        public void setMarkdown(final MarkdownDTO markdown) {
+            this.markdown = markdown;
+        }
+    }
+    
+    private static class MarkdownDTO {
+        
+        /**
+         * test.
          */
         private String text;
+        
         /**
-         * 消息标题
+         * title.
          */
         private String title;
-	    
-	    public String getText() {
-		    return text;
-	    }
-	    
-	    public void setText(String text) {
-		    this.text = text;
-	    }
-	    
-	    public String getTitle() {
-		    return title;
-	    }
-	    
-	    public void setTitle(String title) {
-		    this.title = title;
-	    }
+        
+        /**
+         * get text.
+         *
+         * @return text
+         */
+        public String getText() {
+            return text;
+        }
+        
+        /**
+         * set text.
+         *
+         * @param text text
+         */
+        public void setText(final String text) {
+            this.text = text;
+        }
+        
+        /**
+         * get title.
+         *
+         * @return title
+         */
+        public String getTitle() {
+            return title;
+        }
+        
+        /**
+         * set title.
+         *
+         * @param title title
+         */
+        public void setTitle(final String title) {
+            this.title = title;
+        }
     }
-
+    
 }

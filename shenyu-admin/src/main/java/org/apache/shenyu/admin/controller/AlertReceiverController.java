@@ -23,7 +23,11 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -35,12 +39,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/alert/receiver")
 public class AlertReceiverController {
-
+    
     @Autowired
     private AlertReceiverService alertReceiverService;
-
+    
     /**
      * add new alert receiver.
+     *
      * @param alertReceiverDTO alertReceiverDTO
      * @return row int
      */
@@ -49,11 +54,15 @@ public class AlertReceiverController {
         alertReceiverService.addReceiver(alertReceiverDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
     }
-	
-	@GetMapping("/getAll")
-	public ShenyuAdminResult getAllReceiver() {
-		List<AlertReceiverDTO> receiverDTOS = alertReceiverService.getAll();
-		return ShenyuAdminResult.success(receiverDTOS);
-	}
-	
+    
+    /**
+     * get all receiver.
+     * @return receiver
+     */
+    @GetMapping("/getAll")
+    public ShenyuAdminResult getAllReceiver() {
+        List<AlertReceiverDTO> receiverDTOS = alertReceiverService.getAll();
+        return ShenyuAdminResult.success(receiverDTOS);
+    }
+    
 }

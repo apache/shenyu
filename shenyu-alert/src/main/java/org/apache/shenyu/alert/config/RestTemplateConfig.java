@@ -26,25 +26,33 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Collections;
 
 /**
- * restTemplate config
- *
+ * restTemplate config.
  */
 @Configuration
 public class RestTemplateConfig {
-
+    
+    /**
+     * RestTemplate bean.
+     * @param factory ClientHttpRequestFactory
+     * @return RestTemplate
+     */
     @Bean
-    public RestTemplate restTemplate(ClientHttpRequestFactory factory){
+    public RestTemplate restTemplate(final ClientHttpRequestFactory factory) {
         RestTemplate restTemplate = new RestTemplate(factory);
         restTemplate.setInterceptors(Collections.singletonList(new HeaderRequestInterceptor()));
         return restTemplate;
     }
-
+    
+    /**
+     * ClientHttpRequestFactory bean.
+     * @return ClientHttpRequestFactory
+     */
     @Bean
-    public ClientHttpRequestFactory simpleClientHttpRequestFactory(){
+    public ClientHttpRequestFactory simpleClientHttpRequestFactory() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(5000);
         factory.setReadTimeout(5000);
         return factory;
     }
-
+    
 }

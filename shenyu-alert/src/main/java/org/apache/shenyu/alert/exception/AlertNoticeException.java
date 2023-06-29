@@ -18,12 +18,10 @@
 package org.apache.shenyu.alert.exception;
 
 /**
- * alert notice send failed
- * 告警通知发送异常
- *
+ * alert notice send failed.
  */
 public class AlertNoticeException extends RuntimeException {
-    public AlertNoticeException(String message) {
+    public AlertNoticeException(final String message) {
         super(message);
     }
 }

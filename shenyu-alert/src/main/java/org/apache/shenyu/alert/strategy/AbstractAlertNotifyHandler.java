@@ -27,43 +27,49 @@ import javax.annotation.Resource;
 import java.time.format.DateTimeFormatter;
 
 /**
- * abstract alert notify 
+ * abstract alert notify.
  */
 abstract class AbstractAlertNotifyHandler implements AlertNotifyHandler {
     protected static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
+    
     @Resource
-    protected TemplateEngine templateEngine;
-
+    private TemplateEngine templateEngine;
+    
     @Resource
-    protected RestTemplate restTemplate;
-
-    protected String renderContent(AlertContentDTO alert) {
+    private RestTemplate restTemplate;
+    
+    protected String renderContent(final AlertContentDTO alert) {
         Context context = new Context();
         context.setVariable("title", "[ShenYu Alarm]");
-
+        
         context.setVariable("triggerTimeLabel", "Alarm Time");
         context.setVariable("triggerTime", DTF.format(alert.getDateCreated().toInstant()));
-
+        
         context.setVariable("contentLabel", "Alarm Content");
         context.setVariable("content", alert.getContent());
-
+        
         return removeBlankLine(templateEngine.process(templateName(), context));
     }
-
+    
     /**
-     * Get the Thymeleaf template name
-     * 获取Thymeleaf模板名称
+     * Get the Thymeleaf template name.
      *
-     * @return Thymeleaf模板名称
+     * @return Thymeleaf name
      */
     protected abstract String templateName();
-	
-	private static String removeBlankLine(String value) {
-		if (value == null) {
-			return null;
-		}
-		return value.replaceAll("(?m)^\\s*$(\\n|\\r\\n)", "");
-	}
-
+    
+    private static String removeBlankLine(final String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.replaceAll("(?m)^\\s*$(\\n|\\r\\n)", "");
+    }
+    
+    /**
+     * get rest template.
+     * @return rest template
+     */
+    public RestTemplate getRestTemplate() {
+        return restTemplate;
+    }
 }

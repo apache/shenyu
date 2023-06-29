@@ -22,22 +22,21 @@ import org.apache.shenyu.alert.model.AlertContentDTO;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 
 /**
- * alert notify handler
- *
+ * alert notify handler.
  */
 public interface AlertNotifyHandler {
-
+    
     /**
-     * send alert
+     * send alert.
      *
-     * @param receiver Notification configuration information   
-     * @param alert    Alarm information                        
+     * @param receiver Notification configuration information
+     * @param alert    Alarm information
      * @throws AlertNoticeException when send receiver error
      */
     void send(AlertReceiverDTO receiver, AlertContentDTO alert) throws AlertNoticeException;
-
+    
     /**
-     * alert type
+     * alert type.
      *
      * @return type
      */

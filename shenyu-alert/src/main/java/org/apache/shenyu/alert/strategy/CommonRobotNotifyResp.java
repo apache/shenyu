@@ -20,62 +20,104 @@ package org.apache.shenyu.alert.strategy;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * common robot http response entity
- *
+ * common robot http response entity.
  */
 public class CommonRobotNotifyResp {
-	
-	public CommonRobotNotifyResp() {
-	}
-	
-	public CommonRobotNotifyResp(Integer errCode, String errMsg, Integer code, String msg) {
-		this.errCode = errCode;
-		this.errMsg = errMsg;
-		this.code = code;
-		this.msg = msg;
-	}
-	
-	@JsonProperty(value = "errcode")
+    
+    /**
+     * error code.
+     */
+    @JsonProperty(value = "errcode")
     private Integer errCode;
-
+    
+    /**
+     * error message.
+     */
     @JsonProperty(value = "errmsg")
     private String errMsg;
-
+    
+    /**
+     * code.
+     */
     private Integer code;
-
+    
+    /**
+     * message.
+     */
     private String msg;
-	
-	public Integer getErrCode() {
-		return errCode;
-	}
-	
-	public void setErrCode(Integer errCode) {
-		this.errCode = errCode;
-	}
-	
-	public String getErrMsg() {
-		return errMsg;
-	}
-	
-	public void setErrMsg(String errMsg) {
-		this.errMsg = errMsg;
-	}
-	
-	public Integer getCode() {
-		return code;
-	}
-	
-	public void setCode(Integer code) {
-		this.code = code;
-	}
-	
-	public String getMsg() {
-		return msg;
-	}
-	
-	public void setMsg(String msg) {
-		this.msg = msg;
-	}
-	
-	
+    
+    public CommonRobotNotifyResp() {
+    }
+    
+    public CommonRobotNotifyResp(final Integer errCode, final String errMsg, final Integer code, final String msg) {
+        this.errCode = errCode;
+        this.errMsg = errMsg;
+        this.code = code;
+        this.msg = msg;
+    }
+    
+    /**
+     * get error code.
+     * @return error code
+     */
+    public Integer getErrCode() {
+        return errCode;
+    }
+    
+    /**
+     * set error code.
+     * @param errCode error code
+     */
+    public void setErrCode(final Integer errCode) {
+        this.errCode = errCode;
+    }
+    
+    /**
+     * get error msg.
+     * @return msg
+     */
+    public String getErrMsg() {
+        return errMsg;
+    }
+    
+    /**
+     * set error msg.
+     * @param errMsg error msg
+     */
+    public void setErrMsg(final String errMsg) {
+        this.errMsg = errMsg;
+    }
+    
+    /**
+     * get code.
+     * @return code
+     */
+    public Integer getCode() {
+        return code;
+    }
+    
+    /**
+     * set code.
+     * @param code code
+     */
+    public void setCode(final Integer code) {
+        this.code = code;
+    }
+    
+    /**
+     * get msg.
+     * @return msg
+     */
+    public String getMsg() {
+        return msg;
+    }
+    
+    /**
+     * set msg.
+     * @param msg msg
+     */
+    public void setMsg(final String msg) {
+        this.msg = msg;
+    }
+    
 }

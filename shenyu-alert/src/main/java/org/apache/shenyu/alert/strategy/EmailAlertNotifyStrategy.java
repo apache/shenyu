@@ -23,7 +23,6 @@ import org.apache.shenyu.alert.model.AlertContentDTO;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
@@ -34,62 +33,62 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * email alert notice
+ * email alert notice.
  */
 @Component
 final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
-
+    
     private final JavaMailSender javaMailSender;
-	
-	private final TemplateEngine templateEngine;
-	
-	public EmailAlertNotifyStrategy(TemplateEngine templateEngine, JavaMailSender javaMailSender) {
-		this.javaMailSender = javaMailSender;
-		this.templateEngine = templateEngine;
-	}
-	
-	@Value("${spring.mail.username}")
+    
+    private final TemplateEngine templateEngine;
+    
+    @Value("${spring.mail.username}")
     private String emailFromUser;
-
-    @Override
-    public void send(AlertReceiverDTO receiver, AlertContentDTO alert) throws AlertNoticeException {
-	    try {
-		    MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-		    MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-		    messageHelper.setSubject("ShenYu Alarm");
-		    //Set sender Email 设置发件人Email
-		    messageHelper.setFrom(emailFromUser);
-		    //Set recipient Email 设定收件人Email
-		    messageHelper.setTo(receiver.getEmail());
-		    messageHelper.setSentDate(new Date());
-		    //Build email templates 构建邮件模版
-		    String process = buildAlertHtmlTemplate(alert);
-		    //Set Email Content Template 设置邮件内容模版
-		    messageHelper.setText(process, true);
-		    javaMailSender.send(mimeMessage);
-	    } catch (Exception e) {
-		    throw new AlertNoticeException("[Email Notify Error] " + e.getMessage());
-	    }
+    
+    EmailAlertNotifyStrategy(final TemplateEngine templateEngine, final JavaMailSender javaMailSender) {
+        this.javaMailSender = javaMailSender;
+        this.templateEngine = templateEngine;
     }
-	
-	private String buildAlertHtmlTemplate(AlertContentDTO alert) {
-		// Introduce thymeleaf context parameters to render pages
-		Context context = new Context();
-		context.setVariable("nameTitle", "ShenYu Alarm");
-		context.setVariable("nameTriggerTime", "Alarm Time");
-		context.setVariable("nameContent", "Alarm Content");
-		context.setVariable("content", alert.getContent());
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date alertTime = alert.getDateCreated();
-		if (alertTime == null) {
-			alertTime = new Date();
-		}
-		String alarmTime = simpleDateFormat.format(alertTime);
-		context.setVariable("lastTriggerTime", alarmTime);
-		return templateEngine.process("mailAlarm", context);
-	}
-	
-	@Override
+    
+    @Override
+    public void send(final AlertReceiverDTO receiver, final AlertContentDTO alert) throws AlertNoticeException {
+        try {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            messageHelper.setSubject("ShenYu Alarm");
+            //Set sender Email 设置发件人Email
+            messageHelper.setFrom(emailFromUser);
+            //Set recipient Email 设定收件人Email
+            messageHelper.setTo(receiver.getEmail());
+            messageHelper.setSentDate(new Date());
+            //Build email templates 构建邮件模版
+            String process = buildAlertHtmlTemplate(alert);
+            //Set Email Content Template 设置邮件内容模版
+            messageHelper.setText(process, true);
+            javaMailSender.send(mimeMessage);
+        } catch (Exception e) {
+            throw new AlertNoticeException("[Email Notify Error] " + e.getMessage());
+        }
+    }
+    
+    private String buildAlertHtmlTemplate(final AlertContentDTO alert) {
+        // Introduce thymeleaf context parameters to render pages
+        Context context = new Context();
+        context.setVariable("nameTitle", "ShenYu Alarm");
+        context.setVariable("nameTriggerTime", "Alarm Time");
+        context.setVariable("nameContent", "Alarm Content");
+        context.setVariable("content", alert.getContent());
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date alertTime = alert.getDateCreated();
+        if (alertTime == null) {
+            alertTime = new Date();
+        }
+        String alarmTime = simpleDateFormat.format(alertTime);
+        context.setVariable("lastTriggerTime", alarmTime);
+        return templateEngine.process("mailAlarm", context);
+    }
+    
+    @Override
     public byte type() {
         return 1;
     }

@@ -20,8 +20,9 @@ package org.apache.shenyu.alert;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
- * auto config
+ * auto config.
  */
 @ComponentScan(basePackages = "org.apache.shenyu.alert")
 public class AlertAutoConfiguration {
+    
 }

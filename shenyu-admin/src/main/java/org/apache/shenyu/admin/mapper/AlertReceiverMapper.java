@@ -31,14 +31,15 @@ import java.util.List;
  **/
 @Mapper
 public interface AlertReceiverMapper extends ExistProvider {
-	
-	
-	/**
-	 * select all receiver
-	 * @return receiver list
-	 */
-	List<AlertReceiverDTO> selectAll();
-
+    
+    
+    /**
+     * select all receiver.
+     *
+     * @return receiver list
+     */
+    List<AlertReceiverDTO> selectAll();
+    
     /**
      * insert record to table.
      *
@@ -46,7 +47,7 @@ public interface AlertReceiverMapper extends ExistProvider {
      * @return insert count
      */
     int insert(AlertReceiverDO record);
-
+    
     /**
      * select by primary key.
      *
@@ -54,7 +55,7 @@ public interface AlertReceiverMapper extends ExistProvider {
      * @return object by primary key
      */
     AlertReceiverDO selectByPrimaryKey(String id);
-
+    
     /**
      * update record.
      *
@@ -62,7 +63,7 @@ public interface AlertReceiverMapper extends ExistProvider {
      * @return update count
      */
     int updateByPrimaryKey(AlertReceiverDO record);
-
+    
     /**
      * existed.
      *
@@ -71,7 +72,7 @@ public interface AlertReceiverMapper extends ExistProvider {
      */
     @Override
     Boolean existed(@Param("id") Serializable id);
-
+    
     /**
      * delete api.
      *
@@ -79,5 +80,5 @@ public interface AlertReceiverMapper extends ExistProvider {
      * @return rows int
      */
     int deleteByIds(List<String> ids);
-
+    
 }
