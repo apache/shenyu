@@ -36,6 +36,9 @@ spring:
 
 
 management:
+  health:
+    mail:
+      enabled: off
   endpoints:
     web:
       exposure:
