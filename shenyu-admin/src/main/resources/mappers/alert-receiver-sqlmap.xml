@@ -18,41 +18,60 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.apache.shenyu.admin.mapper.AlertReceiverMapper">
-  <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
-    <!--@mbg.generated-->
-    <!--@Table alert_template-->
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="name" jdbcType="VARCHAR" property="name" />
-    <result column="enable" jdbcType="TINYINT" property="enable"/>
-    <result column="type" jdbcType="TINYINT" property="type"/>    
-    <result column="phone" jdbcType="VARCHAR" property="phone" />
-    <result column="email" jdbcType="VARCHAR" property="email" />
-    <result column="hookUrl" jdbcType="VARCHAR" property="hookUrl" />
-    <result column="wechatId" jdbcType="VARCHAR" property="wechatId" />
-    <result column="accessToken" jdbcType="VARCHAR" property="accessToken" />
-    <result column="tgBotToken" jdbcType="VARCHAR" property="tgBotToken" />
-    <result column="tgUserId" jdbcType="VARCHAR" property="tgUserId" />
-    <result column="slackWebHookUrl" jdbcType="VARCHAR" property="slackWebHookUrl" />
-    <result column="corpId" jdbcType="VARCHAR" property="corpId" />
-    <result column="agentId" jdbcType="VARCHAR" property="agentId" />
-    <result column="appSecret" jdbcType="VARCHAR" property="appSecret" />
-    <result column="discordChannelId" jdbcType="VARCHAR" property="discordChannelId" />
-    <result column="discordBotToken" jdbcType="VARCHAR" property="discordBotToken" />
-    <result column="smnAk" jdbcType="VARCHAR" property="smnAk" />
-    <result column="smnSk" jdbcType="VARCHAR" property="smnSk" />
-    <result column="smnProjectId" jdbcType="VARCHAR" property="smnProjectId" />
-    <result column="smnRegion" jdbcType="VARCHAR" property="smnRegion" />
-    <result column="smnTopicUrn" jdbcType="VARCHAR" property="smnTopicUrn" />
-    <result column="labels" jdbcType="VARCHAR" property="labels" />
-    <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated" />
-    <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated" />
-  </resultMap>
-  <sql id="Base_Column_List">
-    id, `name`, enable, `type`, phone, email, hookUrl, wechatId, accessToken, tgBotToken, tgUserId, slackWebHookUrl, 
-        agentId, appSecret, corpId, discordChannelId, discordBotToken, smnAk, smnSk, smnProjectId, smnRegion, 
-        smnTopicUrn, labels, date_created, date_updated
-  </sql>
-  <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
-    select <include refid="Base_Column_List"/> from alert_receiver
-  </select>
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
+        <!--@mbg.generated-->
+        <!--@Table alert_template-->
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="enable" jdbcType="TINYINT" property="enable"/>
+        <result column="type" jdbcType="TINYINT" property="type"/>
+        <result column="phone" jdbcType="VARCHAR" property="phone"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="hook_url" jdbcType="VARCHAR" property="hookUrl"/>
+        <result column="wechat_id" jdbcType="VARCHAR" property="wechatId"/>
+        <result column="access_token" jdbcType="VARCHAR" property="accessToken"/>
+        <result column="tg_bot_token" jdbcType="VARCHAR" property="tgBotToken"/>
+        <result column="tg_user_id" jdbcType="VARCHAR" property="tgUserId"/>
+        <result column="slack_web_hook_url" jdbcType="VARCHAR" property="slackWebHookUrl"/>
+        <result column="corp_id" jdbcType="VARCHAR" property="corpId"/>
+        <result column="agent_id" jdbcType="VARCHAR" property="agentId"/>
+        <result column="app_secret" jdbcType="VARCHAR" property="appSecret"/>
+        <result column="discord_channel_id" jdbcType="VARCHAR" property="discordChannelId"/>
+        <result column="discord_bot_token" jdbcType="VARCHAR" property="discordBotToken"/>
+        <result column="smn_ak" jdbcType="VARCHAR" property="smnAk"/>
+        <result column="smn_sk" jdbcType="VARCHAR" property="smnSk"/>
+        <result column="smn_project_id" jdbcType="VARCHAR" property="smnProjectId"/>
+        <result column="smn_region" jdbcType="VARCHAR" property="smnRegion"/>
+        <result column="smn_topic_urn" jdbcType="VARCHAR" property="smnTopicUrn"/>
+        <result column="match_all" jdbcType="TINYINT" property="matchAll"/>
+        <result column="labels" jdbcType="VARCHAR" property="labels"/>
+        <result column="levels" jdbcType="VARCHAR" property="levels"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, `name`, enable, `type`, phone, email, hook_url, wechat_id, access_token, tg_bot_token, tg_user_id, slack_web_hook_url, 
+        corp_id, agent_id, app_secret, discord_channel_id, discord_bot_token, smn_ak, smn_sk, smn_project_id, smn_region, 
+        smn_topic_urn, match_all, labels, levels, date_created, date_updated
+    </sql>
+    <select id="selectAll" resultType="org.apache.shenyu.alert.model.AlertReceiverDTO">
+        select
+        <include refid="Base_Column_List"/>
+        from alert_receiver
+    </select>
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.AlertReceiverDO">
+        <!--@mbg.generated-->
+        insert into alert_receiver (id, `name`, enable, `type`, phone, email, hook_url, wechat_id, access_token, tg_bot_token, tg_user_id, slack_web_hook_url,
+        corp_id, agent_id, app_secret, discord_channel_id, discord_bot_token, smn_ak, smn_sk, smn_project_id, smn_region,
+        smn_topic_urn, match_all, labels, levels, date_created, date_updated)
+        values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{enable,jdbcType=TINYINT},
+        #{type,jdbcType=TINYINT}, #{phone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
+        #{hookUrl,jdbcType=VARCHAR}, #{wechatId,jdbcType=VARCHAR}, #{accessToken,jdbcType=TINYINT},
+        #{tgBotToken,jdbcType=VARCHAR}, #{tgUserId,jdbcType=VARCHAR}, #{slackWebHookUrl,jdbcType=VARCHAR},
+        #{corpId,jdbcType=VARCHAR}, #{agentId,jdbcType=VARCHAR}, #{appSecret,jdbcType=VARCHAR},
+        #{discordChannelId,jdbcType=VARCHAR}, #{discordBotToken,jdbcType=VARCHAR}, #{smnAk,jdbcType=VARCHAR},
+        #{smnSk,jdbcType=VARCHAR}, #{smnProjectId,jdbcType=VARCHAR}, #{smnRegion,jdbcType=VARCHAR},
+        #{smnTopicUrn,jdbcType=VARCHAR}, #{matchAll,jdbcType=TINYINT}, #{labels,jdbcType=VARCHAR},
+        #{levels,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP})
+    </insert>
 </mapper>

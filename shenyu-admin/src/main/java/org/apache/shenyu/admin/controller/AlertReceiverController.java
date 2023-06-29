@@ -17,36 +17,43 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.alert.model.AlertContentDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.service.AlertDispatchService;
+import org.apache.shenyu.admin.service.AlertReceiverService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
- * Alert report Controller.
+ * Alert Receiver Controller.
  */
 @Validated
 @RestController
-@RequestMapping("/alert/report")
-public class AlertReportController {
+@RequestMapping("/alert/receiver")
+public class AlertReceiverController {
 
     @Autowired
-    private AlertDispatchService alertDispatchService;
+    private AlertReceiverService alertReceiverService;
 
     /**
-     * report new alert content.
-     * @param alertContentDTO AlertContentDTO
+     * add new alert receiver.
+     * @param alertReceiverDTO alertReceiverDTO
      * @return row int
      */
     @PostMapping
-    public ShenyuAdminResult addTemplate(@Valid @RequestBody final AlertContentDTO alertContentDTO) {
-        alertDispatchService.dispatchAlert(alertContentDTO);
+    public ShenyuAdminResult addReceiver(@Valid @RequestBody final AlertReceiverDTO alertReceiverDTO) {
+        alertReceiverService.addReceiver(alertReceiverDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
     }
+	
+	@GetMapping("/getAll")
+	public ShenyuAdminResult getAllReceiver() {
+		List<AlertReceiverDTO> receiverDTOS = alertReceiverService.getAll();
+		return ShenyuAdminResult.success(receiverDTOS);
+	}
 	
 }

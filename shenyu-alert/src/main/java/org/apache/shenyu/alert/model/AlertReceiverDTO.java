@@ -19,6 +19,7 @@ package org.apache.shenyu.alert.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,7 +30,7 @@ public class AlertReceiverDTO implements Serializable {
     /**
      * primary key id.
      */
-    private Long id;
+    private String id;
 
     /**
      * receiver name
@@ -137,7 +138,17 @@ public class AlertReceiverDTO implements Serializable {
 	private String smnTopicUrn;
 	
 	/**
-	 * alert labels
+	 * match all
+	 */
+	private boolean matchAll = true;
+	
+	/**
+	 * match alert levels
+	 */
+	private List<Byte> levels;
+	
+	/**
+	 * match alert labels
 	 */
 	private Map<String, String> labels;
 
@@ -150,22 +161,14 @@ public class AlertReceiverDTO implements Serializable {
      * update time.
      */
     private Date dateUpdated;
-
-    /**
-     * get id.
-     * @return id
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * set id.
-     * @param id id
-     */
-    public void setId(final Long id) {
-        this.id = id;
-    }
+	
+	public String getId() {
+		return id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
+	}
 	
 	public String getName() {
 		return name;
@@ -341,6 +344,22 @@ public class AlertReceiverDTO implements Serializable {
 	
 	public void setLabels(Map<String, String> labels) {
 		this.labels = labels;
+	}
+	
+	public boolean isMatchAll() {
+		return matchAll;
+	}
+	
+	public void setMatchAll(boolean matchAll) {
+		this.matchAll = matchAll;
+	}
+	
+	public List<Byte> getLevels() {
+		return levels;
+	}
+	
+	public void setLevels(List<Byte> levels) {
+		this.levels = levels;
 	}
 	
 	/**

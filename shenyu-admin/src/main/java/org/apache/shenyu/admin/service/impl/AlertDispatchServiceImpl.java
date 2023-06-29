@@ -3,7 +3,6 @@ package org.apache.shenyu.admin.service.impl;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.shenyu.admin.mapper.AlertReceiverMapper;
-import org.apache.shenyu.admin.model.entity.AlertReceiverDO;
 import org.apache.shenyu.alert.AlertNotifyHandler;
 import org.apache.shenyu.alert.exception.AlertNoticeException;
 import org.apache.shenyu.alert.model.AlertContentDTO;
@@ -11,7 +10,6 @@ import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
@@ -113,16 +111,20 @@ public class AlertDispatchServiceImpl implements AlertDispatchService, Initializ
 		private List<AlertReceiverDTO> matchReceiverByRules(AlertContentDTO alert) {
 			List<AlertReceiverDTO> dtoList = alertReceiverReference.get();
 			if (dtoList == null) {
-				List<AlertReceiverDO> receiverDOList = alertReceiverMapper.selectAll();
-				dtoList = receiverDOList.stream().map(item -> {
-					AlertReceiverDTO receiverDTO = new AlertReceiverDTO();
-					BeanUtils.copyProperties(item, receiverDTO);
-					return receiverDTO;
-				}).collect(Collectors.toList());
+				dtoList = alertReceiverMapper.selectAll();
 				alertReceiverReference.set(dtoList);
 			}
 			return dtoList.stream().filter(item -> {
 				if (item.isEnable()) {
+					if (item.isMatchAll()) {
+						return true;
+					}
+					if (item.getLevels() != null && !item.getLevels().isEmpty()) {
+						boolean levelMatch = item.getLevels().stream().anyMatch(level -> level == alert.getLevel());
+						if (!levelMatch) {
+							return false;
+						}
+					}
 					if (item.getLabels() != null && !item.getLabels().isEmpty()) {
 						return item.getLabels().entrySet().stream().anyMatch(entry -> {
 							if (alert.getLabels() == null || !alert.getLabels().containsKey(entry.getKey())) {

@@ -38,7 +38,7 @@ public class AlertTemplateServiceImpl implements AlertTemplateService {
 
     @Override
     public int addTemplate(final AlertTemplateDTO alertTemplateDTO) {
-
+		
         return alertTemplateMapper.insertSelective(alertTemplateDTO);
     }
 

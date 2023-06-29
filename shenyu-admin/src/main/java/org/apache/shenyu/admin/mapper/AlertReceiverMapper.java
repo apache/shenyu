@@ -21,6 +21,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.AlertReceiverDO;
 import org.apache.shenyu.admin.validation.ExistProvider;
+import org.apache.shenyu.alert.model.AlertReceiverDTO;
 
 import java.io.Serializable;
 import java.util.List;
@@ -36,15 +37,7 @@ public interface AlertReceiverMapper extends ExistProvider {
 	 * select all receiver
 	 * @return receiver list
 	 */
-	List<AlertReceiverDO> selectAll();
-	
-    /**
-     * delete by primary key.
-     *
-     * @param id primaryKey
-     * @return deleteCount
-     */
-    int deleteByPrimaryKey(String id);
+	List<AlertReceiverDTO> selectAll();
 
     /**
      * insert record to table.
@@ -55,28 +48,12 @@ public interface AlertReceiverMapper extends ExistProvider {
     int insert(AlertReceiverDO record);
 
     /**
-     * insert record to table selective.
-     *
-     * @param record the record
-     * @return insert count
-     */
-    int insertSelective(AlertReceiverDO record);
-
-    /**
      * select by primary key.
      *
      * @param id primary key
      * @return object by primary key
      */
     AlertReceiverDO selectByPrimaryKey(String id);
-
-    /**
-     * update record selective.
-     *
-     * @param record the updated record
-     * @return update count
-     */
-    int updateByPrimaryKeySelective(AlertReceiverDO record);
 
     /**
      * update record.
