@@ -28,6 +28,7 @@ import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
@@ -47,7 +48,8 @@ public final class WebsocketDataHandlerTest {
         List<AuthDataSubscriber> authDataSubscribers = new LinkedList<>();
         List<MetaDataSubscriber> metaDataSubscribers = new LinkedList<>();
         List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers = new LinkedList<>();
-        websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers);
+        List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers = new LinkedList<>();
+        websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers);
     }
 
     @Test
