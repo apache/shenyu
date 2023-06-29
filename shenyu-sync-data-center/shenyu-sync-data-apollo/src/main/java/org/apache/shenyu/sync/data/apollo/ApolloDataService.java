@@ -25,7 +25,7 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -169,12 +169,11 @@ public class ApolloDataService implements SyncDataService {
      * subscriber proxy selector data.
      * @return proxy selector data list
      */
-    public List<DiscoverySyncData> subscriberProxySelectorData() {
-        List<DiscoverySyncData> proxySelectorDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.PROXY_SELECTOR_DATA_ID, "{}"),
-                DiscoverySyncData.class).values());
+    public List<ProxySelectorData> subscriberProxySelectorData() {
+        List<ProxySelectorData> proxySelectorDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configService.getProperty(ApolloPathConstants.PROXY_SELECTOR_DATA_ID, "{}"),
+                ProxySelectorData.class).values());
         proxySelectorDataList.forEach(discoverySyncData -> proxySelectorDataSubscribers.forEach(subscriber -> {
-            subscriber.unSubscribe(discoverySyncData.getProxySelectorData());
-            subscriber.onSubscribe(discoverySyncData.getProxySelectorData(), discoverySyncData.getUpstreamDataList());
+            subscriber.unSubscribe(discoverySyncData);
         }));
         return proxySelectorDataList;
     }
@@ -206,8 +205,8 @@ public class ApolloDataService implements SyncDataService {
                     LOG.info("apollo listener authData: {}", appAuthDataList);
                     break;
                 case ApolloPathConstants.PROXY_SELECTOR_DATA_ID:
-                    List<DiscoverySyncData> discoverySyncData = subscriberProxySelectorData();
-                    LOG.info("apollo listener ProxySelectorData: {}", discoverySyncData);
+                    List<ProxySelectorData> proxySelectorData = subscriberProxySelectorData();
+                    LOG.info("apollo listener ProxySelectorData: {}", proxySelectorData);
                     break;
                 default:
                     break;

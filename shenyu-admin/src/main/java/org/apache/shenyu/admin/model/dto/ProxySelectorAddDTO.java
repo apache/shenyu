@@ -82,6 +82,7 @@ public class ProxySelectorAddDTO implements Serializable {
 
     /**
      * get id.
+     *
      * @return id
      */
     public String getId() {
@@ -90,6 +91,7 @@ public class ProxySelectorAddDTO implements Serializable {
 
     /**
      * set id.
+     *
      * @param id id
      */
     public void setId(final String id) {
@@ -143,6 +145,7 @@ public class ProxySelectorAddDTO implements Serializable {
 
     /**
      * set forward port.
+     *
      * @param forwardPort forward port
      */
     public void setForwardPort(final Integer forwardPort) {
@@ -187,6 +190,7 @@ public class ProxySelectorAddDTO implements Serializable {
 
     /**
      * get handler.
+     *
      * @return handler
      */
     public String getHandler() {
@@ -195,6 +199,7 @@ public class ProxySelectorAddDTO implements Serializable {
 
     /**
      * set handler.
+     *
      * @param handler handler
      */
     public void setHandler(final String handler) {
@@ -243,6 +248,11 @@ public class ProxySelectorAddDTO implements Serializable {
     public static class Discovery {
 
         /**
+         * discovery id.
+         */
+        private String id;
+
+        /**
          * discovery type.
          */
         @NotNull(message = "discoveryType not null")
@@ -255,6 +265,24 @@ public class ProxySelectorAddDTO implements Serializable {
         private String serverList;
 
         private String props;
+
+        /**
+         * getId.
+         *
+         * @return id
+         */
+        public String getId() {
+            return id;
+        }
+
+        /**
+         * setId.
+         *
+         * @param id id
+         */
+        public void setId(final String id) {
+            this.id = id;
+        }
 
         /**
          * get type.
@@ -294,6 +322,7 @@ public class ProxySelectorAddDTO implements Serializable {
 
         /**
          * get props.
+         *
          * @return props
          */
         public String getProps() {
@@ -302,6 +331,7 @@ public class ProxySelectorAddDTO implements Serializable {
 
         /**
          * set props.
+         *
          * @param props props
          */
         public void setProps(final String props) {
