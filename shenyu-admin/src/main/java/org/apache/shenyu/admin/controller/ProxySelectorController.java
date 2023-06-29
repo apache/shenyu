@@ -17,8 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
+import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
@@ -26,16 +25,15 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.ProxySelectorVO;
 import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -73,32 +71,18 @@ public class ProxySelectorController {
     }
 
     /**
-     * create proxy selector.
+     * proxy selector add api.
      *
-     * @param proxySelectorDTO proxySelectorDTO
-     * @return {@linkplain ShenyuAdminResult}
-     */
-    @PostMapping("")
-    public ShenyuAdminResult createProxySelector(@Valid @RequestBody final ProxySelectorDTO proxySelectorDTO) {
-
-        return ShenyuAdminResult.success(proxySelectorService.createOrUpdate(proxySelectorDTO));
-    }
-
-    /**
-     * update proxy selector.
-     *
-     * @param id               id
-     * @param proxySelectorDTO proxySelectorDTO
+     * @param id the id
+     * @param proxySelectorAddDTO {@link ProxySelectorAddDTO}
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateProxySelector(@PathVariable("id")
-                                                 @Existed(message = "proxy selector is not existed",
-                                                         provider = PluginMapper.class) final String id,
-                                                 @Valid @RequestBody final ProxySelectorDTO proxySelectorDTO) {
+    public ShenyuAdminResult updateProxySelector(@PathVariable("id") final String id,
+                                                 @Valid @RequestBody final ProxySelectorAddDTO proxySelectorAddDTO) {
 
-        proxySelectorDTO.setId(id);
-        return ShenyuAdminResult.success(proxySelectorService.createOrUpdate(proxySelectorDTO));
+        proxySelectorAddDTO.setId(id);
+        return ShenyuAdminResult.success(proxySelectorService.createOrUpdate(proxySelectorAddDTO));
     }
 
     /**
@@ -111,5 +95,17 @@ public class ProxySelectorController {
     public ShenyuAdminResult deleteProxySelectors(@NotEmpty @RequestBody final List<@NotBlank String> ids) {
 
         return ShenyuAdminResult.success(proxySelectorService.delete(ids));
+    }
+
+    /**
+     * add proxy selectors.
+     *
+     * @param proxySelectorAddDTO {@link ProxySelectorAddDTO}
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PostMapping("addProxySelector")
+    public ShenyuAdminResult addProxySelector(@RequestBody @Valid final ProxySelectorAddDTO proxySelectorAddDTO) {
+
+        return ShenyuAdminResult.success(proxySelectorService.create(proxySelectorAddDTO), null);
     }
 }

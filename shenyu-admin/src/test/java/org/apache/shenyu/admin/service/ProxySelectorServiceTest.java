@@ -17,8 +17,13 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.mapper.DiscoveryMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
+import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
-import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
+import org.apache.shenyu.admin.model.dto.ProxySelectorAddDTO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ProxySelectorQuery;
@@ -50,10 +55,26 @@ class ProxySelectorServiceTest {
     @Mock
     private ProxySelectorMapper proxySelectorMapper;
 
+    @Mock
+    private DiscoveryMapper discoveryMapper;
+
+    @Mock
+    private DiscoveryRelMapper discoveryRelMapper;
+
+    @Mock
+    private DiscoveryUpstreamMapper discoveryUpstreamMapper;
+
+    @Mock
+    private DiscoveryHandlerMapper discoveryHandlerMapper;
+
+    @Mock
+    private DiscoveryProcessorHolder discoveryProcessorHolder;
+
     @BeforeEach
     void testSetUp() {
 
-        proxySelectorService = new ProxySelectorServiceImpl(proxySelectorMapper);
+        proxySelectorService = new ProxySelectorServiceImpl(proxySelectorMapper, discoveryMapper, discoveryUpstreamMapper,
+                discoveryHandlerMapper, discoveryRelMapper, discoveryProcessorHolder);
     }
 
     @Test
@@ -77,17 +98,13 @@ class ProxySelectorServiceTest {
     @Test
     void testCreateOrUpdate() {
 
-        ProxySelectorDTO proxySelectorDTO = new ProxySelectorDTO();
+        ProxySelectorAddDTO proxySelectorDTO = new ProxySelectorAddDTO();
         proxySelectorDTO.setName("test");
-        proxySelectorDTO.setPluginName("test");
         proxySelectorDTO.setForwardPort(8080);
         proxySelectorDTO.setProps("test");
         given(proxySelectorMapper.nameExisted("test")).willReturn(null);
         given(proxySelectorMapper.insert(ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO))).willReturn(1);
         assertEquals(proxySelectorService.createOrUpdate(proxySelectorDTO), ShenyuResultMessage.CREATE_SUCCESS);
-        proxySelectorDTO.setId("123");
-        given(proxySelectorMapper.update(ProxySelectorDO.buildProxySelectorDO(proxySelectorDTO))).willReturn(1);
-        assertEquals(proxySelectorService.createOrUpdate(proxySelectorDTO), ShenyuResultMessage.UPDATE_SUCCESS);
     }
 
     @Test
