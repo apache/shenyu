@@ -55,7 +55,12 @@ public enum ConfigGroupEnum {
     /**
      * ProxySelector data group enum.
      */
-    PROXY_SELECTOR;
+    PROXY_SELECTOR,
+
+    /**
+     * discoveryUpstream data group enum.
+     */
+    DISCOVER_UPSTREAM;
 
     /**
      * Acquire by name config group enum.

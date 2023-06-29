@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * DiscoveryMapper.
@@ -48,16 +49,24 @@ public interface DiscoveryMapper extends ExistProvider {
     DiscoveryDO selectById(String id);
 
     /**
+     * selectAll.
+     *
+     * @return discoveryDOList
+     */
+    List<DiscoveryDO> selectAll();
+
+    /**
      * select discovery by plugin name and level.
      *
      * @param pluginName plugin name
-     * @param level level
+     * @param level      level
      * @return {@linkplain DiscoveryDO}
      */
     DiscoveryDO selectByPluginNameAndLevel(@Param("pluginName") String pluginName, @Param("level") String level);
 
     /**
      * insert discovery.
+     *
      * @param discovery discovery.
      * @return rows
      */
@@ -89,6 +98,7 @@ public interface DiscoveryMapper extends ExistProvider {
 
     /**
      * delete discovery by id.
+     *
      * @param id primary key.
      * @return rows.
      */
