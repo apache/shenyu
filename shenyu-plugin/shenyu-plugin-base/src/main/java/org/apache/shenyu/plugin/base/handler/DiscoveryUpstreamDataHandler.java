@@ -15,23 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.discovery.parse;
+package org.apache.shenyu.plugin.base.handler;
 
-import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 
-import java.util.List;
-
-/**
- * parse value to ProxySelectorData list.
- */
-public interface KeyValueParser {
+public interface DiscoveryUpstreamDataHandler {
 
     /**
-     * parseValue.
+     * handlerDiscoveryUpstreamData.
      *
-     * @param value value
-     * @return DiscoveryUpstreamData list
+     * @param discoverySyncData discoverySyncData
      */
-    List<DiscoveryUpstreamData> parseValue(String value);
+    void handlerDiscoveryUpstreamData(DiscoverySyncData discoverySyncData);
+
+    /**
+     * pluginName.
+     *
+     * @return pluginName
+     */
+    String pluginName();
 
 }

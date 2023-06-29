@@ -25,14 +25,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
-import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -52,17 +48,14 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
 
     private final Map<String, String> conversion;
 
-    private final ProxySelectorMapper proxySelectorMapper;
 
     /**
      * CustomDiscoveryUpstreamParser.
      *
      * @param conversion          conversion
-     * @param proxySelectorMapper proxySelectorMapper
      */
-    public CustomDiscoveryUpstreamParser(final Map<String, String> conversion, final ProxySelectorMapper proxySelectorMapper) {
+    public CustomDiscoveryUpstreamParser(final Map<String, String> conversion) {
         this.conversion = conversion;
-        this.proxySelectorMapper = proxySelectorMapper;
     }
 
     @Override
@@ -91,28 +84,6 @@ public class CustomDiscoveryUpstreamParser implements JsonDeserializer<Discovery
         GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(DiscoveryUpstreamData.class, this);
         Gson gson = gsonBuilder.create();
         return Collections.singletonList(gson.fromJson(jsonString, DiscoveryUpstreamData.class));
-    }
-
-    /**
-     * parseKey.
-     *
-     * <p>
-     * /.../{pluginName}/{selectorId}/{discoveryHandlerId}/{upstream_suq}
-     * </p>
-     *
-     * @param key key
-     * @return ProxySelectorData
-     */
-    @Override
-    public ProxySelectorData parseKey(final String key) {
-        String[] subArray = key.split("/");
-        String proxySelectorId = subArray[subArray.length - 2];
-        ProxySelectorData proxySelectorData = new ProxySelectorData();
-        ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
-        BeanUtils.copyProperties(proxySelectorDO, proxySelectorData);
-        LOG.info("shenyu parseKey pluginName={}|proxySelectorName={}|type={}|forwardPort={}", proxySelectorData.getPluginName(),
-                proxySelectorData.getName(), proxySelectorData.getType(), proxySelectorData.getForwardPort());
-        return proxySelectorData;
     }
 
 }

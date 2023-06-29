@@ -62,6 +62,12 @@
         WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND level = #{level, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery
+    </select>
+
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
             parameterType="org.apache.shenyu.admin.model.entity.DiscoveryDO">
         INSERT INTO discovery

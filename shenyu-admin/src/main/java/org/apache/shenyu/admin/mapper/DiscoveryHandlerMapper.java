@@ -49,6 +49,7 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
 
     /**
      * insert discovery handler.
+     *
      * @param discoveryHandlerDO discovery handler.
      * @return rows
      */
@@ -80,8 +81,17 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
 
     /**
      * delete discovery handler by id.
+     *
      * @param id primary key.
      * @return rows.
      */
     int delete(String id);
+
+    /**
+     * selectByDiscoveryId.
+     *
+     * @param discoveryId discoveryId
+     * @return DiscoveryHandlerDO
+     */
+    DiscoveryHandlerDO selectByDiscoveryId(@Param("discoveryId") String discoveryId);
 }
