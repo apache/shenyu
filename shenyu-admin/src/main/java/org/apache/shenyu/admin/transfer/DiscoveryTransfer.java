@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.util.Properties;
 
@@ -96,13 +97,16 @@ public enum DiscoveryTransfer {
     }
 
 
-    public ProxySelectorData mapToData(ProxySelectorDTO proxySelectorDTO){
+    public ProxySelectorData mapToData(ProxySelectorDTO proxySelectorDTO) {
         ProxySelectorData proxySelectorData = new ProxySelectorData();
         proxySelectorData.setId(proxySelectorDTO.getId());
         proxySelectorData.setName(proxySelectorDTO.getName());
         proxySelectorData.setPluginName(proxySelectorDTO.getPluginName());
         proxySelectorData.setType(proxySelectorDTO.getType());
         proxySelectorData.setForwardPort(proxySelectorDTO.getForwardPort());
+        String props = proxySelectorDTO.getProps();
+        Properties properties = GsonUtils.getInstance().fromJson(props, Properties.class);
+        proxySelectorData.setProps(properties);
         return proxySelectorData;
     }
 

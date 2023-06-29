@@ -98,7 +98,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
             LOG.info("shenyu discovery {} is empty need register it ", key);
             shenyuDiscoveryService.register(key, GsonUtils.getInstance().toJson(discoveryHandlerDTO) + "|" + GsonUtils.getInstance().toJson(proxySelectorDTO));
         }
-        shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(proxySelectorDTO.getType(), discoveryHandlerDTO.getProps()));
+        shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(proxySelectorDTO.getType(), discoveryHandlerDTO.getHandler()));
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE,
                 Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         eventPublisher.publishEvent(dataChangedEvent);

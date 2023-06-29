@@ -40,6 +40,7 @@ import java.util.Map;
  *
  * <p>
  * You can define a custom map mapper  if your custom upstream doesn't fit
+ * like is {"${yourUserName}" : "url"}
  * </p>
  */
 public class CustomDiscoveryUpstreamParser implements JsonDeserializer<DiscoveryUpstreamData>, KeyValueParser {
