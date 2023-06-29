@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.springboot.starter.plugin.tcp;
 
+import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
+import org.apache.shenyu.plugin.tcp.handler.TcpProxySelectorDataHandler;
 import org.apache.shenyu.plugin.tcp.handler.TcpUpstreamDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +39,16 @@ public class TcpPluginConfiguration {
      */
     @Bean
     public ProxySelectorDataHandler tcpProxySelectorDataHandler() {
+        return new TcpProxySelectorDataHandler();
+    }
+
+    /**
+     * tcpDiscoveryUpstreamDataHandler.
+     *
+     * @return DiscoveryUpstreamDataHandler
+     */
+    @Bean
+    public DiscoveryUpstreamDataHandler tcpDiscoveryUpstreamDataHandler() {
         return new TcpUpstreamDataHandler();
     }
 }

@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
@@ -36,8 +38,11 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private final DiscoveryMapper discoveryMapper;
 
-    public DiscoveryServiceImpl(final DiscoveryMapper discoveryMapper) {
+    private final DiscoveryProcessorHolder discoveryProcessorHolder;
+
+    public DiscoveryServiceImpl(final DiscoveryMapper discoveryMapper, final DiscoveryProcessorHolder discoveryProcessorHolder) {
         this.discoveryMapper = discoveryMapper;
+        this.discoveryProcessorHolder = discoveryProcessorHolder;
     }
 
     @Override
@@ -74,7 +79,10 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         if (StringUtils.isEmpty(discoveryDTO.getId())) {
             discoveryDO.setId(UUIDUtils.getInstance().generateShortUuid());
         }
-        return discoveryMapper.insert(discoveryDO) > 0 ? discoveryVO(discoveryDO) : null;
+        DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
+        DiscoveryVO result = discoveryMapper.insert(discoveryDO) > 0 ? discoveryVO(discoveryDO) : null;
+        discoveryProcessor.createDiscovery(discoveryDO);
+        return result;
     }
 
     private DiscoveryVO update(final DiscoveryDTO discoveryDTO) {
@@ -107,4 +115,5 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         BeanUtils.copyProperties(discoveryDO, discoveryVO);
         return discoveryVO;
     }
+
 }
