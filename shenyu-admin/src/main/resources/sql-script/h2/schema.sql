@@ -992,7 +992,7 @@ CREATE TABLE IF NOT EXISTS `tag_relation`
 -- ----------------------------
 -- Table structure for discovery
 -- ----------------------------
-CREATE TABLE `discovery`
+CREATE TABLE IF NOT EXISTS `discovery`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `name`         varchar(255)  NOT NULL COMMENT 'the discovery name',
@@ -1026,7 +1026,7 @@ CREATE TABLE `discovery_handler`
 -- ----------------------------
 -- Table structure for discovery_upstream
 -- ----------------------------
-CREATE TABLE `discovery_upstream`
+CREATE TABLE IF NOT EXISTS `discovery_upstream`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `discovery_handler_id` varchar(128)  NOT NULL COMMENT 'the discovery handler id',
@@ -1043,7 +1043,7 @@ CREATE TABLE `discovery_upstream`
 -- ----------------------------
 -- Table structure for proxy_selector
 -- ----------------------------
-CREATE TABLE `proxy_selector`
+CREATE TABLE IF NOT EXISTS `proxy_selector`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `name`         varchar(255)  NOT NULL COMMENT 'the proxy name',
@@ -1057,38 +1057,15 @@ CREATE TABLE `proxy_selector`
 );
 
 -- ----------------------------
--- Table structure for discovery_handler
--- ----------------------------
-CREATE TABLE `discovery_handler`
-(
-    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
-    `discovery_id` varchar(128)  NOT NULL COMMENT 'the discovery id',
-    `handler`         varchar(255)  NOT NULL COMMENT 'the handler',
-    `listener_node` varchar(255)  COMMENT 'register server listener to node',
-    `props`     text COMMENT 'the discovery pops (json) ',
-    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
-    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
-    PRIMARY KEY (`id`)
-) ;
-
--- ----------------------------
 -- Table structure for discovery_rel
 -- ----------------------------
-CREATE TABLE `discovery_rel`
+CREATE TABLE IF NOT EXISTS `discovery_rel`
 (
-<<<<<<< HEAD
     `id`           varchar(128) NOT NULL COMMENT 'primary key id',
     `plugin_name`  varchar(255) NOT NULL COMMENT 'the plugin name',
     `discovery_handler_id` varchar(128) NOT NULL COMMENT 'the discovery handler id',
     `selector_id` varchar(128) COMMENT 'the selector id ',
     `proxy_selector_id` varchar(128) COMMENT 'the proxy selector id',
-=======
-    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
-    `level`        varchar(64)   NOT NULL COMMENT 'plugin or selector',
-    `discovery_handler_id` varchar(128)  NOT NULL COMMENT 'the discovery handler id',
-    `selector_id` varchar(128)  COMMENT 'the selector id ',
-    `proxy_selector_id` varchar(128)  COMMENT 'the proxy selector id',
->>>>>>> 9ec3317b754dfd78d21e332073eac76f7347a2ed
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
