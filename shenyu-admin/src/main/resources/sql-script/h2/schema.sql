@@ -992,7 +992,7 @@ CREATE TABLE IF NOT EXISTS `tag_relation`
 -- ----------------------------
 -- Table structure for discovery
 -- ----------------------------
-CREATE TABLE `discovery`
+CREATE TABLE IF NOT EXISTS `discovery`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `name`         varchar(255)  NOT NULL COMMENT 'the discovery name',
@@ -1026,7 +1026,7 @@ CREATE TABLE `discovery_handler`
 -- ----------------------------
 -- Table structure for discovery_upstream
 -- ----------------------------
-CREATE TABLE `discovery_upstream`
+CREATE TABLE IF NOT EXISTS `discovery_upstream`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `discovery_handler_id` varchar(128)  NOT NULL COMMENT 'the discovery handler id',
@@ -1043,7 +1043,7 @@ CREATE TABLE `discovery_upstream`
 -- ----------------------------
 -- Table structure for proxy_selector
 -- ----------------------------
-CREATE TABLE `proxy_selector`
+CREATE TABLE IF NOT EXISTS `proxy_selector`
 (
     `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
     `name`         varchar(255)  NOT NULL COMMENT 'the proxy name',
@@ -1059,7 +1059,7 @@ CREATE TABLE `proxy_selector`
 -- ----------------------------
 -- Table structure for discovery_rel
 -- ----------------------------
-CREATE TABLE `discovery_rel`
+CREATE TABLE IF NOT EXISTS `discovery_rel`
 (
     `id`           varchar(128) NOT NULL COMMENT 'primary key id',
     `plugin_name`  varchar(255) NOT NULL COMMENT 'the plugin name',
