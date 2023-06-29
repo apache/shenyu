@@ -547,8 +547,10 @@ The text of each license is the standard Apache 2.0 license.
     httpclient 4.5.13: https://github.com/apache/httpcomponents-client, Apache 2.0
     okhttp 3.14.9: https://square.github.io/okhttp, Apache 2.0
     brpc 2022.2.0: https://github.com/baidu/starlight, Apache 2.0
+    starlight-all 2022.2.0: https://github.com/baidu/starlight, Apache 2.0
     apollo-client 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
     apollo-openapi 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
+    apollo-core 2.1.0: https://github.com/apolloconfig/apollo/blob/master/LICENSE, Apache 2.0
     client-java-spring-integration 17.0.2: https://github.com/kubernetes-client/java, Apache 2.0
 
 ========================================================================

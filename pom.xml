@@ -114,7 +114,7 @@
         <shiro.version>1.8.0</shiro.version>
         <jwt.version>3.12.0</jwt.version>
         <motan.version>1.2.0</motan.version>
-        <spring-boot.version>2.6.9</spring-boot.version>
+        <spring-boot.version>2.6.8</spring-boot.version>
         <aspectjweaver.version>1.9.6</aspectjweaver.version>
         <h2.version>1.4.200</h2.version>
         <jetcd-core.version>0.7.3</jetcd-core.version>
