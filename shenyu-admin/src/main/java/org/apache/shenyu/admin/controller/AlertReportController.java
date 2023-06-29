@@ -44,7 +44,7 @@ public class AlertReportController {
      * @return row int
      */
     @PostMapping
-    public ShenyuAdminResult addTemplate(@Valid @RequestBody final AlertContentDTO alertContentDTO) {
+    public ShenyuAdminResult reportAlert(@Valid @RequestBody final AlertContentDTO alertContentDTO) {
         alertDispatchService.dispatchAlert(alertContentDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
     }

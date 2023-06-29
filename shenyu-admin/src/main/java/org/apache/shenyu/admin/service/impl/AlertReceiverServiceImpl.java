@@ -2,6 +2,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.mapper.AlertReceiverMapper;
 import org.apache.shenyu.admin.model.entity.AlertReceiverDO;
+import org.apache.shenyu.admin.service.AlertDispatchService;
 import org.apache.shenyu.admin.service.AlertReceiverService;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -21,6 +22,9 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
 	@Autowired
 	private AlertReceiverMapper alertReceiverMapper;
 	
+	@Autowired
+	private AlertDispatchService alertDispatchService;
+	
 	@Override
 	public int addReceiver(AlertReceiverDTO alertReceiverDTO) {
 		AlertReceiverDO receiverDO = new AlertReceiverDO();
@@ -29,11 +33,13 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
 		Timestamp currentTime = new Timestamp(System.currentTimeMillis());
 		receiverDO.setDateCreated(currentTime);
 		receiverDO.setDateUpdated(currentTime);
+		alertDispatchService.clearCache();
 		return alertReceiverMapper.insert(receiverDO);
 	}
 	
 	@Override
 	public int deleteReceiver(List<String> ids) {
+		alertDispatchService.clearCache();
 		return alertReceiverMapper.deleteByIds(ids);
 	}
 	
@@ -41,6 +47,7 @@ public class AlertReceiverServiceImpl implements AlertReceiverService {
 	public int updateReceiver(AlertReceiverDTO alertReceiverDTO) {
 		AlertReceiverDO receiverDO = new AlertReceiverDO();
 		BeanUtils.copyProperties(alertReceiverDTO, receiverDO);
+		alertDispatchService.clearCache();
 		return alertReceiverMapper.updateByPrimaryKey(receiverDO);
 	}
 	

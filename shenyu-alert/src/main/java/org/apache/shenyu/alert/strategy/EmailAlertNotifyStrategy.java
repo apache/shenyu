@@ -23,6 +23,7 @@ import org.apache.shenyu.alert.model.AlertContentDTO;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
@@ -42,7 +43,7 @@ final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
 	
 	private final TemplateEngine templateEngine;
 	
-	public EmailAlertNotifyStrategy(JavaMailSender javaMailSender, TemplateEngine templateEngine) {
+	public EmailAlertNotifyStrategy(TemplateEngine templateEngine, JavaMailSender javaMailSender) {
 		this.javaMailSender = javaMailSender;
 		this.templateEngine = templateEngine;
 	}
@@ -79,7 +80,11 @@ final class EmailAlertNotifyStrategy implements AlertNotifyHandler {
 		context.setVariable("nameContent", "Alarm Content");
 		context.setVariable("content", alert.getContent());
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String alarmTime = simpleDateFormat.format(alert.getDateCreated());
+		Date alertTime = alert.getDateCreated();
+		if (alertTime == null) {
+			alertTime = new Date();
+		}
+		String alarmTime = simpleDateFormat.format(alertTime);
 		context.setVariable("lastTriggerTime", alarmTime);
 		return templateEngine.process("mailAlarm", context);
 	}

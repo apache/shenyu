@@ -17,19 +17,18 @@
 
 package org.apache.shenyu.alert.strategy;
 
-import org.apache.shenyu.alert.AlertNotifyHandler;
 import org.apache.shenyu.alert.exception.AlertNoticeException;
 import org.apache.shenyu.alert.model.AlertContentDTO;
 import org.apache.shenyu.alert.model.AlertReceiverDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * Send alarm information through DingTalk robot
  */
-@Component
+@Service
 final class DingTalkRobotAlertNotifyStrategy extends AbstractAlertNotifyHandler {
 	
 	private static final String dingTalkWebHookUrl = "https://oapi.dingtalk.com/robot/send?access_token=";
