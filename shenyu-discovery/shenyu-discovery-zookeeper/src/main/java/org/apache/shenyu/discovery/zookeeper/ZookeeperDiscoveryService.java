@@ -40,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Zookeeper for shenyu discovery service.
@@ -90,7 +91,9 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         });
         this.client.start();
         try {
-            this.client.blockUntilConnected();
+            if (!this.client.blockUntilConnected(30, TimeUnit.SECONDS)) {
+                throw new ShenyuException("shenyu start ZookeeperDiscoveryService failure 30 seconds timeout");
+            }
         } catch (InterruptedException e) {
             throw new ShenyuException(e);
         }
