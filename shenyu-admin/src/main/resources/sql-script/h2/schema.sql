@@ -1057,21 +1057,6 @@ CREATE TABLE `proxy_selector`
 );
 
 -- ----------------------------
--- Table structure for discovery_handler
--- ----------------------------
---CREATE TABLE `discovery_handler`
---(
---    `id`           varchar(128)  NOT NULL COMMENT 'primary key id',
---    `discovery_id` varchar(128)  NOT NULL COMMENT 'the discovery id',
---    `handler`         varchar(255)  NOT NULL COMMENT 'the handler',
---    `listener_node` varchar(255)  COMMENT 'register server listener to node',
---    `props`     text COMMENT 'the discovery pops (json) ',
---    `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
---    `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
---    PRIMARY KEY (`id`)
---) ;
-
--- ----------------------------
 -- Table structure for discovery_rel
 -- ----------------------------
 CREATE TABLE `discovery_rel`
@@ -1085,7 +1070,3 @@ CREATE TABLE `discovery_rel`
     `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     PRIMARY KEY (`id`)
 );
-
---INSERT INTO `discovery_rel` (`id`, `level`, `discovery_handler_id`, `selector_id`, `proxy_selector_id`)VALUES ('1', 'plugin', '1', null, '1');
---
---INSERT INTO `proxy_selector` (`id`, `name`, `plugin_name`, `type`, `forward_port`, `props`) VALUES ('1', 'TCPSelectorName', 'tcp', 'tcp', 9878, '{}');
