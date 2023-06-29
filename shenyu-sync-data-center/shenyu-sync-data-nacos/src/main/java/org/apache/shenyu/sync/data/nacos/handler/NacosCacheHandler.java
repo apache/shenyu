@@ -29,8 +29,6 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.DiscoverySyncData;
-import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -156,12 +154,9 @@ public class NacosCacheHandler {
 
     protected void updateProxySelectorMap(final String configInfo) {
         try {
-            List<DiscoverySyncData> discoverySyncDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, DiscoverySyncData.class).values());
-            discoverySyncDataList.forEach(discoverySyncData -> proxySelectorDataSubscribers.forEach(subscriber -> {
-                ProxySelectorData proxySelectorData = discoverySyncData.getProxySelectorData();
-                List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
+            List<ProxySelectorData> proxySelectorDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, ProxySelectorData.class).values());
+            proxySelectorDataList.forEach(proxySelectorData -> proxySelectorDataSubscribers.forEach(subscriber -> {
                 subscriber.unSubscribe(proxySelectorData);
-                subscriber.onSubscribe(proxySelectorData, upstreamDataList);
             }));
         } catch (JsonParseException e) {
             LOG.error("sync proxy selector data have error", e);

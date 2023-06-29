@@ -51,6 +51,13 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByDiscoveryId" resultType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM discovery_handler
+        WHERE discovery_id = #{discovery_id, jdbcType=VARCHAR}
+    </select>
+
     <insert id="insert" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
             parameterType="org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO">
         INSERT INTO discovery_handler

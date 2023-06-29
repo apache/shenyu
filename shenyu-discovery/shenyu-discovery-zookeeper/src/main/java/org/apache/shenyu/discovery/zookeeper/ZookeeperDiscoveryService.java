@@ -122,6 +122,11 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                 DiscoveryDataChangedEvent dataChangedEvent;
                 if (Objects.nonNull(data) && Objects.nonNull(data.getData())) {
                     String currentPath = data.getPath();
+                    String parentPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
+                    String parentData = this.getData(parentPath);
+                    String currentData = new String(data.getData(), StandardCharsets.UTF_8);
+                    String resultData = parentData + "|" + currentData;
+                    LOGGER.info("shenyu find resultData ={}", resultData);
                     Stat stat = data.getStat();
                     boolean isEphemeral = Objects.nonNull(stat) && stat.getEphemeralOwner() > 0;
                     if (!isEphemeral) {
@@ -130,16 +135,16 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
                     }
                     switch (event.getType()) {
                         case NODE_ADDED:
-                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.ADDED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, resultData, DiscoveryDataChangedEvent.Event.ADDED);
                             break;
                         case NODE_UPDATED:
-                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.UPDATED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, resultData, DiscoveryDataChangedEvent.Event.UPDATED);
                             break;
                         case NODE_REMOVED:
-                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.DELETED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, resultData, DiscoveryDataChangedEvent.Event.DELETED);
                             break;
                         default:
-                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, new String(data.getData(), StandardCharsets.UTF_8), DiscoveryDataChangedEvent.Event.IGNORED);
+                            dataChangedEvent = new DiscoveryDataChangedEvent(currentPath, resultData, DiscoveryDataChangedEvent.Event.IGNORED);
                             break;
                     }
                     listener.onChange(dataChangedEvent);

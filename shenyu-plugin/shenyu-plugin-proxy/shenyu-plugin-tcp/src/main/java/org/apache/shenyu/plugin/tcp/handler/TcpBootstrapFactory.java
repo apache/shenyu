@@ -22,12 +22,17 @@ import org.apache.shenyu.protocol.tcp.BootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpBootstrapServer;
 import org.apache.shenyu.protocol.tcp.TcpServerConfiguration;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * TcpBootstrapFactory.
  */
 public final class TcpBootstrapFactory {
 
     private static final TcpBootstrapFactory SINGLETON = new TcpBootstrapFactory();
+
+    private final Map<String, BootstrapServer> cache = new ConcurrentHashMap<>();
 
     private TcpBootstrapFactory() {
     }
@@ -52,6 +57,46 @@ public final class TcpBootstrapFactory {
         BootstrapServer bootstrapServer = new TcpBootstrapServer(eventBus);
         bootstrapServer.start(configuration);
         return bootstrapServer;
+    }
+
+    /**
+     * cache bootstrapServer by selectorName.
+     *
+     * @param selectorName    selectorName
+     * @param bootstrapServer bootstrapServer
+     */
+    public void cache(final String selectorName, final BootstrapServer bootstrapServer) {
+        cache.put(selectorName, bootstrapServer);
+    }
+
+    /**
+     * inCache.
+     *
+     * @param selectorName selectorName
+     * @return is selectorName has been cached
+     */
+    public Boolean inCache(final String selectorName) {
+        return cache.containsKey(selectorName);
+    }
+
+    /**
+     * removeCache.
+     *
+     * @param selectorName selectorName
+     * @return BootstrapServer
+     */
+    public BootstrapServer removeCache(final String selectorName) {
+        return cache.remove(selectorName);
+    }
+
+    /**
+     * getCache.
+     *
+     * @param selectorName selectorName
+     * @return BootstrapServer
+     */
+    public BootstrapServer getCache(final String selectorName) {
+        return cache.get(selectorName);
     }
 
 }
