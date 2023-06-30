@@ -27,7 +27,6 @@ import org.apache.shenyu.admin.service.ProxySelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -111,6 +110,12 @@ public class ProxySelectorController {
     }
 
 
+    /**
+     * fetch data。
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     * @return {@linkplain ShenyuAdminResult}
+     */
     @PutMapping("fetch/{discoveryHandlerId}")
     public ShenyuAdminResult fetchData(@PathVariable("discoveryHandlerId") String discoveryHandlerId) {
 

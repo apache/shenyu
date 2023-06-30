@@ -38,6 +38,8 @@ public class DiscoveryConfiguration {
      * discoveryProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
+     * @param discoveryHandlerMapper  discoveryHandlerMapper
+     * @param proxySelectorMapper     proxySelectorMapper
      * @return DiscoveryProcessor
      */
     @Bean("DefaultDiscoveryProcessor")
@@ -51,6 +53,7 @@ public class DiscoveryConfiguration {
      * discoveryLocalProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
+     * @param proxySelectorMapper proxySelectorMapper
      * @return LocalDiscoveryProcessor
      */
     @Bean("LocalDiscoveryProcessor")
