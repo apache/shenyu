@@ -2273,53 +2273,22 @@ COMMENT ON COLUMN "public"."discovery_rel"."selector_id" IS 'the selector id';
 COMMENT ON COLUMN "public"."discovery_rel"."proxy_selector_id" IS 'the proxy selector id';
 COMMENT ON COLUMN "public"."discovery_rel"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."discovery_rel"."date_updated" IS 'update time';
-
 -- ----------------------------
--- Table structure for discovery_upstream
+-- Table structure for alert_template
 -- ----------------------------
-DROP TABLE IF EXISTS "public"."discovery_upstream";
-CREATE TABLE "public"."discovery_upstream" (
-    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "discovery_handler_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "protocol" varchar(64) COLLATE "pg_catalog"."default",
-    "url" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-    "status" int4 NOT NULL,
-    "weight" int4 NOT NULL,
-    "props" text COLLATE "pg_catalog"."default",
-    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+DROP TABLE IF EXISTS "public"."alert_template";
+CREATE TABLE "public"."alert_template" (
+    "id"            varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "name"          varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "strategy_name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+    "content"       varchar(1000) COLLATE "pg_catalog"."default" NOT NULL,
+    "date_created"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    "date_updated"  timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
 ;
-COMMENT ON COLUMN "public"."discovery_upstream"."id" IS 'primary key id';
-COMMENT ON COLUMN "public"."discovery_upstream"."discovery_handler_id" IS 'the discovery handler id';
-COMMENT ON COLUMN "public"."discovery_upstream"."protocol" IS 'for http, https, tcp, ws';
-COMMENT ON COLUMN "public"."discovery_upstream"."url" IS 'ip:port';
-COMMENT ON COLUMN "public"."discovery_upstream"."status" IS 'type (0, healthy, 1 unhealthy)';
-COMMENT ON COLUMN "public"."discovery_upstream"."weight" IS 'the weight for lists';
-COMMENT ON COLUMN "public"."discovery_upstream"."props" IS 'the discovery pops (json) ';
-COMMENT ON COLUMN "public"."discovery_upstream"."date_created" IS 'create time';
-COMMENT ON COLUMN "public"."discovery_upstream"."date_updated" IS 'update time';
-
--- ----------------------------
--- Table structure for proxy_selector
--- ----------------------------
-DROP TABLE IF EXISTS "public"."proxy_selector";
-CREATE TABLE "public"."proxy_selector" (
-    "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-    "name" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-    "plugin_name" varchar(255) COLLATE "pg_catalog"."default",
-    "type" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-    "forward_port" int4 NOT NULL,
-    "props" text COLLATE "pg_catalog"."default",
-    "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-    "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
-)
-;
-COMMENT ON COLUMN "public"."proxy_selector"."id" IS 'primary key id';
-COMMENT ON COLUMN "public"."proxy_selector"."name" IS 'the proxy name';
-COMMENT ON COLUMN "public"."proxy_selector"."plugin_name" IS 'the plugin name';
-COMMENT ON COLUMN "public"."proxy_selector"."type" IS 'proxy type for tcp, upd, ws';
-COMMENT ON COLUMN "public"."proxy_selector"."forward_port" IS 'the proxy forward port';
-COMMENT ON COLUMN "public"."proxy_selector"."props" IS 'the discovery pops (json) ';
-COMMENT ON COLUMN "public"."proxy_selector"."date_created" IS 'create time';
-COMMENT ON COLUMN "public"."proxy_selector"."date_updated" IS 'update time';
+COMMENT ON COLUMN "public"."alert_template"."id" IS 'primary key id';
+COMMENT ON COLUMN "public"."alert_template"."name" IS  'alert template name';
+COMMENT ON COLUMN "public"."alert_template"."strategy_name" IS 'alert template strategy name';
+COMMENT ON COLUMN "public"."alert_template"."content" IS 'alert template content';
+COMMENT ON COLUMN "public"."alert_template"."date_created" IS 'create time';
+COMMENT ON COLUMN "public"."alert_template"."date_updated" IS 'update time';
