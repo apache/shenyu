@@ -171,6 +171,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      * @return insert data count
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String create(final ProxySelectorAddDTO proxySelectorAddDTO) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);
@@ -258,6 +259,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      * @param proxySelectorAddDTO proxySelectorAddDTO
      * @return the string
      */
+    @Transactional(rollbackFor = Exception.class)
     public String update(final ProxySelectorAddDTO proxySelectorAddDTO) {
         // update proxy selector
         ProxySelectorDO proxySelectorDO = ProxySelectorDO.buildProxySelectorDO(proxySelectorAddDTO);

@@ -30,6 +30,8 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -81,6 +83,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     @Resource
     private SelectorService selectorService;
 
+    /**
+     * The MetaData service
+     */
     @Resource
     private MetaDataService metaDataService;
 
@@ -103,6 +108,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
                 return buildConfigData(config, SelectorData.class);
             case META_DATA:
                 return buildConfigData(config, MetaData.class);
+            case PROXY_SELECTOR:
+                return buildConfigData(config, ProxySelectorData.class);
+            case DISCOVER_UPSTREAM:
+                return buildConfigData(config, DiscoverySyncData.class);
             default:
                 throw new IllegalStateException("Unexpected groupKey: " + groupKey);
         }
@@ -228,6 +237,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateRuleCache();
         this.updateSelectorCache();
         this.updateMetaDataCache();
+        // todo 拉取数据
+//        this.updateProxySelectorDataCache();
+//        this.updateDiscoveryUpstreamDataCache();
     }
     
     /**

@@ -47,4 +47,7 @@ public interface DiscoveryService {
      * @return the string
      */
     DiscoveryVO createOrUpdate(DiscoveryDTO discoveryDTO);
+
+
+    void syncData();
 }

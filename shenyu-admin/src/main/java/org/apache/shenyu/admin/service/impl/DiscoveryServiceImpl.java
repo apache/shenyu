@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -51,11 +52,13 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public DiscoveryVO discovery(final String pluginName, final String level) {
         return discoveryVO(discoveryMapper.selectByPluginNameAndLevel(pluginName, level));
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public DiscoveryVO createOrUpdate(final DiscoveryDTO discoveryDTO) {
         return StringUtils.isBlank(discoveryDTO.getId()) ? this.create(discoveryDTO) : this.update(discoveryDTO);
     }
@@ -116,4 +119,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         return discoveryVO;
     }
 
+    @Override
+    public void syncData() {
+
+    }
 }

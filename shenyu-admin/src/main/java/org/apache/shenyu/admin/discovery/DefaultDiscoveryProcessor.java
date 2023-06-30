@@ -31,6 +31,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -104,11 +105,11 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
             return;
         }
         String key = buildProxySelectorKey(discoveryHandlerDTO);
-        if (StringUtils.isEmpty(shenyuDiscoveryService.getData(key))) {
-            LOG.info("shenyu discovery {} is empty need register it ", key);
-            shenyuDiscoveryService.register(key, GsonUtils.getInstance().toJson(discoveryHandlerDTO) + "|" + GsonUtils.getInstance().toJson(proxySelectorDTO));
+        if (!shenyuDiscoveryService.exits(key)) {
+            LOG.warn("shenyu discovery start watcher need you has this key {} in Discovery", key);
+            return;
         }
-        shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(proxySelectorDTO.getType(), discoveryHandlerDTO.getHandler()));
+        shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(discoveryHandlerDTO, proxySelectorDTO));
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE,
                 Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         eventPublisher.publishEvent(dataChangedEvent);
@@ -155,17 +156,22 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         return StringUtils.isNotBlank(discoveryHandlerDTO.getListenerNode()) ? discoveryHandlerDTO.getListenerNode() : DEFAULT_LISTENER_NODE;
     }
 
+
     /**
      * getDiscoveryDataChangedEventListener.
      *
-     * @param discoveryType discoveryType
-     * @param customProps   customProps
+     * @param discoveryHandlerDTO discoveryHandlerDTO
+     * @param proxySelectorDTO    proxySelectorDTO
      * @return DataChangedEventListener
      */
-    private DataChangedEventListener getDiscoveryDataChangedEventListener(final String discoveryType, final String customProps) {
-        Map<String, String> customMap = GsonUtils.getInstance().toObjectMap(customProps, String.class);
+    private DataChangedEventListener getDiscoveryDataChangedEventListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
+        Map<String, String> customMap = GsonUtils.getInstance().toObjectMap(discoveryHandlerDTO.getHandler(), String.class);
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
+        discoverySyncData.setSelectorName(proxySelectorDTO.getName());
+        discoverySyncData.setSelectorId(proxySelectorDTO.getId());
         return new DiscoveryDataChangedEventSyncListener(eventPublisher, discoveryUpstreamMapper,
-                new CustomDiscoveryUpstreamParser(customMap), !DiscoveryMode.LOCAL.name().equalsIgnoreCase(discoveryType));
+                new CustomDiscoveryUpstreamParser(customMap), discoveryHandlerDTO.getId(), discoverySyncData);
     }
 
     @Override

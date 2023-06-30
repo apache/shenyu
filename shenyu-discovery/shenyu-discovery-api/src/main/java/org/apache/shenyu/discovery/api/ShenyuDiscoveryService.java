@@ -65,7 +65,14 @@ public interface ShenyuDiscoveryService {
      * @param key key
      * @return value
      */
-    String getData(String key);
+    List<String> getRegisterData(String key);
+
+    /**
+     *
+     * @param key
+     * @return
+     */
+    Boolean exits(String key);
 
     List<String> getChildData(String key);
 
