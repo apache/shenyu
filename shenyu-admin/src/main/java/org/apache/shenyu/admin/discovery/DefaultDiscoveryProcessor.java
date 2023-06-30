@@ -146,6 +146,26 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         throw new NotImplementedException("shenyu discovery local mode do nothing in changeUpstream");
     }
 
+    @Override
+    public void fetchAll(String discoveryHandlerId) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
+        String discoveryId = discoveryHandlerDO.getDiscoveryId();
+        if (discoveryServiceCache.containsKey(discoveryId)) {
+            ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryId);
+            List<String> childData = shenyuDiscoveryService.getChildData(discoveryHandlerDO.getListenerNode());
+            List<DiscoveryUpstreamData> discoveryUpstreamDataList = childData.stream().map(s -> GsonUtils.getGson().fromJson(s, DiscoveryUpstreamData.class))
+                    .collect(Collectors.toList());
+            discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId).stream()
+                    .map(DiscoveryUpstreamDO::getUrl).forEach(discoveryUpstreamMapper::deleteByUrl);
+            discoveryUpstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(d -> {
+                d.setId(UUIDUtils.getInstance().generateShortUuid());
+                discoveryUpstreamMapper.insert(d);
+            });
+            DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, discoveryUpstreamDataList);
+            eventPublisher.publishEvent(dataChangedEvent);
+        }
+    }
+
     /**
      * buildProxySelectorKey.
      *
@@ -177,26 +197,6 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     @Override
     public void setApplicationEventPublisher(final ApplicationEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
-    }
-
-    @Override
-    public void fetchAll(String discoveryHandlerId) {
-        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByDiscoveryId(discoveryHandlerId);
-        String discoveryId = discoveryHandlerDO.getDiscoveryId();
-        if (discoveryServiceCache.containsKey(discoveryId)) {
-            ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryId);
-            List<String> childData = shenyuDiscoveryService.getChildData(discoveryHandlerDO.getListenerNode());
-            List<DiscoveryUpstreamData> discoveryUpstreamDataList = childData.stream().map(s -> GsonUtils.getGson().fromJson(s, DiscoveryUpstreamData.class))
-                    .collect(Collectors.toList());
-            discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId).stream()
-                    .map(DiscoveryUpstreamDO::getUrl).forEach(discoveryUpstreamMapper::deleteByUrl);
-            discoveryUpstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(d -> {
-                d.setId(UUIDUtils.getInstance().generateShortUuid());
-                discoveryUpstreamMapper.insert(d);
-            });
-            DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, discoveryUpstreamDataList);
-            eventPublisher.publishEvent(dataChangedEvent);
-        }
     }
 
 }

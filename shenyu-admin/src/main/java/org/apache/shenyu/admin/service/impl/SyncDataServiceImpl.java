@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.AppAuthService;
+import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
@@ -66,18 +67,22 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     private final MetaDataService metaDataService;
 
+    private final DiscoveryService discoveryService;
+
     public SyncDataServiceImpl(final AppAuthService appAuthService,
                                final PluginService pluginService,
                                final SelectorService selectorService,
                                final RuleService ruleService,
                                final ApplicationEventPublisher eventPublisher,
-                               final MetaDataService metaDataService) {
+                               final MetaDataService metaDataService,
+                               final DiscoveryService discoveryService) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.eventPublisher = eventPublisher;
         this.metaDataService = metaDataService;
+        this.discoveryService = discoveryService;
     }
 
     @Override
@@ -94,7 +99,7 @@ public class SyncDataServiceImpl implements SyncDataService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, ruleDataList));
 
         metaDataService.syncData();
-
+        discoveryService.syncData();
         return true;
     }
 

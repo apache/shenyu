@@ -158,9 +158,18 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
      * @return the string
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
-
         proxySelectorMapper.deleteByIds(ids);
+        for (String proxySelectorId : ids) {
+            DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByProxySelectorId(proxySelectorId);
+            if (Objects.nonNull(discoveryHandlerDO)) {
+                ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectById(proxySelectorId);
+                DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+                discoveryProcessorHolder.chooseProcessor(discoveryDO.getType())
+                        .removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO));
+            }
+        }
         return ShenyuResultMessage.DELETE_SUCCESS;
     }
 

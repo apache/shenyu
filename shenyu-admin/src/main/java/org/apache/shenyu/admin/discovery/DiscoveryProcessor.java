@@ -62,8 +62,8 @@ public interface DiscoveryProcessor {
     /**
      * only use in local mode to sync upstreamDTOS.
      *
-     * @param proxySelectorDTO    proxySelectorDTO
-     * @param upstreamDTOS        upstreamDTOS
+     * @param proxySelectorDTO proxySelectorDTO
+     * @param upstreamDTOS     upstreamDTOS
      */
     void changeUpstream(ProxySelectorDTO proxySelectorDTO, List<DiscoveryUpstreamDTO> upstreamDTOS);
 

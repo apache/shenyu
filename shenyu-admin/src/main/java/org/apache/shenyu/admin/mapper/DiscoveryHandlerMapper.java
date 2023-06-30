@@ -88,10 +88,10 @@ public interface DiscoveryHandlerMapper extends ExistProvider {
     int delete(String id);
 
     /**
-     * selectByDiscoveryId.
+     * selectByProxySelectorId.
      *
-     * @param discoveryId discoveryId
+     * @param proxySelectorId proxySelectorId
      * @return DiscoveryHandlerDO
      */
-    DiscoveryHandlerDO selectByDiscoveryId(@Param("discoveryId") String discoveryId);
+    DiscoveryHandlerDO selectByProxySelectorId(@Param("proxySelectorId") String proxySelectorId);
 }
