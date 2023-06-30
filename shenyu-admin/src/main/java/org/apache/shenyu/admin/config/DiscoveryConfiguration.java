@@ -21,7 +21,9 @@ import org.apache.shenyu.admin.discovery.DefaultDiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.discovery.LocalDiscoveryProcessor;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,8 +41,8 @@ public class DiscoveryConfiguration {
      * @return DiscoveryProcessor
      */
     @Bean("DefaultDiscoveryProcessor")
-    public DiscoveryProcessor discoveryDefaultProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
-        return new DefaultDiscoveryProcessor(discoveryUpstreamMapper);
+    public DiscoveryProcessor discoveryDefaultProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper, final DiscoveryHandlerMapper discoveryHandlerMapper) {
+        return new DefaultDiscoveryProcessor(discoveryUpstreamMapper, discoveryHandlerMapper);
     }
 
     /**
@@ -50,8 +52,8 @@ public class DiscoveryConfiguration {
      * @return LocalDiscoveryProcessor
      */
     @Bean("LocalDiscoveryProcessor")
-    public DiscoveryProcessor discoveryLocalProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
-        return new LocalDiscoveryProcessor();
+    public DiscoveryProcessor discoveryLocalProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper, final ProxySelectorMapper proxySelectorMapper) {
+        return new LocalDiscoveryProcessor(discoveryUpstreamMapper, proxySelectorMapper);
     }
 
     /**

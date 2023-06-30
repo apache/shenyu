@@ -245,7 +245,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                     });
                     discoveryUpstreamMapper.saveBatch(upstreamDOList);
                     List<DiscoveryUpstreamDTO> collect = upstreamDOList.stream().map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
-                    discoveryProcessor.changeUpstream(discoveryHandlerDTO, proxySelectorDTO, collect);
+                    discoveryProcessor.changeUpstream(proxySelectorDTO, collect);
                 }
             }
         }
@@ -300,8 +300,15 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
         List<DiscoveryUpstreamDTO> fetchAll = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerDO.getId()).stream()
                 .map(DiscoveryTransfer.INSTANCE::mapToDTO).collect(Collectors.toList());
         DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(discoveryDO.getType());
-        discoveryProcessor.changeUpstream(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO), fetchAll);
+        discoveryProcessor.changeUpstream(DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO), fetchAll);
         LOG.info("insert discovery upstreams, count is: {}", proxySelectorAddDTO.getDiscoveryUpstreams().size());
         return ShenyuResultMessage.UPDATE_SUCCESS;
+    }
+
+    @Override
+    public void fetchData(String discoveryHandlerId) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
+        DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
+        discoveryProcessorHolder.chooseProcessor(discoveryDO.getType()).fetchAll(discoveryHandlerId);
     }
 }

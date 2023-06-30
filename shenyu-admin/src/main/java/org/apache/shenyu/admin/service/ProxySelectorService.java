@@ -57,4 +57,12 @@ public interface ProxySelectorService {
      * @return the result
      */
     String create(ProxySelectorAddDTO proxySelectorAddDTO);
+
+
+    /**
+     * fetchData.
+     *
+     * @param discoveryHandlerId discoveryHandlerId
+     */
+    void fetchData(String discoveryHandlerId);
 }

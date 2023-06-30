@@ -21,15 +21,20 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.discovery.parse.CustomDiscoveryUpstreamParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
+import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.discovery.api.ShenyuDiscoveryService;
 import org.apache.shenyu.discovery.api.config.DiscoveryConfig;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
@@ -39,11 +44,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * DefaultDiscoveryProcessor.
@@ -60,15 +68,17 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
 
+    private final DiscoveryHandlerMapper discoveryHandlerMapper;
 
     /**
      * DefaultDiscoveryProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
      */
-    public DefaultDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
+    public DefaultDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper, final DiscoveryHandlerMapper discoveryHandlerMapper) {
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.discoveryServiceCache = new ConcurrentHashMap<>();
+        this.discoveryHandlerMapper = discoveryHandlerMapper;
     }
 
     @Override
@@ -131,7 +141,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     }
 
     @Override
-    public void changeUpstream(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO, final List<DiscoveryUpstreamDTO> upstreamDTOS) {
+    public void changeUpstream(final ProxySelectorDTO proxySelectorDTO, final List<DiscoveryUpstreamDTO> upstreamDTOS) {
         throw new NotImplementedException("shenyu discovery local mode do nothing in changeUpstream");
     }
 
@@ -162,4 +172,25 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     public void setApplicationEventPublisher(final ApplicationEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }
+
+    @Override
+    public void fetchAll(String discoveryHandlerId) {
+        DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByDiscoveryId(discoveryHandlerId);
+        String discoveryId = discoveryHandlerDO.getDiscoveryId();
+        if (discoveryServiceCache.containsKey(discoveryId)) {
+            ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryId);
+            List<String> childData = shenyuDiscoveryService.getChildData(discoveryHandlerDO.getListenerNode());
+            List<DiscoveryUpstreamData> discoveryUpstreamDataList = childData.stream().map(s -> GsonUtils.getGson().fromJson(s, DiscoveryUpstreamData.class))
+                    .collect(Collectors.toList());
+            discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId).stream()
+                    .map(DiscoveryUpstreamDO::getUrl).forEach(discoveryUpstreamMapper::deleteByUrl);
+            discoveryUpstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(d -> {
+                d.setId(UUIDUtils.getInstance().generateShortUuid());
+                discoveryUpstreamMapper.insert(d);
+            });
+            DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, discoveryUpstreamDataList);
+            eventPublisher.publishEvent(dataChangedEvent);
+        }
+    }
+
 }
