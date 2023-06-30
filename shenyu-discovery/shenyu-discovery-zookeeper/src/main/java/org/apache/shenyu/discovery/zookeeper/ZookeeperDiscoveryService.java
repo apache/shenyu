@@ -173,12 +173,14 @@ public class ZookeeperDiscoveryService implements ShenyuDiscoveryService {
         try {
             TreeCache treeCache = cacheMap.get(key);
             if (Objects.isNull(treeCache)) {
-                return null;
+                return Collections.emptyList();
             }
-            ChildData currentData = treeCache.getCurrentData(key);
-            byte[] ret = currentData.getData();
-            //return Objects.isNull(ret) ? null : new String(ret, StandardCharsets.UTF_8);
-            return new ArrayList<>();
+            List<String> datas = new ArrayList<>();
+            treeCache.getCurrentChildren(key).forEach((k, cd) -> {
+                byte[] ret = cd.getData();
+                datas.add(Objects.isNull(ret) ? null : new String(ret, StandardCharsets.UTF_8));
+            });
+            return datas;
         } catch (Exception e) {
             throw new ShenyuException(e);
         }

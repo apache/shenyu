@@ -139,7 +139,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     @Override
     public void syncData() {
-        LOG.info("shenyu DiscoveryDataInitializationRunner fetch db ");
+        LOG.info("shenyu DiscoveryDataInitializationRunner sync db ");
         List<DiscoveryDO> discoveryDOS = discoveryMapper.selectAll();
         discoveryDOS.stream().filter(d -> !DiscoveryMode.LOCAL.name().equalsIgnoreCase(d.getType())).forEach(d -> {
             DiscoveryProcessor discoveryProcessor = discoveryProcessorHolder.chooseProcessor(d.getType());

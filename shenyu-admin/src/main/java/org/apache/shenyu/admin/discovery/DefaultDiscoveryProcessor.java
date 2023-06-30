@@ -47,6 +47,8 @@ import org.springframework.context.ApplicationEventPublisherAware;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -65,6 +67,8 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
 
     private final Map<String, ShenyuDiscoveryService> discoveryServiceCache;
 
+    private final Map<String, Set<String>> dataChangedEventListenerCache;
+
     private ApplicationEventPublisher eventPublisher;
 
     private final DiscoveryUpstreamMapper discoveryUpstreamMapper;
@@ -80,6 +84,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.discoveryServiceCache = new ConcurrentHashMap<>();
         this.discoveryHandlerMapper = discoveryHandlerMapper;
+        this.dataChangedEventListenerCache = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -95,21 +100,28 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         discoveryConfig.setServerList(discoveryDO.getServerList());
         discoveryService.init(discoveryConfig);
         discoveryServiceCache.put(discoveryDO.getId(), discoveryService);
+        dataChangedEventListenerCache.put(discoveryDO.getId(), new HashSet<>());
     }
 
     @Override
     public void createProxySelector(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
         ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryHandlerDTO.getDiscoveryId());
+        String key = buildProxySelectorKey(discoveryHandlerDTO);
         if (Objects.isNull(shenyuDiscoveryService)) {
             LOG.warn("before start ProxySelector you need init DiscoveryId={}", discoveryHandlerDTO.getDiscoveryId());
             return;
         }
-        String key = buildProxySelectorKey(discoveryHandlerDTO);
         if (!shenyuDiscoveryService.exits(key)) {
             LOG.warn("shenyu discovery start watcher need you has this key {} in Discovery", key);
             return;
         }
+        Set<String> cacheKey = dataChangedEventListenerCache.get(discoveryHandlerDTO.getDiscoveryId());
+        if (Objects.nonNull(cacheKey) && cacheKey.contains(key)) {
+            LOG.warn("shenyu discovery has watcher key {} ", key);
+            return;
+        }
         shenyuDiscoveryService.watcher(key, getDiscoveryDataChangedEventListener(discoveryHandlerDTO, proxySelectorDTO));
+        cacheKey.add(key);
         DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE,
                 Collections.singletonList(DiscoveryTransfer.INSTANCE.mapToData(proxySelectorDTO)));
         eventPublisher.publishEvent(dataChangedEvent);
@@ -152,7 +164,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
         String discoveryId = discoveryHandlerDO.getDiscoveryId();
         if (discoveryServiceCache.containsKey(discoveryId)) {
             ShenyuDiscoveryService shenyuDiscoveryService = discoveryServiceCache.get(discoveryId);
-            List<String> childData = shenyuDiscoveryService.getChildData(discoveryHandlerDO.getListenerNode());
+            List<String> childData = shenyuDiscoveryService.getRegisterData(discoveryHandlerDO.getListenerNode());
             List<DiscoveryUpstreamData> discoveryUpstreamDataList = childData.stream().map(s -> GsonUtils.getGson().fromJson(s, DiscoveryUpstreamData.class))
                     .collect(Collectors.toList());
             discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId).stream()
