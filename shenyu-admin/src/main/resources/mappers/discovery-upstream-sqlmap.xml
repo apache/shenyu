@@ -130,15 +130,15 @@
 
     <select id="selectByProxySelectorId" resultMap="BaseResultMap">
         SELECT
-            du.id,
-            du.date_created,
-            du.date_updated,
-            du.discovery_handler_id,
-            du.protocol,
-            du.url,
-            du.status,
-            du.weight,
-            du.props
+        du.id,
+        du.date_created,
+        du.date_updated,
+        du.discovery_handler_id,
+        du.protocol,
+        du.url,
+        du.status,
+        du.weight,
+        du.props
         FROM discovery_upstream du
         INNER JOIN discovery_rel dr ON du.discovery_handler_id = dr.discovery_handler_id
         <where>
@@ -184,6 +184,6 @@
     </delete>
 
     <delete id="deleteByUrl">
-        DELETE FROM discovery_upstream WHERE url = #{url}
+        DELETE FROM discovery_upstream WHERE discovery_handler_id = #{discoveryHandlerId} and url = #{url}
     </delete>
 </mapper>

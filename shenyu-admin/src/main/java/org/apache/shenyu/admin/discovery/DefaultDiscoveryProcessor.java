@@ -23,12 +23,14 @@ import org.apache.shenyu.admin.discovery.parse.CustomDiscoveryUpstreamParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.mapper.ProxySelectorMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
@@ -45,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -75,16 +78,21 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
 
     private final DiscoveryHandlerMapper discoveryHandlerMapper;
 
+    private final ProxySelectorMapper proxySelectorMapper;
+
     /**
      * DefaultDiscoveryProcessor.
      *
      * @param discoveryUpstreamMapper discoveryUpstreamMapper
      */
-    public DefaultDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper, final DiscoveryHandlerMapper discoveryHandlerMapper) {
+    public DefaultDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                     final DiscoveryHandlerMapper discoveryHandlerMapper,
+                                     final ProxySelectorMapper proxySelectorMapper) {
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.discoveryServiceCache = new ConcurrentHashMap<>();
         this.discoveryHandlerMapper = discoveryHandlerMapper;
         this.dataChangedEventListenerCache = new ConcurrentHashMap<>();
+        this.proxySelectorMapper = proxySelectorMapper;
     }
 
     @Override
@@ -167,13 +175,21 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
             List<String> childData = shenyuDiscoveryService.getRegisterData(discoveryHandlerDO.getListenerNode());
             List<DiscoveryUpstreamData> discoveryUpstreamDataList = childData.stream().map(s -> GsonUtils.getGson().fromJson(s, DiscoveryUpstreamData.class))
                     .collect(Collectors.toList());
-            discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId).stream()
-                    .map(DiscoveryUpstreamDO::getUrl).forEach(discoveryUpstreamMapper::deleteByUrl);
+            discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerId);
             discoveryUpstreamDataList.stream().map(DiscoveryTransfer.INSTANCE::mapToDo).forEach(d -> {
                 d.setId(UUIDUtils.getInstance().generateShortUuid());
+                d.setDiscoveryHandlerId(discoveryHandlerId);
+                d.setDateCreated(new Timestamp(System.currentTimeMillis()));
+                d.setDateUpdated(new Timestamp(System.currentTimeMillis()));
                 discoveryUpstreamMapper.insert(d);
             });
-            DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, discoveryUpstreamDataList);
+            ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
+            DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+            discoverySyncData.setSelectorId(proxySelectorDO.getId());
+            discoverySyncData.setSelectorName(proxySelectorDO.getName());
+            discoverySyncData.setPluginName(proxySelectorDO.getPluginName());
+            discoverySyncData.setUpstreamDataList(discoveryUpstreamDataList);
+            DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
             eventPublisher.publishEvent(dataChangedEvent);
         }
     }

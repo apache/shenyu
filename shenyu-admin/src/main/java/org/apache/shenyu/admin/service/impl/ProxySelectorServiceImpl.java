@@ -160,7 +160,6 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
-        proxySelectorMapper.deleteByIds(ids);
         for (String proxySelectorId : ids) {
             DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectByProxySelectorId(proxySelectorId);
             if (Objects.nonNull(discoveryHandlerDO)) {
@@ -170,6 +169,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
                         .removeProxySelector(DiscoveryTransfer.INSTANCE.mapToDTO(discoveryHandlerDO), DiscoveryTransfer.INSTANCE.mapToDTO(proxySelectorDO));
             }
         }
+        proxySelectorMapper.deleteByIds(ids);
         return ShenyuResultMessage.DELETE_SUCCESS;
     }
 

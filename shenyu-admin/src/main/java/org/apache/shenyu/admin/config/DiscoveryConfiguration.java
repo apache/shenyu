@@ -41,8 +41,10 @@ public class DiscoveryConfiguration {
      * @return DiscoveryProcessor
      */
     @Bean("DefaultDiscoveryProcessor")
-    public DiscoveryProcessor discoveryDefaultProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper, final DiscoveryHandlerMapper discoveryHandlerMapper) {
-        return new DefaultDiscoveryProcessor(discoveryUpstreamMapper, discoveryHandlerMapper);
+    public DiscoveryProcessor discoveryDefaultProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                                        final DiscoveryHandlerMapper discoveryHandlerMapper,
+                                                        final ProxySelectorMapper proxySelectorMapper) {
+        return new DefaultDiscoveryProcessor(discoveryUpstreamMapper, discoveryHandlerMapper, proxySelectorMapper);
     }
 
     /**

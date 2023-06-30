@@ -102,7 +102,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             case DELETED:
                 if (CollectionUtils.isNotEmpty(upstreamDataList)) {
                     upstreamDataList.forEach(up -> {
-                        discoveryUpstreamMapper.deleteByUrl(up.getUrl());
+                        discoveryUpstreamMapper.deleteByUrl(discoveryHandlerId, up.getUrl());
                         LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] DELETE Upstream {}", up.getUrl());
                     });
                 }
