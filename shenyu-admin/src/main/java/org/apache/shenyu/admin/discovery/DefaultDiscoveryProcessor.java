@@ -29,7 +29,6 @@ import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.DiscoveryHandlerDO;
-import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -48,9 +47,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -167,7 +164,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
     }
 
     @Override
-    public void fetchAll(String discoveryHandlerId) {
+    public void fetchAll(final String discoveryHandlerId) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
         String discoveryId = discoveryHandlerDO.getDiscoveryId();
         if (discoveryServiceCache.containsKey(discoveryId)) {
@@ -213,7 +210,7 @@ public class DefaultDiscoveryProcessor implements DiscoveryProcessor, Applicatio
      * @return DataChangedEventListener
      */
     private DataChangedEventListener getDiscoveryDataChangedEventListener(final DiscoveryHandlerDTO discoveryHandlerDTO, final ProxySelectorDTO proxySelectorDTO) {
-        Map<String, String> customMap = GsonUtils.getInstance().toObjectMap(discoveryHandlerDTO.getHandler(), String.class);
+        final Map<String, String> customMap = GsonUtils.getInstance().toObjectMap(discoveryHandlerDTO.getHandler(), String.class);
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();
         discoverySyncData.setPluginName(proxySelectorDTO.getPluginName());
         discoverySyncData.setSelectorName(proxySelectorDTO.getName());

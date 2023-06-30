@@ -111,17 +111,16 @@ public class ProxySelectorController {
 
 
     /**
-     * fetch data。
+     * fetch data.
      *
      * @param discoveryHandlerId discoveryHandlerId
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("fetch/{discoveryHandlerId}")
-    public ShenyuAdminResult fetchData(@PathVariable("discoveryHandlerId") String discoveryHandlerId) {
+    public ShenyuAdminResult fetchData(@PathVariable("discoveryHandlerId") final String discoveryHandlerId) {
 
         proxySelectorService.fetchData(discoveryHandlerId);
         return ShenyuAdminResult.success();
     }
-
 
 }

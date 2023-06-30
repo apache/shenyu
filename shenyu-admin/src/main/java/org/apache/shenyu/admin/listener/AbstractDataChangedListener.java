@@ -84,7 +84,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     private SelectorService selectorService;
 
     /**
-     * The MetaData service
+     * The MetaData service.
      */
     @Resource
     private MetaDataService metaDataService;

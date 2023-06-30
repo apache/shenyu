@@ -100,7 +100,7 @@ public class LocalDiscoveryProcessor implements DiscoveryProcessor, ApplicationE
     }
 
     @Override
-    public void fetchAll(String discoveryHandlerId) {
+    public void fetchAll(final String discoveryHandlerId) {
         List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
         ProxySelectorDO proxySelectorDO = proxySelectorMapper.selectByHandlerId(discoveryHandlerId);
         DiscoverySyncData discoverySyncData = new DiscoverySyncData();

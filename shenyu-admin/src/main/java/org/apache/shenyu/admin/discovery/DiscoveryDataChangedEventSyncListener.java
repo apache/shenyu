@@ -56,7 +56,6 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private final DiscoverySyncData contextInfo;
 
-
     public DiscoveryDataChangedEventSyncListener(final ApplicationEventPublisher eventPublisher,
                                                  final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                                  final KeyValueParser keyValueParser,
@@ -77,7 +76,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         }
         DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getValue());
         DataChangedEvent dataChangedEvent = null;
-        List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
+        final List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
         if (CollectionUtils.isEmpty(upstreamDataList)) {
             LOGGER.warn("shenyu proxySelectorData#discoveryUpstreamList is empty");
             return;

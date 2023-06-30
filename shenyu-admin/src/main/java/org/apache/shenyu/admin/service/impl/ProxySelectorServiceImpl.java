@@ -317,7 +317,7 @@ public class ProxySelectorServiceImpl implements ProxySelectorService {
     }
 
     @Override
-    public void fetchData(String discoveryHandlerId) {
+    public void fetchData(final String discoveryHandlerId) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectById(discoveryHandlerId);
         DiscoveryDO discoveryDO = discoveryMapper.selectById(discoveryHandlerDO.getDiscoveryId());
         discoveryProcessorHolder.chooseProcessor(discoveryDO.getType()).fetchAll(discoveryHandlerId);
