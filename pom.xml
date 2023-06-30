@@ -343,12 +343,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.projectreactor</groupId>
-                <artifactId>reactor-spring</artifactId>
-                <version>${reactor-spring.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.caucho</groupId>
                 <artifactId>hessian</artifactId>
                 <version>${hessian.version}</version>
