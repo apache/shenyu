@@ -68,8 +68,10 @@ public interface ShenyuDiscoveryService {
     List<String> getRegisterData(String key);
 
     /**
-     * @param key
-     * @return
+     * exits.
+     *
+     * @param key key
+     * @return Boolean
      */
     Boolean exits(String key);
 
