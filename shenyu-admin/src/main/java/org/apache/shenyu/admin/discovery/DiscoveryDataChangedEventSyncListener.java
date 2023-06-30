@@ -75,7 +75,6 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
             return;
         }
         DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getValue());
-        DataChangedEvent dataChangedEvent = null;
         final List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
         if (CollectionUtils.isEmpty(upstreamDataList)) {
             LOGGER.warn("shenyu proxySelectorData#discoveryUpstreamList is empty");
@@ -110,7 +109,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                 throw new IllegalStateException("shenyu DiscoveryDataChangedEventSyncListener find IllegalState");
         }
         fillFullyDiscoverySyncData(discoverySyncData);
-        dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
+        DataChangedEvent dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
         eventPublisher.publishEvent(dataChangedEvent);
     }
 
