@@ -20,11 +20,14 @@ package org.apache.shenyu.springboot.starter.plugin.global;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.cache.CommonDiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.CommonProxySelectorDataSubscriber;
+import org.apache.shenyu.plugin.base.handler.DiscoveryUpstreamDataHandler;
 import org.apache.shenyu.plugin.base.handler.ProxySelectorDataHandler;
 import org.apache.shenyu.plugin.global.DefaultShenyuContextBuilder;
 import org.apache.shenyu.plugin.global.GlobalPlugin;
 import org.apache.shenyu.plugin.global.subsciber.MetaDataCacheSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
@@ -91,6 +94,18 @@ public class GlobalPluginConfiguration {
     public ProxySelectorDataSubscriber proxySelectorDataSubscriber(final ObjectProvider<List<ProxySelectorDataHandler>> proxySelectorDataHandlers) {
         List<ProxySelectorDataHandler> proxySelectorDataHandlerList = proxySelectorDataHandlers.getIfAvailable(Collections::emptyList);
         return new CommonProxySelectorDataSubscriber(proxySelectorDataHandlerList);
+    }
+
+    /**
+     * Common discoveryUpstream Selector  subscriber.
+     *
+     * @param discoveryUpstreamDataHandlers discoveryUpstreamDataHandlers
+     * @return DiscoveryUpstreamDataSubscriber
+     */
+    @Bean
+    public DiscoveryUpstreamDataSubscriber discoveryUpstreamDataHandler(final ObjectProvider<List<DiscoveryUpstreamDataHandler>> discoveryUpstreamDataHandlers) {
+        List<DiscoveryUpstreamDataHandler> proxySelectorDataHandlerList = discoveryUpstreamDataHandlers.getIfAvailable(Collections::emptyList);
+        return new CommonDiscoveryUpstreamDataSubscriber(proxySelectorDataHandlerList);
     }
 
 }
