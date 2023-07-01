@@ -64,6 +64,8 @@ management:
   health:
     redis:
       enabled: false
+    elasticsearch:
+      enabled: false
   endpoint:
     health:
       enabled: true

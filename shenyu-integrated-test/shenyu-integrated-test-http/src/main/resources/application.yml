@@ -36,7 +36,7 @@ management:
 
 shenyu:
   httpclient:
-    maxInMemorySize: 5
+    maxInMemorySize: 64
   metrics:
     enabled: true
     name: prometheus
