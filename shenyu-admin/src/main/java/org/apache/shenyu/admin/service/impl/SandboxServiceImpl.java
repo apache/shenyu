@@ -17,19 +17,24 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import java.util.Set;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.ProxyGatewayDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.SandboxService;
+import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.HttpUtils;
 import org.apache.shenyu.admin.utils.ShenyuSignatureUtils;
 import org.apache.shenyu.admin.utils.UploadUtils;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +68,11 @@ public class SandboxServiceImpl implements SandboxService {
 
     private final AppAuthService appAuthService;
 
-    public SandboxServiceImpl(final AppAuthService appAuthService) {
+    private final ShenyuDictService shenyuDictService;
+
+    public SandboxServiceImpl(final AppAuthService appAuthService, final ShenyuDictService shenyuDictService) {
         this.appAuthService = appAuthService;
+        this.shenyuDictService = shenyuDictService;
     }
 
     @Override
@@ -74,6 +82,14 @@ public class SandboxServiceImpl implements SandboxService {
 
         String appKey = proxyGatewayDTO.getAppKey();
         UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(proxyGatewayDTO.getRequestUrl()).build();
+        String proxyHostPort = getHostPort(proxyGatewayDTO.getRequestUrl());
+
+        Set<String> permitHostPorts = getPermitHostPorts();
+        if (!permitHostPorts.contains(proxyHostPort)) {
+            LOG.error("Unsecure access, details: {}", proxyGatewayDTO.getRequestUrl());
+            throw new ShenyuException(proxyHostPort + " is not allowed.");
+        }
+
         String signContent = null;
         String sign = null;
         if (StringUtils.isNotEmpty(appKey)) {
@@ -104,6 +120,20 @@ public class SandboxServiceImpl implements SandboxService {
 
         IOUtils.copy(body.byteStream(), response.getOutputStream());
         response.flushBuffer();
+    }
+
+    private Set<String> getPermitHostPorts() {
+        List<ShenyuDictVO> dictVOList = shenyuDictService.list(AdminConstants.DICT_TYPE_API_DOC_ENV);
+        Set<String> hostPorts = dictVOList.stream()
+            .filter(ShenyuDictVO::getEnabled)
+            .map(dictVO -> getHostPort(dictVO.getDictValue()))
+            .collect(Collectors.toSet());
+        return hostPorts;
+    }
+
+    private String getHostPort(final String httpUrl) {
+        UriComponents uriComponent = UriComponentsBuilder.fromHttpUrl(httpUrl).build();
+        return uriComponent.getHost() + ":" + org.apache.shenyu.common.utils.UriUtils.getActualPort(uriComponent.getScheme(), uriComponent.getPort());
     }
 
     private Map<String, String> buildReqHeaders(final ProxyGatewayDTO proxyGatewayDTO) {

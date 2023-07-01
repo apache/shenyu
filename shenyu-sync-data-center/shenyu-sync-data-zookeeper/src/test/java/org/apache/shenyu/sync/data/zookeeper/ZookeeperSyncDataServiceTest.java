@@ -25,6 +25,7 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
+import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -53,8 +54,10 @@ public final class ZookeeperSyncDataServiceTest {
         final AuthDataSubscriber authDataSubscriber = mock(AuthDataSubscriber.class);
         final MetaDataSubscriber metaDataSubscriber = mock(MetaDataSubscriber.class);
         final ProxySelectorDataSubscriber proxySelectorDataSubscriber = mock(ProxySelectorDataSubscriber.class);
+        final DiscoveryUpstreamDataSubscriber discoveryUpstreamDataSubscriber = mock(DiscoveryUpstreamDataSubscriber.class);
         final ZookeeperSyncDataService zookeeperSyncDataService = new ZookeeperSyncDataService(zkClient,
-                pluginDataSubscriber, Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber), Collections.singletonList(proxySelectorDataSubscriber));
+                pluginDataSubscriber, Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber),
+                Collections.singletonList(proxySelectorDataSubscriber), Collections.singletonList(discoveryUpstreamDataSubscriber));
 
         List<TreeCacheEvent> treeCacheEvents = new ArrayList<>();
         // register uri
