@@ -250,17 +250,16 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
     }
 
     @Override
-    public void onProxySelectorChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+    public void onProxySelectorChanged(final List<ProxySelectorData> changed, final DataEventTypeEnum eventType) {
         updateProxySelectorMap(getConfig(changeData.getProxySelectorDataId()));
         switch (eventType) {
             case DELETE:
-                changed.forEach(discoverySyncData -> {
-                    ProxySelectorData proxySelectorData = discoverySyncData.getProxySelectorData();
+                changed.forEach(proxySelectorData -> {
                     List<ProxySelectorData> ls = PROXY_SELECTOR_MAP
                             .getOrDefault(proxySelectorData.getId(), new ArrayList<>())
                             .stream()
                             .filter(s -> !s.getId().equals(proxySelectorData.getId()))
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toList/**/());
                     PROXY_SELECTOR_MAP.put(proxySelectorData.getId(), ls);
                 });
                 break;
@@ -268,32 +267,38 @@ public abstract class AbstractListDataChangedListener implements DataChangedList
             case MYSELF:
                 Set<String> selectIdSet = changed
                         .stream()
-                        .map(discoverySyncData ->
-                                discoverySyncData.getProxySelectorData().getId()
+                        .map(proxySelectorData ->
+                                proxySelectorData.getId()
                         )
                         .collect(Collectors.toSet());
                 PROXY_SELECTOR_MAP.keySet().removeAll(selectIdSet);
-                changed.forEach(discoverySyncData -> {
-                    List<ProxySelectorData> ls = new ArrayList<>(PROXY_SELECTOR_MAP.getOrDefault(discoverySyncData.getProxySelectorData().getId(),
+                changed.forEach(proxySelectorData -> {
+                    List<ProxySelectorData> ls = new ArrayList<>(PROXY_SELECTOR_MAP.getOrDefault(proxySelectorData.getId(),
                             new ArrayList<>()));
-                    ls.add(discoverySyncData.getProxySelectorData());
-                    PROXY_SELECTOR_MAP.put(discoverySyncData.getProxySelectorData().getId(), ls);
+                    ls.add(proxySelectorData);
+                    PROXY_SELECTOR_MAP.put(proxySelectorData.getId(), ls);
                 });
                 break;
             default:
-                changed.forEach(discoverySyncData -> {
+                changed.forEach(proxySelectorData -> {
                     List<ProxySelectorData> ls = PROXY_SELECTOR_MAP
-                            .getOrDefault(discoverySyncData.getProxySelectorData().getId(), new ArrayList<>())
+                            .getOrDefault(proxySelectorData.getId(), new ArrayList<>())
                             .stream()
-                            .filter(s -> !s.getId().equals(discoverySyncData.getProxySelectorData().getId()))
+                            .filter(s -> !s.getId().equals(proxySelectorData.getId()))
                             .collect(Collectors.toList());
-                    ls.add(discoverySyncData.getProxySelectorData());
-                    PROXY_SELECTOR_MAP.put(discoverySyncData.getProxySelectorData().getId(), ls);
+                    ls.add(proxySelectorData);
+                    PROXY_SELECTOR_MAP.put(proxySelectorData.getId(), ls);
                 });
                 break;
         }
         publishConfig(changeData.getProxySelectorDataId(), PROXY_SELECTOR_MAP);
         LOG.debug("[DataChangedListener] ProxySelectorChanged {}", changeData.getProxySelectorDataId());
+    }
+
+    @Override
+    public void onDiscoveryUpstreamChanged(final List<DiscoverySyncData> changed, final DataEventTypeEnum eventType) {
+        // need to impl
+        DataChangedListener.super.onDiscoveryUpstreamChanged(changed, eventType);
     }
 
     private void updateAuthMap(final String configInfo) {

@@ -4,5 +4,5 @@
    \\___ \\| '_ \\ / _ \\ '_ \\| | | | | | |           Name: ShenYu Admin 
    ____) | | | |  __/ | | | |_| | |_| |                Port: ${server.port}
   |_____/|_| |_|\\___|_| |_|\\__, |\\__,_|             Pid: ${pid}
-                            __/ |      
+                            __/ |                      SpringBoot Version: ${spring-boot.version}
                            |___/      

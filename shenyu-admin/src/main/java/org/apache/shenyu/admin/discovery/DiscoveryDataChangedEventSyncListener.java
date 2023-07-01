@@ -21,13 +21,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.discovery.parse.KeyValueParser;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
-import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.discovery.api.listener.DiscoveryDataChangedEvent;
 import org.apache.shenyu.discovery.api.listener.DataChangedEventListener;
@@ -72,7 +74,7 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
         if (DiscoveryDataChangedEvent.Event.IGNORED.equals(currentEvent)) {
             return;
         }
-        DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getKey(), event.getValue());
+        DiscoverySyncData discoverySyncData = buildProxySelectorData(event.getValue());
         DataChangedEvent dataChangedEvent = null;
         List<DiscoveryUpstreamData> upstreamDataList = discoverySyncData.getUpstreamDataList();
         if (needPersistence) {
@@ -89,8 +91,6 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                         discoveryUpstreamMapper.insert(DiscoveryTransfer.INSTANCE.mapToDo(d));
                         LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] ADDED Upstream {}", d.getUrl());
                     });
-                    fillFullyDiscoverySyncData(discoverySyncData);
-                    dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.CREATE, Collections.singletonList(discoverySyncData));
                     break;
                 case UPDATED:
                     upstreamDataList.forEach(d -> {
@@ -98,8 +98,6 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                         discoveryUpstreamMapper.update(discoveryUpstreamDO);
                         LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] UPDATE Upstream {}", discoveryUpstreamDO.getUrl());
                     });
-                    fillFullyDiscoverySyncData(discoverySyncData);
-                    dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
                     break;
                 case DELETED:
                     if (CollectionUtils.isNotEmpty(upstreamDataList)) {
@@ -108,12 +106,12 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
                             LOGGER.info("shenyu [DiscoveryDataChangedEventSyncListener] DELETE Upstream {}", up.getUrl());
                         });
                     }
-                    fillFullyDiscoverySyncData(discoverySyncData);
-                    dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.PROXY_SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
                     break;
                 default:
                     throw new IllegalStateException("shenyu DiscoveryDataChangedEventSyncListener find IllegalState");
             }
+            fillFullyDiscoverySyncData(discoverySyncData);
+            dataChangedEvent = new DataChangedEvent(ConfigGroupEnum.DISCOVER_UPSTREAM, DataEventTypeEnum.UPDATE, Collections.singletonList(discoverySyncData));
         }
         if (Objects.nonNull(dataChangedEvent)) {
             eventPublisher.publishEvent(dataChangedEvent);
@@ -121,21 +119,22 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
     }
 
     private void fillFullyDiscoverySyncData(final DiscoverySyncData discoverySyncData) {
-        ProxySelectorData proxySelectorData = discoverySyncData.getProxySelectorData();
-        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByProxySelectorId(proxySelectorData.getId());
+        List<DiscoveryUpstreamDO> discoveryUpstreamDOS = discoveryUpstreamMapper.selectByProxySelectorId(discoverySyncData.getSelectorId());
         List<DiscoveryUpstreamData> collect = discoveryUpstreamDOS.stream().map(DiscoveryTransfer.INSTANCE::mapToData).collect(Collectors.toList());
         discoverySyncData.setUpstreamDataList(collect);
     }
 
-    private DiscoverySyncData buildProxySelectorData(final String key, final String value) {
-        List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(value);
-        ProxySelectorData proxySelectorData = keyValueParser.parseKey(key);
-        String[] split = key.split("/");
-        String discoveryHandleId = split[split.length - 2];
-        discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandleId));
+    private DiscoverySyncData buildProxySelectorData(final String value) {
+        String[] splitArr = value.split("[|]");
+        DiscoveryHandlerDTO discoveryHandlerDTO = GsonUtils.getInstance().fromJson(splitArr[0], DiscoveryHandlerDTO.class);
+        ProxySelectorDO proxySelectorDO = GsonUtils.getInstance().fromJson(splitArr[1], ProxySelectorDO.class);
+        List<DiscoveryUpstreamData> discoveryUpstreamDTOS = keyValueParser.parseValue(splitArr[2]);
+        discoveryUpstreamDTOS.forEach(s -> s.setDiscoveryHandlerId(discoveryHandlerDTO.getId()));
         DiscoverySyncData data = new DiscoverySyncData();
         data.setUpstreamDataList(discoveryUpstreamDTOS);
-        data.setProxySelectorData(proxySelectorData);
+        data.setSelectorId(proxySelectorDO.getId());
+        data.setSelectorName(proxySelectorDO.getName());
+        data.setPluginName(proxySelectorDO.getPluginName());
         return data;
     }
 

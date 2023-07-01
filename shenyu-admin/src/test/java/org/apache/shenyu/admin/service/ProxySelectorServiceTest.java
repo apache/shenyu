@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
@@ -66,11 +67,14 @@ class ProxySelectorServiceTest {
     @Mock
     private DiscoveryHandlerMapper discoveryHandlerMapper;
 
+    @Mock
+    private DiscoveryProcessorHolder discoveryProcessorHolder;
+
     @BeforeEach
     void testSetUp() {
 
         proxySelectorService = new ProxySelectorServiceImpl(proxySelectorMapper, discoveryMapper, discoveryUpstreamMapper,
-                discoveryHandlerMapper, discoveryRelMapper);
+                discoveryHandlerMapper, discoveryRelMapper, discoveryProcessorHolder);
     }
 
     @Test
