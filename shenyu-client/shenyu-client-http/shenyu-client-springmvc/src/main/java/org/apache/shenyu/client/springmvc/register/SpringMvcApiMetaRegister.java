@@ -47,6 +47,7 @@ public class SpringMvcApiMetaRegister extends AbstractApiMetaRegistrar {
     private final String host;
 
     private final Integer port;
+    
     private final ClientRegisterConfig clientRegisterConfig;
 
     public SpringMvcApiMetaRegister(final ShenyuClientRegisterEventPublisher publisher,

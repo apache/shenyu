@@ -42,6 +42,7 @@ public class SpringMvcApiMetaRegisterTest {
     private TestShenyuClientRegisterEventPublisher testShenyuClientRegisterEventPublisher;
     
     private SpringMvcApiMetaRegister springMvcApiMetaRegister;
+    
     private final SpringMvcApiBeansExtractor beansExtractor = new SpringMvcApiBeansExtractor();
     
     @BeforeEach
@@ -71,7 +72,6 @@ public class SpringMvcApiMetaRegisterTest {
     void testAnnotatedMethod() throws Exception {
         
         ApiBean apiBean = createSimpleApiBean(TestApiBeanAnnotatedMethod.class);
-        
         
         springMvcApiMetaRegister.register(apiBean);
         

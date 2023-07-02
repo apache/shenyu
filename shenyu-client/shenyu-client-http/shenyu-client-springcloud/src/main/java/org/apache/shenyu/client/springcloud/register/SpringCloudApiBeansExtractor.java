@@ -39,6 +39,7 @@ import java.util.Objects;
 public class SpringCloudApiBeansExtractor extends BaseAnnotationApiBeansExtractor implements ApiBeansExtractor {
     
     private final List<Class<? extends Annotation>> supportedApiAnnotations = new ArrayList<>(1);
+    
     private final List<Class<? extends Annotation>> supportedApiDefinitionAnnotations = new ArrayList<>(1);
     
     public SpringCloudApiBeansExtractor() {
