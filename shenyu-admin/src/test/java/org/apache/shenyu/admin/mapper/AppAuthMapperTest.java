@@ -138,8 +138,8 @@ public final class AppAuthMapperTest extends AbstractSpringIntegrationTest {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         return AppAuthDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())
-                .appKey("SignUtils.getInstance().generateKey()")
-                .appSecret("SignUtils.getInstance().generateKey()")
+                .appKey(SignUtils.generateKey())
+                .appSecret(SignUtils.generateKey())
                 .extInfo("{\"extInfo\":\"json\"}")
                 .open(true)
                 .enabled(false)
