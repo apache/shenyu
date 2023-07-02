@@ -56,6 +56,7 @@ public abstract class AbstractApiDocRegistrar extends AbstractApiRegistrar<ApiDo
     private final Integer port;
     
     private final Boolean addPrefixed;
+    
     private final ClientRegisterConfig clientRegisterConfig;
     
     private final Matcher<ApiBean> apiBeanMatcher = new AnnotatedApiBeanMatcher(ApiModule.class);

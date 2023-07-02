@@ -46,7 +46,6 @@ public class AbstractApiDocRegistrarTest {
     
     private AbstractApiDocRegistrar apiDocRegistrar;
     
-    
     @BeforeEach
     public void init() {
         
@@ -92,7 +91,7 @@ public class AbstractApiDocRegistrarTest {
     private static ApiBean createSimpleApiBean(final Class<?> beanClass) throws Exception {
         
         ApiBean apiBean = new ApiBean(RpcTypeEnum.HTTP.getName(),
-                beanClass.getName(), beanClass.getDeclaredConstructor().newInstance(),"testClass");
+                beanClass.getName(), beanClass.getDeclaredConstructor().newInstance(), "testClass");
         
         apiBean.addApiDefinition(beanClass.getMethod("testMethod"), "/testMethod");
         

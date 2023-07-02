@@ -68,7 +68,7 @@ public class ApiBean {
     private String beanPath;
     
     /**
-     * Custom properties for beans
+     * Custom properties for beans.
      */
     private final Properties beanProperties = new Properties();
     
@@ -208,8 +208,10 @@ public class ApiBean {
     
     /**
      * set beanPath.
+     *
+     * @param beanPath beanPath
      */
-    public void setBeanPath(String beanPath) {
+    public void setBeanPath(final String beanPath) {
         this.beanPath = beanPath;
     }
     
@@ -247,7 +249,6 @@ public class ApiBean {
          */
         private final Properties apiProperties = new Properties();
         
-        
         public ApiDefinition(final Method apiMethod) {
             this.apiMethod = apiMethod;
             this.methodPath = apiMethod.getName();
@@ -263,7 +264,6 @@ public class ApiBean {
             this.apiMethod = apiMethod;
             this.methodPath = methodPath;
         }
-        
         
         /**
          * add properties value.
@@ -312,7 +312,6 @@ public class ApiBean {
             return apiBean.beanPath;
         }
         
-        
         /**
          * Gets method path.
          *
@@ -351,7 +350,6 @@ public class ApiBean {
         public <A extends Annotation> A getAnnotation(final Class<A> annotationClass) {
             return AnnotatedElementUtils.findMergedAnnotation(apiMethod, annotationClass);
         }
-        
         
         /**
          * Gets parameterTypes.

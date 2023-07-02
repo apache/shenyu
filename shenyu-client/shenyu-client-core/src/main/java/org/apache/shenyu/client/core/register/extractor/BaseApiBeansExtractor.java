@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  */
 public abstract class BaseApiBeansExtractor implements ApiBeansExtractor {
     
-    private static final Logger LOG = LoggerFactory.getLogger(BaseApiBeansExtractor.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(BaseApiBeansExtractor.class);
     
     @Override
     public List<ApiBean> extract(final ApplicationContext applicationContext) {
@@ -80,7 +80,7 @@ public abstract class BaseApiBeansExtractor implements ApiBeansExtractor {
     }
     
     /**
-     * post process api
+     * post process api.
      *
      * @param api api
      */
@@ -184,5 +184,5 @@ public abstract class BaseApiBeansExtractor implements ApiBeansExtractor {
      * @param applicationContext applicationContext.
      * @return bean map
      */
-    protected abstract Map<String, Object> extractSupportBeans(final ApplicationContext applicationContext);
+    protected abstract Map<String, Object> extractSupportBeans(ApplicationContext applicationContext);
 }
