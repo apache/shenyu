@@ -232,13 +232,6 @@ public class ApiBean {
         private ApiBean apiBean;
         
         /**
-         * set methodPath.
-         */
-        public void setMethodPath(final String methodPath) {
-            this.methodPath = methodPath;
-        }
-        
-        /**
          * The URI path after conversion to the HTTP service.
          */
         private String methodPath;
@@ -262,6 +255,15 @@ public class ApiBean {
         private ApiDefinition(final ApiBean apiBean, final Method apiMethod, final String methodPath) {
             this.apiBean = apiBean;
             this.apiMethod = apiMethod;
+            this.methodPath = methodPath;
+        }
+        
+        /**
+         * set methodPath.
+         *
+         * @param methodPath methodPath
+         */
+        public void setMethodPath(final String methodPath) {
             this.methodPath = methodPath;
         }
         
